@@ -1,4 +1,3 @@
-
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -36,12 +35,8 @@ public class User {
 
     @JsonProperty("currentMode")
     private String currentMode = "USER";
-
-    // Default constructor (required for JSON deserialization)
     public User() {
     }
-
-    // Constructor with parameters
     public User(Integer id, String username, String email, String firstName, String lastName) {
         this.id = id;
         this.username = username;
@@ -49,8 +44,6 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
     }
-
-    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -123,9 +116,7 @@ public class User {
         this.currentMode = currentMode;
     }
 
-    /**
-     * Check if user has ADMIN role
-     */
+    
     public boolean hasAdminRole() {
         if (roles == null)
             return false;
@@ -133,9 +124,7 @@ public class User {
                 role.equalsIgnoreCase("ROLE_ADMIN"));
     }
 
-    /**
-     * Check if user is currently in ADMIN mode and has ADMIN role
-     */
+    
     public boolean isInAdminMode() {
         return hasAdminRole() && "ADMIN".equalsIgnoreCase(currentMode);
     }

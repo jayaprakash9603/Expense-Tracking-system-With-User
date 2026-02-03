@@ -53,10 +53,11 @@
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 
-        <!-- Spring Security (for security exception handling) -->
+        <!-- Spring Security (for security exception handling) - marked optional so services can choose to enable it -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Auto-configuration support -->

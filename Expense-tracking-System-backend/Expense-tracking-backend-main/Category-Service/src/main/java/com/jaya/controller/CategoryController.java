@@ -1,5 +1,9 @@
 package com.jaya.controller;
 
+import com.jaya.common.exception.AccessDeniedException;
+import com.jaya.common.exception.AuthenticationException;
+import com.jaya.common.exception.ResourceNotFoundException;
+import com.jaya.dto.CategorySearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.models.User;
@@ -10,6 +14,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -32,383 +37,205 @@ public class CategoryController {
     @Autowired
     private UnifiedActivityService unifiedActivityService;
 
-    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess)
-            throws Exception {
+    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) {
         if (targetId == null)
             return reqUser;
         User targetUser = userService.getUserProfileById(targetId);
-        System.out.println("DEBUG: targetId=" + targetId + ", targetUser=" + targetUser);
         if (targetUser == null)
-            throw new RuntimeException("Target user not found");
+            throw ResourceNotFoundException.userNotFound(targetId);
         boolean hasAccess = needWriteAccess ? friendshipService.canUserModifyExpenses(targetId, reqUser.getId())
                 : friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
-        System.out.println("DEBUG: hasAccess=" + hasAccess);
         if (!hasAccess) {
             String action = needWriteAccess ? "modify" : "access";
-            throw new RuntimeException("You don't have permission to " + action + " this user's categories");
+            throw new AccessDeniedException("You don't have permission to " + action + " this user's categories");
         }
         return targetUser;
     }
 
-    private ResponseEntity<?> handleTargetUserException(RuntimeException e) {
-        if (e.getMessage().contains("not found")) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Target user not found");
-        } else if (e.getMessage().contains("permission")) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    private User validateUserFromJwt(String jwt) {
+        User user = userService.getuserProfile(jwt);
+        if (user == null) {
+            throw AuthenticationException.invalidToken();
         }
+        return user;
     }
 
     @PostMapping
-    public ResponseEntity<?> createCategory(
+    public ResponseEntity<Category> createCategory(
             @RequestHeader("Authorization") String jwt,
             @RequestBody Category category,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            Category created = categoryService.create(category, targetUser.getId());
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        Category created = categoryService.create(category, targetUser.getId());
+        unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
 
-            // Send unified event (handles both own action and friend activity)
-            unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
-
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating category: " + e.getMessage());
-        }
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCategoryById(
+    public ResponseEntity<Category> getCategoryById(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            Category category = categoryService.getById(id, targetUser.getId());
-            if (category == null)
-                return ResponseEntity.notFound().build();
-            return ResponseEntity.ok(category);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching category: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        Category category = categoryService.getById(id, targetUser.getId());
+        return ResponseEntity.ok(category);
     }
 
     @GetMapping("/name/{name}")
-    public ResponseEntity<?> getCategoryByName(
+    public ResponseEntity<List<Category>> getCategoryByName(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String name,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            List<Category> categories = categoryService.getByName(name, targetUser.getId());
-            if (categories == null)
-                return ResponseEntity.notFound().build();
-            return ResponseEntity.ok(categories);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        List<Category> categories = categoryService.getByName(name, targetUser.getId());
+        return ResponseEntity.ok(categories);
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllCategories(
+    public ResponseEntity<List<Category>> getAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            List<Category> categories = categoryService.getAll(targetUser.getId());
-            if (categories.isEmpty())
-                return ResponseEntity.noContent().build();
-            return ResponseEntity.ok(categories);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        List<Category> categories = categoryService.getAll(targetUser.getId());
+        if (categories.isEmpty())
+            return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(categories);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategory(
+    public ResponseEntity<Category> updateCategory(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @RequestBody Category category,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        Category oldCategory = categoryService.getById(id, targetUser.getId());
+        User userForUpdate = (targetId == null) ? reqUser : targetUser;
+        Category updated = categoryService.update(id, category, userForUpdate);
+        unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
 
-            // Get old category for audit tracking
-            Category oldCategory = categoryService.getById(id, targetUser.getId());
-
-            // Pass the requesting user to check for admin mode
-            // If reqUser is in admin mode and editing their own categories (no targetId),
-            // they can directly edit global categories
-            User userForUpdate = (targetId == null) ? reqUser : targetUser;
-            Category updated = categoryService.update(id, category, userForUpdate);
-
-            // Send unified event (handles both own action and friend activity)
-            unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
-
-            return ResponseEntity.ok(updated);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating category: " + e.getMessage());
-        }
+        return ResponseEntity.ok(updated);
     }
 
-    /**
-     * Admin-only PATCH endpoint for partial update of global categories.
-     * User must have ADMIN role AND be in ADMIN mode.
-     * Updates are reflected for all users.
-     * 
-     * Allowed fields: name, description, type, icon, color
-     */
+    
     @PatchMapping("/admin/global/{id}")
-    public ResponseEntity<?> adminUpdateGlobalCategory(
+    public ResponseEntity<Category> adminUpdateGlobalCategory(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @RequestBody Category category) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        User reqUser = validateUserFromJwt(jwt);
+        Category oldCategory = categoryService.getById(id, reqUser.getId());
 
-            // Get old category for audit tracking
-            Category oldCategory = categoryService.getById(id, reqUser.getId());
+        Category updated = categoryService.adminUpdateGlobalCategory(id, category, reqUser);
+        unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
 
-            Category updated = categoryService.adminUpdateGlobalCategory(id, category, reqUser);
-
-            // Send unified event for admin action
-            unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
-
-            return ResponseEntity.ok(updated);
-        } catch (Exception e) {
-            String errorMessage = e.getMessage();
-            if (errorMessage != null && errorMessage.contains("Access denied")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage);
-            }
-            if (errorMessage != null && errorMessage.contains("not found")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Error updating global category: " + errorMessage);
-        }
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(
+    public ResponseEntity<String> deleteCategory(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            // Get category name before deletion for notification
-            Category category = categoryService.getById(id, targetUser.getId());
-            String categoryName = category != null ? category.getName() : null;
-            categoryService.delete(id, targetUser.getId());
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        Category category = categoryService.getById(id, targetUser.getId());
+        String categoryName = category.getName();
+        categoryService.delete(id, targetUser.getId());
+        unifiedActivityService.sendCategoryDeletedEvent(id, categoryName, reqUser, targetUser);
 
-            // Send unified event (handles both own action and friend activity)
-            unifiedActivityService.sendCategoryDeletedEvent(id, categoryName, reqUser, targetUser);
-
-            return new ResponseEntity<>("Category is deleted", HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting category: " + e.getMessage());
-        }
+        return new ResponseEntity<>("Category is deleted", HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> createMultipleCategories(
+    public ResponseEntity<List<Category>> createMultipleCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestBody List<Category> categories,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            List<Category> createdCategories = categoryService.createMultiple(categories, targetUser.getId());
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        List<Category> createdCategories = categoryService.createMultiple(categories, targetUser.getId());
+        unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
 
-            // Send unified event for bulk categories creation
-            unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
-
-            return new ResponseEntity<>(createdCategories, HttpStatus.CREATED);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error creating categories: " + e.getMessage());
-        }
+        return new ResponseEntity<>(createdCategories, HttpStatus.CREATED);
     }
 
     @PutMapping("/bulk")
-    public ResponseEntity<?> updateMultipleCategories(
+    public ResponseEntity<List<Category>> updateMultipleCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestBody List<Category> categories,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            // Pass the requesting user to check for admin role
-            // If reqUser has admin role and editing their own categories (no targetId),
-            // they can directly edit global categories
-            User userForUpdate = (targetId == null) ? reqUser : targetUser;
-            List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
-
-            // Send appropriate notification based on who performed the action
-            unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
-            return ResponseEntity.ok(updatedCategories);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        User userForUpdate = (targetId == null) ? reqUser : targetUser;
+        List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
+        unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
+        return ResponseEntity.ok(updatedCategories);
     }
 
     @DeleteMapping("/bulk")
-    public ResponseEntity<?> deleteMultipleCategories(
+    public ResponseEntity<Void> deleteMultipleCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestBody List<Integer> categoryIds,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            int count = categoryIds != null ? categoryIds.size() : 0;
-            categoryService.deleteMultiple(categoryIds, targetUser.getId());
-
-            // Send appropriate notification based on who performed the action
-            unifiedActivityService.sendMultipleCategoriesDeletedEvent(count, reqUser, targetUser);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        int count = categoryIds != null ? categoryIds.size() : 0;
+        categoryService.deleteMultiple(categoryIds, targetUser.getId());
+        unifiedActivityService.sendMultipleCategoriesDeletedEvent(count, reqUser, targetUser);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/all/global")
-    public ResponseEntity<?> deleteAllGlobalCategories(
+    public ResponseEntity<Void> deleteAllGlobalCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(name = "global", defaultValue = "true") boolean global,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            categoryService.deleteAllGlobal(targetUser.getId(), global);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting global categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        categoryService.deleteAllGlobal(targetUser.getId(), global);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("")
-    public ResponseEntity<?> deleteAllCategories(
+    public ResponseEntity<Void> deleteAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            // Get count before deletion for notification
-            List<Category> categories = categoryService.getAll(targetUser.getId());
-            int count = categories != null ? categories.size() : 0;
-            categoryService.deleteAllUserCategories(targetUser.getId());
-
-            // Send appropriate notification based on who performed the action
-            unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error deleting all categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        List<Category> categories = categoryService.getAll(targetUser.getId());
+        int count = categories != null ? categories.size() : 0;
+        categoryService.deleteAllUserCategories(targetUser.getId());
+        unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/uncategorized")
-    public ResponseEntity<?> getUncategorizedExpenses(
+    public ResponseEntity<List<ExpenseDTO>> getUncategorizedExpenses(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            List<ExpenseDTO> uncategorizedExpenses = categoryService.getOthersAndUncategorizedExpenses(targetUser);
-            return ResponseEntity.ok(uncategorizedExpenses);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching uncategorized expenses: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        List<ExpenseDTO> uncategorizedExpenses = categoryService.getOthersAndUncategorizedExpenses(targetUser);
+        return ResponseEntity.ok(uncategorizedExpenses);
     }
 
     @GetMapping("/{categoryId}/filtered-expenses")
-    public ResponseEntity<?> getFilteredExpensesWithCategoryFlag(
+    public ResponseEntity<List<ExpenseDTO>> getFilteredExpensesWithCategoryFlag(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer categoryId,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            }
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-
-            // Always sort by date descending, no paging
-            List<ExpenseDTO> allExpenses = categoryService.getAllExpensesWithCategoryFlag(
-                    targetUser.getId(), categoryId);
-            return ResponseEntity.ok(allExpenses);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching filtered expenses: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        List<ExpenseDTO> allExpenses = categoryService.getAllExpensesWithCategoryFlag(
+                targetUser.getId(), categoryId);
+        return ResponseEntity.ok(allExpenses);
     }
 
     @GetMapping("/{categoryId}/expenses")
@@ -422,47 +249,35 @@ public class CategoryController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null)
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
-            String effectiveSortDir = sortDir != null ? sortDir.toLowerCase() : "desc";
-            if (!effectiveSortDir.equals("asc") && !effectiveSortDir.equals("desc"))
-                effectiveSortDir = "desc";
-            String effectiveSortBy = sortBy != null ? sortBy : "date";
+        String effectiveSortDir = sortDir != null ? sortDir.toLowerCase() : "desc";
+        if (!effectiveSortDir.equals("asc") && !effectiveSortDir.equals("desc"))
+            effectiveSortDir = "desc";
+        String effectiveSortBy = sortBy != null ? sortBy : "date";
 
-            List<ExpenseDTO> orderedExpenses = categoryService.getAllUserExpensesOrderedByCategoryFlag(
-                    targetUser.getId(), categoryId, page, size, effectiveSortBy, effectiveSortDir);
-
-            // Apply date filtering if startDate and endDate are provided
-            if (startDate != null && endDate != null) {
-                java.time.LocalDate start = java.time.LocalDate.parse(startDate);
-                java.time.LocalDate end = java.time.LocalDate.parse(endDate);
-                orderedExpenses = orderedExpenses.stream()
-                        .filter(e -> e.isIncludeInBudget()) // Only include expenses in this category
-                        .filter(e -> {
-                            if (e.getDate() == null)
-                                return false;
-                            java.time.LocalDate expenseDate = e.getDate();
-                            return !expenseDate.isBefore(start) && !expenseDate.isAfter(end);
-                        })
-                        .collect(java.util.stream.Collectors.toList());
-            } else {
-                // If no date filter, still only return expenses in this category
-                orderedExpenses = orderedExpenses.stream()
-                        .filter(e -> e.isIncludeInBudget())
-                        .collect(java.util.stream.Collectors.toList());
-            }
-
-            return ResponseEntity.ok(orderedExpenses);
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error fetching expenses: " + e.getMessage());
+        List<ExpenseDTO> orderedExpenses = categoryService.getAllUserExpensesOrderedByCategoryFlag(
+                targetUser.getId(), categoryId, page, size, effectiveSortBy, effectiveSortDir);
+        if (startDate != null && endDate != null) {
+            java.time.LocalDate start = java.time.LocalDate.parse(startDate);
+            java.time.LocalDate end = java.time.LocalDate.parse(endDate);
+            orderedExpenses = orderedExpenses.stream()
+                    .filter(e -> e.isIncludeInBudget()) // Only include expenses in this category
+                    .filter(e -> {
+                        if (e.getDate() == null)
+                            return false;
+                        java.time.LocalDate expenseDate = e.getDate();
+                        return !expenseDate.isBefore(start) && !expenseDate.isAfter(end);
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            orderedExpenses = orderedExpenses.stream()
+                    .filter(e -> e.isIncludeInBudget())
+                    .collect(Collectors.toList());
         }
+
+        return ResponseEntity.ok(orderedExpenses);
     }
 
     private String validateAndNormalizeSortField(String sortBy) {
@@ -487,55 +302,39 @@ public class CategoryController {
     }
 
     @GetMapping("/get-by-id-with-service")
-    public Category getById(@RequestParam Integer categoryId, @RequestParam Integer userId) throws Exception {
+    public Category getById(@RequestParam Integer categoryId, @RequestParam Integer userId) {
         return categoryService.getById(categoryId, userId);
     }
 
     @GetMapping("/get-by-name-with-service")
-    public List<Category> getByName(@RequestParam String categoryName, @RequestParam Integer userId) throws Exception {
+    public List<Category> getByName(@RequestParam String categoryName, @RequestParam Integer userId) {
         return categoryService.getByName(categoryName, userId);
     }
 
     @PostMapping("/create-category-with-service")
-    public Category createCateogoryWithService(@RequestBody Category category, @RequestParam Integer userId)
-            throws Exception {
+    public Category createCateogoryWithService(@RequestBody Category category, @RequestParam Integer userId) {
         return categoryService.create(category, userId);
     }
 
     @PostMapping("/save")
-    public Category save(@RequestBody Category category) throws Exception {
+    public Category save(@RequestBody Category category) {
         return categoryService.save(category);
     }
 
     @GetMapping("/get-all-for-users")
-    public List<Category> getAllForUser(@RequestParam Integer userId) throws Exception {
+    public List<Category> getAllForUser(@RequestParam Integer userId) {
         return categoryService.getAllForUser(userId);
     }
 
-    /**
-     * Fuzzy search categories by name or type.
-     * Includes both user-specific and global categories.
-     * Supports partial text matching for typeahead/search functionality.
-     * Optimized query - returns DTOs to avoid N+1 problem.
-     */
+    
     @GetMapping("/search")
-    public ResponseEntity<?> searchCategories(
+    public ResponseEntity<List<CategorySearchDTO>> searchCategories(
             @RequestParam String query,
             @RequestParam(defaultValue = "20") int limit,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
-        try {
-            User reqUser = userService.getuserProfile(jwt);
-            if (reqUser == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            }
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
-            return ResponseEntity.ok(categoryService.searchCategories(targetUser.getId(), query, limit));
-        } catch (RuntimeException e) {
-            return handleTargetUserException(e);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error searching categories: " + e.getMessage());
-        }
+        User reqUser = validateUserFromJwt(jwt);
+        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        return ResponseEntity.ok(categoryService.searchCategories(targetUser.getId(), query, limit));
     }
 }

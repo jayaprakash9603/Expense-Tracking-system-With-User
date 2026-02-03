@@ -1,1 +1,1 @@
-com.jaya.common.config.CommonLibraryAutoConfiguration
+# Auto-configuration disabled - classes are imported via component scan

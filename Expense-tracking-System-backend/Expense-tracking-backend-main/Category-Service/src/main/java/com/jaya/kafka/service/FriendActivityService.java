@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for sending friend activity notifications for category operations.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,25 +21,19 @@ public class FriendActivityService {
 
     private final FriendActivityProducer friendActivityProducer;
 
-    /**
-     * Send notification when a friend creates a category on behalf of another user.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser) {
         sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates a category with target user details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser, User targetUser) {
         sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle category creation notification.
-     */
+    
     private void sendCategoryCreatedByFriendInternal(Category category, Integer targetUserId, User actorUser,
             User targetUser) {
         try {
@@ -80,27 +71,20 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend creates multiple categories.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
         sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates multiple categories with target user
-     * details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
             User targetUser) {
         sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle bulk category creation notification.
-     */
+    
     private void sendBulkCategoriesCreatedByFriendInternal(List<Category> categories, Integer targetUserId,
             User actorUser,
             User targetUser) {
@@ -110,8 +94,6 @@ public class FriendActivityService {
             }
 
             String actorName = getActorDisplayName(actorUser);
-
-            // Build bulk payload
             Map<String, Object> bulkPayload = new HashMap<>();
             bulkPayload.put("categoryCount", categories.size());
             bulkPayload.put("categories", categories.stream().map(this::buildCategoryPayload).toList());
@@ -140,27 +122,20 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates a category.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryUpdatedByFriend(Category category, Integer targetUserId, User actorUser) {
         sendCategoryUpdatedByFriendInternal(category, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates a category with previous state and
-     * target user details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryUpdatedByFriend(Category category, Category previousCategory, Integer targetUserId,
             User actorUser, User targetUser) {
         sendCategoryUpdatedByFriendInternal(category, previousCategory, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle category update notification.
-     */
+    
     private void sendCategoryUpdatedByFriendInternal(Category category, Category previousCategory, Integer targetUserId,
             User actorUser, User targetUser) {
         try {
@@ -195,27 +170,20 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates multiple categories.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
         sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates multiple categories with target user
-     * details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
             User targetUser) {
         sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle bulk category update notification.
-     */
+    
     private void sendBulkCategoriesUpdatedByFriendInternal(List<Category> categories, Integer targetUserId,
             User actorUser,
             User targetUser) {
@@ -225,8 +193,6 @@ public class FriendActivityService {
             }
 
             String actorName = getActorDisplayName(actorUser);
-
-            // Build bulk payload
             Map<String, Object> bulkPayload = new HashMap<>();
             bulkPayload.put("categoryCount", categories.size());
             bulkPayload.put("categories", categories.stream().map(this::buildCategoryPayload).toList());
@@ -255,19 +221,14 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes a category.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName,
             Integer targetUserId, User actorUser) {
         sendCategoryDeletedByFriendInternal(categoryId, categoryName, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes a category with deleted entity
-     * details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName, Category deletedCategory,
             Integer targetUserId, User actorUser, User targetUser) {
@@ -275,9 +236,7 @@ public class FriendActivityService {
                 targetUser);
     }
 
-    /**
-     * Internal method to handle category deletion notification.
-     */
+    
     private void sendCategoryDeletedByFriendInternal(Integer categoryId, String categoryName, Category deletedCategory,
             Integer targetUserId, User actorUser, User targetUser) {
         try {
@@ -312,27 +271,20 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes multiple categories.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
         sendBulkCategoriesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes multiple categories with deleted
-     * entities details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, List<Category> deletedCategories, Integer targetUserId,
             User actorUser, User targetUser) {
         sendBulkCategoriesDeletedByFriendInternal(count, deletedCategories, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle bulk category deletion notification.
-     */
+    
     private void sendBulkCategoriesDeletedByFriendInternal(int count, List<Category> deletedCategories,
             Integer targetUserId,
             User actorUser, User targetUser) {
@@ -342,8 +294,6 @@ public class FriendActivityService {
             }
 
             String actorName = getActorDisplayName(actorUser);
-
-            // Build payload with deleted categories info
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedCategories != null && !deletedCategories.isEmpty()) {
@@ -374,27 +324,20 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes all categories.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, int count) {
         sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
-    /**
-     * Send notification when a friend deletes all categories with deleted entities
-     * details.
-     */
+    
     @Async("friendActivityExecutor")
     public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, User targetUser, int count,
             List<Category> deletedCategories) {
         sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedCategories);
     }
 
-    /**
-     * Internal method to handle all categories deletion notification.
-     */
+    
     private void sendAllCategoriesDeletedByFriendInternal(Integer targetUserId, User actorUser, User targetUser,
             int count, List<Category> deletedCategories) {
         try {
@@ -403,8 +346,6 @@ public class FriendActivityService {
             }
 
             String actorName = getActorDisplayName(actorUser);
-
-            // Build payload with deleted categories info
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedCategories != null && !deletedCategories.isEmpty()) {
@@ -445,9 +386,7 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    /**
-     * Build UserInfo from User for enhanced event data.
-     */
+    
     private FriendActivityEvent.UserInfo buildUserInfo(User user) {
         if (user == null)
             return null;
@@ -466,9 +405,7 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Build complete category payload as a Map for entity data.
-     */
+    
     private Map<String, Object> buildCategoryPayload(Category category) {
         if (category == null)
             return null;

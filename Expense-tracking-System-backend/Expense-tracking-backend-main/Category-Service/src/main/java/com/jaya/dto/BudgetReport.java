@@ -7,14 +7,11 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BudgetReport {
-
-
 
     private Integer budgetId;
     private double allocatedAmount;

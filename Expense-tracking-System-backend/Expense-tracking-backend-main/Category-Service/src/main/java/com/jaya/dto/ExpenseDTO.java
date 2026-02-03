@@ -1,4 +1,3 @@
-
 package com.jaya.dto;
 
 import lombok.Data;
@@ -31,8 +30,6 @@ public class ExpenseDTO {
     private Integer categoryId = 0;
 
     private String categoryName = "";
-
-    // Nested expense details - matches the @OneToOne relationship
     private ExpenseDetailsDTO expense;
 
     private boolean isBill = false;

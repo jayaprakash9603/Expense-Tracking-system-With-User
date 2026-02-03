@@ -4,10 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Lightweight DTO for category search results.
- * Avoids lazy loading issues by containing only essential fields.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

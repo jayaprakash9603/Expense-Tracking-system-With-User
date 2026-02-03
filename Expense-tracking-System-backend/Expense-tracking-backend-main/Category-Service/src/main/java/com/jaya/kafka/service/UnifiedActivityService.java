@@ -18,16 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Unified Activity Service for Category Service.
- * Replaces separate FriendActivityService and CategoryNotificationService.
- * 
- * All events are sent to the single unified-activity-events topic.
- * The routing flags determine how the event is processed by consumers:
- * - isOwnAction=true -> Regular notification
- * - isFriendActivity=true -> Friend activity notification
- * - requiresAudit=true -> Audit logging
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,13 +26,7 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    // =============================================
-    // CATEGORY CREATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a category is created (own action or friend action)
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryCreatedEvent(Category category, User actorUser, User targetUser) {
         try {
@@ -87,9 +71,7 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple categories are created
-     */
+    
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesCreatedEvent(List<Category> categories, User actorUser, User targetUser) {
         try {
@@ -130,13 +112,7 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // CATEGORY UPDATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a category is updated
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryUpdatedEvent(Category category, Category oldCategory, User actorUser, User targetUser) {
         try {
@@ -180,9 +156,7 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple categories are updated
-     */
+    
     @Async("friendActivityExecutor")
     public void sendMultipleCategoriesUpdatedEvent(List<Category> categories, User actorUser, User targetUser) {
         try {
@@ -225,13 +199,8 @@ public class UnifiedActivityService {
             log.error("Failed to send multiple categories updated event: {}", e.getMessage(), e);
         }
     }
-    // =============================================
-    // CATEGORY DELETED EVENTS
-    // =============================================
 
-    /**
-     * Send event when a category is deleted
-     */
+    
     @Async("friendActivityExecutor")
     public void sendCategoryDeletedEvent(Integer categoryId, String categoryName, User actorUser, User targetUser) {
         try {
@@ -277,9 +246,7 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple categories are deleted
-     */
+    
     @Async("friendActivityExecutor")
     public void sendMultipleCategoriesDeletedEvent(int count, User actorUser, User targetUser) {
         try {
@@ -320,9 +287,7 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when all categories are deleted
-     */
+    
     @Async("friendActivityExecutor")
     public void sendAllCategoriesDeletedEvent(int count, User actorUser, User targetUser) {
         try {
@@ -362,10 +327,6 @@ public class UnifiedActivityService {
             log.error("Failed to send all categories deleted event: {}", e.getMessage(), e);
         }
     }
-
-    // =============================================
-    // HELPER METHODS
-    // =============================================
 
     private UserInfo buildUserInfo(User user) {
         if (user == null)

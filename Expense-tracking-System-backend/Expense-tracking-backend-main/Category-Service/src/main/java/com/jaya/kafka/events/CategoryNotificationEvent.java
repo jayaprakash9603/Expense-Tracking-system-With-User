@@ -13,12 +13,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Event DTO for Category notifications
- * This matches the CategoryEventDTO structure expected by Notification Service
- * 
- * Follows the same pattern as ExpenseNotificationEvent for consistency
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -43,9 +37,7 @@ public class CategoryNotificationEvent implements Serializable {
 
     private String metadata; // JSON string for additional data
 
-    /**
-     * Action constants for category events
-     */
+    
     public static class Action {
         public static final String CREATE = "CREATE";
         public static final String UPDATE = "UPDATE";
@@ -53,7 +45,6 @@ public class CategoryNotificationEvent implements Serializable {
         public static final String BUDGET_EXCEEDED = "BUDGET_EXCEEDED";
 
         private Action() {
-            // Utility class
         }
     }
 }

@@ -7,18 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Kafka producer for Category notification events
- * Extends the base NotificationEventProducer with category-specific logic
- * 
- * Follows SOLID Principles:
- * - Single Responsibility: Only handles category event production
- * - Open/Closed: Extends base class without modifying it
- * - Liskov Substitution: Can be used anywhere NotificationEventProducer is
- * expected
- * - Interface Segregation: Only exposes necessary methods
- * - Dependency Inversion: Depends on abstractions (KafkaTemplate, ObjectMapper)
- */
 @Slf4j
 @Component
 public class CategoryNotificationProducer extends NotificationEventProducer<CategoryNotificationEvent> {
@@ -45,8 +33,6 @@ public class CategoryNotificationProducer extends NotificationEventProducer<Cate
     @Override
     protected void validateEvent(CategoryNotificationEvent event) {
         super.validateEvent(event);
-
-        // Additional category-specific validation
         if (event.getUserId() == null) {
             throw new IllegalArgumentException("User ID cannot be null for category event");
         }
@@ -62,8 +48,6 @@ public class CategoryNotificationProducer extends NotificationEventProducer<Cate
 
     @Override
     protected String generatePartitionKey(CategoryNotificationEvent event) {
-        // Partition by userId to ensure all events for a user go to same partition
-        // This maintains event ordering per user
         return "user-" + event.getUserId();
     }
 

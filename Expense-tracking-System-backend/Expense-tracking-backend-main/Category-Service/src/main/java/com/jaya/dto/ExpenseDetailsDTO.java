@@ -1,4 +1,3 @@
-
 package com.jaya.dto;
 
 import lombok.Data;
@@ -22,9 +21,6 @@ public class ExpenseDetailsDTO {
     private double netAmount;
     private String comments;
     private double creditDue;
-
-    // Note: We don't include the 'expense' field in the DTO to avoid circular references
-    // and because DTOs should be flat structures for data transfer
 
     @Override
     public String toString() {

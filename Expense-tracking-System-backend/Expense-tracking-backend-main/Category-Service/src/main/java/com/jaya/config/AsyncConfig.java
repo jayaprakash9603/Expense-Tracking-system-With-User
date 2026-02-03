@@ -22,10 +22,7 @@ public class AsyncConfig {
         return executor;
     }
 
-    /**
-     * Dedicated executor for friend activity event production.
-     * Ensures async event publishing doesn't block main request threads.
-     */
+    
     @Bean(name = "friendActivityExecutor")
     public Executor friendActivityExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

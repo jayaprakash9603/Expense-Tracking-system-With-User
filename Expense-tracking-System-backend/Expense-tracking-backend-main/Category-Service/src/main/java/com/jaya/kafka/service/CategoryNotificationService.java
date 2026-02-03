@@ -14,15 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for creating and sending category notification events
- * Follows Single Responsibility Principle - only responsible for event creation
- * and dispatch
- * 
- * This service sends notifications to users when they perform CRUD operations
- * on categories.
- * It follows the same pattern as ExpenseNotificationService for consistency.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,9 +22,7 @@ public class CategoryNotificationService {
     private final CategoryNotificationProducer categoryNotificationProducer;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Send notification when category is created
-     */
+    
     public void sendCategoryCreatedNotification(Category category) {
         try {
             CategoryNotificationEvent event = buildCategoryEvent(
@@ -46,13 +35,10 @@ public class CategoryNotificationService {
         } catch (Exception e) {
             log.error("Failed to send category created notification for categoryId: {}",
                     category.getId(), e);
-            // Don't throw - notification failure shouldn't break main flow
         }
     }
 
-    /**
-     * Send notification when category is updated
-     */
+    
     public void sendCategoryUpdatedNotification(Category category) {
         try {
             CategoryNotificationEvent event = buildCategoryEvent(
@@ -68,9 +54,7 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Send notification when category is deleted
-     */
+    
     public void sendCategoryDeletedNotification(Integer categoryId, Integer userId, String categoryName) {
         try {
             CategoryNotificationEvent event = CategoryNotificationEvent.builder()
@@ -90,15 +74,12 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Send notification when multiple categories are created in bulk
-     */
+    
     public void sendBulkCategoriesCreatedNotification(List<Category> categories, Integer userId) {
         if (categories == null || categories.isEmpty()) {
             return;
         }
         try {
-            // Send individual notifications for each category (respecting user preferences)
             for (Category category : categories) {
                 sendCategoryCreatedNotification(category);
             }
@@ -109,9 +90,7 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Send notification when multiple categories are updated in bulk
-     */
+    
     public void sendBulkCategoriesUpdatedNotification(List<Category> categories, Integer userId) {
         if (categories == null || categories.isEmpty()) {
             return;
@@ -127,9 +106,7 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Send notification when multiple categories are deleted in bulk
-     */
+    
     public void sendBulkCategoriesDeletedNotification(List<Integer> categoryIds, Integer userId,
             List<String> categoryNames) {
         if (categoryIds == null || categoryIds.isEmpty()) {
@@ -147,9 +124,7 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Send notification when all categories are deleted
-     */
+    
     public void sendAllCategoriesDeletedNotification(Integer userId, int count) {
         try {
             CategoryNotificationEvent event = CategoryNotificationEvent.builder()
@@ -167,9 +142,7 @@ public class CategoryNotificationService {
         }
     }
 
-    /**
-     * Build category notification event from Category entity
-     */
+    
     private CategoryNotificationEvent buildCategoryEvent(Category category, String action) {
         CategoryNotificationEvent.CategoryNotificationEventBuilder builder = CategoryNotificationEvent.builder()
                 .categoryId(category.getId())
@@ -180,8 +153,6 @@ public class CategoryNotificationService {
                 .icon(category.getIcon())
                 .color(category.getColor())
                 .timestamp(LocalDateTime.now());
-
-        // Build metadata JSON with additional info
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("categoryName", category.getName());

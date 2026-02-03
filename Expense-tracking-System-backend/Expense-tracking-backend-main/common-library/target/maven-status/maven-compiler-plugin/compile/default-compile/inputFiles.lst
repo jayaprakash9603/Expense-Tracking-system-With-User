@@ -1,7 +1,6 @@
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\response\PageResponse.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\ExpenseDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\FriendActivityEvent.java
-C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\producer\AuditEventProducer.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\KafkaException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\SystemException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\FriendshipDTO.java
@@ -16,10 +15,8 @@ C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-S
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\ActivityDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\FriendRequestEvent.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\util\CommonConstants.java
-C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\producer\FriendRequestEventProducer.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\NotificationEvent.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\BaseException.java
-C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\producer\NotificationEventProducer.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\UnifiedActivityEvent.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\CategoryDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\error\ErrorCode.java
@@ -35,9 +32,8 @@ C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-S
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\UserDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\AccessDeniedException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\ResourceNotFoundException.java
-C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\producer\FriendActivityEventProducer.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\BusinessException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\AuditLogDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\AuditEvent.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\PaymentMethodDTO.java
-C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\producer\UnifiedActivityEventProducer.java
+C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\handler\SecurityExceptionHandler.java

@@ -8,12 +8,6 @@ import org.springframework.kafka.support.SendResult;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Abstract Base Class for Notification Event Producers
- * Implements Template Method Pattern and follows SOLID principles
- * 
- * @param <T> Event type
- */
 @Slf4j
 public abstract class NotificationEventProducer<T> {
 
@@ -26,9 +20,7 @@ public abstract class NotificationEventProducer<T> {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Template Method - sends event asynchronously to Kafka
-     */
+    
     public void sendEvent(T event) {
         try {
             validateEvent(event);
@@ -56,13 +48,9 @@ public abstract class NotificationEventProducer<T> {
             throw new RuntimeException("Failed to send notification event", e);
         }
     }
-
-    // Abstract methods
     protected abstract String getTopicName();
 
     protected abstract String getEventTypeName();
-
-    // Hook methods
     protected void validateEvent(T event) {
         if (event == null) {
             throw new IllegalArgumentException("Event cannot be null");

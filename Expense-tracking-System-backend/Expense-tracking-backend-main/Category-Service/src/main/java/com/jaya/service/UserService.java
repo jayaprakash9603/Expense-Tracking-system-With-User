@@ -1,7 +1,6 @@
 package com.jaya.service;
 
-
-import com.jaya.exceptions.UserNotFoundException;
+import com.jaya.common.exception.ResourceNotFoundException;
 import com.jaya.models.User;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +13,6 @@ public interface UserService {
     @GetMapping("/api/user/profile")
     public User getuserProfile(@RequestHeader("Authorization") String jwt);
 
-
     @GetMapping("/auth/user/{userId}")
-    public User getUserProfileById(@PathVariable("userId") Integer id) throws UserNotFoundException;
+    public User getUserProfileById(@PathVariable("userId") Integer id) throws ResourceNotFoundException;
 }

@@ -18,8 +18,6 @@ public class CategoryKafkaConfig {
 
     @Value("${spring.kafka.consumer.max-poll-records:500}")
     private int maxPollRecords;
-
-    // Batch-enabled listener container factory for category events
     @Bean(name = "categoryBatchFactory")
     public ConcurrentKafkaListenerContainerFactory<String, String> categoryBatchFactory(
             ConsumerFactory<String, String> consumerFactory) {
@@ -29,7 +27,6 @@ public class CategoryKafkaConfig {
         factory.setBatchListener(true);
         factory.setConcurrency(concurrency);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.BATCH);
-        // Let Boot apply max.poll.records from properties; ensure it's present
         factory.getContainerProperties().getKafkaConsumerProperties()
                 .put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, String.valueOf(maxPollRecords));
         return factory;
