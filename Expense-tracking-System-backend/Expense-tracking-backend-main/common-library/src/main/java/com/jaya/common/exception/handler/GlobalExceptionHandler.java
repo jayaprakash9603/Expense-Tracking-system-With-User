@@ -33,8 +33,10 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -227,6 +229,43 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 
+        @ExceptionHandler(HandlerMethodValidationException.class)
+        public ResponseEntity<ApiError> handleHandlerMethodValidationException(
+                        HandlerMethodValidationException ex, WebRequest request) {
+
+                String path = extractPath(request);
+
+                List<ApiError.FieldError> fieldErrors = ex.getAllValidationResults()
+                                .stream()
+                                .flatMap(result -> result.getResolvableErrors().stream())
+                                .map(error -> {
+                                        String field = "unknown";
+                                        Object rejectedValue = null;
+
+                                        if (error instanceof org.springframework.validation.FieldError) {
+                                                org.springframework.validation.FieldError fieldError = (org.springframework.validation.FieldError) error;
+                                                field = fieldError.getField();
+                                                rejectedValue = fieldError.getRejectedValue();
+                                        } else if (error.getCodes() != null && error.getCodes().length > 0) {
+                                                field = error.getCodes()[0];
+                                        }
+
+                                        return ApiError.FieldError.builder()
+                                                        .field(field)
+                                                        .message(error.getDefaultMessage())
+                                                        .rejectedValue(rejectedValue)
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
+
+                log.warn("Handler method validation failed at path: {} - {} errors", path, fieldErrors.size());
+
+                ApiError error = ApiError.validationError(path, fieldErrors)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+
         @ExceptionHandler(MethodArgumentTypeMismatchException.class)
         public ResponseEntity<ApiError> handleMethodArgumentTypeMismatchException(
                         MethodArgumentTypeMismatchException ex, WebRequest request) {
@@ -335,6 +374,22 @@ public class GlobalExceptionHandler {
                 String details = String.format("No handler found for %s %s", ex.getHttpMethod(), ex.getRequestURL());
 
                 log.warn("No handler found: {} {}", ex.getHttpMethod(), ex.getRequestURL());
+
+                ApiError error = ApiError.of(ErrorCode.SYSTEM_RESOURCE_NOT_FOUND, path, details)
+                                .withServiceName(serviceName);
+
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
+
+        @ExceptionHandler(NoResourceFoundException.class)
+        public ResponseEntity<ApiError> handleNoResourceFoundException(
+                        NoResourceFoundException ex, WebRequest request) {
+
+                String path = extractPath(request);
+                String details = String.format("No resource found for %s %s",
+                                ex.getHttpMethod(), ex.getResourcePath());
+
+                log.warn("No resource found: {} {}", ex.getHttpMethod(), ex.getResourcePath());
 
                 ApiError error = ApiError.of(ErrorCode.SYSTEM_RESOURCE_NOT_FOUND, path, details)
                                 .withServiceName(serviceName);
