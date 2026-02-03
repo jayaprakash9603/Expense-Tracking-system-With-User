@@ -15,18 +15,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * @deprecated Use
- *             {@link com.jaya.common.exception.handler.GlobalExceptionHandler}
- *             from common-library instead.
- *             This class is disabled to avoid bean conflict with the
- *             common-library's GlobalExceptionHandler.
- *             The common-library provides a unified exception handling
- *             mechanism across all microservices.
- */
-@Deprecated
-// @ControllerAdvice // Disabled - Using GlobalExceptionHandler from
-// common-library
+// /**
+//  * @deprecated Use
+//  *             {@link com.jaya.common.exception.handler.GlobalExceptionHandler}
+//  *             from common-library instead.
+//  *             This class is disabled to avoid bean conflict with the
+//  *             common-library's GlobalExceptionHandler.
+//  *             The common-library provides a unified exception handling
+//  *             mechanism across all microservices.
+//  */
+// @Deprecated
+@ControllerAdvice 
 public class GlobalExceptionHandler {
 
         @ExceptionHandler(NotificationNotFoundException.class)

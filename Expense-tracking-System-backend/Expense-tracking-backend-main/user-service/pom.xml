@@ -105,6 +105,12 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.2.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -136,6 +142,13 @@
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
 			<version>3.5.2</version>
+		</dependency>
+
+		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities -->
+		<dependency>
+			<groupId>com.jaya.common</groupId>
+			<artifactId>expense-common-library</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
 

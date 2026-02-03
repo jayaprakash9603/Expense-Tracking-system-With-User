@@ -31,11 +31,11 @@
 	</properties>
 	<dependencies>
 		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>com.jaya.common</groupId>
 			<artifactId>expense-common-library</artifactId>
 			<version>1.0.0</version>
-		</dependency>
+		</dependency> -->
 
 		<!-- Google OAuth2 and other necessary dependencies -->
 		<dependency>
