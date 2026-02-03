@@ -1,0 +1,18 @@
+# Common Library Default Configuration
+# These properties can be overridden in your service's application.yml
+
+# Exception Handler
+common:
+  exception-handler:
+    enabled: true
+  kafka:
+    enabled: true
+
+# Default Kafka Topics (can be overridden per service)
+kafka:
+  topics:
+    unified-activity-events: unified-activity-events
+    audit-events: audit-events
+    friend-request-events: friend-request-events
+    friend-activity-events: friend-activity-events
+    notification-events: notification-events
