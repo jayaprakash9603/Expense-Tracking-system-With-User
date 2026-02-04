@@ -230,6 +230,7 @@ const Reports = () => {
                 <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
                 <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
                 <MuiMenuItem value="1y">Last Year</MuiMenuItem>
+                <MuiMenuItem value="all">All Time</MuiMenuItem>
                 <MuiMenuItem value="custom">Custom Range</MuiMenuItem>
               </Select>
             </FormControl>

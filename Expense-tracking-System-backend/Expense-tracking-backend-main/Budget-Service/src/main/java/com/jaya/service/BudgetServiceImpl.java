@@ -372,20 +372,39 @@ public class BudgetServiceImpl implements BudgetService {
                 .sum();
 
         double totalExpenses = totalCashLosses + totalCreditLosses;
-
         double remainingAmount = budget.getAmount() - totalExpenses;
-
         boolean isBudgetValid = isBudgetValid(budgetId);
 
-        return new BudgetReport(
-                budget.getId(),
-                budget.getAmount(),
-                budget.getStartDate(),
-                budget.getEndDate(),
-                remainingAmount,
-                isBudgetValid,
-                totalCashLosses,
-                totalCreditLosses);
+        // Calculate additional metrics
+        int expenseCount = expenses.size();
+        long totalDays = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
+        double dailyBudget = totalDays > 0 ? budget.getAmount() / totalDays : 0;
+
+        // Calculate projected overspend based on current spending rate
+        long daysElapsed = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), LocalDate.now());
+        double projectedOverspend = 0;
+        if (daysElapsed > 0 && totalDays > 0) {
+            double dailySpendRate = totalExpenses / daysElapsed;
+            double projectedTotal = dailySpendRate * totalDays;
+            projectedOverspend = projectedTotal > budget.getAmount() ? projectedTotal - budget.getAmount() : 0;
+        }
+
+        BudgetReport report = new BudgetReport();
+        report.setBudgetId(budget.getId());
+        report.setBudgetName(budget.getName());
+        report.setDescription(budget.getDescription());
+        report.setAllocatedAmount(budget.getAmount());
+        report.setStartDate(budget.getStartDate());
+        report.setEndDate(budget.getEndDate());
+        report.setRemainingAmount(remainingAmount);
+        report.setValid(isBudgetValid);
+        report.setTotalCashLosses(totalCashLosses);
+        report.setTotalCreditLosses(totalCreditLosses);
+        report.setExpenseCount(expenseCount);
+        report.setDailyBudget(dailyBudget);
+        report.setProjectedOverspend(projectedOverspend);
+
+        return report;
     }
 
     @Override

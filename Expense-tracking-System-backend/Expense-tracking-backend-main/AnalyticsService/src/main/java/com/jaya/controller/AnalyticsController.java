@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @RestController
@@ -28,6 +29,7 @@ public class AnalyticsController {
 
     private static final Logger log = LoggerFactory.getLogger(AnalyticsController.class);
     private static final DateTimeFormatter FILE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final AnalyticsOverviewService analyticsOverviewService;
     private final CategoryAnalyticsService categoryAnalyticsService;
@@ -81,46 +83,41 @@ public class AnalyticsController {
         return ResponseEntity.ok(analytics);
     }
 
-    // ==================== VISUAL EXCEL REPORT ENDPOINTS ====================
-
-    /**
-     * Generate and download a comprehensive visual Excel report.
-     * Includes charts, formulas, conditional formatting, and multiple sheets.
-     *
-     * @param jwt        Authorization token
-     * @param startDate  Start date for the report (YYYY-MM-DD)
-     * @param endDate    End date for the report (YYYY-MM-DD)
-     * @param includeCharts Include charts in the report (default: true)
-     * @param includeFormulas Include dynamic formulas (default: true)
-     * @param includeConditionalFormatting Include conditional formatting (default: true)
-     * @param targetId   Optional target user ID for friend expense viewing
-     * @return Excel file download
-     */
     @GetMapping("/report/excel")
     public ResponseEntity<InputStreamResource> downloadVisualReport(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "allTime", required = false, defaultValue = "false") boolean allTime,
+            @RequestParam(value = "reportType", required = false, defaultValue = "COMPREHENSIVE") String reportType,
             @RequestParam(value = "includeCharts", required = false, defaultValue = "true") boolean includeCharts,
             @RequestParam(value = "includeFormulas", required = false, defaultValue = "true") boolean includeFormulas,
             @RequestParam(value = "includeConditionalFormatting", required = false, defaultValue = "true") boolean includeConditionalFormatting,
             @RequestParam(value = "targetId", required = false) Integer targetId) throws IOException {
 
-        log.info("Generating visual Excel report: startDate={}, endDate={}, charts={}, formulas={}, formatting={}",
-                startDate, endDate, includeCharts, includeFormulas, includeConditionalFormatting);
+        log.info("Generating Excel report: type={}, year={}, month={}, startDate={}, endDate={}, allTime={}",
+                reportType, year, month, startDate, endDate, allTime);
 
-        // Set default dates if not provided (last 3 months)
-        if (endDate == null) {
+        // Handle allTime option - use a very early start date
+        if (allTime) {
+            startDate = LocalDate.of(2000, 1, 1); // Start from year 2000 to capture all data
             endDate = LocalDate.now();
-        }
-        if (startDate == null) {
-            startDate = endDate.minusMonths(3);
+        } else if (year != null && month != null) {
+            startDate = LocalDate.of(year, month, 1);
+            endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+        } else {
+            if (endDate == null)
+                endDate = LocalDate.now();
+            if (startDate == null)
+                startDate = endDate.minusMonths(3);
         }
 
         VisualReportRequest request = VisualReportRequest.builder()
                 .startDate(startDate)
                 .endDate(endDate)
-                .reportType(VisualReportRequest.ReportType.COMPREHENSIVE)
+                .reportType(VisualReportRequest.ReportType.valueOf(reportType))
                 .includeCharts(includeCharts)
                 .includeFormulas(includeFormulas)
                 .includeConditionalFormatting(includeConditionalFormatting)
@@ -129,96 +126,16 @@ public class AnalyticsController {
 
         ByteArrayInputStream reportStream = visualReportService.generateVisualReport(jwt, request);
 
-        String filename = String.format("expense_report_%s_to_%s.xlsx",
-                startDate.format(FILE_DATE_FORMAT),
-                endDate.format(FILE_DATE_FORMAT));
+        // Generate filename with timestamp
+        String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
+        String dateRange = allTime ? "all_time"
+                : (startDate.format(FILE_DATE_FORMAT) + "_to_" + endDate.format(FILE_DATE_FORMAT));
+        String filename = String.format("expense_report_%s_%s.xlsx", dateRange, timestamp);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(reportStream));
-    }
-
-    /**
-     * Generate and download a monthly expense report.
-     *
-     * @param jwt   Authorization token
-     * @param year  Year for the report
-     * @param month Month for the report (1-12)
-     * @param targetId Optional target user ID
-     * @return Excel file download
-     */
-    @GetMapping("/report/excel/monthly")
-    public ResponseEntity<InputStreamResource> downloadMonthlyReport(
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam("year") int year,
-            @RequestParam("month") int month,
-            @RequestParam(value = "targetId", required = false) Integer targetId) throws IOException {
-
-        log.info("Generating monthly Excel report: year={}, month={}", year, month);
-
-        ByteArrayInputStream reportStream = visualReportService.generateMonthlyReport(jwt, year, month, targetId);
-
-        String filename = String.format("expense_report_%d_%02d.xlsx", year, month);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(reportStream));
-    }
-
-    /**
-     * Generate and download a current month expense report.
-     *
-     * @param jwt Authorization token
-     * @param targetId Optional target user ID
-     * @return Excel file download
-     */
-    @GetMapping("/report/excel/current-month")
-    public ResponseEntity<InputStreamResource> downloadCurrentMonthReport(
-            @RequestHeader("Authorization") String jwt,
-            @RequestParam(value = "targetId", required = false) Integer targetId) throws IOException {
-
-        LocalDate now = LocalDate.now();
-        log.info("Generating current month Excel report: {}/{}", now.getYear(), now.getMonthValue());
-
-        ByteArrayInputStream reportStream = visualReportService.generateMonthlyReport(
-                jwt, now.getYear(), now.getMonthValue(), targetId);
-
-        String filename = String.format("expense_report_current_month_%s.xlsx", now.format(FILE_DATE_FORMAT));
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(new InputStreamResource(reportStream));
-    }
-
-    /**
-     * Generate a custom visual report with POST body for more options.
-     *
-     * @param jwt     Authorization token
-     * @param request Report configuration request
-     * @return Excel file download
-     */
-    @PostMapping("/report/excel/custom")
-    public ResponseEntity<InputStreamResource> downloadCustomReport(
-            @RequestHeader("Authorization") String jwt,
-            @RequestBody VisualReportRequest request) throws IOException {
-
-        log.info("Generating custom Excel report: type={}, dateRange={} to {}",
-                request.getReportType(), request.getStartDate(), request.getEndDate());
-
-        ByteArrayInputStream reportStream = visualReportService.generateVisualReport(jwt, request);
-
-        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : LocalDate.now().minusMonths(3);
-        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : LocalDate.now();
-        String filename = String.format("expense_report_custom_%s_to_%s.xlsx",
-                startDate.format(FILE_DATE_FORMAT),
-                endDate.format(FILE_DATE_FORMAT));
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new InputStreamResource(reportStream));
     }
 }

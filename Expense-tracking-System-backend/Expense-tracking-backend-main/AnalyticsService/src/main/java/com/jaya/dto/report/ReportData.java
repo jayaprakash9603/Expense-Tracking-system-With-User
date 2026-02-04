@@ -18,40 +18,52 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReportData {
-    
+
     // ==================== METADATA ====================
     private String reportTitle;
     private LocalDate generatedDate;
     private LocalDate startDate;
     private LocalDate endDate;
     private String userName;
-    
+
     // ==================== SUMMARY SECTION ====================
     private SummaryData summary;
-    
+
     // ==================== EXPENSE DATA ====================
     private List<ExpenseRow> expenses;
-    
+
     // ==================== CATEGORY DATA ====================
     private List<CategoryData> categoryBreakdown;
-    
+
     // ==================== MONTHLY TRENDS ====================
     private List<MonthlyTrendData> monthlyTrends;
-    
+
     // ==================== DAILY SPENDING ====================
     private List<DailySpendingData> dailySpending;
-    
+
     // ==================== BUDGET DATA ====================
     private List<BudgetData> budgets;
-    
+
     // ==================== PAYMENT METHOD DATA ====================
     private List<PaymentMethodData> paymentMethods;
-    
+
+    // ==================== WEEKDAY ANALYSIS ====================
+    private List<WeekdaySpendingData> weekdaySpending;
+
+    // ==================== YEAR OVER YEAR COMPARISON ====================
+    private List<YearlyComparisonData> yearlyComparison;
+
+    // ==================== TOP EXPENSES ====================
+    private List<TopExpenseData> topExpenses;
+
+    // ==================== EXPENSE VELOCITY ====================
+    private ExpenseVelocityData expenseVelocity;
+
     // ==================== INSIGHTS ====================
     private List<InsightData> insights;
-    
+
     // ==================== NESTED DTOs ====================
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -72,7 +84,7 @@ public class ReportData {
         private double topCategoryAmount;
         private String topPaymentMethod;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -84,13 +96,13 @@ public class ReportData {
         private double amount;
         private String category;
         private String paymentMethod;
-        private String type;  // CASH, CREDIT
+        private String type; // CASH, CREDIT
         private String notes;
         private double creditAmount;
         private boolean isBillPayment;
         private List<Integer> budgetIds;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -105,13 +117,13 @@ public class ReportData {
         private double percentage;
         private double averageAmount;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MonthlyTrendData {
-        private String month;         // e.g., "January 2026"
+        private String month; // e.g., "January 2026"
         private int year;
         private int monthNumber;
         private double totalAmount;
@@ -120,19 +132,19 @@ public class ReportData {
         private double changeFromPreviousMonth;
         private double changePercent;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DailySpendingData {
         private LocalDate date;
-        private String dayName;       // Mon, Tue, etc.
+        private String dayName; // Mon, Tue, etc.
         private double amount;
         private int transactionCount;
         private String topCategory;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -140,17 +152,25 @@ public class ReportData {
     public static class BudgetData {
         private Integer budgetId;
         private String budgetName;
+        private String description;
         private double allocatedAmount;
         private double usedAmount;
         private double remainingAmount;
         private double utilizationPercent;
         private LocalDate startDate;
         private LocalDate endDate;
-        private String status;        // ACTIVE, EXCEEDED, WARNING, EXPIRED
+        private String status; // ACTIVE, EXCEEDED, WARNING, EXPIRED
         private int expenseCount;
         private int daysRemaining;
+        private int totalDays;
+        private double dailyBudget;
+        private double dailySpendRate;
+        private double projectedOverspend;
+        private double cashSpent;
+        private double creditSpent;
+        private boolean isValid;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -163,16 +183,74 @@ public class ReportData {
         private double percentage;
         private String color;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class InsightData {
-        private String type;          // INFO, WARNING, SUGGESTION, SUCCESS
+        private String type; // INFO, WARNING, SUGGESTION, SUCCESS
         private String title;
         private String message;
         private String icon;
         private Double value;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WeekdaySpendingData {
+        private String dayName; // Monday, Tuesday, etc.
+        private int dayOfWeek; // 1-7
+        private double totalAmount;
+        private int transactionCount;
+        private double averageAmount;
+        private double percentage;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class YearlyComparisonData {
+        private int year;
+        private double totalAmount;
+        private int transactionCount;
+        private double averageMonthlySpend;
+        private double changeFromPreviousYear;
+        private double changePercent;
+        private String topCategory;
+        private double topCategoryAmount;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class TopExpenseData {
+        private Integer id;
+        private String name;
+        private double amount;
+        private LocalDate date;
+        private String category;
+        private String paymentMethod;
+        private int rank;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ExpenseVelocityData {
+        private double dailyAverage;
+        private double weeklyAverage;
+        private double monthlyAverage;
+        private double last7DaysTotal;
+        private double last30DaysTotal;
+        private double last7DaysChange; // % change compared to previous 7 days
+        private double last30DaysChange; // % change compared to previous 30 days
+        private String trend; // INCREASING, DECREASING, STABLE
+        private double projectedMonthlySpend;
     }
 }

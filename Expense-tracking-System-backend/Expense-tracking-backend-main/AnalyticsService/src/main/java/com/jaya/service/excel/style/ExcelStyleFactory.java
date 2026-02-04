@@ -11,33 +11,33 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * Supports conditional formatting colors, currency, dates, and more.
  */
 public class ExcelStyleFactory {
-    
+
     // ==================== COLOR CONSTANTS ====================
-    
+
     // Traffic light colors for conditional formatting
-    public static final byte[] COLOR_GREEN = new byte[]{(byte)0, (byte)176, (byte)80};      // Success
-    public static final byte[] COLOR_YELLOW = new byte[]{(byte)255, (byte)192, (byte)0};    // Warning
-    public static final byte[] COLOR_RED = new byte[]{(byte)255, (byte)0, (byte)0};         // Danger/Exceeded
-    public static final byte[] COLOR_ORANGE = new byte[]{(byte)255, (byte)165, (byte)0};    // Alert
-    
+    public static final byte[] COLOR_GREEN = new byte[] { (byte) 0, (byte) 176, (byte) 80 }; // Success
+    public static final byte[] COLOR_YELLOW = new byte[] { (byte) 255, (byte) 192, (byte) 0 }; // Warning
+    public static final byte[] COLOR_RED = new byte[] { (byte) 255, (byte) 0, (byte) 0 }; // Danger/Exceeded
+    public static final byte[] COLOR_ORANGE = new byte[] { (byte) 255, (byte) 165, (byte) 0 }; // Alert
+
     // Neutral colors
-    public static final byte[] COLOR_LIGHT_GRAY = new byte[]{(byte)242, (byte)242, (byte)242};
-    public static final byte[] COLOR_DARK_GRAY = new byte[]{(byte)89, (byte)89, (byte)89};
-    public static final byte[] COLOR_WHITE = new byte[]{(byte)255, (byte)255, (byte)255};
-    
+    public static final byte[] COLOR_LIGHT_GRAY = new byte[] { (byte) 242, (byte) 242, (byte) 242 };
+    public static final byte[] COLOR_DARK_GRAY = new byte[] { (byte) 89, (byte) 89, (byte) 89 };
+    public static final byte[] COLOR_WHITE = new byte[] { (byte) 255, (byte) 255, (byte) 255 };
+
     // Brand/Accent colors
-    public static final byte[] COLOR_PRIMARY = new byte[]{(byte)79, (byte)129, (byte)189};  // Blue
-    public static final byte[] COLOR_SECONDARY = new byte[]{(byte)155, (byte)187, (byte)89}; // Green
-    public static final byte[] COLOR_ACCENT = new byte[]{(byte)128, (byte)100, (byte)162};  // Purple
-    
+    public static final byte[] COLOR_PRIMARY = new byte[] { (byte) 79, (byte) 129, (byte) 189 }; // Blue
+    public static final byte[] COLOR_SECONDARY = new byte[] { (byte) 155, (byte) 187, (byte) 89 }; // Green
+    public static final byte[] COLOR_ACCENT = new byte[] { (byte) 128, (byte) 100, (byte) 162 }; // Purple
+
     private final XSSFWorkbook workbook;
-    
+
     public ExcelStyleFactory(XSSFWorkbook workbook) {
         this.workbook = workbook;
     }
-    
+
     // ==================== HEADER STYLES ====================
-    
+
     /**
      * Create main title style (large, bold, centered)
      */
@@ -52,7 +52,7 @@ public class ExcelStyleFactory {
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
-    
+
     /**
      * Create section header style
      */
@@ -70,7 +70,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create table header style (column headers)
      */
@@ -87,9 +87,9 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     // ==================== DATA STYLES ====================
-    
+
     /**
      * Create default data cell style
      */
@@ -100,20 +100,21 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
-     * Create currency data style
+     * Create currency data style (Indian Rupee format)
      */
     public XSSFCellStyle createCurrencyStyle() {
         XSSFCellStyle style = workbook.createCellStyle();
         DataFormat format = workbook.createDataFormat();
-        style.setDataFormat(format.getFormat("$#,##0.00"));
+        // Use Rupee symbol (₹) with Indian number format
+        style.setDataFormat(format.getFormat("₹#,##0.00"));
         style.setAlignment(HorizontalAlignment.RIGHT);
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create percentage style
      */
@@ -126,7 +127,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create date style
      */
@@ -139,7 +140,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create number style (no decimals)
      */
@@ -152,7 +153,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create decimal style (2 decimal places)
      */
@@ -165,9 +166,9 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     // ==================== CONDITIONAL FORMATTING STYLES ====================
-    
+
     /**
      * Create success/good status style (green background)
      */
@@ -183,7 +184,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create warning status style (yellow/orange background)
      */
@@ -198,7 +199,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create danger/exceeded status style (red background)
      */
@@ -214,9 +215,10 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Get status style based on percentage threshold
+     * 
      * @param percentage 0-100 percentage value
      * @return Appropriate style (green < 80%, yellow 80-99%, red >= 100%)
      */
@@ -229,9 +231,9 @@ public class ExcelStyleFactory {
             return createSuccessStyle();
         }
     }
-    
+
     // ==================== KPI/METRIC STYLES ====================
-    
+
     /**
      * Create KPI label style
      */
@@ -246,7 +248,7 @@ public class ExcelStyleFactory {
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
-    
+
     /**
      * Create KPI value style (large, bold)
      */
@@ -261,19 +263,19 @@ public class ExcelStyleFactory {
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         return style;
     }
-    
+
     /**
-     * Create KPI value style with currency format
+     * Create KPI value style with currency format (Indian Rupee)
      */
     public XSSFCellStyle createKpiCurrencyStyle() {
         XSSFCellStyle style = createKpiValueStyle();
         DataFormat format = workbook.createDataFormat();
-        style.setDataFormat(format.getFormat("$#,##0.00"));
+        style.setDataFormat(format.getFormat("₹#,##0.00"));
         return style;
     }
-    
+
     // ==================== ALTERNATING ROW STYLES ====================
-    
+
     /**
      * Create style for even rows (white background)
      */
@@ -286,7 +288,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Create style for odd rows (light gray background)
      */
@@ -299,9 +301,9 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     // ==================== SUMMARY/TOTAL STYLES ====================
-    
+
     /**
      * Create total row style (bold with top border)
      */
@@ -320,19 +322,19 @@ public class ExcelStyleFactory {
         style.setAlignment(HorizontalAlignment.RIGHT);
         return style;
     }
-    
+
     /**
-     * Create total row style with currency format
+     * Create total row style with currency format (Indian Rupee)
      */
     public XSSFCellStyle createTotalCurrencyStyle() {
         XSSFCellStyle style = createTotalRowStyle();
         DataFormat format = workbook.createDataFormat();
-        style.setDataFormat(format.getFormat("$#,##0.00"));
+        style.setDataFormat(format.getFormat("₹#,##0.00"));
         return style;
     }
-    
+
     // ==================== HELPER METHODS ====================
-    
+
     /**
      * Add thin borders to all sides of a cell style
      */
@@ -342,7 +344,7 @@ public class ExcelStyleFactory {
         style.setBorderLeft(BorderStyle.THIN);
         style.setBorderRight(BorderStyle.THIN);
     }
-    
+
     /**
      * Create a custom colored style
      */
@@ -353,7 +355,7 @@ public class ExcelStyleFactory {
         addBorders(style);
         return style;
     }
-    
+
     /**
      * Clone and modify a style with a different format
      */
