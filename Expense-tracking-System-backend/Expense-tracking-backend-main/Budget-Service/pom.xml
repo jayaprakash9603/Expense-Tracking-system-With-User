@@ -48,6 +48,12 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 			<version>4.2.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -118,6 +124,13 @@
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
+
+		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities -->
+		<!-- <dependency>
+			<groupId>com.jaya.common</groupId>
+			<artifactId>expense-common-library</artifactId>
+			<version>1.0.0</version>
+		</dependency> -->
 
 	</dependencies>
 

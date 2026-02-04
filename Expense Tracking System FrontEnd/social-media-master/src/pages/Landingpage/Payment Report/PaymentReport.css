@@ -11,6 +11,23 @@
   position: relative; /* establish stacking context for sticky header */
 }
 
+/* Theme Variables (align with other report pages) */
+.light.payment-methods-report,
+.light .payment-methods-report {
+  --chip-bg: #f5f5f5;
+  --chip-border: #d0d0d0;
+  --chip-name: #1a1a1a;
+  --chip-icon: #555555;
+}
+
+.dark.payment-methods-report,
+.dark .payment-methods-report {
+  --chip-bg: #151515;
+  --chip-border: #2a2a2a;
+  --chip-name: #dddddd;
+  --chip-icon: #dddddd;
+}
+
 .payment-methods-report.loading {
   display: flex;
   align-items: center;
@@ -215,7 +232,7 @@
 
 /* Ensure Daily Spending chart has proper z-index for tooltip visibility */
 .chart-row > .daily-spending-chart {
-  z-index: 10;
+  z-index: 5;
 }
 
 /* Enhanced Pie Chart Styles for Better UX with Small Segments */
@@ -266,7 +283,7 @@
 }
 
 .chart-header {
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 .chart-header h3 {
@@ -342,8 +359,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #151515;
-  border: 1px solid #2a2a2a;
+  background: var(--chip-bg, transparent);
+  border: 1px solid var(--chip-border, transparent);
   border-radius: 10px;
   padding: 10px 12px;
 }
@@ -362,9 +379,15 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  color: var(--chip-icon, #ddd);
+}
+.chip-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
 }
 .chip-name {
-  color: #ddd;
+  color: var(--chip-name, #ddd);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;

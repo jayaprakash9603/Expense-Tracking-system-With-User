@@ -19,14 +19,31 @@ public class AsyncConfig {
         ThreadPoolTaskExecutor ex = new ThreadPoolTaskExecutor();
         ex.setCorePoolSize(Math.min(cores, 8));
         ex.setMaxPoolSize(Math.min(cores * 2, 16));
-    // Increase queue to avoid early rejections when publishing many events
-    ex.setQueueCapacity(10000);
-    // Do not drop tasks when the queue is full; run in caller thread instead
-    ex.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        // Increase queue to avoid early rejections when publishing many events
+        ex.setQueueCapacity(10000);
+        // Do not drop tasks when the queue is full; run in caller thread instead
+        ex.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         ex.setAllowCoreThreadTimeOut(true);
         ex.setKeepAliveSeconds(60);
         ex.setThreadNamePrefix("ExpenseAsync-");
         ex.initialize();
         return ex;
+    }
+
+    /**
+     * Dedicated executor for friend activity event production.
+     * Ensures async event publishing doesn't block main request threads.
+     */
+    @Bean(name = "friendActivityExecutor")
+    public Executor friendActivityExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("friend-activity-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
     }
 }

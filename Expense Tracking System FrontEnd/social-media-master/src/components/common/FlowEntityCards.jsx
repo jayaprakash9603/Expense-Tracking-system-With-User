@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Skeleton,
   IconButton,
   Menu,
   MenuItem,
@@ -10,10 +9,14 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import NoDataPlaceholder from "../NoDataPlaceholder";
+import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 /**
  * FlowEntityCards
@@ -33,8 +36,12 @@ const FlowEntityCards = ({
   onDouble, // (entity, event) => void
   onEdit, // (entity) => void
   onDelete, // (entity) => void
+  onViewAnalytics, // (entity) => void - NEW: navigate to view/analytics page
+  friendId, // NEW: for friend view routing
+  isFriendView, // NEW: for friend view routing
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
@@ -60,33 +67,15 @@ const FlowEntityCards = ({
     if (menuEntity) onDelete?.(menuEntity);
     closeMenu(e);
   };
+  const handleViewAnalytics = (e) => {
+    e.stopPropagation();
+    if (menuEntity) onViewAnalytics?.(menuEntity);
+    closeMenu(e);
+  };
 
   if (loading && !search) {
     return (
-      <div
-        className="flex flex-wrap justify-start custom-scrollbar"
-        style={{
-          maxHeight: isMobile ? 200 : isTablet ? 250 : 360,
-          overflowY: "auto",
-          overflowX: "hidden",
-          paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
-          gap: isMobile ? 8 : 16,
-          width: "100%",
-          paddingLeft: "16px",
-        }}
-      >
-        {Array.from({ length: 3 }).map((_, idx) => (
-          <Skeleton
-            key={idx}
-            variant="rectangular"
-            width={isMobile ? "100%" : 220}
-            height={130}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-            style={{ margin: "0 0 16px 0" }}
-          />
-        ))}
-      </div>
+      <FlowEntityCardsSkeleton cardCount={isMobile ? 2 : isTablet ? 4 : 6} />
     );
   }
 
@@ -109,11 +98,17 @@ const FlowEntityCards = ({
           fullWidth
           iconSize={isMobile ? 54 : 72}
           style={{ minHeight: isMobile ? 260 : 340 }}
-          message={search ? "No matches" : "No data found"}
+          message={
+            search
+              ? t("flows.entities.empty.search.title")
+              : t("flows.entities.empty.none.title")
+          }
           subMessage={
             search
-              ? "Try a different search term"
-              : "Adjust filters or change the period"
+              ? t("flows.entities.empty.search.subtitle", {
+                  query: search,
+                })
+              : t("flows.entities.empty.none.subtitle")
           }
         />
       </div>
@@ -163,8 +158,8 @@ const FlowEntityCards = ({
                       flowTab === "outflow"
                         ? "ring-[#ff4d4f]"
                         : flowTab === "inflow"
-                        ? "ring-[#06d6a0]"
-                        : "ring-[#5b7fff]"
+                          ? "ring-[#06d6a0]"
+                          : "ring-[#5b7fff]"
                     }`
                   : ""
               }`}
@@ -196,18 +191,60 @@ const FlowEntityCards = ({
               )}
               <div className="flex flex-col gap-2" style={{ height: "100%" }}>
                 <div className="flex items-center justify-between min-w-0">
-                  <span
-                    className="font-semibold text-base truncate min-w-0"
-                    title={entity.categoryName}
-                    style={{
-                      maxWidth: "70%",
-                      fontSize: "15px",
-                      fontWeight: 700,
-                      color: colors.primary_text,
-                    }}
+                  <div
+                    className="flex items-center gap-2 min-w-0"
+                    style={{ maxWidth: "85%" }}
                   >
-                    {entity.categoryName}
-                  </span>
+                    <span
+                      style={{
+                        fontSize: "20px",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      {getEntityIcon(
+                        entity.entityType || "category",
+                        entity.icon || entity.categoryName,
+                        {
+                          sx: {
+                            color: entity.color || "#14b8a6",
+                            fontSize: "20px",
+                          },
+                        },
+                      )}
+                    </span>
+                    <span
+                      className="font-semibold text-base truncate min-w-0"
+                      title={entity.categoryName}
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: 700,
+                        color: colors.primary_text,
+                        cursor: onViewAnalytics ? "pointer" : "default",
+                        textDecoration: onViewAnalytics ? "none" : "none",
+                        transition: "color 0.2s",
+                      }}
+                      onClick={(e) => {
+                        if (onViewAnalytics) {
+                          e.stopPropagation();
+                          onViewAnalytics(entity);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        if (onViewAnalytics) {
+                          e.target.style.color = entity.color || "#00DAC6";
+                          e.target.style.textDecoration = "underline";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.color = colors.primary_text;
+                        e.target.style.textDecoration = "none";
+                      }}
+                    >
+                      {entity.categoryName}
+                    </span>
+                  </div>
                 </div>
                 <div className="text-base font-bold flex items-center gap-1">
                   <span
@@ -229,9 +266,13 @@ const FlowEntityCards = ({
                     color: colors.secondary_text,
                   }}
                 >
-                  {`${entity.expenseCount} expense${
-                    entity.expenseCount !== 1 ? "s" : ""
-                  }`}
+                  {(() => {
+                    const count = entity.expenseCount ?? 0;
+                    return t("flows.entities.expenseCount", {
+                      count,
+                      suffix: count === 1 ? "" : "s",
+                    });
+                  })()}
                 </div>
               </div>
             </div>
@@ -261,6 +302,14 @@ const FlowEntityCards = ({
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        {onViewAnalytics && (
+          <MenuItem onClick={handleViewAnalytics}>
+            <ListItemIcon>
+              <BarChartIcon fontSize="small" sx={{ color: "#00DAC6" }} />
+            </ListItemIcon>
+            <ListItemText primary={t("common.viewAnalytics")} />
+          </MenuItem>
+        )}
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
             <EditIcon
@@ -268,13 +317,13 @@ const FlowEntityCards = ({
               sx={{ color: menuEntity?.color || "#14b8a6" }}
             />
           </ListItemIcon>
-          <ListItemText primary="Edit" />
+          <ListItemText primary={t("common.edit")} />
         </MenuItem>
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" sx={{ color: "#ff5252" }} />
           </ListItemIcon>
-          <ListItemText primary="Delete" />
+          <ListItemText primary={t("common.delete")} />
         </MenuItem>
       </Menu>
     </>

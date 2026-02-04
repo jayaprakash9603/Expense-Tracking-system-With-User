@@ -23,6 +23,11 @@ import {
   GET_ALL_EXPENSES_FAILURE,
   GET_ALL_EXPENSES_REQUEST,
   GET_ALL_EXPENSES_SUCCESS,
+  GET_PAGINATED_EXPENSES_REQUEST,
+  GET_PAGINATED_EXPENSES_SUCCESS,
+  GET_PAGINATED_EXPENSES_MORE_SUCCESS,
+  GET_PAGINATED_EXPENSES_FAILURE,
+  RESET_PAGINATED_EXPENSES,
   GET_BUDGET_EXPENSES_FAILURE,
   GET_BUDGET_EXPENSES_REQUEST,
   GET_BUDGET_EXPENSES_SUCCESS,
@@ -64,12 +69,19 @@ import {
   UPLOAD_CATEGORIES_REQUEST,
   UPLOAD_CATEGORIES_SUCCESS,
   UPLOAD_CATEGORIES_FAILURE,
+  GET_EXPENSE_DETAILED_VIEW_REQUEST,
+  GET_EXPENSE_DETAILED_VIEW_SUCCESS,
+  GET_EXPENSE_DETAILED_VIEW_FAILURE,
+  CLEAR_EXPENSE_DETAILED_VIEW,
 } from "./expense.actionType";
 
 const initialState = {
   expenses: [],
   previousExpenses: [],
   expense: null, // For single expense
+  expenseDetailedView: null, // For detailed expense view
+  expenseDetailedViewLoading: false,
+  expenseDetailedViewError: null,
   loading: false,
   error: null,
   uploadSuccess: false,
@@ -92,6 +104,14 @@ const initialState = {
   uploadCategoriesLoading: false,
   uploadCategoriesError: null,
   uploadedCategoriesPreview: [],
+  // Paginated expenses for share page
+  paginatedExpenses: [],
+  paginatedExpensesLoading: false,
+  paginatedExpensesError: null,
+  paginatedExpensesPage: 0,
+  paginatedExpensesTotalPages: 0,
+  paginatedExpensesTotalElements: 0,
+  paginatedExpensesHasMore: false,
 };
 
 const clearExpenseFlowCaches = (state) => ({
@@ -206,6 +226,56 @@ export const expenseReducer = (state = initialState, action) => {
         error: null,
       };
 
+    // Paginated expenses for share page
+    case GET_PAGINATED_EXPENSES_REQUEST:
+      return {
+        ...state,
+        paginatedExpensesLoading: true,
+        paginatedExpensesError: null,
+      };
+    case GET_PAGINATED_EXPENSES_SUCCESS:
+      return {
+        ...state,
+        paginatedExpenses: action.payload.content || [],
+        paginatedExpensesPage: action.payload.currentPage || 0,
+        paginatedExpensesTotalPages: action.payload.totalPages || 0,
+        paginatedExpensesTotalElements: action.payload.totalElements || 0,
+        paginatedExpensesHasMore: action.payload.hasMore || false,
+        paginatedExpensesLoading: false,
+        paginatedExpensesError: null,
+      };
+    case GET_PAGINATED_EXPENSES_MORE_SUCCESS:
+      return {
+        ...state,
+        paginatedExpenses: [
+          ...state.paginatedExpenses,
+          ...(action.payload.content || []),
+        ],
+        paginatedExpensesPage: action.payload.currentPage || 0,
+        paginatedExpensesTotalPages: action.payload.totalPages || 0,
+        paginatedExpensesTotalElements: action.payload.totalElements || 0,
+        paginatedExpensesHasMore: action.payload.hasMore || false,
+        paginatedExpensesLoading: false,
+        paginatedExpensesError: null,
+      };
+    case GET_PAGINATED_EXPENSES_FAILURE:
+      return {
+        ...state,
+        paginatedExpensesLoading: false,
+        paginatedExpensesError: action.payload,
+      };
+    case RESET_PAGINATED_EXPENSES:
+      return {
+        ...state,
+        paginatedExpenses: [],
+        paginatedExpensesLoading: false,
+        paginatedExpensesError: null,
+        paginatedExpensesPage: 0,
+        paginatedExpensesTotalPages: 0,
+        paginatedExpensesTotalElements: 0,
+        paginatedExpensesHasMore: false,
+      };
+
     case GET_BUDGET_SUCCESS:
       return {
         ...state,
@@ -282,7 +352,7 @@ export const expenseReducer = (state = initialState, action) => {
       // Loop through each date key and filter the deleted expense by id
       Object.keys(updatedExpenses).forEach((date) => {
         updatedExpenses[date] = updatedExpenses[date].filter(
-          (expense) => expense.id !== action.payload
+          (expense) => expense.id !== action.payload,
         );
       });
       return clearExpenseFlowCaches({
@@ -344,6 +414,34 @@ export const expenseReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: action.payload,
+      };
+
+    // Detailed Expense View
+    case GET_EXPENSE_DETAILED_VIEW_REQUEST:
+      return {
+        ...state,
+        expenseDetailedViewLoading: true,
+        expenseDetailedViewError: null,
+      };
+    case GET_EXPENSE_DETAILED_VIEW_SUCCESS:
+      return {
+        ...state,
+        expenseDetailedViewLoading: false,
+        expenseDetailedView: action.payload,
+        expenseDetailedViewError: null,
+      };
+    case GET_EXPENSE_DETAILED_VIEW_FAILURE:
+      return {
+        ...state,
+        expenseDetailedViewLoading: false,
+        expenseDetailedViewError: action.payload,
+      };
+    case CLEAR_EXPENSE_DETAILED_VIEW:
+      return {
+        ...state,
+        expenseDetailedView: null,
+        expenseDetailedViewLoading: false,
+        expenseDetailedViewError: null,
       };
 
     // Default case

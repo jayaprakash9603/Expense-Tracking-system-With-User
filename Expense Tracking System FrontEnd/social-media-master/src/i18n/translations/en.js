@@ -28,6 +28,7 @@ export const en = {
     yes: "Yes",
     no: "No",
     notAvailable: "N/A",
+    viewAnalytics: "View Analytics",
   },
 
   // Navigation
@@ -40,6 +41,7 @@ export const en = {
     auditLogs: "Audit Logs",
     reports: "Reports",
     settings: "Settings",
+    stories: "Stories",
     home: "Home",
     expenses: "Expenses",
     categories: "Categories",
@@ -48,8 +50,75 @@ export const en = {
     friends: "Friends",
     groups: "Groups",
     budgets: "Budgets",
+    history: "History",
     paymentMethod: "Payment Method",
     calendar: "Calendar",
+    utilities: "Utilities",
+    myShares: "My Shares",
+    publicShares: "Public Shares",
+    sharedWithMe: "Shared With Me",
+  },
+
+  // Flows
+  flows: {
+    entities: {
+      category: {
+        singular: "Category",
+        plural: "Categories",
+      },
+      paymentMethod: {
+        singular: "Payment Method",
+        plural: "Payment Methods",
+      },
+      empty: {
+        search: {
+          title: "No matches",
+          subtitle: 'Try a different search term for "{{query}}"',
+        },
+        none: {
+          title: "No data found",
+          subtitle: "Adjust filters or change the period",
+        },
+      },
+      expenseCount: "{{count}} expense{{suffix}}",
+    },
+    confirmations: {
+      deleteCategory: "Are you sure you want to delete this category?",
+      deletePaymentMethod:
+        "Are you sure you want to delete this payment method?",
+    },
+    categoryFlow: {
+      createDialogTitle: "Create Category",
+    },
+    paymentMethodFlow: {
+      createDialogTitle: "Create Payment Method",
+    },
+    messages: {
+      createSuccess: '{{entity}} "{{name}}" created successfully',
+      deleteSuccess: '{{entity}} "{{name}}" deleted successfully.',
+      deleteError: "Failed to delete {{entity}}. Please try again.",
+    },
+    expensesTable: {
+      title: "Expenses",
+      entityTitle: "{{name}} Expenses",
+      summary: "{{count}} entries • Total {{total}}",
+      empty: "No expenses found",
+      emptyHint: "Try selecting a different card or period",
+      unnamedExpense: "Unnamed Expense",
+      noDate: "No date",
+      type: {
+        income: "Income",
+        expense: "Expense",
+      },
+    },
+    search: {
+      placeholder: "Search {{entityPlural}}...",
+    },
+    rangeLabels: {
+      entityWeek: "{{entityPlural}} this week",
+      entityMonth: "{{entityPlural}} this month",
+      entityYear: "{{entityPlural}} this year",
+    },
   },
 
   // Cashflow
@@ -73,6 +142,7 @@ export const en = {
         uploadFile: "Upload File",
         addBudget: "Add Budget",
         addCategory: "Add Category",
+        addPaymentMethod: "Add Payment Method",
       },
     },
     labels: {
@@ -118,6 +188,7 @@ export const en = {
       previousSelected: "Go to previous selected expense",
       nextSelected: "Go to next selected expense",
       selectionNavigator: "Navigate between selected expenses",
+      viewExpense: "Click to view expense",
     },
     summary: {
       collapseAria: "Collapse selection stats",
@@ -530,6 +601,83 @@ export const en = {
       invalidQuantityOrPrice:
         "Please enter valid positive values for both quantity and unit price.",
     },
+    receiptScanner: {
+      title: "Scan Receipt",
+      buttonLabel: "Scan Receipt",
+      tooltip: "Scan receipt using OCR to auto-fill expense details",
+      tip: "💡 Tip: Upload all pages of your receipt for best results",
+      dropTitle: "Drop your receipt pages here",
+      dropSubtitle: "or click to browse files",
+      supportedFormats: "Supports: JPG, PNG, GIF, BMP, TIFF (max 10MB each)",
+      multiPageChip: "Upload multiple pages for multi-page receipts",
+      fileCountSingular: "{{count}} page selected",
+      fileCountPlural: "{{count}} pages selected",
+      scanButtonProcessingSingular: "Scanning {{count}} page...",
+      scanButtonProcessingPlural: "Scanning {{count}} pages...",
+      scanButtonReadySingular: "Scan {{count}} Page",
+      scanButtonReadyPlural: "Scan {{count}} Pages",
+      pageLabel: "Page {{number}}",
+      imageAlt: "Receipt page {{number}}",
+      addMore: "Add More",
+      clearAll: "Clear All",
+      confidenceTitle: "OCR Confidence: {{confidence}}%",
+      confidenceHint:
+        "Review and edit fields as needed. Yellow/Red badges indicate lower confidence.",
+      errors: {
+        fileLimit: "Maximum {{max}} files allowed",
+        invalidFormat:
+          "{{fileName}}: Invalid format (use JPG, PNG, GIF, BMP, or TIFF)",
+        fileSize: "{{fileName}}: File exceeds 10MB limit",
+      },
+      fields: {
+        merchant: {
+          label: "Merchant Name",
+          placeholder: "Enter merchant name",
+        },
+        amount: {
+          label: "Total Amount",
+          placeholder: "0.00",
+        },
+        date: {
+          label: "Date",
+        },
+        tax: {
+          label: "Tax (GST/CGST/SGST)",
+          placeholder: "0.00",
+        },
+        category: {
+          label: "Suggested Category",
+        },
+        paymentMethod: {
+          label: "Payment Method",
+        },
+        detectedItems: "Detected Items ({{count}})",
+      },
+      badges: {
+        labels: {
+          high: "High",
+          medium: "Medium",
+          low: "Low",
+        },
+        tooltipFallback: "{{level}} confidence",
+      },
+      actions: {
+        scanAnother: "Scan Another",
+        useData: "Use This Data",
+      },
+      defaults: {
+        expenseName: "Receipt Expense",
+        descriptionPrefix: "Scanned from receipt",
+        taxSuffix: " (Tax: {{currency}}{{amount}})",
+      },
+      meta: {
+        processedIn: "Processed in {{ms}}ms using OCR",
+      },
+      successMessage: {
+        title: "Receipt scanned successfully!",
+        body: "Extracted:\n- Name: {{name}}\n- Amount: {{amount}}\n- Date: {{date}}\n\nPlease review and edit if needed.",
+      },
+    },
   },
 
   // Create Bill
@@ -695,7 +843,12 @@ export const en = {
     maskSensitiveDataDescription:
       "Hide expense amounts and financial details for privacy",
     twoFactorAuth: "Two-Factor Authentication",
-    twoFactorAuthDescription: "Add an extra layer of security to your account",
+    twoFactorAuthDescription:
+      "Add an extra layer of security to your account via email OTP",
+    mfaAuth: "Authenticator App (MFA)",
+    mfaAuthDescription:
+      "Use Google Authenticator for enhanced security (takes priority over email 2FA)",
+    configure: "Configure",
     blockedUsers: "Blocked Users",
     blockedUsersDescription: "Manage blocked users and privacy settings",
     autoLogout: "Auto Logout",
@@ -733,6 +886,9 @@ export const en = {
     screenReaderSupportDescription: "Enhanced support for screen readers",
     keyboardShortcuts: "Keyboard Shortcuts",
     keyboardShortcutsDescription: "Enable keyboard navigation shortcuts",
+    showShortcutIndicators: "Show Shortcut Indicators",
+    showShortcutIndicatorsDescription:
+      "Display shortcut badges when Alt key is pressed",
     reduceMotion: "Reduce Motion",
     reduceMotionDescription: "Minimize animations for better accessibility",
     enhancedFocusIndicators: "Enhanced Focus Indicators",
@@ -740,6 +896,42 @@ export const en = {
       "Highlight focused elements more prominently",
     keyboardShortcutsGuide: "Keyboard Shortcuts Guide",
     keyboardShortcutsGuideDescription: "View all available keyboard shortcuts",
+
+    // Keyboard Shortcut Categories
+    shortcutCategoryNavigation: "Navigation",
+    shortcutCategoryExpenses: "Expenses",
+    shortcutCategoryBudgets: "Budgets",
+    shortcutCategoryBills: "Bills",
+    shortcutCategoryCategories: "Categories",
+    shortcutCategoryPayments: "Payment Methods",
+    shortcutCategoryFriends: "Friends",
+    shortcutCategoryTables: "Table Navigation",
+    shortcutCategoryForms: "Forms",
+    shortcutCategoryModals: "Modals & Dialogs",
+    shortcutCategorySearch: "Search",
+    shortcutCategoryGeneral: "General",
+    shortcutCategoryAdmin: "Admin",
+
+    // Shortcut Modal
+    shortcutModalTitle: "Keyboard Shortcuts",
+    shortcutModalSearch: "Search shortcuts...",
+    shortcutModalShowingCount: "Showing {count} of {total} shortcuts",
+    shortcutModalDisabledWarning:
+      "Keyboard shortcuts are currently disabled. Enable them in Settings → Keyboard Shortcuts.",
+    shortcutModalPlatformHint: "Using {key} key",
+    shortcutModalCurrentScope: "Current scope: {scope}",
+    shortcutModalFooterHint: "Press {keys} anytime to show this guide",
+    shortcutModalContextHint:
+      "Shortcuts are context-aware and may change based on active page",
+    shortcutModalNoResults: 'No shortcuts found for "{query}"',
+
+    // Shortcut Recommendations
+    shortcutRecommendationTitle: "Quick Tip",
+    shortcutRecommendationMessage:
+      'You frequently use "{action}". Try the shortcut:',
+    shortcutRecommendationGotIt: "Got it!",
+    shortcutRecommendationLater: "Later",
+    shortcutRecommendationNever: "Don't show again",
 
     // Account Management
     notificationSettings: "Notification Settings",
@@ -932,5 +1124,419 @@ export const en = {
     loadError: "Failed to load data",
     confirmDelete: "Are you sure you want to delete this item?",
     languageChanged: "Language changed successfully",
+  },
+
+  // OCR Receipt Scanning
+  ocr: {
+    title: "Scan Receipt",
+    subtitle: "Auto-extract expense details with OCR",
+    steps: {
+      upload: "Upload",
+      scan: "Scan",
+      review: "Review",
+    },
+    dropHere: "Drop your receipt pages here",
+    orBrowse: "or click to browse files",
+    maxSize: "Max 10MB each",
+    multiPageSupport: "Multi-page receipt support",
+    multiPageTip: "💡 Upload all pages of multi-page receipts for best results",
+    page: "page",
+    pages: "pages",
+    receiptPage: "Receipt page",
+    addMore: "Add More",
+    clearAll: "Clear All",
+    scanning: "Scanning...",
+    scanPages: "Scan",
+    processingReceipt: "Processing Receipt...",
+    analyzingText: "Analyzing text and extracting data",
+    ocrConfidence: "OCR Confidence",
+    reviewFields:
+      "Review and edit fields as needed. Colored badges indicate confidence.",
+    detectedItems: "Detected Items",
+    showRawText: "Show Raw OCR Text",
+    hideRawText: "Hide Raw OCR Text",
+    scanAnother: "Scan Another",
+    useThisData: "Use This Data",
+    processedIn: "Processed in",
+    usingOCR: "using OCR",
+    imageQuality: "Image Quality",
+    defaultExpenseName: "Receipt Expense",
+    scannedFrom: "Scanned from receipt",
+    tax: "Tax",
+    fields: {
+      merchant: "Merchant Name",
+      amount: "Total Amount",
+      date: "Date",
+      category: "Category",
+      paymentMethod: "Payment Method",
+    },
+    placeholders: {
+      merchant: "Enter merchant name",
+    },
+    confidence: {
+      high: "HIGH",
+      medium: "MEDIUM",
+      low: "LOW",
+    },
+    errors: {
+      maxFiles: "Maximum 10 files allowed",
+      invalidFormat: "Invalid format (use JPG, PNG, GIF, BMP, or TIFF)",
+      fileTooLarge: "File exceeds 10MB",
+    },
+  },
+
+  // MFA (Multi-Factor Authentication)
+  mfa: {
+    // MFA Verification Page
+    verification: {
+      title: "Two-Factor Authentication",
+      subtitle: "Enter the 6-digit code from your authenticator app",
+      backupSubtitle: "Enter one of your backup codes",
+      signingInAs: "Signing in as:",
+      codeRefreshes: "Code refreshes every 30 seconds",
+      verify: "Verify",
+      verifying: "Verifying...",
+      useBackupCode: "Use Backup Code",
+      lostAccess: "Lost access to authenticator? Use backup code",
+      useAuthenticator: "← Use authenticator app instead",
+      backToLogin: "Back to login",
+      backupCodeFormat: "Backup codes are 8 characters (XXXX-XXXX format)",
+      sessionExpired: "Session expired. Please login again.",
+      loginSuccess: "Login successful!",
+      verificationFailed: "Verification failed",
+    },
+    // MFA Setup Page
+    setup: {
+      title: "Authenticator App",
+      subtitle: "Secure your account with Google Authenticator",
+      authenticatorApp: "Authenticator App",
+      authenticatorAppDescription:
+        "Secure your account with Google Authenticator",
+      setUpAuthenticator: "Set Up Authenticator App",
+      setUpAuthenticatorDescription:
+        "Use Google Authenticator or any TOTP app to add an extra layer of security to your account. When enabled, you'll need to enter a code from your app when signing in.",
+      getStarted: "Get Started",
+      settingUp: "Setting up...",
+      setupTitle: "Set Up Authenticator App",
+      setupDescription:
+        "Use Google Authenticator or any TOTP app to add an extra layer of security to your account. When enabled, you'll need to enter a code from your app when signing in.",
+      priorityNote: "Note",
+      priorityNoteDescription:
+        "MFA takes priority over Email 2FA when both are enabled.",
+      priorityDescription:
+        "MFA takes priority over Email 2FA when both are enabled.",
+      // Steps
+      steps: {
+        scanQr: "Scan QR Code",
+        verifyCode: "Verify Code",
+        saveBackup: "Save Backup Codes",
+      },
+      // Step 1
+      step1Title: "1. Scan QR Code",
+      step1Description:
+        "Open Google Authenticator (or any TOTP app) and scan this QR code",
+      orEnterManually: "or enter manually",
+      account: "Account",
+      issuer: "Issuer",
+      copySecret: "Copy secret",
+      copied: "Copied!",
+      continue: "Continue",
+      // Step 2
+      step2Title: "2. Verify Setup",
+      step2Description:
+        "Enter the 6-digit code from your authenticator app to verify setup",
+      codeChangesEvery30Seconds: "The code changes every 30 seconds",
+      codeChanges: "The code changes every 30 seconds",
+      back: "Back",
+      verifyAndEnable: "Verify & Enable",
+      verifyEnable: "Verify & Enable",
+      verifying: "Verifying...",
+      // Step 3
+      step3Title: "MFA Enabled Successfully!",
+      mfaEnabledSuccessfully: "MFA Enabled Successfully!",
+      saveBackupCodes: "Backup Codes",
+      backupCodesWarning:
+        "Save these codes securely. Use them if you lose access to your authenticator app.",
+      backupCodesOnce: "Each code can only be used once.",
+      copyCodes: "Copy Codes",
+      download: "Download",
+      done: "Done",
+      // MFA Enabled State
+      mfaEnabled: "MFA is Enabled",
+      mfaEnabledDescription:
+        "Your account is protected with Google Authenticator. You'll need to enter a code from your authenticator app when signing in.",
+      backupCodesRemaining: "{{count}} backup codes remaining",
+      primaryAuth: "Primary Auth",
+      regenerateBackupCodes: "Regenerate Backup Codes",
+      disableMfa: "Disable MFA",
+      // Disable Dialog
+      disableTitle: "Disable MFA",
+      disableMfaWarning:
+        "This will remove the authenticator protection from your account. You'll need to verify your identity to proceed.",
+      disableWarning:
+        "This will remove the authenticator protection from your account. You'll need to verify your identity to proceed.",
+      importantReminder: "Reminder",
+      removeAuthenticatorEntry:
+        "Remove 'Expensio Finance' from your authenticator app after disabling.",
+      beforeYouScan: "Before You Scan",
+      deleteOldEntriesWarning:
+        "If you previously had MFA enabled, please delete any old 'Expensio Finance' entries from your Google Authenticator app first. This ensures you only have one active code and avoids confusion.",
+      useAuthenticatorCode: "Use Authenticator Code",
+      usePassword: "Use Password",
+      authenticatorCode: "Authenticator Code",
+      password: "Password",
+      cancel: "Cancel",
+      // Messages
+      mfaEnabledSuccess: "MFA enabled successfully!",
+      mfaDisabledSuccess: "MFA disabled successfully",
+      verificationFailed: "Verification failed. Please try again.",
+      failedToLoadStatus: "Failed to load MFA status",
+      failedToStartSetup: "Failed to start MFA setup",
+      failedToDisable: "Failed to disable MFA",
+      newCodesGenerated: "New backup codes generated!",
+      failedToRegenerate: "Failed to regenerate codes",
+      copiedToClipboard: "Copied to clipboard!",
+      backupCodesDownloaded: "Backup codes downloaded!",
+      enterCodeToRegenerate:
+        "WARNING: This will invalidate ALL your existing backup codes!\n\nEnter your current authenticator code to generate new backup codes:",
+    },
+  },
+
+  // Universal Search
+  search: {
+    placeholder: "Search expenses, budgets, actions...",
+    openSearch: "Search",
+    noResults: "No results found",
+    tryDifferent: "Try a different search term",
+    suggestions: "Suggestions",
+    typeToSearch: "Start typing to search...",
+    navigate: "Navigate",
+    select: "Select",
+    close: "Close",
+    poweredBy: "Universal Search",
+
+    // Section Headers
+    sections: {
+      admin: "Admin",
+      quickActions: "Quick Actions",
+      actions: "Actions",
+      expenses: "Expenses",
+      budgets: "Budgets",
+      categories: "Categories",
+      bills: "Bills",
+      paymentMethods: "Payment Methods",
+      payment_methods: "Payment Methods",
+      friends: "Friends",
+      reports: "Reports",
+      settings: "Settings",
+      notifications: "Notifications",
+    },
+
+    // Admin Mode Actions
+    admin: {
+      dashboard: "Admin Dashboard",
+      dashboardDesc: "System overview and metrics",
+      users: "User Management",
+      usersDesc: "Manage system users",
+      roles: "Role Management",
+      rolesDesc: "Manage user roles and permissions",
+      analytics: "System Analytics",
+      analyticsDesc: "View system-wide analytics and statistics",
+      audit: "Audit Logs",
+      auditDesc: "View system audit trail and activity logs",
+      reports: "System Reports",
+      reportsDesc: "Generate and view system reports",
+      settings: "System Settings",
+      settingsDesc: "Configure system-wide settings",
+    },
+
+    // Quick Actions
+    actions: {
+      // Expense Actions
+      addExpense: "Add Expense",
+      addExpenseDesc: "Create a new expense entry",
+      viewExpenses: "View All Expenses",
+      viewExpensesDesc: "Browse your expense history",
+      expenseReports: "Expense Reports",
+      expenseReportsDesc: "View expense analytics and reports",
+
+      // Budget Actions
+      createBudget: "Create Budget",
+      createBudgetDesc: "Set up a new budget",
+      viewBudgets: "View Budgets",
+      viewBudgetsDesc: "Manage your budgets",
+      budgetReports: "Budget Reports",
+      budgetReportsDesc: "View budget analytics",
+
+      // Bill Actions
+      createBill: "Create Bill",
+      createBillDesc: "Add a new recurring bill",
+      viewBills: "View Bills",
+      viewBillsDesc: "Manage your bills",
+      billCalendar: "Bill Calendar",
+      billCalendarDesc: "View bills on calendar",
+      billReports: "Bill Reports",
+      billReportsDesc: "View bill analytics",
+
+      // Category Actions
+      createCategory: "Create Category",
+      createCategoryDesc: "Add a new expense category",
+      viewCategories: "View Categories",
+      viewCategoriesDesc: "Manage expense categories",
+      categoryReports: "Category Reports",
+      categoryReportsDesc: "View spending by category",
+
+      // Payment Method Actions
+      addPaymentMethod: "Add Payment Method",
+      addPaymentMethodDesc: "Add a new payment method",
+      viewPaymentMethods: "View Payment Methods",
+      viewPaymentMethodsDesc: "Manage your payment methods",
+      paymentReports: "Payment Method Reports",
+      paymentReportsDesc: "View spending by payment method",
+
+      // Dashboard & General
+      dashboard: "Dashboard",
+      dashboardDesc: "Go to main dashboard",
+      calendarView: "Calendar View",
+      calendarViewDesc: "View expenses on calendar",
+      transactions: "Transactions",
+      transactionsDesc: "View all transactions",
+      allReports: "All Reports",
+      allReportsDesc: "View comprehensive reports",
+      insights: "Insights",
+      insightsDesc: "View spending insights",
+
+      // Friends
+      viewFriends: "Friends",
+      viewFriendsDesc: "Manage your friends",
+      friendActivity: "Friend Activity",
+      friendActivityDesc: "View friend activities",
+
+      // Groups
+      viewGroups: "Groups",
+      viewGroupsDesc: "Manage expense groups",
+      createGroup: "Create Group",
+      createGroupDesc: "Create a new expense group",
+
+      // Settings
+      settings: "Settings",
+      settingsDesc: "App settings and preferences",
+      profile: "Profile",
+      profileDesc: "View and edit your profile",
+      notificationSettings: "Notification Settings",
+      notificationSettingsDesc: "Manage notification preferences",
+
+      // Upload
+      uploadExpenses: "Upload Expenses",
+      uploadExpensesDesc: "Bulk upload expenses from file",
+      uploadBills: "Upload Bills",
+      uploadBillsDesc: "Bulk upload bills from file",
+
+      // Chat
+      chat: "Chat",
+      chatDesc: "Open chat with friends",
+    },
+
+    // Settings Search Items
+    settings: {
+      keyboardShortcuts: "Keyboard Shortcuts",
+      keyboardShortcutsDesc: "Enable keyboard navigation shortcuts",
+      showShortcutIndicators: "Show Shortcut Indicators",
+      showShortcutIndicatorsDesc:
+        "Display shortcut badges when Alt key is pressed",
+      screenReader: "Screen Reader Support",
+      screenReaderDesc: "Enhanced support for screen readers",
+      reduceMotion: "Reduce Motion",
+      reduceMotionDesc: "Minimize animations for better accessibility",
+      focusIndicators: "Enhanced Focus Indicators",
+      focusIndicatorsDesc: "Highlight focused elements more prominently",
+    },
+  },
+
+  // Public Shares Page
+  publicShares: {
+    title: "Public Shares",
+    subtitle: "Browse publicly shared QR codes from all users",
+    searchPlaceholder: "Search by name, type, or owner...",
+    comingSoon: "Coming Soon!",
+    comingSoonDescription:
+      "Public sharing feature is currently under development. Soon you'll be able to browse and discover publicly shared expense reports and data from the community.",
+    goToMyShares: "Go to My Shares",
+    features: {
+      browse: "Browse Public Shares",
+      scanQr: "Scan QR Codes",
+      quickLinks: "Quick Access Links",
+    },
+  },
+
+  // Shared With Me Page
+  sharedWithMe: {
+    title: "Shared With Me",
+    subtitle: "Friends who have given you access to their expenses",
+    searchPlaceholder: "Search friends...",
+    noAccessFound: "No Shared Access Found",
+    noAccessDescription:
+      "When friends share their expense access with you, they'll appear here",
+    noSearchMatch: "No friends match your search",
+    viewExpenses: "View Expenses",
+    stats: {
+      totalFriends: "Total Friends",
+      fullAccess: "Full Access",
+      editAccess: "Edit Access",
+      viewOnly: "View Only",
+    },
+    accessLevel: {
+      full: "Full Access",
+      fullDesc: "Can view, edit, and manage",
+      write: "Edit Access",
+      writeDesc: "Can view and edit",
+      read: "View Only",
+      readDesc: "Can only view",
+      none: "No Access",
+      noneDesc: "Access revoked",
+    },
+  },
+
+  // Keyboard Alt Overlay
+  keyboard: {
+    pressLetter: "Press a letter:",
+    escToCancel: "Esc to cancel",
+    calendar: "Calendar",
+    toggleTheme: "Theme",
+    toggleMasking: "Masking",
+    search: "Search",
+    help: "Help",
+    // Header actions
+    notifications: "Notifications",
+    profile: "Profile",
+    // Notification panel child shortcuts
+    markAllRead: "Mark All Read",
+    clearAll: "Clear All",
+    close: "Close",
+    // Profile dropdown child shortcuts
+    viewProfile: "View Profile",
+    settings: "Settings",
+    switchMode: "Switch Mode",
+    logout: "Logout",
+    // Modal shortcuts
+    yes: "Yes",
+    no: "No",
+    confirm: "Confirm",
+    cancel: "Cancel",
+    // Flow page shortcuts
+    week: "Week",
+    month: "Month",
+    year: "Year",
+    previous: "Previous",
+    next: "Next",
+    flowToggle: "Toggle Flow",
+    // Flow navigation bar shortcuts (sequential 1-7)
+    flowNav1: "Navigation 1",
+    flowNav2: "Navigation 2",
+    flowNav3: "Navigation 3",
+    flowNav4: "Navigation 4",
+    flowNav5: "Navigation 5",
+    flowNav6: "Navigation 6",
+    flowNav7: "Navigation 7",
   },
 };

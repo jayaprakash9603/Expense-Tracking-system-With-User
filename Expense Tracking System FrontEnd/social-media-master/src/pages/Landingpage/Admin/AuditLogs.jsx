@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   TextField,
   FormControl,
@@ -6,78 +8,124 @@ import {
   Select,
   MenuItem as MuiMenuItem,
   Button,
+  CircularProgress,
+  Pagination,
+  Alert,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  SectionCard,
-} from "./components";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import { formatRelativeTime, formatDate } from "./utils/adminUtils";
+import {
+  fetchAuditLogs,
+  fetchAuditStats,
+} from "../../../Redux/Admin/admin.action";
 
 const AuditLogs = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const adminState = useSelector((state) => state.admin) || {};
+  const auditLogs = adminState.auditLogs || {
+    list: [],
+    totalCount: 0,
+    totalPages: 0,
+    page: 0,
+    loading: false,
+    error: null,
+    stats: null,
+  };
+  const {
+    list: logs,
+    totalCount,
+    totalPages,
+    page,
+    loading,
+    error,
+    stats,
+  } = auditLogs;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterDate, setFilterDate] = useState("7d");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
-  // Static audit log data
-  const auditLogs = [
-    {
-      id: 1,
-      user: "John Doe",
-      action: "Created User",
-      details: "Created new user: jane.smith@example.com",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      type: "USER_MANAGEMENT",
-      ipAddress: "192.168.1.100",
-    },
-    {
-      id: 2,
-      user: "Admin User",
-      action: "Updated Role",
-      details: "Modified permissions for MODERATOR role",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      type: "ROLE_MANAGEMENT",
-      ipAddress: "192.168.1.101",
-    },
-    {
-      id: 3,
-      user: "Jane Smith",
-      action: "Deleted Expense",
-      details: "Deleted expense #12345",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      type: "DATA_MODIFICATION",
-      ipAddress: "192.168.1.102",
-    },
-    {
-      id: 4,
-      user: "Mike Johnson",
-      action: "Login",
-      details: "Successful login",
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      type: "AUTHENTICATION",
-      ipAddress: "192.168.1.103",
-    },
-    {
-      id: 5,
-      user: "Sarah Williams",
-      action: "Export Report",
-      details: "Exported expense report for January 2024",
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      type: "REPORT_GENERATION",
-      ipAddress: "192.168.1.104",
-    },
-  ];
+  // Fetch audit logs on mount and when filters change
+  useEffect(() => {
+    dispatch(
+      fetchAuditLogs({
+        page: currentPage - 1,
+        size: pageSize,
+        search: searchQuery,
+        actionType: filterType,
+        timeRange: filterDate,
+      }),
+    );
+    dispatch(fetchAuditStats(filterDate));
+  }, [dispatch, currentPage, filterDate]);
 
-  const filteredLogs = auditLogs.filter((log) => {
-    const matchesSearch =
-      log.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.details.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = filterType === "all" || log.type === filterType;
-    return matchesSearch && matchesType;
-  });
+  // Handle search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery !== "") {
+        dispatch(
+          fetchAuditLogs({
+            page: 0,
+            size: pageSize,
+            search: searchQuery,
+            actionType: filterType,
+            timeRange: filterDate,
+          }),
+        );
+        setCurrentPage(1);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleFilterTypeChange = (e) => {
+    setFilterType(e.target.value);
+    setCurrentPage(1);
+    dispatch(
+      fetchAuditLogs({
+        page: 0,
+        size: pageSize,
+        search: searchQuery,
+        actionType: e.target.value,
+        timeRange: filterDate,
+      }),
+    );
+  };
+
+  const handleFilterDateChange = (e) => {
+    setFilterDate(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const handleRefresh = () => {
+    dispatch(
+      fetchAuditLogs({
+        page: currentPage - 1,
+        size: pageSize,
+        search: searchQuery,
+        actionType: filterType,
+        timeRange: filterDate,
+      }),
+    );
+    dispatch(fetchAuditStats(filterDate));
+  };
+
+  const handleExport = async () => {
+    // Export functionality - can be implemented later
+    console.log("Export audit logs");
+  };
 
   const getTypeColor = (type) => {
     switch (type) {
@@ -86,8 +134,13 @@ const AuditLogs = () => {
       case "ROLE_MANAGEMENT":
         return "#9c27b0";
       case "DATA_MODIFICATION":
+      case "CREATE":
+      case "UPDATE":
+      case "DELETE":
         return "#ff9800";
       case "AUTHENTICATION":
+      case "LOGIN":
+      case "LOGOUT":
         return "#4caf50";
       case "REPORT_GENERATION":
         return "#00bcd4";
@@ -96,25 +149,72 @@ const AuditLogs = () => {
     }
   };
 
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
+    {
+      totalLogs: stats?.totalLogs || 0,
+      userManagement: stats?.userManagement || 0,
+      dataChanges: stats?.dataModification || 0,
+      authentication: stats?.authentication || 0,
+      reports: stats?.reportGeneration || 0,
+    },
+  ];
+
+  const [flowType, setFlowType] = useState("all");
+
+  const timeframeOptions = [
+    { value: "24h", label: "Last 24 Hours" },
+    { value: "7d", label: "Last 7 Days" },
+    { value: "30d", label: "Last 30 Days" },
+    { value: "90d", label: "Last 90 Days" },
+  ];
+
+  const RefreshButton = () => (
+    <Button
+      variant="outlined"
+      startIcon={<RefreshIcon />}
+      onClick={handleRefresh}
+      disabled={loading}
+      style={{
+        borderColor: "#14b8a6",
+        color: "#14b8a6",
+      }}
+    >
+      Refresh
+    </Button>
+  );
+
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="Audit Logs"
-        description="Track system activities and user actions"
-        actions={
-          <Button
-            variant="contained"
-            startIcon={<FileDownloadIcon />}
-            style={{
-              backgroundColor: "#14b8a6",
-              color: "#fff",
-            }}
-          >
-            Export Logs
-          </Button>
-        }
+        subtitle="Track system activities and user actions"
+        timeframe={filterDate}
+        flowType={flowType}
+        onTimeframeChange={(val) => {
+          setFilterDate(val);
+          setCurrentPage(1);
+        }}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        timeframeOptions={timeframeOptions}
+        isLoading={loading}
+        showFilterButton={false}
+        rightActions={<RefreshButton />}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" className="mb-4" onClose={() => {}}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Stats Summary using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-audit" />
 
       {/* Filters Section */}
       <SectionCard title="Filters">
@@ -134,22 +234,24 @@ const AuditLogs = () => {
             <InputLabel>Action Type</InputLabel>
             <Select
               value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+              onChange={handleFilterTypeChange}
               label="Action Type"
             >
               <MuiMenuItem value="all">All Types</MuiMenuItem>
               <MuiMenuItem value="USER_MANAGEMENT">User Management</MuiMenuItem>
               <MuiMenuItem value="ROLE_MANAGEMENT">Role Management</MuiMenuItem>
-              <MuiMenuItem value="DATA_MODIFICATION">Data Modification</MuiMenuItem>
-              <MuiMenuItem value="AUTHENTICATION">Authentication</MuiMenuItem>
-              <MuiMenuItem value="REPORT_GENERATION">Report Generation</MuiMenuItem>
+              <MuiMenuItem value="CREATE">Create</MuiMenuItem>
+              <MuiMenuItem value="UPDATE">Update</MuiMenuItem>
+              <MuiMenuItem value="DELETE">Delete</MuiMenuItem>
+              <MuiMenuItem value="LOGIN">Login</MuiMenuItem>
+              <MuiMenuItem value="LOGOUT">Logout</MuiMenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" fullWidth>
             <InputLabel>Time Range</InputLabel>
             <Select
               value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
+              onChange={handleFilterDateChange}
               label="Time Range"
             >
               <MuiMenuItem value="24h">Last 24 Hours</MuiMenuItem>
@@ -162,49 +264,118 @@ const AuditLogs = () => {
       </SectionCard>
 
       {/* Audit Logs Table */}
-      <SectionCard title={`Audit Logs (${filteredLogs.length})`} className="mt-6">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-700">
-                <th className="px-6 py-4 text-left text-sm font-semibold">Timestamp</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">User</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Action</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Details</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Type</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">IP Address</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="border-b border-gray-700">
-                  <td className="px-6 py-4 text-sm opacity-70">
-                    {formatRelativeTime(log.timestamp)}
-                    <br />
-                    <span className="text-xs opacity-50">{formatDate(log.timestamp)}</span>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium">{log.user}</td>
-                  <td className="px-6 py-4 text-sm font-medium">{log.action}</td>
-                  <td className="px-6 py-4 text-sm opacity-70">{log.details}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className="px-2 py-1 rounded text-xs font-medium"
-                      style={{
-                        backgroundColor: getTypeColor(log.type) + "20",
-                        color: getTypeColor(log.type),
-                      }}
-                    >
-                      {log.type.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm opacity-70 font-mono">
-                    {log.ipAddress}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      <SectionCard title={`Audit Logs (${totalCount || 0})`} className="mt-6">
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <CircularProgress style={{ color: "#14b8a6" }} />
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-700">
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      Timestamp
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      User
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      Action
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      Details
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold">
+                      IP Address
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {logs.length > 0 ? (
+                    logs.map((log) => (
+                      <tr key={log.id} className="border-b border-gray-700">
+                        <td className="px-6 py-4 text-sm opacity-70">
+                          {formatRelativeTime(log.timestamp)}
+                          <br />
+                          <span className="text-xs opacity-50">
+                            {formatDate(log.timestamp)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {log.username || "System"}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          {log.actionType}
+                        </td>
+                        <td
+                          className="px-6 py-4 text-sm opacity-70 max-w-xs truncate"
+                          title={log.details}
+                        >
+                          {log.details || log.description || "-"}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className="px-2 py-1 rounded text-xs font-medium"
+                            style={{
+                              backgroundColor:
+                                getTypeColor(log.actionType || log.entityType) +
+                                "20",
+                              color: getTypeColor(
+                                log.actionType || log.entityType,
+                              ),
+                            }}
+                          >
+                            {(log.entityType || log.actionType || "").replace(
+                              /_/g,
+                              " ",
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm opacity-70 font-mono">
+                          {log.ipAddress || "-"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        className="px-6 py-8 text-center opacity-70"
+                      >
+                        No audit logs found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  count={totalPages}
+                  page={currentPage}
+                  onChange={handlePageChange}
+                  color="primary"
+                  sx={{
+                    "& .MuiPaginationItem-root": {
+                      color: "#fff",
+                    },
+                    "& .Mui-selected": {
+                      backgroundColor: "#14b8a6 !important",
+                    },
+                  }}
+                />
+              </div>
+            )}
+          </>
+        )}
       </SectionCard>
     </AdminPanelContainer>
   );

@@ -41,6 +41,8 @@ export function buildStackedChartData({
   offset,
   keyPrefix,
   colorAccessor = (name, entity) => entity?.color || deterministicColor(name),
+  iconAccessor = (name, entity) => entity?.icon || name,
+  entityType,
 }) {
   const segments = [];
   if (!entityExpenses) {
@@ -52,7 +54,14 @@ export function buildStackedChartData({
     .forEach((name) => {
       const key = `${keyPrefix}_${name.replace(/[^a-zA-Z0-9_]/g, "_")}`;
       const entity = entityExpenses[name];
-      segments.push({ label: name, key, color: colorAccessor(name, entity) });
+      segments.push({
+        label: name,
+        key,
+        color: colorAccessor(name, entity),
+        iconKey: iconAccessor(name, entity),
+        entityType:
+          entityType || (keyPrefix === "pm" ? "paymentMethod" : "category"),
+      });
     });
 
   const baseNow = dayjs();
@@ -101,8 +110,10 @@ export function buildStackedChartData({
           if (d.year() === baseStart.year()) idx = d.month();
         }
         if (idx >= 0 && idx < bucketCount) {
-          const amt = (e.details && e.details.amount) || e.amount || 0;
-          addAmt(idx, key, amt);
+          const details = e?.expense || e?.details || e;
+          const rawAmount =
+            details?.amount ?? details?.netAmount ?? e?.amount ?? 0;
+          addAmt(idx, key, Math.abs(Number(rawAmount) || 0));
         }
       });
     });

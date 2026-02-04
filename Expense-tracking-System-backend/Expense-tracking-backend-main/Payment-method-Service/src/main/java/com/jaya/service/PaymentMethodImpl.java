@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
 import com.jaya.models.UserDto;
 import com.jaya.repository.PaymentMethodRepository;
@@ -26,7 +27,27 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public PaymentMethod getById(Integer userId, Integer id) throws Exception {
-        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByUserIdAndId(userId, id);
+        // First try to find by user ID and payment method ID
+        Optional<PaymentMethod> paymentMethod = paymentMethodRepository.findByUserIdAndIdWithDetails(userId, id);
+
+        // If not found, check if it's a global payment method (userId = 0)
+        if (paymentMethod.isEmpty()) {
+            paymentMethod = paymentMethodRepository.findByIdWithDetails(id);
+
+            // If found, verify it's either global or belongs to the user
+            if (paymentMethod.isPresent()) {
+                PaymentMethod pm = paymentMethod.get();
+                Integer pmUserId = pm.getUserId();
+                boolean isGlobal = pm.isGlobal() || (pmUserId != null && pmUserId == 0) || pmUserId == null;
+                boolean belongsToUser = pmUserId != null && pmUserId.equals(userId);
+                boolean userHasAccess = pm.getUserIds() != null && pm.getUserIds().contains(userId);
+                boolean userHasEditAccess = pm.getEditUserIds() != null && pm.getEditUserIds().contains(userId);
+
+                if (!isGlobal && !belongsToUser && !userHasAccess && !userHasEditAccess) {
+                    throw new Exception("Payment method not found or access denied");
+                }
+            }
+        }
 
         if (paymentMethod.isEmpty()) {
             throw new Exception("Payment method not found");
@@ -64,8 +85,9 @@ public class PaymentMethodImpl implements PaymentMethodService {
 
     @Override
     public List<PaymentMethod> getAllPaymentMethods(Integer userId) {
-        List<PaymentMethod> userPaymentMethods = paymentMethodRepository.findByUserId(userId);
-        List<PaymentMethod> globalPaymentMethods = paymentMethodRepository.findByIsGlobalTrue();
+        // OPTIMIZED: Use EntityGraph queries to fetch all collections in single queries
+        List<PaymentMethod> userPaymentMethods = paymentMethodRepository.findByUserIdWithDetails(userId);
+        List<PaymentMethod> globalPaymentMethods = paymentMethodRepository.findByIsGlobalTrueWithDetails();
 
         // Filter global payment methods: user not in userIds and not in editUserIds
         List<PaymentMethod> filteredGlobalMethods = globalPaymentMethods.stream()
@@ -113,7 +135,9 @@ public class PaymentMethodImpl implements PaymentMethodService {
         // Check if a payment method with the same name (case insensitive) already
         // exists
         String trimmedName = paymentMethodName.trim();
-        List<PaymentMethod> existingMethods = paymentMethodRepository.findByUserId(userId);
+
+        // OPTIMIZED: Use EntityGraph query to fetch all collections in single query
+        List<PaymentMethod> existingMethods = paymentMethodRepository.findByUserIdWithDetails(userId);
 
         // First try to find an existing payment method with the same name (case
         // insensitive)
@@ -123,8 +147,8 @@ public class PaymentMethodImpl implements PaymentMethodService {
             }
         }
 
-        // If not found, check global payment methods
-        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrue();
+        // If not found, check global payment methods - OPTIMIZED with EntityGraph
+        List<PaymentMethod> globalMethods = paymentMethodRepository.findByIsGlobalTrueWithDetails();
         for (PaymentMethod method : globalMethods) {
             if (method.getName().equalsIgnoreCase(trimmedName)) {
                 return method;
@@ -353,6 +377,35 @@ public class PaymentMethodImpl implements PaymentMethodService {
             }
             return pm.getExpenseIds() == null || pm.getExpenseIds().isEmpty();
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PaymentMethodSearchDTO> searchPaymentMethods(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        List<PaymentMethodSearchDTO> results = paymentMethodRepository.searchPaymentMethodsFuzzyWithLimit(userId,
+                subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 
 }

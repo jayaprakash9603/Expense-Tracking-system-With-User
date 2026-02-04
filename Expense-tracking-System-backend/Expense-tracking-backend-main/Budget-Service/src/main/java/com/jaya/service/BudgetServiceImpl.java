@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.BudgetReport;
+import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.DetailedBudgetReport;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
@@ -371,20 +372,39 @@ public class BudgetServiceImpl implements BudgetService {
                 .sum();
 
         double totalExpenses = totalCashLosses + totalCreditLosses;
-
         double remainingAmount = budget.getAmount() - totalExpenses;
-
         boolean isBudgetValid = isBudgetValid(budgetId);
 
-        return new BudgetReport(
-                budget.getId(),
-                budget.getAmount(),
-                budget.getStartDate(),
-                budget.getEndDate(),
-                remainingAmount,
-                isBudgetValid,
-                totalCashLosses,
-                totalCreditLosses);
+        // Calculate additional metrics
+        int expenseCount = expenses.size();
+        long totalDays = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
+        double dailyBudget = totalDays > 0 ? budget.getAmount() / totalDays : 0;
+
+        // Calculate projected overspend based on current spending rate
+        long daysElapsed = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), LocalDate.now());
+        double projectedOverspend = 0;
+        if (daysElapsed > 0 && totalDays > 0) {
+            double dailySpendRate = totalExpenses / daysElapsed;
+            double projectedTotal = dailySpendRate * totalDays;
+            projectedOverspend = projectedTotal > budget.getAmount() ? projectedTotal - budget.getAmount() : 0;
+        }
+
+        BudgetReport report = new BudgetReport();
+        report.setBudgetId(budget.getId());
+        report.setBudgetName(budget.getName());
+        report.setDescription(budget.getDescription());
+        report.setAllocatedAmount(budget.getAmount());
+        report.setStartDate(budget.getStartDate());
+        report.setEndDate(budget.getEndDate());
+        report.setRemainingAmount(remainingAmount);
+        report.setValid(isBudgetValid);
+        report.setTotalCashLosses(totalCashLosses);
+        report.setTotalCreditLosses(totalCreditLosses);
+        report.setExpenseCount(expenseCount);
+        report.setDailyBudget(dailyBudget);
+        report.setProjectedOverspend(projectedOverspend);
+
+        return report;
     }
 
     @Override
@@ -543,23 +563,44 @@ public class BudgetServiceImpl implements BudgetService {
             }
 
             double percentage = (spent.doubleValue() / budget.getAmount()) * 100.0;
+            boolean budgetUpdated = false;
 
-            // Check thresholds and send notifications
-            if (percentage >= 100.0) {
-                // Budget exceeded - Critical
+            // Reset notification flags if percentage has decreased below thresholds
+            // This handles cases where expenses are removed or budget amount is increased
+            budget.resetNotificationFlags(percentage);
+
+            // Check thresholds and send notifications only if not already sent
+            if (percentage >= 100.0 && !budget.isNotification100PercentSent()) {
+                // Budget exceeded - Critical (send only once)
                 budgetNotificationService.sendBudgetExceededNotification(budget, spent);
-            } else if (percentage >= 80.0) {
-                // Budget warning at 80% - High priority
+                budget.setNotification100PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget exceeded notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
+            } else if (percentage >= 80.0 && percentage < 100.0 && !budget.isNotification80PercentSent()) {
+                // Budget warning at 80% - High priority (send only once)
                 budgetNotificationService.sendBudgetWarningNotification(budget, spent);
-            } else if (percentage >= 50.0) {
-                // Approaching budget limit at 50% - Medium priority
+                budget.setNotification80PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget 80% warning notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
+            } else if (percentage >= 50.0 && percentage < 80.0 && !budget.isNotification50PercentSent()) {
+                // Approaching budget limit at 50% - Medium priority (send only once)
                 budgetNotificationService.sendBudgetLimitApproachingNotification(budget, spent);
+                budget.setNotification50PercentSent(true);
+                budgetUpdated = true;
+                log.info("Budget 50% approaching notification sent for budgetId={}, userId={}, percentage={}%",
+                        budget.getId(), userId, String.format("%.2f", percentage));
             }
-            // Below 50% - No notification needed
+
+            // Save budget if notification flags were updated
+            if (budgetUpdated) {
+                budgetRepository.save(budget);
+            }
 
         } catch (Exception e) {
             // Log error but don't fail the operation
-            System.err.println("Error checking budget thresholds for budget " + budget.getId() + ": " + e.getMessage());
+            log.error("Error checking budget thresholds for budget {}: {}", budget.getId(), e.getMessage());
         }
     }
 
@@ -1258,6 +1299,9 @@ public class BudgetServiceImpl implements BudgetService {
         double overallTotalLoss = 0.0;
         double overallTotalGain = 0.0;
 
+        // Top recurring expenses (loss only), aggregated across all budgets
+        Map<String, Map<String, Object>> recurringByName = new HashMap<>();
+
         for (Budget budget : allBudgets) {
             // Budget active overlap with requested range
             LocalDate budgetStart = budget.getStartDate();
@@ -1305,6 +1349,23 @@ public class BudgetServiceImpl implements BudgetService {
                 String pm = e.getExpense().getPaymentMethod();
                 if ("loss".equalsIgnoreCase(type)) {
                     totalLoss += amt;
+
+                    // Track recurring expenses by name (loss only)
+                    String rawName = e.getExpense().getExpenseName();
+                    String normalizedName = normalizeExpenseName(rawName);
+                    if (!normalizedName.isEmpty()) {
+                        Map<String, Object> agg = recurringByName.computeIfAbsent(normalizedName, k -> {
+                            Map<String, Object> init = new LinkedHashMap<>();
+                            init.put("name", rawName != null ? rawName.trim() : "");
+                            init.put("txCount", 0);
+                            init.put("totalAmount", 0.0);
+                            return init;
+                        });
+                        agg.put("txCount", ((Number) agg.get("txCount")).intValue() + 1);
+                        double absAmount = Math.abs(amt);
+                        agg.put("totalAmount", ((Number) agg.get("totalAmount")).doubleValue() + absAmount);
+                    }
+
                     // Track all payment methods dynamically
                     if (pm != null && !pm.isEmpty()) {
                         budgetPaymentMethodLoss.put(pm, budgetPaymentMethodLoss.getOrDefault(pm, 0.0) + amt);
@@ -1492,7 +1553,48 @@ public class BudgetServiceImpl implements BudgetService {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("summary", summary);
         response.put("budgets", budgetData);
+
+        // Compute top 5 recurring expenses across all budgets (loss only)
+        List<Map<String, Object>> topRecurringExpenses = recurringByName.values().stream()
+                .map(v -> {
+                    Map<String, Object> out = new LinkedHashMap<>();
+                    out.put("name", v.get("name"));
+                    out.put("txCount", ((Number) v.get("txCount")).intValue());
+                    double totalAmount = ((Number) v.get("totalAmount")).doubleValue();
+                    out.put("totalAmount", Math.round(totalAmount * 100.0) / 100.0);
+                    return out;
+                })
+                .sorted((a, b) -> {
+                    int txCmp = Integer.compare(
+                            ((Number) b.get("txCount")).intValue(),
+                            ((Number) a.get("txCount")).intValue());
+                    if (txCmp != 0)
+                        return txCmp;
+                    int amtCmp = Double.compare(
+                            ((Number) b.get("totalAmount")).doubleValue(),
+                            ((Number) a.get("totalAmount")).doubleValue());
+                    if (amtCmp != 0)
+                        return amtCmp;
+                    String an = String.valueOf(a.get("name"));
+                    String bn = String.valueOf(b.get("name"));
+                    return an.compareToIgnoreCase(bn);
+                })
+                .limit(5)
+                .collect(Collectors.toList());
+
+        response.put("topRecurringExpenses", topRecurringExpenses);
         return response;
+    }
+
+    private static String normalizeExpenseName(String name) {
+        if (name == null) {
+            return "";
+        }
+        String trimmed = name.trim();
+        if (trimmed.isEmpty()) {
+            return "";
+        }
+        return trimmed.replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     // ==================== Constants ====================
@@ -2050,6 +2152,36 @@ public class BudgetServiceImpl implements BudgetService {
             log.error("Failed to publish expense-budget link update for expense {} and budget {}",
                     expenseId, budgetId, e);
         }
+    }
+
+    @Override
+    public List<BudgetSearchDTO> searchBudgets(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        log.debug("Searching budgets for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
+                subsequencePattern, limit);
+        List<BudgetSearchDTO> results = budgetRepository.searchBudgetsFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 
 }

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 6px;
   /* Theme variables - can be overridden via inline styles */
   --pm-bg-primary: #141414;
   --pm-bg-secondary: #1d1d1f;
@@ -16,6 +16,123 @@
   --pm-scrollbar-track: #1d1d1f;
 }
 
+/* Toolbar (search/sort/selection) */
+.pm-accordion-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  min-height: 56px;
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  background: var(--pm-bg-primary);
+}
+.pm-toolbar-left,
+.pm-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pm-toolbar-left {
+  flex: 1 1 auto;
+}
+.pm-toolbar-right {
+  flex: 0 0 auto;
+  justify-content: flex-end;
+}
+.pm-toolbar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--pm-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+}
+.pm-toolbar-label select {
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 8px;
+  padding: 6px 10px;
+  height: 36px;
+}
+.pm-search-input {
+  width: min(320px, 100%);
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 36px;
+  outline: none;
+}
+.pm-search-input::placeholder {
+  color: var(--pm-text-tertiary);
+}
+.pm-toolbar-btn {
+  background: var(--pm-bg-secondary);
+  color: var(--pm-text-primary);
+  border: 1px solid var(--pm-border-color);
+  border-radius: 10px;
+  padding: 0 12px;
+  height: 36px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+.pm-toolbar-btn:hover {
+  background: var(--pm-bg-tertiary);
+}
+
+/* Header row with selection checkbox */
+.pm-accordion-header-row {
+  display: flex;
+  align-items: stretch;
+}
+.pm-accordion-select-wrap {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 12px;
+  border-right: 1px solid var(--pm-border-color);
+  background: var(--pm-bg-primary);
+}
+.pm-accordion-header-content {
+  flex: 1;
+}
+
+/* Panel toolbar (row search/sort) */
+.pm-panel-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0 6px;
+  flex-wrap: wrap;
+}
+.pm-row-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pm-row-search {
+  width: min(360px, 100%);
+}
+
+/* Table selection column */
+.pm-select-col,
+.pm-select-cell {
+  width: 36px;
+  text-align: center;
+}
+.pm-select-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--pm-accent-color);
+}
+
 /* Viewport for group-level pagination/scroll */
 .pm-groups-viewport {
   display: flex;
@@ -25,10 +142,10 @@
   min-height: calc(58px * 8 + 10px * 8);
 }
 .pm-groups-viewport.paged-mode {
-  /* Maintain fixed height for 8 items to prevent layout shift between pages */
-  height: calc(58px * 8 + 10px * 9);
-  overflow-y: auto;
-  scrollbar-color: var(--pm-scrollbar-thumb) var(--pm-scrollbar-track);
+  /* Allow natural height in paged mode - pagination handles overflow */
+  height: auto;
+  min-height: calc(58px * 8 + 10px * 7);
+  overflow: visible;
 }
 .pm-groups-viewport.scroll-mode {
   height: calc(58px * 8 + 10px * 7);
@@ -270,7 +387,8 @@
   width: var(--pm-highlight-width, 33.333%);
   transform: translateX(var(--pm-highlight-x, 0%));
   background: var(--pm-highlight-bg, rgba(37, 99, 235, 0.18));
-  transition: transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
+  transition:
+    transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
     background-color 300ms ease;
   pointer-events: none;
   border-radius: 0; /* sits under tabs */
@@ -286,8 +404,10 @@
   box-shadow: 0 0 8px var(--pm-indicator-color);
   border-radius: 3px 3px 0 0;
   transform: translateX(var(--pm-indicator-x, 0%));
-  transition: transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
-    background-color 300ms ease, width 300ms ease;
+  transition:
+    transform 420ms cubic-bezier(0.65, 0.05, 0.36, 1),
+    background-color 300ms ease,
+    width 300ms ease;
 }
 /* Provide subtle morph/scale effect on tab change */
 .pm-tabs.pm-morphing:after {
@@ -680,7 +800,7 @@
 /* Group-level pagination (accordion cards) */
 .pm-group-pagination-bar {
   margin-top: 0px;
-  padding: 12px 16px;
+  padding: 7px 16px;
   background: var(--pm-bg-primary);
   border: 1px solid var(--pm-border-color);
   border-radius: 10px;

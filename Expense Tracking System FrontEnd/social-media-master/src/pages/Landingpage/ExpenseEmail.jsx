@@ -199,7 +199,7 @@ const ExpenseEmail = () => {
     if (!inputValue) return <div>{option}</div>;
     const regex = new RegExp(
       `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
+      "gi",
     );
     const parts = option.split(regex);
     const normalizedInput = inputValue.toLowerCase();
@@ -225,7 +225,7 @@ const ExpenseEmail = () => {
             >
               {part}
             </Typography>
-          )
+          ),
         )}
       </span>
     );
@@ -257,10 +257,10 @@ const ExpenseEmail = () => {
                 }
               }}
               placeholder="e.g., 2025"
-              inputProps={{ 
-                min: 1900, 
+              inputProps={{
+                min: 1900,
                 max: 2100,
-                step: 1
+                step: 1,
               }}
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -284,7 +284,9 @@ const ExpenseEmail = () => {
                 { value: "11", label: "November" },
                 { value: "12", label: "December" },
               ]}
-              startAdornment={<CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              startAdornment={
+                <CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+              }
               gridProps={{ xs: 12, sm: 6 }}
             />
           </Grid>
@@ -297,7 +299,9 @@ const ExpenseEmail = () => {
             value={expenseName}
             onChange={(e) => setExpenseName(e.target.value)}
             placeholder="Enter expense name..."
-            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+            startAdornment={
+              <CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+            }
           />
         );
       case "Expenses By Payment Method":
@@ -313,7 +317,9 @@ const ExpenseEmail = () => {
               { value: "creditNeedToPaid", label: "Credit Due" },
               { value: "creditPaid", label: "Credit Paid" },
             ]}
-            startAdornment={<PaymentIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+            startAdornment={
+              <PaymentIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+            }
           />
         );
       case "Within Range Expenses":
@@ -377,7 +383,9 @@ const ExpenseEmail = () => {
               { value: "loss", label: "Loss" },
               { value: "gain", label: "Gain" },
             ]}
-            startAdornment={<CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+            startAdornment={
+              <CategoryIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+            }
           />
         );
       case "Expenses Within Amount Range":
@@ -395,11 +403,13 @@ const ExpenseEmail = () => {
                 }
               }}
               placeholder="e.g., 100.00"
-              inputProps={{ 
+              inputProps={{
                 min: 0,
-                step: "0.01"
+                step: "0.01",
               }}
-              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              startAdornment={
+                <AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+              }
               gridProps={{ xs: 12, sm: 6 }}
             />
             <ReusableFilterField
@@ -414,11 +424,13 @@ const ExpenseEmail = () => {
                 }
               }}
               placeholder="e.g., 1000.00"
-              inputProps={{ 
+              inputProps={{
                 min: 0,
-                step: "0.01"
+                step: "0.01",
               }}
-              startAdornment={<AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+              startAdornment={
+                <AttachMoneyIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+              }
               gridProps={{ xs: 12, sm: 6 }}
             />
           </Grid>
@@ -472,6 +484,9 @@ const ExpenseEmail = () => {
             sx={{
               mb: 3,
               borderRadius: 2,
+              backgroundColor: "rgba(244, 67, 54, 0.12)",
+              border: "1px solid rgba(244, 67, 54, 0.3)",
+              color: "#fff",
               "& .MuiAlert-icon": {
                 color: "#ff5252",
               },
@@ -505,7 +520,9 @@ const ExpenseEmail = () => {
                 options={logTypes}
                 value={searchTerm}
                 onChange={(event, newValue) => setSearchTerm(newValue || "")}
-                onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+                onInputChange={(event, newInputValue) =>
+                  setInputValue(newInputValue)
+                }
                 loading={loadingSuggestions}
                 loadingText="Loading options..."
                 noOptionsText="No matching period found"
@@ -520,13 +537,19 @@ const ExpenseEmail = () => {
                 placeholderColor={colors.placeholder_text}
                 startAdornment={
                   <InputAdornment position="start">
-                    <CalendarTodayIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+                    <CalendarTodayIcon
+                      sx={{ color: "#00dac6", fontSize: 20 }}
+                    />
                   </InputAdornment>
                 }
                 renderOption={(props, option, { inputValue }) => {
                   const { key, ...optionProps } = props;
                   return (
-                    <li key={key} {...optionProps} style={{ padding: "12px 16px" }}>
+                    <li
+                      key={key}
+                      {...optionProps}
+                      style={{ padding: "12px 16px" }}
+                    >
                       {highlightText(option, inputValue)}
                     </li>
                   );
@@ -577,7 +600,9 @@ const ExpenseEmail = () => {
                 placeholder="your.email@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                startAdornment={<EmailIcon sx={{ color: "#00dac6", fontSize: 20 }} />}
+                startAdornment={
+                  <EmailIcon sx={{ color: "#00dac6", fontSize: 20 }} />
+                }
               />
             </Grid>
           </Grid>
@@ -613,8 +638,16 @@ const ExpenseEmail = () => {
           <Button
             variant="contained"
             onClick={handleSendEmail}
-            startIcon={loading ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : <SendIcon />}
-            disabled={loading || !email || searchTerm === "select" || searchTerm === ""}
+            startIcon={
+              loading ? (
+                <CircularProgress size={20} sx={{ color: "inherit" }} />
+              ) : (
+                <SendIcon />
+              )
+            }
+            disabled={
+              loading || !email || searchTerm === "select" || searchTerm === ""
+            }
             sx={{
               flex: 2,
               textTransform: "none",

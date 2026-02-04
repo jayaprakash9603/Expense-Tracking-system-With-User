@@ -11,13 +11,16 @@ public class PaymentMethodEvent implements Serializable {
     private String icon;
     private String color;
     private String eventType; // CREATE, UPDATE, DELETE
+    private Boolean notifyUser; // Flag to indicate if notification should be sent to user
 
     // Constructors
-    public PaymentMethodEvent() {}
+    public PaymentMethodEvent() {
+        this.notifyUser = false; // Default to false for backward compatibility
+    }
 
     public PaymentMethodEvent(Integer userId, Integer expenseId, String paymentMethodName,
-                              String paymentType, String description, String icon,
-                              String color, String eventType) {
+            String paymentType, String description, String icon,
+            String color, String eventType) {
         this.userId = userId;
         this.expenseId = expenseId;
         this.paymentMethodName = paymentMethodName;
@@ -26,30 +29,93 @@ public class PaymentMethodEvent implements Serializable {
         this.icon = icon;
         this.color = color;
         this.eventType = eventType;
+        this.notifyUser = false; // Internal data sync - no notification needed
+    }
+
+    public PaymentMethodEvent(Integer userId, Integer expenseId, String paymentMethodName,
+            String paymentType, String description, String icon,
+            String color, String eventType, Boolean notifyUser) {
+        this.userId = userId;
+        this.expenseId = expenseId;
+        this.paymentMethodName = paymentMethodName;
+        this.paymentType = paymentType;
+        this.description = description;
+        this.icon = icon;
+        this.color = color;
+        this.eventType = eventType;
+        this.notifyUser = notifyUser;
     }
 
     // Getters and Setters
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public Integer getUserId() {
+        return userId;
+    }
 
-    public Integer getExpenseId() { return expenseId; }
-    public void setExpenseId(Integer expenseId) { this.expenseId = expenseId; }
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 
-    public String getPaymentMethodName() { return paymentMethodName; }
-    public void setPaymentMethodName(String paymentMethodName) { this.paymentMethodName = paymentMethodName; }
+    public Integer getExpenseId() {
+        return expenseId;
+    }
 
-    public String getPaymentType() { return paymentType; }
-    public void setPaymentType(String paymentType) { this.paymentType = paymentType; }
+    public void setExpenseId(Integer expenseId) {
+        this.expenseId = expenseId;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getPaymentMethodName() {
+        return paymentMethodName;
+    }
 
-    public String getIcon() { return icon; }
-    public void setIcon(String icon) { this.icon = icon; }
+    public void setPaymentMethodName(String paymentMethodName) {
+        this.paymentMethodName = paymentMethodName;
+    }
 
-    public String getColor() { return color; }
-    public void setColor(String color) { this.color = color; }
+    public String getPaymentType() {
+        return paymentType;
+    }
 
-    public String getEventType() { return eventType; }
-    public void setEventType(String eventType) { this.eventType = eventType; }
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public void setEventType(String eventType) {
+        this.eventType = eventType;
+    }
+
+    public Boolean getNotifyUser() {
+        return notifyUser;
+    }
+
+    public void setNotifyUser(Boolean notifyUser) {
+        this.notifyUser = notifyUser;
+    }
 }

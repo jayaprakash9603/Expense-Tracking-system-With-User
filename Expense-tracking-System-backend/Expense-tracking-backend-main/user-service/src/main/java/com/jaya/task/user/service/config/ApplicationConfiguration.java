@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -26,24 +27,22 @@ public class ApplicationConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .sessionManagement(management ->
-                        management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize ->
-                        authorize
-                                // Public endpoints (auth endpoints)
-                                .requestMatchers("/auth/**").permitAll()
+                .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        // Public endpoints (auth endpoints)
+                        .requestMatchers("/auth/**").permitAll()
 
-                                // Admin-only endpoints
-                                .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Admin-only endpoints
+                        .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                                // General authenticated endpoints
-                                .requestMatchers("/api/user/profile").authenticated()
-                                .requestMatchers("/api/user/debug").authenticated()
-                                .requestMatchers("/api/**").authenticated()
+                        // General authenticated endpoints
+                        .requestMatchers("/api/user/profile").authenticated()
+                        .requestMatchers("/api/user/debug").authenticated()
+                        .requestMatchers("/api/**").authenticated()
 
-                                // Everything else is permitted
-                                .anyRequest().permitAll())
+                        // Everything else is permitted
+                        .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -61,7 +60,8 @@ public class ApplicationConfiguration {
                 String origin = request.getHeader("Origin");
 
                 if (origin != null) {
-                    // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+                    // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is
+                    // true
                     cfg.setAllowedOriginPatterns(Arrays.asList(origin));
                 } else {
                     // For development, allow common localhost patterns
@@ -69,8 +69,7 @@ public class ApplicationConfiguration {
                             "http://localhost:*",
                             "https://localhost:*",
                             "http://127.0.0.1:*",
-                            "https://127.0.0.1:*"
-                    ));
+                            "https://127.0.0.1:*"));
                 }
 
                 // Include PATCH (needed for reset-password) and HEAD for completeness
@@ -87,5 +86,10 @@ public class ApplicationConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

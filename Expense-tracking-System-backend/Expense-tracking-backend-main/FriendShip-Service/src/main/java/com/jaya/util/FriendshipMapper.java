@@ -8,15 +8,19 @@ import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
 import com.jaya.models.UserDto;
 import com.jaya.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FriendshipMapper {
 
+    private static final Logger log = LoggerFactory.getLogger(FriendshipMapper.class);
     private static UserService userService;
 
     public static void setUserService(UserService service) {
@@ -24,21 +28,62 @@ public class FriendshipMapper {
     }
 
     /**
+     * Safely fetch user profile by ID, returning null if user doesn't exist
+     */
+    private static UserDto getUserProfileSafely(Integer userId) {
+        try {
+            return userService.getUserProfileById(userId);
+        } catch (Exception e) {
+            log.warn("User not found or error fetching user profile for userId={}: {}", userId, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Create a placeholder UserSummaryDTO for deleted users
+     */
+    private static UserSummaryDTO createDeletedUserPlaceholder(Integer userId) {
+        return new UserSummaryDTO(
+                userId,
+                "[Deleted User]",
+                null,
+                "Deleted",
+                "User",
+                null,
+                null);
+    }
+
+    /**
      * Convert a Friendship entity to a FriendshipResponseDTO
+     * Returns null if both users are deleted, shows placeholder for single deleted
+     * user
      */
     public static FriendshipResponseDTO toDTO(Friendship friendship) throws Exception {
-        if (friendship == null) return null;
+        if (friendship == null)
+            return null;
 
         // Add null check for userService
         if (userService == null) {
             throw new IllegalStateException("UserService is not initialized in FriendshipMapper");
         }
 
-        UserDto requester = userService.getUserProfileById(friendship.getRequesterId());
-        UserDto recipient = userService.getUserProfileById(friendship.getRecipientId());
+        UserDto requester = getUserProfileSafely(friendship.getRequesterId());
+        UserDto recipient = getUserProfileSafely(friendship.getRecipientId());
 
-        UserSummaryDTO requesterDTO = UserSummaryDTO.fromUser(requester);
-        UserSummaryDTO recipientDTO = UserSummaryDTO.fromUser(recipient);
+        // If both users are deleted, skip this friendship
+        if (requester == null && recipient == null) {
+            log.warn("Both users deleted for friendship id={}, skipping", friendship.getId());
+            return null;
+        }
+
+        // Create DTOs, using placeholder for deleted users
+        UserSummaryDTO requesterDTO = requester != null
+                ? UserSummaryDTO.fromUser(requester)
+                : createDeletedUserPlaceholder(friendship.getRequesterId());
+
+        UserSummaryDTO recipientDTO = recipient != null
+                ? UserSummaryDTO.fromUser(recipient)
+                : createDeletedUserPlaceholder(friendship.getRecipientId());
 
         return new FriendshipResponseDTO(
                 friendship.getId(),
@@ -46,35 +91,47 @@ public class FriendshipMapper {
                 recipientDTO,
                 friendship.getStatus(),
                 friendship.getRequesterAccess(),
-                friendship.getRecipientAccess()
-        );
+                friendship.getRecipientAccess());
     }
 
     /**
      * Convert a list of Friendship entities to a list of FriendshipResponseDTOs
+     * Filters out friendships where conversion fails or both users are deleted
      */
     public static List<FriendshipResponseDTO> toDTOList(List<Friendship> friendships) {
-        if (friendships == null) return new ArrayList<>();
+        if (friendships == null)
+            return new ArrayList<>();
         return friendships.stream()
                 .map(f -> {
                     try {
                         return FriendshipMapper.toDTO(f);
                     } catch (Exception e) {
-                        throw new RuntimeException("Error converting friendship to DTO: " + e.getMessage());
+                        log.error("Error converting friendship id={} to DTO: {}", f.getId(), e.getMessage());
+                        return null;
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     /**
-     * Create a DTO with the perspective of the current user (showing the other user as the "friend")
+     * Create a DTO with the perspective of the current user (showing the other user
+     * as the "friend")
+     * Returns null if the friendship cannot be converted (e.g., both users deleted)
      */
-    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId) throws Exception {
-        if (friendship == null) return null;
+    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId)
+            throws Exception {
+        if (friendship == null)
+            return null;
 
         FriendshipResponseDTO dto = toDTO(friendship);
 
-        // If the current user is the recipient, swap the requester and recipient in the DTO
+        // If toDTO returned null (both users deleted), propagate null
+        if (dto == null)
+            return null;
+
+        // If the current user is the recipient, swap the requester and recipient in the
+        // DTO
         if (friendship.getRecipientId().equals(currentUserId)) {
             UserSummaryDTO temp = dto.getRequester();
             dto.setRequester(dto.getRecipient());
@@ -93,18 +150,25 @@ public class FriendshipMapper {
     }
 
     /**
-     * Convert a list of Friendship entities to a list of FriendshipResponseDTOs with user perspective
+     * Convert a list of Friendship entities to a list of FriendshipResponseDTOs
+     * with user perspective
+     * Filters out friendships where conversion fails or both users are deleted
      */
-    public static List<FriendshipResponseDTO> toDTOListWithPerspective(List<Friendship> friendships, Integer currentUserId) {
-        if (friendships == null) return new ArrayList<>();
+    public static List<FriendshipResponseDTO> toDTOListWithPerspective(List<Friendship> friendships,
+            Integer currentUserId) {
+        if (friendships == null)
+            return new ArrayList<>();
         return friendships.stream()
                 .map(f -> {
                     try {
                         return toDTOWithPerspective(f, currentUserId);
                     } catch (Exception e) {
-                        throw new RuntimeException("Error converting friendship to DTO with perspective: " + e.getMessage());
+                        log.error("Error converting friendship id={} to DTO with perspective: {}", f.getId(),
+                                e.getMessage());
+                        return null;
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -193,7 +257,8 @@ public class FriendshipMapper {
      * Extract a list of friend user IDs from friendships
      */
     public static List<Integer> extractFriendIds(List<Friendship> friendships, Integer currentUserId) {
-        if (friendships == null) return new ArrayList<>();
+        if (friendships == null)
+            return new ArrayList<>();
 
         return friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
@@ -210,7 +275,8 @@ public class FriendshipMapper {
     /**
      * Create a map of user IDs to their friendship status with the current user
      */
-    public static Map<Integer, FriendshipStatus> createFriendshipStatusMap(List<Friendship> friendships, Integer currentUserId) {
+    public static Map<Integer, FriendshipStatus> createFriendshipStatusMap(List<Friendship> friendships,
+            Integer currentUserId) {
         Map<Integer, FriendshipStatus> statusMap = new HashMap<>();
 
         if (friendships != null) {

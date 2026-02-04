@@ -29,8 +29,10 @@ public class NotificationPreferencesResponseDTO {
     private Boolean expenseServiceEnabled;
     private Boolean budgetServiceEnabled;
     private Boolean billServiceEnabled;
+    private Boolean categoryServiceEnabled;
     private Boolean paymentMethodServiceEnabled;
     private Boolean friendServiceEnabled;
+    private Boolean friendActivityServiceEnabled;
     private Boolean analyticsServiceEnabled;
     private Boolean systemNotificationsEnabled;
 
@@ -61,10 +63,39 @@ public class NotificationPreferencesResponseDTO {
     private Boolean paymentMethodUpdatedEnabled;
     private Boolean paymentMethodRemovedEnabled;
 
+    // Category Service Notifications
+    private Boolean categoryCreatedEnabled;
+    private Boolean categoryUpdatedEnabled;
+    private Boolean categoryDeletedEnabled;
+    private Boolean categoryBudgetExceededEnabled;
+
     // Friend Service Notifications
     private Boolean friendRequestReceivedEnabled;
     private Boolean friendRequestAcceptedEnabled;
     private Boolean friendRequestRejectedEnabled;
+    private Boolean friendRequestSentEnabled;
+    private Boolean friendRequestCancelledEnabled;
+    private Boolean friendRemovedEnabled;
+    private Boolean accessLevelChangedEnabled;
+    private Boolean userBlockedEnabled;
+    private Boolean userUnblockedEnabled;
+
+    // Friend Activity Service Notifications
+    private Boolean friendExpenseCreatedEnabled;
+    private Boolean friendExpenseUpdatedEnabled;
+    private Boolean friendExpenseDeletedEnabled;
+    private Boolean friendCategoryCreatedEnabled;
+    private Boolean friendCategoryUpdatedEnabled;
+    private Boolean friendCategoryDeletedEnabled;
+    private Boolean friendBillCreatedEnabled;
+    private Boolean friendBillUpdatedEnabled;
+    private Boolean friendBillDeletedEnabled;
+    private Boolean friendBudgetCreatedEnabled;
+    private Boolean friendBudgetUpdatedEnabled;
+    private Boolean friendBudgetDeletedEnabled;
+    private Boolean friendPaymentMethodCreatedEnabled;
+    private Boolean friendPaymentMethodUpdatedEnabled;
+    private Boolean friendPaymentMethodDeletedEnabled;
 
     // Analytics Service Notifications
     private Boolean weeklySummaryEnabled;

@@ -1,8 +1,10 @@
-
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
@@ -22,16 +24,19 @@ public class User {
     @JsonProperty("lastName")
     private String lastName;
 
-    @JsonProperty("image")
+    @JsonProperty("profileImage")
     private String image;
 
     @JsonProperty("mobile")
     private String mobile;
 
-    // Default constructor (required for JSON deserialization)
-    public User() {}
+    @JsonProperty("roles")
+    private Set<String> roles = new HashSet<>();
 
-    // Constructor with parameters
+    @JsonProperty("currentMode")
+    private String currentMode = "USER";
+    public User() {
+    }
     public User(Integer id, String username, String email, String firstName, String lastName) {
         this.id = id;
         this.username = username;
@@ -39,8 +44,6 @@ public class User {
         this.firstName = firstName;
         this.lastName = lastName;
     }
-
-    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -97,6 +100,35 @@ public class User {
         this.mobile = mobile;
     }
 
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
+    }
+
+    public String getCurrentMode() {
+        return currentMode;
+    }
+
+    public void setCurrentMode(String currentMode) {
+        this.currentMode = currentMode;
+    }
+
+    
+    public boolean hasAdminRole() {
+        if (roles == null)
+            return false;
+        return roles.stream().anyMatch(role -> role.equalsIgnoreCase("ADMIN") ||
+                role.equalsIgnoreCase("ROLE_ADMIN"));
+    }
+
+    
+    public boolean isInAdminMode() {
+        return hasAdminRole() && "ADMIN".equalsIgnoreCase(currentMode);
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -107,6 +139,8 @@ public class User {
                 ", lastName='" + lastName + '\'' +
                 ", image='" + image + '\'' +
                 ", mobile='" + mobile + '\'' +
+                ", roles=" + roles +
+                ", currentMode='" + currentMode + '\'' +
                 '}';
     }
 }

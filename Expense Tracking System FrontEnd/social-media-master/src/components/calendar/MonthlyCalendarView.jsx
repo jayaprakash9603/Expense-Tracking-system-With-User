@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Typography,
   Grid,
@@ -11,11 +11,22 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import dayjs from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import DateIndicator from "../DateIndicator";
 import JumpToTodayButton from "../JumpToTodayButton";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import CalendarDayCell from "./CalendarDayCell";
+import HeatmapModeToggle from "./HeatmapModeToggle";
+import SpendingMomentumInsight from "./SpendingMomentumInsight";
+import { FINANCE_COLOR_TOKENS } from "../../config/financeColorTokens";
+import {
+  getDaysArray,
+  getSalaryDateLastWorkingDay,
+  getPaydayDistanceText,
+} from "../../utils/calendar/calendarDates";
+import { computeMonthCalendarStats } from "../../utils/calendar/calendarMetrics";
+import { buildHeatmapBackground } from "../../utils/calendar/calendarHeatmap";
+import { formatCompactNumber } from "../../utils/numberFormatters";
 
 /**
  * ============================================================================
@@ -24,96 +35,7 @@ import useUserSettings from "../../hooks/useUserSettings";
  *
  * A flexible, feature-rich calendar component for displaying financial data
  * across months with support for daily spending/income tracking.
- *
- * FEATURES:
- * - Month navigation (prev/next/date picker)
- * - Daily data visualization (spending/income)
- * - Summary cards (total spending/income)
- * - Date indicators (today, salary day, custom)
- * - Jump to today functionality
- * - Fully responsive design
- * - Customizable colors and labels
- * - Extensible for future features
- *
- * USAGE:
- * ------
- * <MonthlyCalendarView
- *   title="Calendar View"
- *   data={daysData}
- *   onDayClick={handleDayClick}
- *   onMonthChange={handleMonthChange}
- *   summaryConfig={{
- *     spendingLabel: "Spending",
- *     incomeLabel: "Income",
- *     spendingColor: "#cf667a",
- *     incomeColor: "#437746"
- *   }}
- *   onBack={() => navigate('/expenses')}
- * />
  */
-
-// ============================================================================
-// UTILITY FUNCTIONS
-// ============================================================================
-
-/**
- * Get the salary date for a given year and month (last working day)
- */
-function getSalaryDate(year, month) {
-  let lastDay = dayjs(`${year}-${month + 1}-01`).endOf("month");
-  let dayOfWeek = lastDay.day();
-
-  if (dayOfWeek === 6) return lastDay.subtract(1, "day"); // Saturday -> Friday
-  if (dayOfWeek === 0) return lastDay.subtract(2, "day"); // Sunday -> Friday
-  return lastDay;
-}
-
-/**
- * Get all days in a month as an array
- */
-function getDaysArray(year, month) {
-  const numDays = dayjs(`${year}-${month + 1}-01`).daysInMonth();
-  return Array.from({ length: numDays }, (_, i) => i + 1);
-}
-
-/**
- * Format numbers with K, M, B, T suffixes
- */
-function formatAmount(num) {
-  if (num === 0) return "0";
-  const absNum = Math.abs(num);
-
-  if (absNum >= 1e12)
-    return (
-      (num / 1e12).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "T"
-    );
-  if (absNum >= 1e9)
-    return (
-      (num / 1e9).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "B"
-    );
-  if (absNum >= 1e6)
-    return (
-      (num / 1e6).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "M"
-    );
-  if (absNum >= 1e3)
-    return (
-      (num / 1e3).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 2,
-      }) + "K"
-    );
-
-  return num.toLocaleString();
-}
 
 // ============================================================================
 // SUB-COMPONENTS
@@ -181,22 +103,21 @@ const SummaryCard = ({
           viewBox="0 0 32 32"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          style={{ display: "block" }}
         >
-          <circle cx="16" cy="16" r="15" fill={iconColor} />
+          <circle cx="16" cy="16" r="16" fill={iconColor} />
           {iconType === "down" ? (
             <path
-              d="M16 8v16M16 24l7-7M16 24l-7-7"
+              d="M16 8V24M16 24L10 18M16 24L22 18"
               stroke="#fff"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           ) : (
             <path
-              d="M16 24V8M16 8L9 15M16 8L23 15"
+              d="M16 24V8M16 8L10 14M16 8L22 14"
               stroke="#fff"
-              strokeWidth="3"
+              strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -204,20 +125,19 @@ const SummaryCard = ({
         </svg>
       </Box>
 
-      {/* Text content */}
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
-          height: "100%",
+          alignItems: "flex-start",
           flex: 1,
-          ml: -0.5,
+          pr: 1.5,
         }}
       >
         <Typography
-          variant="subtitle2"
+          variant="body2"
           sx={{
+            fontSize: "0.95rem",
             color: textColor,
             fontWeight: 700,
             lineHeight: 1.2,
@@ -238,7 +158,7 @@ const SummaryCard = ({
           }}
         >
           {currencySymbol}
-          {formatAmount(amount)}
+          {formatCompactNumber(amount)}
         </Typography>
       </Box>
     </Box>
@@ -297,126 +217,7 @@ const MonthNavigator = ({
   </Box>
 );
 
-/**
- * CalendarDay - Individual day cell with spending/income display
- */
-const CalendarDay = ({
-  day,
-  dayData,
-  isToday,
-  isSalaryDay,
-  onClick,
-  isSmallScreen,
-  spendingKey = "spending",
-  incomeKey = "income",
-  colors,
-  currencySymbol = "₹",
-}) => {
-  const rawSpending = Number(dayData?.[spendingKey]);
-  const rawIncome = Number(dayData?.[incomeKey]);
-  const spending = Number.isFinite(rawSpending) ? rawSpending : 0;
-  const income = Number.isFinite(rawIncome) ? rawIncome : 0;
-
-  return (
-    <Box
-      onClick={() => onClick(day)}
-      sx={{
-        borderRadius: 2,
-        background: colors.secondary_bg,
-        cursor: "pointer",
-        p: 1,
-        minHeight: isSmallScreen ? 50 : 60,
-        height: isSmallScreen ? 70 : 80,
-        textAlign: "center",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-start",
-        position: "relative",
-        zIndex: 3,
-      }}
-    >
-      {/* Salary Day Indicator */}
-      {isSalaryDay && (
-        <DateIndicator
-          type="salary"
-          position="top-right"
-          showAnimation={true}
-          showCornerAccent={true}
-          showBadge={true}
-        />
-      )}
-
-      {/* Today Indicator */}
-      {isToday && (
-        <DateIndicator
-          type="today"
-          position="top-left"
-          showAnimation={true}
-          showCornerAccent={true}
-          showBadge={true}
-        />
-      )}
-
-      {/* Day number */}
-      <Typography variant="body1" fontWeight={700} color={colors.primary_text}>
-        {day}
-      </Typography>
-
-      {/* Amount display */}
-      {(spending !== 0 || income !== 0) && (
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            gap: 1,
-            width: "100%",
-            mt: 2.2,
-          }}
-        >
-          {spending !== 0 && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#fff",
-                background: "rgba(255, 77, 79, 0.4)",
-                display: "inline-block",
-                fontWeight: 700,
-                borderRadius: 1,
-                px: 1.5,
-                minWidth: 32,
-                textAlign: "center",
-              }}
-            >
-              {currencySymbol}
-              {Math.abs(spending).toFixed(0)}
-            </Typography>
-          )}
-          {income !== 0 && (
-            <Typography
-              variant="caption"
-              sx={{
-                color: "#fff",
-                background: "rgba(6, 214, 160, 0.4)",
-                display: "inline-block",
-                fontWeight: 700,
-                borderRadius: 1,
-                px: 1.5,
-                minWidth: 32,
-                textAlign: "center",
-              }}
-            >
-              {currencySymbol}
-              {income.toFixed(0)}
-            </Typography>
-          )}
-        </Box>
-      )}
-    </Box>
-  );
-};
+// NOTE: Day rendering is implemented in the shared CalendarDayCell component.
 
 // ============================================================================
 // MAIN COMPONENT
@@ -441,23 +242,53 @@ const MonthlyCalendarView = ({
     incomeLabel: "Income",
     spendingKey: "spending",
     incomeKey: "income",
-    spendingColor: "#cf667a",
-    incomeColor: "#437746",
-    spendingIconColor: "#e2a4af",
-    incomeIconColor: "#84ba86",
-    spendingTextColor: "#e6a2af",
-    incomeTextColor: "#83b985",
+    spendingColor: FINANCE_COLOR_TOKENS.calendar.spending.base,
+    incomeColor: FINANCE_COLOR_TOKENS.calendar.income.base,
+    spendingIconColor: FINANCE_COLOR_TOKENS.calendar.spending.icon,
+    incomeIconColor: FINANCE_COLOR_TOKENS.calendar.income.icon,
+    spendingTextColor: FINANCE_COLOR_TOKENS.calendar.spending.text,
+    incomeTextColor: FINANCE_COLOR_TOKENS.calendar.income.text,
   },
 
   // Initial state
   initialDate = dayjs(),
   initialOffset = 0,
 
+  // Optional controlled mode (lets parents jump months programmatically)
+  controlledDate,
+  controlledOffset,
+
   // Features
   showSalaryIndicator = true,
   showTodayIndicator = true,
   showJumpToToday = true,
   showBackButton = true,
+
+  // Visual toggles
+  showHeatmap = true,
+  showSummaryCards = true,
+
+  // Optional heatmap mode toggle (Loss / Gain / Both)
+  showHeatmapModeToggle = false,
+  initialHeatmapMode = "both",
+
+  // Disable selecting days with no data (no expenses)
+  disableDaysWithoutData = false,
+
+  // Optional: highlight a single active date (YYYY-MM-DD)
+  activeDateStr,
+
+  // Optional macro insight (anchored to today, computed outside)
+  momentumInsight,
+
+  // Optional: render icons instead of amounts inside day cells
+  dayCellConfig,
+
+  // Optional: right-side panel aligned with the calendar grid (desktop only)
+  rightPanel,
+  rightPanelOpen = false,
+  rightPanelWidth = 350,
+  rightPanelGap = 20,
 
   // Styling
   containerStyle = {},
@@ -470,45 +301,70 @@ const MonthlyCalendarView = ({
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
+  const [heatmapMode, setHeatmapMode] = useState(initialHeatmapMode);
+
+  useEffect(() => {
+    setHeatmapMode(initialHeatmapMode);
+  }, [initialHeatmapMode]);
+
+  useEffect(() => {
+    if (!controlledDate) return;
+
+    const nextDate = controlledDate;
+    const shouldUpdateMonth =
+      !selectedDate?.isValid?.() || !selectedDate.isSame(nextDate, "month");
+
+    if (shouldUpdateMonth) {
+      setSelectedDate(nextDate);
+    }
+
+    if (
+      typeof controlledOffset === "number" &&
+      controlledOffset !== monthOffset
+    ) {
+      setMonthOffset(controlledOffset);
+    }
+  }, [controlledDate, controlledOffset, monthOffset, selectedDate]);
 
   // Calculate days array and start day
   const days = useMemo(
     () => getDaysArray(selectedDate.year(), selectedDate.month()),
-    [selectedDate]
+    [selectedDate],
   );
 
   const startDay = useMemo(
     () => dayjs(`${selectedDate.year()}-${selectedDate.month() + 1}-01`).day(),
-    [selectedDate]
+    [selectedDate],
   );
 
   // Calculate monthly summary
-  const { totalSpending, totalIncome } = useMemo(() => {
-    let spending = 0;
-    let income = 0;
+  const monthStats = useMemo(
+    () =>
+      computeMonthCalendarStats({
+        data,
+        monthDate: selectedDate,
+        spendingKey: summaryConfig.spendingKey,
+        incomeKey: summaryConfig.incomeKey,
+      }),
+    [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey],
+  );
 
-    Object.entries(data).forEach(([key, items]) => {
-      if (dayjs(key).isSame(selectedDate, "month")) {
-        const daySpending = Number(items[summaryConfig.spendingKey]);
-        const dayIncome = Number(items[summaryConfig.incomeKey]);
-        spending += Number.isFinite(daySpending) ? daySpending : 0;
-        income += Number.isFinite(dayIncome) ? dayIncome : 0;
-      }
-    });
-
-    return { totalSpending: spending, totalIncome: income };
-  }, [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey]);
+  const { totalSpending, totalIncome, avgDailySpend, maxSpending, maxIncome } =
+    monthStats;
 
   // Get salary date
   const salaryDate = useMemo(
-    () => getSalaryDate(selectedDate.year(), selectedDate.month()),
-    [selectedDate]
+    () =>
+      getSalaryDateLastWorkingDay(selectedDate.year(), selectedDate.month()),
+    [selectedDate],
   );
+
+  // NOTE: Spending Momentum is now provided via `momentumInsight`.
 
   // Check if viewing current month
   const isViewingCurrentMonth = useMemo(
     () => selectedDate.isSame(dayjs(), "month"),
-    [selectedDate]
+    [selectedDate],
   );
 
   // Navigation handlers
@@ -550,6 +406,14 @@ const MonthlyCalendarView = ({
     const dateStr = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
     onDayClick?.(dateStr, day, selectedDate);
   };
+
+  const showRightPanelDesktop = Boolean(rightPanel) && !isSmallScreen;
+  const computedRightPanelGap =
+    showRightPanelDesktop && rightPanelOpen ? rightPanelGap : 0;
+  const computedLeftWidth =
+    showRightPanelDesktop && rightPanelOpen
+      ? `calc(100% - ${rightPanelWidth}px - ${computedRightPanelGap}px)`
+      : "100%";
 
   return (
     <div
@@ -638,17 +502,45 @@ const MonthlyCalendarView = ({
           pt: isSmallScreen ? 0 : 1,
         }}
       >
+        {/* Spending Momentum (macro insight) */}
+        {momentumInsight && (
+          <Box
+            sx={{
+              position: isSmallScreen ? "static" : "absolute",
+              top: isSmallScreen ? "auto" : 64,
+              left: isSmallScreen ? "auto" : 24,
+              transform: isSmallScreen ? "none" : "translateX(-20px)",
+              mb: isSmallScreen ? 1 : 0,
+              mt: isSmallScreen ? 1 : 0,
+              zIndex: 5,
+              opacity: 0.98,
+              display: "flex",
+              justifyContent: isSmallScreen ? "center" : "flex-start",
+              width: isSmallScreen ? "100%" : "auto",
+            }}
+          >
+            <SpendingMomentumInsight
+              insight={momentumInsight}
+              colors={colors}
+              spendingColor={summaryConfig.spendingColor}
+              incomeColor={summaryConfig.incomeColor}
+            />
+          </Box>
+        )}
+
         {/* Spending card */}
-        <SummaryCard
-          label={summaryConfig.spendingLabel}
-          amount={totalSpending}
-          backgroundColor={summaryConfig.spendingColor}
-          iconColor={summaryConfig.spendingIconColor}
-          textColor={summaryConfig.spendingTextColor}
-          iconType="down"
-          isSmallScreen={isSmallScreen}
-          currencySymbol={currencySymbol}
-        />
+        {showSummaryCards && (
+          <SummaryCard
+            label={summaryConfig.spendingLabel}
+            amount={totalSpending}
+            backgroundColor={summaryConfig.spendingColor}
+            iconColor={summaryConfig.spendingIconColor}
+            textColor={summaryConfig.spendingTextColor}
+            iconType="down"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+          />
+        )}
 
         {/* Month navigator */}
         <MonthNavigator
@@ -661,142 +553,312 @@ const MonthlyCalendarView = ({
         />
 
         {/* Income card */}
-        <SummaryCard
-          label={summaryConfig.incomeLabel}
-          amount={totalIncome}
-          backgroundColor={summaryConfig.incomeColor}
-          iconColor={summaryConfig.incomeIconColor}
-          textColor={summaryConfig.incomeTextColor}
-          iconType="up"
-          isSmallScreen={isSmallScreen}
-          currencySymbol={currencySymbol}
-        />
+        {showSummaryCards && (
+          <SummaryCard
+            label={summaryConfig.incomeLabel}
+            amount={totalIncome}
+            backgroundColor={summaryConfig.incomeColor}
+            iconColor={summaryConfig.incomeIconColor}
+            textColor={summaryConfig.incomeTextColor}
+            iconType="up"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+          />
+        )}
       </Box>
 
-      {/* Calendar grid */}
+      {/* Top-right controls: Heatmap mode + Current Month */}
+      {(showJumpToToday || (showHeatmap && showHeatmapModeToggle)) && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 16,
+            right: 30,
+            zIndex: 22,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: 1,
+            maxWidth: isSmallScreen ? "calc(100% - 120px)" : "none",
+            flexWrap: isSmallScreen ? "wrap" : "nowrap",
+          }}
+        >
+          {showHeatmap && showHeatmapModeToggle && (
+            <HeatmapModeToggle
+              value={heatmapMode}
+              onChange={setHeatmapMode}
+              lossColor={summaryConfig.spendingColor}
+              gainColor={summaryConfig.incomeColor}
+              background="rgba(255,255,255,0.9)"
+              borderColor="rgba(0,0,0,0.12)"
+              textColor="rgba(0,0,0,0.75)"
+            />
+          )}
+
+          {showJumpToToday && (
+            <JumpToTodayButton
+              onClick={handleJumpToToday}
+              isToday={isViewingCurrentMonth}
+              visible={true}
+              hideWhenActive={false}
+              position="static"
+              customPosition={{}}
+              viewType="month"
+              zIndex={20}
+            />
+          )}
+        </Box>
+      )}
+
+      {/* Calendar grid + optional right panel (desktop) */}
       <Box
         sx={{
           flex: 1,
-          overflow: "hidden",
-          background: colors.primary_bg,
-          borderRadius: 2,
-          p: 2,
-          minHeight: isSmallScreen ? "auto" : "0px",
+          minHeight: isSmallScreen ? "auto" : 0,
           height: isSmallScreen ? "auto" : "100%",
+          display: isSmallScreen ? "block" : "flex",
+          // Use px gap to avoid MUI theme spacing multiplying the number.
+          gap: computedRightPanelGap ? `${computedRightPanelGap}px` : 0,
+          alignItems: "stretch",
+          overflow: "hidden",
         }}
       >
-        {/* Weekday headers */}
-        <Grid
-          container
-          spacing={1}
-          columns={7}
+        <Box
           sx={{
-            mb: 2,
-            background: colors.primary_bg,
-            borderRadius: 2,
-            borderBottom: 0,
-            position: "relative",
-            "::after": {
-              content: '""',
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 4,
-              borderRadius: "0 0 8px 8px",
-              background: (() => {
-                const total = totalIncome + Math.abs(totalSpending);
-                if (total === 0)
-                  return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
-                const incomePercent = (totalIncome / total) * 100;
-                return `linear-gradient(90deg, #06d6a0 ${incomePercent}%, #ff4d4f ${incomePercent}%, #ff4d4f 100%)`;
-              })(),
-              zIndex: 1,
-            },
+            width: computedLeftWidth,
+            transition: "width 280ms ease",
+            minWidth: 0,
+            flex: showRightPanelDesktop ? "0 0 auto" : "1 1 auto",
+            height: isSmallScreen ? "auto" : "100%",
+            minHeight: isSmallScreen ? "auto" : 0,
           }}
         >
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <Grid item xs={1} key={d}>
-              <Typography
-                align="center"
-                variant="subtitle2"
-                sx={{
-                  fontWeight: 700,
-                  color: colors.primary_text,
-                  py: 1,
-                  letterSpacing: 1,
-                  border: "none",
-                  borderRadius: 2,
-                }}
-              >
-                {d}
-              </Typography>
+          <Box
+            sx={{
+              overflow: "hidden",
+              background: colors.primary_bg,
+              borderRadius: 2,
+              p: 2,
+              minHeight: isSmallScreen ? "auto" : "0px",
+              height: isSmallScreen ? "auto" : "100%",
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
+            }}
+          >
+            {/* Weekday headers */}
+            <Grid
+              container
+              spacing={1}
+              columns={7}
+              sx={{
+                mb: 2,
+                background: colors.primary_bg,
+                borderRadius: 2,
+                borderBottom: 0,
+                position: "relative",
+                ...(showSummaryCards
+                  ? {
+                      "::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 4,
+                        borderRadius: "0 0 8px 8px",
+                        background: (() => {
+                          const total = totalIncome + Math.abs(totalSpending);
+                          if (total === 0)
+                            return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
+                          const incomePercent = (totalIncome / total) * 100;
+                          return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
+                        })(),
+                        zIndex: 1,
+                      },
+                    }
+                  : null),
+              }}
+            >
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                <Grid item xs={1} key={d}>
+                  <Typography
+                    align="center"
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 700,
+                      color: colors.primary_text,
+                      py: 1,
+                      letterSpacing: 1,
+                      border: "none",
+                      borderRadius: 2,
+                    }}
+                  >
+                    {d}
+                  </Typography>
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
 
-        {/* Calendar days */}
-        <Grid container spacing={1} columns={7}>
-          {/* Empty cells for offset */}
-          {Array.from({ length: startDay }).map((_, i) => (
-            <Grid item xs={1} key={`empty-${i}`}></Grid>
-          ))}
-
-          {/* Day cells */}
-          {days.map((day) => {
-            const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
-            const dayData = data[key];
-            const isToday = dayjs().isSame(
-              dayjs(selectedDate).date(day),
-              "day"
-            );
-            const isSalaryDay =
-              showSalaryIndicator &&
-              day === salaryDate.date() &&
-              selectedDate.month() === salaryDate.month() &&
-              selectedDate.year() === salaryDate.year();
-
-            return (
-              <Grid
-                item
-                xs={1}
-                key={day}
-                sx={{
-                  borderRadius: 2,
-                  position: "relative",
-                  overflow: "visible",
-                }}
-              >
-                <CalendarDay
-                  day={day}
-                  dayData={dayData}
-                  isToday={showTodayIndicator && isToday}
-                  isSalaryDay={isSalaryDay}
-                  onClick={handleDayClick}
-                  isSmallScreen={isSmallScreen}
-                  spendingKey={summaryConfig.spendingKey}
-                  incomeKey={summaryConfig.incomeKey}
-                  colors={colors}
-                  currencySymbol={currencySymbol}
+            {/* Calendar days */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+                gridTemplateRows: isSmallScreen
+                  ? "auto"
+                  : "repeat(6, minmax(0, 1fr))",
+                gap: 1,
+                flex: isSmallScreen ? "0 0 auto" : "1 1 auto",
+                minHeight: isSmallScreen ? "auto" : 0,
+                height: isSmallScreen ? "auto" : "100%",
+                alignContent: "stretch",
+              }}
+            >
+              {/* Empty cells for offset */}
+              {Array.from({ length: startDay }).map((_, i) => (
+                <Box
+                  key={`empty-start-${i}`}
+                  sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
                 />
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Box>
+              ))}
 
-      {/* Jump to Today button */}
-      {showJumpToToday && (
-        <JumpToTodayButton
-          onClick={handleJumpToToday}
-          isToday={isViewingCurrentMonth}
-          visible={true}
-          position="absolute"
-          customPosition={{ top: 16, right: 30 }}
-          viewType="month"
-          zIndex={20}
-        />
-      )}
+              {/* Day cells */}
+              {days.map((day) => {
+                const key = dayjs(selectedDate).date(day).format("YYYY-MM-DD");
+                const dayData = data[key];
+                const dateObj = dayjs(selectedDate).date(day);
+                const isToday = dayjs().isSame(dateObj, "day");
+                const isWeekend = dateObj.day() === 0 || dateObj.day() === 6;
+                const isSalaryDay =
+                  showSalaryIndicator &&
+                  day === salaryDate.date() &&
+                  selectedDate.month() === salaryDate.month() &&
+                  selectedDate.year() === salaryDate.year();
+
+                const paydayDistanceText = showSalaryIndicator
+                  ? getPaydayDistanceText(dateObj, salaryDate)
+                  : "";
+
+                const spending =
+                  Number(dayData?.[summaryConfig.spendingKey]) || 0;
+                const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
+
+                const hasIcons = (() => {
+                  const iconsKey = dayCellConfig?.iconsKey;
+                  const icons = iconsKey ? dayData?.[iconsKey] : null;
+                  return Array.isArray(icons) && icons.length > 0;
+                })();
+
+                const isDayDisabled =
+                  disableDaysWithoutData &&
+                  (!dayData || (spending === 0 && income === 0 && !hasIcons));
+
+                const isActive =
+                  typeof activeDateStr === "string" && activeDateStr === key;
+
+                const effectiveSpending =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "gain"
+                    ? 0
+                    : spending;
+                const effectiveIncome =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "loss"
+                    ? 0
+                    : income;
+                const effectiveMaxSpending =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "gain"
+                    ? 0
+                    : maxSpending;
+                const effectiveMaxIncome =
+                  showHeatmap && showHeatmapModeToggle && heatmapMode === "loss"
+                    ? 0
+                    : maxIncome;
+
+                const heatmapBackground = showHeatmap
+                  ? buildHeatmapBackground({
+                      baseBg: colors.secondary_bg,
+                      accentColor: colors.primary_accent,
+                      isWeekend,
+                      spending: effectiveSpending,
+                      income: effectiveIncome,
+                      maxSpending: effectiveMaxSpending,
+                      maxIncome: effectiveMaxIncome,
+                      spendingColor: summaryConfig.spendingColor,
+                      incomeColor: summaryConfig.incomeColor,
+                    })
+                  : null;
+
+                return (
+                  <Box
+                    key={day}
+                    sx={{
+                      borderRadius: 2,
+                      position: "relative",
+                      overflow: "visible",
+                      display: "flex",
+                      alignItems: "stretch",
+                      minWidth: 0,
+                      minHeight: 0,
+                    }}
+                  >
+                    <CalendarDayCell
+                      dayNumber={day}
+                      date={dateObj}
+                      dayData={dayData}
+                      isToday={showTodayIndicator && isToday}
+                      isSalaryDay={isSalaryDay}
+                      isActive={isActive}
+                      paydayDistanceText={paydayDistanceText}
+                      onClick={handleDayClick}
+                      disabled={isDayDisabled}
+                      isSmallScreen={isSmallScreen}
+                      spendingKey={summaryConfig.spendingKey}
+                      incomeKey={summaryConfig.incomeKey}
+                      spendingColor={summaryConfig.spendingColor}
+                      incomeColor={summaryConfig.incomeColor}
+                      colors={colors}
+                      currencySymbol={currencySymbol}
+                      heatmapBackground={heatmapBackground}
+                      showMixedAmountsOverlay={
+                        !(showHeatmapModeToggle && heatmapMode !== "both")
+                      }
+                      avgDailySpend={avgDailySpend}
+                      iconsKey={dayCellConfig?.iconsKey}
+                      renderIcon={dayCellConfig?.renderIcon}
+                      maxIcons={dayCellConfig?.maxIcons}
+                    />
+                  </Box>
+                );
+              })}
+
+              {/* Trailing empty cells to keep a stable 7x6 grid */}
+              {Array.from({
+                length: Math.max(0, 42 - (startDay + days.length)),
+              }).map((_, i) => (
+                <Box
+                  key={`empty-end-${i}`}
+                  sx={{ display: "flex", alignItems: "stretch", minWidth: 0 }}
+                />
+              ))}
+            </Box>
+          </Box>
+        </Box>
+
+        {showRightPanelDesktop && (
+          <Box
+            sx={{
+              width: rightPanelOpen ? rightPanelWidth : 0,
+              minWidth: rightPanelOpen ? rightPanelWidth : 0,
+              maxWidth: rightPanelWidth,
+              transition: "width 280ms ease, min-width 280ms ease",
+              overflow: "hidden",
+              flex: "0 0 auto",
+            }}
+          >
+            {rightPanelOpen ? rightPanel : null}
+          </Box>
+        )}
+      </Box>
     </div>
   );
 };
@@ -825,25 +887,21 @@ MonthNavigator.propTypes = {
   colors: PropTypes.object,
 };
 
-CalendarDay.propTypes = {
-  day: PropTypes.number.isRequired,
-  dayData: PropTypes.object,
-  isToday: PropTypes.bool,
-  isSalaryDay: PropTypes.bool,
-  onClick: PropTypes.func.isRequired,
-  isSmallScreen: PropTypes.bool,
-  spendingKey: PropTypes.string,
-  incomeKey: PropTypes.string,
-  colors: PropTypes.object,
-  currencySymbol: PropTypes.string,
-};
-
 MonthlyCalendarView.propTypes = {
   title: PropTypes.string,
   data: PropTypes.object.isRequired,
+  activeDateStr: PropTypes.string,
   onDayClick: PropTypes.func,
   onMonthChange: PropTypes.func,
   onBack: PropTypes.func,
+  momentumInsight: PropTypes.shape({
+    category: PropTypes.string,
+    tone: PropTypes.oneOf(["bad", "good", "warn", "neutral"]),
+    icon: PropTypes.oneOf(["up", "down", "line", "dot"]),
+    percentChange: PropTypes.number,
+    message: PropTypes.string,
+    key: PropTypes.string,
+  }),
   summaryConfig: PropTypes.shape({
     spendingLabel: PropTypes.string,
     incomeLabel: PropTypes.string,
@@ -858,11 +916,27 @@ MonthlyCalendarView.propTypes = {
   }),
   initialDate: PropTypes.object,
   initialOffset: PropTypes.number,
+  controlledDate: PropTypes.object,
+  controlledOffset: PropTypes.number,
   showSalaryIndicator: PropTypes.bool,
   showTodayIndicator: PropTypes.bool,
   showJumpToToday: PropTypes.bool,
+  showHeatmap: PropTypes.bool,
+  showHeatmapModeToggle: PropTypes.bool,
+  initialHeatmapMode: PropTypes.oneOf(["loss", "gain", "both"]),
+  showSummaryCards: PropTypes.bool,
+  dayCellConfig: PropTypes.shape({
+    iconsKey: PropTypes.string,
+    renderIcon: PropTypes.func,
+    maxIcons: PropTypes.number,
+  }),
+  rightPanel: PropTypes.node,
+  rightPanelOpen: PropTypes.bool,
+  rightPanelWidth: PropTypes.number,
+  rightPanelGap: PropTypes.number,
   showBackButton: PropTypes.bool,
   containerStyle: PropTypes.object,
+  disableDaysWithoutData: PropTypes.bool,
 };
 
 export default MonthlyCalendarView;

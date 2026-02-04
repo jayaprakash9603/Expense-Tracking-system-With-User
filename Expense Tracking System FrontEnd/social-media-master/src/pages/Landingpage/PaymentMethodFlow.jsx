@@ -8,11 +8,13 @@ import { formatCompactNumber } from "../../utils/numberFormatters";
 import CreatePaymentMethod from "./CreatePaymentMethod";
 import GenericFlowPage from "../../components/common/GenericFlowPage";
 import FlowStackedChart from "../../components/common/FlowStackedChart";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const PaymentMethodFlow = () => {
   const { friendId } = useParams();
   const [search] = useState(""); // Local search handled inside GenericFlowPage
   const isFriendView = Boolean(friendId && friendId !== "undefined");
+  const { t } = useTranslation();
   const {
     activeRange,
     setActiveRange,
@@ -71,14 +73,14 @@ const PaymentMethodFlow = () => {
         expensesMap: paymentMethodExpenses,
       }}
       entityConfig={{
-        singular: "Payment Method",
-        plural: "payment methods",
+        singular: t("flows.entities.paymentMethod.singular"),
+        plural: t("flows.entities.paymentMethod.plural"),
         idKey: "categoryId", // underlying id field name in cards
         nameKey: "categoryName",
         routeBase: "payment-method",
         addNewOptions: [
           {
-            label: "Add Payment Method",
+            label: t("cashflow.addNew.options.addPaymentMethod"),
             route:
               friendId && friendId !== "undefined"
                 ? `/payment-method/create/${friendId}`
@@ -86,7 +88,7 @@ const PaymentMethodFlow = () => {
             color: "#00DAC6",
           },
           {
-            label: "Upload File",
+            label: t("cashflow.addNew.options.uploadFile"),
             route:
               friendId && friendId !== "undefined"
                 ? `/upload/payments/${friendId}`
@@ -98,15 +100,38 @@ const PaymentMethodFlow = () => {
           {
             path: "/payment-method/reports",
             icon: "report.png",
-            label: "Reports",
+            label: t("navigation.reports"),
           },
-          { path: "/budget", icon: "budget.png", label: "Budget" },
-          { path: "/expenses", icon: "save-money.png", label: "Expenses" },
-          { path: "/category-flow", icon: "category.png", label: "Categories" },
-          { path: "/bill", icon: "bill.png", label: "Bill" },
+          {
+            path:
+              friendId && friendId !== "undefined"
+                ? `/payment-method/calendar/${friendId}`
+                : "/payment-method/calendar",
+            icon: "calendar.png",
+            label: t("cashflow.nav.calendar"),
+          },
+          {
+            path: "/budget",
+            icon: "budget.png",
+            label: t("cashflow.nav.budget"),
+          },
+          {
+            path: "/expenses",
+            icon: "save-money.png",
+            label: t("navigation.expenses"),
+          },
+          {
+            path: "/category-flow",
+            icon: "category.png",
+            label: t("navigation.categories"),
+          },
+          {
+            path: "/bill",
+            icon: "bill.png",
+            label: t("navigation.bill"),
+          },
         ],
-        deletionConfirmText:
-          "Are you sure you want to delete this payment method?",
+        deletionConfirmText: t("flows.confirmations.deletePaymentMethod"),
       }}
       chartComponent={FlowStackedChart}
       formatCompactNumber={formatCompactNumber}
@@ -116,7 +141,7 @@ const PaymentMethodFlow = () => {
       createDialog={{
         open: createPaymentMethodModalOpen,
         setOpen: setCreatePaymentMethodModalOpen,
-        title: "Create Payment Method",
+        title: t("flows.paymentMethodFlow.createDialogTitle"),
         Component: CreatePaymentMethod,
         onCreated: () => {},
       }}

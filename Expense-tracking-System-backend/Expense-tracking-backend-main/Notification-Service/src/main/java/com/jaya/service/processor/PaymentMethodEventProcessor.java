@@ -23,6 +23,28 @@ public class PaymentMethodEventProcessor extends AbstractNotificationEventProces
         super(preferencesChecker, notificationRepository, messagingTemplate);
     }
 
+    /**
+     * Override process to check notifyUser flag before creating notifications.
+     * This prevents notifications from being sent for internal data sync events
+     * (e.g., when expenses are created/updated and payment method data is synced).
+     * Only explicit payment method CRUD operations should trigger notifications.
+     */
+    @Override
+    public void process(PaymentMethodEventDTO event) {
+        // Check if notification should be sent - default to false for backward
+        // compatibility
+        Boolean shouldNotify = event.getNotifyUser();
+        if (shouldNotify == null || !shouldNotify) {
+            log.debug(
+                    "Skipping payment method notification for user {} - notifyUser flag is false (internal data sync event)",
+                    event.getUserId());
+            return;
+        }
+
+        // Proceed with normal notification processing
+        super.process(event);
+    }
+
     @Override
     public String getNotificationType(PaymentMethodEventDTO event) {
         switch (event.getEventType()) {

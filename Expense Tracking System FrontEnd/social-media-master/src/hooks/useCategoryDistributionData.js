@@ -10,6 +10,7 @@ export default function useCategoryDistributionData({
   timeframe = "this_month",
   flowType = "loss",
   refreshTrigger,
+  skip = false,
 } = {}) {
   const [distribution, setDistribution] = useState(null); // raw response (object with summary or array)
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,13 @@ export default function useCategoryDistributionData({
   }, [timeframe, flowType]);
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setDistribution(null);
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     const fetchData = async () => {
       setLoading(true);
@@ -97,7 +105,7 @@ export default function useCategoryDistributionData({
     };
     fetchData();
     return () => controller.abort();
-  }, [buildParams, refreshTrigger]);
+  }, [buildParams, refreshTrigger, skip]);
 
   return { distribution, loading, error };
 }

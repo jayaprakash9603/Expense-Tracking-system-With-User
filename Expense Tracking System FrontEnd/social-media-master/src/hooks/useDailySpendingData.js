@@ -198,7 +198,23 @@ const resolveTimeframeConfig = (timeframe) => {
     endDate: formatDateString(end),
   });
 
+  const isFirstQuarter = now.getMonth() <= 2; // Jan(0) - Mar(2)
+
   switch (timeframe) {
+    case "quarter": {
+      const quarterStartMonth = Math.floor(now.getMonth() / 3) * 3;
+      const start = new Date(now.getFullYear(), quarterStartMonth, 1);
+      // Show quarter-to-date to avoid plotting future empty days.
+      const end = new Date(now);
+      return {
+        query: {
+          startDate: formatDateString(start),
+          endDate: formatDateString(end),
+        },
+        window: setWindow(start, end),
+        label: "This Quarter",
+      };
+    }
     case "this_week": {
       const start = new Date(now);
       const day = start.getDay() || 7;
@@ -244,6 +260,22 @@ const resolveTimeframeConfig = (timeframe) => {
     case "this_year": {
       const start = new Date(now.getFullYear(), 0, 1);
       const end = new Date(now.getFullYear(), 11, 31);
+
+      // When we're still in the first 3 months of the year, the backend `range=year`
+      // aggregation returns month buckets (1 point per month), which hides daily detail.
+      // Use an explicit (custom) start/end range to force daily buckets.
+      if (isFirstQuarter) {
+        const endPartial = new Date(now);
+        return {
+          query: {
+            startDate: formatDateString(start),
+            endDate: formatDateString(endPartial),
+          },
+          window: setWindow(start, endPartial),
+          label: "This Year",
+        };
+      }
+
       return {
         query: { range: "year", offset: 0 },
         window: setWindow(start, end),
@@ -253,8 +285,14 @@ const resolveTimeframeConfig = (timeframe) => {
     case "last_year": {
       const start = new Date(now.getFullYear() - 1, 0, 1);
       const end = new Date(now.getFullYear() - 1, 11, 31);
+
+      // Always request the full year using specific dates to ensure daily resolution
+      // (avoiding backend 'range=year' which might aggregate by month)
       return {
-        query: { range: "year", offset: -1 },
+        query: {
+          startDate: formatDateString(start),
+          endDate: formatDateString(end),
+        },
         window: setWindow(start, end),
         label: "Last Year",
       };
@@ -314,6 +352,7 @@ export default function useDailySpendingData({
   targetId = null,
   includeTypeInRequest = true,
   refreshTrigger,
+  skip = false,
 } = {}) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
   const [type, setType] = useState(initialType);
@@ -404,10 +443,17 @@ export default function useDailySpendingData({
   }, [performFetch]);
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setDataset(createInitialDataset());
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     performFetch(controller.signal);
     return () => controller.abort();
-  }, [performFetch, refreshTrigger]);
+  }, [performFetch, refreshTrigger, skip]);
 
   return {
     data: dataset.chartData,

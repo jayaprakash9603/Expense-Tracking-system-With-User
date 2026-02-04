@@ -448,6 +448,56 @@ public class FriendshipNotificationService {
     }
 
     /**
+     * Send notification when a user shares data with a friend
+     * Notifies the FRIEND that they received shared data
+     * 
+     * @param sharer        The user who is sharing data
+     * @param friendId      The friend who will receive the notification
+     * @param shareUrl      The URL to access the shared data
+     * @param shareName     The name/description of the share
+     * @param resourceCount Number of resources being shared
+     * @param message       Optional personal message from the sharer
+     */
+    @Async
+    public void sendDataSharedNotification(UserDto sharer, Integer friendId, String shareUrl,
+            String shareName, int resourceCount, String message) {
+        try {
+            log.debug("Preparing data shared notification for friend ID: {}", friendId);
+
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("type", "data_shared");
+            metadata.put("shareUrl", shareUrl);
+            metadata.put("shareName", shareName);
+            metadata.put("resourceCount", resourceCount);
+            metadata.put("sharerName", getFullName(sharer));
+            metadata.put("sharerEmail", sharer.getEmail());
+            if (message != null && !message.trim().isEmpty()) {
+                metadata.put("personalMessage", message);
+            }
+
+            FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
+                    .friendshipId(null) // No friendship ID for data sharing
+                    .userId(friendId) // Friend receives notification
+                    .actorId(sharer.getId()) // Sharer is the actor
+                    .action(FriendshipNotificationEvent.DATA_SHARED)
+                    .requesterId(sharer.getId())
+                    .recipientId(friendId)
+                    .actorName(getFullName(sharer))
+                    .actorEmail(sharer.getEmail())
+                    .timestamp(LocalDateTime.now())
+                    .metadata(metadata)
+                    .build();
+
+            producer.sendEvent(event);
+            log.info("Data shared notification sent to friend {} from user {}",
+                    friendId, getFullName(sharer));
+
+        } catch (Exception e) {
+            log.error("Failed to send data shared notification: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
      * Safely convert AccessLevel to String
      */
     private String getAccessLevelString(AccessLevel accessLevel) {

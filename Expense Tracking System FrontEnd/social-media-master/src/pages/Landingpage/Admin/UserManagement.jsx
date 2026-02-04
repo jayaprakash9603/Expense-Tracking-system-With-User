@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Avatar,
   Chip,
@@ -9,120 +11,165 @@ import {
   Select,
   FormControl,
   InputLabel,
+  CircularProgress,
+  Pagination,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import {
-  AdminPanelContainer,
-  AdminPageHeader,
-  StatCard,
-  SectionCard,
-} from "./components";
+import BlockIcon from "@mui/icons-material/Block";
+import { AdminPanelContainer, SectionCard } from "./components";
+import ReportHeader from "../../../components/ReportHeader";
+import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
   formatCurrency,
   getStatusColor,
   getRoleColor,
   getInitials,
 } from "./utils/adminUtils";
+import {
+  fetchAllUsers,
+  deleteUser,
+  updateUserStatus,
+  fetchUserStats,
+} from "../../../Redux/Admin/admin.action";
 
 const UserManagement = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  // Safely access admin state with fallbacks
+  const adminState = useSelector((state) => state.admin) || {};
+  const users = adminState.users || {
+    list: [],
+    totalCount: 0,
+    page: 0,
+    loading: false,
+    error: null,
+  };
+  const userStats = adminState.userStats || {
+    total: 0,
+    active: 0,
+    inactive: 0,
+    suspended: 0,
+    newThisMonth: 0,
+    loading: false,
+  };
+  const loading = users.loading || userStats.loading || false;
+  const error = users.error || userStats.error || null;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterRole, setFilterRole] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  // Static user data
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      role: "USER",
-      status: "active",
-      joinDate: "2024-01-15",
-      lastActive: "2 hours ago",
-      totalExpenses: 1250.5,
-      avatar: null,
+  // Fetch users when component mounts or filters change
+  useEffect(() => {
+    dispatch(
+      fetchAllUsers({
+        page: currentPage - 1,
+        size: pageSize,
+        status: filterStatus !== "all" ? filterStatus : null,
+        role: filterRole !== "ALL" ? filterRole : null,
+        search: searchQuery || null,
+      }),
+    );
+  }, [dispatch, currentPage, filterStatus, filterRole, searchQuery]);
+
+  // Fetch user stats on mount
+  useEffect(() => {
+    dispatch(fetchUserStats());
+  }, [dispatch]);
+
+  const handleDeleteUser = useCallback(
+    (userId) => {
+      if (window.confirm("Are you sure you want to delete this user?")) {
+        dispatch(deleteUser(userId));
+      }
     },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      role: "ADMIN",
-      status: "active",
-      joinDate: "2024-01-10",
-      lastActive: "5 minutes ago",
-      totalExpenses: 2340.75,
-      avatar: null,
+    [dispatch],
+  );
+
+  const handleSuspendUser = useCallback(
+    (userId) => {
+      if (window.confirm("Are you sure you want to suspend this user?")) {
+        dispatch(updateUserStatus(userId, "suspended"));
+      }
     },
+    [dispatch],
+  );
+
+  const handlePageChange = (event, page) => {
+    setCurrentPage(page);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (e) => {
+    setFilterStatus(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleRoleFilterChange = (e) => {
+    setFilterRole(e.target.value);
+    setCurrentPage(1);
+  };
+
+  // Use real data from Redux, with fallbacks
+  const userList = users.list || [];
+  const totalCount = users.totalCount || 0;
+  const totalPages = users.totalPages || 1;
+
+  // User stats from API
+  const stats = {
+    total: userStats?.total || totalCount,
+    active: userStats?.active || 0,
+    admins: userStats?.byRole?.ADMIN || 0,
+    newThisMonth: userStats?.newThisMonth || 0,
+  };
+
+  const filteredUsers = userList;
+
+  // Prepare data for SharedOverviewCards
+  const overviewData = [
     {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike.johnson@example.com",
-      role: "USER",
-      status: "inactive",
-      joinDate: "2024-01-05",
-      lastActive: "1 week ago",
-      totalExpenses: 890.25,
-      avatar: null,
-    },
-    {
-      id: 4,
-      name: "Sarah Williams",
-      email: "sarah.williams@example.com",
-      role: "USER",
-      status: "active",
-      joinDate: "2023-12-20",
-      lastActive: "1 day ago",
-      totalExpenses: 3120.0,
-      avatar: null,
-    },
-    {
-      id: 5,
-      name: "David Brown",
-      email: "david.brown@example.com",
-      role: "MODERATOR",
-      status: "active",
-      joinDate: "2023-11-15",
-      lastActive: "3 hours ago",
-      totalExpenses: 1890.5,
-      avatar: null,
+      totalUsers: stats.total,
+      activeUsers: stats.active,
+      admins: stats.admins,
+      newThisMonth: stats.newThisMonth,
     },
   ];
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      filterStatus === "all" || user.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const [flowType, setFlowType] = useState("all");
+
+  const handleExport = () => {
+    console.log("Exporting user data...");
+  };
 
   return (
     <AdminPanelContainer>
-      {/* Page Header */}
-      <AdminPageHeader
+      {/* Report Header */}
+      <ReportHeader
         title="User Management"
-        description="Manage user accounts, roles, and permissions"
+        subtitle="Manage user accounts, roles, and permissions"
+        timeframe="all"
+        flowType={flowType}
+        onFlowTypeChange={setFlowType}
+        onExport={handleExport}
+        showFilterButton={false}
+        timeframeOptions={[{ value: "all", label: "All Time" }]}
+        showBackButton={false}
+        stickyBackground="inherit"
       />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Users" value={users.length.toString()} />
-        <StatCard
-          label="Active Users"
-          value={users.filter((u) => u.status === "active").length.toString()}
-          color="#4caf50"
-        />
-        <StatCard
-          label="Admins"
-          value={users.filter((u) => u.role === "ADMIN").length.toString()}
-          color="#e91e63"
-        />
-        <StatCard label="New This Month" value="3" color="#2196f3" />
-      </div>
+      {/* Stats Cards using SharedOverviewCards */}
+      <SharedOverviewCards data={overviewData} mode="admin-users" />
 
       {/* Search and Filter Section */}
       <SectionCard
@@ -144,7 +191,7 @@ const UserManagement = () => {
           <TextField
             placeholder="Search users by name or email..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             variant="outlined"
             size="small"
             className="flex-1"
@@ -156,7 +203,7 @@ const UserManagement = () => {
             <InputLabel>Status</InputLabel>
             <Select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={handleStatusFilterChange}
               label="Status"
             >
               <MuiMenuItem value="all">All Status</MuiMenuItem>
@@ -165,11 +212,35 @@ const UserManagement = () => {
               <MuiMenuItem value="suspended">Suspended</MuiMenuItem>
             </Select>
           </FormControl>
+          <FormControl size="small" style={{ minWidth: 150 }}>
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={filterRole}
+              onChange={handleRoleFilterChange}
+              label="Role"
+            >
+              <MuiMenuItem value="ALL">All Roles</MuiMenuItem>
+              <MuiMenuItem value="ADMIN">Admin</MuiMenuItem>
+              <MuiMenuItem value="USER">User</MuiMenuItem>
+            </Select>
+          </FormControl>
         </div>
       </SectionCard>
 
       {/* Users Table */}
-      <SectionCard title="Users" className="mt-6">
+      <SectionCard title={`Users (${totalCount})`} className="mt-6">
+        {loading.users && (
+          <div className="flex justify-center p-4">
+            <CircularProgress />
+          </div>
+        )}
+
+        {error && (
+          <div className="text-red-500 p-4 text-center">
+            Error loading users: {error}
+          </div>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -203,55 +274,87 @@ const UserManagement = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar
+                        src={user.profileImage}
                         sx={{
                           bgcolor: "#14b8a6",
                           width: 40,
                           height: 40,
                         }}
                       >
-                        {getInitials(user.name)}
+                        {getInitials(user.fullName || user.name || user.email)}
                       </Avatar>
                       <div>
-                        <p className="font-medium">{user.name}</p>
+                        <p className="font-medium">
+                          {user.fullName || user.name || "Unknown"}
+                        </p>
                         <p className="text-sm opacity-70">{user.email}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <Chip
-                      label={user.role}
+                      label={
+                        user.roles
+                          ? user.roles
+                              .map((r) => r.replace("ROLE_", ""))
+                              .join(", ")
+                          : user.role || "USER"
+                      }
                       size="small"
                       style={{
-                        backgroundColor: getRoleColor(user.role),
+                        backgroundColor: getRoleColor(
+                          user.roles
+                            ? user.roles[0]?.replace("ROLE_", "")
+                            : user.role,
+                        ),
                         color: "#fff",
                       }}
                     />
                   </td>
                   <td className="px-6 py-4">
                     <Chip
-                      label={user.status}
+                      label={user.status || "active"}
                       size="small"
                       style={{
-                        backgroundColor: getStatusColor(user.status),
+                        backgroundColor: getStatusColor(
+                          user.status || "active",
+                        ),
                         color: "#fff",
                       }}
                     />
                   </td>
                   <td className="px-6 py-4 text-sm opacity-70">
-                    {user.joinDate}
+                    {user.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString()
+                      : user.joinDate || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm opacity-70">
-                    {user.lastActive}
+                    {user.updatedAt
+                      ? new Date(user.updatedAt).toLocaleDateString()
+                      : user.lastActive || "N/A"}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium">
-                    {formatCurrency(user.totalExpenses)}
+                    {formatCurrency(user.totalExpenses || 0)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 justify-end">
-                      <IconButton size="small">
+                      <IconButton size="small" title="Edit User">
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" style={{ color: "#f44336" }}>
+                      <IconButton
+                        size="small"
+                        style={{ color: "#ff9800" }}
+                        title="Suspend User"
+                        onClick={() => handleSuspendUser(user.id)}
+                      >
+                        <BlockIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        style={{ color: "#f44336" }}
+                        title="Delete User"
+                        onClick={() => handleDeleteUser(user.id)}
+                      >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                       <IconButton size="small">
@@ -261,8 +364,25 @@ const UserManagement = () => {
                   </td>
                 </tr>
               ))}
+              {filteredUsers.length === 0 && !loading.users && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center opacity-70">
+                    No users found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex justify-center p-4">
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={handlePageChange}
+            color="primary"
+          />
         </div>
       </SectionCard>
     </AdminPanelContainer>

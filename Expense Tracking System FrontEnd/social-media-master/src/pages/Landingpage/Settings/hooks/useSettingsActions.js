@@ -14,7 +14,7 @@ export const useSettingsActions = (
   showSnackbar,
   setDeleteDialogOpen,
   setPasswordDialogOpen,
-  isDark
+  isDark,
 ) => {
   const dispatch = useDispatch();
   const { setLanguage, t } = useTranslation();
@@ -48,7 +48,7 @@ export const useSettingsActions = (
         showSnackbar("Failed to update language", "error");
       }
     },
-    [dispatch, setLanguage, showSnackbar, t]
+    [dispatch, setLanguage, showSnackbar, t],
   );
 
   // Action handlers mapped to action IDs
@@ -74,6 +74,14 @@ export const useSettingsActions = (
       showSnackbar("Opening blocked users management...", "info");
       // Navigate to blocked users page
     },
+    configureMfa: () => {
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/settings/mfa");
+    },
 
     // Data & Storage
     viewStorage: () => {
@@ -98,27 +106,43 @@ export const useSettingsActions = (
       // Save scroll position before navigating
       sessionStorage.setItem(
         "settingsScrollPosition",
-        window.scrollY.toString()
+        window.scrollY.toString(),
       );
       navigate("/settings/notifications");
     },
 
     // Help & Support
     helpCenter: () => {
-      showSnackbar("Opening help center...", "info");
-      // Navigate to help center
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/help");
     },
     contactSupport: () => {
-      showSnackbar("Opening contact support form...", "info");
-      // Open support form modal
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/contact");
     },
     termsOfService: () => {
-      showSnackbar("Opening terms of service...", "info");
-      // Navigate to terms page
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/terms");
     },
     privacyPolicy: () => {
-      showSnackbar("Opening privacy policy...", "info");
-      // Navigate to privacy page
+      // Save scroll position before navigating
+      sessionStorage.setItem(
+        "settingsScrollPosition",
+        window.scrollY.toString(),
+      );
+      navigate("/support/privacy");
     },
   };
 
@@ -132,7 +156,7 @@ export const useSettingsActions = (
         console.warn(`No handler found for action: ${actionId}`);
       }
     },
-    [actionHandlers]
+    [actionHandlers],
   );
 
   return {

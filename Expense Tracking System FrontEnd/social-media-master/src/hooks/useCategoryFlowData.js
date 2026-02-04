@@ -6,6 +6,7 @@ import {
   buildStackedChartData,
   deterministicColor,
 } from "../utils/stackedChartUtils";
+import { useTranslation } from "./useTranslation";
 
 const createDefaultRangeOffsets = () => ({
   week: 0,
@@ -56,7 +57,7 @@ const sanitizeViewState = (incomingState = buildDefaultViewState()) => {
     offset:
       typeof state.offset === "number" && Number.isFinite(state.offset)
         ? state.offset
-        : sanitizedOffsets[activeRange] ?? 0,
+        : (sanitizedOffsets[activeRange] ?? 0),
     flowTab: VALID_FLOW_TABS.has(state.flowTab)
       ? state.flowTab
       : VIEW_STATE_DEFAULTS.flowTab,
@@ -111,25 +112,26 @@ export default function useCategoryFlowData({
   search,
 }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user } = useSelector((s) => s.auth || {});
   const ownerIdRaw =
     user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
   const ownerId = ownerIdRaw == null ? null : String(ownerIdRaw);
   const storageKey = useMemo(
     () => getCategoryFlowViewStorageKey(friendId, isFriendView, ownerId),
-    [friendId, isFriendView, ownerId]
+    [friendId, isFriendView, ownerId],
   );
   const initialViewState = useMemo(
     () => readPersistedViewState(storageKey),
-    [storageKey]
+    [storageKey],
   );
   const [activeRange, setActiveRange] = useState(initialViewState.activeRange);
   const [rangeOffsets, setRangeOffsets] = useState(
-    initialViewState.rangeOffsets || createDefaultRangeOffsets()
+    initialViewState.rangeOffsets || createDefaultRangeOffsets(),
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
   const { categoryExpenses, categoryFlowOwnerId, loading } = useSelector(
-    (s) => s.expenses || {}
+    (s) => s.expenses || {},
   );
   const previousStorageKeyRef = useRef(storageKey);
   const hydratedStorageKeyRef = useRef(storageKey);
@@ -189,11 +191,11 @@ export default function useCategoryFlowData({
     previousStorageKeyRef.current = storageKey;
     const persisted = readPersistedViewState(storageKey);
     setActiveRange((prev) =>
-      prev === persisted.activeRange ? prev : persisted.activeRange
+      prev === persisted.activeRange ? prev : persisted.activeRange,
     );
     setRangeOffsets(persisted.rangeOffsets || createDefaultRangeOffsets());
     setFlowTab((prev) =>
-      prev === persisted.flowTab ? prev : persisted.flowTab
+      prev === persisted.flowTab ? prev : persisted.flowTab,
     );
     hydratedStorageKeyRef.current = storageKey;
   }, [storageKey]);
@@ -206,14 +208,14 @@ export default function useCategoryFlowData({
       targetId: isFriendView ? friendId : undefined,
       ownerId,
     }),
-    [activeRange, offset, flowTab, isFriendView, friendId, ownerId]
+    [activeRange, offset, flowTab, isFriendView, friendId, ownerId],
   );
 
   useEffect(() => {
     dispatch(
       fetchCategoriesWithExpenses({
         ...requestDescriptor,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -222,7 +224,7 @@ export default function useCategoryFlowData({
       fetchCategoriesWithExpenses({
         ...requestDescriptor,
         forceRefetch: true,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -248,8 +250,9 @@ export default function useCategoryFlowData({
           const expenses = Array.isArray(cat?.expenses) ? cat.expenses : [];
           expenses.forEach((e) => {
             if (!e) return;
-            const details = e.details || e;
-            const amt = Number(details.amount || e.amount || 0);
+            const details = e.expense || e.details || e;
+            const rawAmount = details.amount ?? details.netAmount ?? e.amount;
+            const amt = Math.abs(Number(rawAmount || 0));
             const type = (details.type || e.type || "").toLowerCase();
             if (["gain", "income", "inflow"].includes(type)) inflow += amt;
             else outflow += amt;
@@ -279,7 +282,9 @@ export default function useCategoryFlowData({
       totalAmount: c.totalAmount,
       expenseCount: c.expenseCount || 0,
       color: c.color || deterministicColor(c.name),
+      icon: c.icon || "",
       expenses: c.expenses || [],
+      entityType: "category",
     }));
     return {
       pieData: categories.map((cat) => ({
@@ -301,11 +306,16 @@ export default function useCategoryFlowData({
         keyPrefix: "cat",
         colorAccessor: (name, entity) =>
           entity?.color || deterministicColor(name),
+        iconAccessor: (name, entity) => entity?.icon || name,
+        entityType: "category",
       }),
-    [effectiveCategoryExpenses, activeRange, offset]
+    [effectiveCategoryExpenses, activeRange, offset],
   );
 
-  const rangeLabel = getRangeLabel(activeRange, offset, "category");
+  const rangeLabel = getRangeLabel(activeRange, offset, "category", {
+    t,
+    entityPlural: t("flows.entities.category.plural"),
+  });
 
   return {
     activeRange,

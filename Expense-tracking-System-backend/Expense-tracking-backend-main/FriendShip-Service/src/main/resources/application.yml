@@ -41,6 +41,20 @@ spring:
 kafka:
   topics:
     friendship-events: friendship-events
+    friend-activity-events: friend-activity-events
+  consumer:
+    group-id: friendship-activity-group
+
+# QR Share Configuration
+app:
+  share:
+    base-url: ${SHARE_BASE_URL:http://localhost:3000}
+    rate-limit:
+      max-shares-per-hour: ${SHARE_RATE_LIMIT_HOURLY:10}
+      max-active-shares: ${SHARE_MAX_ACTIVE:50}
+  qr:
+    size: ${QR_SIZE:300}
+    margin: ${QR_MARGIN:2}
 
 eureka:
   instance:

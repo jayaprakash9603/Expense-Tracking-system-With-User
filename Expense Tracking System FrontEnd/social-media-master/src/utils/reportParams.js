@@ -56,7 +56,7 @@ export function computeDateRange(timeframe, now = new Date()) {
  * Build API params for analytics endpoints.
  * @param {object} opts
  * @param {'week'|'month'|'quarter'|'year'|'last_year'|'all_time'} opts.timeframe
- * @param {'all'|'inflow'|'outflow'} [opts.flowType]
+ * @param {'all'|'loss'|'gain'|'inflow'|'outflow'} [opts.flowType]
  * @param {string|number} [opts.friendId]
  * @param {{fromDate:string,toDate:string}} [opts.rangeOverride]
  * @returns {Record<string, string|number>}
@@ -75,7 +75,26 @@ export function buildReportParams({
     fromDate: baseRange.fromDate,
     toDate: baseRange.toDate,
   };
-  if (flowType && flowType !== "all") params.flowType = flowType;
+
+  const normalizeType = (value) => {
+    const key = String(value || "").toLowerCase();
+    if (!key || key === "all") return null;
+    if (key === "outflow" || key === "loss") return "loss";
+    if (key === "inflow" || key === "gain") return "gain";
+    return null;
+  };
+
+  const normalizedType = normalizeType(flowType);
+  if (normalizedType) {
+    params.type = normalizedType;
+  }
+
+  // Backward compatibility for endpoints that still expect flowType=inflow|outflow
+  // (avoid sending flowType=loss|gain to older endpoints).
+  const legacyFlow = String(flowType || "").toLowerCase();
+  if (legacyFlow === "inflow" || legacyFlow === "outflow") {
+    params.flowType = legacyFlow;
+  }
   if (friendId) params.targetId = friendId;
   return params;
 }

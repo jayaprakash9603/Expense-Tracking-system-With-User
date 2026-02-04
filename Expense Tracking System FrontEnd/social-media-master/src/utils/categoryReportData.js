@@ -48,7 +48,15 @@ export const assembleCategoryReport = (raw, flowType = "all") => {
   categories.forEach((cat) => {
     (cat.expenses || []).forEach((e) => {
       const day = e.date;
-      const amt = Number(e?.details?.netAmount ?? e?.details?.amount ?? 0);
+      const amt = Number(
+        e?.expense?.netAmount ??
+          e?.expense?.amount ??
+          e?.details?.netAmount ??
+          e?.details?.amount ??
+          e?.netAmount ??
+          e?.amount ??
+          0
+      );
       if (!day) return;
       if (!dailyMap.has(day)) dailyMap.set(day, { day });
       dailyMap.get(day)[cat.name] = (dailyMap.get(day)[cat.name] || 0) + amt;
@@ -72,7 +80,15 @@ export const assembleCategoryReport = (raw, flowType = "all") => {
       const label = `${MONTHS[d.getUTCMonth()]} ${String(
         d.getUTCFullYear()
       ).slice(2)}`;
-      const amt = Number(e?.details?.netAmount ?? e?.details?.amount ?? 0);
+      const amt = Number(
+        e?.expense?.netAmount ??
+          e?.expense?.amount ??
+          e?.details?.netAmount ??
+          e?.details?.amount ??
+          e?.netAmount ??
+          e?.amount ??
+          0
+      );
       if (!monthMap.has(ym)) monthMap.set(ym, { month: label });
       monthMap.get(ym)[cat.name] = (monthMap.get(ym)[cat.name] || 0) + amt;
     });

@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Left from "./Left.jsx";
-import { Outlet, useParams, useLocation, useNavigate } from "react-router";
+import { Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import FriendInfoBar from "./FriendInfoBar";
 import HeaderBar from "../../components/common/HeaderBar";
@@ -12,6 +12,8 @@ import { useTheme } from "../../hooks/useTheme";
 import { FloatingNotificationContainer } from "../../components/common/FloatingNotifications";
 import NotFound from "./Errors/NotFound";
 import Loader from "../../components/Loaders/Loader";
+import { GlobalShortcuts, RecommendationToast } from "../../features/keyboard";
+import StoryViewer from "../../components/Stories/StoryViewer";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -21,7 +23,7 @@ const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { friendship, friends, loading } = useSelector(
-    (state) => state.friends || {}
+    (state) => state.friends || {},
   );
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const [showFriendInfo, setShowFriendInfo] = useState(true);
@@ -108,8 +110,17 @@ const Home = () => {
       className="flex flex-col md:flex-row min-h-screen"
       style={{ backgroundColor: colors.primary_bg }}
     >
+      {/* Global Keyboard Shortcuts - Registers navigation and action shortcuts */}
+      <GlobalShortcuts />
+
+      {/* Smart Shortcut Recommendations - Shows tips based on user behavior */}
+      <RecommendationToast />
+
       {/* Global Floating Notifications - Visible across all pages */}
       <FloatingNotificationContainer />
+
+      {/* Story Viewer Modal - Visible across all pages */}
+      <StoryViewer />
 
       <div className="md:w-[400px] lg:w-[450px]">
         <Left />
@@ -130,7 +141,7 @@ const Home = () => {
           <HeaderBar />
         )}
         <div className="flex-1">
-          <Outlet /> {/* Renders HomeContent or other route components */}
+          <Outlet key={location?.key || location?.pathname} />
         </div>
       </div>
     </div>

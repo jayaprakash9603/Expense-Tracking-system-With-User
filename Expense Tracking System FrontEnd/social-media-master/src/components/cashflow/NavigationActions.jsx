@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 // Hook to manage add-new popover open/close & outside click
 export const useAddNewPopover = () => {
@@ -48,6 +49,7 @@ const NavigationActions = ({
 }) => {
   const { open, setOpen, btnRef } = useAddNewPopover();
   const { colors, getIconFilter } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <div
@@ -60,8 +62,10 @@ const NavigationActions = ({
         flexWrap: isMobile ? "wrap" : "nowrap",
       }}
     >
-      {items.map(({ path, icon, label }) => {
+      {items.map(({ path, icon, label, shortcutKey }, index) => {
         const target = isFriendView ? `${path}/${friendId}` : path;
+        // Use sequential index (1-based) for shortcut key
+        const shortcutIndex = index + 1;
         return (
           <button
             key={path}
@@ -72,6 +76,9 @@ const NavigationActions = ({
               });
             }}
             className="nav-button"
+            data-shortcut={`nav-flow-item-${shortcutIndex}`}
+            data-shortcut-label={label}
+            title={`${label} (${shortcutIndex})`}
             style={{
               display: "flex",
               alignItems: "center",
@@ -107,6 +114,7 @@ const NavigationActions = ({
         <button
           ref={btnRef}
           onClick={() => setOpen((v) => !v)}
+          data-shortcut={`nav-flow-item-${items.length + 1}`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -123,13 +131,13 @@ const NavigationActions = ({
           }}
           title={
             hasWriteAccess
-              ? "Add expense, budget, category or upload file"
-              : "You have read-only access"
+              ? `${t("cashflow.addNew.tooltip")} (${items.length + 1})`
+              : t("cashflow.addNew.readOnly")
           }
         >
           <img
             src={addIcon || require("../../assests/add.png")}
-            alt="Add"
+            alt={t("cashflow.addNew.label")}
             style={{
               width: isMobile ? 14 : 16,
               height: isMobile ? 14 : 16,
@@ -138,7 +146,7 @@ const NavigationActions = ({
               transition: "filter 0.2s ease",
             }}
           />
-          {!isMobile && <span>Add New</span>}
+          {!isMobile && <span>{t("cashflow.addNew.label")}</span>}
         </button>
       )}
       {open &&
@@ -199,7 +207,7 @@ const NavigationActions = ({
               </button>
             ))}
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

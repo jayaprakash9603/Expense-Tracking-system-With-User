@@ -43,6 +43,7 @@ import {
   Timer as TimerIcon,
   Category as CategoryIcon,
   VisibilityOff as VisibilityOffIcon,
+  PhonelinkLock as PhonelinkLockIcon,
 } from "@mui/icons-material";
 
 /**
@@ -374,12 +375,26 @@ export const SETTINGS_SECTIONS = {
         icon: SecurityIcon,
         title: "Two-Factor Authentication",
         titleKey: "settings.twoFactorAuth",
-        description: "Add an extra layer of security to your account",
+        description:
+          "Add an extra layer of security to your account via email OTP",
         descriptionKey: "settings.twoFactorAuthDescription",
+        type: "switch",
+        stateKey: "twoFactorEnabled",
+        settingsKey: "twoFactorEnabled",
+      },
+      {
+        id: "mfa",
+        icon: PhonelinkLockIcon,
+        title: "Authenticator App (MFA)",
+        titleKey: "settings.mfaAuth",
+        description:
+          "Use Google Authenticator for enhanced security (takes priority over email 2FA)",
+        descriptionKey: "settings.mfaAuthDescription",
         type: "button",
-        buttonText: "Enable",
-        buttonTextKey: "settings.enable",
-        action: "enable2FA",
+        buttonText: "Configure",
+        buttonTextKey: "settings.configure",
+        action: "configureMfa",
+        priority: true, // Shows priority badge
       },
       {
         id: "blockedUsers",
@@ -566,6 +581,18 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "keyboardShortcuts",
         settingsKey: "keyboardShortcuts",
+      },
+      {
+        id: "showShortcutIndicators",
+        icon: KeyboardIcon,
+        title: "Show Shortcut Indicators",
+        titleKey: "settings.showShortcutIndicators",
+        description: "Display shortcut badges when Alt key is pressed",
+        descriptionKey: "settings.showShortcutIndicatorsDescription",
+        type: "switch",
+        stateKey: "showShortcutIndicators",
+        settingsKey: "showShortcutIndicators",
+        indent: true, // Sub-option visual indicator
       },
       {
         id: "reduceMotion",

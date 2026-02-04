@@ -2,6 +2,7 @@ import React from "react";
 import { flowTypeCycleDefault as flowTypeCycle } from "../../utils/flowDateUtils";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const FlowToggleButton = ({
   flowTab,
@@ -14,6 +15,14 @@ const FlowToggleButton = ({
 }) => {
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const { t } = useTranslation();
+
+  const flowTabLabel =
+    flowTab === "inflow"
+      ? t("cashflow.flowToggle.inflow")
+      : flowTab === "outflow"
+        ? t("cashflow.flowToggle.outflow")
+        : t("cashflow.flowToggle.all");
 
   const cycleFlow = () => {
     setShrinkFlowBtn(true);
@@ -28,6 +37,8 @@ const FlowToggleButton = ({
       onClick={cycleFlow}
       aria-pressed={false}
       className="rounded-lg flex items-center gap-3 justify-center"
+      data-shortcut="flow-toggle"
+      title={`${flowTabLabel} (F)`}
       style={{
         minWidth: isMobile ? 48 : 110,
         height: isMobile ? 36 : 40,
@@ -42,8 +53,8 @@ const FlowToggleButton = ({
           flowTab === "inflow"
             ? "linear-gradient(180deg,#06D6A0,#05b890)"
             : flowTab === "outflow"
-            ? "linear-gradient(180deg,#ff6b6b,#ff4d4f)"
-            : "linear-gradient(180deg,#5b7fff,#4563ff)",
+              ? "linear-gradient(180deg,#ff6b6b,#ff4d4f)"
+              : "linear-gradient(180deg,#5b7fff,#4563ff)",
         color: "#fff",
         display: "flex",
         alignItems: "center",
@@ -123,15 +134,13 @@ const FlowToggleButton = ({
         </span>
         {!isMobile && (
           <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>
-              {flowTypeCycle.find((t) => t.value === flowTab)?.label}
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>{flowTabLabel}</div>
             <div style={{ fontSize: 12, opacity: 0.95 }}>
               {flowTab === "inflow"
                 ? formatCurrencyCompact(totals.inflow, currencySymbol)
                 : flowTab === "outflow"
-                ? formatCurrencyCompact(totals.outflow, currencySymbol)
-                : formatCurrencyCompact(totals.total, currencySymbol)}
+                  ? formatCurrencyCompact(totals.outflow, currencySymbol)
+                  : formatCurrencyCompact(totals.total, currencySymbol)}
             </div>
           </div>
         )}

@@ -16,12 +16,12 @@ import {
  * Implements DRY principle - centralized notification settings logic
  * Integrated with backend API via Redux
  */
-export const useNotificationSettings = (showSnackbar, targetId = "") => {
+export const useNotificationSettings = (showSnackbar) => {
   const dispatch = useDispatch();
 
   // Get preferences from Redux store
   const { preferences, loading, updating, error } = useSelector(
-    (state) => state.notificationPreferences
+    (state) => state.notificationPreferences,
   );
 
   // Local state for optimistic updates
@@ -30,11 +30,11 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
   // Fetch preferences on mount
   useEffect(() => {
     if (!preferences) {
-      dispatch(fetchNotificationPreferences(targetId)).catch((err) => {
+      dispatch(fetchNotificationPreferences()).catch((err) => {
         showSnackbar("Failed to load notification preferences", "error");
       });
     }
-  }, [dispatch, preferences, showSnackbar, targetId]);
+  }, [dispatch, preferences, showSnackbar]);
 
   // Sync local state with Redux store
   useEffect(() => {
@@ -53,12 +53,12 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences((prev) => ({ ...prev, masterEnabled: enabled }));
 
         await dispatch(
-          updateNotificationPreference({ masterEnabled: enabled }, targetId)
+          updateNotificationPreference({ masterEnabled: enabled }),
         );
 
         showSnackbar(
           enabled ? "All notifications enabled" : "All notifications disabled",
-          "success"
+          "success",
         );
       } catch (error) {
         showSnackbar("Failed to update notification settings", "error");
@@ -67,7 +67,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, preferences, targetId]
+    [dispatch, showSnackbar, preferences],
   );
 
   /**
@@ -79,9 +79,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         // Optimistic update
         setLocalPreferences((prev) => ({ ...prev, [settingKey]: value }));
 
-        await dispatch(
-          updateNotificationPreference({ [settingKey]: value }, targetId)
-        );
+        await dispatch(updateNotificationPreference({ [settingKey]: value }));
 
         const messages = {
           doNotDisturb: value
@@ -103,7 +101,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, preferences, targetId]
+    [dispatch, showSnackbar, preferences],
   );
 
   /**
@@ -115,7 +113,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         const serviceName =
           NOTIFICATION_SERVICES[
             Object.keys(NOTIFICATION_SERVICES).find(
-              (key) => NOTIFICATION_SERVICES[key].id === serviceId
+              (key) => NOTIFICATION_SERVICES[key].id === serviceId,
             )
           ]?.name || "Service";
 
@@ -127,7 +125,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
           .map((word, index) =>
             index === 0
               ? word.toLowerCase()
-              : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
           )
           .join("");
         const fieldName = `${camelCaseId}Enabled`;
@@ -135,13 +133,11 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         // Optimistic update
         setLocalPreferences((prev) => ({ ...prev, [fieldName]: enabled }));
 
-        await dispatch(
-          updateNotificationPreference({ [fieldName]: enabled }, targetId)
-        );
+        await dispatch(updateNotificationPreference({ [fieldName]: enabled }));
 
         showSnackbar(
           `${serviceName} notifications ${enabled ? "enabled" : "disabled"}`,
-          "success"
+          "success",
         );
       } catch (error) {
         showSnackbar("Failed to update service notifications", "error");
@@ -150,7 +146,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, preferences, targetId]
+    [dispatch, showSnackbar, preferences],
   );
 
   /**
@@ -167,7 +163,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
           .map((word, index) =>
             index === 0
               ? word.toLowerCase()
-              : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+              : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
           )
           .join("");
         const fieldName = `${camelCaseId}Enabled`;
@@ -175,13 +171,11 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         // Optimistic update
         setLocalPreferences((prev) => ({ ...prev, [fieldName]: enabled }));
 
-        await dispatch(
-          updateNotificationPreference({ [fieldName]: enabled }, targetId)
-        );
+        await dispatch(updateNotificationPreference({ [fieldName]: enabled }));
 
         showSnackbar(
           `Notification ${enabled ? "enabled" : "disabled"}`,
-          "success"
+          "success",
         );
       } catch (error) {
         showSnackbar("Failed to update notification", "error");
@@ -190,7 +184,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, preferences, targetId]
+    [dispatch, showSnackbar, preferences],
   );
 
   /**
@@ -218,17 +212,14 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         }));
 
         await dispatch(
-          updateNotificationPreference(
-            {
-              notificationPreferencesJson: JSON.stringify(jsonPrefs),
-            },
-            targetId
-          )
+          updateNotificationPreference({
+            notificationPreferencesJson: JSON.stringify(jsonPrefs),
+          }),
         );
 
         showSnackbar(
           `Notification frequency updated to ${frequency}`,
-          "success"
+          "success",
         );
       } catch (error) {
         showSnackbar("Failed to update frequency", "error");
@@ -237,7 +228,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, localPreferences, preferences, targetId]
+    [dispatch, showSnackbar, localPreferences, preferences],
   );
 
   /**
@@ -277,19 +268,16 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         }));
 
         await dispatch(
-          updateNotificationPreference(
-            {
-              notificationPreferencesJson: JSON.stringify(jsonPrefs),
-            },
-            targetId
-          )
+          updateNotificationPreference({
+            notificationPreferencesJson: JSON.stringify(jsonPrefs),
+          }),
         );
 
         showSnackbar(
           `${method.toUpperCase()} notifications ${
             enabled ? "enabled" : "disabled"
           }`,
-          "success"
+          "success",
         );
       } catch (error) {
         showSnackbar("Failed to update delivery method", "error");
@@ -298,7 +286,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, localPreferences, preferences, targetId]
+    [dispatch, showSnackbar, localPreferences, preferences],
   );
 
   /**
@@ -326,12 +314,9 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         }));
 
         await dispatch(
-          updateNotificationPreference(
-            {
-              notificationPreferencesJson: JSON.stringify(jsonPrefs),
-            },
-            targetId
-          )
+          updateNotificationPreference({
+            notificationPreferencesJson: JSON.stringify(jsonPrefs),
+          }),
         );
 
         showSnackbar("Quiet hours updated", "success");
@@ -342,7 +327,7 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
         setLocalPreferences(preferences);
       }
     },
-    [dispatch, showSnackbar, localPreferences, preferences, targetId]
+    [dispatch, showSnackbar, localPreferences, preferences],
   );
 
   /**
@@ -350,13 +335,13 @@ export const useNotificationSettings = (showSnackbar, targetId = "") => {
    */
   const resetToDefaults = useCallback(async () => {
     try {
-      await dispatch(resetNotificationPreferences(targetId));
+      await dispatch(resetNotificationPreferences());
       showSnackbar("Notification settings reset to defaults", "success");
     } catch (error) {
       showSnackbar("Failed to reset settings", "error");
       console.error("Error resetting notification settings:", error);
     }
-  }, [dispatch, showSnackbar, targetId]);
+  }, [dispatch, showSnackbar]);
 
   return {
     preferences: localPreferences,

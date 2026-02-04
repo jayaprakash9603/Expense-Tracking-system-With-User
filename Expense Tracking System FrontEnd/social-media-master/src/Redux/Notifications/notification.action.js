@@ -7,36 +7,32 @@ const NOTIFICATION_BASE_PATH = "/api/notifications";
 // ==========================================
 // FETCH ALL NOTIFICATIONS
 // ==========================================
-export const fetchNotifications =
-  (page = 0, size = 20) =>
-  async (dispatch) => {
-    dispatch({ type: actionTypes.FETCH_NOTIFICATIONS_REQUEST });
+export const fetchNotifications = () => async (dispatch) => {
+  dispatch({ type: actionTypes.FETCH_NOTIFICATIONS_REQUEST });
 
-    try {
-      const { data } = await api.get(NOTIFICATION_BASE_PATH, {
-        params: { page, size },
-      });
+  try {
+    const { data } = await api.get(NOTIFICATION_BASE_PATH);
 
-      dispatch({
-        type: actionTypes.FETCH_NOTIFICATIONS_SUCCESS,
-        payload: data,
-      });
+    dispatch({
+      type: actionTypes.FETCH_NOTIFICATIONS_SUCCESS,
+      payload: data,
+    });
 
-      return data;
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch notifications";
+    return data;
+  } catch (error) {
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to fetch notifications";
 
-      dispatch({
-        type: actionTypes.FETCH_NOTIFICATIONS_FAILURE,
-        payload: errorMessage,
-      });
+    dispatch({
+      type: actionTypes.FETCH_NOTIFICATIONS_FAILURE,
+      payload: errorMessage,
+    });
 
-      return error;
-    }
-  };
+    return error;
+  }
+};
 
 // ==========================================
 // FETCH UNREAD NOTIFICATIONS
@@ -106,7 +102,7 @@ export const markNotificationAsRead = (notificationId) => async (dispatch) => {
 
   try {
     const { data } = await api.put(
-      `${NOTIFICATION_BASE_PATH}/${notificationId}/read`
+      `${NOTIFICATION_BASE_PATH}/${notificationId}/read`,
     );
 
     dispatch({
@@ -174,7 +170,7 @@ export const deleteNotification = (notificationId) => async (dispatch) => {
 
   try {
     const { data } = await api.delete(
-      `${NOTIFICATION_BASE_PATH}/${notificationId}`
+      `${NOTIFICATION_BASE_PATH}/${notificationId}`,
     );
 
     dispatch({
@@ -276,7 +272,7 @@ export const updateNotificationPreferences =
     try {
       const { data } = await api.put(
         `${NOTIFICATION_BASE_PATH}/preferences`,
-        preferences
+        preferences,
       );
 
       dispatch({

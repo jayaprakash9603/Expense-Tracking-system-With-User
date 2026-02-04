@@ -225,6 +225,10 @@ const ReportFilterDrawer = ({
           }
           size="small"
           InputLabelProps={{ shrink: true }}
+          inputProps={{
+            min: section.minDate || undefined,
+            max: current.toDate || section.maxDate || undefined,
+          }}
         />
         <TextField
           label="To"
@@ -238,6 +242,10 @@ const ReportFilterDrawer = ({
           }
           size="small"
           InputLabelProps={{ shrink: true }}
+          inputProps={{
+            min: current.fromDate || section.minDate || undefined,
+            max: section.maxDate || undefined,
+          }}
         />
       </Stack>
     );

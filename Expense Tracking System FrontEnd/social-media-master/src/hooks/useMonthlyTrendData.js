@@ -15,13 +15,24 @@ import { fetchMonthlyExpenses } from "../utils/Api";
  *  { data, loading, error }
  *  where data shape: { labels: string[], datasets: [{ data: number[] }] } | null
  */
-export default function useMonthlyTrendData({ year, refreshTrigger }) {
+export default function useMonthlyTrendData({
+  year,
+  refreshTrigger,
+  skip = false,
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const abortRef = useRef();
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+
     const effectiveYear = Number(year) || new Date().getFullYear();
 
     // Abort previous
@@ -128,7 +139,7 @@ export default function useMonthlyTrendData({ year, refreshTrigger }) {
       mounted = false;
       controller.abort();
     };
-  }, [year, refreshTrigger]);
+  }, [year, refreshTrigger, skip]);
 
   return { data, loading, error };
 }

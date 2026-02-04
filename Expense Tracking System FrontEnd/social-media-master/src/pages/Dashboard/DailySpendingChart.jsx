@@ -122,6 +122,7 @@ import { useMediaQuery } from "@mui/material";
 import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import SpendingChartTooltip from "../../components/charts/SpendingChartTooltip";
+import DailySpendingBreakdownTooltip from "../../components/charts/DailySpendingBreakdownTooltip";
 import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Import configuration and utilities
@@ -173,6 +174,18 @@ const DailySpendingChart = ({
   height,
   tooltipConfig,
   loading = false,
+  fillMissingDays = false,
+  hideControls = false,
+  showBothTypesWhenAll = false,
+  showBudgetTotalsInTooltip = false,
+  showAllBudgetsInTooltip = false,
+  showExpensesInTooltip = false,
+  showBudgetsInTooltip = false,
+  breakdownLabel = "Budgets",
+  breakdownTotalsLabel = "Budget totals",
+  breakdownItemLabel = "budget",
+  breakdownEmptyMessage = "No budget breakdown available.",
+  onPointClick,
 }) => {
   const { mode, colors } = useTheme();
   const settings = useUserSettings();
@@ -182,7 +195,7 @@ const DailySpendingChart = ({
 
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
-  const isTablet = useMediaQuery("(max-width:1024px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
   const isYearView = timeframe === "this_year" || timeframe === "last_year";
   const isAllTimeView = timeframe === "all_time";
@@ -195,11 +208,200 @@ const DailySpendingChart = ({
     (timeframe === "last_3_months" || isMobile);
   const safeData = Array.isArray(data) ? data : [];
   const activeType = selectedType || "loss";
-  const filteredData = filterDataByType(safeData, activeType);
-  const normalizedData = transformChartData(filteredData, {
-    timeframe,
-    locale,
-  });
+
+  const isOverlayAllMode =
+    showBothTypesWhenAll && String(activeType).toLowerCase() === "all";
+
+  const buildNormalizedSeries = (type) => {
+    const typed = filterDataByType(safeData, type);
+    return transformChartData(typed, {
+      timeframe,
+      locale,
+    }).map((point, index) => {
+      const source = typed[index] || {};
+      return {
+        ...point,
+        type,
+        budgetTotals: source.budgetTotals,
+        expenses: source.expenses,
+      };
+    });
+  };
+
+  const filteredData = isOverlayAllMode
+    ? []
+    : filterDataByType(safeData, String(activeType).toLowerCase());
+
+  const normalizedData = isOverlayAllMode
+    ? []
+    : transformChartData(filteredData, {
+        timeframe,
+        locale,
+      }).map((point, index) => {
+        const source = filteredData[index] || {};
+        return {
+          ...point,
+          budgetTotals: source.budgetTotals,
+          expenses: source.expenses,
+        };
+      });
+
+  const formatMoney = (value) => {
+    const numeric = Number(value);
+    const safe = Number.isFinite(numeric) ? numeric : 0;
+    return `${currencySymbol}${safe.toLocaleString(locale || undefined, {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const normalizeBudgetTotals = (budgetTotalsRaw) => {
+    if (Array.isArray(budgetTotalsRaw)) {
+      return budgetTotalsRaw
+        .filter((x) => x && (x.budgetName || x.name))
+        .map((x) => ({
+          budgetName: String(x.budgetName ?? x.name ?? "").trim(),
+          total: Number(x.total ?? x.amount ?? 0) || 0,
+        }))
+        .filter((x) => x.budgetName);
+    }
+
+    if (budgetTotalsRaw && typeof budgetTotalsRaw === "object") {
+      return Object.entries(budgetTotalsRaw)
+        .map(([budgetName, total]) => ({
+          budgetName: String(budgetName).trim(),
+          total: Number(total) || 0,
+        }))
+        .filter((x) => x.budgetName);
+    }
+
+    return [];
+  };
+
+  const hexToRgba = (hex, alpha) => {
+    if (typeof hex !== "string") return null;
+    const value = hex.trim();
+    if (!value.startsWith("#") || (value.length !== 7 && value.length !== 4)) {
+      return null;
+    }
+
+    const normalized =
+      value.length === 4
+        ? `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`
+        : value;
+
+    const r = parseInt(normalized.slice(1, 3), 16);
+    const g = parseInt(normalized.slice(3, 5), 16);
+    const b = parseInt(normalized.slice(5, 7), 16);
+
+    if (![r, g, b].every((n) => Number.isFinite(n))) return null;
+    const a = Math.min(1, Math.max(0, Number(alpha) || 0));
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  };
+
+  const BudgetTotalsTooltip = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const point = payload?.[0]?.payload;
+    if (!point) return null;
+
+    const dateLabel = point?.dateObj
+      ? point.dateObj.toLocaleDateString(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
+      : point?.date || point?.xLabel || "";
+
+    const budgetTotals = normalizeBudgetTotals(point?.budgetTotals)
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    const breakdownMaxItems = 5;
+    const visibleBudgetTotals = budgetTotals.slice(0, breakdownMaxItems);
+    const hiddenBudgetTotalsCount = Math.max(
+      0,
+      budgetTotals.length - visibleBudgetTotals.length,
+    );
+
+    const tooltipBg = colors.primary_bg;
+    const border = colors.border_color;
+    const titleColor = colors.primary_text;
+    const muted = colors.placeholder_text || colors.secondary_text;
+
+    const typeLabel = (() => {
+      const t = String(point?.type || activeType).toLowerCase();
+      if (t === "gain") return "Total gain";
+      if (t === "loss") return "Total spending";
+      return "Total";
+    })();
+
+    const typeKey = String(point?.type || activeType).toLowerCase();
+    const fixedAccent = typeKey === "gain" ? "#00d4c0" : "#ff5252";
+    const accent = fixedAccent;
+    const accentSoft = hexToRgba(accent, mode === "dark" ? 0.22 : 0.16);
+    const accentBorder = hexToRgba(accent, mode === "dark" ? 0.45 : 0.35);
+    const accentText = accent || titleColor;
+
+    const breakdownItems = budgetTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+
+    const totalLabelForHeader =
+      typeKey === "gain" ? "Total Gain" : "Total Spending";
+
+    return (
+      <DailySpendingBreakdownTooltip
+        active={active}
+        payload={payload}
+        mode={mode}
+        colors={colors}
+        locale={locale}
+        formatMoney={formatMoney}
+        dateLabel={dateLabel}
+        totalLabel={totalLabelForHeader}
+        totalAmount={point?.spending ?? 0}
+        totalAmountColor={accentText}
+        lossSection={
+          typeKey === "loss"
+            ? {
+                title: `Loss ${String(breakdownLabel || "Budgets")}`,
+                count: budgetTotals.length,
+                items: breakdownItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        gainSection={
+          typeKey === "gain"
+            ? {
+                title: `Gain ${String(breakdownLabel || "Budgets")}`,
+                count: budgetTotals.length,
+                items: breakdownItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        maxItems={5}
+        entityType={
+          String(breakdownLabel || "")
+            .toLowerCase()
+            .includes("categor")
+            ? "category"
+            : String(breakdownLabel || "")
+                  .toLowerCase()
+                  .includes("payment")
+              ? "paymentMethod"
+              : undefined
+        }
+      />
+    );
+  };
 
   const trimLeadingZeroSpending = (points) => {
     let seenValue = false;
@@ -212,7 +414,31 @@ const DailySpendingChart = ({
     });
   };
 
-  const fillMissingDaysToToday = (points) => {
+  const hasNonEmptyValue = (point) => {
+    const spending = Number(point?.spending ?? 0);
+    const hasSpending = Number.isFinite(spending) && spending > 0;
+    const hasExpenses = (point?.expenses?.length ?? 0) > 0;
+    return hasSpending || hasExpenses;
+  };
+
+  const countDistinctMonthsWithValues = (points) => {
+    const set = new Set();
+    for (const point of Array.isArray(points) ? points : []) {
+      if (!hasNonEmptyValue(point)) continue;
+      const dateObj =
+        point?.dateObj || (point?.date ? new Date(point.date) : null);
+      if (!dateObj || Number.isNaN(dateObj.getTime())) continue;
+      set.add(`${dateObj.getFullYear()}-${dateObj.getMonth()}`);
+    }
+    return set.size;
+  };
+
+  const shouldUseMonthlyBuckets = (pointsForSpan) => {
+    if (!isYearView && !isAllTimeView) return false;
+    return countDistinctMonthsWithValues(pointsForSpan) > 3;
+  };
+
+  const fillMissingDaysToToday = (points, typeForFill = activeType) => {
     if (timeframe !== "this_month" && timeframe !== "this_year") {
       return points;
     }
@@ -251,8 +477,9 @@ const DailySpendingChart = ({
           spending: 0,
           date: iso,
           dateObj: new Date(cursor),
-          type: activeType,
+          type: typeForFill,
           expenses: [],
+          budgetTotals: [],
         });
       }
     }
@@ -261,11 +488,15 @@ const DailySpendingChart = ({
   };
 
   const trimmedData =
-    timeframe === "all_time"
+    !isOverlayAllMode && timeframe === "all_time"
       ? trimLeadingZeroSpending(normalizedData)
       : normalizedData;
 
-  const normalizedWithFill = fillMissingDaysToToday(trimmedData);
+  const normalizedWithFill = !isOverlayAllMode
+    ? fillMissingDays
+      ? fillMissingDaysToToday(trimmedData)
+      : trimmedData
+    : [];
 
   const buildMonthlyBuckets = (points, labelWithYear = false) => {
     const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
@@ -289,6 +520,7 @@ const DailySpendingChart = ({
           spending: 0,
           expenses: [],
           type: point.type,
+          budgetTotalsAgg: {},
         };
       }
 
@@ -296,46 +528,268 @@ const DailySpendingChart = ({
       if (Array.isArray(point.expenses)) {
         map[key].expenses.push(...point.expenses);
       }
+
+      const normalizedBudgetTotals = normalizeBudgetTotals(point.budgetTotals);
+      normalizedBudgetTotals.forEach((b) => {
+        if (!b?.budgetName) return;
+        const current =
+          Number(map[key].budgetTotalsAgg[b.budgetName] ?? 0) || 0;
+        map[key].budgetTotalsAgg[b.budgetName] =
+          current + (Number(b.total) || 0);
+      });
     });
 
-    return Object.values(map).sort((a, b) =>
-      a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year
-    );
+    return Object.values(map)
+      .map((bucket) => ({
+        ...bucket,
+        date: bucket.xLabel,
+        budgetTotals: Object.entries(bucket.budgetTotalsAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          }),
+        ),
+      }))
+      .sort((a, b) =>
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year,
+      );
+  };
+
+  const buildOverlayAllDaily = (lossPoints, gainPoints) => {
+    const map = new Map();
+
+    lossPoints.forEach((p) => {
+      if (!p?.date) return;
+      map.set(p.date, {
+        xLabel: p.xLabel,
+        date: p.date,
+        dateObj: p.dateObj,
+        spendingLoss: p.spending ?? 0,
+        spendingGain: 0,
+        budgetTotalsLoss: p.budgetTotals,
+        budgetTotalsGain: [],
+        expensesLoss: Array.isArray(p.expenses) ? p.expenses : [],
+        expensesGain: [],
+      });
+    });
+
+    gainPoints.forEach((p) => {
+      if (!p?.date) return;
+      const existing = map.get(p.date);
+      if (existing) {
+        existing.spendingGain = p.spending ?? 0;
+        existing.budgetTotalsGain = p.budgetTotals;
+        existing.expensesGain = Array.isArray(p.expenses) ? p.expenses : [];
+        if (!existing.dateObj) existing.dateObj = p.dateObj;
+      } else {
+        map.set(p.date, {
+          xLabel: p.xLabel,
+          date: p.date,
+          dateObj: p.dateObj,
+          spendingLoss: 0,
+          spendingGain: p.spending ?? 0,
+          budgetTotalsLoss: [],
+          budgetTotalsGain: p.budgetTotals,
+          expensesLoss: [],
+          expensesGain: Array.isArray(p.expenses) ? p.expenses : [],
+        });
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (a.dateObj && b.dateObj) return a.dateObj - b.dateObj;
+      return String(a.date).localeCompare(String(b.date));
+    });
+  };
+
+  const buildOverlayAllMonthlyBuckets = (
+    lossPoints,
+    gainPoints,
+    labelWithYear,
+  ) => {
+    const monthFormatter = new Intl.DateTimeFormat(locale || undefined, {
+      month: "short",
+    });
+    const map = {};
+
+    const upsert = (point, key, isLoss) => {
+      if (!map[key]) {
+        const monthIndex = point.dateObj.getMonth();
+        const year = point.dateObj.getFullYear();
+        map[key] = {
+          xLabel: labelWithYear
+            ? `${monthFormatter.format(point.dateObj)} ${year}`
+            : monthFormatter.format(point.dateObj),
+          monthIndex,
+          year,
+          spendingLoss: 0,
+          spendingGain: 0,
+          budgetTotalsLossAgg: {},
+          budgetTotalsGainAgg: {},
+          expensesLoss: [],
+          expensesGain: [],
+        };
+      }
+
+      if (isLoss) {
+        map[key].spendingLoss += point.spending ?? 0;
+        if (Array.isArray(point.expenses)) {
+          map[key].expensesLoss.push(...point.expenses);
+        }
+      } else {
+        map[key].spendingGain += point.spending ?? 0;
+        if (Array.isArray(point.expenses)) {
+          map[key].expensesGain.push(...point.expenses);
+        }
+      }
+
+      const normalizedBudgetTotals = normalizeBudgetTotals(point.budgetTotals);
+      normalizedBudgetTotals.forEach((b) => {
+        if (!b?.budgetName) return;
+        const targetAgg = isLoss
+          ? map[key].budgetTotalsLossAgg
+          : map[key].budgetTotalsGainAgg;
+        const current = Number(targetAgg[b.budgetName] ?? 0) || 0;
+        targetAgg[b.budgetName] = current + (Number(b.total) || 0);
+      });
+    };
+
+    lossPoints.forEach((p) => {
+      if (!p?.dateObj) return;
+      const key = `${p.dateObj.getFullYear()}-${p.dateObj.getMonth()}`;
+      upsert(p, key, true);
+    });
+
+    gainPoints.forEach((p) => {
+      if (!p?.dateObj) return;
+      const key = `${p.dateObj.getFullYear()}-${p.dateObj.getMonth()}`;
+      upsert(p, key, false);
+    });
+
+    return Object.values(map)
+      .map((bucket) => ({
+        ...bucket,
+        date: bucket.xLabel,
+        budgetTotalsLoss: Object.entries(bucket.budgetTotalsLossAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          }),
+        ),
+        budgetTotalsGain: Object.entries(bucket.budgetTotalsGainAgg || {}).map(
+          ([budgetName, total]) => ({
+            budgetName: String(budgetName).trim(),
+            total: Number(total) || 0,
+          }),
+        ),
+      }))
+      .sort((a, b) =>
+        a.year === b.year ? a.monthIndex - b.monthIndex : a.year - b.year,
+      );
+  };
+
+  const handleChartClick = (state) => {
+    if (typeof onPointClick !== "function") return;
+    const point = state?.activePayload?.[0]?.payload;
+    if (!point) return;
+    onPointClick(point);
   };
 
   const chartData = (() => {
-    if (isYearView) {
+    if (isOverlayAllMode) {
+      const lossRaw = buildNormalizedSeries("loss");
+      const gainRaw = buildNormalizedSeries("gain");
+
+      const lossTrimmed =
+        timeframe === "all_time" ? trimLeadingZeroSpending(lossRaw) : lossRaw;
+      const gainTrimmed =
+        timeframe === "all_time" ? trimLeadingZeroSpending(gainRaw) : gainRaw;
+
+      const useMonthly = shouldUseMonthlyBuckets([
+        ...lossTrimmed,
+        ...gainTrimmed,
+      ]);
+      const lossSeries = fillMissingDays
+        ? fillMissingDaysToToday(lossTrimmed, "loss")
+        : lossTrimmed;
+      const gainSeries = fillMissingDays
+        ? fillMissingDaysToToday(gainTrimmed, "gain")
+        : gainTrimmed;
+
+      if (useMonthly && isYearView) {
+        return buildOverlayAllMonthlyBuckets(lossSeries, gainSeries, false);
+      }
+      if (useMonthly && isAllTimeView) {
+        return buildOverlayAllMonthlyBuckets(lossTrimmed, gainTrimmed, true);
+      }
+
+      return buildOverlayAllDaily(lossSeries, gainSeries);
+    }
+
+    const useMonthly = shouldUseMonthlyBuckets(
+      isAllTimeView ? trimmedData : normalizedWithFill,
+    );
+
+    if (useMonthly && isYearView) {
       return buildMonthlyBuckets(normalizedWithFill, false);
     }
-    if (isAllTimeView) {
+    if (useMonthly && isAllTimeView) {
       return buildMonthlyBuckets(trimmedData, true);
     }
 
-    return normalizedWithFill.map((point) => ({
-      xLabel: point.xLabel,
+    const dailyPoints = isAllTimeView ? trimmedData : normalizedWithFill;
+
+    return dailyPoints.map((point) => ({
+      xLabel:
+        (isYearView || isAllTimeView) && point?.date
+          ? point.date
+          : point.xLabel,
       spending: point.spending,
       date: point.date,
       type: point.type,
       expenses: point.expenses,
+      budgetTotals: point.budgetTotals,
     }));
   })();
 
   const totalPoints = chartData.length || 0;
-  const totalSpending = chartData.reduce(
-    (sum, item) => sum + (item.spending || 0),
-    0
-  );
+  const totalSpending = chartData.reduce((sum, item) => {
+    if (isOverlayAllMode) {
+      return sum + (item.spendingLoss || 0) + (item.spendingGain || 0);
+    }
+    return sum + (item.spending || 0);
+  }, 0);
   const averageSpending = totalPoints > 0 ? totalSpending / totalPoints : 0;
   const averageLineColor = mode === "dark" ? "#facc15" : "#eab308";
   const averageLabelText =
     averageSpending > 0
       ? `${t("cashflow.chart.averageLabel")} ${currencySymbol}${Math.round(
-          averageSpending
+          averageSpending,
         ).toLocaleString()}`
       : "";
 
   const xTickFormatter = (value, index) => {
     if (!value || totalPoints === 0) return "";
+
+    const isIsoDayString =
+      typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value);
+    const formatIsoDay = (iso) => {
+      try {
+        const d = new Date(String(iso).slice(0, 10) + "T00:00:00");
+        return new Intl.DateTimeFormat(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+        }).format(d);
+      } catch {
+        return iso;
+      }
+    };
+
+    if (isIsoDayString && (isYearView || isAllTimeView)) {
+      const maxTicks = isMobile ? 6 : 10;
+      const step = Math.max(1, Math.ceil(totalPoints / maxTicks));
+      return index % step === 0 ? formatIsoDay(value) : "";
+    }
 
     if (isAllTimeView) {
       const maxTicks = isMobile ? 4 : 8;
@@ -353,7 +807,10 @@ const DailySpendingChart = ({
   };
 
   // Theme and styling
-  const theme = getThemeColors(activeType, CHART_THEME);
+  const theme = getThemeColors(
+    isOverlayAllMode ? "loss" : activeType,
+    CHART_THEME,
+  );
   const gradientId = `spendingGradient-${activeType}`;
   const animationKey = `${timeframe}-${activeType}-${chartData.length}`;
   const chartTitle = title || t("dashboard.charts.titles.dailySpending");
@@ -365,10 +822,141 @@ const DailySpendingChart = ({
     typeOptions && typeOptions.length > 0 ? typeOptions : DEFAULT_TYPE_OPTIONS;
   const showEmpty = !loading && (chartData.length === 0 || totalSpending === 0);
 
+  const OverlayAllBudgetTotalsTooltip = ({ active, payload }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const point = payload?.[0]?.payload;
+    if (!point) return null;
+
+    const dateLabel = point?.dateObj
+      ? point.dateObj.toLocaleDateString(locale || undefined, {
+          month: "short",
+          day: "2-digit",
+          year: "numeric",
+        })
+      : point?.date || point?.xLabel || "";
+
+    const tooltipBg = colors.primary_bg;
+    const border = colors.border_color;
+    const titleColor = colors.primary_text;
+    const muted = colors.placeholder_text || colors.secondary_text;
+
+    const lossAccent = "#ff5252";
+    const gainAccent = "#00d4c0";
+    const lossSoft = hexToRgba(lossAccent, mode === "dark" ? 0.22 : 0.16);
+    const gainSoft = hexToRgba(gainAccent, mode === "dark" ? 0.22 : 0.16);
+
+    const lossTotals = normalizeBudgetTotals(point?.budgetTotalsLoss)
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    const gainTotals = normalizeBudgetTotals(point?.budgetTotalsGain)
+      .filter((x) => Number.isFinite(x.total))
+      .filter((x) => (showAllBudgetsInTooltip ? true : x.total !== 0))
+      .sort((a, b) => {
+        const diff = Math.abs(b.total) - Math.abs(a.total);
+        if (diff !== 0) return diff;
+        return a.budgetName.localeCompare(b.budgetName);
+      });
+
+    const breakdownMaxItems = 5;
+    const visibleLossTotals = lossTotals.slice(0, breakdownMaxItems);
+    const hiddenLossTotalsCount = Math.max(
+      0,
+      lossTotals.length - visibleLossTotals.length,
+    );
+    const visibleGainTotals = gainTotals.slice(0, breakdownMaxItems);
+    const hiddenGainTotalsCount = Math.max(
+      0,
+      gainTotals.length - visibleGainTotals.length,
+    );
+
+    const shouldShowLossBudgets = lossTotals.length > 0;
+    const shouldShowGainBudgets = gainTotals.length > 0;
+    const shouldShowAnyBudgets = shouldShowLossBudgets || shouldShowGainBudgets;
+
+    const breakdownLabelText = String(breakdownLabel || "").trim()
+      ? String(breakdownLabel).trim()
+      : "Budgets";
+
+    const lossItems = lossTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+    const gainItems = gainTotals.map((x) => ({
+      name: x.budgetName,
+      total: x.total,
+    }));
+
+    const netAmount =
+      (Number(point?.spendingGain) || 0) - (Number(point?.spendingLoss) || 0);
+
+    const shouldShowLossSection = showBudgetsInTooltip && lossTotals.length > 0;
+    const shouldShowGainSection = showBudgetsInTooltip && gainTotals.length > 0;
+
+    return (
+      <DailySpendingBreakdownTooltip
+        active={active}
+        payload={payload}
+        mode={mode}
+        colors={colors}
+        locale={locale}
+        formatMoney={formatMoney}
+        dateLabel={dateLabel}
+        isAllView
+        totalLabel="Total Spending"
+        totalAmount={point?.spendingLoss ?? 0}
+        totalAmountColor="#ff5252"
+        secondaryLabel="Total Income"
+        secondaryAmount={point?.spendingGain ?? 0}
+        secondaryAmountColor="#00d4c0"
+        lossSection={
+          shouldShowLossSection
+            ? {
+                title: `Loss ${breakdownLabelText}`,
+                count: lossTotals.length,
+                items: lossItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        gainSection={
+          shouldShowGainSection
+            ? {
+                title: `Gain ${breakdownLabelText}`,
+                count: gainTotals.length,
+                items: gainItems,
+                emptyMessage: breakdownEmptyMessage,
+              }
+            : null
+        }
+        net={{ amount: netAmount }}
+        maxItems={5}
+        entityType={
+          String(breakdownLabel || "")
+            .toLowerCase()
+            .includes("categor")
+            ? "category"
+            : String(breakdownLabel || "")
+                  .toLowerCase()
+                  .includes("payment")
+              ? "paymentMethod"
+              : undefined
+        }
+      />
+    );
+  };
+
   return (
     <div
       className="chart-container daily-spending-chart fade-in"
       style={{
+        position: "relative",
+        zIndex: 5,
         overflow: "visible",
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
@@ -380,18 +968,20 @@ const DailySpendingChart = ({
           {icon || ""}
           {chartTitle}
         </h3>
-        <div className="chart-controls">
-          <ChartTimeframeSelector
-            value={timeframe}
-            onChange={onTimeframeChange}
-            options={timeframeSelectorOptions}
-          />
-          <ChartTypeToggle
-            selectedType={activeType}
-            onToggle={onTypeToggle}
-            options={typeSelectorOptions}
-          />
-        </div>
+        {!hideControls ? (
+          <div className="chart-controls">
+            <ChartTimeframeSelector
+              value={timeframe}
+              onChange={onTimeframeChange}
+              options={timeframeSelectorOptions}
+            />
+            <ChartTypeToggle
+              selectedType={activeType}
+              onToggle={onTypeToggle}
+              options={typeSelectorOptions}
+            />
+          </div>
+        ) : null}
       </div>
 
       {/* Chart visualization */}
@@ -405,12 +995,61 @@ const DailySpendingChart = ({
         />
       ) : (
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <AreaChart data={chartData} key={animationKey}>
+          <AreaChart
+            data={chartData}
+            key={animationKey}
+            onClick={handleChartClick}
+          >
             <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
-                <stop offset="95%" stopColor={theme.color} stopOpacity={0.1} />
-              </linearGradient>
+              {!isOverlayAllMode ? (
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={theme.color} stopOpacity={0.8} />
+                  <stop
+                    offset="95%"
+                    stopColor={theme.color}
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              ) : (
+                <>
+                  <linearGradient
+                    id="spendingGradient-loss"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={getThemeColors("loss", CHART_THEME).color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={getThemeColors("loss", CHART_THEME).color}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient
+                    id="spendingGradient-gain"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="5%"
+                      stopColor={getThemeColors("gain", CHART_THEME).color}
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor={getThemeColors("gain", CHART_THEME).color}
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </>
+              )}
             </defs>
 
             <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
@@ -435,7 +1074,7 @@ const DailySpendingChart = ({
 
             <Tooltip
               wrapperStyle={{
-                zIndex: 9999,
+                zIndex: 2000,
                 outline: "none",
               }}
               cursor={{
@@ -448,18 +1087,70 @@ const DailySpendingChart = ({
               allowEscapeViewBox={{ x: false, y: true }}
               animationDuration={150}
               animationEasing="ease-out"
-              content={(props) => (
-                <SpendingChartTooltip
-                  {...props}
-                  selectedType={activeType}
-                  timeframe={timeframe}
-                  config={tooltipConfig || TOOLTIP_CONFIG}
-                  theme={theme}
-                />
-              )}
+              content={(props) => {
+                const point = props?.payload?.[0]?.payload;
+
+                const hasAnyOverlayBudgets = (() => {
+                  if (!point) return false;
+                  const lossTotals = normalizeBudgetTotals(
+                    point?.budgetTotalsLoss,
+                  )
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
+                    );
+                  const gainTotals = normalizeBudgetTotals(
+                    point?.budgetTotalsGain,
+                  )
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
+                    );
+                  return lossTotals.length > 0 || gainTotals.length > 0;
+                })();
+
+                const hasAnyBudgets = (() => {
+                  if (!point) return false;
+                  const totals = normalizeBudgetTotals(point?.budgetTotals)
+                    .filter((x) => Number.isFinite(x.total))
+                    .filter((x) =>
+                      showAllBudgetsInTooltip ? true : x.total !== 0,
+                    );
+                  return totals.length > 0;
+                })();
+
+                if (
+                  isOverlayAllMode &&
+                  showBudgetTotalsInTooltip &&
+                  hasAnyOverlayBudgets
+                ) {
+                  return <OverlayAllBudgetTotalsTooltip {...props} />;
+                }
+
+                const hasBudgetTotals =
+                  showBudgetTotalsInTooltip &&
+                  point &&
+                  point.budgetTotals &&
+                  (Array.isArray(point.budgetTotals) ||
+                    typeof point.budgetTotals === "object");
+
+                if (hasBudgetTotals && hasAnyBudgets) {
+                  return <BudgetTotalsTooltip {...props} />;
+                }
+
+                return (
+                  <SpendingChartTooltip
+                    {...props}
+                    selectedType={activeType}
+                    timeframe={timeframe}
+                    config={tooltipConfig || TOOLTIP_CONFIG}
+                    theme={theme}
+                  />
+                );
+              }}
             />
 
-            {averageSpending > 0 && averageLabelText && (
+            {!isOverlayAllMode && averageSpending > 0 && averageLabelText && (
               <ReferenceLine
                 y={averageSpending}
                 stroke={averageLineColor}
@@ -476,18 +1167,47 @@ const DailySpendingChart = ({
               />
             )}
 
-            <Area
-              type="monotone"
-              dataKey="spending"
-              stroke={theme.color}
-              fillOpacity={0.3}
-              fill={`url(#${gradientId})`}
-              strokeWidth={2}
-              isAnimationActive={true}
-              animationBegin={0}
-              animationDuration={900}
-              animationEasing="ease-out"
-            />
+            {!isOverlayAllMode ? (
+              <Area
+                type="monotone"
+                dataKey="spending"
+                stroke={theme.color}
+                fillOpacity={0.3}
+                fill={`url(#${gradientId})`}
+                strokeWidth={2}
+                isAnimationActive={true}
+                animationBegin={0}
+                animationDuration={900}
+                animationEasing="ease-out"
+              />
+            ) : (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="spendingLoss"
+                  stroke={getThemeColors("loss", CHART_THEME).color}
+                  fillOpacity={0.25}
+                  fill="url(#spendingGradient-loss)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationBegin={0}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="spendingGain"
+                  stroke={getThemeColors("gain", CHART_THEME).color}
+                  fillOpacity={0.25}
+                  fill="url(#spendingGradient-gain)"
+                  strokeWidth={2}
+                  isAnimationActive={true}
+                  animationBegin={0}
+                  animationDuration={900}
+                  animationEasing="ease-out"
+                />
+              </>
+            )}
           </AreaChart>
         </ResponsiveContainer>
       )}

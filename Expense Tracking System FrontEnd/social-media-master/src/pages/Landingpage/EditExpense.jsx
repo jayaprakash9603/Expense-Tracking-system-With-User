@@ -33,6 +33,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import HighlightedText from "../../components/common/HighlightedText";
+import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
@@ -143,6 +145,12 @@ const EditExpense = ({}) => {
       option.charAt(0).toUpperCase() + option.slice(1)
     );
   };
+
+  const transactionTypeFilterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: getTransactionTypeLabel,
+    });
+  }, [transactionTypeLabels]);
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded text-base sm:max-w-[300px] max-w-[200px] border-0`;
@@ -343,33 +351,6 @@ const EditExpense = ({}) => {
       console.log(`Checkbox ${index} changed. New checkboxStates:`, newStates);
       return newStates;
     });
-  };
-
-  // Highlight matching text in suggestions (update: highlight text, not background)
-  const highlightText = (text, inputValue) => {
-    if (!inputValue) return text;
-    const regex = new RegExp(
-      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-      regex.test(part) ? (
-        <mark
-          key={i}
-          style={{
-            background: "none",
-            color: "#00dac6",
-            fontWeight: 700,
-            padding: 0,
-          }}
-        >
-          {part}
-        </mark>
-      ) : (
-        <span key={i}>{part}</span>
-      )
-    );
   };
 
   // Render input fields with consistent style and required asterisk
@@ -921,6 +902,7 @@ const EditExpense = ({}) => {
                 autoHighlight
                 options={typeOptions}
                 getOptionLabel={(option) => getTransactionTypeLabel(option)}
+                filterOptions={transactionTypeFilterOptions}
                 value={(expenseData.transactionType || "").toLowerCase()}
                 onInputChange={(event, newValue) => {
                   setExpenseData((prev) => ({
@@ -999,7 +981,11 @@ const EditExpense = ({}) => {
                     }}
                     title={getTransactionTypeLabel(option)}
                   >
-                    {highlightText(getTransactionTypeLabel(option), inputValue)}
+                    <HighlightedText
+                      text={getTransactionTypeLabel(option)}
+                      query={inputValue}
+                      title={getTransactionTypeLabel(option)}
+                    />
                   </li>
                 )}
               />

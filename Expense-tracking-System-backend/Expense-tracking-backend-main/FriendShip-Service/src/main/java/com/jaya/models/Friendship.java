@@ -3,19 +3,23 @@ package com.jaya.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-
-    private Integer  requesterId; // User who sent the request
+    private Integer requesterId; // User who sent the request
 
     private Integer recipientId; // User who receives the request
 
@@ -30,4 +34,12 @@ public class Friendship {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private AccessLevel recipientAccess; // Access given by requester to recipient
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

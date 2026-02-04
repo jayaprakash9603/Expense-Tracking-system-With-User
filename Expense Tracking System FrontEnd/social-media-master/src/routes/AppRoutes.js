@@ -11,7 +11,10 @@ import GroupDetail from "../pages/Landingpage/GroupDetail";
 import Profile from "../pages/Landingpage/Profile";
 import Settings from "../pages/Landingpage/Settings";
 import NotificationSettings from "../pages/Landingpage/NotificationSettings";
+import MfaSetup from "../pages/Landingpage/Settings/MfaSetup";
 import Friends from "../pages/Landingpage/Friends";
+import FriendshipReport from "../pages/Landingpage/FriendshipReport";
+import { FriendActivityPage } from "../pages/Landingpage/FriendActivity";
 import PaymentMethodFlow from "../pages/Landingpage/PaymentMethodFlow";
 import CreatePaymentMethod from "../pages/Landingpage/CreatePaymentMethod";
 import EditPaymentMethod from "../pages/Landingpage/EditPaymentMethod";
@@ -27,11 +30,13 @@ import Utilities from "../pages/Landingpage/Utilities";
 import Upload from "../pages/Fileupload/Upload";
 import NewExpense from "../pages/Landingpage/NewExpense";
 import EditExpense from "../pages/Landingpage/EditExpense";
+import ViewExpense from "../pages/Landingpage/ViewExpense";
 import CombinedExpenseReport from "../pages/Landingpage/CombinedExpenseReport";
 import CategoryFlow from "../pages/Landingpage/CategoryFlow";
 import CreateCategory from "../pages/Landingpage/CreateCategory";
 import CategoryReport from "../pages/Landingpage/Category Report/CategoryReport";
 import EditCategory from "../pages/Landingpage/EditCategory";
+import CategoryAnalyticsView from "../pages/CategoryAnalytics";
 import TransactionsContent from "../pages/Landingpage/TransactionsContent";
 import CreditDueContent from "../pages/Landingpage/CreditDueContent";
 import Reports from "../pages/Landingpage/Reports";
@@ -42,6 +47,8 @@ import EditBudget from "../pages/Landingpage/EditBudget";
 import BudgetReport from "../pages/Landingpage/Budget Report/BudgetReport";
 import AllBudgetsReport from "../pages/Landingpage/Budget Report/AllBudgetsReport";
 import CalendarView from "../pages/Landingpage/CalendarView";
+import CategoryCalendarView from "../pages/Landingpage/CategoryCalendarView";
+import PaymentMethodCalendarView from "../pages/Landingpage/PaymentMethodCalendarView";
 import DayTransactionsView from "../pages/Landingpage/DayTransactionsView";
 import DayBillsView from "../pages/Landingpage/DayBillsView";
 import SystemAnalytics from "../pages/Landingpage/Admin/SystemAnalytics";
@@ -50,13 +57,33 @@ import RoleManagement from "../pages/Landingpage/Admin/RoleManagement";
 import AuditLogsAdmin from "../pages/Landingpage/Admin/AuditLogs";
 import ReportsAdmin from "../pages/Landingpage/Admin/Reports";
 import AdminSettings from "../pages/Landingpage/Admin/AdminSettings";
+import AdminStoryManagement from "../pages/Admin/AdminStoryManagement";
+import CreateStory from "../pages/Admin/CreateStory";
+import EditStory from "../pages/Admin/EditStory";
 import NotFound from "../pages/Landingpage/Errors/NotFound";
+import {
+  HelpCenter,
+  ContactSupport,
+  TermsOfService,
+  PrivacyPolicy,
+} from "../pages/Landingpage/HelpSupport";
+import SharedViewPage from "../pages/SharedViewPage";
+import MySharesPage from "../pages/Landingpage/MySharesPage";
+import CreateSharePage from "../pages/Landingpage/CreateSharePage";
+import PublicSharesPage from "../pages/Landingpage/PublicSharesPage";
+import SharedWithMePage from "../pages/Landingpage/SharedWithMePage";
 
 /**
  * Authentication Routes - Returns Route element directly
+ * Also includes public routes like shared view page
  */
 export const getAuthRoutes = () => (
-  <Route path="/*" element={<Authentication />} />
+  <>
+    {/* Public Share View Route - accessible without authentication */}
+    <Route path="/share/:token" element={<SharedViewPage />} />
+    {/* Authentication routes */}
+    <Route path="/*" element={<Authentication />} />
+  </>
 );
 
 /**
@@ -64,6 +91,9 @@ export const getAuthRoutes = () => (
  */
 export const getAppRoutes = () => (
   <>
+    {/* Public Share View Route - accessible for authenticated users too */}
+    <Route path="/share/:token" element={<SharedViewPage />} />
+
     <Route path="/" element={<Home />}>
       <Route index element={<Navigate to="/dashboard" />} />
       <Route path="/chats" element={<Chat />} />
@@ -82,10 +112,27 @@ export const getAppRoutes = () => (
       <Route path="profile" element={<Profile />} />
       <Route path="settings" element={<Settings />} />
       <Route path="settings/notifications" element={<NotificationSettings />} />
+      <Route path="settings/mfa" element={<MfaSetup />} />
+
+      {/* Shared Data Routes */}
+      <Route path="my-shares" element={<MySharesPage />} />
+      <Route path="my-shares/create" element={<CreateSharePage />} />
+      <Route path="public-shares" element={<PublicSharesPage />} />
+      <Route path="shared-with-me" element={<SharedWithMePage />} />
+
+      {/* Help & Support Routes */}
+      <Route path="support">
+        <Route path="help" element={<HelpCenter />} />
+        <Route path="contact" element={<ContactSupport />} />
+        <Route path="terms" element={<TermsOfService />} />
+        <Route path="privacy" element={<PrivacyPolicy />} />
+      </Route>
 
       {/* Friends Routes */}
       <Route path="friends">
         <Route index element={<Friends />} />
+        <Route path="report" element={<FriendshipReport />} />
+        <Route path="activity" element={<FriendActivityPage />} />
         <Route path="expenses/:friendId" element={<Cashflow />} />
       </Route>
 
@@ -93,6 +140,11 @@ export const getAppRoutes = () => (
       <Route path="payment-method">
         <Route index element={<PaymentMethodFlow />} />
         <Route path=":friendId" element={<PaymentMethodFlow />} />
+        <Route path="calendar" element={<PaymentMethodCalendarView />} />
+        <Route
+          path="calendar/:friendId"
+          element={<PaymentMethodCalendarView />}
+        />
         <Route path="reports" element={<PaymentMethodsReport />} />
         <Route path="reports/:friendId" element={<PaymentMethodsReport />} />
         <Route path="create" element={<CreatePaymentMethod />} />
@@ -121,7 +173,7 @@ export const getAppRoutes = () => (
       </Route>
 
       {/* Utilities & Upload Routes */}
-      <Route path="all" element={<Utilities />} />
+      <Route path="utilities" element={<Utilities />} />
       <Route path="upload">
         <Route path="expenses" element={<Upload />} />
         <Route path="categories" element={<Upload />} />
@@ -136,6 +188,8 @@ export const getAppRoutes = () => (
         <Route index element={<Cashflow />} />
         <Route path="create" element={<NewExpense />} />
         <Route path="create/:friendId" element={<NewExpense />} />
+        <Route path="view/:id" element={<ViewExpense />} />
+        <Route path="view/:id/friend/:friendId" element={<ViewExpense />} />
         <Route path="edit/:id" element={<EditExpense />} />
         <Route path="edit/:id/friend/:friendId" element={<EditExpense />} />
         <Route path="reports" element={<CombinedExpenseReport />} />
@@ -146,16 +200,27 @@ export const getAppRoutes = () => (
       <Route path="category-flow">
         <Route index element={<CategoryFlow />} />
         <Route path=":friendId" element={<CategoryFlow />} />
+        <Route path="calendar" element={<CategoryCalendarView />} />
+        <Route path="calendar/:friendId" element={<CategoryCalendarView />} />
         <Route path="create" element={<CreateCategory />} />
         <Route path="create/:friendId" element={<CreateCategory />} />
         <Route path="reports" element={<CategoryReport />} />
         <Route path="reports/:friendId" element={<CategoryReport />} />
         <Route path="edit/:id" element={<EditCategory />} />
         <Route path="edit/:id/friend/:friendId" element={<EditCategory />} />
+        <Route path="view/:categoryId" element={<CategoryAnalyticsView />} />
+        <Route
+          path="view/:categoryId/friend/:friendId"
+          element={<CategoryAnalyticsView />}
+        />
       </Route>
 
       {/* Transaction & Insights Routes */}
       <Route path="transactions">
+        <Route index element={<TransactionsContent />} />
+        <Route path=":friendId" element={<TransactionsContent />} />
+      </Route>
+      <Route path="history">
         <Route index element={<TransactionsContent />} />
         <Route path=":friendId" element={<TransactionsContent />} />
       </Route>
@@ -189,10 +254,11 @@ export const getAppRoutes = () => (
       </Route>
 
       {/* Detailed Budget Report Routes */}
-      <Route path="/budget-report">
-        <Route path=":budgetId" element={<BudgetReport />} />
-        <Route path=":budgetId/:friendId" element={<BudgetReport />} />
-      </Route>
+      <Route path="budget-report/:budgetId" element={<BudgetReport />} />
+      <Route
+        path="budget-report/:budgetId/:friendId"
+        element={<BudgetReport />}
+      />
 
       {/* Calendar Views */}
       <Route path="/calendar-view">
@@ -220,6 +286,9 @@ export const getAppRoutes = () => (
         <Route path="audit" element={<AuditLogsAdmin />} />
         <Route path="reports" element={<ReportsAdmin />} />
         <Route path="settings" element={<AdminSettings />} />
+        <Route path="stories" element={<AdminStoryManagement />} />
+        <Route path="stories/create" element={<CreateStory />} />
+        <Route path="stories/edit/:id" element={<EditStory />} />
       </Route>
     </Route>
 

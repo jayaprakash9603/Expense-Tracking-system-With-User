@@ -39,10 +39,22 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @NotBlank(message = "Password is mandatory")
+    // Password is nullable for OAuth users
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
+    // OAuth2 Provider: LOCAL, GOOGLE
+    @Column(name = "auth_provider")
+    private String authProvider = "LOCAL";
+
+    // OAuth2 Provider's user ID (e.g., Google's sub claim)
+    @Column(name = "provider_id")
+    private String providerId;
+
+    // Profile image URL from OAuth provider
+    @Column(name = "oauth_profile_image")
+    private String oauthProfileImage;
 
     @Pattern(regexp = "^[+]?[0-9]{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
@@ -85,6 +97,42 @@ public class User {
     @Pattern(regexp = "^(USER|ADMIN)$", message = "Current mode must be USER or ADMIN")
     @Column(name = "current_mode")
     private String currentMode = "USER"; // Default mode is USER
+
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
+    // ============================================================================
+    // MFA (Google Authenticator / TOTP) Fields
+    // ============================================================================
+
+    /**
+     * Whether MFA via Google Authenticator (TOTP) is enabled.
+     * This takes priority over email-based 2FA when both are enabled.
+     */
+    @Column(name = "mfa_enabled", nullable = false)
+    private boolean mfaEnabled = false;
+
+    /**
+     * Encrypted TOTP secret for Google Authenticator.
+     * Used to generate time-based one-time passwords.
+     * SECURITY: Encrypted at rest, never logged.
+     */
+    @Column(name = "mfa_secret", length = 512)
+    private String mfaSecret;
+
+    /**
+     * Hashed backup codes for MFA recovery.
+     * Each code is single-use. Stored as comma-separated hashed values.
+     * SECURITY: Hashed with BCrypt, never stored in plaintext.
+     */
+    @Column(name = "mfa_backup_codes", columnDefinition = "TEXT")
+    private String mfaBackupCodes;
+
+    /**
+     * Timestamp when MFA was enabled.
+     */
+    @Column(name = "mfa_enabled_at")
+    private LocalDateTime mfaEnabledAt;
 
     @PastOrPresent(message = "Created date cannot be in the future")
     @Column(name = "created_at")

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Skeleton,
   Dialog,
   DialogContent,
   DialogTitle,
@@ -15,6 +14,8 @@ import FlowToggleButton from "../cashflow/FlowToggleButton";
 import FlowEntityCards from "./FlowEntityCards";
 import FlowExpenseTable from "./FlowExpenseTable";
 import NoDataPlaceholder from "../NoDataPlaceholder";
+import FlowChartSkeleton from "../skeletons/FlowChartSkeleton";
+import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
 import useFlowCards from "../../hooks/useFlowCards";
 import {
   getEntityExpenses,
@@ -22,6 +23,7 @@ import {
 } from "../../utils/flowEntityUtils";
 import { rangeTypes } from "../../utils/flowDateUtils"; // Added missing import
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * GenericFlowPage
@@ -85,6 +87,7 @@ const GenericFlowPage = ({
 
   const muiTheme = useMuiTheme();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(muiTheme.breakpoints.between("sm", "md"));
   const chartContainerHeight = isMobile ? 120 : isTablet ? 160 : 220;
@@ -112,7 +115,7 @@ const GenericFlowPage = ({
   const { sortType, setSortType, sortedCards } = useFlowCards(
     cards,
     search,
-    "high"
+    "high",
   );
 
   const handleEntityClick = (entity) => {
@@ -143,7 +146,7 @@ const GenericFlowPage = ({
     navigate(
       friendId && friendId !== "undefined"
         ? `/${routeBase}/edit/${entity[idKey]}/friend/${friendId}`
-        : `/${routeBase}/edit/${entity[idKey]}`
+        : `/${routeBase}/edit/${entity[idKey]}`,
     );
   };
 
@@ -157,14 +160,22 @@ const GenericFlowPage = ({
     setIsDeleting(true);
     try {
       await onDeleteAction(entityToDelete[idKey], friendId || "");
+      const entityName = entityToDelete?.[nameKey] || "";
       setToastMessage(
-        `${singular} "${entityToDelete[nameKey]}" deleted successfully.`
+        t("flows.messages.deleteSuccess", {
+          entity: singular,
+          name: entityName,
+        }),
       );
       setToastOpen(true);
       setDeleteDialogOpen(false);
       onRefresh?.();
     } catch (err) {
-      setToastMessage(`Failed to delete ${singular}. Please try again.`);
+      setToastMessage(
+        t("flows.messages.deleteError", {
+          entity: singular,
+        }),
+      );
       setToastOpen(true);
     } finally {
       setIsDeleting(false);
@@ -194,7 +205,10 @@ const GenericFlowPage = ({
       <RangePeriodNavigator
         showBackButton={showBackButton}
         onBackNavigate={onPageBack}
-        rangeTypes={rangeTypes}
+        rangeTypes={rangeTypes.map((rt) => ({
+          ...rt,
+          label: t(`cashflow.rangeTypes.${rt.value}`),
+        }))}
         activeRange={activeRange}
         setActiveRange={setActiveRange}
         offset={offset}
@@ -217,8 +231,8 @@ const GenericFlowPage = ({
         isDeleting={isDeleting}
         onApprove={handleDeleteConfirm}
         onDecline={() => setDeleteDialogOpen(false)}
-        approveText="Delete"
-        declineText="Cancel"
+        approveText={t("common.delete")}
+        declineText={t("common.cancel")}
         confirmationText={deletionConfirmText}
       />
       {Component && (
@@ -239,8 +253,12 @@ const GenericFlowPage = ({
               onClose={() => setOpen(false)}
               onCreated={(entity) => {
                 onCreated?.(entity);
+                const entityName = entity?.[nameKey] || "";
                 setToastMessage(
-                  `${singular} "${entity[nameKey]}" created successfully`
+                  t("flows.messages.createSuccess", {
+                    entity: singular,
+                    name: entityName,
+                  }),
                 );
                 setToastOpen(true);
                 onRefresh?.();
@@ -276,19 +294,13 @@ const GenericFlowPage = ({
         }}
       >
         {loading ? (
-          <Skeleton
-            variant="rectangular"
-            width="100%"
-            height={isMobile ? 100 : isTablet ? 130 : 160}
-            animation="wave"
-            sx={{ bgcolor: colors.hover_bg, borderRadius: 2 }}
-          />
+          <FlowChartSkeleton variant="bar" />
         ) : pieData.length === 0 ? (
           <NoDataPlaceholder
             size={isMobile ? "md" : "lg"}
             fullWidth
-            message={`No ${singular} data to display`}
-            subMessage="Try adjusting filters or date range"
+            message={t("cashflow.messages.noDataChart")}
+            subMessage={t("cashflow.messages.adjustFilters")}
           />
         ) : (
           <ChartComponent
@@ -304,7 +316,9 @@ const GenericFlowPage = ({
       </div>
       {showExpenseTable && selectedEntity && (
         <FlowExpenseTable
-          title={`${selectedEntity[nameKey]} Expenses`}
+          title={t("flows.expensesTable.entityTitle", {
+            name: selectedEntity[nameKey],
+          })}
           expenses={selectedExpenses}
           isMobile={isMobile}
           isTablet={isTablet}
@@ -320,7 +334,9 @@ const GenericFlowPage = ({
             filterRef={filterBtnRef}
             isMobile={isMobile}
             isTablet={isTablet}
-            placeholder={`Search ${entityConfig.plural}...`}
+            placeholder={t("flows.search.placeholder", {
+              entityPlural: entityConfig.plural,
+            })}
             navItems={navItems}
             friendId={friendId}
             isFriendView={isFriendView}
@@ -348,18 +364,27 @@ const GenericFlowPage = ({
             flowTab={flowTab}
             selectedEntityId={selectedEntity?.[idKey] || null}
             hasWriteAccess={hasWriteAccess}
+            friendId={friendId}
+            isFriendView={isFriendView}
             onSelect={(ent) => handleEntityClick(ent)}
             onDouble={(ent, e) => handleEntityDoubleClick(e, ent)}
             onEdit={(ent) => {
               navigate(
                 friendId && friendId !== "undefined"
                   ? `/${routeBase}/edit/${ent[idKey]}/friend/${friendId}`
-                  : `/${routeBase}/edit/${ent[idKey]}`
+                  : `/${routeBase}/edit/${ent[idKey]}`,
               );
             }}
             onDelete={(ent) => {
               setEntityToDelete(ent);
               setDeleteDialogOpen(true);
+            }}
+            onViewAnalytics={(ent) => {
+              navigate(
+                friendId && friendId !== "undefined"
+                  ? `/${routeBase}/view/${ent[idKey]}/friend/${friendId}`
+                  : `/${routeBase}/view/${ent[idKey]}`,
+              );
             }}
           />
         </>
@@ -372,8 +397,8 @@ const GenericFlowPage = ({
           flowTab === "outflow"
             ? "#ff4d4f"
             : flowTab === "inflow"
-            ? "#06d6a0"
-            : "#5b7fff"
+              ? "#06d6a0"
+              : "#5b7fff"
         }; border-radius: 6px; }
       `}</style>
     </div>

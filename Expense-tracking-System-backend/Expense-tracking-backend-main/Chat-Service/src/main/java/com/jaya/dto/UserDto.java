@@ -22,14 +22,15 @@ public class UserDto {
     @JsonProperty("lastName")
     private String lastName;
 
-    @JsonProperty("image")
+    @JsonProperty("profileImage")
     private String image;
 
     @JsonProperty("mobile")
     private String mobile;
 
     // Default constructor (required for JSON deserialization)
-    public UserDto() {}
+    public UserDto() {
+    }
 
     // Constructor with parameters
     public UserDto(Integer id, String username, String email, String firstName, String lastName) {

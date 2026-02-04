@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import DashboardHeader from "../../components/DashboardHeader";
@@ -23,6 +24,7 @@ import QuickAccess from "../../pages/Landingpage/QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
 import { createDashboardActions } from "./dashboardActions";
 import EmptyStateCard from "../../components/EmptyStateCard";
+import AllSectionsHiddenCard from "../../components/common/AllSectionsHiddenCard";
 
 // Section component mapping
 const SECTION_COMPONENTS = {
@@ -38,6 +40,7 @@ const SECTION_COMPONENTS = {
       height={isMobile ? 200 : isTablet ? 240 : 280}
       refreshTrigger={Math.random()}
       showSkeleton={analyticsLoading}
+      fillMissingDays={false}
     />
   ),
   "quick-access": () => <QuickAccess />,
@@ -118,16 +121,25 @@ const SECTION_COMPONENTS = {
       }
     />
   ),
-  "recent-transactions": ({ analyticsSummary, viewAllTransactions }) => (
+  "recent-transactions": ({
+    analyticsSummary,
+    viewAllTransactions,
+    sectionType,
+    isCompact,
+  }) => (
     <RecentTransactions
       transactions={analyticsSummary?.lastTenExpenses ?? []}
       onViewAll={viewAllTransactions}
+      sectionType={sectionType}
+      isCompact={isCompact}
     />
   ),
-  "budget-overview": ({ analyticsSummary }) => (
+  "budget-overview": ({ analyticsSummary, sectionType, isCompact }) => (
     <BudgetOverview
       remainingBudget={analyticsSummary?.remainingBudget ?? 0}
       totalLosses={analyticsSummary?.totalLosses ?? 0}
+      sectionType={sectionType}
+      isCompact={isCompact}
     />
   ),
 };
@@ -172,8 +184,10 @@ export default function DashboardContent() {
     [navigate]
   );
 
-  const isMobile = window.matchMedia("(max-width:600px)").matches;
-  const isTablet = window.matchMedia("(max-width:1024px)").matches;
+  // Use MUI's useMediaQuery for responsive detection (reacts to window resize)
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+  const isSmallDesktop = useMediaQuery("(max-width:1200px)");
 
   const hasTransactions =
     Array.isArray(analyticsSummary?.lastTenExpenses) &&
@@ -208,6 +222,7 @@ export default function DashboardContent() {
     currencySymbol,
     isMobile,
     isTablet,
+    isSmallDesktop,
     categoryDistribution,
     categoryTimeframe,
     setCategoryTimeframe,
@@ -226,37 +241,161 @@ export default function DashboardContent() {
   };
 
   // Render a section based on its configuration
-  const renderSection = (section) => {
+  const renderSection = (section, layoutType = null) => {
     const Component = SECTION_COMPONENTS[section.id];
     if (!Component) return null;
+
+    // Pass layout info to components that need it
+    const extendedProps = {
+      ...sectionProps,
+      sectionType: layoutType || section.type,
+      isCompact: layoutType === "half" || section.type === "half",
+    };
 
     return (
       <div
         key={section.id}
-        className={`dashboard-section dashboard-section-${section.id}`}
+        className={`dashboard-section dashboard-section-${
+          section.id
+        } section-type-${layoutType || section.type}`}
         data-section-id={section.id}
+        data-section-type={layoutType || section.type}
       >
-        {Component(sectionProps)}
+        {Component(extendedProps)}
       </div>
     );
   };
 
-  // Group sections by type for rendering
-  const fullWidthSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "full"
-  );
-  const halfWidthSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "half"
-  );
-  const bottomSections = layoutConfig.visibleSections.filter(
-    (s) => s.type === "bottom"
-  );
+  // Build layout groups from visible sections in their actual order
+  // Groups consecutive non-full sections together for side-by-side rendering
+  const buildLayoutGroups = () => {
+    const groups = [];
+    let currentGroup = null;
 
-  // Group half-width sections into pairs
-  const halfWidthPairs = [];
-  for (let i = 0; i < halfWidthSections.length; i += 2) {
-    halfWidthPairs.push(halfWidthSections.slice(i, i + 2));
-  }
+    layoutConfig.visibleSections.forEach((section) => {
+      if (section.type === "full") {
+        // Full sections always get their own row
+        if (currentGroup) {
+          groups.push(currentGroup);
+          currentGroup = null;
+        }
+        groups.push({ type: "full", sections: [section] });
+      } else {
+        // Half or bottom sections can be grouped together
+        if (!currentGroup) {
+          currentGroup = { type: "row", sections: [] };
+        }
+        currentGroup.sections.push(section);
+
+        // If we have 2 sections in a row, close the group
+        if (currentGroup.sections.length >= 2) {
+          groups.push(currentGroup);
+          currentGroup = null;
+        }
+      }
+    });
+
+    // Don't forget any remaining sections
+    if (currentGroup) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  };
+
+  const layoutGroups = buildLayoutGroups();
+
+  // Determine grid columns based on section IDs and types in a row
+  const getRowGridColumns = (sections) => {
+    // Mobile and tablet: always stack vertically
+    if (isMobile || isTablet) return "1fr";
+    if (sections.length === 1) return "1fr";
+
+    const sectionIds = sections.map((s) => s.id);
+
+    // Special case: Recent Transactions + Budget Overview = 2:1 ratio
+    // Recent Transactions should be wider
+    if (
+      sectionIds.includes("recent-transactions") &&
+      sectionIds.includes("budget-overview")
+    ) {
+      const recentIndex = sectionIds.indexOf("recent-transactions");
+      return recentIndex === 0 ? "2fr 1fr" : "1fr 2fr";
+    }
+
+    // All other combinations get equal width
+    return "1fr 1fr";
+  };
+
+  // Render a row of sections (half/bottom types)
+  const renderRowGroup = (group, groupIndex) => {
+    // Only mark as compact if it's a half-width section and not on mobile/tablet
+    const hasOnlyHalfSections = group.sections.every((s) => s.type === "half");
+    const isCompact =
+      group.sections.length > 1 &&
+      hasOnlyHalfSections &&
+      !isMobile &&
+      !isTablet;
+
+    return (
+      <div
+        key={`row-${groupIndex}`}
+        className={`section-row ${isMobile ? "mobile" : ""} ${
+          isTablet ? "tablet" : ""
+        }`}
+        style={{
+          display: "grid",
+          gridTemplateColumns: getRowGridColumns(group.sections),
+          gap: isMobile ? 12 : isTablet ? 16 : 24,
+          width: "100%",
+        }}
+      >
+        {analyticsLoading
+          ? group.sections.map((section) => {
+              if (section.id === "recent-transactions") {
+                return (
+                  <RecentTransactionsSkeleton
+                    key={section.id}
+                    count={10}
+                    isCompact={isCompact}
+                  />
+                );
+              }
+              if (section.id === "budget-overview") {
+                return (
+                  <BudgetOverviewSkeleton
+                    key={section.id}
+                    count={4}
+                    isCompact={isCompact}
+                  />
+                );
+              }
+              if (section.id === "summary-overview") {
+                return <SummaryOverviewSkeleton key={section.id} />;
+              }
+              // For chart sections during loading, render the section with loading state
+              return renderSection(section, section.type);
+            })
+          : group.sections.map((section) => {
+              const extendedProps = {
+                ...sectionProps,
+                sectionType: section.type,
+                isCompact: isCompact,
+              };
+              return (
+                <div
+                  key={section.id}
+                  className={`dashboard-section dashboard-section-${section.id} section-type-${section.type}`}
+                  data-section-id={section.id}
+                  data-section-type={section.type}
+                >
+                  {SECTION_COMPONENTS[section.id]?.(extendedProps)}
+                </div>
+              );
+            })}
+      </div>
+    );
+  };
 
   return (
     <div
@@ -284,51 +423,29 @@ export default function DashboardContent() {
         onSaveLayout={layoutConfig.saveLayout}
       />
 
-      {/* Full-width sections */}
-      {fullWidthSections.map(renderSection)}
+      {/* Render sections in their actual order, grouping non-full sections */}
+      {layoutGroups.map((group, index) => {
+        if (group.type === "full") {
+          return renderSection(group.sections[0]);
+        }
+        return renderRowGroup(group, index);
+      })}
 
-      {/* Charts grid with half-width sections */}
-      {halfWidthPairs.length > 0 && (
+      {/* Show message when all sections are hidden */}
+      {layoutConfig.visibleSections.length === 0 && (
         <div
-          className="charts-grid"
           style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: isMobile ? 16 : 24,
+            marginTop: isMobile ? 16 : 24,
+            padding: isMobile ? "0 12px" : "0 24px",
           }}
         >
-          {halfWidthPairs.map((pair, pairIndex) => (
-            <div
-              key={`pair-${pairIndex}`}
-              className="chart-row"
-              style={{
-                display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                gap: isMobile ? 16 : 24,
-                width: "100%",
-              }}
-            >
-              {pair.map(renderSection)}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom section */}
-      {bottomSections.length > 0 && (
-        <div className="bottom-section">
-          {analyticsLoading ? (
-            <>
-              {bottomSections.some((s) => s.id === "recent-transactions") && (
-                <RecentTransactionsSkeleton count={10} />
-              )}
-              {bottomSections.some((s) => s.id === "budget-overview") && (
-                <BudgetOverviewSkeleton count={4} />
-              )}
-            </>
-          ) : (
-            bottomSections.map(renderSection)
-          )}
+          <AllSectionsHiddenCard
+            title="All Dashboard Sections Hidden"
+            message="You've hidden all sections from the dashboard. Click the button below or use the customize option in the header to restore sections."
+            onCustomize={() => setCustomizationOpen(true)}
+            customizeButtonLabel="Customize Dashboard"
+            height={280}
+          />
         </div>
       )}
 

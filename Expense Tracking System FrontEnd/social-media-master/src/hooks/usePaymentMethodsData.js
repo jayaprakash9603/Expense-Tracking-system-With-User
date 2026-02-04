@@ -24,6 +24,7 @@ export default function usePaymentMethodsData({
   flowType = "outflow",
   refreshTrigger,
   useFriendlyLabels = true,
+  skip = false,
 } = {}) {
   const [data, setData] = useState(null); // normalized { labels, datasets: [{ data }] }
   const [rawData, setRawData] = useState(null); // original API response with full details
@@ -107,6 +108,14 @@ export default function usePaymentMethodsData({
   }, [timeframe, flowType]);
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setData(null);
+      setRawData(null);
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
 
     const fetchData = async () => {
@@ -147,7 +156,7 @@ export default function usePaymentMethodsData({
 
     fetchData();
     return () => controller.abort();
-  }, [buildParams, refreshTrigger, useFriendlyLabels]);
+  }, [buildParams, refreshTrigger, useFriendlyLabels, skip]);
 
   return { data, rawData, loading, error };
 }

@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.ExpenseDTO;
-
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.*;
 import com.jaya.service.expenses.*;
@@ -670,5 +670,10 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public Set<String> getPaymentMethodNames(List<ExpenseDTO> expenses) {
         return expenseUtilityService.getPaymentMethodNames(expenses);
+    }
+
+    @Override
+    public List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit) {
+        return expenseQueryService.searchExpensesFuzzy(userId, query, limit);
     }
 }

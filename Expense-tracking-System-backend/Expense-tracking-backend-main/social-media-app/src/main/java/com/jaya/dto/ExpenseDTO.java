@@ -12,13 +12,17 @@ public class ExpenseDTO {
     private String date;
     private Integer categoryId;
     private String categoryName;
+    private String categoryIcon;
+    private String categoryColor;
+    private String paymentMethodIcon;
+    private String paymentMethodColor;
     private ExpenseDetailsDTO expense;
     private boolean includeInBudget = false;
     private boolean isBill = false;
+    private boolean isRecurring = false;
     private Integer userId;
 
-    private Set<Integer> budgetIds=new HashSet<>();
-    
+    private Set<Integer> budgetIds = new HashSet<>();
 
     @Override
     public String toString() {

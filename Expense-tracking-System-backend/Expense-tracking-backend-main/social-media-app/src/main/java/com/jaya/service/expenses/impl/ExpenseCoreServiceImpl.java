@@ -86,7 +86,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private PaymentMethodKafkaProducerService paymentMethodKafkaProducer;
 
     @Autowired
-    private CategoryServices categoryService;
+    private CategoryServiceWrapper categoryService;
 
     @Autowired
     private KafkaProducerService producer;
@@ -122,7 +122,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     public ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception {
 
         User user = helper.validateUser(userId);
-        
+
         // Convert DTO to Entity
         Expense expense = expenseMapper.toEntity(expenseDTO);
         expense.setId(null);
@@ -168,11 +168,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         publishExpenseAuditEvent("CREATE", savedExpense, user, null, expenseToMap(savedExpense), "Expense created",
                 "SUCCESS");
-        
+
         // Fetch user settings to determine if masking is enabled
         com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(userId);
         Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
-        
+
         // Convert saved entity back to DTO with masking applied
         return expenseMapper.toDTO(savedExpense, maskSensitiveData);
     }
@@ -1260,7 +1260,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         // Check for "asc" or "desc", default to "desc"
         Sort sort = "asc".equalsIgnoreCase(sortOrder) ? Sort.by(Sort.Order.asc("date"))
                 : Sort.by(Sort.Order.desc("date"));
-        return expenseRepository.findByUserId(userId, sort);
+        // Using optimized method with JOIN FETCH to avoid N+1 queries
+        return expenseRepository.findByUserIdWithSort(userId, sort);
     }
 
     @Override

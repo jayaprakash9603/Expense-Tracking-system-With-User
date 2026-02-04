@@ -1,6 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/material";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
+import { getPaymentMethodIcon } from "../utils/iconMapping";
 
 /**
  * GroupedExpensesAccordion
@@ -17,6 +20,25 @@ const GroupedExpensesAccordion = ({
   currencySymbol = "₹",
 }) => {
   const { colors, mode } = useTheme();
+  const navigate = useNavigate();
+
+  // Navigate to view expense page
+  const handleNameClick = useCallback(
+    (e, expenseId) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (expenseId) {
+        navigate(`/expenses/view/${expenseId}`);
+      }
+    },
+    [navigate],
+  );
+
+  // Generate full URL for tooltip
+  const getViewExpenseUrl = useCallback((expenseId) => {
+    return `${window.location.origin}/expenses/view/${expenseId}`;
+  }, []);
+
   // Normalize source: prefer explicit methods array, else derive from rawData
   const sourceMethods = useMemo(() => {
     if (Array.isArray(methods) && methods.length) return methods;
@@ -27,7 +49,8 @@ const GroupedExpensesAccordion = ({
           method: methodName,
           totalAmount: Number(block?.totalAmount || 0),
           transactions: Number(
-            block?.expenseCount || (block?.expenses ? block.expenses.length : 0)
+            block?.expenseCount ||
+              (block?.expenses ? block.expenses.length : 0),
           ),
           expenses: block?.expenses || [],
         }));
@@ -44,8 +67,10 @@ const GroupedExpensesAccordion = ({
         const rawItems = Array.isArray(m.expenses) ? m.expenses : [];
         // Sort individual expenses descending by their primary amount (amount or netAmount fallback)
         const items = [...rawItems].sort((a, b) => {
-          const aAmt = Number(a?.details?.amount ?? a?.details?.netAmount ?? 0);
-          const bAmt = Number(b?.details?.amount ?? b?.details?.netAmount ?? 0);
+          const detA = a?.details || a?.expense || {};
+          const detB = b?.details || b?.expense || {};
+          const aAmt = Number(detA?.amount ?? detA?.netAmount ?? 0);
+          const bAmt = Number(detB?.amount ?? detB?.netAmount ?? 0);
           return bAmt - aAmt; // descending
         });
         const count = Number(m.transactions || items.length);
@@ -53,10 +78,10 @@ const GroupedExpensesAccordion = ({
           grandTotal > 0 ? ((total / grandTotal) * 100).toFixed(2) : "0.00";
         const avgPerTransaction =
           count > 0 ? (total / count).toFixed(2) : "0.00";
-        const creditDueTotal = items.reduce(
-          (sum, row) => sum + Number(row?.details?.creditDue || 0),
-          0
-        );
+        const creditDueTotal = items.reduce((sum, row) => {
+          const details = row?.details || row?.expense || {};
+          return sum + Number(details?.creditDue || 0);
+        }, 0);
         return {
           label: m.method,
           totalAmount: total,
@@ -71,27 +96,65 @@ const GroupedExpensesAccordion = ({
   }, [sourceMethods, grandTotal]);
 
   const columns = [
-    { key: "date", label: "Date", width: "100px", value: (row) => row.date },
+    {
+      key: "date",
+      label: "Date",
+      width: "100px",
+      value: (row) => row.date,
+      sortValue: (row) => {
+        const t = row?.date ? new Date(row.date).getTime() : 0;
+        return Number.isFinite(t) ? t : 0;
+      },
+    },
     {
       key: "name",
       label: "Expense Name",
       width: "230px",
-      value: (row) => row.details?.expenseName || "-",
+      value: (row) => (row.details || row.expense)?.expenseName || "-",
+      sortValue: (row) =>
+        String((row.details || row.expense)?.expenseName || "").toLowerCase(),
+      render: (val, row) => {
+        const expenseId = row?.id || row?.details?.id || row?.expense?.id;
+        if (!expenseId) return val || "-";
+        return (
+          <span
+            title={getViewExpenseUrl(expenseId)}
+            onClick={(e) => handleNameClick(e, expenseId)}
+            style={{
+              color: colors.primary_text,
+              cursor: "pointer",
+              transition: "text-decoration 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = "none";
+            }}
+          >
+            {val || "-"}
+          </span>
+        );
+      },
     },
     {
       key: "amount",
       label: "Amount",
       width: "100px",
-      value: (row) => row.details?.amount ?? row.details?.netAmount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.amount ?? d.netAmount ?? 0;
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.amount ?? d.netAmount ?? 0);
+      },
       className: (row) => {
-        const rawType = (row?.details?.type || "").toLowerCase();
+        const d = row.details || row.expense || {};
+        const rawType = (d.type || "").toLowerCase();
         if (rawType === "loss") return "pm-negative";
         if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(
-          row?.details?.amount ?? row?.details?.netAmount ?? 0
-        );
+        const amt = Number(d.amount ?? d.netAmount ?? 0);
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -99,13 +162,17 @@ const GroupedExpensesAccordion = ({
       key: "netAmount",
       label: "Net",
       width: "90px",
-      value: (row) => row.details?.netAmount ?? row.details?.amount ?? 0,
-      sortValue: (row) =>
-        Number(row.details?.netAmount ?? row.details?.amount ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.netAmount ?? d.amount ?? 0;
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.netAmount ?? d.amount ?? 0);
+      },
       className: (row) => {
-        const net = Number(
-          row?.details?.netAmount ?? row?.details?.amount ?? 0
-        );
+        const d = row.details || row.expense || {};
+        const net = Number(d.netAmount ?? d.amount ?? 0);
         return net < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -113,23 +180,31 @@ const GroupedExpensesAccordion = ({
       key: "creditDue",
       label: "Credit Due",
       width: "110px",
-      value: (row) =>
-        row.details?.creditDue != null ? row.details.creditDue : "-",
-      sortValue: (row) => Number(row.details?.creditDue ?? 0),
+      value: (row) => {
+        const d = row.details || row.expense || {};
+        return d.creditDue != null ? d.creditDue : "-";
+      },
+      sortValue: (row) => {
+        const d = row.details || row.expense || {};
+        return Number(d.creditDue ?? 0);
+      },
     },
     {
       key: "comments",
       label: "Comments",
       width: "240px",
-      value: (row) => row.details?.comments || "",
+      value: (row) => (row.details || row.expense)?.comments || "",
+      sortValue: (row) =>
+        String((row.details || row.expense)?.comments || "").toLowerCase(),
     },
   ];
 
   const classify = (row) => {
-    const rawType = (row?.details?.type || "").toLowerCase();
+    const d = row.details || row.expense || {};
+    const rawType = (d.type || "").toLowerCase();
     if (rawType === "loss") return "loss";
     if (rawType === "gain" || rawType === "profit") return "profit";
-    const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
+    const amt = Number(d.amount ?? d.netAmount ?? 0);
     if (amt < 0) return "loss";
     if (amt > 0) return "profit";
     return "all";
@@ -168,7 +243,7 @@ const GroupedExpensesAccordion = ({
           style={{
             color: mode === "dark" ? "#888" : "#666",
             fontSize: "14px",
-            marginBottom: "16px",
+            marginBottom: "8px",
           }}
         >
           Expand a group to inspect its individual expense entries
@@ -178,6 +253,11 @@ const GroupedExpensesAccordion = ({
         <GenericAccordionGroup
           groups={groups}
           currencySymbol={currencySymbol}
+          enableGroupSearch
+          enableGroupSort
+          enableRowSearch
+          enableRowSortControls
+          enableSelection
           classify={classify}
           columns={columns}
           defaultPageSize={5}
@@ -194,7 +274,19 @@ const GroupedExpensesAccordion = ({
             >
               <div className="pm-header-left boxed-metrics inline-metrics">
                 <span className="metric-box name" title={group.label}>
-                  {group.label}
+                  <Box
+                    component="span"
+                    sx={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 0.75,
+                    }}
+                  >
+                    {getPaymentMethodIcon(group.label, {
+                      sx: { fontSize: 18, color: colors.primary_accent },
+                    })}
+                    {group.label}
+                  </Box>
                 </span>
                 <span className="metric-box tx" title="Transactions">
                   Count {group.count}

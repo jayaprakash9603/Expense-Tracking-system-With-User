@@ -43,7 +43,7 @@ const NotificationsPanel = ({
 
   // Redux state
   const { notifications, unreadCount, loading, error } = useSelector(
-    (state) => state.notifications
+    (state) => state.notifications,
   );
 
   const { user } = useSelector((state) => state.auth);
@@ -74,12 +74,12 @@ const NotificationsPanel = ({
         // ✅ OPTIMIZED: Add single notification to Redux instead of fetching all
         console.log(
           "✅ WebSocket notification received - adding to Redux store:",
-          notification
+          notification,
         );
         dispatch(addNotification(notification));
         // No need to fetch all notifications or unread count - reducer handles it!
       },
-      [dispatch]
+      [dispatch],
     ),
   });
 
@@ -106,7 +106,7 @@ const NotificationsPanel = ({
         await dispatch(markNotificationAsRead(notification.id));
       }
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Handle double click - mark as read and navigate
@@ -120,7 +120,7 @@ const NotificationsPanel = ({
       // Navigate based on notification type
       handleNotificationNavigation(notification);
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Navigate to related content
@@ -169,6 +169,17 @@ const NotificationsPanel = ({
         case "PAYMENT_METHOD_UPDATED":
           navigate("/payment-methods");
           break;
+        case "DATA_SHARED":
+        case "dataShared":
+          // Navigate to shared data view if URL is available
+          if (metadata.shareUrl) {
+            window.open(metadata.shareUrl, "_blank");
+          } else if (metadata.shareToken) {
+            navigate(`/shared/${metadata.shareToken}`);
+          } else {
+            navigate("/shares/received");
+          }
+          break;
         default:
           // Do nothing for unknown types
           break;
@@ -191,7 +202,7 @@ const NotificationsPanel = ({
         console.error("Error deleting notification:", error);
       }
     },
-    [dispatch]
+    [dispatch],
   );
 
   // Handle mark all as read
@@ -280,8 +291,8 @@ const NotificationsPanel = ({
         }
         .notification-scroll::-webkit-scrollbar-thumb {
           background: linear-gradient(135deg, ${themeColors.accent}, ${
-        themeColors.accentHover
-      });
+            themeColors.accentHover
+          });
           border-radius: 10px;
           border: 2px solid ${isDark ? "#1a1a1a" : "#f8f9fa"};
         }
@@ -292,8 +303,8 @@ const NotificationsPanel = ({
         .notification-scroll {
           scrollbar-width: thin;
           scrollbar-color: ${themeColors.accent} ${
-        isDark ? "#1a1a1a" : "#f8f9fa"
-      };
+            isDark ? "#1a1a1a" : "#f8f9fa"
+          };
         }
         
         /* Smooth animations */
@@ -413,7 +424,8 @@ const NotificationsPanel = ({
                 onMouseLeave={(e) =>
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
-                title="Close"
+                title="Close (X)"
+                data-shortcut="notifications-close"
               >
                 <svg
                   className="w-5 h-5"
@@ -440,6 +452,8 @@ const NotificationsPanel = ({
                   <button
                     onClick={handleMarkAllAsRead}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                    data-shortcut="notifications-mark-read"
+                    title="Mark all read (R)"
                     style={{
                       backgroundColor: themeColors.accentLight,
                       color: themeColors.accent,
@@ -479,6 +493,8 @@ const NotificationsPanel = ({
                 <button
                   onClick={handleClearAll}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ml-auto transition-all duration-200"
+                  data-shortcut="notifications-clear"
+                  title="Clear all (C)"
                   style={{
                     backgroundColor: isDark
                       ? "rgba(239, 68, 68, 0.1)"

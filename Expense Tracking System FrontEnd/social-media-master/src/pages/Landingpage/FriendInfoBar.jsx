@@ -17,11 +17,23 @@ import {
   TextField,
   InputAdornment,
   Tooltip,
+  Badge,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import { useSelector } from "react-redux";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { useSelector, useDispatch } from "react-redux";
 import { useTheme } from "../../hooks/useTheme";
+import { useMasking } from "../../hooks/useMasking";
+import { useTranslation } from "../../hooks/useTranslation";
+import { toggleTheme } from "../../Redux/Theme/theme.actions";
+import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
+import {
+  InlineSearchBar,
+  UniversalSearchModal,
+} from "../../components/common/UniversalSearch";
+import NotificationsPanelRedux from "../../components/common/NotificationsPanelRedux";
 
 const FriendInfoBar = ({
   friendship,
@@ -36,15 +48,31 @@ const FriendInfoBar = ({
   customErrorRedirectPath = "/friends",
   ...otherProps
 }) => {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
+  const { maskingEnabled, toggleMasking } = useMasking();
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
   const [showFriendDropdown, setShowFriendDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredFriends, setFilteredFriends] = useState([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const friendDropdownRef = useRef(null);
   const portalDropdownRef = useRef(null); // ref to portal dropdown
   const searchInputRef = useRef(null);
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+
+  // Theme toggle handler
+  const handleThemeToggle = () => {
+    dispatch(toggleTheme());
+    dispatch(
+      updateUserSettings({
+        theme: isDark ? "light" : "dark",
+      }),
+    );
+  };
 
   // Filter friends based on search term
   useEffect(() => {
@@ -246,7 +274,7 @@ const FriendInfoBar = ({
           if (error.response && error.response.status === 403) {
             console.warn(
               "Access denied during data refresh for friend:",
-              selectedFriendId
+              selectedFriendId,
             );
             navigate(customErrorRedirectPath);
             return;
@@ -487,8 +515,8 @@ const FriendInfoBar = ({
 
         {/* Center section - Scrolling notification */}
         <div
-          className="scrolling-text-container absolute left-0 right-0 mx-auto"
-          style={{ width: "35%", zIndex: 1 }}
+          className="scrolling-text-container absolute"
+          style={{ left: "25%", width: "30%", zIndex: 1 }}
         >
           {(() => {
             const access =
@@ -501,75 +529,132 @@ const FriendInfoBar = ({
                 {access === "ADMIN" || access === "FULL"
                   ? "You have full access to this user's expenses. Any changes you make will be reflected in their account."
                   : access === "EDITOR" ||
-                    access === "WRITE" ||
-                    access === "READ_WRITE"
-                  ? "You have write access to this user's expenses. Any changes you make will be reflected in their account."
-                  : access === "READ"
-                  ? "You have read-only access to this user's expenses. You can view all details but cannot make changes."
-                  : access === "SUMMARY"
-                  ? "You have summary access to this user's expenses. You can view monthly summaries but not individual expenses."
-                  : access === "LIMITED"
-                  ? "You have limited access to this user's expenses. You can only view basic totals and summaries."
-                  : "You don't have access to this user's expenses."}
+                      access === "WRITE" ||
+                      access === "READ_WRITE"
+                    ? "You have write access to this user's expenses. Any changes you make will be reflected in their account."
+                    : access === "READ"
+                      ? "You have read-only access to this user's expenses. You can view all details but cannot make changes."
+                      : access === "SUMMARY"
+                        ? "You have summary access to this user's expenses. You can view monthly summaries but not individual expenses."
+                        : access === "LIMITED"
+                          ? "You have limited access to this user's expenses. You can only view basic totals and summaries."
+                          : "You don't have access to this user's expenses."}
               </div>
             );
           })()}
         </div>
 
-        {/* Right section - Status, Access Level and Friend Switcher */}
-        <div className="flex items-center gap-3 z-10 flex-shrink-0">
-          {/* Status badge */}
-          <div
-            className="px-2 py-1 rounded-full text-xs"
-            style={{ backgroundColor: colors.tertiary_bg }}
-          >
-            <span style={{ color: colors.primary_text }}>Status: </span>
-            <span
-              className={`font-medium ${
-                friendship.status === "ACCEPTED"
-                  ? "text-[#00DAC6]"
-                  : friendship.status === "PENDING"
-                  ? "text-[#FFC107]"
-                  : "text-[#ff4d4f]"
+        {/* Right section - Search, Masking Toggle, Theme Toggle and Friend Switcher */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Inline Search Bar */}
+          <InlineSearchBar />
+
+          {/* Universal Search Modal for Ctrl+K */}
+          <UniversalSearchModal />
+
+          {/* Notifications Button */}
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+              className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
+                isDark
+                  ? "bg-gray-800 hover:bg-gray-700"
+                  : "bg-gray-100 hover:bg-gray-200"
               }`}
+              title={t("header.notifications")}
             >
-              {friendship.status}
-            </span>
+              <Badge
+                badgeContent={unreadNotificationsCount}
+                color="error"
+                max={99}
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.5rem",
+                    height: "14px",
+                    minWidth: "14px",
+                    padding: "0 3px",
+                  },
+                }}
+              >
+                <svg
+                  className={`w-[18px] h-[18px] ${
+                    isDark ? "text-gray-300" : "text-gray-700"
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                </svg>
+              </Badge>
+            </button>
           </div>
 
-          {/* Access Level badge */}
-
-          {/* Access Level badge */}
-          <div
-            className="px-2 py-1 rounded-full text-xs"
-            style={{ backgroundColor: colors.tertiary_bg }}
+          {/* Masking Toggle Button */}
+          <button
+            onClick={toggleMasking}
+            className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
+              isDark
+                ? "bg-gray-800 hover:bg-gray-700"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+            title={
+              maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
+            }
           >
-            <span style={{ color: colors.primary_text }}>Access: </span>
-            <span
-              className={`font-medium ${(() => {
-                const access =
-                  friendship.requester.id == user.id
-                    ? friendship.requesterAccess
-                    : friendship.recipientAccess;
+            {maskingEnabled ? (
+              <VisibilityOffIcon
+                className={`w-[18px] h-[18px] ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              />
+            ) : (
+              <VisibilityIcon
+                className={`w-[18px] h-[18px] ${
+                  isDark ? "text-gray-300" : "text-gray-700"
+                }`}
+              />
+            )}
+          </button>
 
-                return access === "ADMIN" || access === "FULL"
-                  ? "text-[#00DAC6]"
-                  : access === "EDITOR" ||
-                    access === "WRITE" ||
-                    access === "READ_WRITE"
-                  ? "text-[#5b7fff]"
-                  : "text-[#FFC107]";
-              })()}`}
-            >
-              {(() => {
-                const access =
-                  friendship.requester.id == user.id
-                    ? friendship.requesterAccess
-                    : friendship.recipientAccess;
-                return access || "VIEWER";
-              })()}
-            </span>
-          </div>
+          {/* Theme Toggle Button */}
+          <button
+            onClick={handleThemeToggle}
+            className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
+              isDark
+                ? "bg-gray-800 hover:bg-gray-700"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+            title={
+              isDark ? t("header.switchToLight") : t("header.switchToDark")
+            }
+          >
+            {isDark ? (
+              // Sun Icon (Light Mode)
+              <svg
+                className="w-[18px] h-[18px] text-yellow-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            ) : (
+              // Moon Icon (Dark Mode)
+              <svg
+                className="w-[18px] h-[18px] text-gray-700"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+              </svg>
+            )}
+          </button>
 
           {/* Friend Switcher Button */}
           <div className="relative" ref={friendDropdownRef}>
@@ -866,8 +951,8 @@ const FriendInfoBar = ({
                                             friend.status === "ACCEPTED"
                                               ? "#00DAC6"
                                               : friend.status === "PENDING"
-                                              ? "#FFC107"
-                                              : "#ff4d4f",
+                                                ? "#FFC107"
+                                                : "#ff4d4f",
                                           fontSize: "0.625rem",
                                           backgroundColor: colors.tertiary_bg,
                                           padding: "2px 6px",
@@ -891,10 +976,10 @@ const FriendInfoBar = ({
                                               access === "FULL"
                                               ? "#00DAC6"
                                               : access === "EDITOR" ||
-                                                access === "WRITE" ||
-                                                access === "READ_WRITE"
-                                              ? "#5b7fff"
-                                              : "#FFC107";
+                                                  access === "WRITE" ||
+                                                  access === "READ_WRITE"
+                                                ? "#5b7fff"
+                                                : "#FFC107";
                                           })(),
                                           fontSize: "0.625rem",
                                           backgroundColor: colors.tertiary_bg,
@@ -983,7 +1068,7 @@ const FriendInfoBar = ({
                     </Button>
                   </Box>
                 </Paper>,
-                document.body
+                document.body,
               )}
           </div>
         </div>
@@ -1013,16 +1098,16 @@ const FriendInfoBar = ({
             return access === "ADMIN" || access === "FULL"
               ? "#06D6A0"
               : access === "EDITOR" ||
-                access === "WRITE" ||
-                access === "READ_WRITE"
-              ? "#5b7fff"
-              : access === "READ"
-              ? "#00DAC6"
-              : access === "SUMMARY"
-              ? "#FFC107"
-              : access === "LIMITED"
-              ? "#ff9800"
-              : "#999";
+                  access === "WRITE" ||
+                  access === "READ_WRITE"
+                ? "#5b7fff"
+                : access === "READ"
+                  ? "#00DAC6"
+                  : access === "SUMMARY"
+                    ? "#FFC107"
+                    : access === "LIMITED"
+                      ? "#ff9800"
+                      : "#999";
           })()};
           font-size: 12px;
           font-weight: 500;
@@ -1080,6 +1165,15 @@ const FriendInfoBar = ({
           background: #00dac6;
         }
       `}</style>
+
+      {/* Notifications Panel */}
+      <NotificationsPanelRedux
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        onNotificationRead={(unreadCount) =>
+          setUnreadNotificationsCount(unreadCount)
+        }
+      />
     </>
   );
 };

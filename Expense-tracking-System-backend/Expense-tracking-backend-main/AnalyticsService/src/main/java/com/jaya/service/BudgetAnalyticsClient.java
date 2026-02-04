@@ -15,4 +15,5 @@ public interface BudgetAnalyticsClient {
     List<Map<String, Object>> getAllBudgetReportsForUser(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(value = "targetId", required = false) Integer targetId);
+            
 }

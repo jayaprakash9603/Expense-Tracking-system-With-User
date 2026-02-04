@@ -167,6 +167,14 @@ export const BRAND_GRADIENT_COLORS = {
   4: { color: "rgb(0, 168, 133)", fontSize: "22px" }, // i
   5: { color: "rgb(0, 137, 102)", fontSize: "22px" }, // o
   6: { color: "#14b8a6", fontSize: "22px" }, // Finance
+  // Story ring gradient colors (Instagram-style gradient)
+  story_ring_start: "#f09433", // Orange
+  story_ring_middle: "#e6683c", // Red-Orange
+  story_ring_end: "#dc2743", // Red-Pink
+  story_ring_purple: "#bc1888", // Purple
+  // Alternate teal-based story ring for brand consistency
+  story_teal_start: "#00DAC6", // Teal
+  story_teal_end: "#14b8a6", // Darker teal
 };
 
 export default {

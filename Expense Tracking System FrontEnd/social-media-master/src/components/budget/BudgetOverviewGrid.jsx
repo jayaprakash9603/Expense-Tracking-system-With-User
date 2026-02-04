@@ -20,6 +20,24 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
   const { colors, mode } = useTheme();
   const isDark = mode === "dark";
 
+  const getDaysInRangeInclusive = (startDate, endDate) => {
+    if (!startDate || !endDate) return null;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return null;
+    }
+
+    // Normalize to midnight to avoid DST/timezone artifacts.
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diffDays);
+  };
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [cardsPerPage, setCardsPerPage] = useState(8); // Default 8 cards
@@ -70,6 +88,12 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
     const statusColor = getStatusColor(utilization);
     const remaining = allocated - spent;
     const isOverBudget = remaining < 0;
+
+    const daysInRange = getDaysInRangeInclusive(startDate, endDate);
+    const spendVelocity =
+      daysInRange && Number(spent || 0) > 0
+        ? Number(spent || 0) / daysInRange
+        : 0;
 
     return (
       <div
@@ -170,6 +194,45 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 Expired
               </span>
             )}
+          </div>
+
+          {/* Spend velocity */}
+          <div
+            style={{
+              marginTop: "6px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "10px",
+              padding: "6px 8px",
+              borderRadius: "6px",
+              background: isDark ? "#1a1a1a" : "#f0f0f0",
+            }}
+          >
+            <span
+              style={{
+                color: colors.secondary_text,
+                fontSize: "11px",
+                fontWeight: 500,
+              }}
+            >
+              Spend velocity
+            </span>
+            <span
+              title={
+                daysInRange
+                  ? `Total spent over ${daysInRange} day(s)`
+                  : "Total spent over budget period"
+              }
+              style={{
+                color: colors.primary_text,
+                fontSize: "11px",
+                fontWeight: 600,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {formatCurrency(spendVelocity)}/day
+            </span>
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 import { useMediaQuery } from "@mui/material";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Add, ChevronRight, Settings } from "@mui/icons-material";
 import {
@@ -34,6 +34,8 @@ import SortIcon from "@mui/icons-material/Sort";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import HistoryIcon from "@mui/icons-material/History";
 import {
   fetchFriendSuggestions,
   sendFriendRequest,
@@ -48,7 +50,7 @@ import {
   fetchFriendship,
 } from "../../Redux/Friends/friendsActions";
 import UserAvatar from "./UserAvatar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import FriendsEmptyState from "../../components/FriendsEmptyState";
 // Removed direct NoDataPlaceholder import; using FriendsEmptyState everywhere for consistency
@@ -71,11 +73,13 @@ const themeColor = "#14b8a6";
 // Update the color of edit, lock, and view icons
 const iconColor = "#14b8a6";
 
-const Friends = () => {
+const Friends = ({ defaultTab = 0 }) => {
   const { colors } = useTheme();
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Add custom scrollbar styles - now using theme colors
   const scrollbarStyles = `
@@ -153,7 +157,17 @@ const Friends = () => {
   const [requestsFilterOn, setRequestsFilterOn] = useState(false);
   const [friendsFilterOn, setFriendsFilterOn] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [activeTab, setActiveTab] = useState(0);
+  // Initialize activeTab from URL first, then fall back to defaultTab
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam, 10);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 3) {
+        return tabIndex;
+      }
+    }
+    return defaultTab;
+  });
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -175,11 +189,33 @@ const Friends = () => {
   const [friendFilters, setFriendFilters] = useState([]);
   const [sharedFilters, setSharedFilters] = useState([]);
 
+  // Friend Activity unread count for badge display
+  const unreadActivityCount = useSelector(
+    (state) => state.friendActivity?.unreadCount || 0,
+  );
+
+  // Sync activeTab with URL parameter - URL is source of truth
+  // This handles external URL changes (e.g., browser back/forward)
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam, 10);
+      if (
+        !isNaN(tabIndex) &&
+        tabIndex >= 0 &&
+        tabIndex <= 3 &&
+        tabIndex !== activeTab
+      ) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [searchParams, activeTab]);
+
   // Persist filters across navigation (localStorage)
   useEffect(() => {
     try {
       const saved = JSON.parse(
-        localStorage.getItem("friends_filter_state") || "{}"
+        localStorage.getItem("friends_filter_state") || "{}",
       );
       if (saved.suggestionFilters)
         setSuggestionFilters(saved.suggestionFilters);
@@ -341,10 +377,13 @@ const Friends = () => {
   //   }
   // }, [respondToRequestError]);
 
-  // Handle tab change
+  // Handle tab change - update URL to keep tab in sync
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
     setSelectedFriend(null);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("tab", newValue.toString());
+    setSearchParams(newSearchParams, { replace: true });
   };
 
   // Handle search input change - just filter locally
@@ -394,7 +433,8 @@ const Friends = () => {
         // Find the corresponding friendship from the friends list
         friendship = friends.find(
           (f) =>
-            f.requester.id === friend.userId || f.recipient.id === friend.userId
+            f.requester.id === friend.userId ||
+            f.recipient.id === friend.userId,
         );
       }
       // For I shared with tab
@@ -402,7 +442,8 @@ const Friends = () => {
         // Find the corresponding friendship from the friends list
         friendship = friends.find(
           (f) =>
-            f.requester.id === friend.userId || f.recipient.id === friend.userId
+            f.requester.id === friend.userId ||
+            f.recipient.id === friend.userId,
         );
       }
 
@@ -521,7 +562,7 @@ const Friends = () => {
       try {
         // Dispatch the action and get the promise
         const resultAction = await dispatch(
-          setAccessLevel(selectedFriendship.id, accessLevel)
+          setAccessLevel(selectedFriendship.id, accessLevel),
         );
 
         // Clear the loading timeout
@@ -632,7 +673,7 @@ const Friends = () => {
         flowType: null, // 'all' equivalent
         targetId: friendId,
         groupBy: false,
-      })
+      }),
     );
 
     setTimeout(() => {
@@ -813,21 +854,66 @@ const Friends = () => {
               >
                 Friends
               </h1>
-              <Button
-                size="small"
-                onClick={handleManualRefresh}
-                title="Refresh sharing data"
-                sx={{
-                  minWidth: "auto",
-                  color: colors.primary_accent,
-                  padding: "4px",
-                  "&:hover": {
-                    backgroundColor: `${colors.primary_accent}1A`,
-                  },
-                }}
-              >
-                <RefreshIcon fontSize="small" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="small"
+                  onClick={() => navigate("/friends/activity")}
+                  title="View Friend Activity History"
+                  sx={{
+                    minWidth: "auto",
+                    color: colors.primary_accent,
+                    padding: "4px",
+                    "&:hover": {
+                      backgroundColor: `${colors.primary_accent}1A`,
+                    },
+                  }}
+                >
+                  <Badge
+                    badgeContent={unreadActivityCount}
+                    color="error"
+                    max={99}
+                    sx={{
+                      "& .MuiBadge-badge": {
+                        fontSize: "0.65rem",
+                        height: "16px",
+                        minWidth: "16px",
+                      },
+                    }}
+                  >
+                    <HistoryIcon fontSize="small" />
+                  </Badge>
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => navigate("/friends/report")}
+                  title="View Friendship Report"
+                  sx={{
+                    minWidth: "auto",
+                    color: colors.primary_accent,
+                    padding: "4px",
+                    "&:hover": {
+                      backgroundColor: `${colors.primary_accent}1A`,
+                    },
+                  }}
+                >
+                  <AssessmentIcon fontSize="small" />
+                </Button>
+                <Button
+                  size="small"
+                  onClick={handleManualRefresh}
+                  title="Refresh sharing data"
+                  sx={{
+                    minWidth: "auto",
+                    color: colors.primary_accent,
+                    padding: "4px",
+                    "&:hover": {
+                      backgroundColor: `${colors.primary_accent}1A`,
+                    },
+                  }}
+                >
+                  <RefreshIcon fontSize="small" />
+                </Button>
+              </div>
             </div>
             {/* Tabs for Suggestions, Requests, Friends, and Shared Expenses */}
             <div className="mb-4">
@@ -1030,14 +1116,15 @@ const Friends = () => {
                               </p>
                               <div className="flex items-center mt-1">
                                 {getAccessLevelIcon(
-                                  friend.friendship?.recipientAccess || "NONE"
+                                  friend.friendship?.recipientAccess || "NONE",
                                 )}
                                 <span
                                   className="text-xs ml-2"
                                   style={{ color: colors.secondary_text }}
                                 >
                                   {getAccessLevelDescription(
-                                    friend.friendship?.recipientAccess || "NONE"
+                                    friend.friendship?.recipientAccess ||
+                                      "NONE",
                                   )}
                                 </span>
                               </div>
@@ -1386,7 +1473,7 @@ const Friends = () => {
                                 {getAccessLevelIcon(
                                   friend.friendship?.requester.id === user.id
                                     ? friend.friendship?.recipientAccess
-                                    : friend.friendship?.requesterAccess
+                                    : friend.friendship?.requesterAccess,
                                 )}
                                 <span
                                   className="text-xs ml-2"
@@ -1395,7 +1482,7 @@ const Friends = () => {
                                   {getAccessLevelDescription(
                                     friend.friendship?.requester.id === user.id
                                       ? friend.friendship?.recipientAccess
-                                      : friend.friendship?.requesterAccess
+                                      : friend.friendship?.requesterAccess,
                                   )}
                                 </span>
                               </div>
@@ -1534,7 +1621,7 @@ const Friends = () => {
                         const friendship = friends.find(
                           (f) =>
                             f.requester.id === item.userId ||
-                            f.recipient.id === item.userId
+                            f.recipient.id === item.userId,
                         );
                         if (friendship) {
                           handleAccessMenuOpen(e, friendship);
@@ -1707,7 +1794,7 @@ const Friends = () => {
                     >
                       {getInitials(
                         selectedFriend.firstName,
-                        selectedFriend.lastName
+                        selectedFriend.lastName,
                       )}
                     </div>
                   )}
@@ -1821,7 +1908,7 @@ const Friends = () => {
                     >
                       {getInitials(
                         selectedFriend.firstName,
-                        selectedFriend.lastName
+                        selectedFriend.lastName,
                       )}
                     </div>
                   )}
@@ -1893,7 +1980,7 @@ const Friends = () => {
                     >
                       {getInitials(
                         selectedFriend.firstName,
-                        selectedFriend.lastName
+                        selectedFriend.lastName,
                       )}
                     </div>
                   )}
@@ -1930,7 +2017,7 @@ const Friends = () => {
                   >
                     Friends since:{" "}
                     {new Date(
-                      selectedFriend.friendship?.createdAt || Date.now()
+                      selectedFriend.friendship?.createdAt || Date.now(),
                     ).toLocaleDateString()}
                   </p>
 
@@ -1957,7 +2044,7 @@ const Friends = () => {
                         <div className="mr-3" style={{ color: themeColor }}>
                           {getAccessLevelIcon(
                             selectedFriend?.friendship?.requesterAccess ||
-                              "NONE"
+                              "NONE",
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -1972,11 +2059,11 @@ const Friends = () => {
                             style={{ color: colors.secondary_text }}
                           >
                             {getCurrentAccessLevel(
-                              selectedFriend.friendship
+                              selectedFriend.friendship,
                             ) === "NONE"
                               ? "No access to your expenses"
                               : `${getCurrentAccessLevel(
-                                  selectedFriend.friendship
+                                  selectedFriend.friendship,
                                 )} access to your expenses`}
                           </p>
                         </div>
@@ -1997,7 +2084,8 @@ const Friends = () => {
                       >
                         <div className="mr-3" style={{ color: themeColor }}>
                           {getAccessLevelIcon(
-                            selectedFriend.friendship?.requesterAccess || "NONE"
+                            selectedFriend.friendship?.requesterAccess ||
+                              "NONE",
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -2088,7 +2176,7 @@ const Friends = () => {
                     >
                       {getInitials(
                         selectedFriend.firstName,
-                        selectedFriend.lastName
+                        selectedFriend.lastName,
                       )}
                     </div>
                   )}
@@ -2140,7 +2228,7 @@ const Friends = () => {
                           style={{ color: colors.secondary_text }}
                         >
                           {getAccessLevelDescription(
-                            selectedFriend.accessLevel
+                            selectedFriend.accessLevel,
                           )}
                         </p>
                       </div>
@@ -2206,19 +2294,19 @@ const Friends = () => {
                     {activeTab === 0
                       ? "Select a friend suggestion"
                       : activeTab === 1
-                      ? "Select a friend request"
-                      : activeTab === 2
-                      ? "Select a friend"
-                      : "Select a shared connection"}
+                        ? "Select a friend request"
+                        : activeTab === 2
+                          ? "Select a friend"
+                          : "Select a shared connection"}
                   </h2>
                   <p style={{ color: colors.secondary_text }}>
                     {activeTab === 0
                       ? "View details and send friend requests"
                       : activeTab === 1
-                      ? "Accept or reject friend requests"
-                      : activeTab === 2
-                      ? "Manage your friendship and sharing settings"
-                      : "View and manage your shared expense access"}
+                        ? "Accept or reject friend requests"
+                        : activeTab === 2
+                          ? "Manage your friendship and sharing settings"
+                          : "View and manage your shared expense access"}
                   </p>
                 </div>
               </div>
@@ -2349,12 +2437,12 @@ const Friends = () => {
             activeFilterContext === "suggestions"
               ? "Suggestion Filters"
               : activeFilterContext === "requests"
-              ? "Request Filters"
-              : activeFilterContext === "friends"
-              ? "Friend Filters"
-              : activeFilterContext === "shared"
-              ? "Shared Filters"
-              : "Filters"
+                ? "Request Filters"
+                : activeFilterContext === "friends"
+                  ? "Friend Filters"
+                  : activeFilterContext === "shared"
+                    ? "Shared Filters"
+                    : "Filters"
           }
           options={
             activeFilterContext ? filterOptionSets[activeFilterContext] : []

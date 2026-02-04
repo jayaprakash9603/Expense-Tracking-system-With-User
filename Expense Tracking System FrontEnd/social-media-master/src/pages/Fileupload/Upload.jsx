@@ -148,14 +148,14 @@ const Upload = () => {
           }
         });
         return next;
-      })
+      }),
     );
   }, []);
 
   const handleUploadRowDelete = useCallback((rowId) => {
     if (!rowId) return;
     setUploadedData((prev) =>
-      prev.filter((item) => resolveUploadRowId(item) !== rowId)
+      prev.filter((item) => resolveUploadRowId(item) !== rowId),
     );
   }, []);
 
@@ -187,7 +187,7 @@ const Upload = () => {
       const poll = async () => {
         try {
           const res = await api.get(
-            `/api/expenses/add-multiple/progress/${jobId}`
+            `/api/expenses/add-multiple/progress/${jobId}`,
           );
           // Support either direct payload or wrapped under `data`
           const payload = res?.data?.data ?? res?.data ?? {};
@@ -195,8 +195,8 @@ const Upload = () => {
             typeof payload.percent === "number"
               ? payload.percent
               : typeof payload.percentage === "number"
-              ? payload.percentage
-              : 0;
+                ? payload.percentage
+                : 0;
           const processed = payload.processed ?? payload.completed ?? 0;
           const total = payload.total ?? payload.count ?? 0;
           const status = payload.status ?? payload.state ?? "RUNNING";
@@ -279,7 +279,7 @@ const Upload = () => {
         item?.expense?.expenseName &&
         item.expense.expenseName
           .toLowerCase()
-          .includes(searchText.toLowerCase())
+          .includes(searchText.toLowerCase()),
     );
     console.log("Filtered expenses:", filtered);
     return filtered;
@@ -288,7 +288,7 @@ const Upload = () => {
   const filteredCategories = useMemo(() => {
     if (!categorySearchText) return uploadedCategories;
     return uploadedCategories.filter((c) =>
-      (c?.name || "").toLowerCase().includes(categorySearchText.toLowerCase())
+      (c?.name || "").toLowerCase().includes(categorySearchText.toLowerCase()),
     );
   }, [uploadedCategories, categorySearchText]);
 
@@ -361,7 +361,18 @@ const Upload = () => {
             </IconButton>
           </div>
           {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert
+              severity="error"
+              sx={{
+                mb: 2,
+                backgroundColor: "rgba(244, 67, 54, 0.12)",
+                border: "1px solid rgba(244, 67, 54, 0.3)",
+                color: "#fff",
+                "& .MuiAlert-icon": {
+                  color: "#f44336",
+                },
+              }}
+            >
               {error || "Failed to upload file. Please try again."}
             </Alert>
           )}
@@ -506,8 +517,8 @@ const Upload = () => {
                             (prev || []).map((c) =>
                               c.id === params.row.id
                                 ? { ...c, global: value, isGlobal: value }
-                                : c
-                            )
+                                : c,
+                            ),
                           );
                         }}
                         inputProps={{ "aria-label": "Toggle Global" }}
@@ -528,8 +539,8 @@ const Upload = () => {
                 if (!id || !field) return;
                 setUploadedCategories((prev) =>
                   (prev || []).map((c) =>
-                    c.id === id ? { ...c, [field]: value } : c
-                  )
+                    c.id === id ? { ...c, [field]: value } : c,
+                  ),
                 );
               }}
             />

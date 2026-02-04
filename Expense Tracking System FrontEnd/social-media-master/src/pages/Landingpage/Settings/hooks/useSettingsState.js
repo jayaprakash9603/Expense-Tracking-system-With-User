@@ -29,6 +29,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
     profileVisibility: "PUBLIC",
     sessionTimeout: true,
     maskSensitiveData: false,
+    twoFactorEnabled: false,
 
     // Appearance
     fontSize: "medium",
@@ -51,6 +52,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
     // Accessibility
     screenReader: false,
     keyboardShortcuts: true,
+    showShortcutIndicators: true,
     reduceMotion: false,
     focusIndicators: false,
   });
@@ -76,6 +78,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
         profileVisibility: userSettings.profileVisibility ?? "PUBLIC",
         sessionTimeout: userSettings.sessionTimeout ?? true,
         maskSensitiveData: userSettings.maskSensitiveData ?? false,
+        twoFactorEnabled: userSettings.twoFactorEnabled ?? false,
 
         // Appearance
         fontSize: userSettings.fontSize ?? "medium",
@@ -98,6 +101,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
         // Accessibility
         screenReader: userSettings.screenReader ?? false,
         keyboardShortcuts: userSettings.keyboardShortcuts ?? true,
+        showShortcutIndicators: userSettings.showShortcutIndicators ?? true,
         reduceMotion: userSettings.reduceMotion ?? false,
         focusIndicators: userSettings.focusIndicators ?? false,
       });
@@ -107,9 +111,15 @@ export const useSettingsState = (userSettings, showSnackbar) => {
   // Generic update function for any setting
   const updateSetting = useCallback(
     async (key, value, successMessage) => {
+      let previousValue;
       try {
-        setSettingsState((prev) => ({ ...prev, [key]: value }));
-        await dispatch(updateUserSettings({ [key]: value }));
+        setSettingsState((prev) => {
+          previousValue = prev[key];
+          return { ...prev, [key]: value };
+        });
+        await dispatch(
+          updateUserSettings({ [key]: value }, { [key]: previousValue }),
+        );
         if (successMessage) {
           showSnackbar(successMessage, "success");
         }
@@ -117,10 +127,10 @@ export const useSettingsState = (userSettings, showSnackbar) => {
         showSnackbar("Failed to update settings", "error");
         console.error("Error updating settings:", error);
         // Revert state on error
-        setSettingsState((prev) => ({ ...prev, [key]: !value }));
+        setSettingsState((prev) => ({ ...prev, [key]: previousValue }));
       }
     },
-    [dispatch, showSnackbar]
+    [dispatch, showSnackbar],
   );
 
   return {

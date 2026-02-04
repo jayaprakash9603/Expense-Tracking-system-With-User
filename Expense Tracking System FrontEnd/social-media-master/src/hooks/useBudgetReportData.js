@@ -12,11 +12,15 @@ const COLORS = getChartColors();
 /**
  * Custom hook to fetch and transform budget report data with filters
  * Similar to usePaymentReportData but for budgets
+ *
+ * @param {Object} options
+ * @param {string} options.friendId - Optional friend ID to fetch budgets for
+ * @param {boolean} options.skip - If true, skip API calls (used when all sections hidden)
  */
-const useBudgetReportData = ({ friendId }) => {
+const useBudgetReportData = ({ friendId, skip = false }) => {
   const dispatch = useDispatch();
   const [timeframe, setTimeframe] = useState("all_time");
-  const [flowType, setFlowType] = useState("loss");
+  const [flowType, setFlowType] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dateRange, setDateRange] = useState(() =>
@@ -27,6 +31,12 @@ const useBudgetReportData = ({ friendId }) => {
   const { filteredBudgetsReport } = useSelector((state) => state.budgets);
 
   const fetchData = useCallback(async () => {
+    // Skip API calls when all sections are hidden
+    if (skip) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -50,7 +60,7 @@ const useBudgetReportData = ({ friendId }) => {
     } finally {
       setLoading(false);
     }
-  }, [dispatch, timeframe, flowType, friendId, dateRange, isCustomRange]);
+  }, [dispatch, timeframe, flowType, friendId, dateRange, isCustomRange, skip]);
 
   useEffect(() => {
     fetchData();
@@ -67,11 +77,12 @@ const useBudgetReportData = ({ friendId }) => {
         budgetsData: [],
         categoryBreakdown: [],
         paymentMethodBreakdown: [],
+        topRecurringExpenses: [],
         summary: {},
       };
     }
 
-    const { budgets, summary } = filteredBudgetsReport;
+    const { budgets, summary, topRecurringExpenses } = filteredBudgetsReport;
 
     // Defensive deduplication: navigation between pages was producing duplicated budget entries
     // Ensure uniqueness by budgetId (fallback to name if id missing)
@@ -167,12 +178,20 @@ const useBudgetReportData = ({ friendId }) => {
       budgetsData,
       categoryBreakdown,
       paymentMethodBreakdown,
+      topRecurringExpenses: Array.isArray(topRecurringExpenses)
+        ? topRecurringExpenses
+        : [],
       summary: summary || {},
     };
   }, [filteredBudgetsReport]);
 
-  const { budgetsData, categoryBreakdown, paymentMethodBreakdown, summary } =
-    transformBudgetData();
+  const {
+    budgetsData,
+    categoryBreakdown,
+    paymentMethodBreakdown,
+    topRecurringExpenses,
+    summary,
+  } = transformBudgetData();
 
   const refresh = useCallback(() => {
     fetchData();
@@ -220,6 +239,7 @@ const useBudgetReportData = ({ friendId }) => {
     budgetsData,
     categoryBreakdown,
     paymentMethodBreakdown,
+    topRecurringExpenses,
     summary,
     refresh,
   };

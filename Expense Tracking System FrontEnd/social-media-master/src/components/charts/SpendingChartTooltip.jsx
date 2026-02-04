@@ -218,6 +218,16 @@ const formatNumber = (value) =>
     minimumFractionDigits: 0,
   });
 
+const toNumber = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+const toNonEmptyString = (value) => {
+  const text = String(value ?? "").trim();
+  return text.length ? text : "";
+};
+
 // ============================================================================
 // SUB-COMPONENTS
 // ============================================================================
@@ -674,7 +684,44 @@ const SpendingChartTooltip = ({
   const expenses = data.expenses || [];
   const maxToShow = config.maxExpensesToShow || 5;
 
-  let sortedExpenses = expenses;
+  const normalizeExpense = (expense, fallbackCategory) => {
+    const safe = expense && typeof expense === "object" ? expense : {};
+    const exp = safe.details || safe.expense || {}; // Add support for backend DTO structure
+    const name =
+      toNonEmptyString(exp?.expenseName) || // Check nested DTO first
+      toNonEmptyString(safe?.name) ||
+      toNonEmptyString(safe?.expenseName) ||
+      toNonEmptyString(safe?.details?.expenseName) ||
+      "Unknown";
+    const category =
+      toNonEmptyString(safe?.category) ||
+      toNonEmptyString(safe?.categoryName) ||
+      toNonEmptyString(safe?.category?.name) ||
+      toNonEmptyString(fallbackCategory) ||
+      "";
+    const amount = Math.abs(
+      toNumber(
+        exp?.amount ??
+          exp?.netAmount ??
+          safe?.amount ??
+          safe?.netAmount ??
+          safe?.details?.amount ??
+          safe?.details?.netAmount ??
+          safe?.expense?.amount ??
+          safe?.expense?.netAmount
+      )
+    );
+    return { name, category, amount };
+  };
+
+  const isOverlayAll =
+    selectedType === "all" &&
+    (Number.isFinite(Number(data?.spendingLoss)) ||
+      Number.isFinite(Number(data?.spendingGain)) ||
+      Array.isArray(data?.expensesLoss) ||
+      Array.isArray(data?.expensesGain));
+
+  let sortedExpenses = expenses.map((e) => normalizeExpense(e));
   if (
     timeframe === "this_year" ||
     timeframe === "last_year" ||
@@ -734,6 +781,309 @@ const SpendingChartTooltip = ({
       data?.xLabel ||
       "";
   }
+
+  if (isOverlayAll) {
+    const point = data || {};
+    const lossTotal = toNumber(point.spendingLoss);
+    const gainTotal = toNumber(point.spendingGain);
+    const net = gainTotal - lossTotal;
+
+    const rawLossExpenses = Array.isArray(point.expensesLoss)
+      ? point.expensesLoss
+      : [];
+    const rawGainExpenses = Array.isArray(point.expensesGain)
+      ? point.expensesGain
+      : [];
+
+    const lossExpenses = rawLossExpenses
+      .map((e) => normalizeExpense(e))
+      .filter((e) => e.amount > 0);
+    const gainExpenses = rawGainExpenses
+      .map((e) => normalizeExpense(e))
+      .filter((e) => e.amount > 0);
+
+    const sortByAmountDesc = (list) =>
+      [...list].sort((a, b) => (b.amount || 0) - (a.amount || 0));
+
+    const sortedLoss =
+      timeframe === "this_year" ||
+      timeframe === "last_year" ||
+      timeframe === "all_time"
+        ? sortByAmountDesc(lossExpenses)
+        : lossExpenses;
+    const sortedGain =
+      timeframe === "this_year" ||
+      timeframe === "last_year" ||
+      timeframe === "all_time"
+        ? sortByAmountDesc(gainExpenses)
+        : gainExpenses;
+
+    const hasLoss = lossTotal > 0 || sortedLoss.length > 0;
+    const hasGain = gainTotal > 0 || sortedGain.length > 0;
+
+    const lossMax = hasLoss && hasGain ? Math.ceil(maxToShow / 2) : maxToShow;
+    const gainMax = hasLoss && hasGain ? Math.floor(maxToShow / 2) : maxToShow;
+
+    const displayLoss = sortedLoss.slice(0, lossMax);
+    const displayGain = sortedGain.slice(0, gainMax);
+    const remainingLoss = Math.max(0, sortedLoss.length - displayLoss.length);
+    const remainingGain = Math.max(0, sortedGain.length - displayGain.length);
+
+    const responsiveStyles = getResponsiveStyles(config.responsive !== false);
+
+    const headerRow = (label, value, accent, isNet) => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            color: "rgba(255,255,255,0.95)",
+            fontSize: isNet ? 13 : 12, // Increased label size
+            fontWeight: 700,
+            letterSpacing: "0.3px",
+          }}
+        >
+          {label}
+        </div>
+        <div
+          style={{
+            color: accent,
+            fontSize: isNet ? 16 : 15, // Reverted value size
+            fontWeight: 800,
+            whiteSpace: "nowrap",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {currencySymbol}
+          {formatNumber(value)}
+        </div>
+      </div>
+    );
+
+    const sectionTitle = (title, accent) => (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          marginTop: 4, // Reduced margin
+          marginBottom: 3, // Reduced margin
+        }}
+      >
+        <div
+          style={{
+            color: accent,
+            fontWeight: 900,
+            fontSize: 10, // Smaller font
+            letterSpacing: "0.4px",
+            textTransform: "uppercase",
+          }}
+        >
+          {title}
+        </div>
+        <div
+          style={{
+            color: colors.secondary_text,
+            fontWeight: 800,
+            fontSize: 9, // Smaller font
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {title === "Loss" ? sortedLoss.length : sortedGain.length}
+        </div>
+      </div>
+    );
+
+    const containerStyles = mergeStyles(
+      {
+        border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
+        borderRadius: responsiveStyles.container.borderRadius,
+        color: colors.primary_text,
+        padding: 0,
+        width: 260, // Enforce constant width
+        minWidth: 260,
+        maxWidth: 260,
+        transform: "translateY(-20px)",
+        boxShadow:
+          "0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)",
+        overflow: "hidden",
+        background: "transparent",
+      },
+      config.style
+    );
+
+    const headerGradient =
+      "linear-gradient(135deg, rgba(250, 219, 20, 0.95) 0%, rgba(212, 177, 6, 0.95) 100%)";
+
+    const tooltipBorderColor = "#fadb14"; // Yellow for All view
+    const tooltipBorder = `${responsiveStyles.container.borderWidth}px solid ${tooltipBorderColor}`;
+
+    const sectionCardStyle = (accent) => ({
+      background:
+        accent === "#ff5252"
+          ? "rgba(255, 82, 82, 0.06)"
+          : "rgba(0, 212, 192, 0.06)",
+      border: `1px solid ${
+        accent === "#ff5252"
+          ? "rgba(255, 82, 82, 0.2)"
+          : "rgba(0, 212, 192, 0.2)"
+      }`,
+      borderRadius: 10, // Slightly tighter radius
+      padding: "6px 8px 8px 8px", // Compact padding
+      marginTop: 4,
+      marginBottom: 4,
+    });
+
+    const headerCompactStyle = {
+      padding: "8px 12px 6px", // Reduced padding
+      background: headerGradient,
+      position: "relative",
+      overflow: "hidden",
+    };
+
+    return (
+      <div
+        style={{
+          ...containerStyles,
+          border: tooltipBorder,
+          boxShadow:
+            "0 12px 32px -4px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)",
+        }}
+      >
+        <div style={headerCompactStyle}>
+          <DecorativeCircles />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              color: "rgba(255,255,255,0.95)",
+              fontSize: 10, // hardcoded small size for date
+              fontWeight: 800,
+              letterSpacing: "0.5px",
+              textTransform: "uppercase",
+              marginBottom: 2, // minimal margin
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            <CalendarIcon size={12} color="rgba(255, 255, 255, 0.95)" />
+            <span>{dateLabel}</span>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gap: 0,
+              position: "relative",
+              zIndex: 1,
+            }}
+          >
+            {headerRow(
+              "Total Spending",
+              lossTotal,
+              "rgba(255, 255, 255, 0.95)",
+              false
+            )}
+            {headerRow(
+              "Total Income",
+              gainTotal,
+              "rgba(255, 255, 255, 0.95)",
+              false
+            )}
+            {headerRow("Net", Math.abs(net), "rgba(255, 255, 255, 1)", true)}
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: responsiveStyles.body.padding,
+            background: colors.primary_bg,
+          }}
+        >
+          {hasLoss ? (
+            <div style={sectionCardStyle("#ff5252")}>
+              {sectionTitle("Loss", "#ff5252")}
+              <div
+                style={{
+                  display: "grid",
+                  gap: responsiveStyles.spacing.itemGap,
+                }}
+              >
+                {displayLoss.map((expense, idx) => (
+                  <TransactionItem
+                    key={`loss-${idx}`}
+                    expense={expense}
+                    theme={{ ...theme, color: "#ff5252" }}
+                    responsiveStyles={responsiveStyles}
+                    colors={colors}
+                    currencySymbol={currencySymbol}
+                  />
+                ))}
+                {remainingLoss > 0 ? (
+                  <div
+                    style={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textAlign: "right",
+                      marginTop: 4,
+                    }}
+                  >
+                    +{remainingLoss} more
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          {hasGain ? (
+            <div style={sectionCardStyle("#00d4c0")}>
+              {sectionTitle("Gain", "#00d4c0")}
+              <div
+                style={{
+                  display: "grid",
+                  gap: responsiveStyles.spacing.itemGap,
+                }}
+              >
+                {displayGain.map((expense, idx) => (
+                  <TransactionItem
+                    key={`gain-${idx}`}
+                    expense={expense}
+                    theme={{ ...theme, color: "#00d4c0" }}
+                    responsiveStyles={responsiveStyles}
+                    colors={colors}
+                    currencySymbol={currencySymbol}
+                  />
+                ))}
+                {remainingGain > 0 ? (
+                  <div
+                    style={{
+                      color: colors.secondary_text,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textAlign: "right",
+                      marginTop: 4,
+                    }}
+                  >
+                    +{remainingGain} more
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
   const isLoss = selectedType === "loss";
 
   return (

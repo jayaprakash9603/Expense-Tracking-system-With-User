@@ -45,3 +45,8 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+
+# Google OAuth2 Configuration
+google:
+  oauth2:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:214438901958-uigakv87vusc9veirq3l5ocfpfr1do3a.apps.googleusercontent.com}

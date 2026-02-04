@@ -77,6 +77,8 @@ kafka:
     friend-events: friend-events
     friendship-events: friendship-events
     friend-request-events: friend-request-events
+    category-events: category-events
+    friend-activity-events: friend-activity-events
   consumer:
     group-id: notification-service-group
 

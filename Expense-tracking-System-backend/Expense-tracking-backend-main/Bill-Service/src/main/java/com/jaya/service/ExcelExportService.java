@@ -47,8 +47,8 @@ public class ExcelExportService {
 
         // Create header row
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Bill ID", "Name", "Description", "Amount", "Payment Method",
-                "Type", "Credit Due", "Date", "Net Amount", "Category", "Category Id","Include in Budget"};
+        String[] headers = { "Bill ID", "Name", "Description", "Amount", "Payment Method",
+                "Type", "Credit Due", "Date", "Net Amount", "Category", "Category Id", "Include in Budget" };
 
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -89,7 +89,7 @@ public class ExcelExportService {
 
         // Create header row
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"Bill ID", "Bill Name", "Item Name", "Quantity", "Unit Price", "Total Price", "Comments"};
+        String[] headers = { "Bill ID", "Bill Name", "Item Name", "Quantity", "Unit Price", "Total Price", "Comments" };
 
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -108,7 +108,8 @@ public class ExcelExportService {
                     createCell(row, 0, bill.getId() != null ? bill.getId().toString() : "", dataStyle);
                     createCell(row, 1, bill.getName(), dataStyle);
                     createCell(row, 2, expense.getItemName(), dataStyle);
-                    createCell(row, 3, expense.getQuantity() != null ? expense.getQuantity().toString() : "", dataStyle);
+                    createCell(row, 3, expense.getQuantity() != null ? expense.getQuantity().toString() : "",
+                            dataStyle);
                     createCell(row, 4, expense.getUnitPrice() != null ? expense.getUnitPrice() : 0.0, dataStyle);
                     createCell(row, 5, expense.getTotalPrice() != null ? expense.getTotalPrice() : 0.0, dataStyle);
                     createCell(row, 6, expense.getComments(), dataStyle);
@@ -158,8 +159,6 @@ public class ExcelExportService {
         cell.setCellStyle(style);
     }
 
-
-
     public List<BillRequestDTO> importBillsFromExcel(MultipartFile file) throws IOException {
         List<BillRequestDTO> bills = new ArrayList<>();
 
@@ -192,7 +191,8 @@ public class ExcelExportService {
         // Skip header row (row 0)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
-            if (row == null) continue;
+            if (row == null)
+                continue;
 
             try {
                 BillRequestDTO bill = new BillRequestDTO();
@@ -208,7 +208,7 @@ public class ExcelExportService {
                 bill.setPaymentMethod(getCellValueAsString(row.getCell(4)));
                 bill.setType(getCellValueAsString(row.getCell(5)));
                 bill.setCreditDue(getCellValueAsDouble(row.getCell(6)));
-                bill.setCategoryId((int)getCellValueAsDouble(row.getCell(10)));
+                bill.setCategoryId((int) getCellValueAsDouble(row.getCell(10)));
 
                 // Parse date
                 String dateStr = getCellValueAsString(row.getCell(7));
@@ -229,7 +229,8 @@ public class ExcelExportService {
                 bill.setCategory(getCellValueAsString(row.getCell(9)));
 
                 String includeInBudgetStr = getCellValueAsString(row.getCell(10));
-                bill.setIncludeInBudget("Yes".equalsIgnoreCase(includeInBudgetStr) || "true".equalsIgnoreCase(includeInBudgetStr));
+                bill.setIncludeInBudget(
+                        "Yes".equalsIgnoreCase(includeInBudgetStr) || "true".equalsIgnoreCase(includeInBudgetStr));
 
                 // Add expenses if available
                 if (billId != null && expensesMap.containsKey(billId)) {
@@ -253,11 +254,13 @@ public class ExcelExportService {
         // Skip header row (row 0)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
-            if (row == null) continue;
+            if (row == null)
+                continue;
 
             try {
                 String billIdStr = getCellValueAsString(row.getCell(0));
-                if (billIdStr.isEmpty()) continue;
+                if (billIdStr.isEmpty())
+                    continue;
 
                 Integer billId = Integer.parseInt(billIdStr);
 
@@ -283,14 +286,16 @@ public class ExcelExportService {
     }
 
     private String getCellValueAsString(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null)
+            return "";
 
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue().trim();
             case NUMERIC:
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getLocalDateTimeCellValue().toLocalDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    return cell.getLocalDateTimeCellValue().toLocalDate()
+                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 } else {
                     // Check if it's a whole number
                     double numValue = cell.getNumericCellValue();
@@ -314,7 +319,8 @@ public class ExcelExportService {
     }
 
     private double getCellValueAsDouble(Cell cell) {
-        if (cell == null) return 0.0;
+        if (cell == null)
+            return 0.0;
 
         switch (cell.getCellType()) {
             case NUMERIC:
@@ -336,4 +342,4 @@ public class ExcelExportService {
                 return 0.0;
         }
     }
-    }
+}

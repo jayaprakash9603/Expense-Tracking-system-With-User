@@ -1,11 +1,14 @@
 package com.jaya.service.expenses.impl;
 
+import com.jaya.dto.ExpenseDTO;
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.User;
+import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
-import com.jaya.service.CategoryServices;
+import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.service.expenses.ExpenseQueryService;
 import com.jaya.util.ServiceHelper;
@@ -47,10 +50,13 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Autowired
     private BudgetServices budgetService;
     @Autowired
-    private CategoryServices categoryService;
+    private CategoryServiceWrapper categoryService;
 
     @Autowired
     private PaymentMethodServices paymentMethodService;
+
+    @Autowired
+    private ExpenseMapper expenseMapper;
 
     @Autowired
     private ServiceHelper helper;
@@ -1125,6 +1131,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         List<Category> userCategories = categoryService.getAllForUser(userId);
 
+        // Pre-fetch payment methods once for batch mapping (performance optimization)
+        List<PaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+        Map<Integer, Category> categoryMap = userCategories.stream()
+                .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+        Map<String, PaymentMethod> paymentMethodMap = allPaymentMethods.stream()
+                .filter(pm -> pm.getName() != null)
+                .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
 
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
@@ -1170,7 +1184,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-            Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal);
+            Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal,
+                    categoryMap, paymentMethodMap);
 
             response.put(category.getName(), categoryDetails);
         }
@@ -1193,6 +1208,14 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             String flowType) throws Exception {
 
         List<Category> userCategories = categoryService.getAllForUser(userId);
+
+        // Pre-fetch payment methods once for batch mapping (performance optimization)
+        List<PaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+        Map<Integer, Category> categoryMap = userCategories.stream()
+                .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+        Map<String, PaymentMethod> paymentMethodMap = allPaymentMethods.stream()
+                .filter(pm -> pm.getName() != null)
+                .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
@@ -1252,52 +1275,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             categoryTotals.put(category.getName(), categoryTotal);
 
-            Map<String, Object> categoryDetails = new HashMap<>();
-            categoryDetails.put("id", category.getId());
-            categoryDetails.put("name", category.getName());
-            categoryDetails.put("description", category.getDescription());
-            categoryDetails.put("isGlobal", category.isGlobal());
-
-            if (category.getColor() != null) {
-                categoryDetails.put("color", category.getColor());
-            }
-            if (category.getIcon() != null) {
-                categoryDetails.put("icon", category.getIcon());
-            }
-
-            categoryDetails.put("userIds", category.getUserIds());
-            categoryDetails.put("editUserIds", category.getEditUserIds());
-
-            categoryDetails.put("expenseIds", category.getExpenseIds());
-
-            List<Map<String, Object>> formattedExpenses = new ArrayList<>();
-            for (Expense expense : expenses) {
-                Map<String, Object> expenseMap = new HashMap<>();
-                expenseMap.put("id", expense.getId());
-                expenseMap.put("date", expense.getDate());
-
-                if (expense.getExpense() != null) {
-                    ExpenseDetails details = expense.getExpense();
-                    Map<String, Object> detailsMap = new HashMap<>();
-                    detailsMap.put("id", details.getId());
-                    detailsMap.put("expenseName", details.getExpenseName());
-                    detailsMap.put("amount", details.getAmount());
-                    detailsMap.put("type", details.getType());
-                    detailsMap.put("paymentMethod", details.getPaymentMethod());
-                    detailsMap.put("netAmount", details.getNetAmount());
-                    detailsMap.put("comments", details.getComments());
-                    detailsMap.put("creditDue", details.getCreditDue());
-
-                    expenseMap.put("details", detailsMap);
-                }
-
-                formattedExpenses.add(expenseMap);
-            }
-
-            categoryDetails.put("expenses", formattedExpenses);
-            categoryDetails.put("totalAmount", categoryTotal);
-            categoryDetails.put("expenseCount", expenses.size());
-
+            Map<String, Object> categoryDetails = buildCategoryDetailsMap(category, expenses, categoryTotal,
+                    categoryMap, paymentMethodMap);
             response.put(category.getName(), categoryDetails);
         }
 
@@ -1324,6 +1303,28 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         // Get filtered expenses for the user
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
+
+        // Pre-fetch all categories and payment methods once for batch mapping
+        // (performance optimization)
+        Map<Integer, Category> categoryMap = Map.of();
+        Map<String, PaymentMethod> paymentMethodMap = Map.of();
+        try {
+            List<Category> categories = categoryService.getAllForUser(userId);
+            if (categories != null) {
+                categoryMap = categories.stream()
+                        .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+            }
+            List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+            if (paymentMethods != null) {
+                paymentMethodMap = paymentMethods.stream()
+                        .filter(pm -> pm.getName() != null)
+                        .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+            }
+        } catch (Exception e) {
+            // Continue with empty maps if fetching fails
+        }
+        final Map<Integer, Category> finalCategoryMap = categoryMap;
+        final Map<String, PaymentMethod> finalPaymentMethodMap = paymentMethodMap;
 
         // Group expenses by payment method
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
@@ -1361,35 +1362,16 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             totalExpenses += expenses.size();
 
             double methodTotal = 0.0;
-            List<Map<String, Object>> formattedExpenses = new ArrayList<>();
             for (Expense expense : expenses) {
                 if (expense.getExpense() != null) {
                     methodTotal += expense.getExpense().getAmount();
                     totalAmount += expense.getExpense().getAmount();
                 }
-                Map<String, Object> expenseMap = new HashMap<>();
-                expenseMap.put("id", expense.getId());
-                expenseMap.put("date", expense.getDate());
-                if (expense.getExpense() != null) {
-                    ExpenseDetails details = expense.getExpense();
-                    Map<String, Object> detailsMap = new HashMap<>();
-                    detailsMap.put("id", details.getId());
-                    detailsMap.put("expenseName", details.getExpenseName());
-                    detailsMap.put("amount", details.getAmount());
-                    detailsMap.put("type", details.getType());
-                    detailsMap.put("paymentMethod", details.getPaymentMethod());
-                    detailsMap.put("netAmount", details.getNetAmount());
-                    detailsMap.put("comments", details.getComments());
-                    detailsMap.put("creditDue", details.getCreditDue());
-                    expenseMap.put("details", detailsMap);
-                }
-                formattedExpenses.add(expenseMap);
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
-            // Fetch PaymentMethod entity to get additional details (description, color,
-            // icon, etc.)
-            PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, paymentMethod);
+            // Use pre-fetched PaymentMethod entity from map instead of API call
+            PaymentMethod pmEntity = finalPaymentMethodMap.get(paymentMethod);
 
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
@@ -1406,7 +1388,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
-            methodDetails.put("expenses", formattedExpenses);
+            methodDetails.put("expenses", formatExpensesForResponse(expenses, finalCategoryMap, finalPaymentMethodMap));
 
             response.put(paymentMethod, methodDetails);
         }
@@ -1459,6 +1441,29 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
+
+        // Pre-fetch all categories and payment methods once for batch mapping
+        // (performance optimization)
+        Map<Integer, Category> categoryMap = Map.of();
+        Map<String, PaymentMethod> paymentMethodMap = Map.of();
+        try {
+            List<Category> categories = categoryService.getAllForUser(userId);
+            if (categories != null) {
+                categoryMap = categories.stream()
+                        .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+            }
+            List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+            if (paymentMethods != null) {
+                paymentMethodMap = paymentMethods.stream()
+                        .filter(pm -> pm.getName() != null)
+                        .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+            }
+        } catch (Exception e) {
+            // Continue with empty maps if fetching fails
+        }
+        final Map<Integer, Category> finalCategoryMap = categoryMap;
+        final Map<String, PaymentMethod> finalPaymentMethodMap = paymentMethodMap;
+
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
 
         for (Expense expense : filteredExpenses) {
@@ -1489,8 +1494,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(pmName, methodTotal);
 
-            // Here, you would fetch the PaymentMethod entity & populate extra info:
-            PaymentMethod pmEntity = paymentMethodService.getByNameWithService(userId, pmName);
+            // Use pre-fetched PaymentMethod entity from map instead of API call
+            PaymentMethod pmEntity = finalPaymentMethodMap.get(pmName);
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
             methodDetails.put("name", pmEntity != null ? pmEntity.getName() : pmName);
@@ -1505,7 +1510,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     pmEntity != null && pmEntity.getUserIds() != null ? pmEntity.getUserIds() : new ArrayList<>());
             methodDetails.put("expenseCount", expenses.size());
             methodDetails.put("totalAmount", methodTotal);
-            methodDetails.put("expenses", formatExpensesForResponse(expenses));
+            methodDetails.put("expenses", formatExpensesForResponse(expenses, finalCategoryMap, finalPaymentMethodMap));
 
             response.put(pmName, methodDetails);
         }
@@ -1565,6 +1570,15 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
     private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
             double categoryTotal) {
+        return buildCategoryDetailsMap(category, expenses, categoryTotal, null, null);
+    }
+
+    /**
+     * Builds category details map with pre-fetched category and payment method maps
+     * for performance.
+     */
+    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
+            double categoryTotal, Map<Integer, Category> categoryMap, Map<String, PaymentMethod> paymentMethodMap) {
         Map<String, Object> categoryDetails = new HashMap<>();
         categoryDetails.put("id", category.getId());
         categoryDetails.put("name", category.getName());
@@ -1583,40 +1597,42 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         categoryDetails.put("expenseIds", category.getExpenseIds());
 
-        List<Map<String, Object>> formattedExpenses = formatExpensesForResponse(expenses);
-
-        categoryDetails.put("expenses", formattedExpenses);
+        categoryDetails.put("expenses", formatExpensesForResponse(expenses, categoryMap, paymentMethodMap));
         categoryDetails.put("totalAmount", categoryTotal);
         categoryDetails.put("expenseCount", expenses.size());
 
         return categoryDetails;
     }
 
-    private List<Map<String, Object>> formatExpensesForResponse(List<Expense> expenses) {
-        List<Map<String, Object>> formattedExpenses = new ArrayList<>();
-        for (Expense expense : expenses) {
-            Map<String, Object> expenseMap = new HashMap<>();
-            expenseMap.put("id", expense.getId());
-            expenseMap.put("date", expense.getDate());
+    private List<ExpenseDTO> formatExpensesForResponse(List<Expense> expenses) {
+        return formatExpensesForResponse(expenses, null, null);
+    }
 
-            if (expense.getExpense() != null) {
-                ExpenseDetails details = expense.getExpense();
-                Map<String, Object> detailsMap = new HashMap<>();
-                detailsMap.put("id", details.getId());
-                detailsMap.put("expenseName", details.getExpenseName());
-                detailsMap.put("amount", details.getAmount());
-                detailsMap.put("type", details.getType());
-                detailsMap.put("paymentMethod", details.getPaymentMethod());
-                detailsMap.put("netAmount", details.getNetAmount());
-                detailsMap.put("comments", details.getComments());
-                detailsMap.put("creditDue", details.getCreditDue());
-
-                expenseMap.put("details", detailsMap);
-            }
-
-            formattedExpenses.add(expenseMap);
+    /**
+     * Formats expenses for response using pre-fetched category and payment method
+     * maps.
+     * This avoids individual API calls per expense, improving performance.
+     */
+    private List<ExpenseDTO> formatExpensesForResponse(List<Expense> expenses,
+            Map<Integer, Category> categoryMap,
+            Map<String, PaymentMethod> paymentMethodMap) {
+        if (expenses == null || expenses.isEmpty()) {
+            return Collections.emptyList();
         }
-        return formattedExpenses;
+
+        // If maps are provided, use batch mapping (faster)
+        if (categoryMap != null || paymentMethodMap != null) {
+            return expenses.stream()
+                    .map(expense -> expenseMapper.toDTO(expense, categoryMap, paymentMethodMap))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+
+        // Fallback to individual mapping (slower, makes API calls per expense)
+        return expenses.stream()
+                .map(expenseMapper::toDTO)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -1665,5 +1681,33 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }).forEach(entry -> sortedGroupedExpenses.put(entry.getKey(), entry.getValue()));
 
         return sortedGroupedExpenses;
+    }
+
+    @Override
+    public List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        List<ExpenseSearchDTO> results = expenseRepository.searchExpensesFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
+        // expression
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 }

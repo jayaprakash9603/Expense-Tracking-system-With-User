@@ -16,6 +16,7 @@ import { buildReportParams, computeDateRange } from "../utils/reportParams";
  * @param {string} [config.friendId] - Optional friend/target ID
  * @param {string} [config.initialTimeframe="month"] - Initial timeframe
  * @param {string} [config.initialFlowType="all"] - Initial flow type
+ * @param {boolean} [config.skip=false] - Skip data fetching (useful when all sections hidden)
  * @returns {Object} Report data and controls
  */
 export default function useReportData({
@@ -24,6 +25,7 @@ export default function useReportData({
   friendId,
   initialTimeframe = "month",
   initialFlowType = "all",
+  skip = false,
 }) {
   const [timeframe, setTimeframe] = useState(initialTimeframe);
   const [flowType, setFlowType] = useState(initialFlowType);
@@ -37,6 +39,12 @@ export default function useReportData({
 
   const fetchData = useCallback(
     async (tf = timeframe, fl = flowType, range = dateRange) => {
+      // Skip fetching if skip is true
+      if (skip) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError("");
@@ -66,7 +74,7 @@ export default function useReportData({
         setLoading(false);
       }
     },
-    [friendId, timeframe, flowType, fetchFn, transformFn, dateRange]
+    [friendId, timeframe, flowType, fetchFn, transformFn, dateRange, skip]
   );
 
   useEffect(() => {

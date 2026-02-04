@@ -63,3 +63,22 @@ eureka:
     registry-fetch-interval: 5s
     serviceUrl:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka}
+
+# OCR Configuration
+ocr:
+  tesseract:
+    data-path: ${OCR_TESSDATA_PATH:C:/Users/jayapraj/AppData/Local/Programs/Tesseract-OCR/tessdata}
+    language: ${OCR_LANGUAGE:eng}
+    page-seg-mode: 3 # PSM_AUTO - Automatic page segmentation
+    oem-mode: 3 # OEM_LSTM_ONLY - LSTM neural net mode
+  preprocessing:
+    enabled: true
+    target-dpi: 300
+    max-width: 2000
+    max-height: 2000
+  upload:
+    max-file-size: 10MB
+    allowed-extensions: jpg,jpeg,png,gif,bmp,tiff
+  confidence:
+    high-threshold: 80.0
+    medium-threshold: 50.0

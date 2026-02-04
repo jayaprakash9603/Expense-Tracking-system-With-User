@@ -3,6 +3,12 @@
  * Modular helper functions for category operations
  */
 
+import {
+  getFuzzyMatchIndices,
+  scoreFuzzyMatch,
+  compareFuzzyScores,
+} from "./fuzzyMatchUtils";
+
 /**
  * Deduplicate categories by name (case-insensitive, trimmed)
  * @param {Array} categories - Array of category objects
@@ -32,13 +38,28 @@ export const deduplicateCategories = (categories) => {
 export const filterCategoriesWithDeduplication = (options, inputValue) => {
   if (!inputValue) return options;
 
+  const list = Array.isArray(options) ? options : [];
   const seen = new Set();
-  return options.filter((option) => {
-    const key = option.name?.toLowerCase().trim();
-    if (!key || seen.has(key)) return false;
+  const ranked = [];
+
+  list.forEach((option, idx) => {
+    const name = String(option?.name || "");
+    const key = name.toLowerCase().trim();
+    if (!key || seen.has(key)) return;
+
+    const indices = getFuzzyMatchIndices(name, inputValue);
+    if (!indices) return;
+
     seen.add(key);
-    return key.includes(inputValue.toLowerCase().trim());
+    ranked.push({
+      option,
+      idx,
+      score: scoreFuzzyMatch(indices, name.length),
+    });
   });
+
+  ranked.sort((a, b) => compareFuzzyScores(a.score, b.score, a.idx, b.idx));
+  return ranked.map((r) => r.option);
 };
 
 /**

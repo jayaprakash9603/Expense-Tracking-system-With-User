@@ -1,7 +1,9 @@
 import React from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
+import { Box } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 // Generic Distribution Chart (Pie + right side chips)
 // Props:
@@ -22,6 +24,18 @@ const SharedDistributionChart = ({
   const safe = Array.isArray(data) ? data : [];
   const amountKey = mode === "payment" ? "totalAmount" : "amount";
   const nameKey = mode === "payment" ? "method" : "name";
+
+  const formatPercentage = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return "0.00";
+    }
+    const rounded = Number(parsed.toFixed(2));
+    if (rounded === 0 && parsed > 0) {
+      return "0.01";
+    }
+    return rounded.toFixed(2);
+  };
 
   return (
     <div
@@ -177,14 +191,21 @@ const SharedDistributionChart = ({
                     flexShrink: 0,
                   }}
                 >
-                  <span
-                    className="chip-icon-text"
-                    style={{
-                      fontSize: "14px",
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    {item.icon}
-                  </span>
+                    {getEntityIcon(
+                      mode === "payment" ? "paymentMethod" : "category",
+                      item.icon || item[nameKey] || "",
+                      {
+                        sx: { color: "#fff", fontSize: 16 },
+                      },
+                    )}
+                  </Box>
                 </span>
                 <span
                   className="chip-name"
@@ -215,7 +236,7 @@ const SharedDistributionChart = ({
                     fontWeight: 600,
                   }}
                 >
-                  {item.percentage}%
+                  {formatPercentage(item.percentage)}%
                 </span>
               </div>
             </div>

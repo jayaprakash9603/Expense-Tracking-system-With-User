@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 
 export default function useSelectionManager({ chartData, activeRange }) {
   const [selectedBar, setSelectedBar] = useState(null);
@@ -6,82 +6,98 @@ export default function useSelectionManager({ chartData, activeRange }) {
   const [selectedCardIdx, setSelectedCardIdx] = useState([]);
   const [lastBarSelectedIdx, setLastBarSelectedIdx] = useState(null);
   const [lastSelectedIdx, setLastSelectedIdx] = useState(null);
-  const [hoverBarIndex, setHoverBarIndex] = useState(null);
+  // Use ref for hover state to prevent re-renders of child components
+  const hoverBarIndexRef = useRef(null);
+  const [hoverBarIndex, setHoverBarIndexState] = useState(null);
 
-  const handleBarClick = (data, idx, multi = false, rangeSelect = false) => {
-    setSelectedCardIdx([]);
-    if (
-      rangeSelect &&
-      lastBarSelectedIdx !== null &&
-      lastBarSelectedIdx !== undefined
-    ) {
-      const start = Math.min(lastBarSelectedIdx, idx);
-      const end = Math.max(lastBarSelectedIdx, idx);
-      const range = [];
-      for (let i = start; i <= end; i++) {
-        if (chartData[i]) range.push({ data: chartData[i], idx: i });
-      }
-      setSelectedBars(range);
-      setSelectedBar(range[range.length - 1] || null);
-      return;
+  // Memoized setter that only updates state when value actually changes
+  const setHoverBarIndex = useCallback((newIndex) => {
+    if (hoverBarIndexRef.current !== newIndex) {
+      hoverBarIndexRef.current = newIndex;
+      setHoverBarIndexState(newIndex);
     }
-    if (!multi) {
-      setSelectedBar((prev) =>
-        prev && prev.idx === idx ? null : { data, idx }
-      );
-      setSelectedBars((prev) => {
-        if (prev.length === 1 && prev[0].idx === idx) {
-          setLastBarSelectedIdx(null);
-          return [];
+  }, []);
+
+  const handleBarClick = useCallback(
+    (data, idx, multi = false, rangeSelect = false) => {
+      setSelectedCardIdx([]);
+      if (
+        rangeSelect &&
+        lastBarSelectedIdx !== null &&
+        lastBarSelectedIdx !== undefined
+      ) {
+        const start = Math.min(lastBarSelectedIdx, idx);
+        const end = Math.max(lastBarSelectedIdx, idx);
+        const range = [];
+        for (let i = start; i <= end; i++) {
+          if (chartData[i]) range.push({ data: chartData[i], idx: i });
         }
-        setLastBarSelectedIdx(idx);
-        return [{ data, idx }];
-      });
-      return;
-    }
-    setSelectedBars((prev) => {
-      const exists = prev.find((p) => p.idx === idx);
-      let next;
-      if (exists) {
-        next = prev.filter((p) => p.idx !== idx);
-      } else {
-        next = [...prev, { data, idx }];
-        setLastBarSelectedIdx(idx);
+        setSelectedBars(range);
+        setSelectedBar(range[range.length - 1] || null);
+        return;
       }
-      setSelectedBar(next.length ? next[next.length - 1] : null);
-      return next;
-    });
-  };
+      if (!multi) {
+        setSelectedBar((prev) =>
+          prev && prev.idx === idx ? null : { data, idx },
+        );
+        setSelectedBars((prev) => {
+          if (prev.length === 1 && prev[0].idx === idx) {
+            setLastBarSelectedIdx(null);
+            return [];
+          }
+          setLastBarSelectedIdx(idx);
+          return [{ data, idx }];
+        });
+        return;
+      }
+      setSelectedBars((prev) => {
+        const exists = prev.find((p) => p.idx === idx);
+        let next;
+        if (exists) {
+          next = prev.filter((p) => p.idx !== idx);
+        } else {
+          next = [...prev, { data, idx }];
+          setLastBarSelectedIdx(idx);
+        }
+        setSelectedBar(next.length ? next[next.length - 1] : null);
+        return next;
+      });
+    },
+    [chartData, lastBarSelectedIdx],
+  );
 
-  const handleCardClick = (idx, event) => {
-    if (event) event.preventDefault();
-    if (
-      event &&
-      event.shiftKey &&
-      lastSelectedIdx !== null &&
-      lastSelectedIdx !== undefined
-    ) {
-      const start = Math.min(lastSelectedIdx, idx);
-      const end = Math.max(lastSelectedIdx, idx);
-      const range = [];
-      for (let i = start; i <= end; i++) {
-        range.push(i);
+  const handleCardClick = useCallback(
+    (idx, event) => {
+      if (event) event.preventDefault();
+      if (
+        event &&
+        event.shiftKey &&
+        lastSelectedIdx !== null &&
+        lastSelectedIdx !== undefined
+      ) {
+        const start = Math.min(lastSelectedIdx, idx);
+        const end = Math.max(lastSelectedIdx, idx);
+        const range = [];
+        for (let i = start; i <= end; i++) {
+          range.push(i);
+        }
+        setSelectedCardIdx(range);
+      } else if (event && event.ctrlKey) {
+        setSelectedCardIdx((prev) => {
+          if (prev.includes(idx)) return prev.filter((i) => i !== idx);
+          return [...prev, idx];
+        });
+        setLastSelectedIdx(idx);
+      } else {
+        setSelectedCardIdx((prev) => {
+          if (prev.length === 1 && prev[0] === idx) return [];
+          return [idx];
+        });
+        setLastSelectedIdx(idx);
       }
-      setSelectedCardIdx(range);
-    } else if (event && event.ctrlKey) {
-      setSelectedCardIdx((prev) => {
-        if (prev.includes(idx)) return prev.filter((i) => i !== idx);
-        return [...prev, idx];
-      });
-      setLastSelectedIdx(idx);
-    } else {
-      setSelectedCardIdx((prev) => {
-        if (prev.length === 1 && prev[0] === idx) return [];
-        return [idx];
-      });
-      setLastSelectedIdx(idx);
-    }
-  };
+    },
+    [lastSelectedIdx],
+  );
 
   const selectionStats = useMemo(() => {
     const base = selectedBars.length ? selectedBars.map((b) => b.data) : [];
@@ -98,7 +114,7 @@ export default function useSelectionManager({ chartData, activeRange }) {
     });
     // Gather expenses list from each selected bar (chartData now includes expenses array per bar)
     const expenseList = base.flatMap((d) =>
-      Array.isArray(d.expenses) ? d.expenses : []
+      Array.isArray(d.expenses) ? d.expenses : [],
     );
     const expenseCount = expenseList.length;
     return {
@@ -112,11 +128,11 @@ export default function useSelectionManager({ chartData, activeRange }) {
     };
   }, [selectedBars]);
 
-  const clearSelection = () => {
+  const clearSelection = useCallback(() => {
     setSelectedBars([]);
     setSelectedBar(null);
     setLastBarSelectedIdx(null);
-  };
+  }, []);
 
   return {
     selectedBar,

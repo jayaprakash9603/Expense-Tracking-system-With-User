@@ -1,6 +1,5 @@
 package com.jaya.kafka;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.events.CategoryExpenseEvent;
 import com.jaya.models.Category;
@@ -12,8 +11,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// imports trimmed after batch refactor
-
 @Service
 public class CategoryExpenseEventConsumer {
 
@@ -22,20 +19,13 @@ public class CategoryExpenseEventConsumer {
     @Autowired
     private CategoryRepository categoryRepository;
 
-
-
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    // Batch + concurrent listener for high throughput
     @KafkaListener(topics = "category-expense-events", groupId = "category-expense-group",
             containerFactory = "categoryBatchFactory")
     @Transactional
     public void handleCategoryExpenseEvents(java.util.List<String> eventsJson) {
         if (eventsJson == null || eventsJson.isEmpty()) return;
-
-    // Parse all events first, preserving poll order
     java.util.List<CategoryExpenseEvent> parsed = new java.util.ArrayList<>(eventsJson.size());
     java.util.Set<Integer> impactedCategoryIds = new java.util.HashSet<>();
 
@@ -44,12 +34,9 @@ public class CategoryExpenseEventConsumer {
                 CategoryExpenseEvent event = objectMapper.readValue(eventJson, CategoryExpenseEvent.class);
                 String action = event.getAction() == null ? "" : event.getAction().toUpperCase();
                 int categoryId = event.getCategoryId();
-
-                // Keep original action; treat null/unknown as ADD for backward compatibility
                 if (!"ADD".equals(action) && !"REMOVE".equals(action) && !"UPDATE".equals(action)) {
                     action = "ADD";
                 }
-                // Record event in-order and collect impacted categories
                 CategoryExpenseEvent normalized = new CategoryExpenseEvent(event.getUserId(), event.getExpenseId(), event.getCategoryId(), event.getCategoryName(), action);
                 parsed.add(normalized);
                 impactedCategoryIds.add(categoryId);
@@ -78,8 +65,6 @@ public class CategoryExpenseEventConsumer {
                 }
             }
         }
-
-        // Apply events in the order they were polled to avoid dropping any
         for (CategoryExpenseEvent e : parsed) {
             Category cat = byId.get(e.getCategoryId());
             if (cat == null) continue;
@@ -89,15 +74,11 @@ public class CategoryExpenseEventConsumer {
             if ("REMOVE".equals(action)) {
                 set.remove(e.getExpenseId());
             } else {
-                // ADD and UPDATE -> ensure present
                 set.add(e.getExpenseId());
             }
             if (set.isEmpty()) cat.getExpenseIds().remove(e.getUserId());
             else cat.getExpenseIds().put(e.getUserId(), set);
         }
-
-        // Persist once
-        // Retry on optimistic locking conflicts
         int maxRetries = 3;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -110,11 +91,9 @@ public class CategoryExpenseEventConsumer {
                     throw olfe;
                 }
                 logger.warn("Optimistic lock conflict (attempt {}/{}); reloading categories and reapplying batch", attempt, maxRetries);
-                // Reload fresh categories and re-apply parsed events
                 java.util.Set<Integer> reloadIds = new java.util.HashSet<>(byId.keySet());
                 byId.clear();
                 for (Category c : categoryRepository.findAllById(reloadIds)) byId.put(c.getId(), c);
-                // Re-apply in-order
                 for (CategoryExpenseEvent e : parsed) {
                     Category cat = byId.get(e.getCategoryId());
                     if (cat == null) continue;
@@ -129,6 +108,4 @@ public class CategoryExpenseEventConsumer {
             }
         }
     }
-
-    // Legacy single-record helpers removed in favor of the batch path
 }

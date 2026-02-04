@@ -9,8 +9,8 @@ const DEFAULT_REPORT_TIMEFRAMES = [
 
 const DEFAULT_REPORT_FLOW_TYPES = [
   { value: "all", label: "All" },
-  { value: "outflow", label: "Outflow" },
-  { value: "inflow", label: "Inflow" },
+  { value: "loss", label: "Losses" },
+  { value: "gain", label: "Gains" },
 ];
 
 const deepClone = (value) => {
@@ -49,9 +49,10 @@ const REPORT_FILTER_DEFAULTS = {
   },
   budgets: {
     timeframe: "all_time",
-    flowType: "loss",
+    flowType: "all",
     statuses: ["active", "expired"],
-    utilizationRange: { min: 0, max: 100 },
+    // Budgets can exceed 100% utilization (over-budget). Default should include them.
+    utilizationRange: { min: 0, max: 1000 },
     dateRange: { fromDate: "", toDate: "" },
   },
   singleBudget: {
@@ -136,6 +137,8 @@ const createDateRangeSection = (overrides = {}) => ({
   type: "date-range",
   helperText:
     overrides.helperText || "Set a specific range to override timeframe.",
+  minDate: overrides.minDate,
+  maxDate: overrides.maxDate,
 });
 
 const createMultiSelectSection = ({
@@ -239,7 +242,14 @@ export const buildReportFilterSections = (type = "expenses", context = {}) => {
   ];
 
   if (context.enableDateRange !== false) {
-    sections.push(createDateRangeSection({ label: context.dateRangeLabel }));
+    sections.push(
+      createDateRangeSection({
+        label: context.dateRangeLabel,
+        helperText: context.dateRangeHelperText,
+        minDate: context.dateRangeMin,
+        maxDate: context.dateRangeMax,
+      })
+    );
   }
 
   if (type === "expenses" || type === "bills") {

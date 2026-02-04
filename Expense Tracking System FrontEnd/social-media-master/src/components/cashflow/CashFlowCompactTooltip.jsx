@@ -9,11 +9,12 @@ const CashFlowCompactTooltip = ({
   formatNumberFull,
   formatCurrencyCompact,
   t,
-  isHovering = true,
+  hoverBarIndex,
 }) => {
+  // Hide tooltip if not active or if mouse has left the bars (hoverBarIndex is null)
   if (
     !active ||
-    !isHovering ||
+    hoverBarIndex === null ||
     !Array.isArray(payload) ||
     payload.length === 0
   ) {

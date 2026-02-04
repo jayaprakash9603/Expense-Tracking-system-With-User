@@ -69,6 +69,7 @@ const useSingleBudgetReportFilters = ({
   paymentMethodBreakdown,
   expenseGroups,
   timeframeOptions,
+  budgetPeriodRange,
 }) => {
   const {
     defaults,
@@ -125,12 +126,22 @@ const useSingleBudgetReportFilters = ({
         ),
         amountBounds: paymentAmountBounds,
         timeframeOptions,
+        dateRangeMin:
+          timeframe === "budget" ? budgetPeriodRange?.fromDate : undefined,
+        dateRangeMax:
+          timeframe === "budget" ? budgetPeriodRange?.toDate : undefined,
+        dateRangeHelperText:
+          timeframe === "budget" && budgetPeriodRange
+            ? "Custom range is limited to the selected budget period."
+            : undefined,
       }),
     [
       normalizedExpenseGroups,
       categoryBreakdown,
       paymentAmountBounds,
       timeframeOptions,
+      timeframe,
+      budgetPeriodRange,
     ]
   );
 

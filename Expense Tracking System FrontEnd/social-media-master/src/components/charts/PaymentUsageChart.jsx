@@ -17,7 +17,11 @@ import { useTheme } from "../../hooks/useTheme";
 // Payment Methods Usage Analysis (Pareto-like: amount bars + cumulative % + transactions)
 // Expects data: [{ method, totalAmount, transactions, cumulative(optional) }]
 // We compute cumulative internally if not provided.
-const PaymentUsageChart = ({ data = [] }) => {
+// title prop allows customization (e.g., "Category Usage Analysis" vs "Payment Methods Usage Analysis")
+const PaymentUsageChart = ({
+  data = [],
+  title = "Payment Methods Usage Analysis",
+}) => {
   const settings = useUserSettings();
   const { colors, mode } = useTheme();
   const currencySymbol = settings.getCurrency().symbol;
@@ -54,7 +58,7 @@ const PaymentUsageChart = ({ data = [] }) => {
             gap: "8px",
           }}
         >
-          <BarChart3 size={20} /> Payment Methods Usage Analysis
+          <BarChart3 size={20} /> {title}
         </h3>
         <div
           className="chart-subtitle"

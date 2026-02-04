@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import itemService from "../../services/itemService";
 import { useTheme } from "../../hooks/useTheme";
 import ReusableAutocomplete from "../../components/ReusableAutocomplete";
+import HighlightedText from "../../components/common/HighlightedText";
 
 const ItemNameAutocomplete = ({
   value = "",
@@ -78,25 +79,6 @@ const ItemNameAutocomplete = ({
     }
   };
 
-  // Highlight matching text function
-  const highlightText = (text, inputValue) => {
-    if (!inputValue) return text;
-
-    const regex = new RegExp(`(${inputValue})`, "gi");
-    return text.split(regex).map((part, index) =>
-      part.toLowerCase() === inputValue.toLowerCase() ? (
-        <span
-          key={index}
-          style={{ fontWeight: 700, color: colors.secondary_accent }}
-        >
-          {part}
-        </span>
-      ) : (
-        part
-      )
-    );
-  };
-
   // Custom render option with highlighting
   const renderOption = (props, option, { inputValue }) => {
     const { key, ...optionProps } = props;
@@ -114,7 +96,12 @@ const ItemNameAutocomplete = ({
         }}
         title={option}
       >
-        {highlightText(option, inputValue)}
+        <HighlightedText
+          text={option}
+          query={inputValue}
+          title={option}
+          highlightStyle={{ color: colors.secondary_accent, fontWeight: 700 }}
+        />
       </li>
     );
   };

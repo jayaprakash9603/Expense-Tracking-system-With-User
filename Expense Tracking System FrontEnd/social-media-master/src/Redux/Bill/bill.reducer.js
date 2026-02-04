@@ -27,6 +27,14 @@ import {
   GET_BILL_BY_EXPENSE_ID_REQUEST,
   GET_BILL_BY_EXPENSE_ID_SUCCESS,
   GET_BILL_BY_EXPENSE_ID_FAILURE,
+  SCAN_RECEIPT_REQUEST,
+  SCAN_RECEIPT_SUCCESS,
+  SCAN_RECEIPT_FAILURE,
+  CLEAR_SCAN_RESULT,
+  UPDATE_SCAN_FIELD,
+  CHECK_OCR_STATUS_REQUEST,
+  CHECK_OCR_STATUS_SUCCESS,
+  CHECK_OCR_STATUS_FAILURE,
 } from "./bill.actionType";
 
 const initialState = {
@@ -53,6 +61,18 @@ const initialState = {
     totalCreditDue: 0,
     incomeCount: 0,
     expenseCount: 0,
+  },
+  // OCR Receipt Scanning State
+  ocr: {
+    scanning: false,
+    scanResult: null,
+    scanError: null,
+    ocrStatus: {
+      available: false,
+      provider: null,
+      supportedFormats: null,
+      maxFileSize: null,
+    },
   },
 };
 
@@ -83,7 +103,7 @@ const billReducer = (state = initialState, action) => {
       const filteredBills = filterBillsByType(bills, state.filter.type);
       const summary = calculateSummary(bills);
       const totalPages = Math.ceil(
-        filteredBills.length / state.pagination.itemsPerPage
+        filteredBills.length / state.pagination.itemsPerPage,
       );
 
       return {
@@ -104,7 +124,7 @@ const billReducer = (state = initialState, action) => {
       const newFilteredBills = filterBillsByType(newBills, state.filter.type);
       const newSummary = calculateSummary(newBills);
       const newTotalPages = Math.ceil(
-        newFilteredBills.length / state.pagination.itemsPerPage
+        newFilteredBills.length / state.pagination.itemsPerPage,
       );
 
       return {
@@ -135,11 +155,11 @@ const billReducer = (state = initialState, action) => {
       };
     case UPDATE_BILL_SUCCESS:
       const updatedBills = state.bills.map((bill) =>
-        bill.id === action.payload.id ? action.payload : bill
+        bill.id === action.payload.id ? action.payload : bill,
       );
       const updatedFilteredBills = filterBillsByType(
         updatedBills,
-        state.filter.type
+        state.filter.type,
       );
       const updatedSummary = calculateSummary(updatedBills);
 
@@ -155,15 +175,15 @@ const billReducer = (state = initialState, action) => {
 
     case DELETE_BILL_SUCCESS:
       const remainingBills = state.bills.filter(
-        (bill) => bill.id !== action.payload
+        (bill) => bill.id !== action.payload,
       );
       const remainingFilteredBills = filterBillsByType(
         remainingBills,
-        state.filter.type
+        state.filter.type,
       );
       const remainingSummary = calculateSummary(remainingBills);
       const remainingTotalPages = Math.ceil(
-        remainingFilteredBills.length / state.pagination.itemsPerPage
+        remainingFilteredBills.length / state.pagination.itemsPerPage,
       );
 
       return {
@@ -190,7 +210,7 @@ const billReducer = (state = initialState, action) => {
     case FILTER_BILLS_BY_TYPE:
       const typeFilteredBills = filterBillsByType(state.bills, action.payload);
       const typeFilterTotalPages = Math.ceil(
-        typeFilteredBills.length / state.pagination.itemsPerPage
+        typeFilteredBills.length / state.pagination.itemsPerPage,
       );
 
       return {
@@ -238,6 +258,87 @@ const billReducer = (state = initialState, action) => {
 
     case RESET_BILLS_STATE:
       return initialState;
+
+    // ==================== OCR Receipt Scanning Cases ====================
+    case SCAN_RECEIPT_REQUEST:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          scanning: true,
+          scanError: null,
+        },
+      };
+
+    case SCAN_RECEIPT_SUCCESS:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          scanning: false,
+          scanResult: action.payload,
+          scanError: null,
+        },
+      };
+
+    case SCAN_RECEIPT_FAILURE:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          scanning: false,
+          scanError: action.payload,
+        },
+      };
+
+    case CLEAR_SCAN_RESULT:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          scanResult: null,
+          scanError: null,
+        },
+      };
+
+    case UPDATE_SCAN_FIELD:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          scanResult: state.ocr.scanResult
+            ? {
+                ...state.ocr.scanResult,
+                [action.payload.field]: action.payload.value,
+              }
+            : null,
+        },
+      };
+
+    case CHECK_OCR_STATUS_REQUEST:
+      return state;
+
+    case CHECK_OCR_STATUS_SUCCESS:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          ocrStatus: action.payload,
+        },
+      };
+
+    case CHECK_OCR_STATUS_FAILURE:
+      return {
+        ...state,
+        ocr: {
+          ...state.ocr,
+          ocrStatus: {
+            available: false,
+            provider: null,
+            error: action.payload,
+          },
+        },
+      };
 
     default:
       return state;

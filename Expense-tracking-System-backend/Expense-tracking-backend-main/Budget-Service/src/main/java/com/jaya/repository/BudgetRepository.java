@@ -1,5 +1,6 @@
 package com.jaya.repository;
 
+import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.models.Budget;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -54,9 +55,6 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
         })
         @Query("SELECT b FROM Budget b WHERE b.userId = :userId AND b.id = :budgetId")
         Optional<Budget> findByUserIdAndId(@Param("userId") Integer userId, @Param("budgetId") Integer budgetId);
-
-
-
 
         /**
          * Find budgets by user and date range - Optimized for date filtering
@@ -204,5 +202,38 @@ public interface BudgetRepository extends JpaRepository<Budget, Integer> {
         @Query("SELECT DISTINCT b FROM Budget b WHERE b.userId = :userId " +
                         "ORDER BY b.startDate DESC, b.id ASC")
         List<Budget> findByUserIdOrderByStartDateDesc(@Param("userId") Integer userId);
+
+        /**
+         * Fuzzy search budgets by name or description - supports partial matching
+         * Optimized with query hints for read-only operations
+         */
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "20"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        @Query("SELECT DISTINCT b FROM Budget b WHERE b.userId = :userId AND " +
+                        "(LOWER(b.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+                        "LOWER(b.description) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+                        "ORDER BY b.startDate DESC")
+        List<Budget> searchBudgetsFuzzy(@Param("userId") Integer userId, @Param("query") String query);
+
+        /**
+         * Fuzzy search budgets with limit - for search service optimization
+         * Uses JPQL with DTO constructor to avoid N+1 problem.
+         * Note: The query parameter should already be in pattern format (e.g.,
+         * "%j%c%e%")
+         */
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "20"),
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
+        })
+        @Query("SELECT new com.jaya.dto.BudgetSearchDTO(b.id, b.name, b.description, b.amount, b.remainingAmount, b.startDate, b.endDate, b.userId) "
+                        +
+                        "FROM Budget b WHERE b.userId = :userId AND " +
+                        "(LOWER(b.name) LIKE LOWER(:query) OR " +
+                        "LOWER(b.description) LIKE LOWER(:query)) " +
+                        "ORDER BY b.startDate DESC")
+        List<BudgetSearchDTO> searchBudgetsFuzzyWithLimit(@Param("userId") Integer userId,
+                        @Param("query") String query);
 
 }

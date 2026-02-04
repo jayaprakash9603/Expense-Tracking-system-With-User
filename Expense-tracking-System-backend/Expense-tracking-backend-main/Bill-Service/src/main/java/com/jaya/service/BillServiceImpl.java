@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.dto.BillSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
@@ -489,5 +490,32 @@ public class BillServiceImpl implements BillService {
             progressTracker.fail(jobId, ex.getMessage());
             throw ex;
         }
+    }
+
+    @Override
+    public List<BillSearchDTO> searchBills(Integer userId, String query, int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
+        String subsequencePattern = convertToSubsequencePattern(query.trim());
+        List<BillSearchDTO> results = billRepository.searchBillsFuzzyWithLimit(userId, subsequencePattern);
+        // Apply limit in memory since JPQL constructor expressions don't support LIMIT
+        return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /**
+     * Converts a search query to a subsequence pattern for SQL LIKE.
+     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
+     */
+    private String convertToSubsequencePattern(String query) {
+        if (query == null || query.isEmpty()) {
+            return "%";
+        }
+        StringBuilder pattern = new StringBuilder("%");
+        for (char c : query.toCharArray()) {
+            pattern.append(c).append("%");
+        }
+        return pattern.toString();
     }
 }

@@ -4,7 +4,7 @@ import com.jaya.models.Category;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 import com.jaya.repository.ExpenseRepository;
-import com.jaya.service.CategoryServices;
+import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.expenses.ExpenseCategoryService;
 import com.jaya.service.expenses.ExpenseCoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +16,13 @@ import java.util.*;
 @Service
 public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
-
     private final ExpenseRepository expenseRepository;
 
     @Autowired
     private ExpenseCoreService expenseCoreService;
 
-
     @Autowired
-    private CategoryServices categoryService;
+    private CategoryServiceWrapper categoryService;
 
     public ExpenseCategoryServiceImpl(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
@@ -39,7 +37,6 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
                 throw new RuntimeException("Category not found with ID: " + categoryId);
             }
 
-
             Set<Integer> expenseIds = new HashSet<>();
             if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(userId)) {
                 expenseIds = category.getExpenseIds().get(userId);
@@ -48,7 +45,6 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
             if (expenseIds.isEmpty()) {
                 return new ArrayList<>();
             }
-
 
             List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, expenseIds);
 
@@ -67,14 +63,11 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
         List<Expense> userExpenses = expenseCoreService.getAllExpenses(userId);
 
-
         Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
-
 
         for (Category category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
-
 
         for (Expense expense : userExpenses) {
             for (Category category : userCategories) {
@@ -118,12 +111,10 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
             map.put("expenseName", expenseName);
             map.put("totalAmount", totalAmount);
 
-
             response.add(map);
         }
 
         return response;
     }
-
 
 }

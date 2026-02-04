@@ -1,9 +1,10 @@
 package com.jaya.controller;
 
 import com.jaya.dto.User;
+import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
-import com.jaya.kafka.service.ExpenseNotificationService;
+import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
@@ -61,10 +62,11 @@ public class ExpenseController extends BaseExpenseController {
     private final UserPermissionHelper permissionHelper;
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
-    private final ExpenseNotificationService expenseNotificationService;
+    private final UnifiedActivityService unifiedActivityService;
     private final ReportHistoryService reportHistoryService;
     private final com.jaya.service.BillExportClient billExportClient;
     private final CashflowAggregationService cashflowAggregationService;
+    private final com.jaya.service.ExpenseViewService expenseViewService;
 
     @Autowired
     public ExpenseController(ExpenseService expenseService,
@@ -78,10 +80,11 @@ public class ExpenseController extends BaseExpenseController {
             UserPermissionHelper permissionHelper,
             BulkProgressTracker progressTracker,
             TaskExecutor taskExecutor,
-            ExpenseNotificationService expenseNotificationService,
+            UnifiedActivityService unifiedActivityService,
             ReportHistoryService reportHistoryService,
             com.jaya.service.BillExportClient billExportClient,
-            CashflowAggregationService cashflowAggregationService) {
+            CashflowAggregationService cashflowAggregationService,
+            com.jaya.service.ExpenseViewService expenseViewService) {
         this.helper = helper;
         this.userService = userService;
         this.excelService = excelService;
@@ -89,10 +92,11 @@ public class ExpenseController extends BaseExpenseController {
         this.permissionHelper = permissionHelper;
         this.progressTracker = progressTracker;
         this.taskExecutor = taskExecutor;
-        this.expenseNotificationService = expenseNotificationService;
+        this.unifiedActivityService = unifiedActivityService;
         this.reportHistoryService = reportHistoryService;
         this.billExportClient = billExportClient;
         this.cashflowAggregationService = cashflowAggregationService;
+        this.expenseViewService = expenseViewService;
     }
 
     @PostMapping("/add-expense")
@@ -100,12 +104,13 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+        System.out.println("target user id" + targetUser.getId());
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
-        // Send notification asynchronously - convert DTO back to entity for
-        // notification
-        // expenseNotificationService.sendExpenseCreatedNotification(expenseMapper.toEntity(createdExpenseDTO));
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseCreatedEvent(createdExpenseDTO, reqUser, targetUser);
 
         return new ResponseEntity<>(createdExpenseDTO, HttpStatus.CREATED);
 
@@ -117,8 +122,13 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         Expense createdExpense = expenseService.copyExpense(targetUser.getId(), expenseId);
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseCopiedEvent(createdExpense, reqUser, targetUser);
+
         return ResponseEntity.ok(createdExpense);
 
     }
@@ -140,8 +150,13 @@ public class ExpenseController extends BaseExpenseController {
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> savedExpenses = expenseService.addMultipleExpenses(expenses, targetUser.getId());
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesCreatedEvent(savedExpenses, reqUser, targetUser);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(savedExpenses);
 
     }
@@ -194,9 +209,15 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> allExpenses = expenseService.getAllExpenses(targetUser.getId());
+        int count = allExpenses != null ? allExpenses.size() : 0;
         expenseService.deleteAllExpenses(targetUser.getId(), allExpenses);
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendAllExpensesDeletedEvent(count, reqUser, targetUser);
+
         return new ResponseEntity<>("all expense are deleted", HttpStatus.NO_CONTENT);
 
     }
@@ -208,6 +229,38 @@ public class ExpenseController extends BaseExpenseController {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         return new ResponseEntity<>(expenseService.getExpenseById(id, targetUser.getId()), HttpStatus.OK);
+    }
+
+    /**
+     * Get detailed expense view with budget, category, payment method, and
+     * occurrence info.
+     * This endpoint provides a comprehensive view of an expense including:
+     * - Full expense details
+     * - Linked budget information
+     * - Category details with statistics
+     * - Payment method statistics
+     * - Occurrence/frequency data (how many times this expense has been created)
+     *
+     * @param id       The expense ID
+     * @param jwt      Authorization token
+     * @param targetId Optional target user ID for friend access
+     * @return ExpenseViewDTO with complete expense information
+     */
+    @GetMapping("/expense/{id}/detailed")
+    public ResponseEntity<?> getExpenseDetailedView(@PathVariable Integer id,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) {
+        try {
+            User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+            com.jaya.dto.ExpenseViewDTO expenseView = expenseViewService.getExpenseDetailedView(id, targetUser.getId());
+            return ResponseEntity.ok(expenseView);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Expense not found", "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to fetch expense details", "message", e.getMessage()));
+        }
     }
 
     @GetMapping("/fetch-expenses-by-date")
@@ -235,6 +288,40 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    @GetMapping("/fetch-expenses-paginated")
+    public ResponseEntity<Map<String, Object>> getExpensesPaginated(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+
+        List<Expense> allExpenses = sort.equalsIgnoreCase("asc")
+                ? expenseService.getExpensesByUserAndSort(targetUser.getId(), "asc")
+                : expenseService.getExpensesByUserAndSort(targetUser.getId(), "desc");
+
+        int totalElements = allExpenses.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int fromIndex = page * size;
+        int toIndex = Math.min(fromIndex + size, totalElements);
+
+        List<Expense> paginatedExpenses = fromIndex < totalElements
+                ? allExpenses.subList(fromIndex, toIndex)
+                : List.of();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", paginatedExpenses);
+        response.put("currentPage", page);
+        response.put("totalPages", totalPages);
+        response.put("totalElements", totalElements);
+        response.put("size", size);
+        response.put("hasMore", page < totalPages - 1);
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/summary-expenses")
     public ResponseEntity<Map<String, Object>> summary(
             @RequestHeader("Authorization") String jwt,
@@ -253,11 +340,16 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+
+        // Get the old expense before updating for audit purposes
+        Expense oldExpense = expenseService.getExpenseById(id, targetUser.getId());
+
         Expense updatedExpense = expenseService.updateExpense(id, expense, targetUser.getId());
 
-        // Send notification asynchronously
-        // expenseNotificationService.sendExpenseUpdatedNotification(updatedExpense);
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseUpdatedEvent(updatedExpense, oldExpense, reqUser, targetUser);
 
         return ResponseEntity.ok(updatedExpense);
 
@@ -269,8 +361,13 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
         List<Expense> updatedExpenses = expenseService.updateMultipleExpenses(targetUser.getId(), expenses);
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesUpdatedEvent(updatedExpenses, reqUser, targetUser);
+
         return ResponseEntity.ok(updatedExpenses);
 
     }
@@ -281,17 +378,22 @@ public class ExpenseController extends BaseExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
 
         // Get expense details before deletion for notification
         Expense expense = expenseService.getExpenseById(id, targetUser.getId());
         String description = "Expense";
+        Double amount = null;
         if (expense != null && expense.getExpense() != null) {
             description = expense.getExpense().getExpenseName();
+            amount = expense.getExpense().getAmount();
         }
 
         expenseService.deleteExpense(id, targetUser.getId());
-        expenseNotificationService.sendExpenseDeletedNotification(id, targetUser.getId(), description);
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendExpenseDeletedEvent(id, description, amount, reqUser, targetUser);
 
         return ResponseEntity.ok("Expense deleted successfully");
 
@@ -302,8 +404,14 @@ public class ExpenseController extends BaseExpenseController {
             @RequestBody List<Integer> ids,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
+        User reqUser = getAuthenticatedUser(jwt);
         User targetUser = getTargetUserWithPermission(jwt, targetId, true);
+        int count = ids != null ? ids.size() : 0;
         expenseService.deleteExpensesByIds(ids, targetUser.getId());
+
+        // Send unified event (handles both own action and friend activity)
+        unifiedActivityService.sendBulkExpensesDeletedEvent(count, reqUser, targetUser);
+
         return ResponseEntity.ok("Expenses deleted successfully");
 
     }
@@ -369,6 +477,23 @@ public class ExpenseController extends BaseExpenseController {
 
         User targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Expense> expenses = expenseService.searchExpensesByName(expenseName, targetUser.getId());
+        return ResponseEntity.ok(expenses);
+    }
+
+    /**
+     * Fuzzy search expenses by name, comments, or payment method.
+     * Supports partial text matching for typeahead/search functionality.
+     * Optimized query - avoids N+1 problem by returning DTOs.
+     */
+    @GetMapping("/search/fuzzy")
+    public ResponseEntity<List<ExpenseSearchDTO>> searchExpensesFuzzy(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        User targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        List<ExpenseSearchDTO> expenses = expenseService.searchExpensesFuzzy(targetUser.getId(), query, limit);
         return ResponseEntity.ok(expenses);
     }
 
@@ -2723,9 +2848,14 @@ public class ExpenseController extends BaseExpenseController {
         com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(targetUser.getId());
         Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
 
-        // Convert entities to DTOs with masking applied
+        // Pre-fetch all categories and payment methods once for batch mapping
+        // (performance optimization)
+        Map<Integer, Category> categoryMap = expenseMapper.fetchCategoryMapForUser(targetUser.getId());
+        Map<String, PaymentMethod> paymentMethodMap = expenseMapper.fetchPaymentMethodMapForUser(targetUser.getId());
+
+        // Convert entities to DTOs with masking applied using batch mapping
         List<ExpenseDTO> expenseDTOs = expenses.stream()
-                .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData))
+                .map(expense -> expenseMapper.toDTO(expense, maskSensitiveData, categoryMap, paymentMethodMap))
                 .collect(Collectors.toList());
 
         List<ExpenseDTO> filteredExpenseDTOs = cashflowAggregationService.filterExpensesBySearchTerm(expenseDTOs,
@@ -2782,31 +2912,7 @@ public class ExpenseController extends BaseExpenseController {
                         .collect(Collectors.toCollection(LinkedHashSet::new));
                 groupBlock.put("paymentMethods", paymentMethods);
 
-                List<Map<String, Object>> expenseEntries = list.stream().map(expDTO -> {
-                    Map<String, Object> entry = new LinkedHashMap<>();
-                    if (expDTO.getDate() != null) {
-                        entry.put("date", expDTO.getDate());
-                    }
-                    entry.put("id", expDTO.getId());
-
-                    Map<String, Object> details = new LinkedHashMap<>();
-                    ExpenseDetailsDTO d = expDTO.getExpense();
-                    if (d != null) {
-                        details.put("amount", d.getAmount());
-                        details.put("comments", d.getComments());
-                        details.put("netAmount", d.getNetAmount());
-                        details.put("paymentMethod", d.getPaymentMethod());
-                        details.put("id", d.getId());
-                        details.put("type", d.getType());
-                        details.put("expenseName", d.getExpenseName());
-                        details.put("creditDue", d.getCreditDue());
-                        details.put("masked", d.isMasked());
-                    }
-                    entry.put("details", details);
-                    return entry;
-                }).collect(Collectors.toList());
-
-                groupBlock.put("expenses", expenseEntries);
+                groupBlock.put("expenses", list);
                 response.put(expenseName, groupBlock);
             });
 

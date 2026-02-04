@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
+import { useTranslation } from "../../hooks/useTranslation";
 
 /**
  * RangePeriodNavigator
@@ -40,6 +41,7 @@ const RangePeriodNavigator = ({
   isMobile = false,
 }) => {
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -81,7 +83,7 @@ const RangePeriodNavigator = ({
                 strokeLinejoin="round"
               />
             </svg>
-            Back
+            {t("common.back")}
           </Button>
         )}
         <div
@@ -98,6 +100,8 @@ const RangePeriodNavigator = ({
                 setActiveRange(tab.value);
               }}
               className="px-4 py-2 rounded font-semibold flex items-center gap-2"
+              data-shortcut={`range-${tab.value}`}
+              title={`${tab.label} (${tab.value === "week" ? "W" : tab.value === "month" ? "M" : "Y"})`}
               style={{
                 backgroundColor:
                   activeRange === tab.value
@@ -120,6 +124,8 @@ const RangePeriodNavigator = ({
           onClick={handleBack}
           disabled={offset <= disablePrevAt}
           className="px-3 py-1 rounded text-lg flex items-center"
+          data-shortcut="range-prev"
+          title={`${t("common.previous")} ([)`}
           style={{
             backgroundColor:
               offset <= disablePrevAt
@@ -132,7 +138,7 @@ const RangePeriodNavigator = ({
             cursor: offset <= disablePrevAt ? "not-allowed" : "pointer",
             opacity: offset <= disablePrevAt ? 0.5 : 1,
           }}
-          aria-label="Previous"
+          aria-label={t("common.previous")}
         >
           &#8592;
         </button>
@@ -143,6 +149,8 @@ const RangePeriodNavigator = ({
           onClick={handleNext}
           disabled={offset >= disableNextAt}
           className="px-3 py-1 rounded text-lg flex items-center"
+          data-shortcut="range-next"
+          title={`${t("common.next")} (])`}
           style={{
             backgroundColor:
               offset >= disableNextAt
@@ -155,7 +163,7 @@ const RangePeriodNavigator = ({
             cursor: offset >= disableNextAt ? "not-allowed" : "pointer",
             opacity: offset >= disableNextAt ? 0.5 : 1,
           }}
-          aria-label="Next"
+          aria-label={t("common.next")}
         >
           &#8594;
         </button>

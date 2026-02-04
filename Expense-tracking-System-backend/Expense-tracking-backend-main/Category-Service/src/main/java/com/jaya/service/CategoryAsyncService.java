@@ -28,14 +28,10 @@ public class CategoryAsyncService {
     public CompletableFuture<Void> finalizeCategoryCreateAsync(Category initialSavedCategory, Category inputCategory, User user) {
         try {
             final Integer categoryId = initialSavedCategory.getId();
-
-            // Collect all expense IDs provided for this user
             Set<Integer> requestedExpenseIds = new HashSet<>();
             if (inputCategory.getExpenseIds() != null && inputCategory.getExpenseIds().containsKey(user.getId())) {
                 requestedExpenseIds.addAll(inputCategory.getExpenseIds().get(user.getId()));
             }
-
-            // Filter and process only valid expenses
             Set<Integer> validExpenseIds = new HashSet<>();
             for (Integer expenseId : requestedExpenseIds) {
                 try {
@@ -50,8 +46,6 @@ public class CategoryAsyncService {
                     logger.warn("Skipping expense {} during async finalize: {}", expenseId, ex.getMessage());
                 }
             }
-
-            // Remove these expense IDs from all other categories for this user
             if (!validExpenseIds.isEmpty()) {
                 List<Category> allCategories = categoryRepository.findAll().stream()
                         .filter(cat -> !cat.getId().equals(categoryId))
@@ -71,8 +65,6 @@ public class CategoryAsyncService {
                     }
                 }
             }
-
-            // Update the category's expenseIds map for this user
             if (!validExpenseIds.isEmpty()) {
                 Category finalCategory = categoryRepository.findById(categoryId).orElse(initialSavedCategory);
                 if (finalCategory.getExpenseIds() == null) {

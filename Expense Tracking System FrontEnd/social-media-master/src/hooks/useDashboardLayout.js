@@ -48,9 +48,20 @@ export function useDashboardLayout() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        const merged = DEFAULT_SECTIONS.map((defaultSection) => {
-          const stored = parsed.find((s) => s.id === defaultSection.id);
-          return stored ? { ...defaultSection, ...stored } : defaultSection;
+        // Preserve the saved order: iterate over parsed (saved) sections first
+        const merged = parsed.map((savedSection) => {
+          const defaultSection = DEFAULT_SECTIONS.find(
+            (s) => s.id === savedSection.id
+          );
+          return defaultSection
+            ? { ...defaultSection, ...savedSection }
+            : savedSection;
+        });
+        // Add any new default sections that aren't in the saved config
+        DEFAULT_SECTIONS.forEach((defaultSection) => {
+          if (!merged.find((s) => s.id === defaultSection.id)) {
+            merged.push(defaultSection);
+          }
         });
         return merged;
       }
@@ -73,9 +84,20 @@ export function useDashboardLayout() {
           const { data } = await api.get("/api/user/dashboard-preferences");
           if (data && data.layoutConfig) {
             const parsed = JSON.parse(data.layoutConfig);
-            const merged = DEFAULT_SECTIONS.map((defaultSection) => {
-              const stored = parsed.find((s) => s.id === defaultSection.id);
-              return stored ? { ...defaultSection, ...stored } : defaultSection;
+            // Preserve the saved order from backend
+            const merged = parsed.map((savedSection) => {
+              const defaultSection = DEFAULT_SECTIONS.find(
+                (s) => s.id === savedSection.id
+              );
+              return defaultSection
+                ? { ...defaultSection, ...savedSection }
+                : savedSection;
+            });
+            // Add any new default sections that aren't in the saved config
+            DEFAULT_SECTIONS.forEach((defaultSection) => {
+              if (!merged.find((s) => s.id === defaultSection.id)) {
+                merged.push(defaultSection);
+              }
             });
             setSections(merged);
             localStorage.setItem(STORAGE_KEY, data.layoutConfig);

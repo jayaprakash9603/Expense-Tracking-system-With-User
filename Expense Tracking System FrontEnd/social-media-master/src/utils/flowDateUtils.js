@@ -42,8 +42,11 @@ export const yearMonths = [
  * getRangeLabel
  * mode: controls prefix text ("This Month" wording). Accepts: 'cashflow' | 'category' | 'paymentMethod' | 'generic'
  */
-export function getRangeLabel(range, offset, mode = "generic") {
+export function getRangeLabel(range, offset, mode = "generic", options = {}) {
   const base = dayjs();
+  const t = options?.t;
+  const entityPlural = options?.entityPlural;
+
   const prefixMap = {
     cashflow: { week: "This Week", month: "This Month", year: "This Year" },
     category: {
@@ -58,7 +61,23 @@ export function getRangeLabel(range, offset, mode = "generic") {
     },
     generic: { week: "This Week", month: "This Month", year: "This Year" },
   };
-  const prefix = prefixMap[mode] || prefixMap.generic;
+  let prefix = prefixMap[mode] || prefixMap.generic;
+
+  if (typeof t === "function") {
+    if (mode === "cashflow" || mode === "generic") {
+      prefix = {
+        week: t("cashflow.rangeLabels.thisWeek"),
+        month: t("cashflow.rangeLabels.thisMonth"),
+        year: t("cashflow.rangeLabels.thisYear"),
+      };
+    } else if (entityPlural) {
+      prefix = {
+        week: t("flows.rangeLabels.entityWeek", { entityPlural }),
+        month: t("flows.rangeLabels.entityMonth", { entityPlural }),
+        year: t("flows.rangeLabels.entityYear", { entityPlural }),
+      };
+    }
+  }
 
   if (range === "month") {
     const start = base.startOf("month").add(offset, "month");

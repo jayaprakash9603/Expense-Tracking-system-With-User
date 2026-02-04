@@ -6,6 +6,11 @@ import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
 import { useAppInitialization } from "./hooks/useAppInitialization";
 import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
 import { LanguageProvider } from "./i18n/LanguageContext";
+import {
+  KeyboardShortcutProvider,
+  ShortcutGuideModal,
+  AltKeyOverlay,
+} from "./features/keyboard";
 // Import WebSocket Service
 import "./services/socketService";
 
@@ -46,10 +51,14 @@ function App() {
   // Render main application routes for authenticated users
   return (
     <LanguageProvider>
-      <div className={isDark ? "dark" : "light"}>
-        <Routes>{getAppRoutes()}</Routes>
-      </div>
-      <GlobalErrorHandler />
+      <KeyboardShortcutProvider>
+        <div className={isDark ? "dark" : "light"}>
+          <Routes>{getAppRoutes()}</Routes>
+        </div>
+        <GlobalErrorHandler />
+        <ShortcutGuideModal />
+        <AltKeyOverlay />
+      </KeyboardShortcutProvider>
     </LanguageProvider>
   );
 }

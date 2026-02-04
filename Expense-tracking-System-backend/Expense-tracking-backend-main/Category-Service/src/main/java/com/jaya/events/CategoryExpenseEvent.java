@@ -9,7 +9,6 @@ public class CategoryExpenseEvent implements Serializable {
     private Integer categoryId;
     private String categoryName;
     private String action;
-    // ADD, REMOVE, UPDATE
     private LocalDateTime timestamp;
 
     public CategoryExpenseEvent() {
@@ -24,8 +23,6 @@ public class CategoryExpenseEvent implements Serializable {
         this.action = action;
         this.timestamp = LocalDateTime.now();
     }
-
-    // Getters and setters
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
 

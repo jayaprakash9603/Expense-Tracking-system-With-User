@@ -8,6 +8,7 @@ import { fetchExpenseSummary } from "../utils/Api";
 export default function useAnalyticsSummary({
   timeframe = "this_month",
   refreshTrigger,
+  skip = false,
 } = {}) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,13 @@ export default function useAnalyticsSummary({
   }, [timeframe]);
 
   useEffect(() => {
+    // Skip API call if skip flag is true
+    if (skip) {
+      setSummary(null);
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     const run = async () => {
       setLoading(true);
@@ -56,7 +64,7 @@ export default function useAnalyticsSummary({
     };
     run();
     return () => controller.abort();
-  }, [buildParams, refreshTrigger]);
+  }, [buildParams, refreshTrigger, skip]);
 
   return { summary, loading, error };
 }

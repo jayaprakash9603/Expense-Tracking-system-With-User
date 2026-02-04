@@ -27,7 +27,7 @@ const redirectToHome = (navigate) => {
 // Load user dashboard preferences after login
 const loadUserDashboardPreferences = async () => {
   const { data, error } = await safeApiCall(() =>
-    api.get("/api/user/dashboard-preferences")
+    api.get("/api/user/dashboard-preferences"),
   );
 
   if (error || !data?.layoutConfig) {
@@ -40,9 +40,39 @@ const loadUserDashboardPreferences = async () => {
   localStorage.setItem("dashboard_layout_config", data.layoutConfig);
   console.log(
     "Dashboard preferences loaded:",
-    data.id ? "custom layout" : "default layout"
+    data.id ? "custom layout" : "default layout",
   );
   return true;
+};
+
+const completeLoginWithJwt = async (dispatch, jwt) => {
+  dispatch({ type: LOGIN_SUCCESS, payload: jwt });
+  localStorage.setItem("jwt", jwt);
+
+  // Immediately fetch the user profile after login
+  const profileResult = await dispatch(getProfileAction(jwt));
+  updateAuthHeader();
+
+  // Load user dashboard preferences (non-blocking)
+  loadUserDashboardPreferences().catch((err) =>
+    console.log("Failed to load dashboard preferences:", err),
+  );
+
+  if (!profileResult?.success) {
+    const message =
+      profileResult?.error?.message || "Failed to load profile after login.";
+    console.log("Profile load error:", message);
+    return { success: false, message };
+  }
+
+  const userProfile = profileResult.data;
+
+  return {
+    success: true,
+    user: userProfile,
+    currentMode: userProfile?.currentMode,
+    role: userProfile?.role,
+  };
 };
 
 // Login User Action
@@ -50,12 +80,96 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signin", loginData.data, { skipAuth: true })
+    api.post("/auth/signin", loginData.data, { skipAuth: true }),
+  );
+
+  if (error) {
+    const errorMessage = error?.message || "Login failed. Please try again.";
+    console.log("Login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+
+  // ==========================================================================
+  // MFA Check (Priority over email 2FA)
+  // ==========================================================================
+  // If MFA (Google Authenticator) is enabled, user needs to verify TOTP.
+  // MFA takes priority over email 2FA when both are enabled.
+  if (data?.message === "MFA_REQUIRED" || data?.mfaRequired) {
+    dispatch({ type: LOGIN_FAILURE, payload: "MFA_REQUIRED" });
+    return {
+      success: false,
+      mfaRequired: true,
+      mfaToken: data?.mfaToken,
+      message: "MFA_REQUIRED",
+      email: loginData?.data?.email,
+    };
+  }
+
+  // ==========================================================================
+  // Email 2FA Check
+  // ==========================================================================
+  // If email-based 2FA is enabled (and MFA is not), user needs to verify OTP.
+  if (data?.message === "OTP_REQUIRED" || data?.twoFactorRequired) {
+    // 2FA enabled: OTP has been sent and JWT will be issued after verification
+    dispatch({ type: LOGIN_FAILURE, payload: "OTP_REQUIRED" });
+    return {
+      success: false,
+      twoFactorRequired: true,
+      message: "OTP_REQUIRED",
+      email: loginData?.data?.email,
+    };
+  }
+
+  if (!data?.jwt) {
+    const errorMessage = "Login failed. Please try again.";
+    console.log("Login error:", errorMessage);
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return {
+      success: false,
+      message: errorMessage,
+    };
+  }
+
+  return await completeLoginWithJwt(dispatch, data.jwt);
+};
+
+export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
+  dispatch({ type: LOGIN_REQUEST });
+
+  const { data, error } = await safeApiCall(() =>
+    api.post("/auth/verify-login-otp", payload, { skipAuth: true }),
   );
 
   if (error || !data?.jwt) {
-    const errorMessage = error?.message || "Login failed. Please try again.";
-    console.log("Login error:", errorMessage);
+    const errorMessage =
+      error?.message || data?.message || "OTP verification failed.";
+    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
+    return { success: false, message: errorMessage };
+  }
+
+  return await completeLoginWithJwt(dispatch, data.jwt);
+};
+
+// Google OAuth Login Action
+export const googleLoginAction = (googleData) => async (dispatch) => {
+  dispatch({ type: LOGIN_REQUEST });
+
+  const { data, error } = await safeApiCall(() =>
+    api.post(
+      "/auth/oauth2/google",
+      { credential: googleData.credential },
+      { skipAuth: true },
+    ),
+  );
+
+  if (error || !data?.jwt) {
+    const errorMessage =
+      error?.message || "Google authentication failed. Please try again.";
+    console.log("Google login error:", errorMessage);
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return {
       success: false,
@@ -66,18 +180,19 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
   localStorage.setItem("jwt", data.jwt);
 
-  // Immediately fetch the user profile after login
+  // Fetch the user profile after Google authentication
   const profileResult = await dispatch(getProfileAction(data.jwt));
   updateAuthHeader();
 
   // Load user dashboard preferences (non-blocking)
   loadUserDashboardPreferences().catch((err) =>
-    console.log("Failed to load dashboard preferences:", err)
+    console.log("Failed to load dashboard preferences:", err),
   );
 
   if (!profileResult?.success) {
     const message =
-      profileResult?.error?.message || "Failed to load profile after login.";
+      profileResult?.error?.message ||
+      "Failed to load profile after Google login.";
     console.log("Profile load error:", message);
     return { success: false, message };
   }
@@ -143,12 +258,12 @@ export const uploadToCloudinary = (file) => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        })
+        }),
       );
 
       if (error) {
         throw new Error(
-          error.message || "Image upload failed. Please try again."
+          error.message || "Image upload failed. Please try again.",
         );
       }
 
@@ -174,7 +289,7 @@ export const resetCloudinaryState = () => ({
 export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signup", loginData.data, { skipAuth: true })
+    api.post("/auth/signup", loginData.data, { skipAuth: true }),
   );
 
   if (error) {
@@ -203,7 +318,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
     : undefined;
 
   const { data, error } = await safeApiCall(() =>
-    api.get(`/api/user/profile`, requestConfig)
+    api.get(`/api/user/profile`, requestConfig),
   );
 
   if (error) {
@@ -278,7 +393,7 @@ export const switchUserModeAction = (mode) => async (dispatch) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     dispatch({

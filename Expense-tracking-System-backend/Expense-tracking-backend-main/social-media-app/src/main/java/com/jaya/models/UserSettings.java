@@ -153,6 +153,10 @@ public class UserSettings {
     @Builder.Default
     private Boolean keyboardShortcuts = true;
 
+    @Column(name = "show_shortcut_indicators", nullable = false)
+    @Builder.Default
+    private Boolean showShortcutIndicators = true; // Show keyboard shortcut badges on Alt key press
+
     @Column(name = "reduce_motion", nullable = false)
     @Builder.Default
     private Boolean reduceMotion = false;
@@ -215,6 +219,7 @@ public class UserSettings {
                 // Accessibility
                 .screenReader(false)
                 .keyboardShortcuts(true)
+                .showShortcutIndicators(true)
                 .reduceMotion(false)
                 .focusIndicators(false)
                 .build();

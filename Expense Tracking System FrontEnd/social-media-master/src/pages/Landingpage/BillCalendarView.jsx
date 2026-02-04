@@ -5,6 +5,8 @@ import { useParams } from "react-router-dom";
 import { fetchBillsForCalendar } from "../../Redux/Bill/bill.action";
 import MonthlyCalendarView from "../../components/calendar/MonthlyCalendarView";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
+import { getFinanceCalendarColors } from "../../config/financeColorTokens";
+import { useTheme } from "../../hooks/useTheme";
 
 const BillCalendarView = () => {
   const dispatch = useDispatch();
@@ -12,6 +14,8 @@ const BillCalendarView = () => {
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
   const { navigateWithState } = usePreserveNavigationState();
+  const { mode } = useTheme();
+  const financeColors = getFinanceCalendarColors(mode);
 
   // Fetch bills for the selected month
   React.useEffect(() => {
@@ -70,17 +74,18 @@ const BillCalendarView = () => {
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
+      showHeatmapModeToggle={true}
       summaryConfig={{
         spendingLabel: "Bill Spending",
         incomeLabel: "Bill Income",
         spendingKey: "spending",
         incomeKey: "income",
-        spendingColor: "#cf667a",
-        incomeColor: "#437746",
-        spendingIconColor: "#e2a4af",
-        incomeIconColor: "#84ba86",
-        spendingTextColor: "#e6a2af",
-        incomeTextColor: "#83b985",
+        spendingColor: financeColors.spending.base,
+        incomeColor: financeColors.income.base,
+        spendingIconColor: financeColors.spending.icon,
+        incomeIconColor: financeColors.income.icon,
+        spendingTextColor: financeColors.spending.text,
+        incomeTextColor: financeColors.income.text,
       }}
       initialDate={dayjs()}
       initialOffset={0}

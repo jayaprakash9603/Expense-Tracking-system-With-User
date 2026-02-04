@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Autocomplete as MuiAutocomplete,
   CircularProgress,
@@ -6,6 +6,8 @@ import {
 import PropTypes from "prop-types";
 import ReusableTextField from "./ReusableTextField";
 import { useTheme } from "../hooks/useTheme";
+import HighlightedText from "./common/HighlightedText";
+import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
 
 /**
  * ReusableAutocomplete - A robust, reusable Autocomplete component
@@ -162,24 +164,39 @@ const ReusableAutocomplete = ({
     ...sx,
   };
 
+  const highlightColor =
+    colors.primary_accent || colors.accent_color || colors.primary || "#00dac6";
+
+  const defaultFilterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({ getOptionLabel });
+  }, [getOptionLabel]);
+
   // Default render option with custom styling
-  const defaultRenderOption = (props, option, { inputValue }) => (
-    <li
-      {...props}
-      style={{
-        fontSize: size === "small" ? "0.875rem" : "0.92rem",
-        paddingTop: 4,
-        paddingBottom: 12,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        maxWidth: 300,
-      }}
-      title={getOptionLabel(option)}
-    >
-      {getOptionLabel(option)}
-    </li>
-  );
+  const defaultRenderOption = (props, option, { inputValue }) => {
+    const label = getOptionLabel(option);
+    return (
+      <li
+        {...props}
+        style={{
+          fontSize: size === "small" ? "0.875rem" : "0.92rem",
+          paddingTop: 4,
+          paddingBottom: 12,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: 300,
+        }}
+        title={label}
+      >
+        <HighlightedText
+          text={label}
+          query={inputValue}
+          highlightStyle={{ color: highlightColor, fontWeight: 700 }}
+          title={label}
+        />
+      </li>
+    );
+  };
 
   return (
     <MuiAutocomplete
@@ -190,7 +207,7 @@ const ReusableAutocomplete = ({
       onInputChange={onInputChange}
       getOptionLabel={getOptionLabel}
       isOptionEqualToValue={isOptionEqualToValue}
-      filterOptions={filterOptions}
+      filterOptions={filterOptions || defaultFilterOptions}
       renderOption={renderOption || defaultRenderOption}
       loading={loading}
       loadingText={loadingText}

@@ -2,6 +2,7 @@ import React from "react";
 import BudgetOverviewSkeleton from "./BudgetOverviewSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMediaQuery } from "@mui/material";
 import EmptyStateCard from "../../components/EmptyStateCard";
 
 // Flexible BudgetOverview component
@@ -14,6 +15,8 @@ import EmptyStateCard from "../../components/EmptyStateCard";
 //  onManageBudgets: callback
 //  maxItems: number (default 4)
 //  mode: 'auto' | 'list' | 'summary' - auto chooses based on provided props
+//  sectionType: 'full' | 'half' | 'bottom' - layout type for responsive sizing
+//  isCompact: boolean - if true, uses compact layout
 const BudgetOverview = ({
   budgets = [],
   remainingBudget,
@@ -22,12 +25,28 @@ const BudgetOverview = ({
   onManageBudgets,
   maxItems = 4,
   mode = "auto",
+  sectionType = "bottom",
+  isCompact = false,
 }) => {
   const { colors } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
-  if (loading) return <BudgetOverviewSkeleton count={maxItems} />;
+  // Adjust maxItems based on layout type - only reduce for truly compact (half) layouts
+  const effectiveMaxItems =
+    sectionType === "half" ? Math.min(maxItems, 3) : maxItems;
+  // Only apply compact styling for half-width layout
+  const useCompactStyle = sectionType === "half";
+
+  if (loading)
+    return (
+      <BudgetOverviewSkeleton
+        count={effectiveMaxItems}
+        isCompact={useCompactStyle}
+      />
+    );
 
   const hasList = Array.isArray(budgets) && budgets.length > 0;
   const hasSummaryValues = remainingBudget != null || totalLosses != null;
@@ -53,7 +72,9 @@ const BudgetOverview = ({
     const budgetUsed = denominator > 0 ? (absRemain / denominator) * 100 : 0;
     return (
       <div
-        className="budget-overview summary"
+        className={`budget-overview summary section-layout-${sectionType} ${
+          useCompactStyle ? "compact" : ""
+        } ${isMobile ? "mobile" : ""} ${isTablet && !isMobile ? "tablet" : ""}`}
         style={{
           backgroundColor: colors.secondary_bg,
           border: `1px solid ${colors.border_color}`,
@@ -181,10 +202,12 @@ const BudgetOverview = ({
   }
 
   // List mode
-  const list = budgets.slice(0, maxItems);
+  const list = budgets.slice(0, effectiveMaxItems);
   return (
     <div
-      className="budget-overview list"
+      className={`budget-overview list section-layout-${sectionType} ${
+        useCompactStyle ? "compact" : ""
+      }`}
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,

@@ -6,6 +6,7 @@ import {
   buildStackedChartData,
   deterministicColor,
 } from "../utils/stackedChartUtils";
+import { useTranslation } from "./useTranslation";
 
 const createDefaultRangeOffsets = () => ({
   week: 0,
@@ -30,7 +31,7 @@ const VALID_FLOW_TABS = new Set(["all", "inflow", "outflow"]);
 const getPaymentMethodFlowViewStorageKey = (
   friendId,
   isFriendView,
-  ownerId
+  ownerId,
 ) => {
   const ownerSegment = ownerId ? `owner-${ownerId}` : "owner-unknown";
   const scope = isFriendView ? `friend-${friendId || "unknown"}` : "self";
@@ -60,7 +61,7 @@ const sanitizeViewState = (incomingState = buildDefaultViewState()) => {
     offset:
       typeof state.offset === "number" && Number.isFinite(state.offset)
         ? state.offset
-        : sanitizedOffsets[activeRange] ?? 0,
+        : (sanitizedOffsets[activeRange] ?? 0),
     flowTab: VALID_FLOW_TABS.has(state.flowTab)
       ? state.flowTab
       : VIEW_STATE_DEFAULTS.flowTab,
@@ -110,21 +111,22 @@ export default function usePaymentMethodFlowData({
   search,
 }) {
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const { user } = useSelector((s) => s.auth || {});
   const ownerIdRaw =
     user?.id ?? user?._id ?? user?.userId ?? user?.user_id ?? null;
   const ownerId = ownerIdRaw == null ? null : String(ownerIdRaw);
   const storageKey = useMemo(
     () => getPaymentMethodFlowViewStorageKey(friendId, isFriendView, ownerId),
-    [friendId, isFriendView, ownerId]
+    [friendId, isFriendView, ownerId],
   );
   const initialViewState = useMemo(
     () => readPersistedViewState(storageKey),
-    [storageKey]
+    [storageKey],
   );
   const [activeRange, setActiveRange] = useState(initialViewState.activeRange);
   const [rangeOffsets, setRangeOffsets] = useState(
-    initialViewState.rangeOffsets || createDefaultRangeOffsets()
+    initialViewState.rangeOffsets || createDefaultRangeOffsets(),
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
   const { paymentMethodExpenses, paymentMethodFlowOwnerId, loading } =
@@ -187,11 +189,11 @@ export default function usePaymentMethodFlowData({
     previousStorageKeyRef.current = storageKey;
     const persisted = readPersistedViewState(storageKey);
     setActiveRange((prev) =>
-      prev === persisted.activeRange ? prev : persisted.activeRange
+      prev === persisted.activeRange ? prev : persisted.activeRange,
     );
     setRangeOffsets(persisted.rangeOffsets || createDefaultRangeOffsets());
     setFlowTab((prev) =>
-      prev === persisted.flowTab ? prev : persisted.flowTab
+      prev === persisted.flowTab ? prev : persisted.flowTab,
     );
     hydratedStorageKeyRef.current = storageKey;
   }, [storageKey]);
@@ -204,14 +206,14 @@ export default function usePaymentMethodFlowData({
       targetId: isFriendView ? friendId : undefined,
       ownerId,
     }),
-    [activeRange, offset, flowTab, isFriendView, friendId, ownerId]
+    [activeRange, offset, flowTab, isFriendView, friendId, ownerId],
   );
 
   useEffect(() => {
     dispatch(
       fetchPaymentMethodsWithExpenses({
         ...requestDescriptor,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -220,7 +222,7 @@ export default function usePaymentMethodFlowData({
       fetchPaymentMethodsWithExpenses({
         ...requestDescriptor,
         forceRefetch: true,
-      })
+      }),
     );
   }, [dispatch, requestDescriptor]);
 
@@ -246,8 +248,9 @@ export default function usePaymentMethodFlowData({
           const expenses = Array.isArray(pm?.expenses) ? pm.expenses : [];
           expenses.forEach((e) => {
             if (!e) return;
-            const details = e.details || e;
-            const amt = Number(details.amount || e.amount || 0);
+            const details = e.expense || e.details || e;
+            const rawAmount = details.amount ?? details.netAmount ?? e.amount;
+            const amt = Math.abs(Number(rawAmount || 0));
             const type = (details.type || e.type || "").toLowerCase();
             if (["gain", "income", "inflow"].includes(type)) inflow += amt;
             else outflow += amt;
@@ -278,7 +281,9 @@ export default function usePaymentMethodFlowData({
       totalAmount: m.totalAmount,
       expenseCount: m.expenseCount || 0,
       color: m.color || deterministicColor(m.name),
+      icon: m.icon || "",
       expenses: m.expenses || [],
+      entityType: "paymentMethod",
     }));
     return {
       pieData: methods.map((pm) => ({
@@ -300,11 +305,16 @@ export default function usePaymentMethodFlowData({
         keyPrefix: "pm",
         colorAccessor: (name, entity) =>
           entity?.color || deterministicColor(name),
+        iconAccessor: (name, entity) => entity?.icon || name,
+        entityType: "paymentMethod",
       }),
-    [effectivePaymentMethodExpenses, activeRange, offset]
+    [effectivePaymentMethodExpenses, activeRange, offset],
   );
 
-  const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod");
+  const rangeLabel = getRangeLabel(activeRange, offset, "paymentMethod", {
+    t,
+    entityPlural: t("flows.entities.paymentMethod.plural"),
+  });
 
   return {
     activeRange,

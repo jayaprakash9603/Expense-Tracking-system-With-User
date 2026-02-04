@@ -8,6 +8,7 @@ import CategoryFlowChart from "../../components/categoryflow/CategoryFlowChart";
 import { formatCompactNumber } from "../../utils/numberFormatters";
 import CreateCategory from "./CreateCategory";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "../../hooks/useTranslation";
 
 const CategoryFlow = () => {
   // Acquire params & local searchable state BEFORE invoking data hook
@@ -35,6 +36,7 @@ const CategoryFlow = () => {
     refreshCategoryFlow,
   } = useCategoryFlowData({ friendId, isFriendView, search });
   const dispatch = useDispatch();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   // Back button appears if navigated from another flow (location.state.fromFlow) or in friend view.
@@ -72,14 +74,14 @@ const CategoryFlow = () => {
         expensesMap: categoryExpenses,
       }}
       entityConfig={{
-        singular: "Category",
-        plural: "categories",
+        singular: t("flows.entities.category.singular"),
+        plural: t("flows.entities.category.plural"),
         idKey: "categoryId",
         nameKey: "categoryName",
         routeBase: "category-flow",
         addNewOptions: [
           {
-            label: "Add Category",
+            label: t("cashflow.addNew.options.addCategory"),
             route:
               friendId && friendId !== "undefined"
                 ? `/category-flow/create/${friendId}`
@@ -87,7 +89,7 @@ const CategoryFlow = () => {
             color: "#00DAC6",
           },
           {
-            label: "Upload File",
+            label: t("cashflow.addNew.options.uploadFile"),
             route:
               friendId && friendId !== "undefined"
                 ? `/upload/categories${friendId}`
@@ -99,18 +101,38 @@ const CategoryFlow = () => {
           {
             path: "/category-flow/reports",
             icon: "report.png",
-            label: "Reports",
+            label: t("navigation.reports"),
           },
-          { path: "/budget", icon: "budget.png", label: "Budget" },
-          { path: "/expenses", icon: "save-money.png", label: "Expenses" },
+          {
+            path:
+              friendId && friendId !== "undefined"
+                ? `/category-flow/calendar/${friendId}`
+                : "/category-flow/calendar",
+            icon: "calendar.png",
+            label: t("cashflow.nav.calendar"),
+          },
+          {
+            path: "/budget",
+            icon: "budget.png",
+            label: t("cashflow.nav.budget"),
+          },
+          {
+            path: "/expenses",
+            icon: "save-money.png",
+            label: t("navigation.expenses"),
+          },
           {
             path: "/payment-method",
             icon: "payment-method.png",
-            label: "Payments",
+            label: t("navigation.payments"),
           },
-          { path: "/bill", icon: "bill.png", label: "Bill" },
+          {
+            path: "/bill",
+            icon: "bill.png",
+            label: t("navigation.bill"),
+          },
         ],
-        deletionConfirmText: "Are you sure you want to delete this category?",
+        deletionConfirmText: t("flows.confirmations.deleteCategory"),
       }}
       chartComponent={CategoryFlowChart}
       formatCompactNumber={formatCompactNumber}
@@ -120,7 +142,7 @@ const CategoryFlow = () => {
       createDialog={{
         open: createCategoryModalOpen,
         setOpen: setCreateCategoryModalOpen,
-        title: "Create Category",
+        title: t("flows.categoryFlow.createDialogTitle"),
         Component: CreateCategory,
         onCreated: () => {},
       }}

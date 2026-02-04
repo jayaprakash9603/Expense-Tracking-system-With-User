@@ -1,10 +1,24 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box, Grid, Card, Typography } from "@mui/material";
 import "./PaymentMethodAccordion.css";
 import GenericAccordionGroup, {
   GenericAccordionGroup as Generic,
 } from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
+import { useTheme } from "../hooks/useTheme";
+
+const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
+const getNormalizedType = (row) => {
+  const details = getExpenseDetails(row);
+  return String(details?.type || row?.type || "")
+    .trim()
+    .toLowerCase();
+};
+const getNormalizedAmount = (row) => {
+  const details = getExpenseDetails(row);
+  return details?.amount ?? details?.netAmount ?? row?.amount ?? 0;
+};
 
 /**
  * Generic accordion group component for displaying grouped expenses by a key (e.g. payment method).
@@ -53,12 +67,31 @@ export default function PaymentMethodAccordionGroup({
   pageSizeOptions = [5, 10, 20, 50],
 }) {
   const settings = useUserSettings();
+  const { colors } = useTheme();
+  const navigate = useNavigate();
   const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+
+  // Navigate to view expense page
+  const handleNameClick = useCallback(
+    (e, expenseId) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (expenseId) {
+        navigate(`/expenses/view/${expenseId}`);
+      }
+    },
+    [navigate],
+  );
+
+  // Generate full URL for tooltip
+  const getViewExpenseUrl = useCallback((expenseId) => {
+    return `${window.location.origin}/expenses/view/${expenseId}`;
+  }, []);
 
   // Compute grand total for percentage calculation
   const grandTotal = methods.reduce(
     (sum, m) => sum + Number(m.totalAmount || 0),
-    0
+    0,
   );
   const groups = methods.map((m) => {
     const count =
@@ -83,25 +116,45 @@ export default function PaymentMethodAccordionGroup({
       key: "name",
       label: "Name",
       width: "270px",
-      value: (row) => row.details?.expenseName || "-",
+      value: (row) => getExpenseDetails(row)?.expenseName || "-",
+      render: (val, row) => {
+        const expenseId = row?.id || row?.details?.id || row?.expense?.id;
+        if (!expenseId) return val || "-";
+        return (
+          <span
+            title={getViewExpenseUrl(expenseId)}
+            onClick={(e) => handleNameClick(e, expenseId)}
+            style={{
+              color: colors.primary_text,
+              cursor: "pointer",
+              transition: "text-decoration 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.textDecoration = "underline";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.textDecoration = "none";
+            }}
+          >
+            {val || "-"}
+          </span>
+        );
+      },
     },
     {
       key: "amount",
       label: "Amount",
       width: "100px",
       value: (row) => {
-        const amt = row.details?.amount ?? row.details?.netAmount ?? 0;
-        return amt;
+        return getNormalizedAmount(row);
       },
-      sortValue: (row) =>
-        Number(row.details?.amount ?? row.details?.netAmount ?? 0),
+      sortValue: (row) => Number(getNormalizedAmount(row) ?? 0),
       className: (row) => {
-        const rawType = (row?.details?.type || "").toLowerCase();
+        const rawType = getNormalizedType(row);
         if (rawType === "loss") return "pm-negative";
-        if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(
-          row?.details?.amount ?? row?.details?.netAmount ?? 0
-        );
+        if (rawType === "gain" || rawType === "profit" || rawType === "income")
+          return "pm-positive";
+        const amt = Number(getNormalizedAmount(row) ?? 0);
         return amt < 0 ? "pm-negative" : "pm-positive";
       },
     },
@@ -109,28 +162,31 @@ export default function PaymentMethodAccordionGroup({
       key: "payment",
       label: "Payment",
       width: "200px",
-      value: (row) => row.details?.paymentMethod,
+      value: (row) => getExpenseDetails(row)?.paymentMethod,
     },
     {
       key: "creditDue",
       label: "Credit Due",
       width: "110px",
       value: (row) =>
-        row.details?.creditDue != null ? row.details.creditDue : "-",
-      sortValue: (row) => Number(row.details?.creditDue ?? 0),
+        getExpenseDetails(row)?.creditDue != null
+          ? getExpenseDetails(row).creditDue
+          : "-",
+      sortValue: (row) => Number(getExpenseDetails(row)?.creditDue ?? 0),
     },
     {
       key: "comments",
       label: "Comments",
-      value: (row) => row.details?.comments || "",
+      value: (row) => getExpenseDetails(row)?.comments || "",
     },
   ];
 
   const classify = (row) => {
-    const rawType = (row?.details?.type || "").toLowerCase();
+    const rawType = getNormalizedType(row);
     if (rawType === "loss") return "loss";
-    if (rawType === "gain" || rawType === "profit") return "profit";
-    const amt = Number(row?.details?.amount ?? row?.details?.netAmount ?? 0);
+    if (rawType === "gain" || rawType === "profit" || rawType === "income")
+      return "profit";
+    const amt = Number(getNormalizedAmount(row) ?? 0);
     if (amt < 0) return "loss";
     if (amt > 0) return "profit";
     return "all";
@@ -142,6 +198,11 @@ export default function PaymentMethodAccordionGroup({
         groups={groups}
         currencySymbol={displayCurrency}
         defaultOpen={defaultOpen}
+        enableGroupSearch
+        enableGroupSort
+        enableRowSearch
+        enableRowSortControls
+        enableSelection
         classify={classify}
         onToggle={onToggle}
         rowRender={

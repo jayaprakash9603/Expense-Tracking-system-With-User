@@ -1,5 +1,4 @@
 services:
-
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -13,7 +12,7 @@ services:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
       retries: 10
 
@@ -32,43 +31,34 @@ services:
       retries: 5
 
   zookeeper:
-
     image: confluentinc/cp-zookeeper:7.6.1
 
     environment:
-
       ZOOKEEPER_CLIENT_PORT: 2181
 
       ZOOKEEPER_TICK_TIME: 2000
 
     ports:
-
       - "2181:2181"
 
     networks:
-
       - expense-net
 
     healthcheck:
-
       test: echo srvr | nc localhost 2181 || exit 1
 
       interval: 10s
 
       retries: 10
- 
-  kafka:
 
+  kafka:
     image: confluentinc/cp-kafka:7.6.1
 
     depends_on:
-
       zookeeper:
-
         condition: service_healthy
 
     environment:
-
       KAFKA_BROKER_ID: 1
 
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -84,25 +74,20 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
     ports:
-
       - "9092:9092"
 
     networks:
-
       - expense-net
 
     restart: unless-stopped
- 
-  kafka-ui:
 
+  kafka-ui:
     image: provectuslabs/kafka-ui:latest
 
     ports:
-
       - "9080:8080"
 
     environment:
-
       KAFKA_CLUSTERS_0_NAME: local
 
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
@@ -110,33 +95,27 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
     networks:
-
       - expense-net
 
     depends_on:
-
       - kafka
- 
-  eureka-server:
 
+  eureka-server:
+    build: ./eureka-server
     image: jayaprakash9603/eureka-server:latest
 
     container_name: eureka-server
 
     ports:
-
       - "8761:8761"
 
     networks:
-
       - expense-net
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
     healthcheck:
-
       test: ["CMD-SHELL", "nc -z localhost 8761 || exit 1"]
 
       interval: 10s
@@ -148,28 +127,23 @@ services:
       start_period: 40s
 
     restart: unless-stopped
- 
-  gateway:
 
+  gateway:
     build: ./Gateway
     image: jayaprakash9603/gateway:latest
 
     container_name: gateway
 
     ports:
-
       - "8080:8080"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -194,6 +168,12 @@ services:
 
       - NOTIFICATION_SERVICE_URL=lb://NOTIFICATION-SERVICE
 
+      - SEARCH_SERVICE_URL=lb://SEARCH-SERVICE
+
+      - ANALYTICS_SERVICE_URL=lb://ANALYTICS-SERVICE
+
+      - EVENT_SERVICE_URL=lb://EVENT-SERVICE
+
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/gateway_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
 
       - SPRING_DATASOURCE_USERNAME=root
@@ -201,37 +181,30 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
 
     depends_on:
-
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   user-service:
-
+    build: ./user-service
     image: jayaprakash9603/user-service:latest
 
     container_name: user-service
 
     ports:
-
       - "6001:6001"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -243,33 +216,27 @@ services:
       - SPRING_DATASOURCE_PASSWORD=123456
 
     depends_on:
-
       eureka-server:
-
         condition: service_healthy
 
     restart: unless-stopped
 
   expense-service:
-
+    build: ./social-media-app
     image: jayaprakash9603/expense-service:latest
 
     container_name: expense-service
 
     ports:
-
       - "6000:6000"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -293,37 +260,30 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
     restart: unless-stopped
 
   payment-service:
-
+    build: ./Payment-method-Service
     image: jayaprakash9603/payment-service:latest
 
     container_name: payment-service
 
     ports:
-
       - "6006:6006"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -343,45 +303,36 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   bill-service:
-
+    build: ./Bill-Service
     image: jayaprakash9603/bill-service:latest
 
     container_name: bill-service
 
     ports:
-
       - "6007:6007"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -401,45 +352,36 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   category-service:
-
+    build: ./Category-Service
     image: jayaprakash9603/category-service:latest
 
     container_name: category-service
 
     ports:
-
       - "6008:6008"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -459,45 +401,36 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   budget-service:
-
+    build: ./Budget-Service
     image: jayaprakash9603/budget-service:latest
 
     container_name: budget-service
 
     ports:
-
       - "6005:6005"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -517,45 +450,36 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   friendship-service:
-
+    build: ./FriendShip-Service
     image: jayaprakash9603/friendship-service:latest
 
     container_name: friendship-service
 
     ports:
-
       - "6009:6009"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -573,45 +497,36 @@ services:
       - EXPENSE_SERVICE_URL=http://expense-service:6000
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
   notification-service:
-
+    build: ./Notification-Service
     image: jayaprakash9603/notification-service:latest
 
     container_name: notification-service
 
     ports:
-
       - "6003:6003"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -633,45 +548,78 @@ services:
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 
     depends_on:
-
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
-
         condition: service_started
 
     restart: unless-stopped
 
-  audit-service:
+  story-service:
+    build: ./Story-Service
+    image: jayaprakash9603/story-service:latest
 
+    container_name: story-service
+
+    ports:
+      - "6010:6010"
+
+    networks:
+      - expense-net
+
+    extra_hosts:
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/story_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+    depends_on:
+      kafka:
+        condition: service_started
+
+      eureka-server:
+        condition: service_healthy
+
+      mysql:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  audit-service:
+    build: ./Audit-Service
     image: jayaprakash9603/audit-service:latest
 
     container_name: audit-service
 
     ports:
-
       - "6004:6004"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -689,49 +637,88 @@ services:
       - EXPENSE_SERVICE_URL=http://expense-service:6000
 
     depends_on:
-
       mysql:
-
         condition: service_healthy
 
       kafka:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       expense-service:
+        condition: service_started
 
+    restart: unless-stopped
+
+  search-service:
+    build: ./Search-Service
+
+    image: jayaprakash9603/search-service:latest
+
+    container_name: search-service
+
+    ports:
+      - "7005:7005"
+
+    networks:
+      - expense-net
+
+    extra_hosts:
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_REDIS_HOST=redis
+
+      - SPRING_REDIS_PORT=6379
+
+      - EXPENSE_SERVICE_URL=http://expense-service:6000
+
+      - BUDGET_SERVICE_URL=http://budget-service:6005
+
+      - CATEGORY_SERVICE_URL=http://category-service:6008
+
+      - BILL_SERVICE_URL=http://bill-service:6007
+
+      - PAYMENT_SERVICE_URL=http://payment-service:6006
+
+      - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
+
+    depends_on:
+      redis:
+        condition: service_started
+
+      eureka-server:
+        condition: service_healthy
+
+      user-service:
         condition: service_started
 
     restart: unless-stopped
 
   chat-service:
-
+    build: ./Chat-Service
     image: jayaprakash9603/chat-service:latest
 
     container_name: chat-service
 
     ports:
-
       - "7001:7001"
 
     networks:
-
       - expense-net
 
     extra_hosts:
-
       - "host.docker.internal:10.230.34.43"
 
     environment:
-
       - SPRING_PROFILES_ACTIVE=docker
 
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -751,61 +738,143 @@ services:
       - FRIENDSHIP_SERVICE_URL=http://friendship-service:6009
 
     depends_on:
-
       mysql:
-
         condition: service_healthy
 
       redis:
-
         condition: service_started
 
       eureka-server:
-
         condition: service_healthy
 
       user-service:
-
         condition: service_started
 
       friendship-service:
+        condition: service_started
 
+    restart: unless-stopped
+
+  event-service:
+    build: ./Event-Service
+    image: jayaprakash9603/event-service:latest
+
+    container_name: event-service
+
+    ports:
+      - "7002:7002"
+
+    networks:
+      - expense-net
+
+    extra_hosts:
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/event_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+
+      - USER_SERVICE_URL=http://user-service:6001
+
+      - EXPENSE_SERVICE_URL=http://expense-service:6000
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+      kafka:
+        condition: service_started
+
+      eureka-server:
+        condition: service_healthy
+
+      user-service:
+        condition: service_started
+
+    restart: unless-stopped
+
+  analytics-service:
+    build: ./AnalyticsService
+    image: jayaprakash9603/analytics-service:latest
+
+    container_name: analytics-service
+
+    ports:
+      - "7004:7004"
+
+    networks:
+      - expense-net
+
+    extra_hosts:
+      - "host.docker.internal:10.230.34.43"
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/analytics_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+
+      - SPRING_DATASOURCE_USERNAME=root
+
+      - SPRING_DATASOURCE_PASSWORD=123456
+
+      - USER_SERVICE_URL=http://user-service:6001
+
+      - EXPENSE_SERVICE_URL=http://expense-service:6000
+
+      - BUDGET_SERVICE_URL=http://budget-service:6005
+
+      - CATEGORY_SERVICE_URL=http://category-service:6008
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+      eureka-server:
+        condition: service_healthy
+
+      user-service:
+        condition: service_started
+
+      expense-service:
         condition: service_started
 
     restart: unless-stopped
 
   frontend:
-
     image: jayaprakash9603/expense-tracker-frontend:latest
 
     container_name: expense-tracker-frontend
 
     ports:
-
       - "3000:80"
 
     networks:
-
       - expense-net
 
     environment:
-
       - REACT_APP_API_URL=http://gateway:8080
 
     depends_on:
-
       gateway:
-
         condition: service_started
 
     restart: unless-stopped
- 
-networks:
 
+networks:
   expense-net:
 
 volumes:
   mysql_data: {}
   #   external: true
   #   name: mysql_data_5000
- 

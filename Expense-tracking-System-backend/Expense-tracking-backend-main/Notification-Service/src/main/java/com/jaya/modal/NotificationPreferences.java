@@ -80,12 +80,20 @@ public class NotificationPreferences {
     private Boolean billServiceEnabled = true;
 
     @Builder.Default
+    @Column(name = "category_service_enabled", nullable = false)
+    private Boolean categoryServiceEnabled = true;
+
+    @Builder.Default
     @Column(name = "payment_method_service_enabled", nullable = false)
     private Boolean paymentMethodServiceEnabled = true;
 
     @Builder.Default
     @Column(name = "friend_service_enabled", nullable = false)
     private Boolean friendServiceEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_activity_service_enabled", nullable = false)
+    private Boolean friendActivityServiceEnabled = true;
 
     @Builder.Default
     @Column(name = "analytics_service_enabled", nullable = false)
@@ -188,6 +196,26 @@ public class NotificationPreferences {
     private Boolean paymentMethodRemovedEnabled = true;
 
     // ============================================
+    // CATEGORY SERVICE NOTIFICATIONS
+    // ============================================
+
+    @Builder.Default
+    @Column(name = "category_created_enabled", nullable = false)
+    private Boolean categoryCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "category_updated_enabled", nullable = false)
+    private Boolean categoryUpdatedEnabled = false;
+
+    @Builder.Default
+    @Column(name = "category_deleted_enabled", nullable = false)
+    private Boolean categoryDeletedEnabled = false;
+
+    @Builder.Default
+    @Column(name = "category_budget_exceeded_enabled", nullable = false)
+    private Boolean categoryBudgetExceededEnabled = true;
+
+    // ============================================
     // FRIEND SERVICE NOTIFICATIONS
     // ============================================
 
@@ -226,6 +254,70 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "user_unblocked_enabled", nullable = false)
     private Boolean userUnblockedEnabled = true;
+
+    // ============================================
+    // FRIEND ACTIVITY SERVICE NOTIFICATIONS
+    // ============================================
+
+    @Builder.Default
+    @Column(name = "friend_expense_created_enabled", nullable = false)
+    private Boolean friendExpenseCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_expense_updated_enabled", nullable = false)
+    private Boolean friendExpenseUpdatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_expense_deleted_enabled", nullable = false)
+    private Boolean friendExpenseDeletedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_category_created_enabled", nullable = false)
+    private Boolean friendCategoryCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_category_updated_enabled", nullable = false)
+    private Boolean friendCategoryUpdatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_category_deleted_enabled", nullable = false)
+    private Boolean friendCategoryDeletedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_bill_created_enabled", nullable = false)
+    private Boolean friendBillCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_bill_updated_enabled", nullable = false)
+    private Boolean friendBillUpdatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_bill_deleted_enabled", nullable = false)
+    private Boolean friendBillDeletedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_budget_created_enabled", nullable = false)
+    private Boolean friendBudgetCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_budget_updated_enabled", nullable = false)
+    private Boolean friendBudgetUpdatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_budget_deleted_enabled", nullable = false)
+    private Boolean friendBudgetDeletedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_payment_method_created_enabled", nullable = false)
+    private Boolean friendPaymentMethodCreatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_payment_method_updated_enabled", nullable = false)
+    private Boolean friendPaymentMethodUpdatedEnabled = true;
+
+    @Builder.Default
+    @Column(name = "friend_payment_method_deleted_enabled", nullable = false)
+    private Boolean friendPaymentMethodDeletedEnabled = true;
 
     // ============================================
     // ANALYTICS SERVICE NOTIFICATIONS

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { getEntityIcon } from "../../utils/iconMapping";
 
 // Generic tooltip for stacked flow charts (categories, payment methods, etc.)
 const FlowStackTooltip = ({
@@ -23,6 +24,7 @@ const FlowStackTooltip = ({
   accentColor = "#14b8a6",
   colors,
   currencySymbol = "₹",
+  barSegments = [],
 }) => {
   if (!active || !payload || !payload.length) return null;
   const nameMax = isMobile ? 110 : isTablet ? 150 : 180;
@@ -30,6 +32,12 @@ const FlowStackTooltip = ({
     .filter((p) => Number(p?.value) > 0)
     .sort((a, b) => Number(b.value) - Number(a.value));
   if (!items.length) return null;
+
+  const segmentByKey = barSegments.reduce((acc, seg) => {
+    if (seg?.key) acc[seg.key] = seg;
+    return acc;
+  }, {});
+
   return (
     <div
       style={{
@@ -55,55 +63,71 @@ const FlowStackTooltip = ({
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {items.map((item, idx) => (
-          <div
-            key={idx}
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
-          >
-            <span
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 2,
-                background: item?.color || "#5b7fff",
-                flexShrink: 0,
-              }}
-            />
+        {items.map((item, idx) => {
+          const seg = segmentByKey[item?.dataKey];
+          const iconKey = seg?.iconKey || item?.name;
+          const iconType = seg?.entityType || "category";
+          const iconColor = seg?.color || item?.color || "#5b7fff";
+
+          return (
             <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 10,
-                width: "100%",
-              }}
+              key={idx}
+              style={{ display: "flex", alignItems: "center", gap: 8 }}
             >
-              <div
-                title={item?.name}
+              <span
                 style={{
-                  maxWidth: nameMax,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: colors.secondary_text,
-                  fontSize: 12,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 6,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                {item?.name}
-              </div>
+                {getEntityIcon(iconType, iconKey, {
+                  sx: {
+                    color: iconColor,
+                    fontSize: "18px",
+                  },
+                })}
+              </span>
               <div
                 style={{
-                  fontWeight: 800,
-                  fontSize: 12,
-                  color: colors.primary_text,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  width: "100%",
                 }}
               >
-                {currencySymbol}
-                {formatCompactNumber(item?.value || 0)}
+                <div
+                  title={item?.name}
+                  style={{
+                    maxWidth: nameMax,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    color: colors.secondary_text,
+                    fontSize: 12,
+                  }}
+                >
+                  {item?.name}
+                </div>
+                <div
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 12,
+                    color: colors.primary_text,
+                  }}
+                >
+                  {currencySymbol}
+                  {formatCompactNumber(item?.value || 0)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -162,6 +186,7 @@ const FlowStackedChart = ({
               accentColor={accentColor}
               colors={colors}
               currencySymbol={currencySymbol}
+              barSegments={barSegments}
             />
           }
           wrapperStyle={{ zIndex: 9999 }}

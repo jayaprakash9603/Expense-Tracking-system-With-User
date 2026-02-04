@@ -4,6 +4,10 @@ import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchCashflowExpenses } from "../../Redux/Expenses/expense.action";
 import MonthlyCalendarView from "../../components/calendar/MonthlyCalendarView";
+import { getFinanceCalendarColors } from "../../config/financeColorTokens";
+import { useTheme } from "../../hooks/useTheme";
+import { api } from "../../config/api";
+import { getSpendingMomentumInsight } from "../../utils/spendingMomentum/spendingMomentum";
 
 const CalendarView = () => {
   const dispatch = useDispatch();
@@ -11,6 +15,10 @@ const CalendarView = () => {
   const navigate = useNavigate();
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
+  const { mode } = useTheme();
+  const financeColors = getFinanceCalendarColors(mode);
+
+  const [momentumExpenses, setMomentumExpenses] = React.useState([]);
 
   // Fetch cashflow expenses for the selected month
   React.useEffect(() => {
@@ -21,9 +29,47 @@ const CalendarView = () => {
         flowType: null,
         targetId: friendId || undefined,
         groupBy: false,
-      })
+      }),
     );
   }, [dispatch, monthOffset, friendId]);
+
+  // Fetch last two weeks of expenses for Spending Momentum (always anchored to today).
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const fetchMomentum = async () => {
+      try {
+        const to = dayjs().format("YYYY-MM-DD");
+        const from = dayjs().subtract(20, "day").format("YYYY-MM-DD");
+
+        const { data } = await api.get("/api/expenses/fetch-expenses-by-date", {
+          params: {
+            from,
+            to,
+            targetId: friendId || undefined,
+          },
+        });
+
+        if (!cancelled) {
+          setMomentumExpenses(Array.isArray(data) ? data : []);
+        }
+      } catch (e) {
+        if (!cancelled) setMomentumExpenses([]);
+      }
+    };
+
+    fetchMomentum();
+    return () => {
+      cancelled = true;
+    };
+  }, [friendId]);
+
+  const momentumInsight = useMemo(() => {
+    return getSpendingMomentumInsight({
+      items: momentumExpenses,
+      now: dayjs(),
+    });
+  }, [momentumExpenses]);
 
   // Group expenses by day and calculate spending/income
   const daysData = useMemo(() => {
@@ -72,20 +118,22 @@ const CalendarView = () => {
     <MonthlyCalendarView
       title="Calendar View"
       data={daysData}
+      momentumInsight={momentumInsight}
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}
+      showHeatmapModeToggle={true}
       summaryConfig={{
         spendingLabel: "Spending",
         incomeLabel: "Income",
         spendingKey: "spending",
         incomeKey: "income",
-        spendingColor: "#cf667a",
-        incomeColor: "#437746",
-        spendingIconColor: "#e2a4af",
-        incomeIconColor: "#84ba86",
-        spendingTextColor: "#e6a2af",
-        incomeTextColor: "#83b985",
+        spendingColor: financeColors.spending.base,
+        incomeColor: financeColors.income.base,
+        spendingIconColor: financeColors.spending.icon,
+        incomeIconColor: financeColors.income.icon,
+        spendingTextColor: financeColors.spending.text,
+        incomeTextColor: financeColors.income.text,
       }}
       initialDate={dayjs()}
       initialOffset={0}

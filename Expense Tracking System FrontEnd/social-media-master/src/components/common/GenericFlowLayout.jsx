@@ -69,13 +69,20 @@ const GenericFlowLayout = ({
     navItems,
     showBackButton,
     onPageBack,
+    autocompleteOptions = [],
   },
   components: {
     ChartComponent,
     CardsComponent,
     SummaryBar,
     DeleteSelectedButton,
+    ShareSelectedButton,
   },
+  // Extra props passed through to individual components
+  cardsExtraProps = {},
+  summaryExtraProps = {},
+  deleteButtonExtraProps = {},
+  shareButtonExtraProps = {},
   formatters: { formatCompactNumber, formatCurrencyCompact, formatNumberFull },
 }) => {
   const { colors } = useTheme();
@@ -130,10 +137,21 @@ const GenericFlowLayout = ({
           zIndex: 5,
         }}
       >
+        {ShareSelectedButton && (
+          <ShareSelectedButton
+            count={shareButtonExtraProps.count ?? selectedCardIdx.length}
+            selectedItems={shareButtonExtraProps.selectedItems ?? []}
+            resourceType={shareButtonExtraProps.resourceType ?? "EXPENSE"}
+            returnRouteState={shareButtonExtraProps.returnRouteState ?? null}
+          />
+        )}
         <DeleteSelectedButton
-          count={selectedCardIdx.length}
+          count={deleteButtonExtraProps.count ?? selectedCardIdx.length}
           isMobile={isMobile}
-          hasWriteAccess={hasWriteAccess}
+          hasWriteAccess={
+            deleteButtonExtraProps.hasWriteAccess ?? hasWriteAccess
+          }
+          onDelete={deleteButtonExtraProps.onDelete}
         />
         <FlowToggleButton
           flowTab={flowTab}
@@ -152,6 +170,7 @@ const GenericFlowLayout = ({
         selectedBarsLength={selectedBars.length}
         isMobile={isMobile}
         clearSelection={clearSelection}
+        {...summaryExtraProps}
       />
       <RangePeriodNavigator
         showBackButton={showBackButton}
@@ -224,6 +243,7 @@ const GenericFlowLayout = ({
         placeholder={t("cashflow.searchPlaceholder")}
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
+        autocompleteOptions={autocompleteOptions}
       />
       <SortPopover
         open={popoverOpen}
@@ -249,6 +269,7 @@ const GenericFlowLayout = ({
         formatNumberFull={formatNumberFull}
         friendId={friendId}
         isFriendView={isFriendView}
+        {...cardsExtraProps}
       />
       <style>{`
 				.custom-scrollbar::-webkit-scrollbar { 
@@ -260,8 +281,8 @@ const GenericFlowLayout = ({
             flowTab === "outflow"
               ? "#ff4d4f"
               : flowTab === "inflow"
-              ? "#06d6a0"
-              : "#5b7fff"
+                ? "#06d6a0"
+                : "#5b7fff"
           }; 
           border-radius: 6px; 
         }

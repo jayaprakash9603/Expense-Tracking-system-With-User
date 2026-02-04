@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { createFilterOptions } from "@mui/material/Autocomplete";
+import { Box } from "@mui/material";
 import ReusableAutocomplete from "./ReusableAutocomplete";
 import usePaymentMethods from "../hooks/usePaymentMethods";
 import { useTheme } from "../hooks/useTheme";
@@ -10,7 +10,9 @@ import {
   getPaymentMethodDisplayLabel,
   normalizePaymentMethod,
 } from "../utils/paymentMethodUtils";
-import { highlightText } from "../utils/highlightUtils";
+import { getPaymentMethodIcon } from "../utils/iconMapping";
+import HighlightedText from "./common/HighlightedText";
+import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
 
 /**
  * PaymentMethodAutocomplete - A reusable payment method selection component
@@ -60,17 +62,13 @@ const PaymentMethodAutocomplete = ({
 }) => {
   const { colors } = useTheme();
 
-  // Custom filter options for better search with spaces
-  const filterOptions = createFilterOptions({
-    matchFrom: "any",
-    stringify: (option) => {
-      // Combine label and value for searching, remove extra spaces
-      const label = (option.label || "").toLowerCase().trim();
-      const value = (option.value || "").toLowerCase().trim();
-      return `${label} ${value}`;
-    },
-    trim: true,
-  });
+  // Fuzzy filter that searches both label and value
+  const filterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: (opt) => opt?.label || "",
+      getOptionSearchText: (opt) => `${opt?.label || ""} ${opt?.value || ""}`,
+    });
+  }, []);
 
   // Use custom hook for payment method management
   const {
@@ -95,34 +93,61 @@ const PaymentMethodAutocomplete = ({
     }
   };
 
-  // Custom render option with highlighting
-  const renderOption = (props, option, { inputValue }) => (
-    <li
-      {...props}
-      style={{
-        fontSize: size === "small" ? "0.875rem" : "0.92rem",
-        paddingTop: 4,
-        paddingBottom: 12,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        maxWidth: 300,
-      }}
-      title={option.label}
-    >
-      {highlightText(option.label, inputValue)}
-    </li>
-  );
+  // Custom render option with highlighting and icon
+  const renderOption = (props, option, { inputValue }) => {
+    // Get icon from original payment method object
+    const iconKey = option?.original?.icon || option?.value || "";
+    const iconColor = option?.original?.color || colors.secondary_accent;
+
+    return (
+      <li
+        {...props}
+        style={{
+          fontSize: size === "small" ? "0.875rem" : "0.92rem",
+          paddingTop: 4,
+          paddingBottom: 12,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: 300,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+        title={option.label}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 24,
+            height: 24,
+            flexShrink: 0,
+          }}
+        >
+          {getPaymentMethodIcon(iconKey, {
+            sx: { color: iconColor, fontSize: 20 },
+          })}
+        </Box>
+        <HighlightedText
+          text={option.label}
+          query={inputValue}
+          title={option.label}
+        />
+      </li>
+    );
+  };
 
   const noOptionsText = paymentMethodsLoading
     ? "Loading payment methods..."
     : paymentMethodsError
-    ? "Error loading payment methods"
-    : transactionType
-    ? `No ${
-        transactionType === "loss" ? "expense" : "income"
-      } payment methods available`
-    : "No payment methods available";
+      ? "Error loading payment methods"
+      : transactionType
+        ? `No ${
+            transactionType === "loss" ? "expense" : "income"
+          } payment methods available`
+        : "No payment methods available";
 
   return (
     <div style={{ width: "100%", maxWidth: "300px" }}>
@@ -157,6 +182,33 @@ const PaymentMethodAutocomplete = ({
         size={size}
         autoFocus={autoFocus}
         sx={sx}
+        startAdornment={
+          selectedPaymentMethod ? (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mr: 0.5,
+                ml: -0.5,
+              }}
+            >
+              {getPaymentMethodIcon(
+                selectedPaymentMethod.original?.icon ||
+                  selectedPaymentMethod.value ||
+                  "",
+                {
+                  sx: {
+                    color:
+                      selectedPaymentMethod.original?.color ||
+                      colors.secondary_accent,
+                    fontSize: 20,
+                  },
+                },
+              )}
+            </Box>
+          ) : null
+        }
       />
       {paymentMethodsError && !helperText && (
         <div

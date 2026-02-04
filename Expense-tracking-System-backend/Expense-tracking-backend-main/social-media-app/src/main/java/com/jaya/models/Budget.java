@@ -34,7 +34,6 @@ public class Budget {
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate endDate;
 
-
     @Column(name = "budget_user_id")
     private Integer userId = 0;
 
@@ -47,7 +46,40 @@ public class Budget {
     @Column(nullable = false)
     private boolean includeInBudget = false;
 
+    // Notification tracking flags - to prevent duplicate notifications
+    @Column(nullable = false)
+    private boolean notification50PercentSent = false;
+
+    @Column(nullable = false)
+    private boolean notification80PercentSent = false;
+
+    @Column(nullable = false)
+    private boolean notification100PercentSent = false;
+
+    @Column(nullable = false)
+    private int editCount = 0;
+
+    @Column(nullable = false)
+    private boolean isEdited = false;
+
     public void deductAmount(double expenseAmount) {
         this.amount -= expenseAmount;
+    }
+
+    /**
+     * Resets notification flags when budget usage decreases below thresholds.
+     * Called when expenses are removed or budget amount is increased.
+     */
+    public void resetNotificationFlags(double currentPercentage) {
+        if (currentPercentage < 50.0) {
+            this.notification50PercentSent = false;
+            this.notification80PercentSent = false;
+            this.notification100PercentSent = false;
+        } else if (currentPercentage < 80.0) {
+            this.notification80PercentSent = false;
+            this.notification100PercentSent = false;
+        } else if (currentPercentage < 100.0) {
+            this.notification100PercentSent = false;
+        }
     }
 }

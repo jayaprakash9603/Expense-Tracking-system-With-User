@@ -37,8 +37,8 @@ const MonthlyTrendChart = ({
   const currentYear = new Date().getFullYear();
   const isAtCurrentYear = year >= currentYear;
   const isMobile = useMediaQuery("(max-width:600px)");
-  const isTablet = useMediaQuery("(max-width:1024px)");
-  const chartHeight = isMobile ? 260 : isTablet ? 380 : 480;
+  const isTablet = useMediaQuery("(max-width:900px)");
+  const chartHeight = isMobile ? 240 : isTablet ? 320 : 480;
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 

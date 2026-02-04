@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
 import {
   Autocomplete,
@@ -15,6 +15,8 @@ import {
 } from "@mui/material";
 import { API_BASE_URL } from "../../config/api";
 import { expensesTypesEmail } from "../Input Fields/InputFields";
+import HighlightedText from "../../components/common/HighlightedText";
+import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
 
 const AuditEmail = () => {
   const [logTypes] = useState(expensesTypesEmail);
@@ -175,29 +177,11 @@ const AuditEmail = () => {
     setEmail("");
   };
 
-  const highlightText = (option, inputValue) => {
-    if (!inputValue) return <div>{option}</div>;
-
-    const regex = new RegExp(
-      `(${inputValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-      "gi"
-    );
-    const parts = option.split(regex);
-
-    return (
-      <div>
-        {parts.map((part, index) =>
-          regex.test(part) ? (
-            <span key={index} style={{ fontWeight: "bold", color: "#00dac6" }}>
-              {part}
-            </span>
-          ) : (
-            <span key={index}>{part}</span>
-          )
-        )}
-      </div>
-    );
-  };
+  const filterOptions = useMemo(() => {
+    return createFuzzyFilterOptions({
+      getOptionLabel: (opt) => opt || "",
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -225,7 +209,18 @@ const AuditEmail = () => {
       }}
     >
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            backgroundColor: "rgba(244, 67, 54, 0.12)",
+            border: "1px solid rgba(244, 67, 54, 0.3)",
+            color: "#fff",
+            "& .MuiAlert-icon": {
+              color: "#f44336",
+            },
+          }}
+        >
           {error}
         </Alert>
       )}
@@ -266,6 +261,7 @@ const AuditEmail = () => {
           loading={loadingSuggestions}
           loadingText="Loading"
           noOptionsText="No Data Found"
+          filterOptions={filterOptions}
           openOnFocus
           sx={{ width: "100%", maxWidth: 600 }}
           renderInput={(params) => (
@@ -291,7 +287,11 @@ const AuditEmail = () => {
             const { key, ...optionProps } = props;
             return (
               <li key={key} {...optionProps}>
-                {highlightText(option, inputValue)}
+                <HighlightedText
+                  text={option}
+                  query={inputValue}
+                  title={option}
+                />
               </li>
             );
           }}

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
-import ReactDOM from "react-dom";
+import React, { useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { useMediaQuery, Box, Typography, Paper, Stack } from "@mui/material";
 import {
   ResponsiveContainer,
   PieChart,
@@ -9,19 +9,19 @@ import {
   Cell,
   Tooltip,
   Legend,
-  Label,
+  Sector,
 } from "recharts";
-import PieChartTooltip from "../../components/charts/PieChartTooltip";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import EmptyStateCard from "../../components/EmptyStateCard";
+import { getEntityIcon } from "../../utils/iconMapping";
 
-// Generic reusable Pie/Donut chart component
+// Generic reusable Pie/Donut chart component with MUI tooltips
 // Props:
 //  title: string - header title
 //  data: array | object - raw data; normalization performed via normalize function if provided
 //  timeframe, onTimeframeChange: controls for timeframe selector
 //  flowType, onFlowTypeChange: controls for loss/gain toggle
-//  height: chart height (responsive container)
+//  height: chart height
 //  donut: boolean - whether to render innerRadius (donut) else standard pie
 //  colors: optional array of fill colors
 //  normalize: function(rawData) => { items: [{ name, value }], total }
@@ -52,6 +52,158 @@ const formatNumber0 = (v) =>
     minimumFractionDigits: 0,
   });
 
+const formatNumber2 = (v) =>
+  Number(v ?? 0).toLocaleString(undefined, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
+
+// Custom MUI-styled tooltip component
+const MuiPieTooltip = ({
+  active,
+  payload,
+  currencySymbol,
+  total,
+  themeColors,
+  entityType = "category",
+}) => {
+  if (!active || !payload || !payload.length) return null;
+
+  const item = payload[0];
+  const percentage = total > 0 ? (item.value / total) * 100 : 0;
+  const iconKey = item.payload?.icon || item.name || "";
+  const iconColor = item.payload?.fill || item.color || "#14b8a6";
+
+  return (
+    <Paper
+      elevation={8}
+      sx={{
+        p: 1.5,
+        backgroundColor: themeColors.secondary_bg,
+        border: `1px solid ${themeColors.border_color}`,
+        borderRadius: 2,
+        minWidth: 180,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+      }}
+    >
+      <Stack spacing={0.5}>
+        {/* Category name with icon */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: themeColors.primary_text,
+              fontWeight: 600,
+              fontSize: "0.9rem",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <span
+              style={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "1.1rem",
+              }}
+            >
+              {getEntityIcon(entityType, iconKey, {
+                sx: { color: iconColor, fontSize: "1.1rem" },
+              })}
+            </span>
+            {item.name}
+          </Typography>
+        </Box>
+
+        {/* Amount */}
+        <Typography
+          variant="h6"
+          sx={{
+            color: themeColors.primary_text,
+            fontWeight: 700,
+            pl: 3,
+            fontSize: "1.1rem",
+          }}
+        >
+          {currencySymbol}
+          {formatNumber2(item.value)}
+        </Typography>
+
+        {/* Percentage bar */}
+        <Box sx={{ pl: 3, pr: 1 }}>
+          <Box
+            sx={{
+              width: "100%",
+              height: 6,
+              backgroundColor: themeColors.border_color,
+              borderRadius: 3,
+              overflow: "hidden",
+            }}
+          >
+            <Box
+              sx={{
+                width: `${percentage}%`,
+                height: "100%",
+                backgroundColor: item.payload?.fill || item.color,
+                borderRadius: 3,
+                transition: "width 0.3s ease",
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Percentage text */}
+        <Typography
+          variant="body2"
+          sx={{
+            color: themeColors.secondary_text,
+            pl: 3,
+            fontSize: "0.85rem",
+          }}
+        >
+          {percentage.toFixed(1)}% of total
+        </Typography>
+      </Stack>
+    </Paper>
+  );
+};
+
+// Custom active shape for 3D-like hover effect
+const renderActiveShape = (props, themeColors) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } =
+    props;
+
+  return (
+    <g>
+      {/* Shadow layer */}
+      <Sector
+        cx={cx}
+        cy={cy + 4}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 8}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill="rgba(0,0,0,0.2)"
+      />
+      {/* Main highlighted segment */}
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 12}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        stroke={themeColors.primary_accent}
+        strokeWidth={2}
+        style={{
+          filter: "brightness(1.15) drop-shadow(0 4px 8px rgba(0,0,0,0.2))",
+        }}
+      />
+    </g>
+  );
+};
+
 const ReusablePieChart = ({
   title = "Pie Chart",
   data,
@@ -74,25 +226,14 @@ const ReusablePieChart = ({
   footerPrefix = "Total:",
   valuePrefix,
   skeleton = null,
+  entityType = "category",
 }) => {
   const { colors: themeColors, mode: themeMode } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = valuePrefix || settings.getCurrency().symbol;
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [legendTooltip, setLegendTooltip] = useState(null);
-  const chartRef = useRef(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const [isLegendHovered, setIsLegendHovered] = useState(false);
-  const tooltipTimeoutRef = useRef(null);
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-      }
-    };
-  }, []);
+  // Track active segment for highlighting
+  const [activeIndex, setActiveIndex] = useState(null);
 
   // Normalize data
   let normalized = { items: [], total: 0 };
@@ -106,17 +247,32 @@ const ReusablePieChart = ({
     if (Array.isArray(data)) {
       const total = data.reduce((s, it) => s + (Number(it.value) || 0), 0);
       normalized = {
-        items: data.map((d) => ({ name: d.name, value: Number(d.value) || 0 })),
+        items: data.map((d) => ({
+          name: d.name,
+          value: Number(d.value) || 0,
+          icon: d.icon || "",
+          color: d.color || "",
+        })),
         total,
       };
     } else if (data && typeof data === "object") {
-      // assume object shape with summary.categoryTotals
-      const totals = data.summary?.categoryTotals || {};
-      const items = Object.keys(totals).map((k) => ({
-        name: k,
-        value: Number(totals[k]) || 0,
-      }));
-      const total = Number(data.summary?.totalAmount || 0);
+      // API returns each category/payment method as a key with its details
+      // and a "summary" key with aggregated totals
+      const entityKeys = Object.keys(data).filter(
+        (k) => k !== "summary" && k !== "metadata",
+      );
+      const items = entityKeys.map((k) => {
+        const entityData = data[k] || {};
+        return {
+          name: k,
+          value: Number(entityData.totalAmount || 0),
+          icon: entityData.icon || "",
+          color: entityData.color || "",
+        };
+      });
+      const total = Number(
+        data.summary?.totalAmount || items.reduce((s, it) => s + it.value, 0),
+      );
       normalized = { items, total };
     }
   }
@@ -129,120 +285,46 @@ const ReusablePieChart = ({
     ...item,
     percentage: totalAmount > 0 ? (item.value / totalAmount) * 100 : 0,
   }));
+
   const showEmpty =
     !loading && (!pieDataWithPercentage.length || totalAmount === 0);
 
-  // Responsive radii fallback
-  const isMobile = window.matchMedia("(max-width:600px)").matches;
-  const isTablet = window.matchMedia("(max-width:1024px)").matches;
-  const defaultInner = donut ? (isMobile ? 60 : isTablet ? 80 : 100) : 0;
-  const defaultOuter = isMobile ? 110 : isTablet ? 150 : 180;
+  // Responsive radii - use MUI useMediaQuery for reactive updates
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+  const defaultInner = donut ? (isMobile ? 45 : isTablet ? 60 : 80) : 0;
+  const defaultOuter = isMobile ? 85 : isTablet ? 110 : 150;
   const iRadius = innerRadius ?? defaultInner;
   const oRadius = outerRadius ?? defaultOuter;
 
-  // Handle mouse enter on pie segment
-  const onPieEnter = (_, index) => {
-    // Clear any pending timeout immediately
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-      tooltipTimeoutRef.current = null;
-    }
+  // Handle mouse events
+  const onPieEnter = (_, index) => setActiveIndex(index);
+  const onPieLeave = () => setActiveIndex(null);
 
-    // Clear legend tooltip immediately when entering pie
-    setLegendTooltip(null);
-
-    // Only activate if legend is not being hovered
-    if (!isLegendHovered) {
-      setActiveIndex(index);
-    }
-  };
-
-  // Handle mouse leave
-  const onPieLeave = () => {
-    // Only clear if legend is not being hovered
-    if (!isLegendHovered) {
-      setActiveIndex(null);
-    }
-
-    // Always clear tooltip when leaving pie segment
-    setLegendTooltip(null);
-  };
-
-  // Handle legend hover - highlight the corresponding pie segment
   const handleLegendMouseEnter = (e) => {
-    // Clear any pending timeout
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-      tooltipTimeoutRef.current = null;
-    }
-
-    setIsLegendHovered(true);
-
     const index = pieDataWithPercentage.findIndex(
-      (item) => item.name === e.value
+      (item) => item.name === e.value,
     );
-    if (index !== -1) {
-      setActiveIndex(index);
-
-      // Calculate tooltip position relative to the viewport
-      if (chartRef.current) {
-        const rect = chartRef.current.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height * 0.4; // 40% from top
-
-        setTooltipPosition({ x: centerX, y: centerY });
-      }
-
-      // Create tooltip data for legend hover
-      setLegendTooltip({
-        active: true,
-        payload: [
-          {
-            name: pieDataWithPercentage[index].name,
-            value: pieDataWithPercentage[index].value,
-            payload: {
-              fill: colors[index % colors.length],
-              name: pieDataWithPercentage[index].name,
-              value: pieDataWithPercentage[index].value,
-            },
-          },
-        ],
-      });
-    }
+    if (index !== -1) setActiveIndex(index);
   };
 
-  const handleLegendMouseLeave = () => {
-    setIsLegendHovered(false);
+  const handleLegendMouseLeave = () => setActiveIndex(null);
 
-    // Add a very small delay before clearing to allow smooth transitions
-    tooltipTimeoutRef.current = setTimeout(() => {
-      setActiveIndex(null);
-      setLegendTooltip(null);
-    }, 1);
-  };
-
-  // Custom label renderer for segments (shows percentage on hover or for larger segments)
+  // Custom label renderer
   const renderCustomLabel = ({
     cx,
     cy,
     midAngle,
-    innerRadius,
     outerRadius,
     percent,
     index,
   }) => {
-    // Don't show label if tooltip is visible (legend is being hovered)
-    if (legendTooltip) return null;
-
-    // Only show label if segment is large enough (>5%) or is being hovered
     if (percent < 0.05 && activeIndex !== index) return null;
 
     const RADIAN = Math.PI / 180;
     const radius = outerRadius + 25;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    // Force the correct color based on theme
     const textColor = themeMode === "light" ? "#1a1a1a" : "#ffffff";
 
     return (
@@ -256,10 +338,10 @@ const ReusablePieChart = ({
           fontSize: isMobile ? "10px" : "12px",
           fontWeight: activeIndex === index ? 700 : 600,
           textShadow:
-            themeMode === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none", // Remove shadow entirely for light theme
+            themeMode === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none",
         }}
       >
-        {`${(percent * 100).toFixed(2)}%`}
+        {`${(percent * 100).toFixed(1)}%`}
       </text>
     );
   };
@@ -310,14 +392,10 @@ const ReusablePieChart = ({
       </div>
       {loading && skeleton ? (
         <div style={{ height }} className="chart-loading-wrapper">
-          {/* Body-only skeleton (header already rendered above) */}
           {skeleton}
         </div>
       ) : (
-        <div
-          ref={chartRef}
-          style={{ position: "relative", width: "100%", height }}
-        >
+        <Box sx={{ position: "relative", width: "100%", height }}>
           {showEmpty ? (
             <EmptyStateCard
               icon="📊"
@@ -329,13 +407,49 @@ const ReusablePieChart = ({
           ) : (
             <ResponsiveContainer width="100%" height={height}>
               <PieChart>
+                <defs>
+                  {/* Drop shadow filter for 3D effect */}
+                  <filter
+                    id="pieShadow"
+                    x="-20%"
+                    y="-20%"
+                    width="140%"
+                    height="140%"
+                  >
+                    <feDropShadow
+                      dx="0"
+                      dy="4"
+                      stdDeviation="4"
+                      floodColor="#000000"
+                      floodOpacity="0.15"
+                    />
+                  </filter>
+                  {/* Gradient definitions for each segment */}
+                  {pieDataWithPercentage.map((_, index) => (
+                    <linearGradient
+                      key={`gradient-${index}`}
+                      id={`pieGradient-${index}`}
+                      x1="0%"
+                      y1="0%"
+                      x2="0%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="#ffffff" stopOpacity={0.3} />
+                      <stop
+                        offset="100%"
+                        stopColor="#000000"
+                        stopOpacity={0.1}
+                      />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <Pie
                   data={pieDataWithPercentage}
                   cx="50%"
                   cy="50%"
                   innerRadius={iRadius}
                   outerRadius={oRadius}
-                  paddingAngle={2}
+                  paddingAngle={3}
                   dataKey="value"
                   onMouseEnter={onPieEnter}
                   onMouseLeave={onPieLeave}
@@ -345,39 +459,41 @@ const ReusablePieChart = ({
                     strokeWidth: 1,
                   }}
                   activeIndex={activeIndex}
-                  activeShape={{
-                    outerRadius: oRadius + 10,
-                    stroke: themeColors.primary_accent,
-                    strokeWidth: 2,
-                  }}
+                  activeShape={(props) => renderActiveShape(props, themeColors)}
+                  style={{ filter: "url(#pieShadow)" }}
                 >
                   {pieDataWithPercentage.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={colors[index % colors.length]}
-                      opacity={
-                        activeIndex === null || activeIndex === index ? 1 : 0.6
-                      }
+                      stroke={themeColors.secondary_bg}
+                      strokeWidth={2}
                       style={{
-                        filter:
-                          activeIndex === index ? "brightness(1.2)" : "none",
                         cursor: "pointer",
                         transition: "all 0.3s ease",
+                        opacity:
+                          activeIndex === null || activeIndex === index
+                            ? 1
+                            : 0.6,
                       }}
                     />
                   ))}
                 </Pie>
-                {!isLegendHovered && (
-                  <Tooltip
-                    content={(props) => (
-                      <PieChartTooltip {...props} data={rawData || data} />
-                    )}
-                    cursor={{ fill: "transparent" }}
-                    isAnimationActive={false}
-                    trigger="hover"
-                    allowEscapeViewBox={{ x: true, y: true }}
-                  />
-                )}
+                {/* MUI-styled Tooltip */}
+                <Tooltip
+                  content={(props) => (
+                    <MuiPieTooltip
+                      {...props}
+                      currencySymbol={currencySymbol}
+                      total={totalAmount}
+                      themeColors={themeColors}
+                      entityType={entityType}
+                    />
+                  )}
+                  cursor={{ fill: "transparent" }}
+                  isAnimationActive={false}
+                  wrapperStyle={{ zIndex: 1000, outline: "none" }}
+                />
                 {legend && (
                   <Legend
                     verticalAlign="bottom"
@@ -388,14 +504,42 @@ const ReusablePieChart = ({
                     }}
                     onMouseEnter={handleLegendMouseEnter}
                     onMouseLeave={handleLegendMouseLeave}
+                    iconSize={0}
+                    formatter={(value, entry) => {
+                      const iconKey = entry.payload?.icon || value || "";
+                      const iconColor =
+                        entry.payload?.fill || entry.color || "#14b8a6";
+                      return (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              fontSize: "1em",
+                            }}
+                          >
+                            {getEntityIcon(entityType, iconKey, {
+                              sx: { color: iconColor, fontSize: "1em" },
+                            })}
+                          </span>
+                          <span>{value}</span>
+                        </span>
+                      );
+                    }}
                   />
                 )}
               </PieChart>
             </ResponsiveContainer>
           )}
-        </div>
+        </Box>
       )}
-      {/* Render footer total only after data has loaded to avoid showing misleading 0 during skeleton */}
+      {/* Footer total */}
       {renderFooterTotal && !loading && !showEmpty && (
         <div
           className="total-amount total-amount-bottom"
@@ -405,28 +549,6 @@ const ReusablePieChart = ({
           {formatNumber0(totalAmount)}
         </div>
       )}
-
-      {/* Portal tooltip for legend hover - renders at body level to avoid z-index issues */}
-      {legendTooltip &&
-        ReactDOM.createPortal(
-          <div
-            style={{
-              position: "fixed",
-              top: `${tooltipPosition.y}px`,
-              left: `${tooltipPosition.x}px`,
-              transform: "translate(-50%, -50%)",
-              pointerEvents: "none",
-              zIndex: 10000,
-            }}
-          >
-            <PieChartTooltip
-              active={legendTooltip.active}
-              payload={legendTooltip.payload}
-              data={rawData || data}
-            />
-          </div>,
-          document.body
-        )}
     </div>
   );
 };

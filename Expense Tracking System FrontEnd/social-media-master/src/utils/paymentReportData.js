@@ -17,7 +17,15 @@ export const buildTxSizeBins = (methods = [], currencySymbol = "₹") => {
     const name = m.method;
     (m.expenses || []).forEach((e) => {
       const amt = Math.abs(
-        Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
+        Number(
+          e?.expense?.netAmount ??
+            e?.expense?.amount ??
+            e?.details?.netAmount ??
+            e?.details?.amount ??
+            e?.netAmount ??
+            e?.amount ??
+            0
+        )
       );
       const bin = bins.find((b) => amt >= b.min && amt < b.max);
       if (!bin) return;
@@ -28,24 +36,43 @@ export const buildTxSizeBins = (methods = [], currencySymbol = "₹") => {
   return result;
 };
 
+const getExpenseTypeLower = (expense) =>
+  String(
+    expense?.expense?.type ?? expense?.details?.type ?? expense?.type ?? ""
+  ).toLowerCase();
+
+const getExpenseAmountAbs = (expense) => {
+  const raw = Number(
+    expense?.expense?.netAmount ??
+      expense?.expense?.amount ??
+      expense?.details?.netAmount ??
+      expense?.details?.amount ??
+      expense?.netAmount ??
+      expense?.amount ??
+      0
+  );
+  return Math.abs(Number.isFinite(raw) ? raw : 0);
+};
+
+const getExpenseCategoryLabel = (expense) =>
+  expense?.details?.categoryName ||
+  expense?.categoryName ||
+  expense?.expense?.expenseName ||
+  expense?.details?.expenseName ||
+  "Uncategorized";
+
 // Build category-wise breakdown aggregated by payment method
 export const buildCategoryBreakdown = (methods = [], flow = "all") => {
   const map = new Map(); // key: categoryName -> { category, [method]: amount }
   methods.forEach((m) => {
     const method = m.method;
     (m.expenses || []).forEach((e) => {
-      const t = (e?.details?.type || e?.type || "").toLowerCase();
+      const t = getExpenseTypeLower(e);
       if (flow === "outflow" && t && t !== "loss") return;
       if (flow === "inflow" && t && t !== "profit") return;
 
-      const cat =
-        e?.details?.categoryName ||
-        e?.categoryName ||
-        e?.details?.expenseName ||
-        "Uncategorized";
-      const amt = Math.abs(
-        Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
-      );
+      const cat = getExpenseCategoryLabel(e);
+      const amt = getExpenseAmountAbs(e);
       if (!map.has(cat)) map.set(cat, { category: cat });
       const obj = map.get(cat);
       obj[method] = (obj[method] || 0) + amt;
@@ -68,18 +95,12 @@ export const extractCategoriesFromExpenses = (methods = [], flow = "all") => {
   const map = new Map(); // name -> { name, totalAmount, transactions }
   methods.forEach((m) => {
     (m.expenses || []).forEach((e) => {
-      const t = (e?.details?.type || e?.type || "").toLowerCase();
+      const t = getExpenseTypeLower(e);
       if (flow === "outflow" && t && t !== "loss") return;
       if (flow === "inflow" && t && t !== "profit") return;
 
-      const name =
-        e?.details?.categoryName ||
-        e?.categoryName ||
-        e?.details?.expenseName ||
-        "Uncategorized";
-      const amt = Math.abs(
-        Number(e?.details?.netAmount ?? e?.details?.amount ?? 0)
-      );
+      const name = getExpenseCategoryLabel(e);
+      const amt = getExpenseAmountAbs(e);
       const rec = map.get(name) || { name, totalAmount: 0, transactions: 0 };
       rec.totalAmount += amt;
       rec.transactions += 1;

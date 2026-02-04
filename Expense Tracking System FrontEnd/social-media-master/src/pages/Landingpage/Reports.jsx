@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
   Card,
   CardContent,
-  Chip,
   FormControl,
   Grid,
   IconButton,
   MenuItem,
   Select,
+  Stack,
   Typography,
   useMediaQuery,
   useTheme as useMuiTheme,
   Fade,
   Zoom,
   Paper,
-  Stack,
   Divider,
   Tabs,
   Tab,
@@ -25,6 +24,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import DescriptionIcon from "@mui/icons-material/Description";
 import SearchIcon from "@mui/icons-material/Search";
 import DownloadIcon from "@mui/icons-material/Download";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import HistoryIcon from "@mui/icons-material/History";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AssessmentIcon from "@mui/icons-material/Assessment";
@@ -35,9 +35,16 @@ import ReportsGeneration from "../ReportsGeneration";
 import SearchExpenses from "../SearchExpenses/SearchExpenses";
 import SearchAudits from "../SearchAudits/SearchAudits";
 import { ReportsHistoryContainer } from "../../components/ReportsHistory";
-import { useNavigate, useParams, useLocation } from "react-router";
+import ExcelDownload from "../../components/reports/ExcelDownload";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchReportHistory } from "../../Redux/ReportHistory/reportHistory.action";
+import { API_BASE_URL } from "../../config/api";
 
 const expenseReportData = [
   { id: 1, reportName: "Expense Report Q1 2025", date: "2025-03-15" },
@@ -149,27 +156,41 @@ const defaultColumns = [
   { field: "date", headerName: "Date", flex: 1, minWidth: 120 },
 ];
 
-const Reports = () => {
+const Reports = ({ defaultTab = 0 }) => {
   const [selectedReport, setSelectedReport] = useState("select");
-  const [activeTab, setActiveTab] = useState(0);
-  const [Url, setUrl] = useState(null);
   const muiTheme = useMuiTheme();
   const { colors } = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { friendId } = useParams();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const hideBackButton = location?.state?.fromSidebar === true;
 
   // Redux
   const dispatch = useDispatch();
   const { reports, loading, error } = useSelector(
-    (state) => state.reportHistory
+    (state) => state.reportHistory,
   );
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [Url, setUrl] = useState(null);
+
+  // Sync activeTab with URL parameter - runs on mount AND when searchParams change
+  // This is the source of truth approach - URL drives the state
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam !== null) {
+      const tabIndex = parseInt(tabParam, 10);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex <= 4) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [searchParams]);
 
   // Fetch report history when Reports History tab is active
   useEffect(() => {
-    if (activeTab === 1) {
+    if (activeTab === 2) {
       dispatch(fetchReportHistory());
     }
   }, [activeTab, dispatch]);
@@ -357,6 +378,11 @@ const Reports = () => {
               label="Generate Reports"
             />
             <Tab
+              icon={<FileDownloadIcon />}
+              iconPosition="start"
+              label="Excel Download"
+            />
+            <Tab
               icon={<HistoryIcon />}
               iconPosition="start"
               label="Reports History"
@@ -374,9 +400,9 @@ const Reports = () => {
           sx={{
             flex: 1,
             overflow: "auto",
-            pt: activeTab === 1 ? 0 : 3,
+            pt: activeTab === 2 ? 0 : 3,
             px: 3,
-            pb: activeTab === 1 ? 0 : 3,
+            pb: activeTab === 2 ? 0 : 3,
           }}
         >
           {/* Tab Panel 0: Generate Reports (ExpenseEmail Full Width) */}
@@ -433,8 +459,17 @@ const Reports = () => {
             </Fade>
           )}
 
-          {/* Tab Panel 1: Reports History */}
+          {/* Tab Panel 1: Excel Download */}
           {activeTab === 1 && (
+            <Fade in timeout={400}>
+              <Box sx={{ height: "100%" }}>
+                <ExcelDownload />
+              </Box>
+            </Fade>
+          )}
+
+          {/* Tab Panel 2: Reports History */}
+          {activeTab === 2 && (
             <Fade in timeout={400}>
               <Box sx={{ height: "100%" }}>
                 <ReportsHistoryContainer
@@ -464,8 +499,8 @@ const Reports = () => {
             </Fade>
           )}
 
-          {/* Tab Panel 2: Analytics */}
-          {activeTab === 2 && (
+          {/* Tab Panel 3: Analytics */}
+          {activeTab === 3 && (
             <Fade in timeout={400}>
               <Box sx={{ height: "100%" }}>
                 <Card
