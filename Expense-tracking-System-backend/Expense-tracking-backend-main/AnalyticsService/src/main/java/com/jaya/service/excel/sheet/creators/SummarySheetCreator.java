@@ -17,9 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Summary sheet with KPIs and overview charts.
- */
 @Component
 public class SummarySheetCreator extends AbstractSheetCreator {
 

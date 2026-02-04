@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Daily Spending sheet with day-by-day analysis.
- */
 @Component
 public class DailySpendingSheetCreator extends AbstractSheetCreator {
 

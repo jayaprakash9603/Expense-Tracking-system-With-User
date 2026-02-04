@@ -16,9 +16,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Creates the Category Breakdown sheet with spending by category.
- */
 @Component
 public class CategorySheetCreator extends AbstractSheetCreator {
 

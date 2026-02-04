@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Weekday Analysis sheet showing spending patterns by day of week.
- */
 @Component
 public class WeekdayAnalysisSheetCreator extends AbstractSheetCreator {
 

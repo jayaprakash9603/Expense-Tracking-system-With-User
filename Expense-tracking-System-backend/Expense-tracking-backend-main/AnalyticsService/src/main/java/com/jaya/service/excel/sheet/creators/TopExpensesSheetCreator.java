@@ -11,9 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Top Expenses sheet showing largest transactions.
- */
 @Component
 public class TopExpensesSheetCreator extends AbstractSheetCreator {
 

@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Payment Methods sheet with spending by payment type.
- */
 @Component
 public class PaymentMethodSheetCreator extends AbstractSheetCreator {
 

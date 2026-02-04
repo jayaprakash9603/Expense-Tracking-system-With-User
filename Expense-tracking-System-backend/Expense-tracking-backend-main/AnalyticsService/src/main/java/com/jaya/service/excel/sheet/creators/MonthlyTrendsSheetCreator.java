@@ -16,9 +16,6 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Creates the Monthly Trends sheet with month-over-month analysis.
- */
 @Component
 public class MonthlyTrendsSheetCreator extends AbstractSheetCreator {
 

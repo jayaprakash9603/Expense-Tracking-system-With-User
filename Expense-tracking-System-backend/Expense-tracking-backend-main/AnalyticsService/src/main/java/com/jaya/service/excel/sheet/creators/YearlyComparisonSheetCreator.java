@@ -14,9 +14,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Year-over-Year Comparison sheet with annual spending analysis.
- */
 @Component
 public class YearlyComparisonSheetCreator extends AbstractSheetCreator {
 

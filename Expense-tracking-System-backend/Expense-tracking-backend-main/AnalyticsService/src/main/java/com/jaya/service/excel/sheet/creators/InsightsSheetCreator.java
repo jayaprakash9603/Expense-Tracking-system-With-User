@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Creates the Insights & Recommendations sheet with financial analysis.
- */
 @Component
 public class InsightsSheetCreator extends AbstractSheetCreator {
 

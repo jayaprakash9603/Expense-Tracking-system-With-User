@@ -6,11 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-/**
- * Context object containing all dependencies needed for sheet creation.
- * Follows Dependency Injection pattern - sheets receive what they need rather
- * than creating it.
- */
 @Getter
 @Builder
 public class SheetContext {

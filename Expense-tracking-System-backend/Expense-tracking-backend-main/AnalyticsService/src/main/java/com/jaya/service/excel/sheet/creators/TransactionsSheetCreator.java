@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * Creates the Transactions/Expenses sheet with detailed expense data.
- */
 @Component
 public class TransactionsSheetCreator extends AbstractSheetCreator {
 
