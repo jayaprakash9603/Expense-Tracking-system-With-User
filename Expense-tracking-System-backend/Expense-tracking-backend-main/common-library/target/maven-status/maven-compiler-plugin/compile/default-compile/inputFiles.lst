@@ -6,6 +6,7 @@ C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-S
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\FriendshipDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\util\StringUtil.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\request\SearchRequest.java
+C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\request\UpdateCategoryRequest.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\error\ApiError.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\request\PageRequest.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\ConflictException.java
@@ -32,6 +33,7 @@ C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-S
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\UserDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\AccessDeniedException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\ResourceNotFoundException.java
+C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\request\CreateCategoryRequest.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\exception\BusinessException.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\dto\AuditLogDTO.java
 C:\Users\jayapraj\Downloads\Expense-Tracking-system-With-User\Expense-tracking-System-backend\Expense-tracking-backend-main\common-library\src\main\java\com\jaya\common\kafka\events\AuditEvent.java

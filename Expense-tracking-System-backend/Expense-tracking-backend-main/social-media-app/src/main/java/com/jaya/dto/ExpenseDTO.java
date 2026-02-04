@@ -19,6 +19,7 @@ public class ExpenseDTO {
     private ExpenseDetailsDTO expense;
     private boolean includeInBudget = false;
     private boolean isBill = false;
+    private boolean isRecurring = false;
     private Integer userId;
 
     private Set<Integer> budgetIds = new HashSet<>();

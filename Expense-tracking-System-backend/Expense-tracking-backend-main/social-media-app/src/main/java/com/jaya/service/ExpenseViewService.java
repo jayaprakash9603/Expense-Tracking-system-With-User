@@ -26,7 +26,7 @@ public class ExpenseViewService {
 
     private final ExpenseService expenseService;
     private final BudgetServices budgetService;
-    private final CategoryServices categoryService;
+    private final CategoryServiceWrapper categoryService;
 
     /**
      * Get detailed expense view with all related information.

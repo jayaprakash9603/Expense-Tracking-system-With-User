@@ -8,7 +8,7 @@ import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
-import com.jaya.service.CategoryServices;
+import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.service.expenses.ExpenseQueryService;
 import com.jaya.util.ServiceHelper;
@@ -50,7 +50,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Autowired
     private BudgetServices budgetService;
     @Autowired
-    private CategoryServices categoryService;
+    private CategoryServiceWrapper categoryService;
 
     @Autowired
     private PaymentMethodServices paymentMethodService;

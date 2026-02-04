@@ -5,8 +5,8 @@ import com.jaya.common.exception.BusinessException;
 import com.jaya.common.exception.ConflictException;
 import com.jaya.common.exception.ResourceNotFoundException;
 import com.jaya.common.error.ErrorCode;
-import com.jaya.dto.CategorySearchDTO;
-import com.jaya.dto.ExpenseDTO;
+import com.jaya.common.dto.CategoryDTO;
+import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.models.User;
 import com.jaya.repository.CategoryRepository;
@@ -38,7 +38,6 @@ public class CategoryService {
     @Autowired
     private CategoryAsyncService categoryAsyncService;
 
-    
     private void checkForDuplicateCategory(String name, String type, Integer userId, boolean isGlobal,
             Integer excludeId) {
         if (name == null || name.trim().isEmpty()) {
@@ -145,7 +144,6 @@ public class CategoryService {
         return false;
     }
 
-    
     public Category update(Integer id, Category category, User user) {
         Integer userId = user.getId();
         Category existing = categoryRepository.findById(id)
@@ -223,7 +221,6 @@ public class CategoryService {
         return categoryRepository.save(existing);
     }
 
-    
     public Category adminUpdateGlobalCategory(Integer id, Category category, User user) {
         if (!user.hasAdminRole()) {
             throw new AccessDeniedException(ErrorCode.AUTHZ_ROLE_REQUIRED, "User does not have ADMIN role");
@@ -266,6 +263,7 @@ public class CategoryService {
         logger.info("Global category {} updated successfully by admin", updated.getId());
         return updated;
     }
+
     private void assignExpensesToOthersCategory(Integer userId, Set<Integer> expenseIds) {
         if (expenseIds.isEmpty()) {
             return;
@@ -408,6 +406,7 @@ public class CategoryService {
 
         return "Category Deleted Successfully";
     }
+
     private void assignExpensesToOthersCategory(Integer userId, List<ExpenseDTO> expenses) {
         if (expenses.isEmpty()) {
             return;
@@ -508,7 +507,6 @@ public class CategoryService {
         return createdCategories;
     }
 
-    
     public List<Category> updateMultiple(List<Category> categories, User user) {
         Integer userId = user.getId();
         List<Category> updatedCategories = new ArrayList<>();
@@ -694,6 +692,7 @@ public class CategoryService {
 
         return updatedCategories;
     }
+
     public void deleteMultiple(List<Integer> categoryIds, Integer userId) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             logger.info("No category IDs provided for deletion");
@@ -981,7 +980,6 @@ public class CategoryService {
         categoryRepository.deleteAll();
     }
 
-    
     public List<Category> getAllForUser(Integer userId) {
         List<Category> userCategories = categoryRepository.findByUserIdWithDetails(userId);
         List<Category> globalCategories = categoryRepository.findByIsGlobalTrueWithDetails();
@@ -997,6 +995,7 @@ public class CategoryService {
 
         return userCategories;
     }
+
     public List<ExpenseDTO> getOthersAndUncategorizedExpenses(User user) {
         List<ExpenseDTO> allUserExpenses = expenseService.getAllExpenses(user.getId());
         List<Category> allCategories = categoryRepository.findAll();
@@ -1037,7 +1036,6 @@ public class CategoryService {
         return allUserExpenses;
     }
 
-    
     private List<ExpenseDTO> filterByFlowType(List<ExpenseDTO> expenses, String flowType) {
         return expenses.stream()
                 .filter(expense -> {
@@ -1055,7 +1053,6 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-    
     private Sort createSort(String sortBy, String sortDirection) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         if (sortBy.startsWith("expense.")) {
@@ -1065,7 +1062,6 @@ public class CategoryService {
         return Sort.by(direction, sortBy);
     }
 
-    
     private List<ExpenseDTO> sortExpensesByNestedField(List<ExpenseDTO> expenses, String sortBy, String sortDirection) {
         boolean ascending = sortDirection.equalsIgnoreCase("asc");
         String nestedField = sortBy.substring("expense.".length());
@@ -1156,7 +1152,6 @@ public class CategoryService {
                 .collect(Collectors.toList());
     }
 
-    
     public List<ExpenseDTO> getAllUserExpensesOrderedByCategoryFlag(
             Integer userId,
             Integer categoryId,
@@ -1207,19 +1202,17 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    
-    public List<CategorySearchDTO> searchCategories(Integer userId, String query, int limit) {
+    public List<CategoryDTO> searchCategories(Integer userId, String query, int limit) {
         if (query == null || query.trim().isEmpty()) {
             return Collections.emptyList();
         }
         String subsequencePattern = convertToSubsequencePattern(query.trim());
         logger.debug("Searching categories for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
                 subsequencePattern, limit);
-        List<CategorySearchDTO> results = categoryRepository.searchCategoriesFuzzyWithLimit(userId, subsequencePattern);
+        List<CategoryDTO> results = categoryRepository.searchCategoriesFuzzyWithLimit(userId, subsequencePattern);
         return results.stream().limit(limit).collect(Collectors.toList());
     }
 
-    
     private String convertToSubsequencePattern(String query) {
         if (query == null || query.isEmpty()) {
             return "%";

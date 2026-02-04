@@ -1,4 +1,4 @@
-package com.jaya.dto.request;
+package com.jaya.common.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
@@ -8,15 +8,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Request DTO for creating a new category.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreateCategoryRequest {
+public class CreateCategoryRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "Category name is required")
     @Size(min = 1, max = 100, message = "Category name must be between 1 and 100 characters")

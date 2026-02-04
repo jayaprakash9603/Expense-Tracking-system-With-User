@@ -5,7 +5,7 @@ import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
-import com.jaya.service.CategoryServices;
+import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.expenses.ExpenseReportService;
 import com.jaya.util.ServiceHelper;
 import jakarta.mail.MessagingException;
@@ -33,10 +33,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+
 @Service
 public class ExpenseReportServiceImpl implements ExpenseReportService {
-
-
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
@@ -44,10 +43,8 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     @Autowired
     private ServiceHelper helper;
 
-
     @Autowired
-    private CategoryServices categoryService;
-
+    private CategoryServiceWrapper categoryService;
 
     @Autowired
     private JavaMailSender mailSender;
@@ -55,11 +52,11 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     @Autowired
     private BudgetServices budgetService;
 
-    public ExpenseReportServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
+    public ExpenseReportServiceImpl(ExpenseRepository expenseRepository,
+            ExpenseReportRepository expenseReportRepository) {
         this.expenseRepository = expenseRepository;
         this.expenseReportRepository = expenseReportRepository;
     }
-
 
     @Override
     public ExpenseReport generateExpenseReport(Integer expenseId, Integer userId) {
@@ -71,7 +68,6 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             String expenseName = expense.getExpense().getExpenseName();
             String comments = expense.getExpense().getComments();
 
-
             ExpenseReport report = new ExpenseReport();
             report.setExpenseId(expense.getId());
             report.setExpenseName(expenseName);
@@ -80,12 +76,10 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             report.setTotalAmount(expense.getExpense().getAmount());
             report.setReportDetails("Generated report for expense ID " + expense.getId());
 
-
             LocalDateTime indiaTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
             String formattedTime = indiaTime.format(formatter);
             report.setGeneratedTime(formattedTime);
-
 
             return expenseReportRepository.save(report);
         } else {
@@ -100,35 +94,35 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
 
         User user = helper.validateUser(userId);
         try (Workbook workbook = new XSSFWorkbook()) {
-        Sheet expensesSheet = workbook.createSheet("Expenses");
-        Map<Integer, Category> categoryCache = preloadCategories(userId);
-        writeExpensesHeader(expensesSheet);
-        writeExpensesRows(expensesSheet, expenses);
-        autosizeColumns(expensesSheet, 14);
+            Sheet expensesSheet = workbook.createSheet("Expenses");
+            Map<Integer, Category> categoryCache = preloadCategories(userId);
+            writeExpensesHeader(expensesSheet);
+            writeExpensesRows(expensesSheet, expenses);
+            autosizeColumns(expensesSheet, 14);
 
-        Sheet summarySheet = workbook.createSheet("Category Summary");
-        writeCategorySummaryHeader(summarySheet);
-        Map<Integer, Double> categoryTotals = computeCategoryTotals(expenses);
-        Map<Integer, Integer> categoryCounts = computeCategoryCounts(expenses);
-        writeCategorySummaryRows(summarySheet, categoryTotals, categoryCounts, categoryCache);
-        autosizeColumns(summarySheet, 10);
+            Sheet summarySheet = workbook.createSheet("Category Summary");
+            writeCategorySummaryHeader(summarySheet);
+            Map<Integer, Double> categoryTotals = computeCategoryTotals(expenses);
+            Map<Integer, Integer> categoryCounts = computeCategoryCounts(expenses);
+            writeCategorySummaryRows(summarySheet, categoryTotals, categoryCounts, categoryCache);
+            autosizeColumns(summarySheet, 10);
 
-        Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
-        writePaymentMethodHeader(paymentMethodSheet);
-        Map<String, Double> pmTotals = computePaymentMethodTotals(expenses);
-        Map<String, Integer> pmCounts = computePaymentMethodCounts(expenses);
-        writePaymentMethodRows(paymentMethodSheet, pmTotals, pmCounts);
-        autosizeColumns(paymentMethodSheet, 3);
+            Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
+            writePaymentMethodHeader(paymentMethodSheet);
+            Map<String, Double> pmTotals = computePaymentMethodTotals(expenses);
+            Map<String, Integer> pmCounts = computePaymentMethodCounts(expenses);
+            writePaymentMethodRows(paymentMethodSheet, pmTotals, pmCounts);
+            autosizeColumns(paymentMethodSheet, 3);
 
-        Sheet budgetSheet = workbook.createSheet("Budgets");
-        writeBudgetHeader(budgetSheet);
-        List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
-        writeBudgetRows(budgetSheet, budgets);
-        autosizeColumns(budgetSheet, 9);
+            Sheet budgetSheet = workbook.createSheet("Budgets");
+            writeBudgetHeader(budgetSheet);
+            List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
+            writeBudgetRows(budgetSheet, budgets);
+            autosizeColumns(budgetSheet, 9);
 
-        String filePath = buildReportPath(user, userId);
-        writeWorkbookToFile(workbook, filePath);
-        return filePath;
+            String filePath = buildReportPath(user, userId);
+            writeWorkbookToFile(workbook, filePath);
+            return filePath;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -137,25 +131,27 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     // --- helpers: expenses sheet ---
     private void writeExpensesHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
-    headerRow.createCell(0).setCellValue("Expense ID");
-    headerRow.createCell(1).setCellValue("Expense Name");
-    headerRow.createCell(2).setCellValue("Payment Method");
-    headerRow.createCell(3).setCellValue("Amount");
-    headerRow.createCell(4).setCellValue("Net Amount");
-    headerRow.createCell(5).setCellValue("Credit Due");
-    headerRow.createCell(6).setCellValue("Type");
-    headerRow.createCell(7).setCellValue("Date");
-    headerRow.createCell(8).setCellValue("Category ID");
-    headerRow.createCell(9).setCellValue("Category Name");
-    headerRow.createCell(10).setCellValue("Comments");
+        headerRow.createCell(0).setCellValue("Expense ID");
+        headerRow.createCell(1).setCellValue("Expense Name");
+        headerRow.createCell(2).setCellValue("Payment Method");
+        headerRow.createCell(3).setCellValue("Amount");
+        headerRow.createCell(4).setCellValue("Net Amount");
+        headerRow.createCell(5).setCellValue("Credit Due");
+        headerRow.createCell(6).setCellValue("Type");
+        headerRow.createCell(7).setCellValue("Date");
+        headerRow.createCell(8).setCellValue("Category ID");
+        headerRow.createCell(9).setCellValue("Category Name");
+        headerRow.createCell(10).setCellValue("Comments");
     }
 
     private void writeExpensesRows(Sheet sheet, List<Expense> expenses) {
         int rowNum = 1;
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
-            if(expense.isBill()) continue;
+            if (details == null)
+                continue;
+            if (expense.isBill())
+                continue;
             Row row = sheet.createRow(rowNum++);
             row.createCell(0).setCellValue(expense.getId() != null ? expense.getId() : 0);
             row.createCell(1).setCellValue(details.getExpenseName());
@@ -190,7 +186,8 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         Map<Integer, Double> totals = new HashMap<>();
         for (Expense expense : expenses) {
             Integer categoryId = expense.getCategoryId();
-            if (categoryId == null) categoryId = 0;
+            if (categoryId == null)
+                categoryId = 0;
             double amount = expense.getExpense() != null ? expense.getExpense().getAmount() : 0;
             totals.put(categoryId, totals.getOrDefault(categoryId, 0.0) + amount);
         }
@@ -201,13 +198,15 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         Map<Integer, Integer> counts = new HashMap<>();
         for (Expense expense : expenses) {
             Integer categoryId = expense.getCategoryId();
-            if (categoryId == null) categoryId = 0;
+            if (categoryId == null)
+                categoryId = 0;
             counts.put(categoryId, counts.getOrDefault(categoryId, 0) + 1);
         }
         return counts;
     }
 
-    private void writeCategorySummaryRows(Sheet sheet, Map<Integer, Double> totals, Map<Integer, Integer> counts, Map<Integer, Category> cache) {
+    private void writeCategorySummaryRows(Sheet sheet, Map<Integer, Double> totals, Map<Integer, Integer> counts,
+            Map<Integer, Category> cache) {
         int rowNum = 1;
         for (Map.Entry<Integer, Double> entry : totals.entrySet()) {
             Integer categoryId = entry.getKey();
@@ -261,9 +260,11 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         Map<String, Double> totals = new HashMap<>();
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
+            if (details == null)
+                continue;
             String method = details.getPaymentMethod();
-            if (method == null || method.isEmpty()) continue;
+            if (method == null || method.isEmpty())
+                continue;
             double amount = details.getAmount();
             totals.put(method, totals.getOrDefault(method, 0.0) + amount);
         }
@@ -274,9 +275,11 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         Map<String, Integer> counts = new HashMap<>();
         for (Expense expense : expenses) {
             ExpenseDetails details = expense.getExpense();
-            if (details == null) continue;
+            if (details == null)
+                continue;
             String method = details.getPaymentMethod();
-            if (method == null || method.isEmpty()) continue;
+            if (method == null || method.isEmpty())
+                continue;
             counts.put(method, counts.getOrDefault(method, 0) + 1);
         }
         return counts;
@@ -374,7 +377,6 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             String uniqueFileName = "monthly_report_" + UUID.randomUUID() + ".xlsx";
             Path reportPath = Paths.get(reportsDir, uniqueFileName);
 
-
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Monthly Report");
 
@@ -383,30 +385,30 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             headerRow.createCell(1).setCellValue("Description");
             headerRow.createCell(2).setCellValue("Amount");
 
-
             Row dataRow = sheet.createRow(1);
             dataRow.createCell(0).setCellValue("2024-11-01");
             dataRow.createCell(1).setCellValue("Office Supplies");
             dataRow.createCell(2).setCellValue(150.00);
-
 
             try (FileOutputStream fileOut = new FileOutputStream(reportPath.toFile())) {
                 workbook.write(fileOut);
             }
             workbook.close();
 
-
-            sendEmailWithAttachment(request.getToEmail(), "Monthly Expense Report", "Please find the attached monthly expense report.", reportPath.toString());
+            sendEmailWithAttachment(request.getToEmail(), "Monthly Expense Report",
+                    "Please find the attached monthly expense report.", reportPath.toString());
 
             return ResponseEntity.ok("Monthly report sent to " + request.getToEmail());
         } catch (IOException | MessagingException e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate and send the report");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to generate and send the report");
         }
     }
 
     @Override
-    public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath) throws MessagingException {
+    public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath)
+            throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 

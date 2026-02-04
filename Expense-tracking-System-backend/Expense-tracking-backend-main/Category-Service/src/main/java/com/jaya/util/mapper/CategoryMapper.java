@@ -1,10 +1,9 @@
 package com.jaya.util.mapper;
 
 import com.jaya.constant.CategoryConstants;
-import com.jaya.dto.CategorySearchDTO;
-import com.jaya.dto.request.CreateCategoryRequest;
-import com.jaya.dto.request.UpdateCategoryRequest;
-import com.jaya.dto.response.CategoryResponse;
+import com.jaya.common.dto.CategoryDTO;
+import com.jaya.common.dto.request.CreateCategoryRequest;
+import com.jaya.common.dto.request.UpdateCategoryRequest;
 import com.jaya.models.Category;
 import org.springframework.stereotype.Component;
 
@@ -74,17 +73,17 @@ public class CategoryMapper {
     }
 
     /**
-     * Convert Category entity to CategoryResponse DTO.
+     * Convert Category entity to CategoryDTO.
      *
      * @param category The category entity
-     * @return The CategoryResponse DTO
+     * @return The CategoryDTO
      */
-    public CategoryResponse toResponse(Category category) {
+    public CategoryDTO toResponse(Category category) {
         return toResponse(category, null);
     }
 
-    public CategoryResponse toResponse(Category category, Integer userId) {
-        CategoryResponse.CategoryResponseBuilder builder = CategoryResponse.builder()
+    public CategoryDTO toResponse(Category category, Integer userId) {
+        CategoryDTO.CategoryDTOBuilder builder = CategoryDTO.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
@@ -106,31 +105,32 @@ public class CategoryMapper {
         return builder.build();
     }
 
-    public List<CategoryResponse> toResponseList(List<Category> categories) {
+    public List<CategoryDTO> toResponseList(List<Category> categories) {
         return categories.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
 
-    public List<CategoryResponse> toResponseList(List<Category> categories, Integer userId) {
+    public List<CategoryDTO> toResponseList(List<Category> categories, Integer userId) {
         return categories.stream()
                 .map(c -> toResponse(c, userId))
                 .collect(Collectors.toList());
     }
 
-    public CategorySearchDTO toSearchDTO(Category category) {
-        return new CategorySearchDTO(
-                category.getId(),
-                category.getName(),
-                category.getDescription(),
-                category.getType(),
-                category.isGlobal(),
-                category.getIcon(),
-                category.getColor(),
-                category.getUserId());
+    public CategoryDTO toSearchDTO(Category category) {
+        return CategoryDTO.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .description(category.getDescription())
+                .type(category.getType())
+                .isGlobal(category.isGlobal())
+                .icon(category.getIcon())
+                .color(category.getColor())
+                .userId(category.getUserId())
+                .build();
     }
 
-    public List<CategorySearchDTO> toSearchDTOList(List<Category> categories) {
+    public List<CategoryDTO> toSearchDTOList(List<Category> categories) {
         return categories.stream()
                 .map(this::toSearchDTO)
                 .collect(Collectors.toList());

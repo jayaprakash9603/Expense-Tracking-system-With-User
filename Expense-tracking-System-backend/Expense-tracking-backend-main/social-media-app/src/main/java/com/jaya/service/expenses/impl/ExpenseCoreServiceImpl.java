@@ -86,7 +86,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private PaymentMethodKafkaProducerService paymentMethodKafkaProducer;
 
     @Autowired
-    private CategoryServices categoryService;
+    private CategoryServiceWrapper categoryService;
 
     @Autowired
     private KafkaProducerService producer;

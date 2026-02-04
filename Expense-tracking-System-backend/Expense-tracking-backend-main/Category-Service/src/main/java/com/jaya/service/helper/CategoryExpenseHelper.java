@@ -1,7 +1,7 @@
 package com.jaya.service.helper;
 
 import com.jaya.constant.CategoryConstants;
-import com.jaya.dto.ExpenseDTO;
+import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.repository.CategoryRepository;
 import com.jaya.service.ExpenseService;

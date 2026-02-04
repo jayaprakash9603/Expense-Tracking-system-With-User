@@ -6,7 +6,7 @@ import com.jaya.models.Category;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 import com.jaya.models.PaymentMethod;
-import com.jaya.service.CategoryServices;
+import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.util.DataMaskingUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public class ExpenseMapper {
     private DataMaskingUtil dataMaskingUtil;
 
     @Autowired
-    private CategoryServices categoryServices;
+    private CategoryServiceWrapper categoryServices;
 
     @Autowired
     private PaymentMethodServices paymentMethodServices;
@@ -77,6 +77,7 @@ public class ExpenseMapper {
         dto.setCategoryName(entity.getCategoryName());
         dto.setIncludeInBudget(entity.isIncludeInBudget());
         dto.setBill(entity.isBill());
+        dto.setRecurring(entity.isRecurring());
         dto.setUserId(entity.getUserId());
         dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
 
@@ -184,6 +185,7 @@ public class ExpenseMapper {
         dto.setCategoryName(entity.getCategoryName());
         dto.setIncludeInBudget(entity.isIncludeInBudget());
         dto.setBill(entity.isBill());
+        dto.setRecurring(entity.isRecurring());
         dto.setUserId(entity.getUserId());
         dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
 
@@ -325,6 +327,7 @@ public class ExpenseMapper {
         entity.setCategoryName(dto.getCategoryName());
         entity.setIncludeInBudget(dto.isIncludeInBudget());
         entity.setBill(dto.isBill());
+        entity.setRecurring(dto.isRecurring());
         entity.setUserId(dto.getUserId());
         entity.setBudgetIds(dto.getBudgetIds() != null ? new HashSet<>(dto.getBudgetIds()) : new HashSet<>());
 
@@ -385,6 +388,7 @@ public class ExpenseMapper {
         }
         entity.setIncludeInBudget(dto.isIncludeInBudget());
         entity.setBill(dto.isBill());
+        entity.setRecurring(dto.isRecurring());
         if (dto.getUserId() != null) {
             entity.setUserId(dto.getUserId());
         }

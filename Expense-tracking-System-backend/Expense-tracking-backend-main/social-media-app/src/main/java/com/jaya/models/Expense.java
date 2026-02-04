@@ -48,6 +48,9 @@ public class Expense {
 
     private boolean isBill = false;
 
+    @Column(name = "is_recurring", nullable = false)
+    private boolean isRecurring = false;
+
     @Column(name = "expense_user_id")
     private Integer userId;
 

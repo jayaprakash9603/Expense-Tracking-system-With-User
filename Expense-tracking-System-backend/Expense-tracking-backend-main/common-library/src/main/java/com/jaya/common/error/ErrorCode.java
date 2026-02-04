@@ -204,6 +204,8 @@ public enum ErrorCode {
             HttpStatus.UNSUPPORTED_MEDIA_TYPE),
     SYSTEM_DATABASE_ERROR("DATABASE_ERROR", "Database operation failed.", HttpStatus.INTERNAL_SERVER_ERROR),
     SYSTEM_CONFIGURATION_ERROR("CONFIGURATION_ERROR", "System configuration error.", HttpStatus.INTERNAL_SERVER_ERROR),
+    SYSTEM_EXTERNAL_SERVICE_ERROR("EXTERNAL_SERVICE_ERROR", "Error communicating with external service.",
+            HttpStatus.BAD_GATEWAY),
 
     // ========================================
     // SEARCH ERRORS (SEARCH_*)

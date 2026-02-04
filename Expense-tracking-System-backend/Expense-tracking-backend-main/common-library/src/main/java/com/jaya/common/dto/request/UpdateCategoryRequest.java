@@ -1,4 +1,4 @@
-package com.jaya.dto.request;
+package com.jaya.common.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Size;
@@ -7,15 +7,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Request DTO for updating an existing category.
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UpdateCategoryRequest {
+public class UpdateCategoryRequest implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Size(min = 1, max = 100, message = "Category name must be between 1 and 100 characters")
     private String name;

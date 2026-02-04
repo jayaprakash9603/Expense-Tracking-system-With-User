@@ -1,6 +1,6 @@
 package com.jaya.service;
 
-import com.jaya.dto.ExpenseDTO;
+import com.jaya.common.dto.ExpenseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +17,7 @@ public interface ExpenseService {
 
     @GetMapping("/api/expenses/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
+
     @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

@@ -1,8 +1,8 @@
 package com.jaya.service.interfaces;
 
-import com.jaya.dto.CategorySearchDTO;
-import com.jaya.dto.request.CreateCategoryRequest;
-import com.jaya.dto.request.UpdateCategoryRequest;
+import com.jaya.common.dto.CategoryDTO;
+import com.jaya.common.dto.request.CreateCategoryRequest;
+import com.jaya.common.dto.request.UpdateCategoryRequest;
 import com.jaya.models.Category;
 import com.jaya.models.User;
 
@@ -90,9 +90,9 @@ public interface ICategoryService {
      *
      * @param query  The search query
      * @param userId The user ID
-     * @return List of category search DTOs
+     * @return List of category DTOs
      */
-    List<CategorySearchDTO> searchCategoriesLight(String query, Integer userId);
+    List<CategoryDTO> searchCategoriesLight(String query, Integer userId);
 
     // ========================================
     // BULK OPERATIONS

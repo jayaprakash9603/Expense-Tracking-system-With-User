@@ -66,6 +66,24 @@ public class CategoryDTO implements Serializable {
     // ==================== Factory Methods ====================
 
     /**
+     * Constructor for JPA projection queries
+     */
+    public CategoryDTO(Integer id, String name, String description, String type,
+            boolean isGlobal, String icon, String color, Integer userId) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.isGlobal = isGlobal;
+        this.icon = icon;
+        this.color = color;
+        this.userId = userId;
+        this.expenseIds = new HashMap<>();
+        this.userIds = new HashSet<>();
+        this.editUserIds = new HashSet<>();
+    }
+
+    /**
      * Create a minimal CategoryDTO
      */
     public static CategoryDTO minimal(Integer id, String name) {

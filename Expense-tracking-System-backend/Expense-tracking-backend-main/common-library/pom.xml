@@ -103,6 +103,14 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
 
+        <!-- Feign Client (optional, for services using Feign) -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-core</artifactId>
+            <version>13.5</version>
+            <optional>true</optional>
+        </dependency>
+
         <!-- JWT Support (optional, for services that need JWT validation) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

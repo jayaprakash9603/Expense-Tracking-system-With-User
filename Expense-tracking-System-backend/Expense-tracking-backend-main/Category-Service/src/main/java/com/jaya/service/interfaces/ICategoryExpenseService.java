@@ -1,6 +1,6 @@
 package com.jaya.service.interfaces;
 
-import com.jaya.dto.ExpenseDTO;
+import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 
 import java.util.List;

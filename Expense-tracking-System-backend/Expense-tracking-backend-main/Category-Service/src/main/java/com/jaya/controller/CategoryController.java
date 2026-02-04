@@ -1,15 +1,14 @@
 package com.jaya.controller;
 
+import com.jaya.common.dto.CategoryDTO;
+import com.jaya.common.dto.ExpenseDTO;
+import com.jaya.common.dto.request.CreateCategoryRequest;
+import com.jaya.common.dto.request.UpdateCategoryRequest;
+import com.jaya.common.dto.response.ApiResponse;
 import com.jaya.common.exception.AccessDeniedException;
 import com.jaya.common.exception.AuthenticationException;
 import com.jaya.common.exception.ResourceNotFoundException;
 import com.jaya.constant.CategoryConstants;
-import com.jaya.dto.CategorySearchDTO;
-import com.jaya.dto.ExpenseDTO;
-import com.jaya.dto.request.CreateCategoryRequest;
-import com.jaya.dto.request.UpdateCategoryRequest;
-import com.jaya.dto.response.ApiResponse;
-import com.jaya.dto.response.CategoryResponse;
 import com.jaya.models.Category;
 import com.jaya.models.User;
 import com.jaya.service.*;
@@ -79,7 +78,7 @@ public class CategoryController {
 
     @PostMapping
     @Operation(summary = "Create a new category", description = "Creates a new category for the user or target user")
-    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(
             @RequestHeader("Authorization") String jwt,
             @Valid @RequestBody CreateCategoryRequest request,
             @Parameter(description = "Target user ID for friend expense management") @RequestParam(required = false) Integer targetId) {
@@ -97,7 +96,7 @@ public class CategoryController {
         // Send activity event
         unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
 
-        CategoryResponse response = categoryMapper.toResponse(created);
+        CategoryDTO response = categoryMapper.toResponse(created);
         log.info("Category created: id={}, name={}", created.getId(), created.getName());
 
         return ResponseEntity
@@ -107,7 +106,7 @@ public class CategoryController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get category by ID", description = "Retrieves a specific category by its ID")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(
+    public ResponseEntity<ApiResponse<CategoryDTO>> getCategoryById(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @RequestParam(required = false) Integer targetId) {
@@ -118,14 +117,14 @@ public class CategoryController {
         log.debug("Getting category: id={}, userId={}", id, targetUser.getId());
 
         Category category = categoryService.getById(id, targetUser.getId());
-        CategoryResponse response = categoryMapper.toResponse(category);
+        CategoryDTO response = categoryMapper.toResponse(category);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/name/{name}")
     @Operation(summary = "Get categories by name", description = "Retrieves categories matching the given name")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoryByName(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> getCategoryByName(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String name,
             @RequestParam(required = false) Integer targetId) {
@@ -136,14 +135,14 @@ public class CategoryController {
         log.debug("Getting categories by name: name={}, userId={}", name, targetUser.getId());
 
         List<Category> categories = categoryService.getByName(name, targetUser.getId());
-        List<CategoryResponse> responses = categoryMapper.toResponseList(categories);
+        List<CategoryDTO> responses = categoryMapper.toResponseList(categories);
 
         return ResponseEntity.ok(ApiResponse.successList(responses));
     }
 
     @GetMapping
     @Operation(summary = "Get all categories", description = "Retrieves all categories for the user")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
 
@@ -158,13 +157,13 @@ public class CategoryController {
             return ResponseEntity.ok(ApiResponse.successList(List.of(), "No categories found"));
         }
 
-        List<CategoryResponse> responses = categoryMapper.toResponseList(categories);
+        List<CategoryDTO> responses = categoryMapper.toResponseList(categories);
         return ResponseEntity.ok(ApiResponse.successList(responses));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a category", description = "Updates an existing category")
-    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+    public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @Valid @RequestBody UpdateCategoryRequest request,
@@ -185,7 +184,7 @@ public class CategoryController {
         // Send activity event
         unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
 
-        CategoryResponse response = categoryMapper.toResponse(updated);
+        CategoryDTO response = categoryMapper.toResponse(updated);
         log.info("Category updated: id={}, name={}", updated.getId(), updated.getName());
 
         return ResponseEntity.ok(ApiResponse.success(response, CategoryConstants.MSG_CATEGORY_UPDATED));
@@ -224,7 +223,7 @@ public class CategoryController {
 
     @PostMapping("/bulk")
     @Operation(summary = "Create multiple categories", description = "Creates multiple categories in a single request")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> createMultipleCategories(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> createMultipleCategories(
             @RequestHeader("Authorization") String jwt,
             @Valid @RequestBody List<CreateCategoryRequest> requests,
             @RequestParam(required = false) Integer targetId) {
@@ -244,7 +243,7 @@ public class CategoryController {
         // Send activity event
         unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
 
-        List<CategoryResponse> responses = categoryMapper.toResponseList(createdCategories);
+        List<CategoryDTO> responses = categoryMapper.toResponseList(createdCategories);
         log.info("Created {} categories", createdCategories.size());
 
         return ResponseEntity
@@ -254,7 +253,7 @@ public class CategoryController {
 
     @PutMapping("/bulk")
     @Operation(summary = "Update multiple categories", description = "Updates multiple categories in a single request")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> updateMultipleCategories(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> updateMultipleCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestBody List<Category> categories,
             @RequestParam(required = false) Integer targetId) {
@@ -270,7 +269,7 @@ public class CategoryController {
         // Send activity event
         unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
 
-        List<CategoryResponse> responses = categoryMapper.toResponseList(updatedCategories);
+        List<CategoryDTO> responses = categoryMapper.toResponseList(updatedCategories);
         log.info("Updated {} categories", updatedCategories.size());
 
         return ResponseEntity
@@ -353,7 +352,7 @@ public class CategoryController {
 
     @PatchMapping("/admin/global/{id}")
     @Operation(summary = "Admin update global category", description = "Allows admin to update a global category")
-    public ResponseEntity<ApiResponse<CategoryResponse>> adminUpdateGlobalCategory(
+    public ResponseEntity<ApiResponse<CategoryDTO>> adminUpdateGlobalCategory(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id,
             @Valid @RequestBody UpdateCategoryRequest request) {
@@ -369,7 +368,7 @@ public class CategoryController {
         // Send activity event
         unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
 
-        CategoryResponse response = categoryMapper.toResponse(updated);
+        CategoryDTO response = categoryMapper.toResponse(updated);
         log.info("Admin updated global category: id={}", id);
 
         return ResponseEntity.ok(ApiResponse.success(response, "Global category updated"));
@@ -452,7 +451,7 @@ public class CategoryController {
 
     @GetMapping("/search")
     @Operation(summary = "Search categories", description = "Searches categories by name or description")
-    public ResponseEntity<ApiResponse<List<CategorySearchDTO>>> searchCategories(
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> searchCategories(
             @RequestParam String query,
             @RequestParam(defaultValue = "20") int limit,
             @RequestHeader("Authorization") String jwt,
@@ -463,7 +462,7 @@ public class CategoryController {
 
         log.debug("Searching categories: query={}, userId={}, limit={}", query, targetUser.getId(), limit);
 
-        List<CategorySearchDTO> results = categoryService.searchCategories(targetUser.getId(), query, limit);
+        List<CategoryDTO> results = categoryService.searchCategories(targetUser.getId(), query, limit);
 
         return ResponseEntity.ok(ApiResponse.successList(results));
     }
@@ -474,38 +473,43 @@ public class CategoryController {
 
     @GetMapping("/get-by-id-with-service")
     @Operation(summary = "Internal: Get category by ID", description = "Internal endpoint for inter-service communication")
-    public Category getById(
+    public CategoryDTO getById(
             @RequestParam Integer categoryId,
             @RequestParam Integer userId) {
-        return categoryService.getById(categoryId, userId);
+        Category category = categoryService.getById(categoryId, userId);
+        return categoryMapper.toResponse(category);
     }
 
     @GetMapping("/get-by-name-with-service")
     @Operation(summary = "Internal: Get categories by name", description = "Internal endpoint for inter-service communication")
-    public List<Category> getByName(
+    public List<CategoryDTO> getByName(
             @RequestParam String categoryName,
             @RequestParam Integer userId) {
-        return categoryService.getByName(categoryName, userId);
+        List<Category> categories = categoryService.getByName(categoryName, userId);
+        return categoryMapper.toResponseList(categories);
     }
 
     @PostMapping("/create-category-with-service")
     @Operation(summary = "Internal: Create category", description = "Internal endpoint for inter-service communication")
-    public Category createCategoryWithService(
+    public CategoryDTO createCategoryWithService(
             @RequestBody Category category,
             @RequestParam Integer userId) {
-        return categoryService.create(category, userId);
+        Category created = categoryService.create(category, userId);
+        return categoryMapper.toResponse(created);
     }
 
     @PostMapping("/save")
     @Operation(summary = "Internal: Save category", description = "Internal endpoint for inter-service communication")
-    public Category save(@RequestBody Category category) {
-        return categoryService.save(category);
+    public CategoryDTO save(@RequestBody Category category) {
+        Category saved = categoryService.save(category);
+        return categoryMapper.toResponse(saved);
     }
 
     @GetMapping("/get-all-for-users")
     @Operation(summary = "Internal: Get all categories for user", description = "Internal endpoint for inter-service communication")
-    public List<Category> getAllForUser(@RequestParam Integer userId) {
-        return categoryService.getAllForUser(userId);
+    public List<CategoryDTO> getAllForUser(@RequestParam Integer userId) {
+        List<Category> categories = categoryService.getAllForUser(userId);
+        return categoryMapper.toResponseList(categories);
     }
 
     // ========================
@@ -568,12 +572,12 @@ public class CategoryController {
         return expenses.stream()
                 .filter(ExpenseDTO::isIncludeInBudget) // Only include expenses in this category
                 .filter(e -> {
-                    if (startDate == null || endDate == null || e.getDate() == null) {
+                    if (startDate == null || endDate == null || e.getExpenseDate() == null) {
                         return true;
                     }
                     LocalDate start = LocalDate.parse(startDate);
                     LocalDate end = LocalDate.parse(endDate);
-                    LocalDate expenseDate = e.getDate();
+                    LocalDate expenseDate = e.getExpenseDate();
                     return !expenseDate.isBefore(start) && !expenseDate.isAfter(end);
                 })
                 .collect(Collectors.toList());
