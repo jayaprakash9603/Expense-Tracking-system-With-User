@@ -10,9 +10,12 @@ const isCanceledError = (error) =>
   error?.message === "canceled" ||
   error?.name === "CanceledError";
 
-export const API_BASE_URL = "http://localhost:8080";
+// Use environment variable for API base URL; fallback to localhost for local dev only
+export const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 // Function to get the JWT token from localStorage
+// NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
 const getJwtToken = () => {
   const jwtToken = localStorage.getItem("jwt");
   // console.log("JWT Token:", jwtToken);
@@ -84,7 +87,7 @@ const handleResponseError = (error) => {
                 "Access denied. You do not have permission to access this resource.",
               originalError: error,
             },
-          })
+          }),
         );
         attachSystemError();
         break;
@@ -97,7 +100,7 @@ const handleResponseError = (error) => {
                 "The requested resource was not found.",
               originalError: error,
             },
-          })
+          }),
         );
         break;
       case 401:
@@ -108,7 +111,7 @@ const handleResponseError = (error) => {
               message: "Your session has expired. Please login again.",
               originalError: error,
             },
-          })
+          }),
         );
         attachSystemError();
         break;
@@ -134,7 +137,7 @@ const attachInterceptors = (axiosInstance) => {
   axiosInstance.interceptors.request.use(handleRequest, handleRequestError);
   axiosInstance.interceptors.response.use(
     (response) => response,
-    handleResponseError
+    handleResponseError,
   );
 };
 
