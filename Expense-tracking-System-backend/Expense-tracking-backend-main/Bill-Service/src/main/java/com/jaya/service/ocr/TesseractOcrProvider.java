@@ -56,7 +56,7 @@ public class TesseractOcrProvider implements OcrProvider {
             if (!testTesseractWorks()) {
                 unavailableReason = "Tesseract OCR initialization failed. " +
                         "Please ensure tessdata folder exists with language files (eng.traineddata). " +
-                        "Download from: https:
+                        "Download from: https://github.com/tesseract-ocr/tessdata";
                 log.warn(unavailableReason);
                 available = false;
                 return;
