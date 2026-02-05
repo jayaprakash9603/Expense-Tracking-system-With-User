@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Centralized exception handler for REST APIs.
- */
 @ControllerAdvice
 public class RestExceptionHandler {
 
@@ -34,12 +31,12 @@ public class RestExceptionHandler {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode());
         return new ResponseEntity<>(error, status);
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
@@ -47,10 +44,8 @@ public class RestExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleFeignException(FeignException ex) {
         Map<String, Object> error = new HashMap<>();
 
-        // Extract status code from Feign exception
         HttpStatus status = HttpStatus.valueOf(ex.status());
 
-        // Try to extract meaningful message from the response body
         String message = extractMessageFromFeignException(ex);
 
         error.put("error", "Service communication error");
@@ -111,14 +106,10 @@ public class RestExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    /**
-     * Extract meaningful message from Feign exception response body
-     */
     private String extractMessageFromFeignException(FeignException ex) {
         try {
             String responseBody = ex.contentUTF8();
             if (responseBody != null && !responseBody.isEmpty()) {
-                // Try to extract message from JSON response
                 if (responseBody.contains("\"message\":")) {
                     int start = responseBody.indexOf("\"message\":\"") + 11;
                     int end = responseBody.indexOf("\"", start);
@@ -126,19 +117,14 @@ public class RestExceptionHandler {
                         return responseBody.substring(start, end);
                     }
                 }
-                // If JSON parsing fails, return the first part of response body
                 return responseBody.length() > 200 ? responseBody.substring(0, 200) + "..." : responseBody;
             }
         } catch (Exception e) {
-            // If extraction fails, fall back to default message
         }
 
         return "Service returned error: " + ex.getMessage();
     }
 
-    /**
-     * Extract service name from Feign exception
-     */
     private String extractServiceName(FeignException ex) {
         try {
             String message = ex.getMessage();
@@ -147,7 +133,6 @@ public class RestExceptionHandler {
                 int end = message.indexOf("/", start);
                 if (start > 10 && end > start) {
                     String url = message.substring(start, end);
-                    // Extract service name from URL (e.g., localhost:6009 -> FRIENDSHIP-SERVICE)
                     if (url.contains(":6009")) {
                         return "FRIENDSHIP-SERVICE";
                     } else if (url.contains(":8080")) {
@@ -157,7 +142,6 @@ public class RestExceptionHandler {
                 }
             }
         } catch (Exception e) {
-            // If extraction fails, return unknown
         }
         return "UNKNOWN-SERVICE";
     }

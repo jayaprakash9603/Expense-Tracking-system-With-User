@@ -18,5 +18,5 @@ public class CategoryDeletionEvent {
     private Integer targetCategoryId;
     private String targetCategoryName;
     private LocalDateTime timestamp;
-    private String eventType; // "USER_CATEGORY_DELETED" or "GLOBAL_CATEGORY_DELETED"
+    private String eventType;
 }

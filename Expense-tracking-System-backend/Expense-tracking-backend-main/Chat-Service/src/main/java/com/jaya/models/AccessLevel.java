@@ -1,4 +1,3 @@
-// File: com.jaya.models.AccessLevel.java
 package com.jaya.models;
 
 public enum AccessLevel {
@@ -6,7 +5,7 @@ public enum AccessLevel {
     READ,
     WRITE,
     READ_WRITE,
-    LIMITED,    // Basic access (only totals)
-    SUMMARY,    // Summary access (monthly summaries)
+    LIMITED,
+    SUMMARY,
     FULL
 }

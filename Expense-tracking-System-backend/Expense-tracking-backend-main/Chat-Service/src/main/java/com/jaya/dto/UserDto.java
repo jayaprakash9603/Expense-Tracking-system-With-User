@@ -28,11 +28,9 @@ public class UserDto {
     @JsonProperty("mobile")
     private String mobile;
 
-    // Default constructor (required for JSON deserialization)
     public UserDto() {
     }
 
-    // Constructor with parameters
     public UserDto(Integer id, String username, String email, String firstName, String lastName) {
         this.id = id;
         this.username = username;
@@ -41,7 +39,6 @@ public class UserDto {
         this.lastName = lastName;
     }
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }

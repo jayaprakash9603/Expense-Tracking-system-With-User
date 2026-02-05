@@ -5,19 +5,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
-/**
- * Configuration properties for external service URLs.
- * Follows 12-Factor App methodology - externalized configuration.
- * 
- * Usage in application.yml:
- * services:
- * expense:
- * url: http://localhost:6000
- * user:
- * url: http://localhost:6001
- * friendship:
- * url: http://localhost:6009
- */
 @Data
 @Validated
 @Configuration

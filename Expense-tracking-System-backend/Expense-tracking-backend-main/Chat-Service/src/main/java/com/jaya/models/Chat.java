@@ -34,19 +34,17 @@ public class Chat {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
-    // Read status fields
     @Column(name = "is_read")
     private Boolean isRead = false;
 
     @ElementCollection
-@CollectionTable(name = "chat_read_by_users", joinColumns = @JoinColumn(name = "chat_id"))
-@Column(name = "user_id")
-@org.hibernate.annotations.BatchSize(size = 32)
-private Set<Integer> readByUsers = new HashSet<>();
+    @CollectionTable(name = "chat_read_by_users", joinColumns = @JoinColumn(name = "chat_id"))
+    @Column(name = "user_id")
+    @org.hibernate.annotations.BatchSize(size = 32)
+    private Set<Integer> readByUsers = new HashSet<>();
     @Column(name = "read_count")
     private Integer readCount = 0;
 
-    // Delivery status fields
     @Column(name = "is_delivered")
     private Boolean isDelivered = false;
 
@@ -54,13 +52,12 @@ private Set<Integer> readByUsers = new HashSet<>();
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime deliveredAt;
 
-   @ElementCollection
-@CollectionTable(name = "chat_delivered_to_users", joinColumns = @JoinColumn(name = "chat_id"))
-@Column(name = "user_id")
-@org.hibernate.annotations.BatchSize(size = 32)
-private Set<Integer> deliveredToUsers = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(name = "chat_delivered_to_users", joinColumns = @JoinColumn(name = "chat_id"))
+    @Column(name = "user_id")
+    @org.hibernate.annotations.BatchSize(size = 32)
+    private Set<Integer> deliveredToUsers = new HashSet<>();
 
-    // Deletion status fields
     @Column(name = "deleted_by_sender")
     private Boolean deletedBySender = false;
 
@@ -68,12 +65,11 @@ private Set<Integer> deliveredToUsers = new HashSet<>();
     private Boolean deletedByRecipient = false;
 
     @ElementCollection
-@CollectionTable(name = "chat_deleted_by_users", joinColumns = @JoinColumn(name = "chat_id"))
-@Column(name = "user_id")
-@org.hibernate.annotations.BatchSize(size = 32)
-private Set<Integer> deletedByUsers = new HashSet<>();
+    @CollectionTable(name = "chat_deleted_by_users", joinColumns = @JoinColumn(name = "chat_id"))
+    @Column(name = "user_id")
+    @org.hibernate.annotations.BatchSize(size = 32)
+    private Set<Integer> deletedByUsers = new HashSet<>();
 
-    // Edit information
     @Column(name = "is_edited")
     private Boolean isEdited = false;
 
@@ -81,18 +77,15 @@ private Set<Integer> deletedByUsers = new HashSet<>();
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime editedAt;
 
-    // Reply information
     @Column(name = "reply_to_message_id")
     private Integer replyToMessageId;
 
-    // Forward information
     @Column(name = "is_forwarded")
     private Boolean isForwarded = false;
 
     @Column(name = "forwarded_from_message_id")
     private Integer forwardedFromMessageId;
 
-    // Media information
     @Column(name = "is_media_message")
     private Boolean isMediaMessage = false;
 
@@ -102,7 +95,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
     @Column(name = "media_type")
     private String mediaType;
 
-    // Pin information
     @Column(name = "is_pinned")
     private Boolean isPinned = false;
 
@@ -113,17 +105,12 @@ private Set<Integer> deletedByUsers = new HashSet<>();
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime pinnedAt;
 
-
-    // Reactions - stored as JSON
     @ElementCollection
     @CollectionTable(name = "chat_reactions", joinColumns = @JoinColumn(name = "chat_id"))
     @MapKeyColumn(name = "reaction_type")
     @Column(name = "user_id")
     private Map<String, List<Integer>> reactions = new HashMap<>();
 
-
-
-    // Self-destructing message fields
     @Column(name = "is_self_destructing")
     private Boolean isSelfDestructing = false;
 
@@ -137,8 +124,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
     @Column(name = "is_self_destructed")
     private Boolean isSelfDestructed = false;
 
-
-    // Constructors
     public Chat() {
         this.timestamp = LocalDateTime.now();
     }
@@ -157,7 +142,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         this.content = content;
     }
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }
@@ -374,7 +358,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         this.reactions = reactions != null ? reactions : new HashMap<>();
     }
 
-    // Utility methods
     public boolean isOneToOneChat() {
         return recipientId != null && groupId == null;
     }
@@ -383,7 +366,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         return groupId != null && recipientId == null;
     }
 
-    // Read status methods
     public void markAsReadByUser(Integer userId) {
         if (readByUsers == null) {
             readByUsers = new HashSet<>();
@@ -429,7 +411,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         this.isSelfDestructed = isSelfDestructed;
     }
 
-    // Self-destructing message methods
     public boolean isSelfDestructingMessage() {
         return isSelfDestructing != null && isSelfDestructing;
     }
@@ -479,7 +460,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         this.starredByUsers = starredByUsers != null ? starredByUsers : new HashSet<>();
     }
 
-    // Delivery status methods
     public void markAsDeliveredByUser(Integer userId) {
         if (deliveredToUsers == null) {
             deliveredToUsers = new HashSet<>();
@@ -495,7 +475,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         return deliveredToUsers != null && deliveredToUsers.contains(userId);
     }
 
-    // Deletion methods
     public void markAsDeletedBySender() {
         this.deletedBySender = true;
     }
@@ -533,12 +512,12 @@ private Set<Integer> deletedByUsers = new HashSet<>();
             return (deletedBySender != null && deletedBySender) &&
                     (deletedByRecipient != null && deletedByRecipient);
         }
-        return false; // Group messages are never completely deleted
+        return false;
     }
 
     public String getDisplayContent(Integer currentUserId) {
         if (isDeletedByUser(currentUserId)) {
-            return null; // Don't show deleted messages to the user who deleted them
+            return null;
         }
 
         if (isOneToOneChat()) {
@@ -554,19 +533,15 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         return content;
     }
 
-    // Reaction methods
     public void addReaction(Integer userId, String reaction) {
         if (reactions == null) {
             reactions = new HashMap<>();
         }
 
-        // Remove user from other reactions first
         reactions.values().forEach(userList -> userList.remove(userId));
 
-        // Add user to the new reaction
         reactions.computeIfAbsent(reaction, k -> new ArrayList<>()).add(userId);
 
-        // Clean up empty reaction lists
         reactions.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
@@ -586,11 +561,9 @@ private Set<Integer> deletedByUsers = new HashSet<>();
     }
 
     public int getReactionCount(String reaction) {
-        return reactions != null && reactions.containsKey(reaction) ?
-                reactions.get(reaction).size() : 0;
+        return reactions != null && reactions.containsKey(reaction) ? reactions.get(reaction).size() : 0;
     }
 
-    // Media methods
     public boolean hasMedia() {
         return isMediaMessage != null && isMediaMessage &&
                 mediaUrl != null && !mediaUrl.trim().isEmpty();
@@ -613,7 +586,6 @@ private Set<Integer> deletedByUsers = new HashSet<>();
                 (mediaType.startsWith("application/") || mediaType.startsWith("text/"));
     }
 
-    // Other utility methods
     public boolean isReply() {
         return replyToMessageId != null;
     }
@@ -649,7 +621,7 @@ private Set<Integer> deletedByUsers = new HashSet<>();
         if (isOneToOneChat()) {
             return senderId.equals(userId) || recipientId.equals(userId);
         } else if (isGroupChat()) {
-            return true; // Any group member can delete messages (with proper validation in service)
+            return true;
         }
         return false;
     }
@@ -674,8 +646,10 @@ private Set<Integer> deletedByUsers = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         Chat chat = (Chat) o;
 

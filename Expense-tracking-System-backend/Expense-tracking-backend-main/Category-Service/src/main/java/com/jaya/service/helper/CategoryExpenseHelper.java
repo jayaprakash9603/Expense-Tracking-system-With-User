@@ -58,12 +58,10 @@ public class CategoryExpenseHelper {
 
         List<Category> allCategories = categoryRepository.findAll();
         for (Category category : allCategories) {
-            // Skip excluded categories
             if (excludedCategoryIds != null && excludedCategoryIds.contains(category.getId())) {
                 continue;
             }
 
-            // Skip categories without expense IDs for this user
             if (category.getExpenseIds() == null || !category.getExpenseIds().containsKey(userId)) {
                 continue;
             }
@@ -169,7 +167,6 @@ public class CategoryExpenseHelper {
             return othersList.get(0);
         }
 
-        // Create new Others category
         Category newOthers = new Category();
         newOthers.setName(CategoryConstants.DEFAULT_CATEGORY_NAME);
         newOthers.setDescription(CategoryConstants.DEFAULT_CATEGORY_DESCRIPTION);

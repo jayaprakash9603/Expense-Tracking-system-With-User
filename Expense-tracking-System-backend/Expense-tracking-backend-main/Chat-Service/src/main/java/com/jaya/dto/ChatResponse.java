@@ -16,7 +16,6 @@ public class ChatResponse {
     private Integer groupId;
     private String content;
 
-    // Sender details
     private String email;
     private String username;
     private String firstName;
@@ -25,13 +24,11 @@ public class ChatResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 
-    // Read status fields
     private Boolean isRead;
     private Boolean isReadByCurrentUser;
     private Set<Integer> readByUsers;
     private Integer readCount;
 
-    // Delivery status fields
     private Boolean isDelivered;
     private Boolean isDeliveredByCurrentUser;
 
@@ -39,44 +36,37 @@ public class ChatResponse {
     private LocalDateTime deliveredAt;
     private Set<Integer> deliveredToUsers;
 
-    // Deletion status fields
     private Boolean isDeletedByCurrentUser;
     private Boolean isDeletedBySender;
     private Boolean wasDeleted;
 
-    // Edit information
     private Boolean isEdited;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime editedAt;
 
-    // Reply information
     private Integer replyToMessageId;
 
-    // Forward information
     private Boolean isForwarded;
     private Integer forwardedFromMessageId;
 
-    // Media information
     private Boolean isMediaMessage;
     private String mediaUrl;
     private String mediaType;
 
-    // Pin information
     private Boolean isPinned;
     private Integer pinnedBy;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime pinnedAt;
 
-    // Reactions
     private Map<String, List<Integer>> reactions;
 
-    // Constructors
-    public ChatResponse() {}
+    public ChatResponse() {
+    }
 
     public ChatResponse(Integer id, Integer senderId, Integer recipientId, Integer groupId,
-                        String content, LocalDateTime timestamp) {
+            String content, LocalDateTime timestamp) {
         this.id = id;
         this.senderId = senderId;
         this.recipientId = recipientId;
@@ -84,8 +74,6 @@ public class ChatResponse {
         this.content = content;
         this.timestamp = timestamp;
     }
-
-    // Getters and Setters
 
     public String getEmail() {
         return email;
@@ -118,6 +106,7 @@ public class ChatResponse {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
+
     public Integer getId() {
         return id;
     }
@@ -350,7 +339,6 @@ public class ChatResponse {
         this.reactions = reactions;
     }
 
-    // Utility methods
     public boolean isOneToOneChat() {
         return recipientId != null && groupId == null;
     }
@@ -407,8 +395,10 @@ public class ChatResponse {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         ChatResponse that = (ChatResponse) o;
 

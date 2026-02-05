@@ -36,13 +36,11 @@ public class CategoryValidationHelper {
     }
 
     public void validateUserAccess(Category category, Integer userId) {
-        // Owner always has access
         if (category.getUserId() != null && category.getUserId().equals(userId)) {
             log.debug("Access granted: user {} owns category {}", userId, category.getId());
             return;
         }
 
-        // Global categories are accessible unless user has hidden/edited them
         if (category.isGlobal()) {
             boolean isHidden = category.getUserIds() != null && category.getUserIds().contains(userId);
             boolean hasEdited = category.getEditUserIds() != null && category.getEditUserIds().contains(userId);
@@ -67,7 +65,7 @@ public class CategoryValidationHelper {
     public void checkForDuplicateCategory(String name, String type, Integer userId,
             boolean isGlobal, Integer excludeId) {
         if (name == null || name.trim().isEmpty()) {
-            return; // Will be caught by validation
+            return;
         }
 
         List<Category> duplicates;

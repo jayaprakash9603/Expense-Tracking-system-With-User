@@ -13,5 +13,5 @@ public class BudgetExpenseEvent {
     private Integer userId;
     private Integer expenseId;
     private Set<Integer> budgetIds;
-    private String action; // "ADD", "UPDATE", "REMOVE"
+    private String action;
 }

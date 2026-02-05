@@ -89,11 +89,8 @@ public class CategoryController {
         log.info("Creating category: name={}, userId={}, isGlobal={}",
                 request.getName(), targetUser.getId(), request.isGlobal());
 
-        // Convert request to entity
         Category categoryToCreate = categoryMapper.toEntity(request, targetUser.getId());
         Category created = categoryService.create(categoryToCreate, targetUser.getId());
-
-        // Send activity event
         unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
 
         CategoryDTO response = categoryMapper.toResponse(created);
@@ -177,11 +174,8 @@ public class CategoryController {
         Category oldCategory = categoryService.getById(id, targetUser.getId());
         User userForUpdate = (targetId == null) ? reqUser : targetUser;
 
-        // Convert request to entity for update
         Category categoryUpdate = categoryMapper.toEntityForUpdate(request, targetUser.getId());
         Category updated = categoryService.update(id, categoryUpdate, userForUpdate);
-
-        // Send activity event
         unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
 
         CategoryDTO response = categoryMapper.toResponse(updated);
@@ -207,7 +201,6 @@ public class CategoryController {
 
         categoryService.delete(id, targetUser.getId());
 
-        // Send activity event
         unifiedActivityService.sendCategoryDeletedEvent(id, categoryName, reqUser, targetUser);
 
         log.info("Category deleted: id={}, name={}", id, categoryName);
@@ -216,10 +209,6 @@ public class CategoryController {
                 .status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.success(null, CategoryConstants.MSG_CATEGORY_DELETED));
     }
-
-    // ========================
-    // Bulk Operations
-    // ========================
 
     @PostMapping("/bulk")
     @Operation(summary = "Create multiple categories", description = "Creates multiple categories in a single request")
@@ -240,7 +229,6 @@ public class CategoryController {
 
         List<Category> createdCategories = categoryService.createMultiple(categoriesToCreate, targetUser.getId());
 
-        // Send activity event
         unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
 
         List<CategoryDTO> responses = categoryMapper.toResponseList(createdCategories);
@@ -266,7 +254,6 @@ public class CategoryController {
 
         List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
 
-        // Send activity event
         unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
 
         List<CategoryDTO> responses = categoryMapper.toResponseList(updatedCategories);
@@ -291,7 +278,6 @@ public class CategoryController {
 
         categoryService.deleteMultiple(categoryIds, targetUser.getId());
 
-        // Send activity event
         unifiedActivityService.sendMultipleCategoriesDeletedEvent(count, reqUser, targetUser);
 
         log.info("Deleted {} categories", count);
@@ -336,7 +322,6 @@ public class CategoryController {
 
         categoryService.deleteAllUserCategories(targetUser.getId());
 
-        // Send activity event
         unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
 
         log.info("Deleted all {} categories for user: userId={}", count, targetUser.getId());
@@ -345,10 +330,6 @@ public class CategoryController {
                 .status(HttpStatus.NO_CONTENT)
                 .body(ApiResponse.success(null, "Deleted " + count + " categories"));
     }
-
-    // ========================
-    // Admin Operations
-    // ========================
 
     @PatchMapping("/admin/global/{id}")
     @Operation(summary = "Admin update global category", description = "Allows admin to update a global category")
@@ -365,7 +346,6 @@ public class CategoryController {
         Category categoryUpdate = categoryMapper.toEntityForUpdate(request, reqUser.getId());
         Category updated = categoryService.adminUpdateGlobalCategory(id, categoryUpdate, reqUser);
 
-        // Send activity event
         unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
 
         CategoryDTO response = categoryMapper.toResponse(updated);
@@ -373,10 +353,6 @@ public class CategoryController {
 
         return ResponseEntity.ok(ApiResponse.success(response, "Global category updated"));
     }
-
-    // ========================
-    // Category-Expense Operations
-    // ========================
 
     @GetMapping("/uncategorized")
     @Operation(summary = "Get uncategorized expenses", description = "Retrieves expenses in the 'Others' category")
@@ -432,22 +408,16 @@ public class CategoryController {
         log.debug("Getting expenses for category: categoryId={}, userId={}, page={}, size={}",
                 categoryId, targetUser.getId(), page, size);
 
-        // Normalize sort parameters
         String effectiveSortDir = normalizeOrdering(sortDir);
         String effectiveSortBy = validateAndNormalizeSortField(sortBy);
 
         List<ExpenseDTO> orderedExpenses = categoryService.getAllUserExpensesOrderedByCategoryFlag(
                 targetUser.getId(), categoryId, page, size, effectiveSortBy, effectiveSortDir);
 
-        // Apply date filtering if provided
         orderedExpenses = filterExpensesByDateAndCategory(orderedExpenses, startDate, endDate);
 
         return ResponseEntity.ok(ApiResponse.successList(orderedExpenses));
     }
-
-    // ========================
-    // Search Operations
-    // ========================
 
     @GetMapping("/search")
     @Operation(summary = "Search categories", description = "Searches categories by name or description")
@@ -466,10 +436,6 @@ public class CategoryController {
 
         return ResponseEntity.ok(ApiResponse.successList(results));
     }
-
-    // ========================
-    // Internal Service Endpoints (for inter-service communication)
-    // ========================
 
     @GetMapping("/get-by-id-with-service")
     @Operation(summary = "Internal: Get category by ID", description = "Internal endpoint for inter-service communication")
@@ -512,13 +478,6 @@ public class CategoryController {
         return categoryMapper.toResponseList(categories);
     }
 
-    // ========================
-    // Private Helper Methods
-    // ========================
-
-    /**
-     * Normalizes sort direction to 'asc' or 'desc'.
-     */
     private String normalizeOrdering(String sortDir) {
         if (sortDir == null) {
             return CategoryConstants.DEFAULT_SORT_DIR;
@@ -529,20 +488,14 @@ public class CategoryController {
                 : CategoryConstants.DEFAULT_SORT_DIR;
     }
 
-    /**
-     * Validates and normalizes sort field for expense queries.
-     */
     private String validateAndNormalizeSortField(String sortBy) {
         if (sortBy == null || sortBy.isEmpty()) {
             return CategoryConstants.DEFAULT_SORT_FIELD;
         }
 
-        // Direct fields
         if (sortBy.equals("id") || sortBy.equals("date") || sortBy.equals("categoryId")) {
             return sortBy;
         }
-
-        // Expense nested fields
         List<String> expenseFields = List.of(
                 "expenseName", "amount", "type", "paymentMethod",
                 "netAmount", "comments", "creditDue");
@@ -561,16 +514,13 @@ public class CategoryController {
         return CategoryConstants.DEFAULT_SORT_FIELD;
     }
 
-    /**
-     * Filters expenses by date range and category membership.
-     */
     private List<ExpenseDTO> filterExpensesByDateAndCategory(
             List<ExpenseDTO> expenses,
             String startDate,
             String endDate) {
 
         return expenses.stream()
-                .filter(ExpenseDTO::isIncludeInBudget) // Only include expenses in this category
+                .filter(ExpenseDTO::isIncludeInBudget)
                 .filter(e -> {
                     if (startDate == null || endDate == null || e.getExpenseDate() == null) {
                         return true;

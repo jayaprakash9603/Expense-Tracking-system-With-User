@@ -22,7 +22,7 @@ public class CategoryNotificationEvent implements Serializable {
 
     private Integer categoryId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, BUDGET_EXCEEDED
+    private String action;
     private String categoryName;
     private String description;
     private String icon;
@@ -35,9 +35,8 @@ public class CategoryNotificationEvent implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
-    private String metadata; // JSON string for additional data
+    private String metadata;
 
-    
     public static class Action {
         public static final String CREATE = "CREATE";
         public static final String UPDATE = "UPDATE";

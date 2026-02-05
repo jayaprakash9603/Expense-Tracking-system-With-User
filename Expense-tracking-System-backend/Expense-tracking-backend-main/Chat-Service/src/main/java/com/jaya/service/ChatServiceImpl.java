@@ -62,25 +62,19 @@ public class ChatServiceImpl implements ChatService {
         return response;
     }
 
+    @Override
+    public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
+        System.out.println("Main thread: " + Thread.currentThread().getName());
+        validateUsers(List.of(userId));
+        validateGroup(request.getGroupId(), userId);
 
-    
-    
-   
-@Override
-public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
-     System.out.println("Main thread: " + Thread.currentThread().getName());
-    validateUsers(List.of(userId));
-    validateGroup(request.getGroupId(), userId);
-
-    Chat chat = toEntity(request, userId);
-    asyncChatSaver.saveChatAsync(chat); // returns immediately
-
-    //  chatRepository.save(chat);
-    ChatResponse response = toResponse(chat, userId);
-    messagingTemplate.convertAndSend("/topic/group/" + request.getGroupId(), response);
-    logger.info("Message published to /topic/group/{}: {}", request.getGroupId(), response);
-    return response;
-}
+        Chat chat = toEntity(request, userId);
+        asyncChatSaver.saveChatAsync(chat);
+        ChatResponse response = toResponse(chat, userId);
+        messagingTemplate.convertAndSend("/topic/group/" + request.getGroupId(), response);
+        logger.info("Message published to /topic/group/{}: {}", request.getGroupId(), response);
+        return response;
+    }
 
     @Override
     public List<ChatResponse> getChatsForUser(Integer userId) {
@@ -167,14 +161,13 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
 
         if (chat.isOneToOneChat()) {
             if (!chat.getSenderId().equals(userId) && !chat.getRecipientId().equals(userId)) {
-                throw new ChatServiceException("Access denied: You can only view read status of your own conversations");
+                throw new ChatServiceException(
+                        "Access denied: You can only view read status of your own conversations");
             }
             return List.of();
         } else if (chat.isGroupChat()) {
             validateGroup(chat.getGroupId(), userId);
-            return chat.getReadByUsers() != null ?
-                    chat.getReadByUsers().stream().toList() :
-                    List.of();
+            return chat.getReadByUsers() != null ? chat.getReadByUsers().stream().toList() : List.of();
         }
 
         throw new ChatServiceException("Invalid chat type");
@@ -293,8 +286,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         replyChat.setReplyToMessageId(replyToMessageId);
 
         if (originalMessage.isOneToOneChat()) {
-            replyChat.setRecipientId(originalMessage.getRecipientId().equals(userId) ?
-                    originalMessage.getSenderId() : originalMessage.getRecipientId());
+            replyChat.setRecipientId(originalMessage.getRecipientId().equals(userId) ? originalMessage.getSenderId()
+                    : originalMessage.getRecipientId());
             validateFriendship(userId, replyChat.getRecipientId());
         } else {
             replyChat.setGroupId(originalMessage.getGroupId());
@@ -310,7 +303,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
     }
 
     @Override
-    public ChatResponse forwardMessage(Integer messageId, Integer targetUserId, Integer targetGroupId, Integer userId) throws Exception {
+    public ChatResponse forwardMessage(Integer messageId, Integer targetUserId, Integer targetGroupId, Integer userId)
+            throws Exception {
         Chat originalMessage = chatRepository.findById(messageId)
                 .orElseThrow(() -> new ChatServiceException("Message not found: " + messageId));
 
@@ -351,23 +345,14 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         return chatPage.map(chat -> toResponse(chat, userId1));
     }
 
-
     @Override
-    public Page<ChatResponse> getGroupChatHistory(Integer groupId, Integer userId, int page, int size) throws Exception {
+    public Page<ChatResponse> getGroupChatHistory(Integer groupId, Integer userId, int page, int size)
+            throws Exception {
         try {
-            // Validate user
             validateUsers(List.of(userId));
-
-            // Validate group membership
             validateGroup(groupId, userId);
-
-            // Create pageable with sorting by timestamp descending (newest first)
             Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
-
-            // Get paginated chat history for the group
             Page<Chat> chatPage = chatRepository.findByGroupIdAndNotDeletedByUserPaginated(groupId, userId, pageable);
-
-            // Convert to response DTOs
             return chatPage.map(chat -> toResponse(chat, userId));
 
         } catch (ChatServiceException e) {
@@ -471,7 +456,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
 
     @Override
     public ChatResponse sendMediaMessage(Integer recipientId, Integer groupId, String mediaUrl,
-                                         String mediaType, String caption, Integer userId) throws Exception {
+            String mediaType, String caption, Integer userId) throws Exception {
         validateUsers(List.of(userId));
 
         Chat chat = new Chat();
@@ -799,7 +784,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
 
     @Override
     public Page<ChatResponse> searchMessagesAdvanced(String query, Integer userId, String chatType, Integer chatId,
-                                                     String messageType, String dateFrom, String dateTo, int page, int size) throws Exception {
+            String messageType, String dateFrom, String dateTo, int page, int size) throws Exception {
         validateUsers(List.of(userId));
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
@@ -886,7 +871,6 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         return presenceMap;
     }
 
-    // Helper methods
     private void validateUsers(List<Integer> userIds) {
         for (Integer userId : userIds) {
             try {
@@ -906,7 +890,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
             boolean areFriends = friendshipService.areFriends(userId1, userId2);
 
             if (!areFriends) {
-                throw new ChatServiceException("You can only send messages to your friends. Please send a friend request first.");
+                throw new ChatServiceException(
+                        "You can only send messages to your friends. Please send a friend request first.");
             }
 
         } catch (FeignException.InternalServerError e) {
@@ -976,7 +961,6 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                 return responseBody.length() > 100 ? responseBody.substring(0, 100) + "..." : responseBody;
             }
         } catch (Exception e) {
-            // If extraction fails, fall back to default message
         }
 
         return ex.getMessage() != null ? ex.getMessage() : "Unknown service error";
@@ -991,7 +975,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
             try {
                 validateGroup(chat.getGroupId(), userId);
             } catch (ChatServiceException e) {
-                throw new ChatServiceException("Access denied: You must be a member of the group to mark messages as read");
+                throw new ChatServiceException(
+                        "Access denied: You must be a member of the group to mark messages as read");
             }
 
             if (chat.getSenderId().equals(userId)) {
@@ -1019,10 +1004,12 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
             chat.markAsDeletedByUser(userId);
         }
     }
+
     private void validateChatDeletionPermission(Chat chat, Integer userId) {
         if (chat.isOneToOneChat()) {
             if (!chat.getSenderId().equals(userId) && !chat.getRecipientId().equals(userId)) {
-                throw new ChatServiceException("Access denied: You can only delete messages from your own conversations");
+                throw new ChatServiceException(
+                        "Access denied: You can only delete messages from your own conversations");
             }
         } else if (chat.isGroupChat()) {
             try {
@@ -1036,7 +1023,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
     private void validateMessageAccess(Chat chat, Integer userId) {
         if (chat.isOneToOneChat()) {
             if (!chat.getSenderId().equals(userId) && !chat.getRecipientId().equals(userId)) {
-                throw new ChatServiceException("Access denied: You can only access messages from your own conversations");
+                throw new ChatServiceException(
+                        "Access denied: You can only access messages from your own conversations");
             }
         } else if (chat.isGroupChat()) {
             validateGroup(chat.getGroupId(), userId);
@@ -1082,12 +1070,10 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "messageId", chat.getId(),
                     "editedBy", userId,
                     "newContent", chat.getContent(),
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (chat.isOneToOneChat()) {
-                Integer targetUser = chat.getRecipientId().equals(userId) ?
-                        chat.getSenderId() : chat.getRecipientId();
+                Integer targetUser = chat.getRecipientId().equals(userId) ? chat.getSenderId() : chat.getRecipientId();
                 messagingTemplate.convertAndSendToUser(
                         targetUser.toString(), "/queue/chats", notification);
             } else if (chat.isGroupChat()) {
@@ -1105,8 +1091,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "replyId", replyChat.getId(),
                     "originalMessageId", originalMessage.getId(),
                     "repliedBy", userId,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (replyChat.isOneToOneChat()) {
                 messagingTemplate.convertAndSendToUser(
@@ -1125,8 +1110,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "type", "MESSAGE_FORWARDED",
                     "messageId", forwardedMessage.getId(),
                     "forwardedBy", userId,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (forwardedMessage.isOneToOneChat()) {
                 messagingTemplate.convertAndSendToUser(
@@ -1147,12 +1131,10 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "userId", userId,
                     "reaction", reaction,
                     "action", action,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (chat.isOneToOneChat()) {
-                Integer targetUser = chat.getRecipientId().equals(userId) ?
-                        chat.getSenderId() : chat.getRecipientId();
+                Integer targetUser = chat.getRecipientId().equals(userId) ? chat.getSenderId() : chat.getRecipientId();
                 messagingTemplate.convertAndSendToUser(
                         targetUser.toString(), "/queue/chats", notification);
             } else if (chat.isGroupChat()) {
@@ -1170,8 +1152,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "messageId", chat.getId(),
                     "senderId", userId,
                     "mediaType", chat.getMediaType(),
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (chat.isOneToOneChat()) {
                 messagingTemplate.convertAndSendToUser(
@@ -1191,12 +1172,10 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "messageId", chat.getId(),
                     "userId", userId,
                     "action", action,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (chat.isOneToOneChat()) {
-                Integer targetUser = chat.getRecipientId().equals(userId) ?
-                        chat.getSenderId() : chat.getRecipientId();
+                Integer targetUser = chat.getRecipientId().equals(userId) ? chat.getSenderId() : chat.getRecipientId();
                 messagingTemplate.convertAndSendToUser(
                         targetUser.toString(), "/queue/chats", notification);
             } else if (chat.isGroupChat()) {
@@ -1213,8 +1192,7 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "type", "MESSAGE_DELIVERED",
                     "messageId", chat.getId(),
                     "deliveredBy", userId,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
             if (chat.isOneToOneChat()) {
                 messagingTemplate.convertAndSendToUser(
@@ -1233,10 +1211,8 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                     "type", "PRESENCE_CHANGE",
                     "userId", userId,
                     "status", status,
-                    "timestamp", LocalDateTime.now()
-            );
+                    "timestamp", LocalDateTime.now());
 
-            // Notify all friends about presence change
             messagingTemplate.convertAndSend("/topic/presence/" + userId, notification);
         } catch (Exception e) {
             System.err.println("Error notifying presence change: " + e.getMessage());
@@ -1260,7 +1236,6 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         response.setGroupId(chat.getGroupId());
         response.setTimestamp(chat.getTimestamp());
 
-        // Set sender details using ServiceHelper
         if (chat.getSenderId() != null) {
             try {
                 var sender = helper.validateUser(chat.getSenderId());
@@ -1269,11 +1244,9 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
                 response.setFirstName(sender.getFirstName());
                 response.setLastName(sender.getLastName());
             } catch (Exception e) {
-                // If user details cannot be fetched, leave fields null or set default
             }
         }
 
-        // Set content based on deletion status
         String displayContent;
         if (currentUserId != null) {
             displayContent = chat.getDisplayContent(currentUserId);
@@ -1287,28 +1260,22 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         response.setWasDeleted(displayContent != null && displayContent.contains("🚫 This message was deleted"));
         response.setIsDeletedBySender(chat.getDeletedBySender() != null ? chat.getDeletedBySender() : false);
 
-        // Set edit information
         response.setIsEdited(chat.getIsEdited() != null ? chat.getIsEdited() : false);
         response.setEditedAt(chat.getEditedAt());
 
-        // Set reply information
         response.setReplyToMessageId(chat.getReplyToMessageId());
 
-        // Set forward information
         response.setIsForwarded(chat.getIsForwarded() != null ? chat.getIsForwarded() : false);
         response.setForwardedFromMessageId(chat.getForwardedFromMessageId());
 
-        // Set media information
         response.setIsMediaMessage(chat.getIsMediaMessage() != null ? chat.getIsMediaMessage() : false);
         response.setMediaUrl(chat.getMediaUrl());
         response.setMediaType(chat.getMediaType());
 
-        // Set pin information
         response.setIsPinned(chat.getIsPinned() != null ? chat.getIsPinned() : false);
         response.setPinnedBy(chat.getPinnedBy());
         response.setPinnedAt(chat.getPinnedAt());
 
-        // Set reactions
         response.setReactions(chat.getReactions());
 
         if (chat.isOneToOneChat()) {
@@ -1331,7 +1298,6 @@ public ChatResponse sendGroupChat(ChatRequest request, Integer userId) {
         return response;
     }
 
-    // Keep the old method for backward compatibility
     private ChatResponse toResponse(Chat chat) {
         return toResponse(chat, null);
     }

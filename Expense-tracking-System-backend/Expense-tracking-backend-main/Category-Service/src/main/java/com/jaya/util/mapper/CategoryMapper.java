@@ -19,10 +19,8 @@ public class CategoryMapper {
     public Category toEntity(CreateCategoryRequest request, Integer userId) {
         Category category = new Category();
 
-        // Set user ID based on global flag
         category.setUserId(request.isGlobal() ? CategoryConstants.GLOBAL_USER_ID : userId);
 
-        // Map basic fields
         category.setName(request.getName());
         category.setDescription(request.getDescription());
         category.setType(request.getType());
@@ -30,7 +28,6 @@ public class CategoryMapper {
         category.setIcon(request.getIcon() != null ? request.getIcon() : CategoryConstants.DEFAULT_ICON);
         category.setColor(request.getColor() != null ? request.getColor() : CategoryConstants.DEFAULT_COLOR);
 
-        // Initialize collections
         category.setExpenseIds(new HashMap<>());
         category.setUserIds(new HashSet<>());
         category.setEditUserIds(new HashSet<>());
@@ -46,7 +43,6 @@ public class CategoryMapper {
         category.setIcon(request.getIcon());
         category.setColor(request.getColor());
 
-        // Set expense IDs if provided
         if (request.getExpenseIds() != null) {
             category.setExpenseIds(request.getExpenseIds());
         }
@@ -72,12 +68,6 @@ public class CategoryMapper {
         }
     }
 
-    /**
-     * Convert Category entity to CategoryDTO.
-     *
-     * @param category The category entity
-     * @return The CategoryDTO
-     */
     public CategoryDTO toResponse(Category category) {
         return toResponse(category, null);
     }
@@ -96,7 +86,6 @@ public class CategoryMapper {
                 .userIds(category.getUserIds())
                 .editUserIds(category.getEditUserIds());
 
-        // Calculate expense count for the user
         if (userId != null && category.getExpenseIds() != null) {
             Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
             builder.expenseCount(userExpenseIds != null ? userExpenseIds.size() : 0);

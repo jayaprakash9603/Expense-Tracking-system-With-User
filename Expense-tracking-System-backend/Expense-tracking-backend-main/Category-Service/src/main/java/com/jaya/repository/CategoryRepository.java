@@ -54,7 +54,7 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
         @Query("SELECT DISTINCT c FROM Category c WHERE c.isGlobal = true")
         List<Category> findAllByIsGlobalTrueWithDetails();
 
-        List<Category> findAllByIsGlobalTrue(); // Fetch all global categories
+        List<Category> findAllByIsGlobalTrue();
 
         @EntityGraph(attributePaths = { "expenseIds", "userIds", "editUserIds" })
         @Query("SELECT DISTINCT c FROM Category c WHERE c.name = :name AND c.userId = :userId")

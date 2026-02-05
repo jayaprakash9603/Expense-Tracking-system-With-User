@@ -7,9 +7,9 @@ import lombok.Data;
 @Data
 public class ChatRequest {
 
-    private Integer recipientId; // Null for group chats
+    private Integer recipientId;
 
-    private Integer groupId; // Null for one-to-one chats
+    private Integer groupId;
 
     @NotBlank(message = "Content cannot be empty")
     private String content;

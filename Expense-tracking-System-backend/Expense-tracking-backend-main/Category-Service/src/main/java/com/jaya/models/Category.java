@@ -23,7 +23,7 @@ import java.util.Set;
                 @NamedAttributeNode("userIds"),
                 @NamedAttributeNode("editUserIds")
 })
-@BatchSize(size = 50) // Batch fetch categories to reduce queries
+@BatchSize(size = 50)
 public class Category {
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +32,7 @@ public class Category {
         private String name;
         private String description;
 
-        private String type; // e.g., "income", "expense", "transfer"
+        private String type;
         private boolean isGlobal = false;
 
         private String icon = "";
@@ -52,13 +52,13 @@ public class Category {
         @MapKeyColumn(name = "expense_key")
         @Lob
         @Column(name = "expense_value", columnDefinition = "LONGBLOB")
-        @BatchSize(size = 50) // Batch fetch expense IDs collection
+        @BatchSize(size = 50)
         private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 
         @ElementCollection(fetch = FetchType.LAZY)
         @CollectionTable(name = "category_user_ids", joinColumns = @JoinColumn(name = "category_id"))
         @Column(name = "user_id", columnDefinition = "LONGBLOB")
-        @BatchSize(size = 50) // Batch fetch user IDs collection
+        @BatchSize(size = 50)
         private Set<Integer> userIds = new HashSet<>();
 
         @ElementCollection(fetch = FetchType.LAZY)

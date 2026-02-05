@@ -31,22 +31,23 @@ public class ServiceHelper {
         return reqUser;
     }
 
-    // Chat muting methods
     public void muteUserChat(Integer userId, Integer chatPartnerId, Long muteUntil) {
         String key = "muted_chat:user:" + userId + ":partner:" + chatPartnerId;
         if (muteUntil != null) {
-            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(),
+                    TimeUnit.MILLISECONDS);
         } else {
-            redisTemplate.opsForValue().set(key, -1L); // Mute indefinitely
+            redisTemplate.opsForValue().set(key, -1L);
         }
     }
 
     public void muteGroupChat(Integer userId, Integer groupId, Long muteUntil) {
         String key = "muted_chat:user:" + userId + ":group:" + groupId;
         if (muteUntil != null) {
-            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(),
+                    TimeUnit.MILLISECONDS);
         } else {
-            redisTemplate.opsForValue().set(key, -1L); // Mute indefinitely
+            redisTemplate.opsForValue().set(key, -1L);
         }
     }
 
@@ -69,14 +70,13 @@ public class ServiceHelper {
         }
 
         if (muteUntil.equals(-1L)) {
-            return true; // Muted indefinitely
+            return true;
         }
 
         Long muteTime = (Long) muteUntil;
         if (muteTime > System.currentTimeMillis()) {
             return true;
         } else {
-            // Mute period expired, remove the key
             redisTemplate.delete(key);
             return false;
         }
@@ -91,20 +91,18 @@ public class ServiceHelper {
         }
 
         if (muteUntil.equals(-1L)) {
-            return true; // Muted indefinitely
+            return true;
         }
 
         Long muteTime = (Long) muteUntil;
         if (muteTime > System.currentTimeMillis()) {
             return true;
         } else {
-            // Mute period expired, remove the key
             redisTemplate.delete(key);
             return false;
         }
     }
 
-    // Chat archiving methods
     public void archiveUserChat(Integer userId, Integer chatPartnerId) {
         String key = "archived_chats:user:" + userId;
         String chatKey = "user_" + chatPartnerId;
@@ -142,7 +140,6 @@ public class ServiceHelper {
                         Integer chatId = Integer.parseInt(chatStr.substring(chatStr.indexOf("_") + 1));
                         chatIds.add(chatId);
                     } catch (NumberFormatException e) {
-                        // Skip invalid entries
                     }
                 }
             }
@@ -150,7 +147,6 @@ public class ServiceHelper {
         return chatIds;
     }
 
-    // User presence methods
     public void updateUserPresence(Integer userId, String status) {
         String key = "user_presence:" + userId;
         Map<String, Object> presenceData = new HashMap<>();
@@ -159,7 +155,7 @@ public class ServiceHelper {
         presenceData.put("timestamp", System.currentTimeMillis());
 
         redisTemplate.opsForHash().putAll(key, presenceData);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS); // Expire after 24 hours
+        redisTemplate.expire(key, 24, TimeUnit.HOURS);
     }
 
     public String getUserPresence(Integer userId) {
@@ -171,15 +167,14 @@ public class ServiceHelper {
             return "OFFLINE";
         }
 
-        // Check if presence data is recent (within last 5 minutes for ONLINE status)
         if (timestamp != null) {
             Long lastUpdate = Long.parseLong(timestamp.toString());
             long currentTime = System.currentTimeMillis();
             long timeDiff = currentTime - lastUpdate;
 
-            if ("ONLINE".equals(status.toString()) && timeDiff > 300000) { // 5 minutes
+            if ("ONLINE".equals(status.toString()) && timeDiff > 300000) {
                 return "AWAY";
-            } else if (timeDiff > 1800000) { // 30 minutes
+            } else if (timeDiff > 1800000) {
                 return "OFFLINE";
             }
         }
@@ -187,7 +182,6 @@ public class ServiceHelper {
         return status.toString();
     }
 
-    // Utility methods for chat management
     public boolean isChatArchived(Integer userId, Integer chatId, String chatType) {
         String key = "archived_chats:user:" + userId;
         String chatKey = chatType.toLowerCase() + "_" + chatId;
@@ -213,7 +207,6 @@ public class ServiceHelper {
         return result;
     }
 
-    // Batch operations
     public void muteMultipleChats(Integer userId, List<Integer> chatIds, String chatType, Long muteUntil) {
         for (Integer chatId : chatIds) {
             if ("USER".equals(chatType)) {
@@ -234,8 +227,8 @@ public class ServiceHelper {
         }
     }
 
-    // Chat settings management
-    public void setChatNotificationSettings(Integer userId, Integer chatId, String chatType, Map<String, Object> settings) {
+    public void setChatNotificationSettings(Integer userId, Integer chatId, String chatType,
+            Map<String, Object> settings) {
         String key = "chat_settings:user:" + userId + ":" + chatType.toLowerCase() + ":" + chatId;
         redisTemplate.opsForHash().putAll(key, settings);
     }
@@ -254,9 +247,7 @@ public class ServiceHelper {
         return result;
     }
 
-    // Cleanup methods
     public void cleanupExpiredMutes() {
-        // This method can be called periodically to clean up expired mute entries
         Set<String> keys = redisTemplate.keys("muted_chat:*");
         if (keys != null) {
             for (String key : keys) {
@@ -272,7 +263,6 @@ public class ServiceHelper {
     }
 
     public void cleanupOfflineUsers() {
-        // Clean up presence data for users who have been offline for too long
         Set<String> keys = redisTemplate.keys("user_presence:*");
         if (keys != null) {
             for (String key : keys) {
@@ -280,7 +270,7 @@ public class ServiceHelper {
                 if (timestamp != null) {
                     Long lastUpdate = Long.parseLong(timestamp.toString());
                     long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastUpdate > 86400000) { // 24 hours
+                    if (currentTime - lastUpdate > 86400000) {
                         redisTemplate.delete(key);
                     }
                 }
@@ -288,14 +278,12 @@ public class ServiceHelper {
         }
     }
 
-    // User validation with Feign client (enhanced version)
     public void validateUsers(List<Integer> userIds) throws Exception {
         for (Integer userId : userIds) {
             validateUser(userId);
         }
     }
 
-    // Check if user exists without throwing exception
     public boolean userExists(Integer userId) {
         try {
             UserDto user = userService.getUserProfileById(userId);
@@ -305,7 +293,6 @@ public class ServiceHelper {
         }
     }
 
-    // Get multiple users at once
     public Map<Integer, UserDto> getMultipleUsers(List<Integer> userIds) {
         Map<Integer, UserDto> users = new HashMap<>();
         for (Integer userId : userIds) {
@@ -315,7 +302,6 @@ public class ServiceHelper {
                     users.put(userId, user);
                 }
             } catch (Exception e) {
-                // Skip users that can't be retrieved
             }
         }
         return users;

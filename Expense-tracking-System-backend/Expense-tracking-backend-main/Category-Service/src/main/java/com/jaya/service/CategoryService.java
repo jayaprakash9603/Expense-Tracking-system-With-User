@@ -41,7 +41,7 @@ public class CategoryService {
     private void checkForDuplicateCategory(String name, String type, Integer userId, boolean isGlobal,
             Integer excludeId) {
         if (name == null || name.trim().isEmpty()) {
-            return; // Will be caught by other validation
+            return;
         }
 
         List<Category> duplicates;
@@ -178,7 +178,7 @@ public class CategoryService {
             Set<Integer> currentGlobalIds = getUserExpenseIds(existing, userId);
             Set<Integer> requestedIds = hasExpenseIdsInRequest(category, userId)
                     ? getRequestedExpenseIdsForUser(category, userId)
-                    : new HashSet<>(currentGlobalIds); // preserve if none provided
+                    : new HashSet<>(currentGlobalIds);
             removeExpenseIdsFromOtherCategories(userId, requestedIds,
                     new HashSet<>(Arrays.asList(existing.getId(), userCategory.getId())));
             Set<Integer> removedIds = new HashSet<>(currentGlobalIds);
@@ -562,7 +562,7 @@ public class CategoryService {
                 .collect(Collectors.toSet());
 
         logger.info("Found {} duplicate expense IDs across categories in the update", duplicateExpenseIds.size());
-        Map<Integer, Integer> movedExpenses = new HashMap<>(); // expenseId -> new categoryId
+        Map<Integer, Integer> movedExpenses = new HashMap<>();
         Set<Integer> expensesToMoveToOthers = new HashSet<>(duplicateExpenseIds);
         for (Map.Entry<Integer, List<Integer>> entry : newExpenseToCategoriesMap.entrySet()) {
             Integer expenseId = entry.getKey();
@@ -573,7 +573,7 @@ public class CategoryService {
             Integer previousCategoryId = previousExpenseToCategoryMap.get(expenseId);
 
             if (previousCategoryId != null && !newCategoryIds.contains(previousCategoryId)) {
-                movedExpenses.put(expenseId, newCategoryIds.get(0)); // Use the first (and only) new category
+                movedExpenses.put(expenseId, newCategoryIds.get(0));
                 logger.info("Expense ID {} moved from category {} to {}",
                         expenseId, previousCategoryId, newCategoryIds.get(0));
             }
@@ -798,7 +798,7 @@ public class CategoryService {
                         for (Integer expenseId : expenseIds) {
                             ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
                             if (expense != null) {
-                                expense.setCategoryId(null); // Temporarily set to null
+                                expense.setCategoryId(null);
                                 expenseService.save(expense);
                                 expensesToReassign.add(expense);
                             }
@@ -831,7 +831,7 @@ public class CategoryService {
                         for (Integer expenseId : expenseIds) {
                             ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
                             if (expense != null) {
-                                expense.setCategoryId(null); // Temporarily set to null
+                                expense.setCategoryId(null);
                                 expenseService.save(expense);
                                 expensesToReassign.add(expense);
                             }
@@ -1048,7 +1048,7 @@ public class CategoryService {
                     } else if ("loss".equalsIgnoreCase(flowType) || "expense".equalsIgnoreCase(flowType)) {
                         return "loss".equalsIgnoreCase(type) || "expense".equalsIgnoreCase(type);
                     }
-                    return true; // Return all if flowType is not recognized
+                    return true;
                 })
                 .collect(Collectors.toList());
     }
@@ -1056,7 +1056,7 @@ public class CategoryService {
     private Sort createSort(String sortBy, String sortDirection) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         if (sortBy.startsWith("expense.")) {
-            return Sort.by(direction, "id"); // Default sort for database query
+            return Sort.by(direction, "id");
         }
 
         return Sort.by(direction, sortBy);
