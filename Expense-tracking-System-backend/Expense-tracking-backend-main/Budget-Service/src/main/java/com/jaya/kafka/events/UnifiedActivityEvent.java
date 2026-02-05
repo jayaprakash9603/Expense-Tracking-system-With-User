@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Unified Activity Event - Single event DTO for all services
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

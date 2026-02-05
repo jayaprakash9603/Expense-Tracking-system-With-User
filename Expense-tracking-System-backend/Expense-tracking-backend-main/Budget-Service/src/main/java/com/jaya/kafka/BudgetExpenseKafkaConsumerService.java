@@ -18,18 +18,13 @@ public class BudgetExpenseKafkaConsumerService {
 
     private final BudgetService budgetService;
 
-    @KafkaListener(
-            topics = "budget-expense-events",
-            groupId = "budget-expense-group",
-            containerFactory = "budgetExpenseKafkaListenerContainerFactory"
-    )
+    @KafkaListener(topics = "budget-expense-events", groupId = "budget-expense-group", containerFactory = "budgetExpenseKafkaListenerContainerFactory")
     @Transactional
     public void handleBudgetExpenseEventDirect(BudgetExpenseEvent event) {
         try {
             logger.info("Direct consumption - Expense ID: {}, Budget IDs: {}, Action: {}, User: {}",
                     event.getExpenseId(), event.getBudgetIds(), event.getAction(), event.getUserId());
 
-            // Validate event data
             if (event.getBudgetIds() == null || event.getBudgetIds().isEmpty()) {
                 logger.warn("No budget IDs provided for expense ID: {}", event.getExpenseId());
                 return;
@@ -60,7 +55,7 @@ public class BudgetExpenseKafkaConsumerService {
         logger.info("Adding expense ID: {} to budgets: {} for user: {}",
                 event.getExpenseId(), event.getBudgetIds(), event.getUserId());
 
-        budgetService.editBudgetWithExpenseId(event.getBudgetIds(), event.getExpenseId(),event.getUserId());
+        budgetService.editBudgetWithExpenseId(event.getBudgetIds(), event.getExpenseId(), event.getUserId());
     }
 
     private void updateBudgetExpenseLinks(BudgetExpenseEvent event) throws Exception {

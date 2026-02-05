@@ -14,18 +14,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * BudgetNotificationService
- * Service layer for sending budget-related notifications
- * 
- * SOLID Principles:
- * - Single Responsibility: Only handles budget notification business logic
- * - Dependency Inversion: Depends on BudgetNotificationProducer abstraction
- * 
- * DRY Principle:
- * - Common event building logic extracted to helper methods
- * - Reuses producer infrastructure
- */
 @Slf4j
 @Service
 public class BudgetNotificationService {
@@ -37,11 +25,6 @@ public class BudgetNotificationService {
         this.producer = producer;
     }
 
-    /**
-     * Send notification when a budget is created
-     * 
-     * @param budget The created budget
-     */
     @Async
     public void sendBudgetCreatedNotification(Budget budget) {
         try {
@@ -71,13 +54,11 @@ public class BudgetNotificationService {
         }
     }
 
-    
     @Async
     public void sendBudgetCreatedNotification(Budget budget, Integer creatorUserId, boolean friendCreation) {
         try {
             log.debug("Preparing contextual budget created notification for budget ID: {}", budget.getId());
 
-            // Base metadata
             Map<String, Object> metadata = buildMetadata("created", budget);
             metadata.put("created_by_user_id", creatorUserId);
             metadata.put("creation_type", friendCreation ? "FRIEND_CREATED" : "SELF_CREATED");
@@ -112,11 +93,6 @@ public class BudgetNotificationService {
         }
     }
 
-    /**
-     * Send notification when a budget is updated
-     * 
-     * @param budget The updated budget
-     */
     @Async
     public void sendBudgetUpdatedNotification(Budget budget) {
         try {
@@ -151,13 +127,6 @@ public class BudgetNotificationService {
         }
     }
 
-    /**
-     * Send notification when a budget is deleted
-     * 
-     * @param budgetId   The ID of the deleted budget
-     * @param budgetName The name of the deleted budget
-     * @param userId     The user ID
-     */
     @Async
     public void sendBudgetDeletedNotification(Integer budgetId, String budgetName, Integer userId) {
         try {
@@ -181,12 +150,6 @@ public class BudgetNotificationService {
         }
     }
 
-    /**
-     * Send notification when a budget is exceeded
-     * 
-     * @param budget The exceeded budget
-     * @param spent  The amount spent
-     */
     @Async
     public void sendBudgetExceededNotification(Budget budget, BigDecimal spent) {
         try {
@@ -220,12 +183,6 @@ public class BudgetNotificationService {
         }
     }
 
-    /**
-     * Send notification when a budget warning threshold is reached
-     * 
-     * @param budget The budget approaching limit
-     * @param spent  The amount spent
-     */
     @Async
     public void sendBudgetWarningNotification(Budget budget, BigDecimal spent) {
         try {
@@ -259,12 +216,6 @@ public class BudgetNotificationService {
         }
     }
 
-    /**
-     * Send notification when budget limit is approaching
-     * 
-     * @param budget The budget approaching limit
-     * @param spent  The amount spent
-     */
     @Async
     public void sendBudgetLimitApproachingNotification(Budget budget, BigDecimal spent) {
         try {
@@ -298,20 +249,10 @@ public class BudgetNotificationService {
         }
     }
 
-    // ========== Helper Methods ==========
-
-    /**
-     * Calculate spent amount (placeholder - should be fetched from expense data)
-     */
     private BigDecimal calculateSpent(Budget budget) {
-        // TODO: Fetch actual spent amount from expense service
-        // For now, return zero or use budget's tracked spent field if available
         return BigDecimal.ZERO;
     }
 
-    /**
-     * Calculate percentage of budget used
-     */
     private Double calculatePercentageUsed(BigDecimal spent, BigDecimal total) {
         if (total.compareTo(BigDecimal.ZERO) == 0) {
             return 0.0;
@@ -321,9 +262,6 @@ public class BudgetNotificationService {
                 .doubleValue();
     }
 
-    /**
-     * Build metadata for standard events (create/update)
-     */
     private Map<String, Object> buildMetadata(String eventType, Budget budget) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("eventType", eventType);
@@ -335,9 +273,6 @@ public class BudgetNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for delete events
-     */
     private Map<String, Object> buildSimpleMetadata(String eventType, Integer budgetId, String budgetName) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("eventType", eventType);
@@ -346,9 +281,6 @@ public class BudgetNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for alert events (exceeded/warning/approaching)
-     */
     private Map<String, Object> buildAlertMetadata(String alertType, Budget budget,
             BigDecimal spent, Double percentageUsed) {
         Map<String, Object> metadata = buildMetadata(alertType, budget);
@@ -360,9 +292,6 @@ public class BudgetNotificationService {
         return metadata;
     }
 
-    /**
-     * Determine alert level based on percentage used
-     */
     private String getAlertLevel(Double percentageUsed) {
         if (percentageUsed >= 100.0) {
             return "CRITICAL";

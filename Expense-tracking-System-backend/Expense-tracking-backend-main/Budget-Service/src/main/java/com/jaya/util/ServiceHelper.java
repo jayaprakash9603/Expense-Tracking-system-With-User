@@ -126,7 +126,6 @@ public class ServiceHelper {
                     }
                 }
             } catch (Exception e) {
-                // Expense not found - skip it gracefully
                 log.warn("Expense with ID {} not found, skipping budget link", expenseId);
                 continue;
             }
@@ -145,7 +144,6 @@ public class ServiceHelper {
                         expenseService.save(expense);
                     }
                 } catch (Exception e) {
-                    // Expense not found - skip it gracefully
                     log.warn("Expense with ID {} not found, skipping budget unlink", expenseId);
                     continue;
                 }
@@ -159,21 +157,15 @@ public class ServiceHelper {
         }
     }
 
-    /**
-     * Async method to remove budget IDs from all expenses using Kafka events
-     * This replaces the synchronous removeBudgetsIdsInAllExpenses method
-     */
     @Async
     public void removeBudgetsIdsInAllExpensesAsync(List<Budget> budgets, Integer userId) {
         log.info("====== Async Budget Removal Started ======");
         log.info("Removing {} budgets from all expenses for userId={}", budgets.size(), userId);
 
-        // Collect all budget IDs to remove
         List<Long> budgetIdsToRemove = budgets.stream()
                 .map(budget -> budget.getId().longValue())
                 .collect(Collectors.toList());
 
-        // Collect all unique expense IDs that need updating
         Set<Integer> allExpenseIds = new HashSet<>();
         for (Budget budget : budgets) {
             if (budget.getExpenseIds() != null && !budget.getExpenseIds().isEmpty()) {
@@ -188,7 +180,6 @@ public class ServiceHelper {
             return;
         }
 
-        // Publish Kafka event for each expense to remove budget IDs
         int eventCount = 0;
         for (Integer expenseId : allExpenseIds) {
             try {

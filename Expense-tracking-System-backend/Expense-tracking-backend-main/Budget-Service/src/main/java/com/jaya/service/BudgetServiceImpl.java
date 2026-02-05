@@ -67,7 +67,6 @@ public class BudgetServiceImpl implements BudgetService {
 
         Budget savedBudget = budgetRepository.save(budget);
 
-        // Use Kafka events instead of synchronous Feign calls
         if (!validExpenseIds.isEmpty()) {
             log.info("Publishing budget-expense link updates via Kafka for {} expenses", validExpenseIds.size());
             for (Integer expenseId : validExpenseIds) {
@@ -75,7 +74,6 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Check budget thresholds and send notifications if needed
         if (!validExpenseIds.isEmpty()) {
             checkAndSendThresholdNotifications(savedBudget, userId);
         }
@@ -86,7 +84,6 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     public Budget createBudgetForFriend(Budget budget, Integer userId, Integer friendId) throws Exception {
         Budget createdBudget = createBudget(budget, friendId);
-        // Send contextual notification indicating this budget was created by a friend
         budgetNotificationService.sendBudgetCreatedNotification(createdBudget, userId, true);
         return createdBudget;
 
@@ -105,7 +102,6 @@ public class BudgetServiceImpl implements BudgetService {
                     budgets.add(b);
                 }
             } catch (BudgetNotFoundException ex) {
-                // Soft fail: log and continue so Kafka consumer doesn't endlessly retry
                 log.warn("Skipping missing budgetId={} for userId={}: {}", budgetId, userId, ex.getMessage());
             }
         }
@@ -125,11 +121,10 @@ public class BudgetServiceImpl implements BudgetService {
         if (budgets.isEmpty()) {
             log.warn("editBudgetWithExpenseId: No budgets found to update for expenseId={} userId={} incomingIds={}",
                     expenseId, userId, budgetIds);
-            return updatedBudgets; // early return, nothing to do
+            return updatedBudgets;
         }
 
         for (Budget budget : budgets) {
-            // Add the expense ID to the budget's expense list
             if (budget.getExpenseIds() == null) {
                 budget.setExpenseIds(new HashSet<>());
             }
@@ -137,11 +132,9 @@ public class BudgetServiceImpl implements BudgetService {
 
             budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
 
-            // Save the updated budget
             Budget savedBudget = budgetRepository.save(budget);
             updatedBudgets.add(savedBudget);
 
-            // Check budget thresholds after adding expense
             checkAndSendThresholdNotifications(savedBudget, userId);
 
             log.info("Added expenseId={} to budgetId={} for userId={}", expenseId, budget.getId(), userId);
@@ -181,7 +174,6 @@ public class BudgetServiceImpl implements BudgetService {
         existingBudget.setDescription(budget.getDescription());
         existingBudget.setName(budget.getName());
 
-        // Remove old associations
         Set<Integer> oldExpenseIds = existingBudget.getExpenseIds() != null
                 ? new HashSet<>(existingBudget.getExpenseIds())
                 : new HashSet<>();
@@ -194,7 +186,6 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Filter and add only valid new expenses
         Set<Integer> validExpenseIds = new HashSet<>();
         for (Integer newExpenseId : budget.getExpenseIds()) {
             ExpenseDTO expense = expenseService.getExpenseById(newExpenseId, userId);
@@ -226,15 +217,12 @@ public class BudgetServiceImpl implements BudgetService {
 
         Budget savedBudget = budgetRepository.save(existingBudget);
 
-        // Force flush and clear to ensure database update
         entityManager.flush();
         entityManager.clear();
 
-        // Refetch to get fresh data
         Optional<Budget> refreshedBudget = budgetRepository.findByUserIdAndId(userId, budgetId);
         Budget finalBudget = refreshedBudget.orElse(savedBudget);
 
-        // Check budget thresholds after editing
         checkAndSendThresholdNotifications(finalBudget, userId);
 
         return finalBudget;
@@ -257,10 +245,8 @@ public class BudgetServiceImpl implements BudgetService {
             throw new RuntimeException("No budgets found");
         }
 
-        // Use async method to publish events for budget removal from expenses
         helper.removeBudgetsIdsInAllExpensesAsync(budgets, userId);
 
-        // Delete budgets immediately (async events will handle expense updates)
         budgetRepository.deleteAll(budgets);
 
         log.info("Deleted {} budgets for userId={}. Async events published for expense updates.",
@@ -290,9 +276,6 @@ public class BudgetServiceImpl implements BudgetService {
         if (expense.isEmpty()) {
             throw new BudgetNotFoundException("budget not Found" + budgetId);
         }
-        // if (!expense.get().getUserId().equals(userId)) {
-        // throw new Exception("you cant get other users budget");
-        // }
         return expense.get();
     }
 
@@ -375,12 +358,10 @@ public class BudgetServiceImpl implements BudgetService {
         double remainingAmount = budget.getAmount() - totalExpenses;
         boolean isBudgetValid = isBudgetValid(budgetId);
 
-        // Calculate additional metrics
         int expenseCount = expenses.size();
         long totalDays = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
         double dailyBudget = totalDays > 0 ? budget.getAmount() / totalDays : 0;
 
-        // Calculate projected overspend based on current spending rate
         long daysElapsed = java.time.temporal.ChronoUnit.DAYS.between(budget.getStartDate(), LocalDate.now());
         double projectedOverspend = 0;
         if (daysElapsed > 0 && totalDays > 0) {
@@ -415,7 +396,6 @@ public class BudgetServiceImpl implements BudgetService {
             return budgets;
         }
 
-        // Collect all expense IDs across budgets (union) for batch retrieval
         Set<Integer> allExpenseIds = new HashSet<>();
         for (Budget b : budgets) {
             if (b.getExpenseIds() != null && !b.getExpenseIds().isEmpty()) {
@@ -423,11 +403,9 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Early exit if no expenses linked
         Map<Integer, ExpenseDTO> expenseMap = Collections.emptyMap();
         if (!allExpenseIds.isEmpty()) {
             try {
-                // Single remote call instead of per-expense N+1
                 List<ExpenseDTO> expenseDTOs = expenseService.getExpensesByIds(userId, allExpenseIds);
                 expenseMap = expenseDTOs.stream()
                         .filter(Objects::nonNull)
@@ -438,7 +416,6 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Compute remaining amounts using in-memory aggregation
         for (Budget budget : budgets) {
             double total = 0.0;
             Set<Integer> expenseIds = budget.getExpenseIds();
@@ -482,7 +459,6 @@ public class BudgetServiceImpl implements BudgetService {
     public List<Budget> getBudgetsByDate(LocalDate date, Integer userId) {
         List<Budget> budgets = budgetRepository.findBudgetsByDate(date, userId);
 
-        // Calculate and update remaining amount for each budget
         for (Budget budget : budgets) {
             try {
                 BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
@@ -501,7 +477,6 @@ public class BudgetServiceImpl implements BudgetService {
     public List<Budget> getBudgetsByExpenseId(Integer expenseId, Integer userId, LocalDate expenseDate) {
         ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
 
-        // Use the passed expenseDate instead of reading from the DB expense
         List<Budget> budgets = budgetRepository.findBudgetsByDate(expenseDate, userId);
 
         Set<Integer> linkedBudgetIds = expense.getBudgetIds() != null ? expense.getBudgetIds() : new HashSet<>();
@@ -509,7 +484,6 @@ public class BudgetServiceImpl implements BudgetService {
         for (Budget budget : budgets) {
             budget.setIncludeInBudget(linkedBudgetIds.contains(budget.getId()));
 
-            // Calculate and update remaining amount for each budget
             try {
                 BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
                 double remainingAmount = budget.getAmount() - spent.doubleValue();
@@ -533,7 +507,6 @@ public class BudgetServiceImpl implements BudgetService {
             try {
                 ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
                 if (expense != null && expense.getExpense() != null) {
-                    // Only count losses (cash and credit)
                     String type = expense.getExpense().getType();
                     String paymentMethod = expense.getExpense().getPaymentMethod();
 
@@ -544,7 +517,6 @@ public class BudgetServiceImpl implements BudgetService {
                     }
                 }
             } catch (Exception e) {
-                // Log and continue if expense not found
                 System.err.println("Error fetching expense " + expenseId + ": " + e.getMessage());
             }
         }
@@ -554,38 +526,30 @@ public class BudgetServiceImpl implements BudgetService {
 
     private void checkAndSendThresholdNotifications(Budget budget, Integer userId) {
         try {
-            // Calculate total spent amount
             BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
 
-            // Calculate percentage used
             if (budget.getAmount() <= 0) {
-                return; // Avoid division by zero
+                return;
             }
 
             double percentage = (spent.doubleValue() / budget.getAmount()) * 100.0;
             boolean budgetUpdated = false;
 
-            // Reset notification flags if percentage has decreased below thresholds
-            // This handles cases where expenses are removed or budget amount is increased
             budget.resetNotificationFlags(percentage);
 
-            // Check thresholds and send notifications only if not already sent
             if (percentage >= 100.0 && !budget.isNotification100PercentSent()) {
-                // Budget exceeded - Critical (send only once)
                 budgetNotificationService.sendBudgetExceededNotification(budget, spent);
                 budget.setNotification100PercentSent(true);
                 budgetUpdated = true;
                 log.info("Budget exceeded notification sent for budgetId={}, userId={}, percentage={}%",
                         budget.getId(), userId, String.format("%.2f", percentage));
             } else if (percentage >= 80.0 && percentage < 100.0 && !budget.isNotification80PercentSent()) {
-                // Budget warning at 80% - High priority (send only once)
                 budgetNotificationService.sendBudgetWarningNotification(budget, spent);
                 budget.setNotification80PercentSent(true);
                 budgetUpdated = true;
                 log.info("Budget 80% warning notification sent for budgetId={}, userId={}, percentage={}%",
                         budget.getId(), userId, String.format("%.2f", percentage));
             } else if (percentage >= 50.0 && percentage < 80.0 && !budget.isNotification50PercentSent()) {
-                // Approaching budget limit at 50% - Medium priority (send only once)
                 budgetNotificationService.sendBudgetLimitApproachingNotification(budget, spent);
                 budget.setNotification50PercentSent(true);
                 budgetUpdated = true;
@@ -593,13 +557,11 @@ public class BudgetServiceImpl implements BudgetService {
                         budget.getId(), userId, String.format("%.2f", percentage));
             }
 
-            // Save budget if notification flags were updated
             if (budgetUpdated) {
                 budgetRepository.save(budget);
             }
 
         } catch (Exception e) {
-            // Log error but don't fail the operation
             log.error("Error checking budget thresholds for budget {}: {}", budget.getId(), e.getMessage());
         }
     }
@@ -618,13 +580,11 @@ public class BudgetServiceImpl implements BudgetService {
             throw new Exception("You do not have access to this budget.");
         }
 
-        // Fetch all expenses within budget date range
         List<ExpenseDTO> allExpenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
                 budget.getStartDate(),
                 budget.getEndDate(),
                 userId);
 
-        // Filter only loss expenses (cash and credit)
         List<ExpenseDTO> expenses = new ArrayList<>();
         for (ExpenseDTO expense : allExpenses) {
             if (expense.getExpense() != null &&
@@ -637,7 +597,6 @@ public class BudgetServiceImpl implements BudgetService {
 
         DetailedBudgetReport report = new DetailedBudgetReport();
 
-        // Basic Budget Info
         report.setBudgetId(budget.getId());
         report.setBudgetName(budget.getName());
         report.setDescription(budget.getDescription());
@@ -646,7 +605,6 @@ public class BudgetServiceImpl implements BudgetService {
         report.setEndDate(budget.getEndDate());
         report.setValid(isBudgetValid(budgetId));
 
-        // Calculate financial summary
         double totalSpent = expenses.stream()
                 .mapToDouble(e -> e.getExpense().getAmount())
                 .sum();
@@ -665,7 +623,6 @@ public class BudgetServiceImpl implements BudgetService {
         report.setTotalCreditSpent(totalCreditSpent);
         report.setPercentageUsed(budget.getAmount() > 0 ? (totalSpent / budget.getAmount()) * 100 : 0);
 
-        // Calculate days
         LocalDate today = LocalDate.now();
         long totalDays = ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
         long daysElapsed = today.isBefore(budget.getStartDate()) ? 0
@@ -678,7 +635,6 @@ public class BudgetServiceImpl implements BudgetService {
         report.setDaysRemaining((int) daysRemaining);
         report.setTotalDays((int) totalDays);
 
-        // Spending Statistics
         int totalTransactions = expenses.size();
         report.setTotalTransactions(totalTransactions);
         report.setAverageTransactionAmount(totalTransactions > 0 ? totalSpent / totalTransactions : 0);
@@ -698,32 +654,24 @@ public class BudgetServiceImpl implements BudgetService {
         report.setProjectedTotalSpending(projectedTotalSpending);
         report.setProjectedOverUnder(budget.getAmount() - projectedTotalSpending);
 
-        // Category Breakdown
         report.setCategoryBreakdown(calculateCategoryBreakdown(expenses, totalSpent));
 
-        // Payment Method Breakdown
         report.setPaymentMethodBreakdown(calculatePaymentMethodBreakdown(expenses, totalSpent));
 
-        // Timeline Data (Daily spending)
         report.setDailySpending(calculateDailySpending(expenses, budget.getStartDate(), budget.getEndDate()));
 
-        // Weekly Data
         report.setWeeklySpending(calculateWeeklySpending(expenses, budget.getStartDate(), budget.getEndDate()));
 
-        // Expense Transactions
         report.setTransactions(mapToExpenseTransactions(expenses));
 
-        // Budget Health Metrics
         report.setHealthMetrics(calculateBudgetHealth(budget, totalSpent, averageDailySpending, daysRemaining));
 
-        // Insights and Status
         report.setInsights(generateInsights(budget, totalSpent, averageDailySpending, daysElapsed, daysRemaining,
                 report.getCategoryBreakdown()));
         report.setBudgetStatus(determineBudgetStatus(report.getPercentageUsed(), daysElapsed, totalDays));
         report.setRiskLevel(determineRiskLevel(report.getPercentageUsed(), daysElapsed, totalDays,
                 projectedTotalSpending, budget.getAmount()));
 
-        // Enhanced Analytics Data
         report.setComparisonData(calculateComparisonData(report.getCategoryBreakdown(), budget));
         report.setForecastData(calculateForecastData(averageDailySpending, report.getCategoryBreakdown()));
         report.setSpendingPatterns(calculateSpendingPatterns(expenses, report.getDailySpending()));
@@ -765,10 +713,8 @@ public class BudgetServiceImpl implements BudgetService {
             double percentage = totalSpent > 0 ? (categoryAmount / totalSpent) * 100 : 0;
             double avgPerTransaction = transactionCount > 0 ? categoryAmount / transactionCount : 0;
 
-            // Get category ID (use first expense's category ID)
             Integer categoryId = categoryExpenses.get(0).getCategoryId();
 
-            // Calculate subcategories (group by expense name)
             List<DetailedBudgetReport.SubcategoryExpense> subcategories = new ArrayList<>();
             Map<String, List<ExpenseDTO>> subcategoryMap = new HashMap<>();
             for (ExpenseDTO exp : categoryExpenses) {
@@ -799,7 +745,6 @@ public class BudgetServiceImpl implements BudgetService {
             colorIndex++;
         }
 
-        // Sort by amount descending
         categoryBreakdown.sort((a, b) -> Double.compare(b.getAmount(), a.getAmount()));
         return categoryBreakdown;
     }
@@ -848,14 +793,12 @@ public class BudgetServiceImpl implements BudgetService {
             LocalDate endDate) {
         Map<LocalDate, List<ExpenseDTO>> dailyMap = new HashMap<>();
 
-        // Initialize all dates with empty lists
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {
             dailyMap.put(currentDate, new ArrayList<>());
             currentDate = currentDate.plusDays(1);
         }
 
-        // Group expenses by date
         for (ExpenseDTO expense : expenses) {
             LocalDate expenseDate = expense.getDate();
             if (!expenseDate.isBefore(startDate) && !expenseDate.isAfter(endDate)) {
@@ -893,7 +836,6 @@ public class BudgetServiceImpl implements BudgetService {
         for (ExpenseDTO expense : expenses) {
             LocalDate expenseDate = expense.getDate();
             if (!expenseDate.isBefore(startDate) && !expenseDate.isAfter(endDate)) {
-                // Get week number
                 int weekNumber = expenseDate.get(java.time.temporal.WeekFields.ISO.weekOfWeekBasedYear());
                 String weekKey = "Week " + weekNumber;
                 weeklyMap.computeIfAbsent(weekKey, k -> new ArrayList<>()).add(expense);
@@ -940,7 +882,6 @@ public class BudgetServiceImpl implements BudgetService {
                     expense.getExpense().getComments()));
         }
 
-        // Sort by date descending (most recent first)
         transactions.sort((a, b) -> b.getDate().compareTo(a.getDate()));
         return transactions;
     }
@@ -952,7 +893,6 @@ public class BudgetServiceImpl implements BudgetService {
         double projectedEndBalance = budget.getAmount()
                 - (burnRate * (budget.getEndDate().toEpochDay() - budget.getStartDate().toEpochDay() + 1));
 
-        // Calculate pace score (0-100)
         LocalDate today = LocalDate.now();
         long totalDays = ChronoUnit.DAYS.between(budget.getStartDate(), budget.getEndDate()) + 1;
         long daysElapsed = ChronoUnit.DAYS.between(budget.getStartDate(),
@@ -968,7 +908,7 @@ public class BudgetServiceImpl implements BudgetService {
             paceScore = actualPercentage == 0 ? 100 : 0;
         }
 
-        boolean onTrack = actualPercentage <= (expectedPercentage + 10); // 10% tolerance
+        boolean onTrack = actualPercentage <= (expectedPercentage + 10);
 
         String status;
         if (actualPercentage >= 100) {
@@ -994,7 +934,6 @@ public class BudgetServiceImpl implements BudgetService {
 
         double percentageUsed = budget.getAmount() > 0 ? (totalSpent / budget.getAmount()) * 100 : 0;
 
-        // Budget pace insights
         long totalDays = daysElapsed + daysRemaining;
         double expectedPercentage = totalDays > 0 ? (daysElapsed * 100.0) / totalDays : 0;
 
@@ -1006,7 +945,6 @@ public class BudgetServiceImpl implements BudgetService {
             insights.add("Your spending pace is on track with your budget timeline.");
         }
 
-        // Remaining budget insight
         double remaining = budget.getAmount() - totalSpent;
         if (daysRemaining > 0) {
             double recommendedDailySpending = remaining / daysRemaining;
@@ -1017,7 +955,6 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Category insights
         if (!categories.isEmpty()) {
             DetailedBudgetReport.CategoryExpense topCategory = categories.get(0);
             if (topCategory.getPercentage() > 40) {
@@ -1027,7 +964,6 @@ public class BudgetServiceImpl implements BudgetService {
             }
         }
 
-        // Budget status insights
         if (percentageUsed >= 100) {
             insights.add("Budget exceeded! Review your expenses and adjust your spending habits.");
         } else if (percentageUsed >= 90) {
@@ -1250,7 +1186,6 @@ public class BudgetServiceImpl implements BudgetService {
             int offset,
             String flowType) throws Exception {
 
-        // Determine date range if rangeType provided
         if ((fromDate == null || toDate == null) && rangeType != null) {
             LocalDate today = LocalDate.now();
             switch (rangeType.toLowerCase()) {
@@ -1259,7 +1194,6 @@ public class BudgetServiceImpl implements BudgetService {
                     toDate = fromDate;
                     break;
                 case "week":
-                    // ISO week: Monday start
                     LocalDate weekStart = today.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
                     fromDate = weekStart;
                     toDate = weekStart.plusDays(6);
@@ -1293,41 +1227,33 @@ public class BudgetServiceImpl implements BudgetService {
         double grandTotalSpent = 0.0;
         int grandTotalTransactions = 0;
 
-        // Overall aggregations across all budgets
         Map<String, Map<String, Object>> overallCategoryBreakdown = new LinkedHashMap<>();
         Map<String, Map<String, Object>> overallPaymentMethodBreakdown = new LinkedHashMap<>();
         double overallTotalLoss = 0.0;
         double overallTotalGain = 0.0;
 
-        // Top recurring expenses (loss only), aggregated across all budgets
         Map<String, Map<String, Object>> recurringByName = new HashMap<>();
 
         for (Budget budget : allBudgets) {
-            // Budget active overlap with requested range
             LocalDate budgetStart = budget.getStartDate();
             LocalDate budgetEnd = budget.getEndDate();
             boolean overlaps = !(budgetEnd.isBefore(fromDate) || budgetStart.isAfter(toDate));
             if (!overlaps) {
-                continue; // skip budgets outside window
+                continue;
             }
 
-            // Compute effective intersection range for expenses
             LocalDate effectiveStart = budgetStart.isAfter(fromDate) ? budgetStart : fromDate;
             LocalDate effectiveEnd = budgetEnd.isBefore(toDate) ? budgetEnd : toDate;
 
-            // Fetch all loss/gain expenses within intersection (we fetch all and then
-            // filter type)
             List<ExpenseDTO> windowExpenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
                     effectiveStart, effectiveEnd, userId);
 
             System.out.println("expenses count" + windowExpenses.size());
 
-            // Reduce to those linked to this budget via expenseIds set
             Set<Integer> expenseIds = budget.getExpenseIds() != null ? budget.getExpenseIds() : Collections.emptySet();
             List<ExpenseDTO> budgetExpenses = new ArrayList<>();
             for (ExpenseDTO e : windowExpenses) {
                 if (expenseIds.contains(e.getId()) && e.getExpense() != null) {
-                    // Flow type filter
                     if (flowType != null && !flowType.isEmpty() && !"all".equalsIgnoreCase(flowType)) {
                         if (!flowType.equalsIgnoreCase(e.getExpense().getType())) {
                             continue;
@@ -1340,7 +1266,6 @@ public class BudgetServiceImpl implements BudgetService {
             double totalSpent = 0.0;
             double totalGain = 0.0;
             double totalLoss = 0.0;
-            // Dynamic payment method tracking for this budget
             Map<String, Double> budgetPaymentMethodLoss = new LinkedHashMap<>();
 
             for (ExpenseDTO e : budgetExpenses) {
@@ -1350,7 +1275,6 @@ public class BudgetServiceImpl implements BudgetService {
                 if ("loss".equalsIgnoreCase(type)) {
                     totalLoss += amt;
 
-                    // Track recurring expenses by name (loss only)
                     String rawName = e.getExpense().getExpenseName();
                     String normalizedName = normalizeExpenseName(rawName);
                     if (!normalizedName.isEmpty()) {
@@ -1366,7 +1290,6 @@ public class BudgetServiceImpl implements BudgetService {
                         agg.put("totalAmount", ((Number) agg.get("totalAmount")).doubleValue() + absAmount);
                     }
 
-                    // Track all payment methods dynamically
                     if (pm != null && !pm.isEmpty()) {
                         budgetPaymentMethodLoss.put(pm, budgetPaymentMethodLoss.getOrDefault(pm, 0.0) + amt);
                     }
@@ -1374,7 +1297,6 @@ public class BudgetServiceImpl implements BudgetService {
                     totalGain += amt;
                 }
 
-                // Aggregate for overall category breakdown
                 String cat = (e.getCategoryName() != null && !e.getCategoryName().isEmpty()) ? e.getCategoryName()
                         : "Uncategorized";
                 overallCategoryBreakdown.computeIfAbsent(cat, k -> new LinkedHashMap<>(Map.of(
@@ -1387,7 +1309,6 @@ public class BudgetServiceImpl implements BudgetService {
                 catData.put("amount", newAmt);
                 catData.put("transactions", newTx);
 
-                // Aggregate for overall payment method breakdown
                 if ("loss".equalsIgnoreCase(type) && pm != null && !pm.isEmpty()) {
                     overallPaymentMethodBreakdown.computeIfAbsent(pm, k -> new LinkedHashMap<>(Map.of(
                             "amount", 0.0,
@@ -1400,22 +1321,19 @@ public class BudgetServiceImpl implements BudgetService {
                     pmData.put("transactions", pmTx);
                 }
             }
-            totalSpent = totalLoss; // spent relevant for budgets (losses)
+            totalSpent = totalLoss;
 
-            // Aggregate overall totals
             overallTotalLoss += totalLoss;
             overallTotalGain += totalGain;
 
             grandTotalSpent += totalSpent;
             grandTotalTransactions += budgetExpenses.size();
 
-            // Payment method breakdown (losses only) - dynamic for all payment methods
             Map<String, Object> paymentBreakdown = new LinkedHashMap<>();
             for (Map.Entry<String, Double> entry : budgetPaymentMethodLoss.entrySet()) {
                 String pmKey = entry.getKey();
                 double pmAmount = entry.getValue();
 
-                // Determine display name
                 String displayName;
                 if ("cash".equalsIgnoreCase(pmKey)) {
                     displayName = "Cash";
@@ -1424,7 +1342,6 @@ public class BudgetServiceImpl implements BudgetService {
                 } else if ("creditPaid".equalsIgnoreCase(pmKey)) {
                     displayName = "Credit Paid";
                 } else {
-                    // Keep original name for any other payment methods
                     displayName = pmKey;
                 }
 
@@ -1439,7 +1356,6 @@ public class BudgetServiceImpl implements BudgetService {
                         "transactions", txCount));
             }
 
-            // Category breakdown similar to detailed report
             Map<String, Map<String, Object>> categoryBreakdown = new LinkedHashMap<>();
             for (ExpenseDTO e : budgetExpenses) {
                 String cat = (e.getCategoryName() != null && !e.getCategoryName().isEmpty()) ? e.getCategoryName()
@@ -1461,7 +1377,6 @@ public class BudgetServiceImpl implements BudgetService {
                         totalLoss > 0 ? Math.round((amt / totalLoss) * 100 * 100.0) / 100.0 : 0.0);
             }
 
-            // Transactions list (brief)
             List<Map<String, Object>> transactions = new ArrayList<>();
             for (ExpenseDTO e : budgetExpenses) {
                 transactions.add(Map.of(
@@ -1488,7 +1403,6 @@ public class BudgetServiceImpl implements BudgetService {
             singleBudget.put("totalGain", Math.round(totalGain * 100.0) / 100.0);
             singleBudget.put("remainingAmount", Math.round((budget.getAmount() - totalLoss) * 100.0) / 100.0);
 
-            // Add individual payment method losses dynamically (for backward compatibility)
             for (Map.Entry<String, Double> pmEntry : budgetPaymentMethodLoss.entrySet()) {
                 String pmKey = pmEntry.getKey();
                 if ("cash".equalsIgnoreCase(pmKey)) {
@@ -1510,12 +1424,10 @@ public class BudgetServiceImpl implements BudgetService {
             budgetData.add(singleBudget);
         }
 
-        // Sort budgets by percentage used descending for prioritization
         budgetData.sort((a, b) -> Double.compare(
                 ((Number) b.get("percentageUsed")).doubleValue(),
                 ((Number) a.get("percentageUsed")).doubleValue()));
 
-        // Calculate overall category percentages
         for (Map.Entry<String, Map<String, Object>> entry : overallCategoryBreakdown.entrySet()) {
             double amt = ((Number) entry.getValue().get("amount")).doubleValue();
             entry.getValue().put("amount", Math.round(amt * 100.0) / 100.0);
@@ -1523,8 +1435,6 @@ public class BudgetServiceImpl implements BudgetService {
                     overallTotalLoss > 0 ? Math.round((amt / overallTotalLoss) * 100 * 100.0) / 100.0 : 0.0);
         }
 
-        // Calculate overall payment method breakdown percentages (already aggregated
-        // during expense processing)
         for (Map.Entry<String, Map<String, Object>> entry : overallPaymentMethodBreakdown.entrySet()) {
             double amt = ((Number) entry.getValue().get("amount")).doubleValue();
             entry.getValue().put("amount", Math.round(amt * 100.0) / 100.0);
@@ -1554,7 +1464,6 @@ public class BudgetServiceImpl implements BudgetService {
         response.put("summary", summary);
         response.put("budgets", budgetData);
 
-        // Compute top 5 recurring expenses across all budgets (loss only)
         List<Map<String, Object>> topRecurringExpenses = recurringByName.values().stream()
                 .map(v -> {
                     Map<String, Object> out = new LinkedHashMap<>();
@@ -1597,7 +1506,6 @@ public class BudgetServiceImpl implements BudgetService {
         return trimmed.replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
-    // ==================== Constants ====================
     private static final String RANGE_TYPE_DAY = "day";
     private static final String RANGE_TYPE_WEEK = "week";
     private static final String RANGE_TYPE_MONTH = "month";
@@ -1631,18 +1539,12 @@ public class BudgetServiceImpl implements BudgetService {
         return buildFinalResponse(summary, expenseGroups);
     }
 
-    /**
-     * Validates that budget exists
-     */
     private void validateBudgetExists(Budget budget, Integer budgetId) {
         if (budget == null) {
             throw new IllegalArgumentException("Budget not found with ID: " + budgetId);
         }
     }
 
-    /**
-     * Calculates the effective date range based on rangeType or explicit dates
-     */
     private DateRange calculateEffectiveDateRange(LocalDate fromDate, LocalDate toDate,
             String rangeType, int offset, Budget budget) {
 
@@ -1657,9 +1559,6 @@ public class BudgetServiceImpl implements BudgetService {
         return calculateDateRangeByType(rangeType, offset, budget);
     }
 
-    /**
-     * Calculates date range based on range type
-     */
     private DateRange calculateDateRangeByType(String rangeType, int offset, Budget budget) {
         LocalDate today = LocalDate.now();
 
@@ -1687,26 +1586,17 @@ public class BudgetServiceImpl implements BudgetService {
         }
     }
 
-    /**
-     * Calculates day range
-     */
     private DateRange calculateDayRange(LocalDate baseDate, int offset) {
         LocalDate targetDate = baseDate.plusDays(offset);
         return new DateRange(targetDate, targetDate);
     }
 
-    /**
-     * Calculates week range (Monday to Sunday)
-     */
     private DateRange calculateWeekRange(LocalDate baseDate, int offset) {
         LocalDate weekStart = baseDate.plusWeeks(offset).with(java.time.DayOfWeek.MONDAY);
         LocalDate weekEnd = weekStart.plusDays(DAYS_IN_WEEK);
         return new DateRange(weekStart, weekEnd);
     }
 
-    /**
-     * Calculates month range
-     */
     private DateRange calculateMonthRange(LocalDate baseDate, int offset) {
         LocalDate monthBase = baseDate.plusMonths(offset);
         LocalDate monthStart = monthBase.withDayOfMonth(1);
@@ -1714,9 +1604,6 @@ public class BudgetServiceImpl implements BudgetService {
         return new DateRange(monthStart, monthEnd);
     }
 
-    /**
-     * Calculates quarter range
-     */
     private DateRange calculateQuarterRange(LocalDate baseDate, int offset) {
         int currentMonth = baseDate.getMonthValue();
         int currentQuarter = (currentMonth - 1) / MONTHS_PER_QUARTER;
@@ -1738,9 +1625,6 @@ public class BudgetServiceImpl implements BudgetService {
         return new DateRange(quarterStart, quarterEnd);
     }
 
-    /**
-     * Calculates year range
-     */
     private DateRange calculateYearRange(LocalDate baseDate, int offset) {
         LocalDate yearBase = baseDate.plusYears(offset);
         LocalDate yearStart = yearBase.withDayOfYear(1);
@@ -1748,9 +1632,6 @@ public class BudgetServiceImpl implements BudgetService {
         return new DateRange(yearStart, yearEnd);
     }
 
-    /**
-     * Retrieves and filters expenses based on date range and flow type
-     */
     private List<ExpenseDTO> getFilteredExpenses(Integer userId, Integer budgetId,
             DateRange dateRange, String flowType) throws Exception {
 
@@ -1761,9 +1642,6 @@ public class BudgetServiceImpl implements BudgetService {
         return expenses;
     }
 
-    /**
-     * Filters expenses by date range
-     */
     private List<ExpenseDTO> filterExpensesByDateRange(List<ExpenseDTO> expenses, DateRange dateRange) {
         if (dateRange.getFromDate() == null || dateRange.getToDate() == null) {
             return expenses;
@@ -1778,9 +1656,6 @@ public class BudgetServiceImpl implements BudgetService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filters expenses by flow type (loss/gain/all)
-     */
     private List<ExpenseDTO> filterExpensesByFlowType(List<ExpenseDTO> expenses, String flowType) {
         if (flowType == null || FLOW_TYPE_ALL.equalsIgnoreCase(flowType)) {
             return expenses;
@@ -1793,9 +1668,6 @@ public class BudgetServiceImpl implements BudgetService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Aggregates expense data into structured format
-     */
     private ExpenseAggregationData aggregateExpenseData(List<ExpenseDTO> expenses) {
         ExpenseAggregationData data = new ExpenseAggregationData();
 
@@ -1810,9 +1682,6 @@ public class BudgetServiceImpl implements BudgetService {
         return data;
     }
 
-    /**
-     * Processes single expense for aggregation
-     */
     private void processExpenseForAggregation(ExpenseDTO dto, ExpenseAggregationData data) {
         String expenseName = dto.getExpense().getExpenseName();
         String paymentMethod = dto.getExpense().getPaymentMethod();
@@ -1830,9 +1699,6 @@ public class BudgetServiceImpl implements BudgetService {
         updateExpenseGroups(data, dto, expenseName, paymentMethod, amount);
     }
 
-    /**
-     * Updates aggregation maps with expense data
-     */
     private void updateAggregationMaps(ExpenseAggregationData data, String expenseName,
             String paymentMethod, String category, double amount) {
 
@@ -1845,9 +1711,6 @@ public class BudgetServiceImpl implements BudgetService {
         data.updateCategoryMap(category, amount);
     }
 
-    /**
-     * Updates expense groups with expense details
-     */
     private void updateExpenseGroups(ExpenseAggregationData data, ExpenseDTO dto,
             String expenseName, String paymentMethod, double amount) {
 
@@ -1861,26 +1724,17 @@ public class BudgetServiceImpl implements BudgetService {
         addExpenseDetailsToGroup(group, dto);
     }
 
-    /**
-     * Increments group counters
-     */
     private void incrementGroupCounters(Map<String, Object> group, double amount) {
         group.put("expenseCount", ((Number) group.get("expenseCount")).intValue() + 1);
         group.put("totalAmount", round2(((Number) group.get("totalAmount")).doubleValue() + amount));
     }
 
-    /**
-     * Adds payment method to group
-     */
     @SuppressWarnings("unchecked")
     private void addPaymentMethodToGroup(Map<String, Object> group, String paymentMethod) {
         Set<String> pmSet = (Set<String>) group.get("paymentMethods");
         pmSet.add(paymentMethod);
     }
 
-    /**
-     * Adds expense details to group
-     */
     @SuppressWarnings("unchecked")
     private void addExpenseDetailsToGroup(Map<String, Object> group, ExpenseDTO dto) {
         Map<String, Object> expenseDetails = buildExpenseDetailsMap(dto);
@@ -1888,9 +1742,6 @@ public class BudgetServiceImpl implements BudgetService {
         expList.add(expenseDetails);
     }
 
-    /**
-     * Builds expense details map
-     */
     private Map<String, Object> buildExpenseDetailsMap(ExpenseDTO dto) {
         Map<String, Object> expenseDetails = new LinkedHashMap<>();
         expenseDetails.put("date", dto.getDate().toString());
@@ -1899,9 +1750,6 @@ public class BudgetServiceImpl implements BudgetService {
         return expenseDetails;
     }
 
-    /**
-     * Builds inner expense details
-     */
     private Map<String, Object> buildExpenseInnerDetails(ExpenseDTO dto) {
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("amount", round2(dto.getExpense().getAmount()));
@@ -1915,9 +1763,6 @@ public class BudgetServiceImpl implements BudgetService {
         return details;
     }
 
-    /**
-     * Builds report summary
-     */
     private Map<String, Object> buildReportSummary(Budget budget, ExpenseAggregationData data) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("budgetName", budget.getName());
@@ -1936,17 +1781,11 @@ public class BudgetServiceImpl implements BudgetService {
         return summary;
     }
 
-    /**
-     * Formats date range string
-     */
     private String formatDateRange(LocalDate startDate, LocalDate endDate) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy");
         return startDate.format(formatter) + " - " + endDate.format(formatter);
     }
 
-    /**
-     * Converts map to totals list
-     */
     private List<Map<String, Object>> convertMapToTotalsList(Map<String, Double> amountMap,
             Map<String, Integer> countMap, String keyName) {
 
@@ -1961,13 +1800,9 @@ public class BudgetServiceImpl implements BudgetService {
         return totals;
     }
 
-    /**
-     * Builds expense groups from aggregation data
-     */
     private Map<String, Map<String, Object>> buildExpenseGroups(ExpenseAggregationData data) {
         Map<String, Map<String, Object>> groups = data.getExpenseGroups();
 
-        // Convert payment methods set to list for JSON serialization
         for (Map.Entry<String, Map<String, Object>> entry : groups.entrySet()) {
             @SuppressWarnings("unchecked")
             Set<String> pmSet = (Set<String>) entry.getValue().get("paymentMethods");
@@ -1977,9 +1812,6 @@ public class BudgetServiceImpl implements BudgetService {
         return groups;
     }
 
-    /**
-     * Builds final response
-     */
     private Map<String, Object> buildFinalResponse(Map<String, Object> summary,
             Map<String, Map<String, Object>> expenseGroups) {
 
@@ -1989,26 +1821,15 @@ public class BudgetServiceImpl implements BudgetService {
         return response;
     }
 
-    /**
-     * Gets category name with default fallback
-     */
     private String getCategoryName(ExpenseDTO dto) {
         String categoryName = dto.getCategoryName();
         return isValidString(categoryName) ? categoryName : DEFAULT_CATEGORY;
     }
 
-    /**
-     * Checks if string is valid (not null and not empty)
-     */
     private boolean isValidString(String str) {
         return str != null && !str.isEmpty();
     }
 
-    // ==================== Helper Classes ====================
-
-    /**
-     * Represents a date range
-     */
     private static class DateRange {
         private final LocalDate fromDate;
         private final LocalDate toDate;
@@ -2027,9 +1848,6 @@ public class BudgetServiceImpl implements BudgetService {
         }
     }
 
-    /**
-     * Holds aggregated expense data
-     */
     private class ExpenseAggregationData {
         private double totalAmount = 0.0;
         private final Set<String> uniqueExpenseNames = new LinkedHashSet<>();
@@ -2083,7 +1901,6 @@ public class BudgetServiceImpl implements BudgetService {
             });
         }
 
-        // Getters
         public double getTotalAmount() {
             return totalAmount;
         }
@@ -2133,9 +1950,6 @@ public class BudgetServiceImpl implements BudgetService {
         return Math.round(v * 100.0) / 100.0;
     }
 
-    /**
-     * Publish event to notify Expense Service to update expense with budget ID
-     */
     private void publishExpenseBudgetLinkUpdate(Long expenseId, Long budgetId, Integer userId) {
         try {
             ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
@@ -2159,20 +1973,13 @@ public class BudgetServiceImpl implements BudgetService {
         if (query == null || query.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
         String subsequencePattern = convertToSubsequencePattern(query.trim());
         log.debug("Searching budgets for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
                 subsequencePattern, limit);
         List<BudgetSearchDTO> results = budgetRepository.searchBudgetsFuzzyWithLimit(userId, subsequencePattern);
-        // Apply limit in memory since JPQL doesn't support LIMIT with constructor
-        // expression
         return results.stream().limit(limit).collect(Collectors.toList());
     }
 
-    /**
-     * Converts a search query to a subsequence pattern for SQL LIKE.
-     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
-     */
     private String convertToSubsequencePattern(String query) {
         if (query == null || query.isEmpty()) {
             return "%";

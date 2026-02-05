@@ -16,16 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Service for Budget Service.
- * Replaces separate FriendActivityService and BudgetNotificationService.
- * 
- * All events are sent to the single unified-activity-events topic.
- * The routing flags determine how the event is processed by consumers:
- * - isOwnAction=true -> Regular notification
- * - isFriendActivity=true -> Friend activity notification
- * - requiresAudit=true -> Audit logging
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,13 +24,6 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    // =============================================
-    // BUDGET CREATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a budget is created (own action or friend action)
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetCreatedEvent(Budget budget, UserDto actorUser, UserDto targetUser) {
         try {
@@ -87,13 +70,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // BUDGET UPDATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a budget is updated
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetUpdatedEvent(Budget budget, Budget oldBudget, UserDto actorUser, UserDto targetUser) {
         try {
@@ -138,13 +114,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // BUDGET DELETED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a budget is deleted
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetDeletedEvent(Integer budgetId, String budgetName, Double amount, UserDto actorUser,
             UserDto targetUser) {
@@ -194,9 +163,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when all budgets are deleted
-     */
     @Async("friendActivityExecutor")
     public void sendAllBudgetsDeletedEvent(int count, UserDto actorUser, UserDto targetUser) {
         try {
@@ -236,10 +202,6 @@ public class UnifiedActivityService {
             log.error("Failed to send all budgets deleted event: {}", e.getMessage(), e);
         }
     }
-
-    // =============================================
-    // HELPER METHODS
-    // =============================================
 
     private UserInfo buildUserInfo(UserDto user) {
         if (user == null)

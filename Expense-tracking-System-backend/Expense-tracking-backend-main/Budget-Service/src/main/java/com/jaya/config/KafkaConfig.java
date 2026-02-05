@@ -65,9 +65,6 @@ public class KafkaConfig {
         return factory;
     }
 
-    /**
-     * Consumer factory for ExpenseBudgetLinkingEvent (bulk expense-budget linking)
-     */
     @Bean
     public ConsumerFactory<String, ExpenseBudgetLinkingEvent> expenseBudgetLinkingConsumerFactory() {
         Map<String, Object> props = new HashMap<>();

@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for sending friend activity notifications for budget operations.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,25 +21,16 @@ public class FriendActivityService {
 
     private final FriendActivityProducer friendActivityProducer;
 
-    /**
-     * Send notification when a friend creates a budget on behalf of another user.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
         sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates a budget with target user details.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle budget creation notification.
-     */
     private void sendBudgetCreatedByFriendInternal(Budget budget, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
         try {
@@ -81,27 +69,17 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates a budget.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetUpdatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
         sendBudgetUpdatedByFriendInternal(budget, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates a budget with previous state and
-     * target user details.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetUpdatedByFriend(Budget budget, Budget previousBudget, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
         sendBudgetUpdatedByFriendInternal(budget, previousBudget, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle budget update notification.
-     */
     private void sendBudgetUpdatedByFriendInternal(Budget budget, Budget previousBudget, Integer targetUserId,
             UserDto actorUser,
             UserDto targetUser) {
@@ -137,18 +115,12 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes a budget.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount,
             Integer targetUserId, UserDto actorUser) {
         sendBudgetDeletedByFriendInternal(budgetId, budgetName, amount, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes a budget with deleted entity details.
-     */
     @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount, Budget deletedBudget,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -156,9 +128,6 @@ public class FriendActivityService {
                 targetUser);
     }
 
-    /**
-     * Internal method to handle budget deletion notification.
-     */
     private void sendBudgetDeletedByFriendInternal(Integer budgetId, String budgetName, Double amount,
             Budget deletedBudget,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -194,27 +163,17 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes all budgets.
-     */
     @Async("friendActivityExecutor")
     public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
         sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
-    /**
-     * Send notification when a friend deletes all budgets with deleted entities
-     * details.
-     */
     @Async("friendActivityExecutor")
     public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
             List<Budget> deletedBudgets) {
         sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedBudgets);
     }
 
-    /**
-     * Internal method to handle all budgets deletion notification.
-     */
     private void sendAllBudgetsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser, UserDto targetUser,
             int count,
             List<Budget> deletedBudgets) {
@@ -225,7 +184,6 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
-            // Build payload with deleted budgets info
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedBudgets != null && !deletedBudgets.isEmpty()) {
@@ -267,9 +225,6 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    /**
-     * Build UserInfo from UserDto for enhanced event data.
-     */
     private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
         if (user == null)
             return null;
@@ -290,9 +245,6 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Build complete budget payload as a Map for entity data.
-     */
     private Map<String, Object> buildBudgetPayload(Budget budget) {
         if (budget == null)
             return null;

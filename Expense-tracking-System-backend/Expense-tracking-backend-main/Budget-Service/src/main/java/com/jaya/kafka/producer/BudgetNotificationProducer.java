@@ -8,21 +8,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-/**
- * BudgetNotificationProducer
- * Concrete implementation for sending budget notification events to Kafka
- * Extends NotificationEventProducer following Template Method Pattern
- * 
- * SOLID Principles:
- * - Single Responsibility: Only handles budget notification production
- * - Open/Closed: Extends base producer without modifying it
- * - Liskov Substitution: Can replace NotificationEventProducer<BudgetNotificationEvent>
- * - Dependency Inversion: Depends on KafkaTemplate abstraction
- * 
- * DRY Principle:
- * - Reuses all common Kafka logic from NotificationEventProducer
- * - Only implements budget-specific behavior
- */
 @Slf4j
 @Component
 public class BudgetNotificationProducer extends NotificationEventProducer<BudgetNotificationEvent> {
@@ -46,26 +31,17 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
         return "Budget";
     }
 
-    /**
-     * Partition by userId to maintain event ordering per user
-     */
     @Override
     protected String generatePartitionKey(BudgetNotificationEvent event) {
         return event.getUserId() != null ? event.getUserId().toString() : null;
     }
 
-    /**
-     * Custom validation for budget events
-     */
     @Override
     protected void validateEvent(BudgetNotificationEvent event) {
         super.validateEvent(event);
-        event.validate(); // Use event's own validation
+        event.validate();
     }
 
-    /**
-     * Log before sending
-     */
     @Override
     protected void beforeSend(BudgetNotificationEvent event) {
         log.debug("Preparing to send budget {} notification for user {} (Budget ID: {})",
@@ -74,9 +50,6 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
                 event.getBudgetId());
     }
 
-    /**
-     * Log success with details
-     */
     @Override
     protected void afterSendSuccess(BudgetNotificationEvent event, SendResult<String, Object> result) {
         log.info("Budget {} notification sent successfully for user {} (Budget: {}, Topic: {}, Partition: {})",
@@ -87,9 +60,6 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
                 result.getRecordMetadata().partition());
     }
 
-    /**
-     * Log failure with details
-     */
     @Override
     protected void afterSendFailure(BudgetNotificationEvent event, Throwable exception) {
         log.error("Failed to send budget {} notification for user {} (Budget ID: {}): {}",

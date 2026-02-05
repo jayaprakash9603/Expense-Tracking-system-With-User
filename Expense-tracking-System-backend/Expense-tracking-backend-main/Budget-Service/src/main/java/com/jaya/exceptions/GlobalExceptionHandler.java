@@ -25,11 +25,6 @@ public class GlobalExceptionHandler {
 
         private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-        /*
-         * ---------------------------------- Helper Methods
-         * ----------------------------------
-         */
-
         private String extractPath(WebRequest request) {
                 if (request == null)
                         return "";
@@ -37,12 +32,6 @@ public class GlobalExceptionHandler {
                 return desc == null ? "" : desc.replace("uri=", "");
         }
 
-        /**
-         * Build an ErrorResponse using metadata defaults.
-         * messageOverride: if provided replaces the default message (code used when
-         * blank).
-         * detailsOverride: if provided replaces metadata default details description.
-         */
         private ResponseEntity<ErrorResponse> buildErrorResponse(ErrorMetadata metadata,
                         String messageOverride,
                         WebRequest request,
@@ -60,7 +49,6 @@ public class GlobalExceptionHandler {
                                 path,
                                 LocalDateTime.now(),
                                 details);
-                // Logging differentiation: 5xx as error, 4xx as warn
                 if (metadata.getStatus().is5xxServerError()) {
                         logger.error("{}: {} path={} details={}", metadata.getCode(), message, path, details);
                 } else {
@@ -80,10 +68,6 @@ public class GlobalExceptionHandler {
                                 .collect(Collectors.toList());
         }
 
-        /**
-         * Extract a clean message from a Feign remote service exception body.
-         * Prioritizes JSON field 'message'; falls back to regex; last resort raw body.
-         */
         private String extractFeignMessage(FeignException ex) {
                 String body = null;
                 try {
@@ -93,19 +77,16 @@ public class GlobalExceptionHandler {
                 if (body == null || body.isBlank()) {
                         return ex.getMessage();
                 }
-                // Try Jackson JSON parsing
                 try {
                         ObjectMapper mapper = new ObjectMapper();
                         JsonNode node = mapper.readTree(body.trim());
                         if (node.has("message")) {
                                 return node.get("message").asText();
                         }
-                        // Some services may wrap errors in an array
                         if (node.isArray() && node.size() > 0 && node.get(0).has("message")) {
                                 return node.get(0).get("message").asText();
                         }
                 } catch (Exception parseIgnored) {
-                        // fallback regex
                         java.util.regex.Matcher m = java.util.regex.Pattern
                                         .compile("\\\"message\\\"\\s*:\\s*\\\"([^\\\"]+)\\\"")
                                         .matcher(body);
@@ -113,13 +94,9 @@ public class GlobalExceptionHandler {
                                 return m.group(1);
                         }
                 }
-                return body; // raw body fallback
+                return body;
         }
 
-        /**
-         * Build a ValidationErrorResponse using provided field errors. Uses metadata to
-         * derive error code/status and defaults for message when override is blank.
-         */
         private ResponseEntity<ValidationErrorResponse> buildValidationErrorResponse(ErrorMetadata metadata,
                         String messageOverride,
                         WebRequest request,
@@ -162,15 +139,12 @@ public class GlobalExceptionHandler {
                 int status = ex.status();
                 String remoteMessage = extractFeignMessage(ex);
                 if (status == 401) {
-                        // Map to UNAUTHORIZED with remote message preserved
                         return buildErrorResponse(ErrorMetadata.UNAUTHORIZED, remoteMessage, request, null);
                 } else if (status == 403) {
                         return buildErrorResponse(ErrorMetadata.ACCESS_DENIED, remoteMessage, request, null);
                 } else if (status >= 400 && status < 500) {
-                        // Other client errors -> ILLEGAL_ARGUMENT (generic client side issue)
                         return buildErrorResponse(ErrorMetadata.ILLEGAL_ARGUMENT, remoteMessage, request, null);
                 }
-                // Server/unknown errors from remote service
                 return buildErrorResponse(ErrorMetadata.EXTERNAL_SERVICE_ERROR, remoteMessage, request, null);
         }
 

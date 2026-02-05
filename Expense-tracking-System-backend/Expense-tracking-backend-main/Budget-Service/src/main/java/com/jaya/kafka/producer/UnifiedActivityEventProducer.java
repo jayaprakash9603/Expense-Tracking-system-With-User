@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Unified Activity Event Producer for Budget Service
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

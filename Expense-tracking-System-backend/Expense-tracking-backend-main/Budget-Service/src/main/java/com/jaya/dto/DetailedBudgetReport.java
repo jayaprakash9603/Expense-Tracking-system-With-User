@@ -13,8 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DetailedBudgetReport {
-
-    // Basic Budget Info
     private Integer budgetId;
     private String budgetName;
     private String description;
@@ -23,7 +21,6 @@ public class DetailedBudgetReport {
     private LocalDate endDate;
     private boolean isValid;
 
-    // Financial Summary
     private double totalSpent;
     private double remainingAmount;
     private double totalCashSpent;
@@ -33,7 +30,6 @@ public class DetailedBudgetReport {
     private int daysRemaining;
     private int totalDays;
 
-    // Spending Statistics
     private double averageDailySpending;
     private double projectedTotalSpending;
     private double projectedOverUnder;
@@ -42,36 +38,27 @@ public class DetailedBudgetReport {
     private double largestTransaction;
     private double smallestTransaction;
 
-    // Category Breakdown
     private List<CategoryExpense> categoryBreakdown;
 
-    // Payment Method Breakdown
     private List<PaymentMethodExpense> paymentMethodBreakdown;
 
-    // Timeline Data (Daily spending)
     private List<DailySpending> dailySpending;
 
-    // Weekly Data
     private List<WeeklySpending> weeklySpending;
 
-    // Expense Transactions
     private List<ExpenseTransaction> transactions;
 
-    // Budget Health Metrics
     private BudgetHealthMetrics healthMetrics;
 
-    // Insights and Recommendations
     private List<String> insights;
-    private String budgetStatus; // "on-track", "over-budget", "under-budget"
-    private String riskLevel; // "low", "medium", "high"
-
-    // Additional Analytics Data
-    private List<ComparisonData> comparisonData; // Budget vs Previous Period
-    private List<ForecastData> forecastData; // Future spending predictions
-    private List<SpendingPattern> spendingPatterns; // Detected patterns
-    private List<BudgetGoal> budgetGoals; // Goals and achievements
-    private List<HourlySpending> hourlySpending; // Hourly spending pattern
-    private List<CategoryTrend> categoryTrends; // Category trends over time
+    private String budgetStatus;
+    private String riskLevel;
+    private List<ComparisonData> comparisonData;
+    private List<ForecastData> forecastData;
+    private List<SpendingPattern> spendingPatterns;
+    private List<BudgetGoal> budgetGoals;
+    private List<HourlySpending> hourlySpending;
+    private List<CategoryTrend> categoryTrends;
 
     @Getter
     @Setter
@@ -116,7 +103,7 @@ public class DetailedBudgetReport {
     @AllArgsConstructor
     public static class DailySpending {
         private LocalDate date;
-        private String day; // Day name (Mon, Tue, etc.)
+        private String day;
         private double amount;
         private int transactionCount;
     }
@@ -126,7 +113,7 @@ public class DetailedBudgetReport {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WeeklySpending {
-        private String week; // Week number or name
+        private String week;
         private double amount;
         private int transactionCount;
     }
@@ -150,11 +137,11 @@ public class DetailedBudgetReport {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class BudgetHealthMetrics {
-        private String status; // "healthy", "warning", "critical"
-        private double burnRate; // Amount spent per day
+        private String status;
+        private double burnRate;
         private double projectedEndBalance;
         private boolean onTrack;
-        private double paceScore; // 0-100, comparing actual pace vs expected pace
+        private double paceScore;
     }
 
     @Getter
@@ -165,8 +152,8 @@ public class DetailedBudgetReport {
         private String category;
         private double current;
         private double previous;
-        private double change; // Percentage change
-        private String status; // "increased", "decreased", "stable"
+        private double change;
+        private String status;
     }
 
     @Getter
@@ -176,7 +163,7 @@ public class DetailedBudgetReport {
     public static class ForecastData {
         private String day;
         private double predicted;
-        private double confidence; // 0-100
+        private double confidence;
         private String category;
     }
 
@@ -187,7 +174,7 @@ public class DetailedBudgetReport {
     public static class SpendingPattern {
         private String pattern;
         private String description;
-        private String impact; // "high", "medium", "low"
+        private String impact;
         private String recommendation;
     }
 
@@ -199,8 +186,8 @@ public class DetailedBudgetReport {
         private String goal;
         private double target;
         private double current;
-        private double progress; // Percentage
-        private String status; // "on-track", "behind", "exceeded"
+        private double progress;
+        private String status;
         private String deadline;
     }
 

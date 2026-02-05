@@ -21,7 +21,6 @@ public interface ExpenseService {
     @GetMapping("/api/expenses/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
 
-    // Fix the date serialization issue by using @DateTimeFormat
     @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
