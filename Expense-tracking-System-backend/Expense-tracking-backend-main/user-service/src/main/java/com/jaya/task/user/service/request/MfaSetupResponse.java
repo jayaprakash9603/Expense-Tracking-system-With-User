@@ -2,46 +2,46 @@ package com.jaya.task.user.service.request;
 
 import java.util.List;
 
-/**
- * =============================================================================
- * MfaSetupResponse - Response DTO for MFA setup initiation
- * =============================================================================
- * Contains all data needed for user to set up Google Authenticator.
- * 
- * SECURITY NOTES:
- * - 'secret' is plaintext for initial display only - never store unencrypted
- * - 'qrCodeDataUri' is a one-time display - should not be cached client-side
- * - This response should only be sent over HTTPS
- * =============================================================================
- */
+
+
+
+
+
+
+
+
+
+
+
+
 public class MfaSetupResponse {
 
-    /**
-     * Plaintext TOTP secret for manual entry.
-     * User can type this into their authenticator app if QR scan fails.
-     */
+    
+
+
+
     private String secret;
 
-    /**
-     * Base64-encoded PNG image as data URI.
-     * Format: "data:image/png;base64,..."
-     * User scans this QR code with Google Authenticator.
-     */
+    
+
+
+
+
     private String qrCodeDataUri;
 
-    /**
-     * otpauth:// URI for deep linking to authenticator apps.
-     * Format:
-     * "otpauth://totp/Issuer:email?secret=...&issuer=...&algorithm=SHA1&digits=6&period=30"
-     */
+    
+
+
+
+
     private String otpAuthUri;
 
-    /**
-     * Issuer name shown in authenticator app.
-     */
+    
+
+
     private String issuer;
 
-    // Constructors
+    
     public MfaSetupResponse() {
     }
 
@@ -52,7 +52,7 @@ public class MfaSetupResponse {
         this.issuer = issuer;
     }
 
-    // Getters and Setters
+    
     public String getSecret() {
         return secret;
     }

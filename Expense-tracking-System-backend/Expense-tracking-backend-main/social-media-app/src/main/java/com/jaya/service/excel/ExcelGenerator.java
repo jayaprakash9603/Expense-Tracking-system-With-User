@@ -10,13 +10,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-/**
- * Generic Excel generator that can create Excel files for any entity type
- * Follows Single Responsibility Principle - only handles Excel generation
- * Follows Open/Closed Principle - extensible via ExcelColumnDefinition
- *
- * @param <T> The entity type to generate Excel for
- */
+
+
+
+
+
+
+
 public class ExcelGenerator<T> {
 
     private final ExcelColumnDefinition<T> columnDefinition;
@@ -25,9 +25,9 @@ public class ExcelGenerator<T> {
         this.columnDefinition = columnDefinition;
     }
 
-    /**
-     * Generate Excel file from a list of entities
-     */
+    
+
+
     public ByteArrayInputStream generate(List<T> entities) throws IOException {
         try (Workbook workbook = new XSSFWorkbook();
                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -35,13 +35,13 @@ public class ExcelGenerator<T> {
             Sheet sheet = workbook.createSheet(columnDefinition.getSheetName());
             CellStyle headerStyle = ExcelStyleFactory.createHeaderStyle(workbook);
 
-            // Create header row
+            
             createHeaderRow(sheet, headerStyle);
 
-            // Create data rows
+            
             createDataRows(sheet, entities);
 
-            // Auto-size columns for better readability
+            
             autoSizeColumns(sheet);
 
             workbook.write(out);
@@ -49,23 +49,23 @@ public class ExcelGenerator<T> {
         }
     }
 
-    /**
-     * Generate Excel file from a single entity
-     */
+    
+
+
     public ByteArrayInputStream generateSingle(T entity) throws IOException {
         return generate(List.of(entity));
     }
 
-    /**
-     * Generate an empty Excel file with just headers
-     */
+    
+
+
     public ByteArrayInputStream generateEmpty() throws IOException {
         return generate(List.of());
     }
 
-    /**
-     * Create header row with column names
-     */
+    
+
+
     private void createHeaderRow(Sheet sheet, CellStyle headerStyle) {
         Row headerRow = sheet.createRow(0);
         List<ExcelColumn<T>> columns = columnDefinition.getColumns();
@@ -75,9 +75,9 @@ public class ExcelGenerator<T> {
         }
     }
 
-    /**
-     * Create data rows for all entities
-     */
+    
+
+
     private void createDataRows(Sheet sheet, List<T> entities) {
         int rowIndex = 1;
         List<ExcelColumn<T>> columns = columnDefinition.getColumns();
@@ -93,9 +93,9 @@ public class ExcelGenerator<T> {
         }
     }
 
-    /**
-     * Auto-size all columns
-     */
+    
+
+
     private void autoSizeColumns(Sheet sheet) {
         if (sheet.getPhysicalNumberOfRows() > 0) {
             Row headerRow = sheet.getRow(0);

@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * Entity to track all report generation attempts (success and failure)
- */
+
+
+
 @Entity
 @Table(name = "report_history")
 @Data
@@ -34,7 +34,7 @@ public class ReportHistory {
     private String recipientEmail;
 
     @Column(nullable = false)
-    private String status; // SUCCESS, FAILED
+    private String status; 
 
     @Column(length = 2000)
     private String errorMessage;
@@ -50,13 +50,13 @@ public class ReportHistory {
     private String fileName;
 
     @Column(length = 500)
-    private String filterCriteria; // JSON string of filters applied
+    private String filterCriteria; 
 
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
     @Transient
-    private String userEmail; // For DTO mapping, not persisted
+    private String userEmail; 
 
     @PrePersist
     protected void onCreate() {

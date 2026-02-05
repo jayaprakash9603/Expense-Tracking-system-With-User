@@ -23,7 +23,7 @@ public class UserServiceApplication implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) throws Exception {
-		// Initialize default roles if they don't exist
+		
 		if (!roleRepository.existsByName("USER")) {
 			roleRepository.save(new Role("USER", "Default user role"));
 		} else {

@@ -15,22 +15,22 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
 
-/**
- * Cache Configuration for Search Service
- * Uses Redis if available, falls back to in-memory cache
- */
+
+
+
+
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
-    /**
-     * Redis-based cache manager (used when Redis is available)
-     */
+    
+
+
     @Bean
     @ConditionalOnProperty(name = "spring.cache.type", havingValue = "redis", matchIfMissing = false)
     public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofMinutes(5)) // Cache for 5 minutes
+                .entryTtl(Duration.ofMinutes(5)) 
                 .serializeValuesWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(
                                 new GenericJackson2JsonRedisSerializer()))
@@ -50,9 +50,9 @@ public class CacheConfig {
                 .build();
     }
 
-    /**
-     * Simple in-memory cache manager (fallback when Redis is not available)
-     */
+    
+
+
     @Bean
     @Primary
     @ConditionalOnProperty(name = "spring.cache.type", havingValue = "simple", matchIfMissing = true)

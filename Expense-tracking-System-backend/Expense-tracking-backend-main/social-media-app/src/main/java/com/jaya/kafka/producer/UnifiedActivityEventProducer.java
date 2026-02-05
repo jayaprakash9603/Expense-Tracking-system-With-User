@@ -12,25 +12,25 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Unified Activity Event Producer
- * 
- * Single producer for all activity events across the system.
- * This replaces multiple separate producers (AuditEventProducer,
- * NotificationEventProducer,
- * FriendActivityEventProducer) with a single unified producer.
- * 
- * Consumers:
- * - Notification-Service: Handles user notifications and friend activity
- * notifications
- * - Audit-Service: Handles audit logging
- * 
- * Benefits:
- * - Single Kafka message per action (vs 3 separate messages)
- * - Reduced network overhead
- * - Easier event correlation
- * - Consistent event structure across services
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -51,27 +51,27 @@ public class UnifiedActivityEventProducer {
     @Value("${spring.profiles.active:dev}")
     private String environment;
 
-    /**
-     * Send unified activity event to Kafka
-     */
+    
+
+
     public void sendEvent(UnifiedActivityEvent event) {
         try {
-            // Enrich event with service metadata
+            
             enrichEvent(event);
 
-            // Validate event
+            
             validateEvent(event);
 
-            // Generate partition key (by target user for ordering per user)
+            
             String key = generatePartitionKey(event);
 
-            // Log event details
+            
             logEventDetails(event);
 
-            // Send to Kafka
+            
             CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topicName, key, event);
 
-            // Handle result asynchronously
+            
             future.whenComplete((result, ex) -> {
                 if (ex != null) {
                     handleSendFailure(event, ex);
@@ -86,9 +86,9 @@ public class UnifiedActivityEventProducer {
         }
     }
 
-    /**
-     * Send event synchronously and wait for result
-     */
+    
+
+
     public SendResult<String, Object> sendEventSync(UnifiedActivityEvent event) {
         try {
             enrichEvent(event);
@@ -109,9 +109,9 @@ public class UnifiedActivityEventProducer {
         }
     }
 
-    /**
-     * Enrich event with service metadata
-     */
+    
+
+
     private void enrichEvent(UnifiedActivityEvent event) {
         if (event.getSourceService() == null) {
             event.setSourceService(serviceName);
@@ -123,15 +123,15 @@ public class UnifiedActivityEventProducer {
             event.setEnvironment(environment);
         }
 
-        // Calculate isOwnAction if not already set
+        
         if (event.getActorUserId() != null && event.getTargetUserId() != null) {
             event.calculateIsOwnAction();
         }
     }
 
-    /**
-     * Validate event before sending
-     */
+    
+
+
     private void validateEvent(UnifiedActivityEvent event) {
         if (event == null) {
             throw new IllegalArgumentException("Event cannot be null");
@@ -147,16 +147,16 @@ public class UnifiedActivityEventProducer {
         }
     }
 
-    /**
-     * Generate partition key - by target user ID to ensure ordering per user
-     */
+    
+
+
     private String generatePartitionKey(UnifiedActivityEvent event) {
         return event.getTargetUserId().toString();
     }
 
-    /**
-     * Log event details
-     */
+    
+
+
     private void logEventDetails(UnifiedActivityEvent event) {
         if (log.isDebugEnabled()) {
             try {
@@ -178,9 +178,9 @@ public class UnifiedActivityEventProducer {
         }
     }
 
-    /**
-     * Handle successful send
-     */
+    
+
+
     private void handleSendSuccess(UnifiedActivityEvent event, SendResult<String, Object> result) {
         log.info("Successfully sent unified activity event: eventId={}, topic={}, partition={}, offset={}",
                 event.getEventId(),
@@ -189,9 +189,9 @@ public class UnifiedActivityEventProducer {
                 result.getRecordMetadata().offset());
     }
 
-    /**
-     * Handle send failure
-     */
+    
+
+
     private void handleSendFailure(UnifiedActivityEvent event, Throwable ex) {
         log.error("Failed to send unified activity event: eventId={}, error={}",
                 event.getEventId(), ex.getMessage(), ex);

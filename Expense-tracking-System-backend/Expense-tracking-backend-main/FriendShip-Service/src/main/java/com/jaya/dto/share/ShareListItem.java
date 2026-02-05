@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,6 +31,7 @@ public class ShareListItem {
     private LocalDateTime lastAccessedAt;
 
     private List<ResourceSummary> resources;
+
     public String getStatus() {
         if (!Boolean.TRUE.equals(isActive)) {
             return revokedAt != null ? "REVOKED" : "INACTIVE";

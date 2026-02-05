@@ -16,10 +16,10 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Audit Event - Used for audit logging across all services.
- * Captures detailed information about actions performed in the system.
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,39 +29,39 @@ public class AuditEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Unique event ID for correlation
-     */
+    
+
+
     @Builder.Default
     private String eventId = UUID.randomUUID().toString();
 
-    /**
-     * Event timestamp
-     */
+    
+
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // User information
+    
     private Integer userId;
     private String username;
     private String userEmail;
     private String userRole;
 
-    // Action information
+    
     private String action;
     private String entityType;
     private Long entityId;
     private String entityName;
 
-    // Service information
+    
     private String sourceService;
     private String serviceVersion;
     private String environment;
 
-    // Request context
+    
     private String ipAddress;
     private String userAgent;
     private String sessionId;
@@ -71,23 +71,23 @@ public class AuditEvent implements Serializable {
     private String endpoint;
     private Long executionTimeMs;
 
-    // Data changes
+    
     private Map<String, Object> oldValues;
     private Map<String, Object> newValues;
     private String requestBody;
     private String responseBody;
 
-    // Status
+    
     @Builder.Default
     private String status = Status.SUCCESS;
     private String errorMessage;
     private Integer responseCode;
 
-    // Audit severity
+    
     @Builder.Default
     private String severity = Severity.INFO;
 
-    // Constants
+    
     public static class Status {
         public static final String SUCCESS = "SUCCESS";
         public static final String FAILURE = "FAILURE";

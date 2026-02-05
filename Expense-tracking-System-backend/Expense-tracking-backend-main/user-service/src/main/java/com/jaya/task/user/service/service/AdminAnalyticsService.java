@@ -15,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for admin analytics data aggregation.
- * Fetches data from User-Service and aggregates from other services via REST
- * calls.
- */
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,9 +34,9 @@ public class AdminAnalyticsService {
     @Value("${audit.service.url:http://localhost:6004}")
     private String auditServiceUrl;
 
-    /**
-     * Get system-wide analytics overview
-     */
+    
+
+
     public AdminAnalyticsOverviewDTO getAnalyticsOverview(String timeRange) {
         log.info("Fetching admin analytics overview for timeRange: {}", timeRange);
 
@@ -44,21 +44,21 @@ public class AdminAnalyticsService {
         LocalDateTime startDate = dateRange[0];
         LocalDateTime endDate = dateRange[1];
 
-        // Get user statistics from local database
+        
         List<User> allUsers = userRepository.findAll();
         long totalUsers = allUsers.size();
 
-        // Calculate user metrics
+        
         long activeUsers = allUsers.stream()
                 .filter(u -> u.getUpdatedAt() != null && u.getUpdatedAt().isAfter(startDate))
                 .count();
 
-        // Users created within the time range
+        
         long newUsersThisMonth = allUsers.stream()
                 .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(startDate))
                 .count();
 
-        // Calculate growth (compare to previous period)
+        
         LocalDateTime previousStart = startDate
                 .minusDays(java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate));
         long previousPeriodUsers = allUsers.stream()
@@ -71,14 +71,14 @@ public class AdminAnalyticsService {
                 ? ((double) (newUsersThisMonth - previousPeriodUsers) / previousPeriodUsers) * 100
                 : (newUsersThisMonth > 0 ? 100 : 0);
 
-        // Fetch expense statistics from expense service
+        
         ExpenseStatsDTO expenseStats = fetchExpenseStats(timeRange);
 
         return AdminAnalyticsOverviewDTO.builder()
                 .totalUsers(totalUsers)
                 .activeUsers(activeUsers)
                 .inactiveUsers(totalUsers - activeUsers)
-                .suspendedUsers(0) // TODO: Add status field to User entity
+                .suspendedUsers(0) 
                 .newUsersThisMonth(newUsersThisMonth)
                 .userGrowthPercentage(Math.round(userGrowth * 10.0) / 10.0)
                 .activeGrowthPercentage(calculateActiveGrowth(allUsers, startDate))
@@ -95,14 +95,14 @@ public class AdminAnalyticsService {
                 .build();
     }
 
-    /**
-     * Get top expense categories across all users
-     */
+    
+
+
     public List<TopCategoryDTO> getTopCategories(String timeRange, int limit) {
         log.info("Fetching top categories for timeRange: {} limit: {}", timeRange, limit);
 
         try {
-            // Call expense service for category statistics
+            
             String url = expenseServiceUrl + "/api/admin/analytics/categories?timeRange=" + timeRange + "&limit="
                     + limit;
             TopCategoryDTO[] categories = restTemplate.getForObject(url, TopCategoryDTO[].class);
@@ -114,20 +114,20 @@ public class AdminAnalyticsService {
             log.warn("Failed to fetch categories from expense service: {}", e.getMessage());
         }
 
-        // Return sample data if service unavailable
+        
         return generateSampleCategories(limit);
     }
 
-    /**
-     * Get recent system activity
-     */
+    
+
+
     public List<RecentActivityDTO> getRecentActivity(int hours) {
         log.info("Fetching recent activity for last {} hours", hours);
 
         List<RecentActivityDTO> activities = new ArrayList<>();
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
 
-        // User registrations
+        
         List<User> recentUsers = userRepository.findAll().stream()
                 .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(since))
                 .collect(Collectors.toList());
@@ -141,7 +141,7 @@ public class AdminAnalyticsService {
                 .timestamp(LocalDateTime.now())
                 .build());
 
-        // Fetch other activity from audit service
+        
         try {
             String url = auditServiceUrl + "/api/audit-logs/stats?hours=" + hours;
             AuditStatsDTO auditStats = restTemplate.getForObject(url, AuditStatsDTO.class);
@@ -182,21 +182,21 @@ public class AdminAnalyticsService {
             }
         } catch (Exception e) {
             log.warn("Failed to fetch audit stats: {}", e.getMessage());
-            // Add placeholder activities
+            
             activities.addAll(generateSampleActivities(hours));
         }
 
         return activities;
     }
 
-    /**
-     * Get top users by expense activity
-     */
+    
+
+
     public List<TopUserDTO> getTopUsers(String timeRange, int limit) {
         log.info("Fetching top users for timeRange: {} limit: {}", timeRange, limit);
 
         try {
-            // Call expense service for user activity statistics
+            
             String url = expenseServiceUrl + "/api/admin/analytics/top-users?timeRange=" + timeRange + "&limit="
                     + limit;
             TopUserDTO[] topUsers = restTemplate.getForObject(url, TopUserDTO[].class);
@@ -208,13 +208,13 @@ public class AdminAnalyticsService {
             log.warn("Failed to fetch top users from expense service: {}", e.getMessage());
         }
 
-        // Generate from user repository with sample expense data
+        
         return generateTopUsersFromDb(limit);
     }
 
-    /**
-     * Get user statistics
-     */
+    
+
+
     public UserStatsDTO getUserStats() {
         log.info("Fetching user statistics");
 
@@ -222,7 +222,7 @@ public class AdminAnalyticsService {
         LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
 
-        // Count by role
+        
         Map<String, Long> byRole = new HashMap<>();
         allUsers.forEach(user -> {
             if (user.getRoles() != null) {
@@ -233,7 +233,7 @@ public class AdminAnalyticsService {
             }
         });
 
-        // Calculate new users
+        
         long newThisMonth = allUsers.stream()
                 .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(monthStart))
                 .count();
@@ -242,7 +242,7 @@ public class AdminAnalyticsService {
                 .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(weekStart))
                 .count();
 
-        // Calculate growth
+        
         LocalDateTime lastMonthStart = monthStart.minusMonths(1);
         long lastMonthUsers = allUsers.stream()
                 .filter(u -> u.getCreatedAt() != null &&
@@ -254,7 +254,7 @@ public class AdminAnalyticsService {
                 ? ((double) (newThisMonth - lastMonthUsers) / lastMonthUsers) * 100
                 : (newThisMonth > 0 ? 100 : 0);
 
-        // Calculate active users (logged in/updated in last 7 days)
+        
         long activeUsers = allUsers.stream()
                 .filter(u -> u.getUpdatedAt() != null && u.getUpdatedAt().isAfter(weekStart))
                 .count();
@@ -263,7 +263,7 @@ public class AdminAnalyticsService {
                 .total(allUsers.size())
                 .active(activeUsers)
                 .inactive(allUsers.size() - activeUsers)
-                .suspended(0) // TODO: Add status field to User entity
+                .suspended(0) 
                 .newThisMonth(newThisMonth)
                 .newThisWeek(newThisWeek)
                 .growthPercentage(Math.round(growth * 10.0) / 10.0)
@@ -271,7 +271,7 @@ public class AdminAnalyticsService {
                 .build();
     }
 
-    // ============ Private Helper Methods ============
+    
 
     private LocalDateTime[] calculateDateRange(String timeRange) {
         LocalDateTime endDate = LocalDateTime.now();
@@ -330,7 +330,7 @@ public class AdminAnalyticsService {
             log.warn("Failed to fetch expense stats: {}", e.getMessage());
         }
 
-        // Return sample data if service unavailable
+        
         return ExpenseStatsDTO.builder()
                 .totalCount(45623)
                 .totalAmount(234567.00)
@@ -408,7 +408,7 @@ public class AdminAnalyticsService {
         return topUsers;
     }
 
-    // ============ Inner DTOs for external service responses ============
+    
 
     @lombok.Data
     @lombok.Builder

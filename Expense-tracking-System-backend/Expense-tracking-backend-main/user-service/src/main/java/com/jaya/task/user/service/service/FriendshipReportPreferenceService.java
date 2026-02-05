@@ -12,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * Service for managing Friendship Report Preferences
- * Handles CRUD operations for user layout configurations
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,7 +24,7 @@ public class FriendshipReportPreferenceService {
     private final FriendshipReportPreferenceRepository friendshipReportPreferenceRepository;
     private final UserService userService;
 
-    // Default friendship report configuration - matches frontend DEFAULT_SECTIONS
+    
     private static final String DEFAULT_LAYOUT_CONFIG = """
             [
               {"id":"overview-cards","name":"Overview Cards","visible":true,"type":"full"},
@@ -36,10 +36,10 @@ public class FriendshipReportPreferenceService {
             ]
             """.trim();
 
-    /**
-     * Get friendship report preference for the authenticated user
-     * Returns default configuration if no custom preference exists
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public FriendshipReportPreferenceDTO getUserFriendshipReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -50,7 +50,7 @@ public class FriendshipReportPreferenceService {
             log.debug("Returning custom friendship report preference for user: userId={}", user.getId());
             return toDTO(existing.get());
         } else {
-            // Return default configuration without saving
+            
             FriendshipReportPreferenceDTO defaultDto = new FriendshipReportPreferenceDTO();
             defaultDto.setUserId(user.getId());
             defaultDto.setLayoutConfig(DEFAULT_LAYOUT_CONFIG);
@@ -63,9 +63,9 @@ public class FriendshipReportPreferenceService {
         }
     }
 
-    /**
-     * Save or update friendship report preference for authenticated user
-     */
+    
+
+
     @Transactional
     public FriendshipReportPreferenceDTO saveFriendshipReportPreference(String jwt, String layoutConfig) {
         User user = userService.getUserProfile(jwt);
@@ -84,9 +84,9 @@ public class FriendshipReportPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset friendship report preference to default (delete custom preference)
-     */
+    
+
+
     @Transactional
     public void resetFriendshipReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -96,9 +96,9 @@ public class FriendshipReportPreferenceService {
         log.info("Friendship report preference reset for user: userId={}", user.getId());
     }
 
-    /**
-     * Convert entity to DTO
-     */
+    
+
+
     private FriendshipReportPreferenceDTO toDTO(FriendshipReportPreference entity) {
         FriendshipReportPreferenceDTO dto = new FriendshipReportPreferenceDTO();
         dto.setId(entity.getId());

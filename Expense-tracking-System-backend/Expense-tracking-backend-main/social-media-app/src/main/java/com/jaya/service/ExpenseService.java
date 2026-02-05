@@ -44,14 +44,14 @@ public interface ExpenseService {
 
         List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception;
 
-        // New: same as addMultipleExpenses but reports progress to a tracker using
-        // jobId
+        
+        
         List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId)
                         throws Exception;
 
         List<Expense> getExpensesByCategoryId(Integer categoryId, Integer userId);
 
-        // Add this method to the ExpenseService interface
+        
         Map<String, Object> getFilteredExpensesByCategories(
                         Integer userId,
                         String rangeType,
@@ -288,15 +288,15 @@ public interface ExpenseService {
         List<Map<String, Object>> getDailySpendingByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
                         String type);
 
-        /**
-         * Fuzzy search expenses by name, comments, or payment method.
-         * Supports partial text matching for typeahead/search functionality.
-         * Optimized query - avoids N+1 problem by returning DTOs.
-         * 
-         * @param userId the user whose expenses to search
-         * @param query  the search query (partial match supported)
-         * @param limit  maximum number of results to return
-         * @return List of ExpenseSearchDTO matching the search criteria
-         */
+        
+
+
+
+
+
+
+
+
+
         List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit);
 }

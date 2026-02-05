@@ -29,33 +29,33 @@ import java.util.regex.Pattern;
 @RestController
 public class LogErrorProcessorController {
 
-    private static final String LOGS_DIR = "logs"; // Directory to store logs
+    private static final String LOGS_DIR = "logs"; 
 
     @PostMapping("/upload-logs")
     public ResponseEntity<Resource> uploadAndProcessLogs(@RequestParam("files") MultipartFile[] files) {
         try {
-            // Store error logs for each file
+            
             Map<String, List<String>> fileErrorLogs = new HashMap<>();
 
-            // Process each uploaded file
+            
             for (MultipartFile file : files) {
                 String fileName = file.getOriginalFilename();
                 List<String> errorLogs = extractErrorLogs(file);
                 fileErrorLogs.put(fileName, errorLogs);
             }
 
-            // Find common error logs across all files
+            
             List<String> commonErrorLogs = findCommonErrorLogs(fileErrorLogs);
 
-            // Generate file name with date, time, and seconds
+            
             String outputFileName = "common_error_logs_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".log";
             Path logsDir = Paths.get(LOGS_DIR);
             Path outputPath = logsDir.resolve(outputFileName);
 
-            // Create logs directory if it doesn't exist
+            
             Files.createDirectories(logsDir);
 
-            // Write common error logs to file
+            
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             try (BufferedWriter writer = Files.newBufferedWriter(outputPath)) {
                 for (String errorLog : commonErrorLogs) {
@@ -65,7 +65,7 @@ public class LogErrorProcessorController {
                 }
             }
 
-            // Create resource for download
+            
             ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
 
             return ResponseEntity.ok()
@@ -100,10 +100,10 @@ public class LogErrorProcessorController {
             return new ArrayList<>();
         }
 
-        // Get the set of error logs from the first file
+        
         Set<String> commonErrors = new HashSet<>(fileErrorLogs.values().iterator().next());
 
-        // Retain only errors present in all files
+        
         for (List<String> errorLogs : fileErrorLogs.values()) {
             commonErrors.retainAll(new HashSet<>(errorLogs));
         }

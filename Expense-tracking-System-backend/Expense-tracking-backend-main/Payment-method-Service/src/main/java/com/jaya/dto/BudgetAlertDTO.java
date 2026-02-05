@@ -27,7 +27,7 @@ public class BudgetAlertDTO {
     @JsonSerialize(using = LocalDateSerializer.class)
     private LocalDate endDate;
     private int daysRemaining;
-    private String alertType; // WARNING, EXCEEDED, NEAR_END
-    private String severity; // LOW, MEDIUM, HIGH, CRITICAL
+    private String alertType; 
+    private String severity; 
     private String recommendation;
 }

@@ -16,17 +16,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Service for Payment Method Service.
- * Replaces separate FriendActivityService and
- * PaymentMethodNotificationProducer.
- * 
- * All events are sent to the single unified-activity-events topic.
- * The routing flags determine how the event is processed by consumers:
- * - isOwnAction=true -> Regular notification
- * - isFriendActivity=true -> Friend activity notification
- * - requiresAudit=true -> Audit logging
- */
+
+
+
+
+
+
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,13 +35,13 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    // =============================================
-    // PAYMENT METHOD CREATED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when a payment method is created (own action or friend action)
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodCreatedEvent(PaymentMethod paymentMethod, UserDto actorUser, UserDto targetUser) {
         try {
@@ -86,9 +86,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple payment methods are created
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkPaymentMethodsCreatedEvent(List<PaymentMethod> paymentMethods, UserDto actorUser,
             UserDto targetUser) {
@@ -130,13 +130,13 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // PAYMENT METHOD UPDATED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when a payment method is updated
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedEvent(PaymentMethod paymentMethod, PaymentMethod oldPaymentMethod,
             UserDto actorUser, UserDto targetUser) {
@@ -181,13 +181,13 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // PAYMENT METHOD DELETED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when a payment method is deleted
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedEvent(Integer pmId, String pmName, String pmType, UserDto actorUser,
             UserDto targetUser) {
@@ -236,9 +236,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when all payment methods are deleted
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendAllPaymentMethodsDeletedEvent(int count, UserDto actorUser, UserDto targetUser) {
         try {
@@ -279,9 +279,9 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // HELPER METHODS
-    // =============================================
+    
+    
+    
 
     private UserInfo buildUserInfo(UserDto user) {
         if (user == null)

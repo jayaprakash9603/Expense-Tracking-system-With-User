@@ -8,11 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Kafka consumer for Budget-related events
- * Listens to budget-events topic and generates stories for budget threshold
- * alerts
- */
+
+
+
+
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -75,11 +75,11 @@ public class BudgetEventConsumer {
 
     private void handleBudgetCreated(JsonNode event) {
         log.debug("Budget created event received - no story generated for this event type");
-        // Could create a "Budget created successfully!" story if desired
+        
     }
 
     private void handleBudgetUpdated(JsonNode event) {
         log.debug("Budget updated event received - no story generated for this event type");
-        // Could create a notification story if desired
+        
     }
 }

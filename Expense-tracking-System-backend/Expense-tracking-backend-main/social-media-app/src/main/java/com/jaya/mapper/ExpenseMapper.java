@@ -21,18 +21,18 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * ExpenseMapper - Maps between Expense entity and ExpenseDTO
- * 
- * Design Pattern: Mapper Pattern (Data Transfer Object Pattern)
- * Purpose: Converts between entity and DTO representations
- * Benefits:
- * - Separation of concerns (entity vs API representation)
- * - Centralized mapping logic
- * - Easy to modify API response structure without changing entity
- * - Testable in isolation
- * - Supports data masking for privacy
- */
+
+
+
+
+
+
+
+
+
+
+
+
 @Component
 @Slf4j
 public class ExpenseMapper {
@@ -48,23 +48,23 @@ public class ExpenseMapper {
     @Autowired
     private PaymentMethodServices paymentMethodServices;
 
-    /**
-     * Maps Expense entity to ExpenseDTO
-     * 
-     * @param entity The Expense entity
-     * @return ExpenseDTO for API response
-     */
+    
+
+
+
+
+
     public ExpenseDTO toDTO(Expense entity) {
         return toDTO(entity, false);
     }
 
-    /**
-     * Maps Expense entity to ExpenseDTO with optional data masking
-     * 
-     * @param entity            The Expense entity
-     * @param maskSensitiveData Whether to mask sensitive data
-     * @return ExpenseDTO for API response
-     */
+    
+
+
+
+
+
+
     public ExpenseDTO toDTO(Expense entity, Boolean maskSensitiveData) {
         if (entity == null) {
             return null;
@@ -81,26 +81,26 @@ public class ExpenseMapper {
         dto.setUserId(entity.getUserId());
         dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
 
-        // Fetch and set category icon and color
+        
         enrichWithCategoryDetails(dto, entity.getCategoryId(), entity.getUserId());
 
-        // Map ExpenseDetails to ExpenseDetailsDTO with masking support
+        
         if (entity.getExpense() != null) {
             dto.setExpense(toDetailsDTO(entity.getExpense(), maskSensitiveData));
-            // Fetch and set payment method icon and color
+            
             enrichWithPaymentMethodDetails(dto, entity.getExpense().getPaymentMethod(), entity.getUserId());
         }
 
         return dto;
     }
 
-    /**
-     * Enriches ExpenseDTO with category icon and color
-     * 
-     * @param dto        The ExpenseDTO to enrich
-     * @param categoryId The category ID
-     * @param userId     The user ID
-     */
+    
+
+
+
+
+
+
     private void enrichWithCategoryDetails(ExpenseDTO dto, Integer categoryId, Integer userId) {
         if (categoryId == null || userId == null) {
             return;
@@ -117,13 +117,13 @@ public class ExpenseMapper {
         }
     }
 
-    /**
-     * Enriches ExpenseDTO with payment method icon and color
-     * 
-     * @param dto               The ExpenseDTO to enrich
-     * @param paymentMethodName The payment method name
-     * @param userId            The user ID
-     */
+    
+
+
+
+
+
+
     private void enrichWithPaymentMethodDetails(ExpenseDTO dto, String paymentMethodName, Integer userId) {
         if (paymentMethodName == null || paymentMethodName.isEmpty() || userId == null) {
             return;
@@ -140,37 +140,37 @@ public class ExpenseMapper {
         }
     }
 
-    // ==================== BATCH MAPPING METHODS (Performance Optimized)
-    // ====================
+    
+    
 
-    /**
-     * Maps Expense entity to ExpenseDTO using pre-fetched category and payment
-     * method maps.
-     * This avoids individual API calls for each expense, improving performance for
-     * batch operations.
-     * 
-     * @param entity           The Expense entity
-     * @param categoryMap      Map of categoryId to Category (pre-fetched)
-     * @param paymentMethodMap Map of paymentMethodName to PaymentMethod
-     *                         (pre-fetched)
-     * @return ExpenseDTO for API response
-     */
+    
+
+
+
+
+
+
+
+
+
+
+
     public ExpenseDTO toDTO(Expense entity, Map<Integer, Category> categoryMap,
             Map<String, PaymentMethod> paymentMethodMap) {
         return toDTO(entity, false, categoryMap, paymentMethodMap);
     }
 
-    /**
-     * Maps Expense entity to ExpenseDTO with optional data masking using
-     * pre-fetched maps.
-     * 
-     * @param entity            The Expense entity
-     * @param maskSensitiveData Whether to mask sensitive data
-     * @param categoryMap       Map of categoryId to Category (pre-fetched)
-     * @param paymentMethodMap  Map of paymentMethodName to PaymentMethod
-     *                          (pre-fetched)
-     * @return ExpenseDTO for API response
-     */
+    
+
+
+
+
+
+
+
+
+
+
     public ExpenseDTO toDTO(Expense entity, Boolean maskSensitiveData,
             Map<Integer, Category> categoryMap,
             Map<String, PaymentMethod> paymentMethodMap) {
@@ -189,7 +189,7 @@ public class ExpenseMapper {
         dto.setUserId(entity.getUserId());
         dto.setBudgetIds(entity.getBudgetIds() != null ? new HashSet<>(entity.getBudgetIds()) : new HashSet<>());
 
-        // Set category icon and color from pre-fetched map
+        
         if (categoryMap != null && entity.getCategoryId() != null) {
             Category category = categoryMap.get(entity.getCategoryId());
             if (category != null) {
@@ -198,11 +198,11 @@ public class ExpenseMapper {
             }
         }
 
-        // Map ExpenseDetails to ExpenseDetailsDTO with masking support
+        
         if (entity.getExpense() != null) {
             dto.setExpense(toDetailsDTO(entity.getExpense(), maskSensitiveData));
 
-            // Set payment method icon and color from pre-fetched map
+            
             String paymentMethodName = entity.getExpense().getPaymentMethod();
             if (paymentMethodMap != null && paymentMethodName != null && !paymentMethodName.isEmpty()) {
                 PaymentMethod paymentMethod = paymentMethodMap.get(paymentMethodName);
@@ -216,13 +216,13 @@ public class ExpenseMapper {
         return dto;
     }
 
-    /**
-     * Fetches all categories for a user and returns them as a map by ID.
-     * Use this to pre-fetch categories before batch mapping.
-     * 
-     * @param userId The user ID
-     * @return Map of categoryId to Category
-     */
+    
+
+
+
+
+
+
     public Map<Integer, Category> fetchCategoryMapForUser(Integer userId) {
         try {
             List<Category> categories = categoryServices.getAllForUser(userId);
@@ -236,13 +236,13 @@ public class ExpenseMapper {
         return Map.of();
     }
 
-    /**
-     * Fetches all payment methods for a user and returns them as a map by name.
-     * Use this to pre-fetch payment methods before batch mapping.
-     * 
-     * @param userId The user ID
-     * @return Map of paymentMethodName to PaymentMethod
-     */
+    
+
+
+
+
+
+
     public Map<String, PaymentMethod> fetchPaymentMethodMapForUser(Integer userId) {
         try {
             List<PaymentMethod> paymentMethods = paymentMethodServices.getAllPaymentMethods(userId);
@@ -257,25 +257,25 @@ public class ExpenseMapper {
         return Map.of();
     }
 
-    // ==================== END BATCH MAPPING METHODS ====================
+    
 
-    /**
-     * Maps ExpenseDetails entity to ExpenseDetailsDTO
-     * 
-     * @param details The ExpenseDetails entity
-     * @return ExpenseDetailsDTO
-     */
+    
+
+
+
+
+
     public ExpenseDetailsDTO toDetailsDTO(ExpenseDetails details) {
         return toDetailsDTO(details, false);
     }
 
-    /**
-     * Maps ExpenseDetails entity to ExpenseDetailsDTO with optional data masking
-     * 
-     * @param details           The ExpenseDetails entity
-     * @param maskSensitiveData Whether to mask sensitive data
-     * @return ExpenseDetailsDTO
-     */
+    
+
+
+
+
+
+
     public ExpenseDetailsDTO toDetailsDTO(ExpenseDetails details, Boolean maskSensitiveData) {
         if (details == null) {
             return null;
@@ -285,16 +285,16 @@ public class ExpenseMapper {
         dto.setId(details.getId());
         dto.setExpenseName(details.getExpenseName());
 
-        // Set masked flag
+        
         boolean shouldMask = dataMaskingUtil.shouldMaskData(maskSensitiveData);
         dto.setMasked(shouldMask);
 
-        // If masking is enabled, send masked string values; otherwise use actual
-        // numeric values
+        
+        
         if (shouldMask) {
-            dto.setAmount(dataMaskingUtil.maskAmount(details.getAmount())); // Send "*****"
-            dto.setNetAmount(dataMaskingUtil.maskAmount(details.getNetAmount())); // Send "*****"
-            dto.setCreditDue(dataMaskingUtil.maskCreditDue(details.getCreditDue())); // Send "*****" or "0.00"
+            dto.setAmount(dataMaskingUtil.maskAmount(details.getAmount())); 
+            dto.setNetAmount(dataMaskingUtil.maskAmount(details.getNetAmount())); 
+            dto.setCreditDue(dataMaskingUtil.maskCreditDue(details.getCreditDue())); 
         } else {
             dto.setAmount(details.getAmount());
             dto.setNetAmount(details.getNetAmount());
@@ -308,13 +308,13 @@ public class ExpenseMapper {
         return dto;
     }
 
-    /**
-     * Maps ExpenseDTO to Expense entity
-     * Used when creating new expense from DTO
-     * 
-     * @param dto The ExpenseDTO
-     * @return Expense entity
-     */
+    
+
+
+
+
+
+
     public Expense toEntity(ExpenseDTO dto) {
         if (dto == null) {
             return null;
@@ -331,7 +331,7 @@ public class ExpenseMapper {
         entity.setUserId(dto.getUserId());
         entity.setBudgetIds(dto.getBudgetIds() != null ? new HashSet<>(dto.getBudgetIds()) : new HashSet<>());
 
-        // Map ExpenseDetailsDTO to ExpenseDetails
+        
         if (dto.getExpense() != null) {
             ExpenseDetails details = toDetailsEntity(dto.getExpense());
             details.setExpense(entity);
@@ -341,12 +341,12 @@ public class ExpenseMapper {
         return entity;
     }
 
-    /**
-     * Maps ExpenseDetailsDTO to ExpenseDetails entity
-     * 
-     * @param dto The ExpenseDetailsDTO
-     * @return ExpenseDetails entity
-     */
+    
+
+
+
+
+
     public ExpenseDetails toDetailsEntity(ExpenseDetailsDTO dto) {
         if (dto == null) {
             return null;
@@ -365,13 +365,13 @@ public class ExpenseMapper {
         return details;
     }
 
-    /**
-     * Updates an existing Expense entity from ExpenseDTO
-     * Only updates non-null fields (partial update support)
-     * 
-     * @param entity The existing Expense entity
-     * @param dto    The ExpenseDTO with new values
-     */
+    
+
+
+
+
+
+
     public void updateEntityFromDTO(Expense entity, ExpenseDTO dto) {
         if (entity == null || dto == null) {
             return;
@@ -396,7 +396,7 @@ public class ExpenseMapper {
             entity.setBudgetIds(new HashSet<>(dto.getBudgetIds()));
         }
 
-        // Update ExpenseDetails
+        
         if (dto.getExpense() != null && entity.getExpense() != null) {
             updateDetailsEntityFromDTO(entity.getExpense(), dto.getExpense());
         } else if (dto.getExpense() != null) {
@@ -406,12 +406,12 @@ public class ExpenseMapper {
         }
     }
 
-    /**
-     * Updates an existing ExpenseDetails entity from ExpenseDetailsDTO
-     * 
-     * @param details The existing ExpenseDetails entity
-     * @param dto     The ExpenseDetailsDTO with new values
-     */
+    
+
+
+
+
+
     public void updateDetailsEntityFromDTO(ExpenseDetails details, ExpenseDetailsDTO dto) {
         if (details == null || dto == null) {
             return;

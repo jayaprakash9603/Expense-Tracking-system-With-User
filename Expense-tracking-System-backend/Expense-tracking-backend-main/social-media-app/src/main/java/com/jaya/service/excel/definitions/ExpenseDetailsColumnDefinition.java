@@ -7,9 +7,9 @@ import com.jaya.service.excel.ExcelColumnDefinition;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Column definition for Expense Details (without ID and Date)
- */
+
+
+
 public class ExpenseDetailsColumnDefinition implements ExcelColumnDefinition<Expense> {
 
     @Override

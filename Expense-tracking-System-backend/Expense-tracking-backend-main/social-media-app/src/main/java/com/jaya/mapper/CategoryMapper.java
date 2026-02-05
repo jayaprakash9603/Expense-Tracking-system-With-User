@@ -9,16 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Mapper for converting between CategoryDTO and local Category entity.
- * Used for inter-service communication with Category-Service.
- */
 @Component
 public class CategoryMapper {
 
-    /**
-     * Convert CategoryDTO to local Category entity
-     */
     public Category toEntity(CategoryDTO dto) {
         if (dto == null) {
             return null;
@@ -40,9 +33,6 @@ public class CategoryMapper {
         return category;
     }
 
-    /**
-     * Convert list of CategoryDTOs to list of local Category entities
-     */
     public List<Category> toEntityList(List<CategoryDTO> dtos) {
         if (dtos == null) {
             return List.of();
@@ -52,9 +42,6 @@ public class CategoryMapper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Convert local Category entity to CategoryDTO
-     */
     public CategoryDTO toDto(Category entity) {
         if (entity == null) {
             return null;
@@ -75,9 +62,6 @@ public class CategoryMapper {
                 .build();
     }
 
-    /**
-     * Convert list of local Category entities to list of CategoryDTOs
-     */
     public List<CategoryDTO> toDtoList(List<Category> entities) {
         if (entities == null) {
             return List.of();

@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Entity for storing user-specific Friendship Report layout preferences.
- * Allows users to customize which sections are visible and their order.
- */
+
+
+
+
 @Entity
 @Table(name = "friendship_report_preferences")
 @Data
@@ -29,7 +29,7 @@ public class FriendshipReportPreference {
 
     @NotNull(message = "Layout configuration is required")
     @Column(name = "layout_config", columnDefinition = "TEXT", nullable = false)
-    private String layoutConfig; // JSON string storing the friendship report sections configuration
+    private String layoutConfig; 
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

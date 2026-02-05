@@ -10,16 +10,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * REST Controller for keyboard shortcut management.
- * 
- * Provides endpoints for:
- * - Getting user's shortcut preferences
- * - Updating shortcuts (custom keys, enable/disable)
- * - Getting recommendations
- * - Resetting to defaults
- * - Tracking usage
- */
+
+
+
+
+
+
+
+
+
+
 @RestController
 @RequestMapping("/api/shortcuts")
 @RequiredArgsConstructor
@@ -30,11 +30,11 @@ public class KeyboardShortcutController {
     private final KeyboardShortcutService shortcutService;
     private final JwtUtil jwtUtil;
 
-    /**
-     * Get all keyboard shortcuts for the authenticated user.
-     * 
-     * GET /api/shortcuts
-     */
+    
+
+
+
+
     @GetMapping
     public ResponseEntity<ShortcutsResponse> getUserShortcuts(HttpServletRequest request) {
         Long userId = extractUserId(request);
@@ -44,11 +44,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Update keyboard shortcuts for the authenticated user.
-     * 
-     * POST /api/shortcuts/update
-     */
+    
+
+
+
+
     @PostMapping("/update")
     public ResponseEntity<ShortcutsResponse> updateShortcuts(
             HttpServletRequest request,
@@ -61,11 +61,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get shortcut recommendations for the authenticated user.
-     * 
-     * GET /api/shortcuts/recommendations
-     */
+    
+
+
+
+
     @GetMapping("/recommendations")
     public ResponseEntity<RecommendationsResponse> getRecommendations(HttpServletRequest request) {
         Long userId = extractUserId(request);
@@ -75,11 +75,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Reset all shortcuts to defaults.
-     * 
-     * POST /api/shortcuts/reset
-     */
+    
+
+
+
+
     @PostMapping("/reset")
     public ResponseEntity<ShortcutsResponse> resetToDefaults(HttpServletRequest request) {
         Long userId = extractUserId(request);
@@ -89,11 +89,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Track shortcut usage.
-     * 
-     * POST /api/shortcuts/track
-     */
+    
+
+
+
+
     @PostMapping("/track")
     public ResponseEntity<Void> trackUsage(
             HttpServletRequest request,
@@ -105,11 +105,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Accept a recommendation.
-     * 
-     * POST /api/shortcuts/recommendations/{actionId}/accept
-     */
+    
+
+
+
+
     @PostMapping("/recommendations/{actionId}/accept")
     public ResponseEntity<ShortcutsResponse> acceptRecommendation(
             HttpServletRequest request,
@@ -117,7 +117,7 @@ public class KeyboardShortcutController {
         Long userId = extractUserId(request);
         log.info("POST /api/shortcuts/recommendations/{}/accept - userId: {}", actionId, userId);
 
-        // Enable the shortcut with default keys
+        
         UpdateShortcutsRequest updateRequest = UpdateShortcutsRequest.builder()
                 .shortcuts(java.util.List.of(
                         UpdateShortcutsRequest.ShortcutUpdate.builder()
@@ -130,11 +130,11 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Reject a recommendation.
-     * 
-     * POST /api/shortcuts/recommendations/{actionId}/reject
-     */
+    
+
+
+
+
     @PostMapping("/recommendations/{actionId}/reject")
     public ResponseEntity<ShortcutsResponse> rejectRecommendation(
             HttpServletRequest request,
@@ -154,9 +154,9 @@ public class KeyboardShortcutController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Extract user ID from JWT token in request.
-     */
+    
+
+
     private Long extractUserId(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

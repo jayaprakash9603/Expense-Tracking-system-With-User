@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,6 +36,7 @@ public class UserAddedItemsService {
     public boolean isItemAdded(Integer userId, String shareToken, String externalRef) {
         return repository.existsByUserIdAndShareTokenAndExternalRef(userId, shareToken, externalRef);
     }
+
     @Transactional
     public UserAddedItemsDTO.AddItemResponse trackAddedItem(
             Integer userId,
@@ -72,6 +74,7 @@ public class UserAddedItemsService {
                 .addedAt(item.getAddedAt())
                 .build();
     }
+
     @Transactional
     public UserAddedItemsDTO.BulkAddResponse trackAddedItems(
             Integer userId,
@@ -110,11 +113,13 @@ public class UserAddedItemsService {
                 .errors(errors)
                 .build();
     }
+
     @Transactional
     public void untrackItem(Integer userId, String shareToken, String externalRef) {
         repository.deleteByUserIdAndShareTokenAndExternalRef(userId, shareToken, externalRef);
         log.info("Untracked item: userId={}, shareToken={}, ref={}", userId, shareToken, externalRef);
     }
+
     @Transactional(readOnly = true)
     public long getAddedCount(Integer userId, String shareToken) {
         return repository.countByUserIdAndShareToken(userId, shareToken);

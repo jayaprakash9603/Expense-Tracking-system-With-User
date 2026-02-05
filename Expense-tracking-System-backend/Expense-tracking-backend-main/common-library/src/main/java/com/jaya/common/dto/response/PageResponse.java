@@ -9,12 +9,12 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-/**
- * Unified pagination response wrapper.
- * Provides consistent pagination structure across all microservices.
- *
- * @param <T> The type of data being returned
- */
+
+
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,66 +22,66 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PageResponse<T> {
 
-    /**
-     * The paginated content
-     */
+    
+
+
     private List<T> content;
 
-    /**
-     * Current page number (0-indexed)
-     */
+    
+
+
     private int page;
 
-    /**
-     * Number of items per page
-     */
+    
+
+
     private int size;
 
-    /**
-     * Total number of elements across all pages
-     */
+    
+
+
     private long totalElements;
 
-    /**
-     * Total number of pages
-     */
+    
+
+
     private int totalPages;
 
-    /**
-     * Whether this is the first page
-     */
+    
+
+
     private boolean first;
 
-    /**
-     * Whether this is the last page
-     */
+    
+
+
     private boolean last;
 
-    /**
-     * Whether there is a next page
-     */
+    
+
+
     private boolean hasNext;
 
-    /**
-     * Whether there is a previous page
-     */
+    
+
+
     private boolean hasPrevious;
 
-    /**
-     * Number of elements in current page
-     */
+    
+
+
     private int numberOfElements;
 
-    /**
-     * Whether the page is empty
-     */
+    
+
+
     private boolean empty;
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create PageResponse from Spring Data Page
-     */
+    
+
+
     public static <T> PageResponse<T> of(Page<T> page) {
         return PageResponse.<T>builder()
                 .content(page.getContent())
@@ -98,9 +98,9 @@ public class PageResponse<T> {
                 .build();
     }
 
-    /**
-     * Create PageResponse from list with pagination info
-     */
+    
+
+
     public static <T> PageResponse<T> of(List<T> content, int page, int size, long totalElements) {
         int totalPages = (int) Math.ceil((double) totalElements / size);
         return PageResponse.<T>builder()
@@ -118,9 +118,9 @@ public class PageResponse<T> {
                 .build();
     }
 
-    /**
-     * Create an empty PageResponse
-     */
+    
+
+
     public static <T> PageResponse<T> empty(int page, int size) {
         return PageResponse.<T>builder()
                 .content(List.of())
@@ -137,16 +137,16 @@ public class PageResponse<T> {
                 .build();
     }
 
-    /**
-     * Wrap this PageResponse in an ApiResponse
-     */
+    
+
+
     public ApiResponse<PageResponse<T>> toApiResponse() {
         return ApiResponse.success(this);
     }
 
-    /**
-     * Wrap this PageResponse in an ApiResponse with custom message
-     */
+    
+
+
     public ApiResponse<PageResponse<T>> toApiResponse(String message) {
         return ApiResponse.success(this, message);
     }

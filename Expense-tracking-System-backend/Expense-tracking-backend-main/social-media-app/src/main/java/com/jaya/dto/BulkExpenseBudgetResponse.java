@@ -8,9 +8,6 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Response DTO for bulk expense and budget creation
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,8 +19,8 @@ public class BulkExpenseBudgetResponse {
     private Integer successCount;
     private Integer failureCount;
     private List<MappingResult> results;
-    private Map<Long, Long> oldToNewExpenseIds; // Old expense ID -> New expense ID
-    private Map<Long, Long> oldToNewBudgetIds; // Old budget ID -> New budget ID
+    private Map<Long, Long> oldToNewExpenseIds;
+    private Map<Long, Long> oldToNewBudgetIds;
 
     @Data
     @Builder

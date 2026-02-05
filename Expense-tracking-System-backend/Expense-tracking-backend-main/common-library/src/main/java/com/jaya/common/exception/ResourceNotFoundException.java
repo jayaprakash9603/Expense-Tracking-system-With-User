@@ -3,76 +3,76 @@ package com.jaya.common.exception;
 import com.jaya.common.error.ErrorCode;
 import lombok.Getter;
 
-/**
- * Exception thrown when a requested resource is not found.
- * This is a common exception used across all microservices.
- * 
- * Usage:
- * 
- * <pre>
- * throw new ResourceNotFoundException(ErrorCode.USER_NOT_FOUND, "User", "123");
- * throw new ResourceNotFoundException(ErrorCode.EXPENSE_NOT_FOUND, "Expense not found with ID: 456");
- * </pre>
- */
+
+
+
+
+
+
+
+
+
+
+
 @Getter
 public class ResourceNotFoundException extends BaseException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Type of resource that was not found (e.g., "User", "Expense", "Budget")
-     */
+    
+
+
     private final String resourceType;
 
-    /**
-     * Identifier of the resource that was not found
-     */
+    
+
+
     private final String resourceId;
 
-    /**
-     * Create exception with error code only
-     */
+    
+
+
     public ResourceNotFoundException(ErrorCode errorCode) {
         super(errorCode);
         this.resourceType = null;
         this.resourceId = null;
     }
 
-    /**
-     * Create exception with error code and details
-     */
+    
+
+
     public ResourceNotFoundException(ErrorCode errorCode, String details) {
         super(errorCode, details);
         this.resourceType = null;
         this.resourceId = null;
     }
 
-    /**
-     * Create exception with resource type and ID
-     */
+    
+
+
     public ResourceNotFoundException(ErrorCode errorCode, String resourceType, String resourceId) {
         super(errorCode, String.format("%s not found with ID: %s", resourceType, resourceId));
         this.resourceType = resourceType;
         this.resourceId = resourceId;
     }
 
-    /**
-     * Create exception with resource type and numeric ID
-     */
+    
+
+
     public ResourceNotFoundException(ErrorCode errorCode, String resourceType, Long resourceId) {
         this(errorCode, resourceType, String.valueOf(resourceId));
     }
 
-    /**
-     * Create exception with resource type and integer ID
-     */
+    
+
+
     public ResourceNotFoundException(ErrorCode errorCode, String resourceType, Integer resourceId) {
         this(errorCode, resourceType, String.valueOf(resourceId));
     }
 
-    // ========================================
-    // CONVENIENCE FACTORY METHODS
-    // ========================================
+    
+    
+    
 
     public static ResourceNotFoundException userNotFound(Long userId) {
         return new ResourceNotFoundException(ErrorCode.USER_NOT_FOUND, "User", userId);

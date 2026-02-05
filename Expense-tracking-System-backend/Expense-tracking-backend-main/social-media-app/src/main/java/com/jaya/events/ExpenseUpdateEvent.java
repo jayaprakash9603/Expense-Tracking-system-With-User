@@ -16,5 +16,5 @@ public class ExpenseUpdateEvent {
     private String newCategoryName;
     private Integer userId;
     private LocalDateTime timestamp;
-    private String reason; // "CATEGORY_DELETED"
+    private String reason;
 }

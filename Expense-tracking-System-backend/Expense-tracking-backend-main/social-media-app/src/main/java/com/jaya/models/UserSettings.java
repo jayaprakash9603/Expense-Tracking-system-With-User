@@ -10,13 +10,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-/**
- * UserSettings Entity
- * Stores user preferences and application settings
- * 
- * Design Pattern: Entity Pattern
- * Follows JPA best practices with proper indexing and constraints
- */
+
+
+
+
+
+
+
 @Entity
 @Table(name = "user_settings", indexes = {
         @Index(name = "idx_user_id", columnList = "user_id")
@@ -34,14 +34,14 @@ public class UserSettings {
     @Column(name = "user_id", nullable = false, unique = true)
     private Integer userId;
 
-    // ==================== APPEARANCE SETTINGS ====================
+    
     @Column(name = "theme_mode", nullable = false, length = 10)
     @Builder.Default
-    private String themeMode = "dark"; // dark, light
+    private String themeMode = "dark"; 
 
     @Column(name = "font_size", nullable = false, length = 20)
     @Builder.Default
-    private String fontSize = "medium"; // small, medium, large, extra-large
+    private String fontSize = "medium"; 
 
     @Column(name = "compact_mode", nullable = false)
     @Builder.Default
@@ -55,7 +55,7 @@ public class UserSettings {
     @Builder.Default
     private Boolean highContrast = false;
 
-    // ==================== NOTIFICATION SETTINGS ====================
+    
     @Column(name = "email_notifications", nullable = false)
     @Builder.Default
     private Boolean emailNotifications = true;
@@ -76,27 +76,27 @@ public class UserSettings {
     @Builder.Default
     private Boolean friendRequestNotifications = true;
 
-    // ==================== PREFERENCE SETTINGS ====================
+    
     @Column(name = "language", nullable = false, length = 5)
     @Builder.Default
-    private String language = "en"; // ISO 639-1 language code (e.g., en, hi, te)
+    private String language = "en"; 
 
     @Column(name = "currency", nullable = false, length = 5)
     @Builder.Default
-    private String currency = "INR"; // USD, EUR, GBP, INR, JPY
+    private String currency = "INR"; 
 
     @Column(name = "date_format", nullable = false, length = 15)
     @Builder.Default
-    private String dateFormat = "DD/MM/YYYY"; // MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
+    private String dateFormat = "DD/MM/YYYY"; 
 
     @Column(name = "time_format", nullable = false, length = 5)
     @Builder.Default
-    private String timeFormat = "12h"; // 12h, 24h
+    private String timeFormat = "12h"; 
 
-    // ==================== PRIVACY & SECURITY SETTINGS ====================
+    
     @Column(name = "profile_visibility", nullable = false, length = 10)
     @Builder.Default
-    private String profileVisibility = "PUBLIC"; // PUBLIC, FRIENDS, PRIVATE
+    private String profileVisibility = "PUBLIC"; 
 
     @Column(name = "two_factor_enabled", nullable = false)
     @Builder.Default
@@ -108,22 +108,22 @@ public class UserSettings {
 
     @Column(name = "mask_sensitive_data", nullable = false)
     @Builder.Default
-    private Boolean maskSensitiveData = false; // Mask amounts and sensitive financial data
+    private Boolean maskSensitiveData = false; 
 
-    // ==================== DATA & STORAGE SETTINGS ====================
+    
     @Column(name = "auto_backup", nullable = false)
     @Builder.Default
     private Boolean autoBackup = true;
 
     @Column(name = "backup_frequency", nullable = false, length = 10)
     @Builder.Default
-    private String backupFrequency = "weekly"; // daily, weekly, monthly, manual
+    private String backupFrequency = "weekly"; 
 
     @Column(name = "cloud_sync", nullable = false)
     @Builder.Default
     private Boolean cloudSync = true;
 
-    // ==================== SMART FEATURES SETTINGS ====================
+    
     @Column(name = "auto_categorize", nullable = false)
     @Builder.Default
     private Boolean autoCategorize = true;
@@ -134,7 +134,7 @@ public class UserSettings {
 
     @Column(name = "scheduled_reports", nullable = false, length = 10)
     @Builder.Default
-    private String scheduledReports = "weekly"; // daily, weekly, monthly, none
+    private String scheduledReports = "weekly"; 
 
     @Column(name = "expense_reminders", nullable = false)
     @Builder.Default
@@ -144,7 +144,7 @@ public class UserSettings {
     @Builder.Default
     private Boolean predictiveAnalytics = false;
 
-    // ==================== ACCESSIBILITY SETTINGS ====================
+    
     @Column(name = "screen_reader", nullable = false)
     @Builder.Default
     private Boolean screenReader = false;
@@ -155,7 +155,7 @@ public class UserSettings {
 
     @Column(name = "show_shortcut_indicators", nullable = false)
     @Builder.Default
-    private Boolean showShortcutIndicators = true; // Show keyboard shortcut badges on Alt key press
+    private Boolean showShortcutIndicators = true; 
 
     @Column(name = "reduce_motion", nullable = false)
     @Builder.Default
@@ -165,7 +165,7 @@ public class UserSettings {
     @Builder.Default
     private Boolean focusIndicators = false;
 
-    // Timestamps
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -174,49 +174,49 @@ public class UserSettings {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    /**
-     * Helper method to create default settings for a new user
-     * Follows Builder Pattern for clean object construction
-     * 
-     * @param userId The user ID
-     * @return UserSettings with default values
-     */
+    
+
+
+
+
+
+
     public static UserSettings createDefaultSettings(Integer userId) {
         return UserSettings.builder()
                 .userId(userId)
-                // Appearance
+                
                 .themeMode("dark")
                 .fontSize("medium")
                 .compactMode(false)
                 .animations(true)
                 .highContrast(false)
-                // Notifications
+                
                 .emailNotifications(true)
                 .budgetAlerts(true)
                 .weeklyReports(false)
                 .pushNotifications(true)
                 .friendRequestNotifications(true)
-                // Preferences
+                
                 .language("en")
                 .currency("INR")
                 .dateFormat("DD/MM/YYYY")
                 .timeFormat("12h")
-                // Privacy & Security
+                
                 .profileVisibility("PUBLIC")
                 .twoFactorEnabled(false)
                 .sessionTimeout(true)
                 .maskSensitiveData(false)
-                // Data & Storage
+                
                 .autoBackup(true)
                 .backupFrequency("weekly")
                 .cloudSync(true)
-                // Smart Features
+                
                 .autoCategorize(true)
                 .smartBudgeting(true)
                 .scheduledReports("weekly")
                 .expenseReminders(true)
                 .predictiveAnalytics(false)
-                // Accessibility
+                
                 .screenReader(false)
                 .keyboardShortcuts(true)
                 .showShortcutIndicators(true)

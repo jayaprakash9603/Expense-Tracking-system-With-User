@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface StoryService {
 
-        // User-facing APIs
+        
         StoryListResponse getActiveStoriesForUser(Integer userId);
 
         StoryDTO getStoryById(UUID storyId, Integer userId);
@@ -23,7 +23,7 @@ public interface StoryService {
 
         void dismissStory(UUID storyId, Integer userId);
 
-        // Admin APIs
+        
         StoryDTO createStory(CreateStoryRequest request, Integer adminId);
 
         StoryDTO updateStory(UUID storyId, UpdateStoryRequest request, Integer adminId);
@@ -38,7 +38,7 @@ public interface StoryService {
 
         void unarchiveStory(UUID storyId, Integer adminId);
 
-        // Admin listing
+        
         StoryDTO getStoryById(UUID storyId);
 
         Page<StoryDTO> getAllStories(Pageable pageable);
@@ -47,7 +47,7 @@ public interface StoryService {
 
         Page<StoryDTO> getStoriesByType(StoryType type, Pageable pageable);
 
-        // System story generation
+        
         Story createSystemStory(CreateStoryRequest request);
 
         void createBudgetThresholdStory(Integer userId, Integer budgetId, String budgetName,
@@ -59,14 +59,14 @@ public interface StoryService {
         void createExpenseSpikeStory(Integer userId, String categoryName,
                         double currentAmount, double averageAmount);
 
-        // Lifecycle management
+        
         int expireOldStories();
 
         int archiveExpiredStories();
 
         void cleanupOldArchivedStories(int daysOld);
 
-        // Scheduled story generation
+        
         void generateDailyWelcomeStory();
 
         void checkAndGenerateBudgetStories();

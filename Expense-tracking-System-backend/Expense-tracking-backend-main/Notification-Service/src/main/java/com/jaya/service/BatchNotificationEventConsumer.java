@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,6 +41,7 @@ public class BatchNotificationEventConsumer {
             return null;
         }
     }
+
     @KafkaListener(topics = "${kafka.topics.expense-events:expense-events}", groupId = "notification-expense-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeExpenseEventsBatch(List<Object> payloads) {

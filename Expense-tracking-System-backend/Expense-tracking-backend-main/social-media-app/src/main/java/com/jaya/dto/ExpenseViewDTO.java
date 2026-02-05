@@ -8,21 +8,21 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDate;
 import java.util.List;
 
-/**
- * DTO for detailed expense view containing:
- * - Expense details
- * - Linked budget information
- * - Category details
- * - Payment method details
- * - Occurrence/frequency information
- */
+
+
+
+
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExpenseViewDTO {
 
-    // Core expense information
+    
     private Integer id;
     private LocalDate date;
     private String expenseName;
@@ -35,19 +35,19 @@ public class ExpenseViewDTO {
     private boolean includeInBudget;
     private boolean isBill;
 
-    // Category information
+    
     private CategoryInfo category;
 
-    // Payment method details
+    
     private PaymentMethodInfo paymentMethodInfo;
 
-    // Linked budgets
+    
     private List<BudgetInfo> linkedBudgets;
 
-    // Occurrence statistics
+    
     private OccurrenceInfo occurrenceInfo;
 
-    // User information
+    
     private Integer userId;
 
     @Data
@@ -61,12 +61,12 @@ public class ExpenseViewDTO {
         private String icon;
         private Long totalExpensesInCategory;
         private Double totalAmountInCategory;
-        // Additional stats
+        
         private Double averageAmountInCategory;
         private Double minAmountInCategory;
         private Double maxAmountInCategory;
         private Long expensesThisMonthInCategory;
-        private Double percentageOfTotalExpenses; // What % of user's total expenses is in this category
+        private Double percentageOfTotalExpenses; 
         private LocalDate firstExpenseInCategory;
         private LocalDate lastExpenseInCategory;
     }
@@ -80,12 +80,12 @@ public class ExpenseViewDTO {
         private String displayName;
         private Long totalExpensesWithMethod;
         private Double totalAmountWithMethod;
-        // Additional stats
+        
         private Double averageAmountWithMethod;
         private Double minAmountWithMethod;
         private Double maxAmountWithMethod;
         private Long expensesThisMonthWithMethod;
-        private Double percentageOfTotalExpenses; // What % of user's total expenses use this method
+        private Double percentageOfTotalExpenses; 
         private LocalDate firstExpenseWithMethod;
         private LocalDate lastExpenseWithMethod;
     }

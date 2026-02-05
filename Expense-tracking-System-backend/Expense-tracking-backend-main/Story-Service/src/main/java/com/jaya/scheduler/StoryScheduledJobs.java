@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-/**
- * Scheduled jobs for story lifecycle management
- * Handles automatic expiration, archival, and system story generation
- */
+
+
+
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -19,11 +19,11 @@ public class StoryScheduledJobs {
 
     private final StoryService storyService;
 
-    /**
-     * Expire stories that have passed their expiration time
-     * Runs every minute
-     */
-    @Scheduled(fixedRate = 60000) // Every 1 minute
+    
+
+
+
+    @Scheduled(fixedRate = 60000) 
     public void expireStories() {
         log.debug("Running story expiration job at {}", LocalDateTime.now());
         try {
@@ -36,11 +36,11 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Archive expired stories after grace period
-     * Runs every hour
-     */
-    @Scheduled(fixedRate = 3600000) // Every 1 hour
+    
+
+
+
+    @Scheduled(fixedRate = 3600000) 
     public void archiveExpiredStories() {
         log.debug("Running story archival job at {}", LocalDateTime.now());
         try {
@@ -53,10 +53,10 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Generate daily welcome story for all users
-     * Runs at 6:00 AM every day
-     */
+    
+
+
+
     @Scheduled(cron = "0 0 6 * * *")
     public void generateDailyWelcomeStory() {
         log.info("Generating daily welcome story at {}", LocalDateTime.now());
@@ -67,27 +67,27 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Check and generate budget threshold stories
-     * Runs every 30 minutes
-     */
-    @Scheduled(fixedRate = 1800000) // Every 30 minutes
+    
+
+
+
+    @Scheduled(fixedRate = 1800000) 
     public void checkBudgetThresholds() {
         log.debug("Checking budget thresholds at {}", LocalDateTime.now());
         try {
-            // This will be triggered by Kafka events from Budget-Service
-            // But we also run periodic check for missed events
+            
+            
             storyService.checkAndGenerateBudgetStories();
         } catch (Exception e) {
             log.error("Error checking budget thresholds", e);
         }
     }
 
-    /**
-     * Check and generate bill reminder stories
-     * Runs every hour
-     */
-    @Scheduled(fixedRate = 3600000) // Every 1 hour
+    
+
+
+
+    @Scheduled(fixedRate = 3600000) 
     public void checkBillReminders() {
         log.debug("Checking bill reminders at {}", LocalDateTime.now());
         try {
@@ -97,10 +97,10 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Generate weekly spending summary story
-     * Runs every Monday at 9:00 AM
-     */
+    
+
+
+
     @Scheduled(cron = "0 0 9 * * MON")
     public void generateWeeklySummary() {
         log.info("Generating weekly summary stories at {}", LocalDateTime.now());
@@ -111,10 +111,10 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Generate monthly achievement stories
-     * Runs on 1st of each month at 10:00 AM
-     */
+    
+
+
+
     @Scheduled(cron = "0 0 10 1 * *")
     public void generateMonthlyAchievements() {
         log.info("Generating monthly achievement stories at {}", LocalDateTime.now());
@@ -125,11 +125,11 @@ public class StoryScheduledJobs {
         }
     }
 
-    /**
-     * Clean up old archived stories
-     * Runs daily at 3:00 AM
-     * Removes archived stories older than 90 days
-     */
+    
+
+
+
+
     @Scheduled(cron = "0 0 3 * * *")
     public void cleanupOldStories() {
         log.info("Cleaning up old archived stories at {}", LocalDateTime.now());

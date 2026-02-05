@@ -9,9 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Column definition for Yearly Summary (Map of month -> MonthlySummary)
- */
+
+
+
 public class YearlySummaryColumnDefinition implements ExcelColumnDefinition<Map.Entry<String, MonthlySummary>> {
 
     @Override

@@ -66,10 +66,10 @@ public class UserController {
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) {
 
-        // Get the current user from JWT
+        
         User currentUser = userService.getUserProfile(jwt);
 
-        // Check if user is admin or accessing their own profile
+        
         boolean isAdmin = currentUser.getRoles() != null &&
                 currentUser.getRoles().contains("ADMIN");
         boolean isOwnProfile = currentUser.getId().equals(id);
@@ -134,15 +134,15 @@ public class UserController {
                 return new ResponseEntity<>("You don't have permission to delete this user", HttpStatus.FORBIDDEN);
             }
 
-            // Additional validation: Check if user exists
+            
             if (!userRepository.existsById(id)) {
                 return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
             }
 
-            // Remove user from all associated roles
+            
             removeUserFromRoles(id);
 
-            // Delete the user
+            
             userService.deleteUser(id);
             return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
 
@@ -207,7 +207,7 @@ public class UserController {
             User user = userOpt.get();
             Role role = roleOpt.get();
 
-            // Check if user already has this role
+            
             String normalizedRoleName = role.getName().toUpperCase().trim();
             Set<String> userRoles = user.getRoles() != null ? user.getRoles() : new HashSet<>();
 
@@ -216,26 +216,26 @@ public class UserController {
                         .body(Map.of(ERROR_KEY, "User already has role: " + role.getName()));
             }
 
-            // Add the new role to user's roles set
+            
             userRoles.add(normalizedRoleName);
             user.setRoles(userRoles);
             user.setUpdatedAt(LocalDateTime.now());
 
-            // Save the user with updated roles
+            
             User savedUser = userRepository.save(user);
 
-            // Update the role's users set with the user's ID
+            
             Set<Integer> roleUsers = role.getUsers() != null ? role.getUsers() : new HashSet<>();
             roleUsers.add(savedUser.getId());
             role.setUsers(roleUsers);
             roleRepository.save(role);
 
-            // Generate new token for the user if they're updating their own roles
+            
             String currentUserEmail = JwtProvider.getEmailFromJwt(jwt);
             String newToken = null;
 
             if (savedUser.getEmail().equals(currentUserEmail)) {
-                // User is updating their own roles, generate new token
+                
                 UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(),
@@ -284,29 +284,29 @@ public class UserController {
             Role role = roleOpt.get();
 
             Set<String> userRoles = user.getRoles();
-            // Check if user has at least one role and prevent removing the last one
+            
             if (userRoles == null || userRoles.size() <= 1) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(ERROR_KEY, "Cannot remove the last role from user"));
             }
 
-            // Check if user has this role
+            
             String normalizedRoleName = role.getName().toUpperCase().trim();
             if (!userRoles.contains(normalizedRoleName)) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(Map.of(ERROR_KEY, "User doesn't have role: " + role.getName()));
             }
 
-            // Get current user roles and remove the specified role
+            
             Set<String> updatedRoles = new HashSet<>(userRoles);
             updatedRoles.remove(normalizedRoleName);
             user.setRoles(updatedRoles);
             user.setUpdatedAt(LocalDateTime.now());
 
-            // Save the user with updated roles
+            
             User savedUser = userRepository.save(user);
 
-            // Update the role's users set by removing the user's ID
+            
             if (role.getUsers() != null) {
                 role.getUsers().remove(savedUser.getId());
                 roleRepository.save(role);
@@ -328,7 +328,7 @@ public class UserController {
             @RequestParam @NotNull String mode) {
 
         try {
-            // Validate mode parameter
+            
             if (!"USER".equals(mode) && !"ADMIN".equals(mode)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(ERROR_KEY, "Invalid mode. Must be USER or ADMIN"));

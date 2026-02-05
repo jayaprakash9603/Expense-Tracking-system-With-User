@@ -8,15 +8,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Producer for sending Payment Method notifications to Notification Service.
- * This producer sends events with notifyUser=true for explicit user actions
- * (create, update, delete payment methods via controller).
- * 
- * Note: This is different from the internal data sync events sent by
- * ExpenseService
- * which have notifyUser=false.
- */
+
+
+
+
+
+
+
+
+
 @Component
 public class PaymentMethodNotificationProducer {
 
@@ -28,11 +28,11 @@ public class PaymentMethodNotificationProducer {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    /**
-     * Send notification when a payment method is created by user.
-     * Sets notifyUser=true to ensure Notification Service creates a user
-     * notification.
-     */
+    
+
+
+
+
     public void sendPaymentMethodCreatedNotification(Integer userId, String paymentMethodName,
             String paymentType, String description, String icon, String color) {
         PaymentMethodEvent event = new PaymentMethodEvent(
@@ -42,11 +42,11 @@ public class PaymentMethodNotificationProducer {
                 userId, paymentMethodName);
     }
 
-    /**
-     * Send notification when a payment method is updated by user.
-     * Sets notifyUser=true to ensure Notification Service creates a user
-     * notification.
-     */
+    
+
+
+
+
     public void sendPaymentMethodUpdatedNotification(Integer userId, String paymentMethodName,
             String paymentType, String description, String icon, String color) {
         PaymentMethodEvent event = new PaymentMethodEvent(
@@ -56,11 +56,11 @@ public class PaymentMethodNotificationProducer {
                 userId, paymentMethodName);
     }
 
-    /**
-     * Send notification when a payment method is deleted by user.
-     * Sets notifyUser=true to ensure Notification Service creates a user
-     * notification.
-     */
+    
+
+
+
+
     public void sendPaymentMethodDeletedNotification(Integer userId, String paymentMethodName,
             String paymentType) {
         PaymentMethodEvent event = new PaymentMethodEvent(

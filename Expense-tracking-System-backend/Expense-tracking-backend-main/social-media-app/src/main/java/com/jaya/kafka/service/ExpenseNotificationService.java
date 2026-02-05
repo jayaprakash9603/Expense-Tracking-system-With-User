@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Service for creating and sending expense notification events
- * Follows Single Responsibility Principle - only responsible for event creation
- * and dispatch
- */
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,9 +28,9 @@ public class ExpenseNotificationService {
     private final ExpenseNotificationProducer expenseNotificationProducer;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Send notification when expense is created
-     */
+    
+
+
     public void sendExpenseCreatedNotification(Expense expense) {
         try {
             ExpenseNotificationEvent event = buildExpenseEvent(
@@ -43,13 +43,13 @@ public class ExpenseNotificationService {
         } catch (Exception e) {
             log.error("Failed to send expense created notification for expenseId: {}",
                     expense.getId(), e);
-            // Don't throw - notification failure shouldn't break main flow
+            
         }
     }
 
-    /**
-     * Send notification when expense is updated
-     */
+    
+
+
     public void sendExpenseUpdatedNotification(Expense expense) {
         try {
             ExpenseNotificationEvent event = buildExpenseEvent(
@@ -65,9 +65,9 @@ public class ExpenseNotificationService {
         }
     }
 
-    /**
-     * Send notification when expense is deleted
-     */
+    
+
+
     public void sendExpenseDeletedNotification(Integer expenseId, Integer userId, String description) {
         try {
             ExpenseNotificationEvent event = ExpenseNotificationEvent.builder()
@@ -87,9 +87,9 @@ public class ExpenseNotificationService {
         }
     }
 
-    /**
-     * Send notification when expense is approved
-     */
+    
+
+
     public void sendExpenseApprovedNotification(Expense expense) {
         try {
             ExpenseNotificationEvent event = buildExpenseEvent(
@@ -105,9 +105,9 @@ public class ExpenseNotificationService {
         }
     }
 
-    /**
-     * Send notification when expense is rejected
-     */
+    
+
+
     public void sendExpenseRejectedNotification(Expense expense) {
         try {
             ExpenseNotificationEvent event = buildExpenseEvent(
@@ -123,9 +123,9 @@ public class ExpenseNotificationService {
         }
     }
 
-    /**
-     * Build expense notification event from Expense entity
-     */
+    
+
+
     private ExpenseNotificationEvent buildExpenseEvent(Expense expense, String action) {
         ExpenseNotificationEvent.ExpenseNotificationEventBuilder builder = ExpenseNotificationEvent.builder()
                 .expenseId(expense.getId())
@@ -133,7 +133,7 @@ public class ExpenseNotificationService {
                 .action(action)
                 .timestamp(LocalDateTime.now());
 
-        // Add expense details if available
+        
         if (expense.getExpense() != null) {
             ExpenseDetails details = expense.getExpense();
             builder.amount(details.getAmount());
@@ -141,12 +141,12 @@ public class ExpenseNotificationService {
             builder.paymentMethod(details.getPaymentMethod());
         }
 
-        // Add category if available
+        
         if (expense.getCategoryName() != null && !expense.getCategoryName().isEmpty()) {
             builder.category(expense.getCategoryName());
         }
 
-        // Build metadata JSON with additional info
+        
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("expenseDate", expense.getDate());

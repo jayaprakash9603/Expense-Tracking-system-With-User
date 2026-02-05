@@ -17,45 +17,48 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
 
-    List<Notification> findByUserIdOrderByCreatedAtDesc(Integer userId);
+        List<Notification> findByUserIdOrderByCreatedAtDesc(Integer userId);
 
-    Page<Notification> findByUserIdOrderByCreatedAtDesc(Integer userId, Pageable pageable);
+        Page<Notification> findByUserIdOrderByCreatedAtDesc(Integer userId, Pageable pageable);
 
-    List<Notification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(Integer userId);
+        List<Notification> findByUserIdAndIsReadFalseOrderByCreatedAtDesc(Integer userId);
 
-    List<Notification> findByUserIdAndTypeOrderByCreatedAtDesc(Integer userId, NotificationType type);
+        List<Notification> findByUserIdAndTypeOrderByCreatedAtDesc(Integer userId, NotificationType type);
 
-    @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.createdAt >= :fromDate ORDER BY n.createdAt DESC")
-    List<Notification> findByUserIdAndCreatedAtAfter(@Param("userId") Integer userId,
-            @Param("fromDate") LocalDateTime fromDate);
+        @Query("SELECT n FROM Notification n WHERE n.userId = :userId AND n.createdAt >= :fromDate ORDER BY n.createdAt DESC")
+        List<Notification> findByUserIdAndCreatedAtAfter(@Param("userId") Integer userId,
+                        @Param("fromDate") LocalDateTime fromDate);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false")
-    Long countUnreadNotifications(@Param("userId") Integer userId);
+        @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.isRead = false")
+        Long countUnreadNotifications(@Param("userId") Integer userId);
 
-    List<Notification> findByIsSentFalseAndCreatedAtBefore(LocalDateTime dateTime);
-    @Deprecated
-    void deleteByUserIdAndCreatedAtBefore(Integer userId, LocalDateTime dateTime);
+        List<Notification> findByIsSentFalseAndCreatedAtBefore(LocalDateTime dateTime);
 
-    @Deprecated
-    void deleteByUserId(Integer userId);
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Notification n WHERE n.userId = :userId")
-    int bulkDeleteByUserId(@Param("userId") Integer userId);
+        @Deprecated
+        void deleteByUserIdAndCreatedAtBefore(Integer userId, LocalDateTime dateTime);
 
-    @Modifying
-    @Transactional
-    @Query("DELETE FROM Notification n WHERE n.userId = :userId AND n.createdAt < :dateTime")
-    int bulkDeleteByUserIdAndCreatedAtBefore(@Param("userId") Integer userId,
-            @Param("dateTime") LocalDateTime dateTime);
+        @Deprecated
+        void deleteByUserId(Integer userId);
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE Notification n SET n.isRead = true, n.readAt = :readAt WHERE n.userId = :userId AND n.isRead = false")
-    int bulkMarkAllAsRead(@Param("userId") Integer userId, @Param("readAt") LocalDateTime readAt);
-    Page<Notification> findByUserIdAndIsReadOrderByCreatedAtDesc(Integer userId, Boolean isRead, Pageable pageable);
+        @Modifying
+        @Transactional
+        @Query("DELETE FROM Notification n WHERE n.userId = :userId")
+        int bulkDeleteByUserId(@Param("userId") Integer userId);
 
-    List<Notification> findByUserIdAndIsRead(Integer userId, Boolean isRead);
+        @Modifying
+        @Transactional
+        @Query("DELETE FROM Notification n WHERE n.userId = :userId AND n.createdAt < :dateTime")
+        int bulkDeleteByUserIdAndCreatedAtBefore(@Param("userId") Integer userId,
+                        @Param("dateTime") LocalDateTime dateTime);
 
-    Long countByUserIdAndIsRead(Integer userId, Boolean isRead);
+        @Modifying
+        @Transactional
+        @Query("UPDATE Notification n SET n.isRead = true, n.readAt = :readAt WHERE n.userId = :userId AND n.isRead = false")
+        int bulkMarkAllAsRead(@Param("userId") Integer userId, @Param("readAt") LocalDateTime readAt);
+
+        Page<Notification> findByUserIdAndIsReadOrderByCreatedAtDesc(Integer userId, Boolean isRead, Pageable pageable);
+
+        List<Notification> findByUserIdAndIsRead(Integer userId, Boolean isRead);
+
+        Long countByUserIdAndIsRead(Integer userId, Boolean isRead);
 }

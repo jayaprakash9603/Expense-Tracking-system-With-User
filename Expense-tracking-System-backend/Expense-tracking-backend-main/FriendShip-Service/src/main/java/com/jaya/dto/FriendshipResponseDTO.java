@@ -19,7 +19,7 @@ public class FriendshipResponseDTO {
     private boolean directionSwapped;
 
     public FriendshipResponseDTO(Integer id, UserSummaryDTO requester, UserSummaryDTO recipient,
-                                 FriendshipStatus status, AccessLevel requesterAccess, AccessLevel recipientAccess) {
+            FriendshipStatus status, AccessLevel requesterAccess, AccessLevel recipientAccess) {
         this.id = id;
         this.requester = requester;
         this.recipient = recipient;

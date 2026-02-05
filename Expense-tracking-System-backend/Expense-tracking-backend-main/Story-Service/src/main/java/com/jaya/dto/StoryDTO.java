@@ -36,12 +36,12 @@ public class StoryDTO {
     private LocalDateTime expiresAt;
     private LocalDateTime activatedAt;
 
-    // User-specific fields (for response)
+    
     private Boolean seen;
     private LocalDateTime seenAt;
     private Integer viewCount;
 
-    // Computed fields
+    
     private String severityColor;
     private Boolean isExpired;
     private Long remainingSeconds;

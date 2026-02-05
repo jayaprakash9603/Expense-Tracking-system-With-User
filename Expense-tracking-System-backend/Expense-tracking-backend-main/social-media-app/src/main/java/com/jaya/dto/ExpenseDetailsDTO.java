@@ -1,4 +1,4 @@
-// ExpenseDetailsDTO.java
+
 package com.jaya.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,15 +8,15 @@ import lombok.Data;
 public class ExpenseDetailsDTO {
     private Integer id;
     private String expenseName;
-    private Object amount; // Can be Double or String (for masked values)
+    private Object amount; 
     private String type;
     private String paymentMethod;
-    private Object netAmount; // Can be Double or String (for masked values)
+    private Object netAmount; 
     private String comments;
-    private Object creditDue; // Can be Double or String (for masked values)
-    private boolean masked = false; // Indicates if sensitive data is masked
+    private Object creditDue; 
+    private boolean masked = false; 
     
-    // Helper methods to get numeric values safely - excluded from JSON serialization
+    
     @JsonIgnore
     public double getAmountAsDouble() {
         if (amount instanceof Number) {

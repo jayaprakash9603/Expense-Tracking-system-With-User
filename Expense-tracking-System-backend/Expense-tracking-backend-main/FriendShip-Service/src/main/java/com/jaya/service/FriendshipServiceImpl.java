@@ -562,7 +562,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .collect(Collectors.toSet());
 
         return friendIds2.stream()
-            .filter(user -> friendIds1.contains(user))
+                .filter(user -> friendIds1.contains(user))
                 .collect(Collectors.toList());
     }
 

@@ -7,10 +7,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Story Visibility Entity
- * Tracks which users have seen which stories
- */
+
+
+
+
 @Entity
 @Table(name = "story_visibility", uniqueConstraints = @UniqueConstraint(columnNames = { "story_id",
         "user_id" }), indexes = {
@@ -42,12 +42,12 @@ public class StoryVisibility {
     @Column(name = "seen_at")
     private LocalDateTime seenAt;
 
-    // Track how many times the story was viewed
+    
     @Column(name = "view_count", nullable = false)
     @Builder.Default
     private Integer viewCount = 0;
 
-    // Track if user interacted with CTA
+    
     @Column(name = "cta_clicked", nullable = false)
     @Builder.Default
     private Boolean ctaClicked = false;
@@ -58,7 +58,7 @@ public class StoryVisibility {
     @Column(name = "clicked_cta_id")
     private UUID clickedCtaId;
 
-    // Track if user dismissed the story
+    
     @Column(name = "dismissed", nullable = false)
     @Builder.Default
     private Boolean dismissed = false;
@@ -70,7 +70,7 @@ public class StoryVisibility {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Helper methods
+    
     public void markAsSeen() {
         if (!this.seen) {
             this.seen = true;

@@ -26,7 +26,6 @@ public class PermissionAspect {
     @Autowired
     private FriendShipService friendshipService;
 
-    // Cache for target users to avoid repeated database calls
     private final ConcurrentHashMap<Integer, User> targetUserCache = new ConcurrentHashMap<>();
 
     @Around("@annotation(checkPermission)")
@@ -38,21 +37,20 @@ public class PermissionAspect {
         String jwt = null;
         Integer targetId = null;
 
-        // Extract JWT and targetId from method parameters
         for (int i = 0; i < parameters.length; i++) {
             Parameter param = parameters[i];
 
-            // Check for JWT parameter
             if (param.getName().equals(checkPermission.jwtParam()) ||
                     (param.isAnnotationPresent(org.springframework.web.bind.annotation.RequestHeader.class) &&
-                            param.getAnnotation(org.springframework.web.bind.annotation.RequestHeader.class).value().equals("Authorization"))) {
+                            param.getAnnotation(org.springframework.web.bind.annotation.RequestHeader.class).value()
+                                    .equals("Authorization"))) {
                 jwt = (String) args[i];
             }
 
-            // Check for targetId parameter
             if (param.getName().equals(checkPermission.targetIdParam()) ||
                     (param.isAnnotationPresent(org.springframework.web.bind.annotation.RequestParam.class) &&
-                            param.getAnnotation(org.springframework.web.bind.annotation.RequestParam.class).value().equals("targetId"))) {
+                            param.getAnnotation(org.springframework.web.bind.annotation.RequestParam.class).value()
+                                    .equals("targetId"))) {
                 targetId = (Integer) args[i];
             }
         }
@@ -61,7 +59,6 @@ public class PermissionAspect {
             throw new RuntimeException("JWT token not found in method parameters");
         }
 
-        // Get requesting user
         User reqUser;
         try {
             reqUser = userService.findUserByJwt(jwt);
@@ -69,12 +66,10 @@ public class PermissionAspect {
             throw new RuntimeException("Invalid JWT token or user not found");
         }
 
-        // If targetId is null, use the requesting user's ID
         if (targetId == null) {
             targetId = reqUser.getId();
         }
 
-        // Check if target user is already cached
         User targetUser = targetUserCache.computeIfAbsent(targetId, id -> {
             try {
                 return userService.findUserById(id);
@@ -87,9 +82,7 @@ public class PermissionAspect {
             throw new RuntimeException("Target user not found");
         }
 
-        // Skip permission check if user is accessing their own data
         if (!targetId.equals(reqUser.getId())) {
-            // Perform permission check
             boolean hasAccess = checkPermission.needWriteAccess()
                     ? friendshipService.canUserModifyExpenses(targetId, reqUser.getId())
                     : friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
@@ -100,16 +93,13 @@ public class PermissionAspect {
             }
         }
 
-        // Proceed with the original method
         return joinPoint.proceed();
     }
 
-    // Method to clear cache if needed
     public void clearUserCache() {
         targetUserCache.clear();
     }
 
-    // Method to remove specific user from cache
     public void removeUserFromCache(Integer userId) {
         targetUserCache.remove(userId);
     }

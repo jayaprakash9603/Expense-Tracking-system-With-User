@@ -38,10 +38,10 @@ public class AdminController {
         try {
             List<User> allUsers = userService.getAllUsers();
 
-            // Apply filters
+            
             List<User> filteredUsers = allUsers.stream()
                     .filter(user -> {
-                        // Search filter
+                        
                         if (search != null && !search.isEmpty()) {
                             String searchLower = search.toLowerCase();
                             return (user.getFullName() != null
@@ -51,7 +51,7 @@ public class AdminController {
                         return true;
                     })
                     .filter(user -> {
-                        // Role filter
+                        
                         if (role != null && !role.isEmpty() && !role.equals("ALL")) {
                             return user.getRoles() != null && user.getRoles().contains("ROLE_" + role);
                         }
@@ -59,7 +59,7 @@ public class AdminController {
                     })
                     .collect(Collectors.toList());
 
-            // Pagination
+            
             int total = filteredUsers.size();
             int start = page * size;
             int end = Math.min(start + size, total);
@@ -119,8 +119,8 @@ public class AdminController {
                 return ResponseEntity.notFound().build();
             }
 
-            // For now, we'll just log the status change
-            // TODO: Add status field to User entity
+            
+            
 
             return ResponseEntity.ok(Map.of(
                     "message", "User status updated successfully",
@@ -179,7 +179,7 @@ public class AdminController {
                         case "SUSPEND":
                         case "ACTIVATE":
                         case "DEACTIVATE":
-                            // TODO: Add status field to User entity
+                            
                             break;
                     }
                     successCount++;
@@ -216,7 +216,7 @@ public class AdminController {
         return getAllUsers(jwt, 0, 1000, null, null, null);
     }
 
-    // DTO for bulk action request
+    
     @lombok.Data
     public static class BulkActionRequest {
         private List<Integer> userIds;

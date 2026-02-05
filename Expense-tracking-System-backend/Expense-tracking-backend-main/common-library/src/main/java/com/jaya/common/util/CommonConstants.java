@@ -1,17 +1,17 @@
 package com.jaya.common.util;
 
-/**
- * Common constants used across all microservices.
- */
+
+
+
 public final class CommonConstants {
 
     private CommonConstants() {
-        // Private constructor to prevent instantiation
+        
     }
 
-    // ========================================
-    // KAFKA TOPICS
-    // ========================================
+    
+    
+    
 
     public static final class KafkaTopics {
         public static final String UNIFIED_ACTIVITY_EVENTS = "unified-activity-events";
@@ -29,9 +29,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // HTTP HEADERS
-    // ========================================
+    
+    
+    
 
     public static final class Headers {
         public static final String AUTHORIZATION = "Authorization";
@@ -50,9 +50,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // DATE/TIME FORMATS
-    // ========================================
+    
+    
+    
 
     public static final class DateFormats {
         public static final String ISO_DATE_TIME = "yyyy-MM-dd'T'HH:mm:ss";
@@ -65,9 +65,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // PAGINATION DEFAULTS
-    // ========================================
+    
+    
+    
 
     public static final class Pagination {
         public static final int DEFAULT_PAGE = 0;
@@ -80,9 +80,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // VALIDATION CONSTRAINTS
-    // ========================================
+    
+    
+    
 
     public static final class Validation {
         public static final int NAME_MIN_LENGTH = 1;
@@ -98,9 +98,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // CACHE KEYS
-    // ========================================
+    
+    
+    
 
     public static final class CacheKeys {
         public static final String USER_PREFIX = "user:";
@@ -113,9 +113,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // SERVICE NAMES
-    // ========================================
+    
+    
+    
 
     public static final class Services {
         public static final String USER_SERVICE = "USER-SERVICE";
@@ -135,9 +135,9 @@ public final class CommonConstants {
         }
     }
 
-    // ========================================
-    // ROLES
-    // ========================================
+    
+    
+    
 
     public static final class Roles {
         public static final String ROLE_PREFIX = "ROLE_";

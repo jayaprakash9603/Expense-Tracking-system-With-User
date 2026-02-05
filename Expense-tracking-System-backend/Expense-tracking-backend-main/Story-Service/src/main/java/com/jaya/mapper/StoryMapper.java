@@ -50,14 +50,14 @@ public class StoryMapper {
                 .isExpired(story.isExpired())
                 .build();
 
-        // Add CTA buttons
+        
         if (story.getCtaButtons() != null && !story.getCtaButtons().isEmpty()) {
             dto.setCtaButtons(story.getCtaButtons().stream()
                     .map(this::toCTADTO)
                     .collect(Collectors.toList()));
         }
 
-        // Calculate remaining seconds
+        
         if (!story.isExpired()) {
             long remaining = Duration.between(LocalDateTime.now(), story.getExpiresAt()).getSeconds();
             dto.setRemainingSeconds(Math.max(0, remaining));
@@ -65,7 +65,7 @@ public class StoryMapper {
             dto.setRemainingSeconds(0L);
         }
 
-        // Add visibility info if available
+        
         if (visibility != null) {
             dto.setSeen(visibility.getSeen());
             dto.setSeenAt(visibility.getSeenAt());

@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * Kafka producer for Friend Activity events.
- * Sends notifications to Friendship Service when a friend performs actions
- * on behalf of another user (e.g., adding expense to friend's account).
- * 
- * This follows the Template Method Pattern by extending
- * NotificationEventProducer.
- */
+
+
+
+
+
+
+
+
 @Slf4j
 @Component
 public class FriendActivityProducer extends NotificationEventProducer<FriendActivityEvent> {
@@ -38,10 +38,10 @@ public class FriendActivityProducer extends NotificationEventProducer<FriendActi
         return "FriendActivity";
     }
 
-    /**
-     * Partition by targetUserId to ensure all activities for a user
-     * are processed in order by the consumer
-     */
+    
+
+
+
     @Override
     protected String generatePartitionKey(FriendActivityEvent event) {
         return event.getTargetUserId() != null

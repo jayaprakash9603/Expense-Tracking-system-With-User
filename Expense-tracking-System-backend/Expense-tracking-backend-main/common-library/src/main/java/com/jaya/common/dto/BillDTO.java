@@ -14,10 +14,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Common Bill DTO used across all microservices.
- * Contains bill information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -65,7 +65,7 @@ public class BillDTO implements Serializable {
     @Builder.Default
     private Set<Integer> budgetIds = new HashSet<>();
 
-    // Bill status
+    
     private String status;
 
     private boolean paid;
@@ -76,11 +76,11 @@ public class BillDTO implements Serializable {
 
     private String recurrencePattern;
 
-    // ==================== Nested DTO ====================
+    
 
-    /**
-     * Bill expense details
-     */
+    
+
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -100,18 +100,18 @@ public class BillDTO implements Serializable {
         private String description;
     }
 
-    // ==================== Bill Status Constants ====================
+    
 
     public static final String STATUS_PENDING = "PENDING";
     public static final String STATUS_PAID = "PAID";
     public static final String STATUS_OVERDUE = "OVERDUE";
     public static final String STATUS_CANCELLED = "CANCELLED";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a minimal BillDTO
-     */
+    
+
+
     public static BillDTO minimal(Integer id, Integer userId) {
         return BillDTO.builder()
                 .id(id)
@@ -119,9 +119,9 @@ public class BillDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create BillDTO with basic info
-     */
+    
+
+
     public static BillDTO basic(Integer id, String name, Double amount, LocalDate dueDate, Integer userId) {
         return BillDTO.builder()
                 .id(id)
@@ -133,16 +133,16 @@ public class BillDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Check if bill is overdue
-     */
+    
+
+
     public boolean isOverdue() {
         return !paid && dueDate != null && LocalDate.now().isAfter(dueDate);
     }
 
-    /**
-     * Get bill status string
-     */
+    
+
+
     public String getStatusString() {
         if (paid)
             return STATUS_PAID;

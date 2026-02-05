@@ -26,10 +26,10 @@ public class DashboardPreferenceController {
 
     private final DashboardPreferenceService dashboardPreferenceService;
 
-    /**
-     * Get dashboard preference for current user
-     * Always returns a configuration (custom or default)
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Object> getDashboardPreference(
             @RequestHeader("Authorization") String jwt) {
@@ -46,9 +46,9 @@ public class DashboardPreferenceController {
         }
     }
 
-    /**
-     * Save or update dashboard preference for current user
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Object> saveDashboardPreference(
             @RequestHeader("Authorization") String jwt,
@@ -68,9 +68,9 @@ public class DashboardPreferenceController {
         }
     }
 
-    /**
-     * Reset dashboard preference to default
-     */
+    
+
+
     @DeleteMapping
     public ResponseEntity<Object> resetDashboardPreference(
             @RequestHeader("Authorization") String jwt) {

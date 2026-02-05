@@ -20,6 +20,6 @@
 	    private BigDecimal creditDue;
 	    private String creditDueMessage;
 	
-	    // Getters and setters
+	    
 	}
 	

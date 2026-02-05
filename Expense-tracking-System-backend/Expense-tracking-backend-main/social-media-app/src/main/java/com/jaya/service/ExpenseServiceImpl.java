@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Main facade implementation that delegates to specialized service modules
- */
+
+
+
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl implements ExpenseService {
@@ -30,7 +30,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseBillService expenseBillService;
     private final ExpenseCategoryService expenseCategoryService;
 
-    // Delegate services access
+    
     @Override
     public ExpenseCoreService getCoreService() {
         return expenseCoreService;
@@ -66,7 +66,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCategoryService;
     }
 
-    // Core CRUD operations - delegate to ExpenseCoreService
+    
     @Override
     public ExpenseDTO addExpense(ExpenseDTO expenseDTO, Integer userId) throws Exception {
         return expenseCoreService.addExpense(expenseDTO, userId);
@@ -112,7 +112,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         expenseBillService.deleteAllExpenses(userId, expenses);
     }
 
-    // Batch operations
+    
     @Override
     public List<Expense> addMultipleExpenses(List<Expense> expenses, Integer userId) throws Exception {
         return expenseCoreService.addMultipleExpenses(expenses, userId);
@@ -139,7 +139,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCoreService.saveExpenses(expenseDTOs, userId);
     }
 
-    // Basic queries - delegate to ExpenseQueryService
+    
     @Override
     public Expense getExpenseById(Integer id, Integer userId) {
         return expenseCoreService.getExpenseById(id, userId);
@@ -170,7 +170,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCoreService.getExpensesByUserAndSort(userId, sortOrder);
     }
 
-    // Date-based queries
+    
     @Override
     public List<Expense> getExpensesByDate(LocalDate date, Integer userId) {
         return expenseQueryService.getExpensesByDate(date, userId);
@@ -221,7 +221,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getExpensesByMonth(year, month);
     }
 
-    // Search and filter
+    
     @Override
     public List<Expense> searchExpensesByName(String expenseName, Integer userId) {
         return expenseQueryService.searchExpensesByName(expenseName, userId);
@@ -234,7 +234,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 maxAmount, userId);
     }
 
-    // Type and payment method queries
+    
     @Override
     public List<Expense> getExpensesByType(String type, Integer userId) {
         return expenseQueryService.getExpensesByType(type, userId);
@@ -255,7 +255,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getLossExpenses(userId);
     }
 
-    // Top/ranking queries
+    
     @Override
     public List<Expense> getTopNExpenses(int n, Integer userId) {
         return expenseQueryService.getTopNExpenses(n, userId);
@@ -271,7 +271,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getTopLosses(userId);
     }
 
-    // Amount-based queries
+    
     @Override
     public List<ExpenseDetails> getExpenseDetailsByAmount(double amount, Integer userId) {
         return expenseQueryService.getExpenseDetailsByAmount(amount, userId);
@@ -287,7 +287,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getExpensesByName(expenseName, userId);
     }
 
-    // Category-based queries
+    
     @Override
     public List<Expense> getExpensesByCategoryId(Integer categoryId, Integer userId) {
         return expenseCategoryService.getExpensesByCategoryId(categoryId, userId);
@@ -304,7 +304,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCategoryService.getAllExpensesByCategories(userId);
     }
 
-    // Specialized queries
+    
     @Override
     public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
         return expenseQueryService.getExpensesBeforeDate(userId, expenseName, date);
@@ -354,7 +354,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.getFilteredExpensesByPaymentMethod(userId, rangeType, offset, flowType);
     }
 
-    // Analytics and summaries - delegate to ExpenseAnalyticsService
+    
     @Override
     public MonthlySummary getMonthlySummary(Integer year, Integer month, Integer userId) {
         return expenseAnalyticsService.getMonthlySummary(year, month, userId);
@@ -381,7 +381,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseAnalyticsService.generateExpenseSummary(userId);
     }
 
-    // Totals and aggregations
+    
     @Override
     public Map<String, Double> getTotalByDate(Integer userId) {
         return expenseAnalyticsService.getTotalByDate(userId);
@@ -417,7 +417,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCategoryService.getTotalByCategory(userId);
     }
 
-    // Payment method analytics
+    
     @Override
     public Map<String, Double> getPaymentWiseTotalForCurrentMonth(Integer userId) {
         return expenseAnalyticsService.getPaymentWiseTotalForCurrentMonth(userId);
@@ -454,7 +454,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseAnalyticsService.getTotalExpensesGroupedByPaymentMethod(userId);
     }
 
-    // Advanced analytics
+    
     @Override
     public Map<String, Object> getExpenseNameOverTime(Integer userId, int year, int limit) throws Exception {
         return expenseAnalyticsService.getExpenseNameOverTime(userId, year, limit);
@@ -526,7 +526,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseAnalyticsService.getExpenseDistributionCurrentMonth(userId);
     }
 
-    // Utility methods - delegate to ExpenseUtilityService
+    
     @Override
     public List<String> getTopExpenseNames(int topN, Integer userId) {
         return expenseUtilityService.getTopExpenseNames(topN, userId);
@@ -577,7 +577,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseUtilityService.getExpensesTypes();
     }
 
-    // Data grouping and pagination
+    
     @Override
     public Map<String, List<Map<String, Object>>> getExpensesGroupedByDate(Integer userId, String sortOrder) {
         return expenseUtilityService.getExpensesGroupedByDate(userId, sortOrder);
@@ -603,7 +603,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 type);
     }
 
-    // Comments management
+    
     @Override
     public String getCommentsForExpense(Integer expenseId, Integer userId) {
         return expenseCoreService.getCommentsForExpense(expenseId, userId);
@@ -614,7 +614,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseCoreService.removeCommentFromExpense(expenseId, userId);
     }
 
-    // Report generation - delegate to ExpenseReportService
+    
     @Override
     public ExpenseReport generateExpenseReport(Integer expenseId, Integer userId) {
         return expenseReportService.generateExpenseReport(expenseId, userId);
@@ -636,7 +636,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseReportService.generateAndSendMonthlyReport(request);
     }
 
-    // Data processing utilities
+    
     @Override
     public List<ExpenseDTO> validateAndProcessExpenses(List<ExpenseDTO> expenses) {
         return expenseUtilityService.validateAndProcessExpenses(expenses);

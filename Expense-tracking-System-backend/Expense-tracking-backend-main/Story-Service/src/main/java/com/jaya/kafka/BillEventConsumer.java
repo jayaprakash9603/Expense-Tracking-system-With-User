@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.format.DateTimeFormatter;
 
-/**
- * Kafka consumer for Bill-related events
- * Listens to bill-events topic and generates stories for bill reminders and
- * overdue alerts
- */
+
+
+
+
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -82,7 +82,7 @@ public class BillEventConsumer {
 
             log.info("Processing bill overdue event: user={}, bill={}", userId, billId);
 
-            // Create overdue bill story with higher severity
+            
             storyService.createBillReminderStory(userId, billId,
                     "⚠️ OVERDUE: " + billName, amount, dueDate);
 
@@ -93,6 +93,6 @@ public class BillEventConsumer {
 
     private void handleBillPaid(JsonNode event) {
         log.debug("Bill paid event received - could create confirmation story if desired");
-        // Optionally create a "Bill paid successfully!" story
+        
     }
 }

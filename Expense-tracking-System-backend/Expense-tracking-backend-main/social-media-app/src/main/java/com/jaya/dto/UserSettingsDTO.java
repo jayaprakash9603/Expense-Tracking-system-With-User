@@ -8,14 +8,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * UserSettingsDTO - Data Transfer Object for User Settings
- * 
- * Design Pattern: DTO Pattern
- * Purpose: Decouples internal entity structure from external API representation
- * Benefits: API versioning flexibility, security (hides sensitive fields),
- * reduced payload size
- */
+
+
+
+
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,7 +28,7 @@ public class UserSettingsDTO {
     @JsonProperty("userId")
     private Integer userId;
 
-    // ==================== APPEARANCE SETTINGS ====================
+    
     @JsonProperty("themeMode")
     private String themeMode;
 
@@ -44,7 +44,7 @@ public class UserSettingsDTO {
     @JsonProperty("highContrast")
     private Boolean highContrast;
 
-    // ==================== NOTIFICATION SETTINGS ====================
+    
     @JsonProperty("emailNotifications")
     private Boolean emailNotifications;
 
@@ -60,7 +60,7 @@ public class UserSettingsDTO {
     @JsonProperty("friendRequestNotifications")
     private Boolean friendRequestNotifications;
 
-    // ==================== PREFERENCE SETTINGS ====================
+    
     @JsonProperty("language")
     private String language;
 
@@ -73,7 +73,7 @@ public class UserSettingsDTO {
     @JsonProperty("timeFormat")
     private String timeFormat;
 
-    // ==================== PRIVACY & SECURITY SETTINGS ====================
+    
     @JsonProperty("profileVisibility")
     private String profileVisibility;
 
@@ -86,7 +86,7 @@ public class UserSettingsDTO {
     @JsonProperty("maskSensitiveData")
     private Boolean maskSensitiveData;
 
-    // ==================== DATA & STORAGE SETTINGS ====================
+    
     @JsonProperty("autoBackup")
     private Boolean autoBackup;
 
@@ -96,7 +96,7 @@ public class UserSettingsDTO {
     @JsonProperty("cloudSync")
     private Boolean cloudSync;
 
-    // ==================== SMART FEATURES SETTINGS ====================
+    
     @JsonProperty("autoCategorize")
     private Boolean autoCategorize;
 
@@ -112,7 +112,7 @@ public class UserSettingsDTO {
     @JsonProperty("predictiveAnalytics")
     private Boolean predictiveAnalytics;
 
-    // ==================== ACCESSIBILITY SETTINGS ====================
+    
     @JsonProperty("screenReader")
     private Boolean screenReader;
 
@@ -128,7 +128,7 @@ public class UserSettingsDTO {
     @JsonProperty("focusIndicators")
     private Boolean focusIndicators;
 
-    // Timestamps
+    
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;
 

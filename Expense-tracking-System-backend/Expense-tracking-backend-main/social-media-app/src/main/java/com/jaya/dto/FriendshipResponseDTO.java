@@ -1,4 +1,4 @@
-// File: com.jaya.dto.FriendshipResponseDTO.java
+
 package com.jaya.dto;
 
 import com.jaya.models.AccessLevel;
@@ -19,7 +19,7 @@ public class FriendshipResponseDTO {
     private AccessLevel recipientAccess;
     private boolean directionSwapped;
 
-    // Constructor without directionSwapped for backward compatibility
+    
     public FriendshipResponseDTO(Integer id, UserSummaryDTO requester, UserSummaryDTO recipient,
                                  FriendshipStatus status, AccessLevel requesterAccess, AccessLevel recipientAccess) {
         this.id = id;
@@ -31,7 +31,7 @@ public class FriendshipResponseDTO {
         this.directionSwapped = false;
     }
 
-    // Helper methods for the controller
+    
     public UserSummaryDTO getCurrentUser(Integer userId) {
         if (requester.getId().equals(userId)) {
             return requester;
@@ -50,36 +50,36 @@ public class FriendshipResponseDTO {
 
     public AccessLevel getMyAccessLevel(Integer userId) {
         if (directionSwapped) {
-            // If direction was swapped, the access levels were also swapped
+            
             if (requester.getId().equals(userId)) {
                 return requesterAccess;
             } else {
                 return recipientAccess;
             }
         } else {
-            // Normal case
+            
             if (requester.getId().equals(userId)) {
-                return recipientAccess; // My access to recipient's data
+                return recipientAccess; 
             } else {
-                return requesterAccess; // My access to requester's data
+                return requesterAccess; 
             }
         }
     }
 
     public AccessLevel getTheirAccessLevel(Integer userId) {
         if (directionSwapped) {
-            // If direction was swapped, the access levels were also swapped
+            
             if (requester.getId().equals(userId)) {
                 return recipientAccess;
             } else {
                 return requesterAccess;
             }
         } else {
-            // Normal case
+            
             if (requester.getId().equals(userId)) {
-                return requesterAccess; // Their access to my data
+                return requesterAccess; 
             } else {
-                return recipientAccess; // Their access to my data
+                return recipientAccess; 
             }
         }
     }

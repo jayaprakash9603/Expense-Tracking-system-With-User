@@ -1,6 +1,5 @@
 package com.jaya.builder;
 
-
 import java.time.LocalDate;
 
 public class ExpenseQueryBuilder {
@@ -13,12 +12,11 @@ public class ExpenseQueryBuilder {
     private Double minAmount;
     private Double maxAmount;
     private String sortBy;
-    private String sortOrder = "DESC"; // Default sort order
+    private String sortOrder = "DESC";
     private Integer limit;
-    private Integer offset = 0; // Default offset
+    private Integer offset = 0;
 
     private ExpenseQueryBuilder() {
-        // Private constructor to enforce factory method usage
     }
 
     public static ExpenseQueryBuilder builder() {

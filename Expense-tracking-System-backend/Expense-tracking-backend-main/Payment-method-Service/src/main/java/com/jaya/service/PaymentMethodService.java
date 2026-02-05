@@ -32,17 +32,17 @@ public interface PaymentMethodService {
 
     List<PaymentMethod> getOthersAndUnusedPaymentMethods(Integer userId);
 
-    /**
-     * Fuzzy search payment methods by name or type.
-     * Includes both user-specific and global payment methods.
-     * Supports partial text matching for typeahead/search functionality.
-     * Optimized query - avoids N+1 problem by returning DTOs.
-     * 
-     * @param userId the user whose payment methods to search (plus global)
-     * @param query  the search query (partial match supported)
-     * @param limit  maximum number of results to return
-     * @return List of PaymentMethodSearchDTO matching the search criteria
-     */
+    
+
+
+
+
+
+
+
+
+
+
     List<PaymentMethodSearchDTO> searchPaymentMethods(Integer userId, String query, int limit);
 
 }

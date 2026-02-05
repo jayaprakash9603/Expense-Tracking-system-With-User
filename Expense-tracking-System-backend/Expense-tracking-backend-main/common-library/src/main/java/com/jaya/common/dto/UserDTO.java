@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Common User DTO used across all microservices.
- * Contains user information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -64,11 +64,11 @@ public class UserDTO implements Serializable {
 
     private boolean active;
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a minimal UserDTO with just ID and email
-     */
+    
+
+
     public static UserDTO minimal(Integer id, String email) {
         return UserDTO.builder()
                 .id(id)
@@ -76,9 +76,9 @@ public class UserDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a UserDTO with basic info
-     */
+    
+
+
     public static UserDTO basic(Integer id, String email, String firstName, String lastName) {
         return UserDTO.builder()
                 .id(id)
@@ -89,9 +89,9 @@ public class UserDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Get full name, constructing from first/last if not set
-     */
+    
+
+
     public String getDisplayName() {
         if (fullName != null && !fullName.isBlank()) {
             return fullName;

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
+
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractNotificationEventProcessor<T> implements NotificationEventProcessor<T> {

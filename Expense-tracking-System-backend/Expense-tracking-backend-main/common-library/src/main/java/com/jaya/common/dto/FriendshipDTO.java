@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Common Friendship DTO used across all microservices.
- * Contains friendship/friend request information for inter-service
- * communication.
- */
+
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -39,23 +39,23 @@ public class FriendshipDTO implements Serializable {
 
     private LocalDateTime acceptedAt;
 
-    // User details (populated when needed)
+    
     private UserDTO user;
 
     private UserDTO friend;
 
-    // ==================== Friendship Status Constants ====================
+    
 
     public static final String STATUS_PENDING = "PENDING";
     public static final String STATUS_ACCEPTED = "ACCEPTED";
     public static final String STATUS_REJECTED = "REJECTED";
     public static final String STATUS_BLOCKED = "BLOCKED";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a pending friend request
-     */
+    
+
+
     public static FriendshipDTO pendingRequest(Integer userId, Integer friendId) {
         return FriendshipDTO.builder()
                 .userId(userId)
@@ -65,9 +65,9 @@ public class FriendshipDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create an accepted friendship
-     */
+    
+
+
     public static FriendshipDTO acceptedFriendship(Long id, Integer userId, Integer friendId) {
         return FriendshipDTO.builder()
                 .id(id)
@@ -78,23 +78,23 @@ public class FriendshipDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Check if friendship is pending
-     */
+    
+
+
     public boolean isPending() {
         return STATUS_PENDING.equals(status);
     }
 
-    /**
-     * Check if friendship is accepted
-     */
+    
+
+
     public boolean isAccepted() {
         return STATUS_ACCEPTED.equals(status);
     }
 
-    /**
-     * Check if friendship is blocked
-     */
+    
+
+
     public boolean isBlocked() {
         return STATUS_BLOCKED.equals(status);
     }

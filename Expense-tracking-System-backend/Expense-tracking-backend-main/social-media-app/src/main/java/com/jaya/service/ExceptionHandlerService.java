@@ -13,7 +13,7 @@ public class ExceptionHandlerService {
 
     public <T> ResponseEntity<ApiResponse<T>> handleException(Exception e) {
         if (e instanceof UserException) {
-            // Handle UserException (e.g., "User not found")
+            
             if (e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(new ApiResponse<>("User not found: " + e.getMessage(), "NOT_FOUND"));
@@ -21,15 +21,15 @@ public class ExceptionHandlerService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>("User error: " + e.getMessage(), "USER_ERROR"));
         } else if (e instanceof NoPermissionException) {
-            // Handle permission-related exceptions
+            
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new ApiResponse<>("Permission denied: " + e.getMessage(), "FORBIDDEN"));
         } else if (e instanceof IllegalArgumentException) {
-            // Handle invalid input
+            
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ApiResponse<>("Invalid input: " + e.getMessage(), "INVALID_INPUT"));
         } else {
-            // Handle generic exceptions
+            
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse<>("Unexpected error: " + e.getMessage(), "SERVER_ERROR"));
         }

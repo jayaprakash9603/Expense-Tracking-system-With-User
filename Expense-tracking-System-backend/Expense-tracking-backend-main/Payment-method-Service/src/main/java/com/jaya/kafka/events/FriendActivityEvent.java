@@ -14,10 +14,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * Event DTO for tracking friend activities in Payment Method Service.
- * Used when a friend performs payment method actions on behalf of another user.
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -27,11 +27,9 @@ public class DailySummaryService {
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
-        // Loop through each day of the month
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
+            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
 
-            // If no expenses are found for the current date, skip this day
             if (dailyExpenses.isEmpty()) {
                 continue;
             }
@@ -44,13 +42,14 @@ public class DailySummaryService {
     }
 
     public DailySummary getDailySummaryForDate(LocalDate date, User user) {
-        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
+        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
 
-        // If there are no expenses for the date, return null or an empty summary, based on your preference
-        if (dailyExpenses.isEmpty()) return null;
+        if (dailyExpenses.isEmpty())
+            return null;
 
         return calculateDailySummary(dailyExpenses, date);
     }
+
     private DailySummary calculateDailySummary(List<Expense> dailyExpenses, LocalDate date) {
         BigDecimal totalGain = BigDecimal.ZERO;
         BigDecimal totalLoss = BigDecimal.ZERO;
@@ -85,7 +84,7 @@ public class DailySummaryService {
                 } else if ("creditNeedToPaid".equalsIgnoreCase(paymentMethod)) {
                     creditDueSummary.setLoss(creditDueSummary.getLoss().add(negativeAmount));
                     creditDue = creditDue.add(negativeAmount);
-                    
+
                 } else if ("creditPaid".equalsIgnoreCase(paymentMethod)) {
                     creditPaidSummary.setLoss(creditPaidSummary.getLoss().add(amount));
                     creditPaid = creditPaid.add(amount);
@@ -95,7 +94,6 @@ public class DailySummaryService {
             categoryBreakdown.merge(category, amount, BigDecimal::add);
         }
 
-        // Final calculations for summaries
         cashSummary.calculateDifference();
         creditDueSummary.calculateDifference();
         creditPaidSummary.calculateDifference();
@@ -105,7 +103,6 @@ public class DailySummaryService {
                 date.withDayOfMonth(17).minusMonths(1).format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) +
                 " to " + date.withDayOfMonth(16).format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
 
-        // Populate DailySummary
         DailySummary dailySummary = new DailySummary();
         dailySummary.setDate(date);
         dailySummary.setTotalAmount(totalGain.add(totalLoss));
@@ -122,9 +119,7 @@ public class DailySummaryService {
         return dailySummary;
     }
 
-    
-    // Get daily summaries for an entire year
-    public List<DailySummary> getYearlySummaries(Integer year,User user) {
+    public List<DailySummary> getYearlySummaries(Integer year, User user) {
         List<DailySummary> yearlySummaries = new ArrayList<>();
 
         for (Month month : Month.values()) {
@@ -132,8 +127,9 @@ public class DailySummaryService {
             LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
             for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date,user.getId());
-                if (dailyExpenses.isEmpty()) continue;
+                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
+                if (dailyExpenses.isEmpty())
+                    continue;
 
                 DailySummary dailySummary = calculateDailySummary(dailyExpenses, date);
                 yearlySummaries.add(dailySummary);

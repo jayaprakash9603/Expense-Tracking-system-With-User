@@ -2,6 +2,7 @@ package com.jaya.error;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
+
 public class GatewayErrorResponse {
     private String error;
     private String message;

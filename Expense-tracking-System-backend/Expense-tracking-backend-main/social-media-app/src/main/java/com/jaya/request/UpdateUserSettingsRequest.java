@@ -10,23 +10,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * UpdateUserSettingsRequest - Request DTO for updating user settings
- * 
- * Design Pattern: Request DTO Pattern
- * Purpose: Validates incoming request data before processing
- * Benefits: Input validation, clear API contract, separation of concerns
- * 
- * Note: All fields are optional to support partial updates
- * Only provided fields will be updated
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UpdateUserSettingsRequest {
 
-    // ==================== APPEARANCE SETTINGS ====================
     @JsonProperty("themeMode")
     @JsonAlias({ "theme", "theme_mode" })
     @JsonDeserialize(using = NullIfBlankDeserializer.class)
@@ -50,7 +39,6 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("high_contrast")
     private Boolean highContrast;
 
-    // ==================== NOTIFICATION SETTINGS ====================
     @JsonProperty("emailNotifications")
     @JsonAlias("email_notifications")
     private Boolean emailNotifications;
@@ -71,7 +59,6 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("friend_request_notifications")
     private Boolean friendRequestNotifications;
 
-    // ==================== PREFERENCE SETTINGS ====================
     @JsonProperty("language")
     @JsonDeserialize(using = NullIfBlankDeserializer.class)
     @Pattern(regexp = "^[a-z]{2}$", message = "Language must be a valid ISO 639-1 code (e.g., en, hi)")
@@ -94,7 +81,6 @@ public class UpdateUserSettingsRequest {
     @Pattern(regexp = "^(12h|24h)$", message = "Time format must be either '12h' or '24h'")
     private String timeFormat;
 
-    // ==================== PRIVACY & SECURITY SETTINGS ====================
     @JsonProperty("profileVisibility")
     @JsonAlias("profile_visibility")
     @JsonDeserialize(using = NullIfBlankDeserializer.class)
@@ -113,7 +99,6 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("mask_sensitive_data")
     private Boolean maskSensitiveData;
 
-    // ==================== DATA & STORAGE SETTINGS ====================
     @JsonProperty("autoBackup")
     @JsonAlias("auto_backup")
     private Boolean autoBackup;
@@ -128,7 +113,6 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("cloud_sync")
     private Boolean cloudSync;
 
-    // ==================== SMART FEATURES SETTINGS ====================
     @JsonProperty("autoCategorize")
     @JsonAlias("auto_categorize")
     private Boolean autoCategorize;
@@ -151,7 +135,6 @@ public class UpdateUserSettingsRequest {
     @JsonAlias("predictive_analytics")
     private Boolean predictiveAnalytics;
 
-    // ==================== ACCESSIBILITY SETTINGS ====================
     @JsonProperty("screenReader")
     @JsonAlias("screen_reader")
     private Boolean screenReader;

@@ -13,28 +13,19 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/**
- * Database connection retry configuration
- * Handles database startup delays and connection failures
- */
 @Slf4j
 @Configuration
 @EnableRetry
 public class DatabaseConnectionConfig {
 
-    /**
-     * Retry template for database operations
-     */
     @Bean
     public RetryTemplate retryTemplate() {
         RetryTemplate retryTemplate = new RetryTemplate();
 
-        // Retry up to 10 times
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
         retryPolicy.setMaxAttempts(10);
         retryTemplate.setRetryPolicy(retryPolicy);
 
-        // Wait 3 seconds between retries
         FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
         backOffPolicy.setBackOffPeriod(3000L);
         retryTemplate.setBackOffPolicy(backOffPolicy);
@@ -42,19 +33,12 @@ public class DatabaseConnectionConfig {
         return retryTemplate;
     }
 
-    /**
-     * Wait for database to be ready before application starts
-     * This prevents "Failed to configure a DataSource" errors during restart
-     */
     @Bean
     @ConditionalOnProperty(name = "spring.datasource.url")
     public DatabaseConnectionValidator databaseConnectionValidator(DataSource dataSource) {
         return new DatabaseConnectionValidator(dataSource);
     }
 
-    /**
-     * Validates database connection on startup
-     */
     @Slf4j
     public static class DatabaseConnectionValidator {
         private final DataSource dataSource;
@@ -67,7 +51,7 @@ public class DatabaseConnectionConfig {
         private void validateConnection() {
             int maxRetries = 10;
             int retryCount = 0;
-            long waitTime = 3000; // 3 seconds
+            long waitTime = 3000;
 
             while (retryCount < maxRetries) {
                 try {

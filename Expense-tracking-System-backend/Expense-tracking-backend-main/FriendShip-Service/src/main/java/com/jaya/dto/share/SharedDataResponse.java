@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,6 +27,7 @@ public class SharedDataResponse {
     private Integer originalCount;
     private Integer returnedCount;
     private String shareName;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

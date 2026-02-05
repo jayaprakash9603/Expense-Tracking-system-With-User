@@ -9,16 +9,16 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Helper class for filtering expenses based on various criteria
- * Follows Single Responsibility Principle
- */
+
+
+
+
 @Component
 public class ExpenseFilterHelper {
 
-    /**
-     * Filter expenses by type
-     */
+    
+
+
     public List<Expense> filterByType(List<Expense> expenses, String type) {
         if (expenses == null || type == null) {
             return expenses;
@@ -30,9 +30,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter expenses by payment method
-     */
+    
+
+
     public List<Expense> filterByPaymentMethod(List<Expense> expenses, String paymentMethod) {
         if (expenses == null || paymentMethod == null) {
             return expenses;
@@ -44,9 +44,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter expenses by category
-     */
+    
+
+
     public List<Expense> filterByCategory(List<Expense> expenses, String category) {
         if (expenses == null || category == null) {
             return expenses;
@@ -57,9 +57,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter expenses by expense name (contains search)
-     */
+    
+
+
     public List<Expense> filterByExpenseName(List<Expense> expenses, String expenseName) {
         if (expenses == null || expenseName == null || expenseName.trim().isEmpty()) {
             return expenses;
@@ -75,9 +75,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter expenses by amount range
-     */
+    
+
+
     public List<Expense> filterByAmountRange(List<Expense> expenses, Double minAmount, Double maxAmount) {
         if (expenses == null) {
             return expenses;
@@ -98,23 +98,23 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter gains only
-     */
+    
+
+
     public List<Expense> filterGains(List<Expense> expenses) {
         return filterByType(expenses, ExpenseConstants.TYPE_GAIN);
     }
 
-    /**
-     * Filter losses only
-     */
+    
+
+
     public List<Expense> filterLosses(List<Expense> expenses) {
         return filterByType(expenses, ExpenseConstants.TYPE_LOSS);
     }
 
-    /**
-     * Filter expenses with credit due
-     */
+    
+
+
     public List<Expense> filterWithCreditDue(List<Expense> expenses) {
         if (expenses == null) {
             return expenses;
@@ -129,9 +129,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Filter expenses included in budget
-     */
+    
+
+
     public List<Expense> filterIncludedInBudget(List<Expense> expenses) {
         if (expenses == null) {
             return expenses;
@@ -142,9 +142,9 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Complex filter with multiple criteria
-     */
+    
+
+
     public List<Expense> filterByCriteria(
             List<Expense> expenses,
             String expenseName,
@@ -169,7 +169,7 @@ public class ExpenseFilterHelper {
                 .collect(Collectors.toList());
     }
 
-    // Private helper methods for complex filtering
+    
     private boolean matchesExpenseName(Expense expense, String expenseName) {
         if (expenseName == null || expenseName.trim().isEmpty()) {
             return true;

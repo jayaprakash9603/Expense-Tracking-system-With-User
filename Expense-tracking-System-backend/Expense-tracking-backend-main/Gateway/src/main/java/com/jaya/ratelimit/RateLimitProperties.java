@@ -2,6 +2,7 @@ package com.jaya.ratelimit;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
 @Component
 @ConfigurationProperties(prefix = "gateway.rate-limit")
 public class RateLimitProperties {

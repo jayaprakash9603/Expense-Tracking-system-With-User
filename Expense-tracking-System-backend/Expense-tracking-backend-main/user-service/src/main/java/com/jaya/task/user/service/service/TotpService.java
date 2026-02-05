@@ -23,37 +23,37 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * =============================================================================
- * TotpService - Production-Grade TOTP (Time-based One-Time Password) Service
- * =============================================================================
- * Implements RFC 6238 compatible TOTP for Google Authenticator integration.
- * 
- * Security Features:
- * - AES-256-GCM encryption for secrets at rest
- * - BCrypt hashing for backup codes
- * - ±1 time window tolerance for clock drift
- * - Secure random generation for secrets and backup codes
- * 
- * @author Expense Tracking System
- * @version 1.0
- *          =============================================================================
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @Service
 public class TotpService {
 
     private static final Logger logger = LoggerFactory.getLogger(TotpService.class);
 
-    // TOTP Configuration
+    
     private static final String ISSUER = "Expensio Finance";
-    private static final int SECRET_LENGTH = 32; // 256-bit secret
+    private static final int SECRET_LENGTH = 32; 
     private static final int BACKUP_CODE_COUNT = 10;
     private static final int BACKUP_CODE_LENGTH = 8;
-    private static final int TIME_PERIOD = 30; // seconds
+    private static final int TIME_PERIOD = 30; 
     private static final int CODE_DIGITS = 6;
-    private static final int ALLOWED_TIME_DISCREPANCY = 1; // ±1 time window (30 sec each)
+    private static final int ALLOWED_TIME_DISCREPANCY = 1; 
 
-    // AES-GCM Encryption Configuration
+    
     private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
@@ -70,40 +70,40 @@ public class TotpService {
         this.secretGenerator = new DefaultSecretGenerator(SECRET_LENGTH);
         this.qrGenerator = new ZxingPngQrGenerator();
 
-        // Configure code generator with SHA1 (Google Authenticator standard)
+        
         TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator(HashingAlgorithm.SHA1, CODE_DIGITS);
         this.codeVerifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
 
-        // Configure time discrepancy allowance (±1 window = ±30 seconds)
+        
         ((DefaultCodeVerifier) this.codeVerifier).setAllowedTimePeriodDiscrepancy(ALLOWED_TIME_DISCREPANCY);
 
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-    // =========================================================================
-    // Secret Generation & Management
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * Generates a new TOTP secret.
-     * SECURITY: This secret should be encrypted before storage.
-     * 
-     * @return Base32-encoded TOTP secret
-     */
+    
+
+
+
+
+
     public String generateSecret() {
         String secret = secretGenerator.generate();
         logger.debug("Generated new TOTP secret for user setup");
-        // SECURITY: Never log the actual secret
+        
         return secret;
     }
 
-    /**
-     * Encrypts the TOTP secret using AES-256-GCM.
-     * 
-     * @param plainSecret The plaintext TOTP secret
-     * @return Base64-encoded encrypted secret (IV + ciphertext)
-     */
+    
+
+
+
+
+
     public String encryptSecret(String plainSecret) {
         try {
             byte[] iv = new byte[GCM_IV_LENGTH];
@@ -117,7 +117,7 @@ public class TotpService {
 
             byte[] encrypted = cipher.doFinal(plainSecret.getBytes(StandardCharsets.UTF_8));
 
-            // Combine IV + encrypted data
+            
             byte[] combined = new byte[iv.length + encrypted.length];
             System.arraycopy(iv, 0, combined, 0, iv.length);
             System.arraycopy(encrypted, 0, combined, iv.length, encrypted.length);
@@ -129,12 +129,12 @@ public class TotpService {
         }
     }
 
-    /**
-     * Decrypts the TOTP secret from storage.
-     * 
-     * @param encryptedSecret Base64-encoded encrypted secret
-     * @return Plaintext TOTP secret
-     */
+    
+
+
+
+
+
     public String decryptSecret(String encryptedSecret) {
         try {
             byte[] combined = Base64.getDecoder().decode(encryptedSecret);
@@ -159,24 +159,24 @@ public class TotpService {
     }
 
     private SecretKeySpec getKeySpec() {
-        // Ensure key is exactly 32 bytes for AES-256
+        
         byte[] keyBytes = new byte[32];
         byte[] providedKey = encryptionKey.getBytes(StandardCharsets.UTF_8);
         System.arraycopy(providedKey, 0, keyBytes, 0, Math.min(providedKey.length, 32));
         return new SecretKeySpec(keyBytes, "AES");
     }
 
-    // =========================================================================
-    // QR Code Generation
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * Generates QR code data URI for Google Authenticator setup.
-     * 
-     * @param email  User's email (used as account name)
-     * @param secret Plaintext TOTP secret
-     * @return Base64-encoded PNG image as data URI
-     */
+    
+
+
+
+
+
+
     public String generateQrCodeDataUri(String email, String secret) {
         try {
             QrData qrData = new QrData.Builder()
@@ -199,13 +199,13 @@ public class TotpService {
         }
     }
 
-    /**
-     * Generates the otpauth:// URI for manual entry.
-     * 
-     * @param email  User's email
-     * @param secret Plaintext TOTP secret
-     * @return otpauth:// URI string
-     */
+    
+
+
+
+
+
+
     public String generateOtpAuthUri(String email, String secret) {
         return String.format(
                 "otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=%d&period=%d",
@@ -217,18 +217,18 @@ public class TotpService {
                 TIME_PERIOD);
     }
 
-    // =========================================================================
-    // Code Verification
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * Verifies a TOTP code against the secret.
-     * Allows ±1 time window (±30 seconds) for clock drift tolerance.
-     * 
-     * @param secret Plaintext TOTP secret
-     * @param code   6-digit code from user
-     * @return true if code is valid
-     */
+    
+
+
+
+
+
+
+
     public boolean verifyCode(String secret, String code) {
         if (secret == null || code == null || code.length() != CODE_DIGITS) {
             logger.debug("Invalid input for TOTP verification");
@@ -237,7 +237,7 @@ public class TotpService {
 
         try {
             boolean isValid = codeVerifier.isValidCode(secret, code);
-            // SECURITY: Never log the actual code
+            
             logger.debug("TOTP verification result: {}", isValid ? "SUCCESS" : "FAILED");
             return isValid;
         } catch (Exception e) {
@@ -246,36 +246,36 @@ public class TotpService {
         }
     }
 
-    /**
-     * Verifies code using encrypted secret from database.
-     * 
-     * @param encryptedSecret Encrypted TOTP secret from database
-     * @param code            6-digit code from user
-     * @return true if code is valid
-     */
+    
+
+
+
+
+
+
     public boolean verifyCodeWithEncryptedSecret(String encryptedSecret, String code) {
         String plainSecret = decryptSecret(encryptedSecret);
         return verifyCode(plainSecret, code);
     }
 
-    // =========================================================================
-    // Backup Codes Management
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * Generates backup codes for MFA recovery.
-     * Returns plaintext codes (show once to user) and hashed codes (for storage).
-     * 
-     * @return Map with "plainCodes" (List<String>) and "hashedCodes" (String,
-     *         comma-separated)
-     */
+    
+
+
+
+
+
+
     public Map<String, Object> generateBackupCodes() {
         SecureRandom random = new SecureRandom();
         List<String> plainCodes = new ArrayList<>();
         List<String> hashedCodes = new ArrayList<>();
 
         for (int i = 0; i < BACKUP_CODE_COUNT; i++) {
-            // Generate alphanumeric backup code
+            
             String code = generateBackupCode(random);
             plainCodes.add(formatBackupCode(code));
             hashedCodes.add(passwordEncoder.encode(code));
@@ -290,7 +290,7 @@ public class TotpService {
     }
 
     private String generateBackupCode(SecureRandom random) {
-        // Exclude ambiguous characters: 0/O, 1/I/l to avoid user confusion
+        
         String chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
         StringBuilder code = new StringBuilder();
         for (int i = 0; i < BACKUP_CODE_LENGTH; i++) {
@@ -300,25 +300,25 @@ public class TotpService {
     }
 
     private String formatBackupCode(String code) {
-        // Format as XXXX-XXXX for readability
+        
         return code.substring(0, 4) + "-" + code.substring(4);
     }
 
-    /**
-     * Verifies a backup code and marks it as used if valid.
-     * 
-     * @param hashedCodesString Comma-separated hashed backup codes from database
-     * @param inputCode         Backup code from user (with or without dash)
-     * @return Updated hashed codes string with used code removed, or null if
-     *         invalid
-     */
+    
+
+
+
+
+
+
+
     public String verifyAndConsumeBackupCode(String hashedCodesString, String inputCode) {
         if (hashedCodesString == null || hashedCodesString.isEmpty()) {
             logger.warn("No backup codes found in database");
             return null;
         }
 
-        // Normalize input (remove dash, uppercase)
+        
         String normalizedInput = inputCode.replace("-", "").toUpperCase();
         logger.debug("Attempting backup code verification. Input length: {}, Normalized: {}",
                 inputCode.length(), normalizedInput.length());
@@ -328,7 +328,7 @@ public class TotpService {
 
         for (int i = 0; i < hashedCodes.size(); i++) {
             if (passwordEncoder.matches(normalizedInput, hashedCodes.get(i))) {
-                // Remove used code
+                
                 hashedCodes.remove(i);
                 logger.info("Backup code used successfully. Remaining codes: {}", hashedCodes.size());
                 return hashedCodes.isEmpty() ? "" : String.join(",", hashedCodes);
@@ -339,12 +339,12 @@ public class TotpService {
         return null;
     }
 
-    /**
-     * Counts remaining backup codes.
-     * 
-     * @param hashedCodesString Comma-separated hashed backup codes
-     * @return Number of remaining backup codes
-     */
+    
+
+
+
+
+
     public int countRemainingBackupCodes(String hashedCodesString) {
         if (hashedCodesString == null || hashedCodesString.isEmpty()) {
             return 0;

@@ -17,16 +17,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Service for Expense Service (social-media-app).
- * Replaces separate FriendActivityService and ExpenseNotificationService.
- * 
- * All events are sent to the single unified-activity-events topic.
- * The routing flags determine how the event is processed by consumers:
- * - isOwnAction=true -> Regular notification
- * - isFriendActivity=true -> Friend activity notification
- * - requiresAudit=true -> Audit logging
- */
+
+
+
+
+
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -35,13 +35,13 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    // =============================================
-    // EXPENSE CREATED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when an expense is created (from ExpenseDTO)
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCreatedEvent(ExpenseDTO expense, User actorUser, User targetUser) {
         try {
@@ -90,9 +90,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when an expense is created (from Expense entity)
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCreatedEvent(Expense expense, User actorUser, User targetUser) {
         try {
@@ -139,9 +139,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple expenses are created
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesCreatedEvent(List<Expense> expenses, User actorUser, User targetUser) {
         try {
@@ -187,13 +187,13 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // EXPENSE UPDATED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when an expense is updated
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseUpdatedEvent(Expense expense, Expense oldExpense, User actorUser, User targetUser) {
         try {
@@ -239,9 +239,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple expenses are updated
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesUpdatedEvent(List<Expense> expenses, User actorUser, User targetUser) {
         try {
@@ -282,13 +282,13 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // EXPENSE DELETED EVENTS
-    // =============================================
+    
+    
+    
 
-    /**
-     * Send event when an expense is deleted
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseDeletedEvent(Integer expenseId, String expenseName, Double amount, User actorUser,
             User targetUser) {
@@ -338,9 +338,9 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple expenses are deleted
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedEvent(int count, User actorUser, User targetUser) {
         try {
@@ -381,17 +381,17 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when all expenses are deleted
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedEvent(int count, User actorUser, User targetUser) {
         sendBulkExpensesDeletedEvent(count, actorUser, targetUser);
     }
 
-    /**
-     * Send event when expense is copied
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCopiedEvent(Expense expense, User actorUser, User targetUser) {
         try {
@@ -437,9 +437,9 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // HELPER METHODS
-    // =============================================
+    
+    
+    
 
     private UserInfo buildUserInfo(User user) {
         if (user == null)

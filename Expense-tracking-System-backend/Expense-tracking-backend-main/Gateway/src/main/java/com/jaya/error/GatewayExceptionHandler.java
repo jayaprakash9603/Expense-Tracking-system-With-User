@@ -113,7 +113,8 @@ public class GatewayExceptionHandler {
         return ResponseEntity.status(GatewayErrorCode.SERVICE_UNAVAILABLE.getStatus()).body(body);
     }
 
-    @ExceptionHandler({ java.util.concurrent.TimeoutException.class, io.netty.handler.timeout.ReadTimeoutException.class })
+    @ExceptionHandler({ java.util.concurrent.TimeoutException.class,
+            io.netty.handler.timeout.ReadTimeoutException.class })
     public ResponseEntity<GatewayErrorResponse> handleTimeoutException(Exception ex, ServerWebExchange exchange) {
         GatewayErrorResponse body = build(GatewayErrorCode.TIMEOUT,
                 "The request timed out while waiting for the upstream service",
@@ -125,7 +126,8 @@ public class GatewayExceptionHandler {
     }
 
     @ExceptionHandler(org.springframework.web.server.ServerWebInputException.class)
-    public ResponseEntity<GatewayErrorResponse> handleMalformedRequest(org.springframework.web.server.ServerWebInputException ex,
+    public ResponseEntity<GatewayErrorResponse> handleMalformedRequest(
+            org.springframework.web.server.ServerWebInputException ex,
             ServerWebExchange exchange) {
         GatewayErrorResponse body = build(GatewayErrorCode.VALIDATION_ERROR,
                 "Malformed request body or missing parameter",

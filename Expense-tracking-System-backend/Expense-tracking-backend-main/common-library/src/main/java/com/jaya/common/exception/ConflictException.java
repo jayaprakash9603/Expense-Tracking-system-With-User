@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown when there's a conflict with existing data.
- * Used for duplicate resources, state conflicts (409 Conflict).
- */
+
+
+
+
 public class ConflictException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -18,7 +18,7 @@ public class ConflictException extends BaseException {
         super(errorCode, details);
     }
 
-    // Factory methods for common conflict scenarios
+    
     public static ConflictException userAlreadyExists(String email) {
         return new ConflictException(ErrorCode.USER_ALREADY_EXISTS,
                 "User already exists with email: " + email);

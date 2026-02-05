@@ -6,10 +6,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repository for Payment Report layout preferences.
- * Follows the same pattern as CategoryReportPreferenceRepository.
- */
+
+
+
+
 @Repository
 public interface PaymentReportPreferenceRepository extends JpaRepository<PaymentReportPreference, Long> {
 

@@ -12,10 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * Service for managing Payment Report layout preferences.
- * Follows the same pattern as CategoryReportPreferenceService for consistency.
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,7 +24,7 @@ public class PaymentReportPreferenceService {
     private final PaymentReportPreferenceRepository paymentReportPreferenceRepository;
     private final UserService userService;
 
-    // Default payment report configuration
+    
     private static final String DEFAULT_LAYOUT_CONFIG = """
             [
               {"id":"overview-cards","name":"Overview Cards","visible":true,"type":"full"},
@@ -37,10 +37,10 @@ public class PaymentReportPreferenceService {
             ]
             """.trim();
 
-    /**
-     * Get payment report preference for the authenticated user
-     * Returns default configuration if no custom preference exists
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public PaymentReportPreferenceDTO getUserPaymentReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -50,7 +50,7 @@ public class PaymentReportPreferenceService {
         if (existing.isPresent()) {
             return toDTO(existing.get());
         } else {
-            // Return default configuration without saving
+            
             PaymentReportPreferenceDTO defaultDto = new PaymentReportPreferenceDTO();
             defaultDto.setUserId(user.getId());
             defaultDto.setLayoutConfig(DEFAULT_LAYOUT_CONFIG);
@@ -63,9 +63,9 @@ public class PaymentReportPreferenceService {
         }
     }
 
-    /**
-     * Save or update payment report preference for authenticated user
-     */
+    
+
+
     @Transactional
     public PaymentReportPreferenceDTO savePaymentReportPreference(String jwt, String layoutConfig) {
         User user = userService.getUserProfile(jwt);
@@ -84,9 +84,9 @@ public class PaymentReportPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset payment report preference to default (delete custom preference)
-     */
+    
+
+
     @Transactional
     public void resetPaymentReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -96,9 +96,9 @@ public class PaymentReportPreferenceService {
         log.info("Payment report preference reset for user: userId={}", user.getId());
     }
 
-    /**
-     * Convert entity to DTO
-     */
+    
+
+
     private PaymentReportPreferenceDTO toDTO(PaymentReportPreference entity) {
         PaymentReportPreferenceDTO dto = new PaymentReportPreferenceDTO();
         dto.setId(entity.getId());

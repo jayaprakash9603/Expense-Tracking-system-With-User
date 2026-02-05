@@ -87,7 +87,7 @@ public class AuthController {
         String username = loginRequest.getEmail();
         String password = loginRequest.getPassword();
 
-        // Check if user exists and is a Google OAuth user without password
+        
         User user = userRepository.findByEmail(username);
         if (user != null && "GOOGLE".equals(user.getAuthProvider()) &&
                 (user.getPassword() == null || user.getPassword().isEmpty())) {
@@ -101,15 +101,15 @@ public class AuthController {
             Authentication authentication = authenticate(username, password);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            // =================================================================
-            // MFA/2FA Priority Check
-            // =================================================================
-            // Priority: MFA (Google Authenticator) > Email 2FA > No additional auth
-            // When both MFA and 2FA are enabled, MFA takes precedence for security.
+            
+            
+            
+            
+            
 
-            // Check MFA first (highest priority)
+            
             if (user != null && user.isMfaEnabled()) {
-                // Generate short-lived MFA token (5 minutes)
+                
                 String mfaToken = JwtProvider.generateMfaToken(authentication);
 
                 AuthResponse authResponse = new AuthResponse();
@@ -123,7 +123,7 @@ public class AuthController {
                 return new ResponseEntity<>(authResponse, HttpStatus.OK);
             }
 
-            // Check email 2FA (only if MFA not enabled)
+            
             if (user != null && user.isTwoFactorEnabled()) {
                 otpService.generateAndSendLoginOtp(username);
 
@@ -137,7 +137,7 @@ public class AuthController {
                 return new ResponseEntity<>(authResponse, HttpStatus.OK);
             }
 
-            // No additional auth required - issue JWT directly
+            
             String token = JwtProvider.generateToken(authentication);
 
             AuthResponse authResponse = new AuthResponse();
@@ -220,19 +220,19 @@ public class AuthController {
         if (jwt == null) {
             throw new MissingRequestHeaderException("Jwt is missing");
         }
-        // Extract email from current JWT
+        
         String email = JwtProvider.getEmailFromJwt(jwt);
 
-        // Load fresh user details from database
+        
         UserDetails userDetails = customUserService.loadUserByUsername(email);
 
-        // Create new authentication with updated authorities
+        
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails.getUsername(),
                 null,
                 userDetails.getAuthorities());
 
-        // Generate new token with updated roles
+        
         String newToken = JwtProvider.generateToken(authentication);
 
         AuthResponse authResponse = new AuthResponse();
@@ -288,12 +288,12 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Check user's authentication method.
-     * Returns whether user exists, their auth provider, and if they have a
-     * password.
-     * Used by frontend to show appropriate login options.
-     */
+    
+
+
+
+
+
     @GetMapping("/check-auth-method")
     public ResponseEntity<Map<String, Object>> checkAuthMethod(@RequestParam String email) {
         Map<String, Object> response = new HashMap<>();
@@ -376,13 +376,13 @@ public class AuthController {
                     .body(Map.of("error", "Email not found"));
         }
         try {
-            // Check if this is a Google OAuth user creating their first password
+            
             boolean isOAuthUserCreatingPassword = "GOOGLE".equals(userOptional.getAuthProvider()) &&
                     (userOptional.getPassword() == null || userOptional.getPassword().isEmpty());
 
             userService.updatePassword(userOptional, newPassword);
 
-            // Return appropriate message based on user type
+            
             String message = isOAuthUserCreatingPassword
                     ? "Password created successfully. You can now login with email and password."
                     : "Password reset successfully";

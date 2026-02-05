@@ -90,8 +90,8 @@ public class PaymentMethodKafkaConsumerService {
     }
 
     private void handleUpdatePaymentMethod(PaymentMethodEvent event) {
-        // Implementation for update logic if needed
-        handleCreatePaymentMethod(event); // For now, reuse create logic
+        
+        handleCreatePaymentMethod(event); 
     }
 
     private void handleDeletePaymentMethod(PaymentMethodEvent event) {

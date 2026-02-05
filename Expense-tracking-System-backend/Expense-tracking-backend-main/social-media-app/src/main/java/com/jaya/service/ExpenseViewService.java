@@ -14,11 +14,11 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for building detailed expense views with related data.
- * Combines expense information with budget, category, payment method, and
- * occurrence statistics.
- */
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,17 +28,17 @@ public class ExpenseViewService {
     private final BudgetServices budgetService;
     private final CategoryServiceWrapper categoryService;
 
-    /**
-     * Get detailed expense view with all related information.
-     *
-     * @param expenseId The expense ID
-     * @param userId    The user ID
-     * @return ExpenseViewDTO with complete expense details
-     */
+    
+
+
+
+
+
+
     public ExpenseViewDTO getExpenseDetailedView(Integer expenseId, Integer userId) {
         log.debug("Building detailed view for expense {} user {}", expenseId, userId);
 
-        // Get the expense
+        
         Expense expense = expenseService.getExpenseById(expenseId, userId);
         if (expense == null) {
             throw new RuntimeException("Expense not found with ID: " + expenseId);
@@ -46,7 +46,7 @@ public class ExpenseViewService {
 
         ExpenseDetails details = expense.getExpense();
 
-        // Build the view DTO
+        
         ExpenseViewDTO.ExpenseViewDTOBuilder builder = ExpenseViewDTO.builder()
                 .id(expense.getId())
                 .date(expense.getDate())
@@ -54,7 +54,7 @@ public class ExpenseViewService {
                 .isBill(expense.isBill())
                 .userId(expense.getUserId());
 
-        // Set expense details
+        
         if (details != null) {
             builder.expenseName(details.getExpenseName())
                     .amount(details.getAmount())
@@ -65,24 +65,24 @@ public class ExpenseViewService {
                     .creditDue(details.getCreditDue());
         }
 
-        // Build category info
+        
         builder.category(buildCategoryInfo(expense, userId));
 
-        // Build payment method info
+        
         builder.paymentMethodInfo(buildPaymentMethodInfo(expense, userId));
 
-        // Build linked budgets info
+        
         builder.linkedBudgets(buildBudgetInfoList(expense, userId));
 
-        // Build occurrence statistics
+        
         builder.occurrenceInfo(buildOccurrenceInfo(expense, userId));
 
         return builder.build();
     }
 
-    /**
-     * Build category information for the expense.
-     */
+    
+
+
     private ExpenseViewDTO.CategoryInfo buildCategoryInfo(Expense expense, Integer userId) {
         if (expense.getCategoryId() == null || expense.getCategoryId() == 0) {
             return ExpenseViewDTO.CategoryInfo.builder()
@@ -100,16 +100,16 @@ public class ExpenseViewService {
                         .build();
             }
 
-            // Get statistics for this category
+            
             List<Expense> categoryExpenses = expenseService.getExpensesByCategoryId(expense.getCategoryId(), userId);
             long totalCount = categoryExpenses != null ? categoryExpenses.size() : 0;
 
-            // Get all user expenses for percentage calculation
+            
             List<Expense> allUserExpenses = expenseService.getAllExpenses(userId);
             long totalUserExpenses = allUserExpenses != null ? allUserExpenses.size() : 0;
             double percentageOfTotal = totalUserExpenses > 0 ? (totalCount * 100.0 / totalUserExpenses) : 0;
 
-            // Calculate amount statistics
+            
             DoubleSummaryStatistics amountStats = new DoubleSummaryStatistics();
             LocalDate firstExpense = null;
             LocalDate lastExpense = null;
@@ -164,9 +164,9 @@ public class ExpenseViewService {
         }
     }
 
-    /**
-     * Build payment method information.
-     */
+    
+
+
     private ExpenseViewDTO.PaymentMethodInfo buildPaymentMethodInfo(Expense expense, Integer userId) {
         ExpenseDetails details = expense.getExpense();
         if (details == null || details.getPaymentMethod() == null) {
@@ -176,16 +176,16 @@ public class ExpenseViewService {
         String paymentMethod = details.getPaymentMethod();
 
         try {
-            // Get all expenses with this payment method
+            
             List<Expense> pmExpenses = expenseService.getExpensesByPaymentMethod(paymentMethod, userId);
             long totalCount = pmExpenses != null ? pmExpenses.size() : 0;
 
-            // Get all user expenses for percentage calculation
+            
             List<Expense> allUserExpenses = expenseService.getAllExpenses(userId);
             long totalUserExpenses = allUserExpenses != null ? allUserExpenses.size() : 0;
             double percentageOfTotal = totalUserExpenses > 0 ? (totalCount * 100.0 / totalUserExpenses) : 0;
 
-            // Calculate amount statistics
+            
             DoubleSummaryStatistics amountStats = new DoubleSummaryStatistics();
             LocalDate firstExpense = null;
             LocalDate lastExpense = null;
@@ -238,9 +238,9 @@ public class ExpenseViewService {
         }
     }
 
-    /**
-     * Build list of linked budgets.
-     */
+    
+
+
     private List<ExpenseViewDTO.BudgetInfo> buildBudgetInfoList(Expense expense, Integer userId) {
         Set<Integer> budgetIds = expense.getBudgetIds();
         if (budgetIds == null || budgetIds.isEmpty()) {
@@ -281,9 +281,9 @@ public class ExpenseViewService {
         return budgetInfoList;
     }
 
-    /**
-     * Build occurrence/frequency statistics for similar expenses.
-     */
+    
+
+
     private ExpenseViewDTO.OccurrenceInfo buildOccurrenceInfo(Expense expense, Integer userId) {
         ExpenseDetails details = expense.getExpense();
         if (details == null || details.getExpenseName() == null || details.getExpenseName().isEmpty()) {
@@ -295,7 +295,7 @@ public class ExpenseViewService {
         String expenseName = details.getExpenseName();
 
         try {
-            // Search for all expenses with the same name
+            
             List<Expense> similarExpenses = expenseService.searchExpensesByName(expenseName, userId);
 
             if (similarExpenses == null || similarExpenses.isEmpty()) {
@@ -310,7 +310,7 @@ public class ExpenseViewService {
                         .build();
             }
 
-            // Calculate statistics
+            
             LocalDate now = LocalDate.now();
             LocalDate startOfMonth = now.withDayOfMonth(1);
             LocalDate startOfYear = now.withDayOfYear(1);
@@ -337,7 +337,7 @@ public class ExpenseViewService {
                     .max(LocalDate::compareTo)
                     .orElse(expense.getDate());
 
-            // Amount statistics
+            
             DoubleSummaryStatistics amountStats = similarExpenses.stream()
                     .filter(e -> e.getExpense() != null)
                     .mapToDouble(e -> e.getExpense().getAmount())
@@ -365,9 +365,9 @@ public class ExpenseViewService {
         }
     }
 
-    /**
-     * Format payment method name for display.
-     */
+    
+
+
     private String formatPaymentMethodName(String paymentMethod) {
         if (paymentMethod == null)
             return "Unknown";
@@ -388,7 +388,7 @@ public class ExpenseViewService {
             case "netbanking":
                 return "Net Banking";
             default:
-                // Convert camelCase to Title Case
+                
                 return paymentMethod.replaceAll("([A-Z])", " $1")
                         .trim()
                         .substring(0, 1).toUpperCase() +
@@ -398,9 +398,9 @@ public class ExpenseViewService {
         }
     }
 
-    /**
-     * Determine budget status based on usage and dates.
-     */
+    
+
+
     private String determineBudgetStatus(Budget budget) {
         LocalDate now = LocalDate.now();
 

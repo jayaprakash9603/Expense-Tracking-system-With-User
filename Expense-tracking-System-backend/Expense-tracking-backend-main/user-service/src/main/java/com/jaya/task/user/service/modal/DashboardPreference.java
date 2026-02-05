@@ -25,7 +25,7 @@ public class DashboardPreference {
 
     @NotNull(message = "Layout configuration is required")
     @Column(name = "layout_config", columnDefinition = "TEXT", nullable = false)
-    private String layoutConfig; // JSON string storing the dashboard sections configuration
+    private String layoutConfig; 
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

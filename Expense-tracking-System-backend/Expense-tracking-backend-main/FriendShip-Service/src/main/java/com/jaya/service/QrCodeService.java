@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
+
 @Service
 @Slf4j
 public class QrCodeService {

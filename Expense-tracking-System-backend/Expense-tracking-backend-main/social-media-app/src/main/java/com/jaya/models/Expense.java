@@ -40,7 +40,7 @@ public class Expense {
 
     private String categoryName = "";
 
-    // Using LAZY fetch - all queries use JOIN FETCH to avoid N+1 problem
+    
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     @ToString.Exclude

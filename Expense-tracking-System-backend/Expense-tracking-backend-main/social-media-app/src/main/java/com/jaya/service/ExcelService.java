@@ -24,15 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Refactored ExcelService following SOLID and DRY principles
- * - Single Responsibility: Delegates to specialized generators and parsers
- * - Open/Closed: Extensible through ExcelColumnDefinition implementations
- * - Liskov Substitution: Generic ExcelGenerator works with any entity type
- * - Interface Segregation: Separate parsers for different entity types
- * - Dependency Inversion: Depends on abstractions (interfaces) not concrete
- * implementations
- */
+
+
+
+
+
+
+
+
+
 @Service
 public class ExcelService {
 
@@ -52,17 +52,17 @@ public class ExcelService {
         this.expenseMapper = expenseMapper;
     }
 
-    /**
-     * Generate Excel file for expenses using the modular generator
-     */
+    
+
+
     public ByteArrayInputStream generateExcel(List<Expense> expenses) throws IOException {
         ExcelGenerator<Expense> generator = new ExcelGenerator<>(new ExpenseColumnDefinition());
         return generator.generate(expenses);
     }
 
-    /**
-     * Generate empty Excel template with predefined columns
-     */
+    
+
+
     public ByteArrayInputStream generateEmptyExcelWithColumns() {
         try (Workbook workbook = new XSSFWorkbook();
                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -83,9 +83,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for expense details
-     */
+    
+
+
     public ByteArrayInputStream generateExpenseDetailsExcel(List<Expense> expenseDetails) {
         try {
             ExcelGenerator<Expense> generator = new ExcelGenerator<>(new ExpenseDetailsColumnDefinition());
@@ -95,9 +95,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for monthly summary
-     */
+    
+
+
     public ByteArrayInputStream generateMonthlySummaryExcel(MonthlySummary summary) {
         try {
             return generateMonthlySummaryWithCategoryBreakdown(summary);
@@ -106,9 +106,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate monthly summary with category breakdown section
-     */
+    
+
+
     private ByteArrayInputStream generateMonthlySummaryWithCategoryBreakdown(MonthlySummary summary)
             throws IOException {
         try (Workbook workbook = new XSSFWorkbook();
@@ -117,10 +117,10 @@ public class ExcelService {
             Sheet sheet = workbook.createSheet("Monthly Summary");
             CellStyle headerStyle = ExcelStyleFactory.createHeaderStyle(workbook);
 
-            // Summary section
+            
             createSummarySection(sheet, summary, headerStyle);
 
-            // Category breakdown section
+            
             createCategoryBreakdownSection(sheet, summary.getCategoryBreakdown(), 3, headerStyle);
 
             workbook.write(out);
@@ -128,9 +128,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Create summary section in sheet
-     */
+    
+
+
     private void createSummarySection(Sheet sheet, MonthlySummary summary, CellStyle headerStyle) {
         Row headerRow = sheet.createRow(0);
         String[] headers = { "Total Amount", "Balance Remaining", "Current Month Credit Due",
@@ -154,9 +154,9 @@ public class ExcelService {
         ExcelCellWriter.createAndWriteCell(summaryRow, 5, summary.getCreditDueMessage());
     }
 
-    /**
-     * Create category breakdown section
-     */
+    
+
+
     private void createCategoryBreakdownSection(Sheet sheet, Map<String, BigDecimal> breakdown, int startRow,
             CellStyle headerStyle) {
         Row categoryHeaderRow = sheet.createRow(startRow);
@@ -171,9 +171,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for daily summaries
-     */
+    
+
+
     public ByteArrayInputStream generateDailySummariesExcel(List<DailySummary> summaries) {
         try {
             ExcelGenerator<DailySummary> generator = new ExcelGenerator<>(new DailySummaryColumnDefinition());
@@ -183,9 +183,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for yearly summaries (reuses DailySummary structure)
-     */
+    
+
+
     public ByteArrayInputStream generateYearlySummariesExcel(List<DailySummary> summaries) {
         try {
             ExcelGenerator<DailySummary> generator = new ExcelGenerator<>(new DailySummaryColumnDefinition());
@@ -195,9 +195,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for payment method summary
-     */
+    
+
+
     public ByteArrayInputStream generatePaymentMethodSummaryExcel(Map<String, Map<String, Double>> summary) {
         try (Workbook workbook = new XSSFWorkbook();
                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -205,13 +205,13 @@ public class ExcelService {
             Sheet sheet = workbook.createSheet("Payment Method Summary");
             CellStyle headerStyle = ExcelStyleFactory.createHeaderStyle(workbook);
 
-            // Header
+            
             Row headerRow = sheet.createRow(0);
             ExcelCellWriter.createHeaderCell(headerRow, 0, "Payment Method", headerStyle);
             ExcelCellWriter.createHeaderCell(headerRow, 1, "Category", headerStyle);
             ExcelCellWriter.createHeaderCell(headerRow, 2, "Amount", headerStyle);
 
-            // Data
+            
             int rowIdx = 1;
             for (Map.Entry<String, Map<String, Double>> entry : summary.entrySet()) {
                 String paymentMethod = entry.getKey();
@@ -230,9 +230,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for yearly summary (map-based)
-     */
+    
+
+
     public ByteArrayInputStream generateYearlySummaryExcel(Map<String, MonthlySummary> summary) {
         try {
             List<Map.Entry<String, MonthlySummary>> entries = new ArrayList<>(summary.entrySet());
@@ -244,9 +244,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for single daily summary
-     */
+    
+
+
     public ByteArrayInputStream generateDailySummaryExcel(DailySummary summary) {
         try {
             ExcelGenerator<DailySummary> generator = new ExcelGenerator<>(new DailySummaryColumnDefinition());
@@ -256,9 +256,9 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Generate Excel for monthly summaries list
-     */
+    
+
+
     public ByteArrayInputStream generateMonthlySummariesExcel(List<MonthlySummary> summaries) {
         try {
             ExcelGenerator<MonthlySummary> generator = new ExcelGenerator<>(new MonthlySummaryColumnDefinition());
@@ -268,10 +268,10 @@ public class ExcelService {
         }
     }
 
-    /**
-     * Parse and save expenses from uploaded Excel file
-     * Delegates parsing to specialized parser
-     */
+    
+
+
+
     public List<Integer> saveAndReturnIds(MultipartFile file, Integer userId) throws Exception {
         List<Expense> expenses = expenseParser.parseExpenses(file);
         List<Integer> addedIds = new ArrayList<>();
@@ -284,18 +284,18 @@ public class ExcelService {
         return addedIds;
     }
 
-    /**
-     * Parse expenses from Excel file
-     * Delegates to specialized parser
-     */
+    
+
+
+
     public List<Expense> parseExcelFile(MultipartFile file) throws IOException {
         return expenseParser.parseExpenses(file);
     }
 
-    /**
-     * Parse categories from Excel file
-     * Delegates to specialized parser
-     */
+    
+
+
+
     public List<Category> parseCategorySummarySheet(MultipartFile file) throws IOException {
         return categoryParser.parseCategories(file);
     }

@@ -4,8 +4,8 @@ package com.jaya.models;
 import java.util.List;
 
 public class InvestmentResult {
-    private double totalFutureValue; // Nominal future value
-    private double realFutureValue; // Inflation-adjusted future value
+    private double totalFutureValue; 
+    private double realFutureValue; 
     private List<SipContribution> sipContributions;
     private List<LumpsumContribution> lumpsumContributions;
 
@@ -75,7 +75,7 @@ public class InvestmentResult {
         }
     }
 
-    // Getters and Setters
+    
     public double getTotalFutureValue() {
         return totalFutureValue;
     }

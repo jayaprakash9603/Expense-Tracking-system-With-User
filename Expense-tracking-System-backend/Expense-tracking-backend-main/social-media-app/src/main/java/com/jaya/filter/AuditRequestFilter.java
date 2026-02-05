@@ -12,10 +12,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.UUID;
 
-/**
- * Captures per-request context (timings, correlation id, client info) so that
- * service layer audit publishers can enrich AuditEvent without passing params everywhere.
- */
+
+
+
+
 @Component
 @Order(1)
 public class AuditRequestFilter extends OncePerRequestFilter {
@@ -31,7 +31,7 @@ public class AuditRequestFilter extends OncePerRequestFilter {
         long start = System.currentTimeMillis();
         request.setAttribute(ATTR_START_TIME, start);
 
-        // Correlation Id handling
+        
         String correlationId = request.getHeader(HDR_CORRELATION_ID);
         if (correlationId == null || correlationId.isBlank()) {
             correlationId = generateCorrelationId();

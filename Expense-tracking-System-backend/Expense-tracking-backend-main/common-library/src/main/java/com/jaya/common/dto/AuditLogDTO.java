@@ -11,10 +11,10 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * Common Audit Log DTO used across all microservices.
- * Contains audit trail information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -53,22 +53,22 @@ public class AuditLogDTO implements Serializable {
 
     private String correlationId;
 
-    // Change tracking
+    
     private Map<String, Object> oldValues;
 
     private Map<String, Object> newValues;
 
-    // Additional context
+    
     private Map<String, Object> metadata;
 
-    // ==================== Severity Levels ====================
+    
 
     public static final String SEVERITY_INFO = "INFO";
     public static final String SEVERITY_WARNING = "WARNING";
     public static final String SEVERITY_ERROR = "ERROR";
     public static final String SEVERITY_CRITICAL = "CRITICAL";
 
-    // ==================== Common Actions ====================
+    
 
     public static final String ACTION_CREATE = "CREATE";
     public static final String ACTION_UPDATE = "UPDATE";
@@ -79,11 +79,11 @@ public class AuditLogDTO implements Serializable {
     public static final String ACTION_EXPORT = "EXPORT";
     public static final String ACTION_IMPORT = "IMPORT";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a basic audit log entry
-     */
+    
+
+
     public static AuditLogDTO basic(String serviceName, Integer userId, String action, String entityType,
             String entityId) {
         return AuditLogDTO.builder()
@@ -97,9 +97,9 @@ public class AuditLogDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a CREATE action audit log
-     */
+    
+
+
     public static AuditLogDTO create(String serviceName, Integer userId, String entityType, String entityId,
             Map<String, Object> newValues) {
         return AuditLogDTO.builder()
@@ -114,9 +114,9 @@ public class AuditLogDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create an UPDATE action audit log
-     */
+    
+
+
     public static AuditLogDTO update(String serviceName, Integer userId, String entityType, String entityId,
             Map<String, Object> oldValues, Map<String, Object> newValues) {
         return AuditLogDTO.builder()
@@ -132,9 +132,9 @@ public class AuditLogDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a DELETE action audit log
-     */
+    
+
+
     public static AuditLogDTO delete(String serviceName, Integer userId, String entityType, String entityId,
             Map<String, Object> oldValues) {
         return AuditLogDTO.builder()
@@ -149,9 +149,9 @@ public class AuditLogDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a login audit log
-     */
+    
+
+
     public static AuditLogDTO login(String serviceName, Integer userId, String ipAddress, String userAgent) {
         return AuditLogDTO.builder()
                 .serviceName(serviceName)

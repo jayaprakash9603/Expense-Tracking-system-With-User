@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -213,7 +214,7 @@ public class UnifiedActivityEventConsumer {
                 .budgetName(event.getEntityName())
                 .amount(event.getAmount())
                 .timestamp(event.getTimestamp())
-            .metadata(event.getNewValues())
+                .metadata(event.getNewValues())
                 .build();
     }
 

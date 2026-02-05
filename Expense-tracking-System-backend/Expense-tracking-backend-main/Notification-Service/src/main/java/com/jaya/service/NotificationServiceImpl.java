@@ -96,7 +96,6 @@ public class NotificationServiceImpl implements NotificationService {
                 return notificationRepository.countByUserIdAndIsRead(userId, false);
         }
 
-
         @Override
         @Async
         public void sendBudgetExceededAlert(UserDto user, BudgetDTO budget, double currentSpending) {

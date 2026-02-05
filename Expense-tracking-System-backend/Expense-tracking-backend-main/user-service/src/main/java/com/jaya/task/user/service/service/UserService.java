@@ -25,10 +25,10 @@ public interface UserService {
 
     public void updatePassword(User user, String newPassword);
 
-    // Register a new user, handling roles and password hashing
+    
     public User signup(SignupRequest signupRequest);
 
-    // Switch user mode between USER and ADMIN
+    
     public User switchUserMode(String jwt, String newMode);
 
 }

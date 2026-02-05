@@ -13,19 +13,19 @@ import java.util.UUID;
 @Repository
 public interface StoryAuditLogRepository extends JpaRepository<StoryAuditLog, UUID> {
 
-    // Find audit logs for a specific story
+    
     List<StoryAuditLog> findByStoryIdOrderByCreatedAtDesc(UUID storyId);
 
-    // Find audit logs by admin
+    
     Page<StoryAuditLog> findByAdminIdOrderByCreatedAtDesc(Integer adminId, Pageable pageable);
 
-    // Find audit logs by action type
+    
     Page<StoryAuditLog> findByActionOrderByCreatedAtDesc(String action, Pageable pageable);
 
-    // Find audit logs in date range
+    
     List<StoryAuditLog> findByCreatedAtBetweenOrderByCreatedAtDesc(
             LocalDateTime startDate, LocalDateTime endDate);
 
-    // Find recent audit logs
+    
     Page<StoryAuditLog> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

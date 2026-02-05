@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Common bulk operation response.
- * Used for standardized bulk operation results across all services.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,49 +20,49 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BulkOperationResponse {
 
-    /**
-     * Total number of items processed
-     */
+    
+
+
     private int totalCount;
 
-    /**
-     * Number of successful operations
-     */
+    
+
+
     private int successCount;
 
-    /**
-     * Number of failed operations
-     */
+    
+
+
     private int failedCount;
 
-    /**
-     * Number of skipped operations
-     */
+    
+
+
     private int skippedCount;
 
-    /**
-     * Overall success status
-     */
+    
+
+
     private boolean success;
 
-    /**
-     * Summary message
-     */
+    
+
+
     private String message;
 
-    /**
-     * List of individual results
-     */
+    
+
+
     @Builder.Default
     private List<ItemResult> results = new ArrayList<>();
 
-    /**
-     * List of errors (for failed items)
-     */
+    
+
+
     @Builder.Default
     private List<ItemError> errors = new ArrayList<>();
 
-    // ==================== Nested Classes ====================
+    
 
     @Data
     @Builder
@@ -88,11 +88,11 @@ public class BulkOperationResponse {
         private List<String> details;
     }
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a fully successful response
-     */
+    
+
+
     public static BulkOperationResponse allSuccess(int count, String message) {
         return BulkOperationResponse.builder()
                 .totalCount(count)
@@ -104,9 +104,9 @@ public class BulkOperationResponse {
                 .build();
     }
 
-    /**
-     * Create a partially successful response
-     */
+    
+
+
     public static BulkOperationResponse partial(int total, int success, int failed, List<ItemError> errors) {
         return BulkOperationResponse.builder()
                 .totalCount(total)
@@ -119,9 +119,9 @@ public class BulkOperationResponse {
                 .build();
     }
 
-    /**
-     * Create a fully failed response
-     */
+    
+
+
     public static BulkOperationResponse allFailed(int count, String message, List<ItemError> errors) {
         return BulkOperationResponse.builder()
                 .totalCount(count)
@@ -134,9 +134,9 @@ public class BulkOperationResponse {
                 .build();
     }
 
-    /**
-     * Add a success result
-     */
+    
+
+
     public void addSuccess(String id, int index, Object data) {
         this.results.add(ItemResult.builder()
                 .id(id)
@@ -147,9 +147,9 @@ public class BulkOperationResponse {
         this.successCount++;
     }
 
-    /**
-     * Add an error result
-     */
+    
+
+
     public void addError(String id, int index, String errorCode, String message) {
         this.errors.add(ItemError.builder()
                 .id(id)
@@ -160,9 +160,9 @@ public class BulkOperationResponse {
         this.failedCount++;
     }
 
-    /**
-     * Complete and finalize the response - calculates totals and sets status
-     */
+    
+
+
     public BulkOperationResponse complete() {
         this.totalCount = this.successCount + this.failedCount + this.skippedCount;
         this.success = this.failedCount == 0;

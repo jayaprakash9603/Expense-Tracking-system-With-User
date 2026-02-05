@@ -15,7 +15,7 @@ public class ErrorDetails {
         this.path = path;
     }
 
-    // Getters and setters
+    
     public LocalDateTime getTimestamp() {
         return timestamp;
     }

@@ -13,10 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Standard expense calculation strategy
- * Calculates gains, losses, credit paid, and category breakdowns
- */
+
+
+
+
 @Component
 public class StandardExpenseCalculationStrategy implements ExpenseCalculationStrategy {
 
@@ -48,7 +48,7 @@ public class StandardExpenseCalculationStrategy implements ExpenseCalculationStr
 
             BigDecimal amountDecimal = BigDecimal.valueOf(amount);
 
-            // Calculate gains and losses
+            
             if (ExpenseConstants.TYPE_GAIN.equalsIgnoreCase(type)) {
                 totalGain = totalGain.add(amountDecimal);
                 if (ExpenseConstants.PAYMENT_CASH.equalsIgnoreCase(paymentMethod)) {
@@ -62,20 +62,20 @@ public class StandardExpenseCalculationStrategy implements ExpenseCalculationStr
                 }
             }
 
-            // Track credit paid
+            
             if (ExpenseConstants.CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
                 totalCreditPaid = totalCreditPaid.add(amountDecimal);
             }
 
-            // Category breakdown
+            
             categoryBreakdown.merge(category, amountDecimal, BigDecimal::add);
         }
 
-        // Build cash summary
+        
         CashSummary cashSummary = new CashSummary();
         cashSummary.setGain(cashGain);
-        cashSummary.setLoss(cashLoss.negate()); // Loss is stored as negative value
-        cashSummary.calculateDifference(); // Calculate gain + loss
+        cashSummary.setLoss(cashLoss.negate()); 
+        cashSummary.calculateDifference(); 
 
         return ExpenseCalculationResult.builder()
                 .totalGain(totalGain)

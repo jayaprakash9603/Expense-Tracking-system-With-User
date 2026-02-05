@@ -2,11 +2,11 @@ package com.jaya.service.excel;
 
 import java.util.function.Function;
 
-/**
- * Represents a single column in an Excel sheet
- * 
- * @param <T> The entity type
- */
+
+
+
+
+
 public class ExcelColumn<T> {
     private final String header;
     private final Function<T, Object> valueExtractor;

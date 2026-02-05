@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-/**
- * Common Payment Method DTO used across all microservices.
- * Contains payment method information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -50,7 +50,7 @@ public class PaymentMethodDTO implements Serializable {
 
     private Double totalAmount;
 
-    // ==================== Payment Types ====================
+    
 
     public static final String TYPE_CASH = "cash";
     public static final String TYPE_CREDIT_CARD = "credit_card";
@@ -61,11 +61,11 @@ public class PaymentMethodDTO implements Serializable {
     public static final String TYPE_CHEQUE = "cheque";
     public static final String TYPE_OTHER = "other";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a minimal PaymentMethodDTO
-     */
+    
+
+
     public static PaymentMethodDTO minimal(Integer id, String name) {
         return PaymentMethodDTO.builder()
                 .id(id)
@@ -73,9 +73,9 @@ public class PaymentMethodDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create PaymentMethodDTO with basic info
-     */
+    
+
+
     public static PaymentMethodDTO basic(Integer id, String name, String type, String icon, String color) {
         return PaymentMethodDTO.builder()
                 .id(id)
@@ -86,9 +86,9 @@ public class PaymentMethodDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a global PaymentMethodDTO
-     */
+    
+
+
     public static PaymentMethodDTO global(Integer id, String name, String type) {
         return PaymentMethodDTO.builder()
                 .id(id)
@@ -98,9 +98,9 @@ public class PaymentMethodDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a user-specific PaymentMethodDTO
-     */
+    
+
+
     public static PaymentMethodDTO forUser(Integer id, String name, String type, Integer userId) {
         return PaymentMethodDTO.builder()
                 .id(id)

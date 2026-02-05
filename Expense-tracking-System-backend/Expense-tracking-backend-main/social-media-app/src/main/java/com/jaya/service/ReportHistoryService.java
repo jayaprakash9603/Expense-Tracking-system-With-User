@@ -27,9 +27,9 @@ public class ReportHistoryService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * Log successful report generation
-     */
+    
+
+
     @Transactional
     public ReportHistory logReportSuccess(User user, String reportName, String reportType,
             String description, String recipientEmail,
@@ -47,7 +47,7 @@ public class ReportHistoryService {
         history.setFileName(fileName);
         history.setDate(LocalDateTime.now());
 
-        // Convert filters to JSON string
+        
         if (filters != null && !filters.isEmpty()) {
             try {
                 history.setFilterCriteria(objectMapper.writeValueAsString(filters));
@@ -63,9 +63,9 @@ public class ReportHistoryService {
         return saved;
     }
 
-    /**
-     * Log failed report generation
-     */
+    
+
+
     @Transactional
     public ReportHistory logReportFailure(User user, String reportName, String reportType,
             String description, String recipientEmail,
@@ -81,7 +81,7 @@ public class ReportHistoryService {
         history.setErrorMessage(errorMessage);
         history.setDate(LocalDateTime.now());
 
-        // Convert filters to JSON string
+        
         if (filters != null && !filters.isEmpty()) {
             try {
                 history.setFilterCriteria(objectMapper.writeValueAsString(filters));
@@ -97,51 +97,51 @@ public class ReportHistoryService {
         return saved;
     }
 
-    /**
-     * Get all report history for a user
-     */
+    
+
+
     public List<ReportHistory> getReportHistoryByUser(User user) {
         List<ReportHistory> reports = reportHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
-        // Set transient userEmail field for DTO mapping
+        
         reports.forEach(report -> report.setUserEmail(user.getEmail()));
         return reports;
     }
 
-    /**
-     * Get report history by status
-     */
+    
+
+
     public List<ReportHistory> getReportHistoryByStatus(User user, String status) {
         List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndStatusOrderByCreatedAtDesc(user.getId(),
                 status);
-        // Set transient userEmail field for DTO mapping
+        
         reports.forEach(report -> report.setUserEmail(user.getEmail()));
         return reports;
     }
 
-    /**
-     * Get recent report history (last 10)
-     */
+    
+
+
     public List<ReportHistory> getRecentReportHistory(User user) {
         List<ReportHistory> reports = reportHistoryRepository.findTop10ByUserIdOrderByCreatedAtDesc(user.getId());
-        // Set transient userEmail field for DTO mapping
+        
         reports.forEach(report -> report.setUserEmail(user.getEmail()));
         return reports;
     }
 
-    /**
-     * Get report history within date range
-     */
+    
+
+
     public List<ReportHistory> getReportHistoryByDateRange(User user, LocalDateTime startDate, LocalDateTime endDate) {
         List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndDateRange(user.getId(), startDate,
                 endDate);
-        // Set transient userEmail field for DTO mapping
+        
         reports.forEach(report -> report.setUserEmail(user.getEmail()));
         return reports;
     }
 
-    /**
-     * Get report statistics
-     */
+    
+
+
     public Map<String, Object> getReportStatistics(User user) {
         Map<String, Object> stats = new HashMap<>();
 
@@ -163,9 +163,9 @@ public class ReportHistoryService {
         return stats;
     }
 
-    /**
-     * Helper method to create filter map
-     */
+    
+
+
     public Map<String, Object> createFilterMap(String... keyValuePairs) {
         Map<String, Object> filters = new HashMap<>();
         for (int i = 0; i < keyValuePairs.length - 1; i += 2) {

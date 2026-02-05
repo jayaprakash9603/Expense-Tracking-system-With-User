@@ -25,8 +25,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
         List<Expense> findByDateBetween(LocalDate from, LocalDate to);
 
-        // Optimized single expense fetch with details to avoid lazy loading N+1 when
-        // serializing (READ ONLY - for display purposes only)
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "1"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
@@ -34,23 +32,19 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id = :id")
         Expense findByUserIdAndIdReadOnly(@Param("userId") Integer userId, @Param("id") Integer id);
 
-        // For updates - fetches entity in write mode
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "1")
         })
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id = :id")
         Expense findByUserIdAndId(@Param("userId") Integer userId, @Param("id") Integer id);
 
-        // Fixed N+1: Using EntityGraph for pagination to avoid N+1 queries
         @EntityGraph(attributePaths = { "expense" })
         Page<Expense> findByUserId(Integer userId, Pageable pageable);
 
-        // Fixed N+1: Using EntityGraph for pagination to avoid N+1 queries
         @EntityGraph(attributePaths = { "expense" })
         Page<Expense> findByUserIdAndDateBetween(Integer userId, LocalDate startDate, LocalDate endDate,
                         Pageable pageable);
 
-        // Optimized includeInBudget filtered range with joined details
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "50"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true"),
@@ -71,7 +65,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId")
         List<Expense> findByUserId(@Param("userId") Integer userId);
 
-        // Optimized with JOIN FETCH to avoid N+1 queries
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId")
         List<Expense> findByUserIdWithSort(@Param("userId") Integer userId, Sort sort);
 
@@ -79,14 +72,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> findByUserIdAndDateBetween(@Param("userId") Integer userId,
                         @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.date BETWEEN :startDate AND :endDate")
         List<Expense> findByUserAndDateBetween(
                         @Param("startDate") LocalDate startDate,
                         @Param("endDate") LocalDate endDate,
                         @Param("userId") Integer userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.date = :date")
         List<Expense> findByUserIdAndDate(@Param("userId") Integer userId, @Param("date") LocalDate date);
 
@@ -104,7 +95,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> findExpensesByUserAndAmountRange(@Param("userId") Integer userId,
                         @Param("minAmount") double minAmount, @Param("maxAmount") double maxAmount);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense d WHERE e.userId = :userId AND d.type = 'loss' ORDER BY d.amount DESC")
         Page<Expense> findTopNExpensesByUserAndAmount(@Param("userId") Integer userId, Pageable pageable);
 
@@ -112,11 +102,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> searchExpensesByUserAndName(@Param("userId") Integer userId,
                         @Param("expenseName") String expenseName);
 
-        /**
-         * Fuzzy search expenses by name - supports partial matching and sequence search
-         * Searches in expense name, comments, and payment method
-         * Optimized with JOIN FETCH to avoid N+1 queries
-         */
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "50"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
@@ -128,12 +113,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY e.date DESC")
         List<Expense> searchExpensesFuzzy(@Param("userId") Integer userId, @Param("query") String query);
 
-        /**
-         * Fuzzy search expenses with limit - for search service optimization
-         * Uses JPQL with DTO constructor to avoid N+1 problem.
-         * Note: The query parameter should already be in pattern format (e.g.,
-         * "%j%c%e%")
-         */
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "20"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
@@ -218,15 +197,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY frequency DESC")
         Page<Object[]> findTopExpenseNamesByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'gain'")
         List<Expense> findExpensesWithGainTypeByUser(@Param("userId") Integer userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'loss'")
         List<Expense> findByLossTypeAndUser(@Param("userId") Integer userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.paymentMethod = :paymentMethod")
         List<Expense> findByUserAndPaymentMethod(@Param("userId") Integer userId,
                         @Param("paymentMethod") String paymentMethod);
@@ -241,7 +217,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         Double findTotalExpensesForCurrentMonth(@Param("month") int month, @Param("year") int year,
                         @Param("userId") Integer userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = :type AND ed.paymentMethod = :paymentMethod")
         List<Expense> findByUserAndTypeAndPaymentMethod(@Param("userId") Integer userId, @Param("type") String type,
                         @Param("paymentMethod") String paymentMethod);
@@ -254,15 +229,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "GROUP BY ed.paymentMethod ORDER BY COUNT(ed.paymentMethod) DESC")
         List<Object[]> findTopPaymentMethodsByUser(@Param("userId") Integer userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'gain' ORDER BY ed.amount DESC")
         List<Expense> findTop10GainsByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed WHERE e.userId = :userId AND ed.type = 'loss' ORDER BY ed.amount DESC")
         List<Expense> findTop10LossesByUser(@Param("userId") Integer userId, Pageable pageable);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND MONTH(e.date) = :month AND YEAR(e.date) = :year")
         List<Expense> findByUserAndMonthAndYear(@Param("userId") Integer userId, @Param("month") int month,
                         @Param("year") int year);
@@ -281,7 +253,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY e2.amount DESC")
         List<String> findTopExpensesByLoss(@Param("userId") Integer userId, Pageable pageable);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense d WHERE " +
                         "(e.userId = :userId) AND " +
                         "(d.expenseName LIKE %:expenseName% OR :expenseName IS NULL) AND " +
@@ -310,7 +281,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY total DESC")
         List<Object[]> findExpenseByNameAndUserId(@Param("year") int year, @Param("userId") Integer userId);
 
-        // For Bar/Line Chart: Monthly Expenses
         @Query("SELECT MONTH(e.date) as month, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +
                         "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
@@ -319,14 +289,12 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         "ORDER BY MONTH(e.date)")
         List<Object[]> findMonthlyLossExpensesByUserId(@Param("year") int year, @Param("userId") Integer userId);
 
-        // For Polar Area Chart: Payment Method Distribution
         @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +
                         "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
                         "GROUP BY ed.paymentMethod")
         List<Object[]> findPaymentMethodDistributionByUserId(@Param("year") int year, @Param("userId") Integer userId);
 
-        // For date range with flowType and type filtering
         @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +
                         "WHERE e.date BETWEEN :startDate AND :endDate AND e.userId = :userId " +
@@ -342,7 +310,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @Param("flowType") String flowType,
                         @Param("type") String type);
 
-        // For year with flowType and type filtering
         @Query("SELECT ed.paymentMethod, SUM(ed.amount) as total " +
                         "FROM Expense e JOIN e.expense ed " +
                         "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
@@ -357,19 +324,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @Param("flowType") String flowType,
                         @Param("type") String type);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE YEAR(e.date) = :year AND e.userId = :userId")
         List<Expense> findByYearAndUser(@Param("year") int year, @Param("userId") int userId);
 
-        // Fixed N+1: Added JOIN FETCH for expense details
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense ed " +
                         "WHERE YEAR(e.date) = :year AND e.userId = :userId " +
                         "AND ed.paymentMethod != 'creditPaid' AND ed.type = 'loss'")
         List<Expense> findExpensesWithDetailsByUserIdAndYear(
                         @Param("year") int year, @Param("userId") Integer userId);
 
-        // Batch fetch for a user with join fetch to eliminate N+1 when converting to
-        // DTO
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "100"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")

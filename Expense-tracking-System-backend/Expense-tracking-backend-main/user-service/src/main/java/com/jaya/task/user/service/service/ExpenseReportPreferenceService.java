@@ -20,7 +20,7 @@ public class ExpenseReportPreferenceService {
     private final ExpenseReportPreferenceRepository expenseReportPreferenceRepository;
     private final UserService userService;
 
-    // Default expense report configuration
+    
     private static final String DEFAULT_LAYOUT_CONFIG = """
             [
               {"id":"overview-cards","name":"Overview Cards","visible":true,"type":"full"},
@@ -31,10 +31,10 @@ public class ExpenseReportPreferenceService {
             ]
             """.trim();
 
-    /**
-     * Get expense report preference for the authenticated user
-     * Returns default configuration if no custom preference exists
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public ExpenseReportPreferenceDTO getUserExpenseReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -44,7 +44,7 @@ public class ExpenseReportPreferenceService {
         if (existing.isPresent()) {
             return toDTO(existing.get());
         } else {
-            // Return default configuration without saving
+            
             ExpenseReportPreferenceDTO defaultDto = new ExpenseReportPreferenceDTO();
             defaultDto.setUserId(user.getId());
             defaultDto.setLayoutConfig(DEFAULT_LAYOUT_CONFIG);
@@ -57,9 +57,9 @@ public class ExpenseReportPreferenceService {
         }
     }
 
-    /**
-     * Save or update expense report preference for authenticated user
-     */
+    
+
+
     @Transactional
     public ExpenseReportPreferenceDTO saveExpenseReportPreference(String jwt, String layoutConfig) {
         User user = userService.getUserProfile(jwt);
@@ -78,9 +78,9 @@ public class ExpenseReportPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset expense report preference to default (delete custom preference)
-     */
+    
+
+
     @Transactional
     public void resetExpenseReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -90,9 +90,9 @@ public class ExpenseReportPreferenceService {
         log.info("Expense report preference reset for user: userId={}", user.getId());
     }
 
-    /**
-     * Convert entity to DTO
-     */
+    
+
+
     private ExpenseReportPreferenceDTO toDTO(ExpenseReportPreference entity) {
         ExpenseReportPreferenceDTO dto = new ExpenseReportPreferenceDTO();
         dto.setId(entity.getId());

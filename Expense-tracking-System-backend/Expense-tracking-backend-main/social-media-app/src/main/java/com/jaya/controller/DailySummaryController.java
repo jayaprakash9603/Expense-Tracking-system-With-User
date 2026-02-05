@@ -35,26 +35,29 @@ public class DailySummaryController {
     }
 
     @GetMapping("/monthly")
-    public List<DailySummary> getDailySummaries(@RequestParam Integer year, @RequestParam Integer month,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return dailySummaryService.getDailySummaries(year, month,reqUser);
+    public List<DailySummary> getDailySummaries(@RequestParam Integer year, @RequestParam Integer month,
+            @RequestHeader("Authorization") String jwt) {
+        User reqUser = userService.findUserByJwt(jwt);
+        return dailySummaryService.getDailySummaries(year, month, reqUser);
     }
- // Get daily summaries for an entire year
-    @GetMapping("/yearly")
-    public List<DailySummary> getYearlySummaries(@RequestParam Integer year,@RequestHeader("Authorization")String jwt) {
-        User reqUser=userService.findUserByJwt(jwt);
-        return dailySummaryService.getYearlySummaries(year,reqUser);
-    }
-    @GetMapping("/date")
-    public ResponseEntity<?> getDailySummaryForDate(@RequestParam String date,@RequestHeader("Authorization")String jwt) {
-        LocalDate parsedDate = LocalDate.parse(date);
-        User reqUser=userService.findUserByJwt(jwt);
-        DailySummary dailySummary = dailySummaryService.getDailySummaryForDate(parsedDate,reqUser);
 
-        // Check if dailySummary is null and return a custom message if so
+    @GetMapping("/yearly")
+    public List<DailySummary> getYearlySummaries(@RequestParam Integer year,
+            @RequestHeader("Authorization") String jwt) {
+        User reqUser = userService.findUserByJwt(jwt);
+        return dailySummaryService.getYearlySummaries(year, reqUser);
+    }
+
+    @GetMapping("/date")
+    public ResponseEntity<?> getDailySummaryForDate(@RequestParam String date,
+            @RequestHeader("Authorization") String jwt) {
+        LocalDate parsedDate = LocalDate.parse(date);
+        User reqUser = userService.findUserByJwt(jwt);
+        DailySummary dailySummary = dailySummaryService.getDailySummaryForDate(parsedDate, reqUser);
+
         if (dailySummary == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                                 .body("{\"message\": \"No daily summary is found for the date " + parsedDate + "\"}");
+                    .body("{\"message\": \"No daily summary is found for the date " + parsedDate + "\"}");
         }
 
         return ResponseEntity.ok(dailySummary);
@@ -65,71 +68,78 @@ public class DailySummaryController {
 
     @Autowired
     private EmailService emailService;
+
     @GetMapping("/monthly/email")
     public ResponseEntity<String> sendDailySummariesByEmail(
             @RequestParam Integer year,
             @RequestParam Integer month,
-            @RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<DailySummary> summaries = dailySummaryService.getDailySummaries(year, month,reqUser);
+            @RequestParam String email, @RequestHeader("Authorization") String jwt)
+            throws IOException, MessagingException {
+        User reqUser = userService.findUserByJwt(jwt);
+        List<DailySummary> summaries = dailySummaryService.getDailySummaries(year, month, reqUser);
 
         ByteArrayInputStream in = excelService.generateDailySummariesExcel(summaries);
         byte[] bytes = in.readAllBytes();
 
         String subject = "Daily Summaries for " + year + "-" + month;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the daily summaries for " + year + "-" + month + ".", new ByteArrayResource(bytes), "daily_summaries_" + year + "_" + month + ".xlsx");
+        emailService.sendEmailWithAttachment(email, subject,
+                "Please find attached the daily summaries for " + year + "-" + month + ".",
+                new ByteArrayResource(bytes), "daily_summaries_" + year + "_" + month + ".xlsx");
 
         return ResponseEntity.ok("Email sent successfully");
     }
-    
 
     @GetMapping("/yearly/email")
     public ResponseEntity<String> sendYearlySummariesByEmail(
             @RequestParam Integer year,
-            @RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        User reqUser=userService.findUserByJwt(jwt);
-        List<DailySummary> summaries = dailySummaryService.getYearlySummaries(year,reqUser);
+            @RequestParam String email, @RequestHeader("Authorization") String jwt)
+            throws IOException, MessagingException {
+        User reqUser = userService.findUserByJwt(jwt);
+        List<DailySummary> summaries = dailySummaryService.getYearlySummaries(year, reqUser);
 
         ByteArrayInputStream in = excelService.generateYearlySummariesExcel(summaries);
         byte[] bytes = in.readAllBytes();
 
         String subject = "Yearly Summaries for " + year;
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the yearly summaries for " + year + ".", new ByteArrayResource(bytes), "yearly_summaries_" + year + ".xlsx");
+        emailService.sendEmailWithAttachment(email, subject,
+                "Please find attached the yearly summaries for " + year + ".", new ByteArrayResource(bytes),
+                "yearly_summaries_" + year + ".xlsx");
 
         return ResponseEntity.ok("Email sent successfully");
     }
-    
+
     @GetMapping("/date/email/{date}")
     public ResponseEntity<String> sendDailySummaryByEmail(
             @PathVariable String date,
-            @RequestParam String email,@RequestHeader("Authorization")String jwt) throws IOException, MessagingException {
-        // Log the received parameters
+            @RequestParam String email, @RequestHeader("Authorization") String jwt)
+            throws IOException, MessagingException {
         System.out.println("Received date: " + date);
         System.out.println("Received email: " + email);
-        User reqUser=userService.findUserByJwt(jwt);
+        User reqUser = userService.findUserByJwt(jwt);
         LocalDate parsedDate;
         try {
             parsedDate = LocalDate.parse(date);
         } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                                 .body("{\"message\": \"Invalid date format. Please use yyyy-MM-dd.\"}");
+                    .body("{\"message\": \"Invalid date format. Please use yyyy-MM-dd.\"}");
         }
 
-        DailySummary dailySummary = dailySummaryService.getDailySummaryForDate(parsedDate,reqUser);
+        DailySummary dailySummary = dailySummaryService.getDailySummaryForDate(parsedDate, reqUser);
 
         if (dailySummary == null) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                                 .body("{\"message\": \"No daily summary is found for the date " + parsedDate + "\"}");
+                    .body("{\"message\": \"No daily summary is found for the date " + parsedDate + "\"}");
         }
 
         ByteArrayInputStream in = excelService.generateDailySummaryExcel(dailySummary);
         byte[] bytes = in.readAllBytes();
 
-        String subject = "Daily Summary for " + parsedDate+LocalDateTime.now();
-        emailService.sendEmailWithAttachment(email, subject, "Please find attached the daily summary for " + parsedDate + ".", new ByteArrayResource(bytes), "daily_summary_" + parsedDate + ".xlsx");
+        String subject = "Daily Summary for " + parsedDate + LocalDateTime.now();
+        emailService.sendEmailWithAttachment(email, subject,
+                "Please find attached the daily summary for " + parsedDate + ".", new ByteArrayResource(bytes),
+                "daily_summary_" + parsedDate + ".xlsx");
 
         return ResponseEntity.ok("Email sent successfully");
     }
-    
-    
+
 }

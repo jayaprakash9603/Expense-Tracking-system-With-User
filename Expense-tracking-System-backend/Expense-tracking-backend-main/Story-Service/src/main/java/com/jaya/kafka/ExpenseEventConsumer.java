@@ -8,10 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Kafka consumer for Expense-related events
- * Listens to expense-events topic and generates stories for spending spikes
- */
+
+
+
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -67,11 +67,11 @@ public class ExpenseEventConsumer {
 
     private void handleLargeExpense(JsonNode event) {
         log.debug("Large expense event received - could create alert story if desired");
-        // Optionally create a story for large expenses
+        
     }
 
     private void handleRecurringExpense(JsonNode event) {
         log.debug("Recurring expense detected - could create insight story if desired");
-        // Optionally create a story about detected recurring expenses
+        
     }
 }

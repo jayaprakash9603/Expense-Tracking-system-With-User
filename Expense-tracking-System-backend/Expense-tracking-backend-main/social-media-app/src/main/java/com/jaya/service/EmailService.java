@@ -48,12 +48,12 @@ public class EmailService {
 
     public void sendEmailWithAttachment(String to, String subject, String text, ByteArrayResource attachment, String attachmentFilename) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
-        // Enable multipart + HTML support
+        
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
         helper.setFrom("jjayaprakash2002@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
-        // Treat body as HTML if it looks like HTML, otherwise as plain text
+        
         boolean isHtml = text != null && text.trim().startsWith("<");
         helper.setText(text, isHtml);
         helper.addAttachment(attachmentFilename, attachment);
@@ -64,14 +64,14 @@ public class EmailService {
 
         System.out.println("email was sent successfully");
 
-        // Log the email sending history
+        
         EmailLog emailLog = new EmailLog();
         emailLog.setToEmail(to);
     emailLog.setSubject(subject);
     emailLog.setText(truncateForLog(text));
         emailLog.setSentAt(LocalDateTime.now());
 
-        // Create a map to store attachment details
+        
         Map<String, String> attachmentDetails = new HashMap<>();
         attachmentDetails.put("filename", attachmentFilename);
         attachmentDetails.put("size", String.valueOf(attachment.contentLength()));
@@ -81,22 +81,22 @@ public class EmailService {
         emailLogRepository.save(emailLog);
     }
 
-    /**
-     * Send an email with multiple attachments.
-     * This is used when we need to attach both expenses and bills Excel reports
-     * in a single email (e.g. "All Expenses" case on the frontend).
-     */
+    
+
+
+
+
     public void sendEmailWithAttachments(String to,
                                          String subject,
                                          String text,
                                          Map<String, ByteArrayResource> attachments) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
-        // Enable multipart + HTML support
+        
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
         helper.setFrom("jjayaprakash2002@gmail.com");
         helper.setTo(to);
         helper.setSubject(subject);
-        // Treat body as HTML if it looks like HTML, otherwise as plain text
+        
         boolean isHtml = text != null && text.trim().startsWith("<");
         helper.setText(text, isHtml);
 
@@ -110,7 +110,7 @@ public class EmailService {
 
         mailSender.send(message);
 
-        // Log the email sending history with attachment metadata
+        
         EmailLog emailLog = new EmailLog();
         emailLog.setToEmail(to);
     emailLog.setSubject(subject);
@@ -119,7 +119,7 @@ public class EmailService {
 
         Map<String, String> attachmentDetails = new HashMap<>();
         if (attachments != null) {
-            // Store comma-separated filenames; sizes are not cheap to read from ByteArrayResource
+            
             String filenames = String.join(",", attachments.keySet());
             attachmentDetails.put("filenames", filenames);
         }
@@ -128,10 +128,10 @@ public class EmailService {
         emailLogRepository.save(emailLog);
     }
 
-    /**
-     * Load the base HTML template and replace simple {{placeholders}}.
-     * This keeps email body generation centralized and reusable.
-     */
+    
+
+
+
     public String buildBaseTemplateBody(Map<String, String> variables) {
         try {
             ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -148,7 +148,7 @@ public class EmailService {
                 String template = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
                 Map<String, String> merged = new HashMap<>();
-                // Default values
+                
                 merged.put("subject", variables.getOrDefault("subject", "Expensio Report"));
                 merged.put("tagline", variables.getOrDefault("tagline", "Automated Report"));
                 merged.put("headline", variables.getOrDefault("headline", "Your latest"));
@@ -163,7 +163,7 @@ public class EmailService {
                 merged.put("settingsUrl", variables.getOrDefault("settingsUrl", "https://localhost:3000/settings/notifications"));
                 merged.put("privacyUrl", variables.getOrDefault("privacyUrl", "https://localhost:3000/privacy"));
 
-                // Apply overrides from caller
+                
                 merged.putAll(variables);
 
                 String body = template;
@@ -171,7 +171,7 @@ public class EmailService {
                     body = body.replace("{{" + entry.getKey() + "}}", entry.getValue() != null ? entry.getValue() : "");
                 }
 
-                // Clean up any unreplaced placeholders
+                
                 body = body.replaceAll("\\{\\{[a-zA-Z0-9_]+}}", "");
                 return body;
             }
@@ -182,7 +182,7 @@ public class EmailService {
     }
 
     public void sendOtpEmail(String to, String otp) {
-        // Temporarily commented out email sending for testing
+        
 
         try {
             MimeMessage message = mailSender.createMimeMessage();

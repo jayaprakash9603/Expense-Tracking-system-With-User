@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for top users by expense activity
- */
+
+
+
 @Data
 @Builder
 @NoArgsConstructor

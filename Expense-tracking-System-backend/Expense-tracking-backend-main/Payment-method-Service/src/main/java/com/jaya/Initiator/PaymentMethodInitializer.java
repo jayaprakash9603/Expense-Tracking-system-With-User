@@ -25,15 +25,15 @@ public class PaymentMethodInitializer {
         createIfNotExists("cash", "Default cash payment", "expense", "#0276bd", "cash",true);
         createIfNotExists("creditPaid", "Default card payment", "expense", "#57187d", "creditCard",true);
         createIfNotExists("creditNeedToPaid", "Others Description", "expense", "#CCCCCC", "creditCard",true);
-        // Add more as needed
+        
     }
 
     private void createIfNotExists(String name, String description, String type, String color, String icon, boolean isGlobal) {
         try {
             paymentMethodService.getByNameAndTypeOrCreate(name,type);
-            // Already exists, do nothing
+            
         } catch (EntityNotFoundException ex) {
-            // Not found, so create it
+            
             PaymentMethod paymentMethod = new PaymentMethod();
             paymentMethod.setName(name);
             paymentMethod.setDescription(description);

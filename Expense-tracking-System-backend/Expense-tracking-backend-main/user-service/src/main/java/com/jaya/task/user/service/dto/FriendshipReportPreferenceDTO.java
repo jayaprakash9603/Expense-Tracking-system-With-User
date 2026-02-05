@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for Friendship Report Preference
- * Used for API communication of layout preferences
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

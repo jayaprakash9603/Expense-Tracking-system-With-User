@@ -17,10 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for sending friend activity notifications.
- * Encapsulates the logic for building and sending FriendActivityEvents.
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,21 +28,21 @@ public class FriendActivityService {
 
     private final FriendActivityProducer friendActivityProducer;
 
-    /**
-     * Send notification when a friend creates an expense on behalf of another user.
-     *
-     * @param expense      The created expense
-     * @param targetUserId The user whose account was affected (owner)
-     * @param actorUser    The friend who created the expense
-     */
+    
+
+
+
+
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser) {
         sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates an expense with target user details.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser, User targetUser) {
         sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, targetUser);
@@ -52,7 +52,7 @@ public class FriendActivityService {
             User targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
-                // User is creating their own expense, not a friend activity
+                
                 log.debug("Skipping friend activity notification - user creating own expense");
                 return;
             }
@@ -84,22 +84,22 @@ public class FriendActivityService {
 
         } catch (Exception e) {
             log.error("Failed to send friend activity notification for expense creation: {}", e.getMessage(), e);
-            // Don't throw - notification failure shouldn't fail the main operation
+            
         }
     }
 
-    /**
-     * Send notification when a friend updates an expense.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseUpdatedByFriend(Expense expense, Integer targetUserId, User actorUser) {
         sendExpenseUpdatedByFriendInternal(expense, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates an expense with previous state and
-     * target user details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseUpdatedByFriend(Expense expense, Expense previousExpense, Integer targetUserId,
             User actorUser, User targetUser) {
@@ -143,19 +143,19 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes an expense.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount,
             Integer targetUserId, User actorUser) {
         sendExpenseDeletedByFriendInternal(expenseId, expenseName, amount, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes an expense with deleted entity
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount, Expense deletedExpense,
             Integer targetUserId, User actorUser, User targetUser) {
@@ -198,17 +198,17 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend copies an expense.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser) {
         sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend copies an expense with target user details.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser, User targetUser) {
         sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, targetUser);
@@ -250,10 +250,10 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Get display name for the actor user.
-     * Uses the User's getDisplayName() helper method which handles null checks.
-     */
+    
+
+
+
     private String getActorDisplayName(User actor) {
         if (actor == null) {
             return "A friend";
@@ -262,9 +262,9 @@ public class FriendActivityService {
         return (displayName != null && !displayName.trim().isEmpty()) ? displayName : "A friend";
     }
 
-    /**
-     * Build UserInfo from User for enhanced event data.
-     */
+    
+
+
     private FriendActivityEvent.UserInfo buildUserInfo(User user) {
         if (user == null)
             return null;
@@ -286,10 +286,10 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Build complete expense payload as a Map for entity data (from Expense
-     * entity).
-     */
+    
+
+
+
     private Map<String, Object> buildExpensePayload(Expense expense) {
         if (expense == null)
             return null;
@@ -318,9 +318,9 @@ public class FriendActivityService {
         return payload;
     }
 
-    /**
-     * Build complete expense payload as a Map for entity data (from ExpenseDTO).
-     */
+    
+
+
     private Map<String, Object> buildExpenseDTOPayload(ExpenseDTO expense) {
         if (expense == null)
             return null;
@@ -373,18 +373,18 @@ public class FriendActivityService {
                 category, paymentMethod, type);
     }
 
-    /**
-     * Send notification when a friend adds multiple expenses.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
         sendBulkExpensesCreatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend adds multiple expenses with target user
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
             User targetUser) {
@@ -405,7 +405,7 @@ public class FriendActivityService {
                     .mapToDouble(e -> e.getExpense().getAmount())
                     .sum() : 0.0;
 
-            // Build bulk payload
+            
             Map<String, Object> bulkPayload = new HashMap<>();
             bulkPayload.put("expenseCount", count);
             bulkPayload.put("totalAmount", totalAmount);
@@ -440,18 +440,18 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates multiple expenses.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
         sendBulkExpensesUpdatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates multiple expenses with target user
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
             User targetUser) {
@@ -468,7 +468,7 @@ public class FriendActivityService {
             String actorName = getActorDisplayName(actorUser);
             int count = expenses != null ? expenses.size() : 0;
 
-            // Build bulk payload
+            
             Map<String, Object> bulkPayload = new HashMap<>();
             bulkPayload.put("expenseCount", count);
             if (expenses != null) {
@@ -502,18 +502,18 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes multiple expenses.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
         sendBulkExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes multiple expenses with deleted
-     * entities details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
             User actorUser, User targetUser) {
@@ -529,7 +529,7 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
-            // Build payload with deleted expenses info
+            
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedExpenses != null && !deletedExpenses.isEmpty()) {
@@ -567,18 +567,18 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes all expenses.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
         sendAllExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes all expenses with deleted entities
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
             User actorUser, User targetUser) {
@@ -594,7 +594,7 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
-            // Build payload with deleted expenses info
+            
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             payload.put("deleteAll", true);

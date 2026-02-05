@@ -4,7 +4,7 @@ public class ReportRequest {
     private String toEmail;
     private String reportType;
 
-    // Getters and setters
+    
     public String getToEmail() {
         return toEmail;
     }

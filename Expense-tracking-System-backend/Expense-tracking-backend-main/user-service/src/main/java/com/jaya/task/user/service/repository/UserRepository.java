@@ -13,15 +13,15 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @EntityGraph(attributePaths = "roles")
     User findByEmail(String email);
 
-    // Custom query to fetch user with roles eagerly
+    
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.email = :email")
     User findByEmailWithRoles(@Param("email") String email);
 
-    // Custom query to fetch user by ID with roles
+    
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id")
     User findByIdWithRoles(@Param("id") Integer id);
 
-    // Find all users with roles
+    
     @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles")
     java.util.List<User> findAllWithRoles();
 

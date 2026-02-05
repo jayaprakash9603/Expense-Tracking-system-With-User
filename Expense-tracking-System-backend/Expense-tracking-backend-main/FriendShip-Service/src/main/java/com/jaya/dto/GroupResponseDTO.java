@@ -27,5 +27,5 @@ public class GroupResponseDTO {
     private GroupRole currentUserRole;
     private Map<String, Boolean> currentUserPermissions;
     private String avatar;
-    private Integer totalExpenses=0;
+    private Integer totalExpenses = 0;
 }

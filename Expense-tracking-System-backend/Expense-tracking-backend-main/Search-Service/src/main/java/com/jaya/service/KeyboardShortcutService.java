@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service for managing keyboard shortcuts.
- * 
- * Handles:
- * - User shortcut preferences (customizations, enabled/disabled)
- * - Conflict detection
- * - Usage tracking
- * - Recommendations
- */
+
+
+
+
+
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,19 +28,19 @@ public class KeyboardShortcutService {
 
     private final KeyboardShortcutRepository repository;
 
-    // Reserved shortcuts that cannot be customized
+    
     private static final Set<String> RESERVED_KEYS = Set.of(
             "mod+t", "mod+w", "mod+q", "mod+n", "mod+c", "mod+v", "mod+x",
             "mod+z", "mod+a", "mod+s", "mod+p", "mod+f", "f12");
 
-    // Destructive actions that should not get recommendations
+    
     private static final Set<String> DESTRUCTIVE_ACTIONS = Set.of(
             "DELETE_EXPENSE", "DELETE_BUDGET", "DELETE_BILL", "DELETE_CATEGORY",
             "DELETE_PAYMENT_METHOD", "DELETE_ACCOUNT", "LOGOUT");
 
-    /**
-     * Get all shortcut configurations for a user.
-     */
+    
+
+
     @Transactional(readOnly = true)
     public ShortcutsResponse getUserShortcuts(Long userId) {
         log.debug("Fetching shortcuts for user: {}", userId);
@@ -65,9 +65,9 @@ public class KeyboardShortcutService {
                 .build();
     }
 
-    /**
-     * Update shortcut configurations for a user.
-     */
+    
+
+
     @Transactional
     public ShortcutsResponse updateShortcuts(Long userId, UpdateShortcutsRequest request) {
         log.info("Updating shortcuts for user: {}, count: {}", userId, request.getShortcuts().size());
@@ -106,27 +106,27 @@ public class KeyboardShortcutService {
                 .build();
     }
 
-    /**
-     * Process a single shortcut update.
-     */
+    
+
+
     private KeyboardShortcut processUpdate(Long userId, UpdateShortcutsRequest.ShortcutUpdate update) {
-        // Validate custom keys
+        
         if (update.getCustomKeys() != null && !update.getCustomKeys().isBlank()) {
             String normalizedKeys = normalizeKeys(update.getCustomKeys());
 
-            // Check reserved keys
+            
             if (RESERVED_KEYS.contains(normalizedKeys)) {
                 throw new IllegalArgumentException("This key combination is reserved by the browser");
             }
 
-            // Check for conflicts with other shortcuts
+            
             if (repository.existsByUserIdAndCustomKeysAndActionIdNot(
                     userId, normalizedKeys, update.getActionId())) {
                 throw new IllegalArgumentException("This key combination is already in use");
             }
         }
 
-        // Find or create the shortcut record
+        
         KeyboardShortcut shortcut = repository
                 .findByUserIdAndActionId(userId, update.getActionId())
                 .orElseGet(() -> KeyboardShortcut.builder()
@@ -139,7 +139,7 @@ public class KeyboardShortcutService {
                         .updatedAt(LocalDateTime.now())
                         .build());
 
-        // Apply updates
+        
         if (update.getCustomKeys() != null) {
             shortcut.setCustomKeys(
                     update.getCustomKeys().isBlank() ? null : normalizeKeys(update.getCustomKeys()));
@@ -156,9 +156,9 @@ public class KeyboardShortcutService {
         return repository.save(shortcut);
     }
 
-    /**
-     * Reset all shortcuts to defaults for a user.
-     */
+    
+
+
     @Transactional
     public ShortcutsResponse resetToDefaults(Long userId) {
         log.info("Resetting shortcuts to defaults for user: {}", userId);
@@ -175,15 +175,15 @@ public class KeyboardShortcutService {
                 .build();
     }
 
-    /**
-     * Track shortcut usage.
-     */
+    
+
+
     @Transactional
     public void trackUsage(Long userId, String actionId) {
         int updated = repository.incrementUsageCount(userId, actionId);
 
         if (updated == 0) {
-            // Create a new record for tracking
+            
             KeyboardShortcut shortcut = KeyboardShortcut.builder()
                     .userId(userId)
                     .actionId(actionId)
@@ -198,30 +198,30 @@ public class KeyboardShortcutService {
         }
     }
 
-    /**
-     * Get shortcut recommendations for a user.
-     */
+    
+
+
     @Transactional(readOnly = true)
     public RecommendationsResponse getRecommendations(Long userId) {
         log.debug("Generating recommendations for user: {}", userId);
 
-        // Get user's shortcuts with usage data
+        
         List<KeyboardShortcut> userShortcuts = repository.findByUserId(userId);
 
-        // Get rejected action IDs
+        
         Set<String> rejectedActions = userShortcuts.stream()
                 .filter(KeyboardShortcut::getRecommendationRejected)
                 .map(KeyboardShortcut::getActionId)
                 .collect(Collectors.toSet());
 
-        // Get action usage counts
+        
         Map<String, KeyboardShortcut> usageMap = userShortcuts.stream()
                 .collect(Collectors.toMap(
                         KeyboardShortcut::getActionId,
                         s -> s,
                         (a, b) -> a));
 
-        // Generate recommendations (this would be more sophisticated in production)
+        
         List<ShortcutRecommendationDTO> recommendations = generateRecommendations(
                 usageMap, rejectedActions);
 
@@ -233,16 +233,16 @@ public class KeyboardShortcutService {
                 .build();
     }
 
-    /**
-     * Generate shortcut recommendations based on usage patterns.
-     */
+    
+
+
     private List<ShortcutRecommendationDTO> generateRecommendations(
             Map<String, KeyboardShortcut> usageMap,
             Set<String> rejectedActions) {
 
         List<ShortcutRecommendationDTO> recommendations = new ArrayList<>();
 
-        // Common actions that benefit from shortcuts
+        
         Map<String, ShortcutRecommendationDTO> potentialRecommendations = Map.of(
                 "NEW_EXPENSE", ShortcutRecommendationDTO.builder()
                         .actionId("NEW_EXPENSE")
@@ -280,7 +280,7 @@ public class KeyboardShortcutService {
         for (Map.Entry<String, ShortcutRecommendationDTO> entry : potentialRecommendations.entrySet()) {
             String actionId = entry.getKey();
 
-            // Skip if rejected or destructive
+            
             if (rejectedActions.contains(actionId) || DESTRUCTIVE_ACTIONS.contains(actionId)) {
                 continue;
             }
@@ -288,7 +288,7 @@ public class KeyboardShortcutService {
             KeyboardShortcut usage = usageMap.get(actionId);
             int usageCount = usage != null ? usage.getUsageCount() : 0;
 
-            // Only recommend if usage count indicates frequent use (threshold: 5)
+            
             if (usageCount >= 5) {
                 ShortcutRecommendationDTO recommendation = entry.getValue();
                 recommendation.setUiActionCount(usageCount);
@@ -297,18 +297,18 @@ public class KeyboardShortcutService {
             }
         }
 
-        // Sort by score descending
+        
         recommendations.sort((a, b) -> Double.compare(b.getScore(), a.getScore()));
 
-        // Return top 5 recommendations
+        
         return recommendations.stream()
                 .limit(5)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calculate recommendation score.
-     */
+    
+
+
     private double calculateScore(int usageCount, KeyboardShortcut usage) {
         double frequencyScore = Math.min(usageCount / 50.0, 1.0);
         double recencyScore = 0.5;
@@ -322,9 +322,9 @@ public class KeyboardShortcutService {
         return (0.6 * frequencyScore) + (0.4 * recencyScore);
     }
 
-    /**
-     * Normalize key combination to consistent format.
-     */
+    
+
+
     private String normalizeKeys(String keys) {
         if (keys == null)
             return null;
@@ -337,9 +337,9 @@ public class KeyboardShortcutService {
                 .trim();
     }
 
-    /**
-     * Convert entity to DTO.
-     */
+    
+
+
     private KeyboardShortcutDTO toDTO(KeyboardShortcut entity) {
         return KeyboardShortcutDTO.builder()
                 .id(entity.getId())

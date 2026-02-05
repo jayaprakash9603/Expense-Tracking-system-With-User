@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Event DTO for Expense notifications
- * This matches the ExpenseEventDTO structure expected by Notification Service
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +26,7 @@ public class ExpenseNotificationEvent implements Serializable {
 
     private Integer expenseId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, APPROVE, REJECT
+    private String action; 
     private Double amount;
     private String description;
     private String category;
@@ -37,11 +37,11 @@ public class ExpenseNotificationEvent implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
-    private String metadata; // JSON string for additional data
+    private String metadata; 
 
-    /**
-     * Action constants for expense events
-     */
+    
+
+
     public static class Action {
         public static final String CREATE = "CREATE";
         public static final String UPDATE = "UPDATE";
@@ -50,7 +50,7 @@ public class ExpenseNotificationEvent implements Serializable {
         public static final String REJECT = "REJECT";
 
         private Action() {
-            // Utility class
+            
         }
     }
 }

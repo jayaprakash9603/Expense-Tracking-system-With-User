@@ -10,12 +10,12 @@ public class PaymentMethodEvent implements Serializable {
     private String description;
     private String icon;
     private String color;
-    private String eventType; // CREATE, UPDATE, DELETE
-    private Boolean notifyUser; // Flag to indicate if notification should be sent to user
+    private String eventType; 
+    private Boolean notifyUser; 
 
-    // Constructors
+    
     public PaymentMethodEvent() {
-        this.notifyUser = false; // Default to false for backward compatibility
+        this.notifyUser = false; 
     }
 
     public PaymentMethodEvent(Integer userId, Integer expenseId, String paymentMethodName,
@@ -29,7 +29,7 @@ public class PaymentMethodEvent implements Serializable {
         this.icon = icon;
         this.color = color;
         this.eventType = eventType;
-        this.notifyUser = false; // Internal data sync - no notification needed
+        this.notifyUser = false; 
     }
 
     public PaymentMethodEvent(Integer userId, Integer expenseId, String paymentMethodName,
@@ -46,7 +46,7 @@ public class PaymentMethodEvent implements Serializable {
         this.notifyUser = notifyUser;
     }
 
-    // Getters and Setters
+    
     public Integer getUserId() {
         return userId;
     }

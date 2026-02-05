@@ -46,7 +46,7 @@ public class Budget {
     @Column(nullable = false)
     private boolean includeInBudget = false;
 
-    // Notification tracking flags - to prevent duplicate notifications
+    
     @Column(nullable = false)
     private boolean notification50PercentSent = false;
 
@@ -66,10 +66,10 @@ public class Budget {
         this.amount -= expenseAmount;
     }
 
-    /**
-     * Resets notification flags when budget usage decreases below thresholds.
-     * Called when expenses are removed or budget amount is increased.
-     */
+    
+
+
+
     public void resetNotificationFlags(double currentPercentage) {
         if (currentPercentage < 50.0) {
             this.notification50PercentSent = false;

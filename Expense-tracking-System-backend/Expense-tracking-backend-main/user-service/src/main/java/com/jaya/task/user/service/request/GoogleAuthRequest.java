@@ -6,30 +6,30 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for Google OAuth2 authentication.
- * Contains user information from Google OAuth response.
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GoogleAuthRequest {
 
-    private String credential; // Access token (optional, for verification)
+    private String credential; 
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
 
-    private String name; // Full name from Google
-    private String givenName; // First name
-    private String familyName; // Last name
-    private String picture; // Profile picture URL
-    private String sub; // Google's unique user ID
+    private String name; 
+    private String givenName; 
+    private String familyName; 
+    private String picture; 
+    private String sub; 
 
-    // Additional fields from Google People API
-    private String gender; // Gender (male, female, other)
-    private String birthday; // Birthday in format YYYY-MM-DD or MM-DD
-    private String phoneNumber; // Phone number if available
-    private String locale; // User's locale (e.g., "en", "en-US")
+    
+    private String gender; 
+    private String birthday; 
+    private String phoneNumber; 
+    private String locale; 
 }

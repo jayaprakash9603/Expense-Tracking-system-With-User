@@ -1,6 +1,5 @@
 package com.jaya.modal;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

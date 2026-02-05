@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Converter(autoApply = false) // Set to false to apply explicitly
+@Converter(autoApply = false) 
 public class SetIntegerConverter implements AttributeConverter<Set<Integer>, String> {
 
     @Override
@@ -33,7 +33,7 @@ public class SetIntegerConverter implements AttributeConverter<Set<Integer>, Str
                     .map(Integer::parseInt)
                     .collect(Collectors.toSet());
         } catch (NumberFormatException e) {
-            return new HashSet<>(); // Handle invalid data gracefully
+            return new HashSet<>(); 
         }
     }
 }

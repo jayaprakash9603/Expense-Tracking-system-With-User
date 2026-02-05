@@ -19,10 +19,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-/**
- * Universal Search Service
- * Aggregates search results from multiple microservices
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -54,9 +54,9 @@ public class UniversalSearchService {
     @Value("${search.default-limit:20}")
     private int defaultLimit;
 
-    /**
-     * Perform universal search across all domains
-     */
+    
+
+
     public UniversalSearchResponse search(SearchRequestDTO request, String authToken) {
         long startTime = System.currentTimeMillis();
 
@@ -65,53 +65,53 @@ public class UniversalSearchService {
 
         log.info("Starting universal search for query: '{}', limit: {}", query, limit);
 
-        // Parse which sections to search
+        
         Set<String> sectionsToSearch = parseSections(request.getSections());
 
-        // Create response builder
+        
         UniversalSearchResponse.UniversalSearchResponseBuilder responseBuilder = UniversalSearchResponse.builder()
                 .query(query);
 
-        // Execute parallel searches
+        
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        // Search Expenses
+        
         if (sectionsToSearch.contains("expenses") || sectionsToSearch.isEmpty()) {
             futures.add(searchExpenses(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.expenses(results)));
         }
 
-        // Search Budgets
+        
         if (sectionsToSearch.contains("budgets") || sectionsToSearch.isEmpty()) {
             futures.add(searchBudgets(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.budgets(results)));
         }
 
-        // Search Categories
+        
         if (sectionsToSearch.contains("categories") || sectionsToSearch.isEmpty()) {
             futures.add(searchCategories(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.categories(results)));
         }
 
-        // Search Bills
+        
         if (sectionsToSearch.contains("bills") || sectionsToSearch.isEmpty()) {
             futures.add(searchBills(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.bills(results)));
         }
 
-        // Search Payment Methods
+        
         if (sectionsToSearch.contains("payment_methods") || sectionsToSearch.isEmpty()) {
             futures.add(searchPaymentMethods(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.paymentMethods(results)));
         }
 
-        // Search Friends
+        
         if (sectionsToSearch.contains("friends") || sectionsToSearch.isEmpty()) {
             futures.add(searchFriends(query, limit, authToken)
                     .thenAccept(results -> responseBuilder.friends(results)));
         }
 
-        // Wait for all searches to complete
+        
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                     .get(searchTimeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
@@ -129,14 +129,14 @@ public class UniversalSearchService {
         return response;
     }
 
-    /**
-     * Search expenses with category enrichment
-     * Uses optimized fuzzy search endpoint to avoid N+1 queries
-     */
+    
+
+
+
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(
             String query, int limit, String authToken, Integer targetId) {
 
-        // First, fetch categories to get icon/color mappings
+        
         Mono<Map<Integer, Map<String, Object>>> categoriesMono = webClient.get()
                 .uri(categoryServiceUrl + "/api/categories", uriBuilder -> {
                     if (targetId != null) {
@@ -166,7 +166,7 @@ public class UniversalSearchService {
                     return Mono.just(new HashMap<>());
                 });
 
-        // Use optimized fuzzy search endpoint instead of fetching all and filtering
+        
         Mono<List<Map<String, Object>>> expensesMono = webClient.get()
                 .uri(expenseServiceUrl + "/api/expenses/search/fuzzy", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
@@ -186,7 +186,7 @@ public class UniversalSearchService {
                     return Mono.just(Collections.emptyList());
                 });
 
-        // Combine both results
+        
         return Mono.zip(expensesMono, categoriesMono)
                 .map(tuple -> {
                     List<Map<String, Object>> expenses = tuple.getT1();
@@ -196,9 +196,9 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    /**
-     * Search budgets using optimized fuzzy search endpoint
-     */
+    
+
+
     private CompletableFuture<List<SearchResultDTO>> searchBudgets(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -224,9 +224,9 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    /**
-     * Search categories using optimized fuzzy search endpoint
-     */
+    
+
+
     private CompletableFuture<List<SearchResultDTO>> searchCategories(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -252,9 +252,9 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    /**
-     * Search bills using optimized fuzzy search endpoint
-     */
+    
+
+
     private CompletableFuture<List<SearchResultDTO>> searchBills(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -280,9 +280,9 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    /**
-     * Search payment methods using optimized fuzzy search endpoint
-     */
+    
+
+
     private CompletableFuture<List<SearchResultDTO>> searchPaymentMethods(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -308,9 +308,9 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    /**
-     * Search friends
-     */
+    
+
+
     private CompletableFuture<List<SearchResultDTO>> searchFriends(
             String query, int limit, String authToken) {
 
@@ -330,11 +330,11 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    // ==================== Result Mapping Methods ====================
+    
 
-    /**
-     * Map expense results with category enrichment
-     */
+    
+
+
     private List<SearchResultDTO> mapExpenseResultsWithCategories(
             List<Map<String, Object>> expenses,
             Map<Integer, Map<String, Object>> categoryMap,
@@ -342,11 +342,11 @@ public class UniversalSearchService {
         return expenses.stream()
                 .limit(limit)
                 .map(exp -> {
-                    // Get expense details from nested object (for full Expense entities)
+                    
                     Map<String, Object> expenseDetails = (Map<String, Object>) exp.get("expense");
 
-                    // Extract name - try flat structure first (ExpenseSearchDTO), then nested
-                    // (Expense entity)
+                    
+                    
                     String name = (String) exp.get("expenseName");
                     if (name == null && expenseDetails != null) {
                         name = (String) expenseDetails.get("expenseName");
@@ -358,14 +358,14 @@ public class UniversalSearchService {
                         name = (String) exp.get("name");
                     }
 
-                    // Extract amount - try flat structure first, then nested
+                    
                     Object amount = exp.get("amount");
                     if (amount == null && expenseDetails != null) {
                         amount = expenseDetails.get("amount");
                     }
 
-                    // Extract other fields - try flat structure first (ExpenseSearchDTO), then
-                    // nested
+                    
+                    
                     String type = (String) exp.get("type");
                     String paymentMethod = (String) exp.get("paymentMethod");
                     String comments = (String) exp.get("comments");
@@ -385,7 +385,7 @@ public class UniversalSearchService {
                             creditDue = expenseDetails.get("creditDue");
                     }
 
-                    // Get category info - first try from expense, then from category map
+                    
                     String categoryName = (String) exp.getOrDefault("categoryName", "Uncategorized");
                     String categoryIcon = null;
                     String categoryColor = null;
@@ -396,7 +396,7 @@ public class UniversalSearchService {
                         categoryId = catIdObj instanceof Number ? ((Number) catIdObj).intValue()
                                 : Integer.parseInt(catIdObj.toString());
 
-                        // Enrich with category data from map
+                        
                         Map<String, Object> category = categoryMap.get(categoryId);
                         if (category != null) {
                             categoryIcon = (String) category.get("icon");
@@ -407,7 +407,7 @@ public class UniversalSearchService {
                         }
                     }
 
-                    // Build metadata with all relevant expense fields
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", amount != null ? amount : 0);
                     metadata.put("date", exp.getOrDefault("date", ""));
@@ -430,10 +430,10 @@ public class UniversalSearchService {
                     metadata.put("includeInBudget", exp.getOrDefault("includeInBudget", false));
                     metadata.put("isBill", exp.getOrDefault("isBill", false));
 
-                    // Format date for subtitle
+                    
                     String dateStr = formatDate(exp.get("date"));
 
-                    // Build subtitle - show comments if available, otherwise show category
+                    
                     String subtitle = (comments != null && !comments.isEmpty())
                             ? comments
                             : categoryName;
@@ -456,7 +456,7 @@ public class UniversalSearchService {
         return budgets.stream()
                 .limit(limit)
                 .map(budget -> {
-                    // Build comprehensive metadata for budgets
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", budget.getOrDefault("amount", 0));
                     metadata.put("spent", budget.getOrDefault("spent", 0));
@@ -489,7 +489,7 @@ public class UniversalSearchService {
         return categories.stream()
                 .limit(limit)
                 .map(cat -> {
-                    // Build comprehensive metadata for categories
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("description", cat.get("description"));
                     metadata.put("type", cat.getOrDefault("type", "expense"));
@@ -514,7 +514,7 @@ public class UniversalSearchService {
         return bills.stream()
                 .limit(limit)
                 .map(bill -> {
-                    // Build comprehensive metadata for bills
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", bill.getOrDefault("amount", 0));
                     metadata.put("dueDate", bill.get("dueDate"));
@@ -527,7 +527,7 @@ public class UniversalSearchService {
                     metadata.put("reminder", bill.get("reminder"));
                     metadata.put("paymentMethod", bill.get("paymentMethod"));
 
-                    // Build subtitle - show description if available, otherwise show frequency
+                    
                     String description = (String) bill.get("description");
                     String frequency = (String) bill.getOrDefault("frequency", "One-time");
                     String subtitle = (description != null && !description.isEmpty())
@@ -552,7 +552,7 @@ public class UniversalSearchService {
         return paymentMethods.stream()
                 .limit(limit)
                 .map(pm -> {
-                    // Build comprehensive metadata for payment methods
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("type", pm.getOrDefault("type", "Other"));
                     metadata.put("accountNumber", pm.get("accountNumber"));
@@ -587,7 +587,7 @@ public class UniversalSearchService {
                         fullName = email.isEmpty() ? "Friend" : email;
                     }
 
-                    // Build comprehensive metadata for friends
+                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("email", email);
                     metadata.put("firstName", firstName);
@@ -609,7 +609,7 @@ public class UniversalSearchService {
                 .collect(Collectors.toList());
     }
 
-    // ==================== Helper Methods ====================
+    
 
     private Set<String> parseSections(String sections) {
         if (sections == null || sections.trim().isEmpty()) {
@@ -634,15 +634,15 @@ public class UniversalSearchService {
         if (date == null)
             return "N/A";
         String dateStr = date.toString();
-        // Try to parse and format common date formats
+        
         try {
-            // Handle ISO date format (e.g., "2025-10-09")
+            
             if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
                 java.time.LocalDate localDate = java.time.LocalDate.parse(dateStr.substring(0, 10));
                 return localDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy"));
             }
         } catch (Exception e) {
-            // Fall back to original string if parsing fails
+            
         }
         return dateStr;
     }

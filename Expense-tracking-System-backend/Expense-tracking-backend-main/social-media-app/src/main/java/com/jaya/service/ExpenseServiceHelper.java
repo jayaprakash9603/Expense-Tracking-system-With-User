@@ -29,7 +29,7 @@ public class ExpenseServiceHelper {
     private ServiceHelper helper;
 
 
-    // Inner class to hold request context
+    
     public static class RequestContext {
         private final User reqUser;
         private final User targetUser;
@@ -46,7 +46,7 @@ public class ExpenseServiceHelper {
         public String getAuditMessage() { return auditMessage; }
     }
 
-    // Email report context
+    
     public static class EmailReportContext {
         private final User reqUser;
         private final User targetUser;
@@ -66,13 +66,13 @@ public class ExpenseServiceHelper {
         public String getReportType() { return reportType; }
     }
 
-    // Common validation methods
+    
     public ResponseEntity<Map<String, Object>> validateYear(int year) {
         if (year != 0 && (year < 2000 || year > 2100)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Year must be between 2000 and 2100"));
         }
-        return null; // No error
+        return null; 
     }
 
     public int normalizeYear(int year) {
@@ -147,7 +147,7 @@ public class ExpenseServiceHelper {
         return null;
     }
 
-    // Authentication and authorization
+    
 
     public User authenticateUser(String jwt) {
         return userService.findUserByJwt(jwt);
@@ -164,7 +164,7 @@ public class ExpenseServiceHelper {
         }
 
         if (!targetId.equals(reqUser.getId())) {
-            // Add your admin/permission check logic here
+            
             try {
                 User fetched = userService.findUserById(targetId);
                 if (fetched == null) {
@@ -179,7 +179,7 @@ public class ExpenseServiceHelper {
         return reqUser;
     }
 
-    // Setup request context with authentication and user resolution
+    
     public ResponseEntity<?> setupRequestContext(String jwt, Integer targetId, String auditMessageTemplate, Object... params) {
         User reqUser = authenticateUser(jwt);
         if (reqUser == null) {
@@ -200,7 +200,7 @@ public class ExpenseServiceHelper {
         return ResponseEntity.ok(new RequestContext(reqUser, targetUser, auditMessage));
     }
 
-    // Setup email report context
+    
     public ResponseEntity<?> setupEmailReportContext(String jwt, Integer targetId, String email, String reportType) {
         ResponseEntity<Map<String, Object>> emailValidation = validateEmail(email);
         if (emailValidation != null) {
@@ -238,7 +238,7 @@ public class ExpenseServiceHelper {
         }
     }
 
-    // Date range calculation
+    
     public Map<String, LocalDate> calculateDateRange(String rangeType, int offset) {
         LocalDate now = LocalDate.now();
         LocalDate startDate;
@@ -267,9 +267,9 @@ public class ExpenseServiceHelper {
         return dateRange;
     }
 
-    // Audit logging
+    
     public void logAudit(User user, Integer expenseId, String action, String message) {
-        // auditExpenseService.logAudit(user, expenseId, action, message);
+        
     }
 
     public String createAuditMessage(String baseMessage, Integer targetId, Integer reqUserId, Object... params) {
@@ -280,7 +280,7 @@ public class ExpenseServiceHelper {
         return formattedMessage;
     }
 
-    // Generic response handler with comprehensive error handling
+    
     public <T> ResponseEntity<?> executeWithErrorHandling(Supplier<T> operation, String errorContext) {
         try {
             T result = operation.get();
@@ -301,7 +301,7 @@ public class ExpenseServiceHelper {
         }
     }
 
-    // Email report helper
+    
     public <T> ResponseEntity<?> executeEmailReport(
             String jwt,
             Integer targetId,
@@ -333,7 +333,7 @@ public class ExpenseServiceHelper {
         Object process(EmailReportContext context, T data) throws Exception;
     }
 
-    // Pagination response builder
+    
     public Map<String, Object> buildPaginatedResponse(Object data, int page, int size, String sortBy, String sortOrder) {
         Map<String, Object> response = new HashMap<>();
         response.put("data", data);
@@ -346,7 +346,7 @@ public class ExpenseServiceHelper {
         return response;
     }
 
-    // Common validation chains
+    
     public ResponseEntity<Map<String, Object>> validateYearAndNormalize(int year) {
         ResponseEntity<Map<String, Object>> validation = validateYear(year);
         return validation;
@@ -362,7 +362,7 @@ public class ExpenseServiceHelper {
         return validateSortBy(sortBy, validSortFields);
     }
 
-    // Path parameter validation
+    
     public ResponseEntity<Map<String, Object>> validatePathParameter(String paramName, String value) {
         if (value == null || value.trim().isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -379,7 +379,7 @@ public class ExpenseServiceHelper {
         return null;
     }
 
-    // Date parsing helper
+    
     public LocalDate parseDate(String dateString, String paramName) {
         try {
             return LocalDate.parse(dateString);

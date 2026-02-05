@@ -8,18 +8,18 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 
-/**
- * JWT Token Provider for extracting user information from tokens
- */
+
+
+
 @Component
 public class JwtTokenProvider {
 
     @Value("${jwt.secret:your-256-bit-secret-key-here-for-production}")
     private String jwtSecret;
 
-    /**
-     * Extract user email from JWT token
-     */
+    
+
+
     public String getEmailFromToken(String token) {
         try {
             String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
@@ -37,9 +37,9 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Extract user ID from JWT token
-     */
+    
+
+
     public Integer getUserIdFromToken(String token) {
         try {
             String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
@@ -65,9 +65,9 @@ public class JwtTokenProvider {
         }
     }
 
-    /**
-     * Validate JWT token
-     */
+    
+
+
     public boolean validateToken(String token) {
         try {
             String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;

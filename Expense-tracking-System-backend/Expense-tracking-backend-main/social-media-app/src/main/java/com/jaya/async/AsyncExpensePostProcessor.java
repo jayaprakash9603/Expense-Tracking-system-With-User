@@ -36,10 +36,10 @@ public class AsyncExpensePostProcessor {
     private final AsyncTaskExecutor expensePostExecutor;
 
     public AsyncExpensePostProcessor(PaymentMethodKafkaProducerService paymentMethodKafkaProducer,
-                                     CategoryExpenseKafkaProducerService categoryExpenseKafkaProducer,
-                                     BudgetExpenseKafkaProducerService budgetExpenseKafkaProducerService,
-                                     CacheManager cacheManager,
-                                     @Qualifier("expensePostExecutor") AsyncTaskExecutor expensePostExecutor) {
+            CategoryExpenseKafkaProducerService categoryExpenseKafkaProducer,
+            BudgetExpenseKafkaProducerService budgetExpenseKafkaProducerService,
+            CacheManager cacheManager,
+            @Qualifier("expensePostExecutor") AsyncTaskExecutor expensePostExecutor) {
         this.paymentMethodKafkaProducer = paymentMethodKafkaProducer;
         this.categoryExpenseKafkaProducer = categoryExpenseKafkaProducer;
         this.budgetExpenseKafkaProducerService = budgetExpenseKafkaProducerService;
@@ -49,9 +49,9 @@ public class AsyncExpensePostProcessor {
 
     @Async("expensePostExecutor")
     public void publishEvent(List<Expense> savedExpenses, Integer userId, User user) {
-        if (savedExpenses == null || savedExpenses.isEmpty()) return;
+        if (savedExpenses == null || savedExpenses.isEmpty())
+            return;
         try {
-            // Process in chunks to avoid spawning one task per expense
             int chunkSize = 1000;
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (int i = 0; i < savedExpenses.size(); i += chunkSize) {
@@ -72,10 +72,10 @@ public class AsyncExpensePostProcessor {
         }
     }
 
-    // Overload with jobId and counters for observability
     @Async("expensePostExecutor")
     public void publishEvent(List<Expense> savedExpenses, Integer userId, User user, String jobId) {
-        if (savedExpenses == null || savedExpenses.isEmpty()) return;
+        if (savedExpenses == null || savedExpenses.isEmpty())
+            return;
         AtomicInteger pmCount = new AtomicInteger(0);
         AtomicInteger catCount = new AtomicInteger(0);
         AtomicInteger budCount = new AtomicInteger(0);
@@ -99,7 +99,8 @@ public class AsyncExpensePostProcessor {
             int cat = catCount.get();
             int bud = budCount.get();
             int total = pm + cat + bud;
-            logger.info("Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (user {})",
+            logger.info(
+                    "Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (user {})",
                     jobId, total, pm, cat, bud, failed.get(), savedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Job {}: Async post-processing failed: {}", jobId, ex.getMessage(), ex);
@@ -117,10 +118,9 @@ public class AsyncExpensePostProcessor {
     }
 
     private void processSingleExpenseTracked(Expense savedExpense, Integer userId, User user,
-                                             AtomicInteger pmCount, AtomicInteger catCount,
-                                             AtomicInteger budCount, AtomicInteger failed) {
+            AtomicInteger pmCount, AtomicInteger catCount,
+            AtomicInteger budCount, AtomicInteger failed) {
         try {
-            // Payment method event
             ExpenseDetails details = savedExpense.getExpense();
             if (details != null && details.getPaymentMethod() != null) {
                 String paymentMethodName = details.getPaymentMethod().trim();
@@ -134,35 +134,28 @@ public class AsyncExpensePostProcessor {
                             "Automatically created for expense: " + paymentMethodName,
                             CASH,
                             getThemeAppropriateColor("salary"),
-                            "CREATE"
-                    );
+                            "CREATE");
                     paymentMethodKafkaProducer.sendPaymentMethodEvent(event);
                     pmCount.incrementAndGet();
                 }
             }
-
-            // Category event
             if (savedExpense.getCategoryId() != null) {
                 CategoryExpenseEvent event = new CategoryExpenseEvent(
                         userId,
                         savedExpense.getId(),
                         savedExpense.getCategoryId(),
                         savedExpense.getCategoryName(),
-                        "ADD"
-                );
+                        "ADD");
                 categoryExpenseKafkaProducer.sendCategoryExpenseEvent(event);
                 catCount.incrementAndGet();
             }
-
-            // Budget event
             Set<Integer> validBudgetIds = savedExpense.getBudgetIds();
             if (validBudgetIds != null && !validBudgetIds.isEmpty()) {
                 BudgetExpenseEvent event = new BudgetExpenseEvent(
                         user.getId(),
                         savedExpense.getId(),
                         validBudgetIds,
-                        "ADD"
-                );
+                        "ADD");
                 budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(event);
                 budCount.incrementAndGet();
             }
@@ -174,9 +167,11 @@ public class AsyncExpensePostProcessor {
 
     private void handlePaymentMethod(Expense savedExpense, User user) {
         ExpenseDetails details = savedExpense.getExpense();
-        if (details == null || details.getPaymentMethod() == null) return;
+        if (details == null || details.getPaymentMethod() == null)
+            return;
         String paymentMethodName = details.getPaymentMethod().trim();
-        if (paymentMethodName.isEmpty()) return;
+        if (paymentMethodName.isEmpty())
+            return;
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
         PaymentMethodEvent event = new PaymentMethodEvent(
                 user.getId(),
@@ -186,40 +181,41 @@ public class AsyncExpensePostProcessor {
                 "Automatically created for expense: " + paymentMethodName,
                 CASH,
                 getThemeAppropriateColor("salary"),
-                "CREATE"
-        );
+                "CREATE");
         paymentMethodKafkaProducer.sendPaymentMethodEvent(event);
     }
 
     private void updateCategoryExpenseIds(Expense savedExpense, Integer userId) {
-        if (savedExpense.getCategoryId() == null) return;
+        if (savedExpense.getCategoryId() == null)
+            return;
         CategoryExpenseEvent event = new CategoryExpenseEvent(
                 userId,
                 savedExpense.getId(),
                 savedExpense.getCategoryId(),
                 savedExpense.getCategoryName(),
-                "ADD"
-        );
+                "ADD");
         categoryExpenseKafkaProducer.sendCategoryExpenseEvent(event);
     }
 
     private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) {
-        if (validBudgetIds == null || validBudgetIds.isEmpty()) return;
+        if (validBudgetIds == null || validBudgetIds.isEmpty())
+            return;
         BudgetExpenseEvent event = new BudgetExpenseEvent(
                 user.getId(),
                 savedExpense.getId(),
                 validBudgetIds,
-                "ADD"
-        );
+                "ADD");
         budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(event);
     }
 
     private void updateExpenseCache(List<Expense> savedExpenses, Integer userId) {
         Cache cache = cacheManager.getCache("expenses");
-        if (cache == null) return;
+        if (cache == null)
+            return;
         synchronized (("expenses-" + userId).intern()) {
             List<Expense> cached = cache.get(userId, List.class);
-            if (cached == null) cached = new ArrayList<>();
+            if (cached == null)
+                cached = new ArrayList<>();
             cached.addAll(savedExpenses);
             cache.put(userId, cached);
         }
@@ -234,7 +230,6 @@ public class AsyncExpensePostProcessor {
         return colors.get(Math.abs(hash % colors.size()));
     }
 
-
     @Async("expensePostExecutor")
     public void publishDeletionEvents(List<Expense> deletedExpenses, Integer userId) {
         if (deletedExpenses == null || deletedExpenses.isEmpty()) {
@@ -246,7 +241,7 @@ public class AsyncExpensePostProcessor {
                     .map(expense -> CompletableFuture.runAsync(
                             () -> processSingleExpenseDeletion(expense, userId),
                             expensePostExecutor))
-                       .toList();
+                    .toList();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             logger.info("Async deletion event processing completed for {} expenses (user {})",
@@ -258,13 +253,10 @@ public class AsyncExpensePostProcessor {
 
     private void processSingleExpenseDeletion(Expense expense, Integer userId) {
         try {
-            // Publish budget expense deletion event
             publishBudgetExpenseDeletionEvent(expense, userId);
 
-            // Publish category expense deletion event
             publishCategoryExpenseDeletionEvent(expense, userId);
 
-            // Publish payment method expense deletion event
             publishPaymentMethodExpenseDeletionEvent(expense, userId);
 
             logger.debug("Deletion events published for expense ID: {}", expense.getId());
@@ -282,8 +274,7 @@ public class AsyncExpensePostProcessor {
                         userId,
                         expense.getId(),
                         budgetIds,
-                        "REMOVE"
-                );
+                        "REMOVE");
                 budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(budgetEvent);
                 logger.debug("Budget expense deletion event sent for expense ID: {} with budget IDs: {}",
                         expense.getId(), budgetIds);
@@ -303,8 +294,7 @@ public class AsyncExpensePostProcessor {
                         expense.getId(),
                         categoryId,
                         expense.getCategoryName(),
-                        "REMOVE"
-                );
+                        "REMOVE");
                 categoryExpenseKafkaProducer.sendCategoryExpenseEvent(categoryEvent);
                 logger.debug("Category expense deletion event sent for expense ID: {} with category ID: {}",
                         expense.getId(), categoryId);
@@ -320,7 +310,9 @@ public class AsyncExpensePostProcessor {
         if (details != null && details.getPaymentMethod() != null && !details.getPaymentMethod().trim().isEmpty()) {
             try {
                 String paymentMethodName = details.getPaymentMethod().trim();
-                String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss")) ? "expense" : "income";
+                String paymentType = (details.getType() != null && details.getType().equalsIgnoreCase("loss"))
+                        ? "expense"
+                        : "income";
 
                 PaymentMethodEvent paymentEvent = new PaymentMethodEvent(
                         userId,
@@ -330,8 +322,7 @@ public class AsyncExpensePostProcessor {
                         "Expense deletion",
                         CASH,
                         getThemeAppropriateColor(paymentMethodName),
-                        "REMOVE"
-                );
+                        "REMOVE");
                 paymentMethodKafkaProducer.sendPaymentMethodEvent(paymentEvent);
                 logger.debug("Payment method expense deletion event sent for expense ID: {} with payment method: {}",
                         expense.getId(), paymentMethodName);

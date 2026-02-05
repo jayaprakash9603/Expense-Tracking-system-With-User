@@ -37,25 +37,25 @@ public class OtpService {
 
     @Transactional
     public String generateAndSendOtp(String email) {
-        // Delete any existing OTPs for this email
+        
         otpRepository.deleteByEmail(email);
 
-        // Generate new OTP
+        
         String otp = generateOtp();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusSeconds(OTP_VALIDITY_SECONDS);
 
-        // Save OTP
+        
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
 
-        // Debug logging (requested): print OTP in backend logs
+        
         logger.info("Generated password-reset OTP for email={}: otp={}", email, otp);
 
-        // Send OTP via email (currently logged)
+        
         emailService.sendOtpEmail(email, otp);
 
-        return "Otp Send Successfull"; // Return OTP for response
+        return "Otp Send Successfull"; 
     }
 
     @Transactional
@@ -69,7 +69,7 @@ public class OtpService {
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
 
-        // Debug logging (requested): print OTP in backend logs
+        
         logger.info("Generated login OTP for email={}: otp={}", email, otp);
 
         emailService.sendLoginOtpEmail(email, otp);
@@ -83,10 +83,10 @@ public class OtpService {
         if (otpEntity.isPresent()) {
             Otp storedOtp = otpEntity.get();
             if (LocalDateTime.now().isBefore(storedOtp.getExpiresAt())) {
-                otpRepository.deleteByEmail(email); // Invalidate OTP after use
+                otpRepository.deleteByEmail(email); 
                 return true;
             }
-            otpRepository.deleteByEmail(email); // Delete expired OTP
+            otpRepository.deleteByEmail(email); 
         }
         return false;
     }

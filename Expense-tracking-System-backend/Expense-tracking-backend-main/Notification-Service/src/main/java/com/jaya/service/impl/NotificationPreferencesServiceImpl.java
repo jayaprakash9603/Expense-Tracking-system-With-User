@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -264,6 +265,7 @@ public class NotificationPreferencesServiceImpl implements NotificationPreferenc
         preferences.setBudgetWarningThreshold(80.0);
         preferences.setNotificationPreferencesJson(null);
     }
+
     private void updateFieldsIfNotNull(NotificationPreferences preferences,
             UpdateNotificationPreferencesRequest request) {
         if (request.getMasterEnabled() != null)

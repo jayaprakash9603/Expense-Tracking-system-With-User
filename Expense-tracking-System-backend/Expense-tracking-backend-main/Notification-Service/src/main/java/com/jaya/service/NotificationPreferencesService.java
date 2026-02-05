@@ -2,6 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.NotificationPreferencesResponseDTO;
 import com.jaya.dto.UpdateNotificationPreferencesRequest;
+
 public interface NotificationPreferencesService {
 
     NotificationPreferencesResponseDTO getPreferences(Integer userId);

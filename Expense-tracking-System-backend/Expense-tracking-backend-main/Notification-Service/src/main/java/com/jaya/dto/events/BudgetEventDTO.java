@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,13 +34,13 @@ public class BudgetEventDTO implements Serializable {
     private String action;
     private String budgetName;
     private Double amount;
-    
+
     @JsonAlias("spent")
     private BigDecimal spentAmount;
-    
+
     @JsonAlias("remaining")
     private BigDecimal remainingAmount;
-    
+
     private String category;
     private String period;
     private Set<Integer> expenseIds;
@@ -49,7 +50,7 @@ public class BudgetEventDTO implements Serializable {
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate startDate;
-    
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer.class)
     @JsonDeserialize(using = LocalDateDeserializer.class)

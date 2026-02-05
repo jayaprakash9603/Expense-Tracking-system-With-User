@@ -32,7 +32,7 @@ public class ExpenseDTO {
 
     private String categoryName = "";
 
-    // Nested expense details - matches the @OneToOne relationship
+    
     private ExpenseDetailsDTO expense;
 
     private boolean isBill = false;

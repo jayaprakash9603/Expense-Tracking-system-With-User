@@ -83,7 +83,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
 
             return expenseReportRepository.save(report);
         } else {
-            // If the expense does not exist, throw an exception
+            
             throw new RuntimeException("Expense not found for ID: " + expenseId);
         }
     }
@@ -128,7 +128,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    // --- helpers: expenses sheet ---
+    
     private void writeExpensesHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);
         headerRow.createCell(0).setCellValue("Expense ID");
@@ -167,7 +167,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    // --- helpers: category summary ---
+    
     private void writeCategorySummaryHeader(Sheet summarySheet) {
         Row summaryHeader = summarySheet.createRow(0);
         summaryHeader.createCell(0).setCellValue("Category ID");
@@ -248,7 +248,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    // --- helpers: payment method summary ---
+    
     private void writePaymentMethodHeader(Sheet sheet) {
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("Payment Method");
@@ -298,7 +298,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    // --- helpers: budgets sheet ---
+    
     private void writeBudgetHeader(Sheet sheet) {
         Row header = sheet.createRow(0);
         header.createCell(0).setCellValue("Budget ID");
@@ -328,7 +328,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    // --- helpers: categories cache and utilities ---
+    
     private Map<Integer, Category> preloadCategories(Integer userId) throws Exception {
         Map<Integer, Category> cache = new HashMap<>();
         List<Category> categories = categoryService.getAllForUser(userId);

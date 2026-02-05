@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +30,7 @@ public class SharedWithMeItem {
     private Boolean isSaved;
 
     private OwnerInfo owner;
+
     public String getStatus() {
         if (!Boolean.TRUE.equals(isActive)) {
             return "REVOKED";

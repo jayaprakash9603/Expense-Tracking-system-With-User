@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown for system-level errors.
- * Used for infrastructure, configuration, and unexpected errors.
- */
+
+
+
+
 public class SystemException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +26,7 @@ public class SystemException extends BaseException {
         super(errorCode, details, cause);
     }
 
-    // Factory methods for common system errors
+    
     public static SystemException internalError(Throwable cause) {
         return new SystemException(ErrorCode.SYSTEM_INTERNAL_ERROR, cause);
     }

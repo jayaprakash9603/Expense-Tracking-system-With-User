@@ -20,6 +20,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
+
 @Configuration
 @EnableKafka
 public class KafkaConfig {
@@ -73,22 +74,27 @@ public class KafkaConfig {
     public ConsumerFactory<String, Object> expenseEventConsumerFactory() {
         return createConsumerFactory("notification-expense-group");
     }
+
     @Bean
     public ConsumerFactory<String, Object> billEventConsumerFactory() {
         return createConsumerFactory("notification-bill-group");
     }
+
     @Bean
     public ConsumerFactory<String, Object> budgetEventConsumerFactory() {
         return createConsumerFactory("notification-budget-group");
     }
+
     @Bean
     public ConsumerFactory<String, Object> categoryEventConsumerFactory() {
         return createConsumerFactory("notification-category-group");
     }
+
     @Bean
     public ConsumerFactory<String, Object> paymentMethodEventConsumerFactory() {
         return createConsumerFactory("notification-payment-method-group");
     }
+
     @Bean
     public ConsumerFactory<String, Object> friendEventConsumerFactory() {
         return createConsumerFactory("notification-friend-group");
@@ -98,6 +104,7 @@ public class KafkaConfig {
     public ConsumerFactory<String, Object> friendRequestEventConsumerFactory() {
         return createConsumerFactory("notification-friend-request-group");
     }
+
     @Bean
     @Primary
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
@@ -114,6 +121,7 @@ public class KafkaConfig {
         factory.getContainerProperties().setPollTimeout(1000);
         return factory;
     }
+
     @Bean("billEventKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> billEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();

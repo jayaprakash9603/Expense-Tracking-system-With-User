@@ -7,19 +7,19 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Utility class for extracting and managing request context information.
- * Useful for logging, tracing, and audit purposes.
- */
+
+
+
+
 public final class RequestContextUtil {
 
     private RequestContextUtil() {
-        // Private constructor to prevent instantiation
+        
     }
 
-    /**
-     * Get the current HTTP request from the request context.
-     */
+    
+
+
     public static Optional<HttpServletRequest> getCurrentRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
@@ -28,10 +28,10 @@ public final class RequestContextUtil {
         return Optional.empty();
     }
 
-    /**
-     * Get client IP address from the request.
-     * Handles proxy headers (X-Forwarded-For).
-     */
+    
+
+
+
     public static String getClientIpAddress() {
         return getCurrentRequest()
                 .map(request -> {
@@ -48,18 +48,18 @@ public final class RequestContextUtil {
                 .orElse("unknown");
     }
 
-    /**
-     * Get User-Agent from the request.
-     */
+    
+
+
     public static String getUserAgent() {
         return getCurrentRequest()
                 .map(request -> request.getHeader("User-Agent"))
                 .orElse("unknown");
     }
 
-    /**
-     * Get correlation ID from request headers, or generate a new one.
-     */
+    
+
+
     public static String getCorrelationId() {
         return getCurrentRequest()
                 .map(request -> {
@@ -69,9 +69,9 @@ public final class RequestContextUtil {
                 .orElse(generateCorrelationId());
     }
 
-    /**
-     * Get request ID from headers, or generate a new one.
-     */
+    
+
+
     public static String getRequestId() {
         return getCurrentRequest()
                 .map(request -> {
@@ -81,18 +81,18 @@ public final class RequestContextUtil {
                 .orElse(generateRequestId());
     }
 
-    /**
-     * Get trace ID from headers.
-     */
+    
+
+
     public static String getTraceId() {
         return getCurrentRequest()
                 .map(request -> request.getHeader(CommonConstants.Headers.X_TRACE_ID))
                 .orElse(null);
     }
 
-    /**
-     * Get authorization token from request.
-     */
+    
+
+
     public static Optional<String> getAuthorizationToken() {
         return getCurrentRequest()
                 .map(request -> {
@@ -104,9 +104,9 @@ public final class RequestContextUtil {
                 });
     }
 
-    /**
-     * Get user ID from request header (set by gateway).
-     */
+    
+
+
     public static Optional<Integer> getUserIdFromHeader() {
         return getCurrentRequest()
                 .map(request -> {
@@ -122,44 +122,44 @@ public final class RequestContextUtil {
                 });
     }
 
-    /**
-     * Get user email from request header.
-     */
+    
+
+
     public static Optional<String> getUserEmailFromHeader() {
         return getCurrentRequest()
                 .map(request -> request.getHeader(CommonConstants.Headers.X_USER_EMAIL));
     }
 
-    /**
-     * Get request URI.
-     */
+    
+
+
     public static String getRequestUri() {
         return getCurrentRequest()
                 .map(HttpServletRequest::getRequestURI)
                 .orElse("unknown");
     }
 
-    /**
-     * Get HTTP method.
-     */
+    
+
+
     public static String getHttpMethod() {
         return getCurrentRequest()
                 .map(HttpServletRequest::getMethod)
                 .orElse("unknown");
     }
 
-    /**
-     * Get query string.
-     */
+    
+
+
     public static String getQueryString() {
         return getCurrentRequest()
                 .map(HttpServletRequest::getQueryString)
                 .orElse("");
     }
 
-    /**
-     * Get full request URL including query string.
-     */
+    
+
+
     public static String getFullRequestUrl() {
         return getCurrentRequest()
                 .map(request -> {
@@ -173,16 +173,16 @@ public final class RequestContextUtil {
                 .orElse("unknown");
     }
 
-    /**
-     * Generate a new correlation ID.
-     */
+    
+
+
     public static String generateCorrelationId() {
         return UUID.randomUUID().toString();
     }
 
-    /**
-     * Generate a new request ID.
-     */
+    
+
+
     public static String generateRequestId() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
     }

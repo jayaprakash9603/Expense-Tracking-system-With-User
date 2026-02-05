@@ -22,15 +22,15 @@ public class ExpenseReport {
     @Column(nullable = false)
     private Integer expenseId;
     
-    private String expenseName;  // New field for expense name
+    private String expenseName;  
     private String comments; 
     private String generatedTime;
 
     @Column(nullable = false)
-    private LocalDate generatedDate;  // The date the report was generated
+    private LocalDate generatedDate;  
 
-    private double totalAmount;  // The total amount of expenses in the report
-    private String reportDetails;  // Additional details of the report
+    private double totalAmount;  
+    private String reportDetails;  
 
-    // Any other fields you want in the report, such as category-wise breakdown
+    
 }

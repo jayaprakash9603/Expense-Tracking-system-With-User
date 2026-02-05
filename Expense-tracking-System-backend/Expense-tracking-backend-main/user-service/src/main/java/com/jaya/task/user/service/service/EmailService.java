@@ -40,14 +40,14 @@ public class EmailService {
 
         mailSender.send(message);
 
-        // Log the email sending history
+        
         EmailLog emailLog = new EmailLog();
         emailLog.setToEmail(to);
         emailLog.setSubject(subject);
         emailLog.setText(text);
         emailLog.setSentAt(LocalDateTime.now());
 
-        // Create a map to store attachment details
+        
         Map<String, String> attachmentDetails = new HashMap<>();
         attachmentDetails.put("filename", attachmentFilename);
         attachmentDetails.put("size", String.valueOf(attachment.contentLength()));

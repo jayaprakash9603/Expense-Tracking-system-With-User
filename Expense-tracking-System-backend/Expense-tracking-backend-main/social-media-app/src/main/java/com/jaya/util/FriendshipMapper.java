@@ -22,11 +22,9 @@ public class FriendshipMapper {
         userService = service;
     }
 
-    /**
-     * Convert a Friendship entity to a FriendshipResponseDTO
-     */
     public static FriendshipResponseDTO toDTO(Friendship friendship) throws Exception {
-        if (friendship == null) return null;
+        if (friendship == null)
+            return null;
 
         User requester = userService.findUserById(friendship.getRequesterId());
         User recipient = userService.findUserById(friendship.getRecipientId());
@@ -40,15 +38,12 @@ public class FriendshipMapper {
                 recipientDTO,
                 friendship.getStatus(),
                 friendship.getRequesterAccess(),
-                friendship.getRecipientAccess()
-        );
+                friendship.getRecipientAccess());
     }
 
-    /**
-     * Convert a list of Friendship entities to a list of FriendshipResponseDTOs
-     */
     public static List<FriendshipResponseDTO> toDTOList(List<Friendship> friendships) {
-        if (friendships == null) return new ArrayList<>();
+        if (friendships == null)
+            return new ArrayList<>();
         return friendships.stream()
                 .map(f -> {
                     try {
@@ -60,15 +55,13 @@ public class FriendshipMapper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create a DTO with the perspective of the current user (showing the other user as the "friend")
-     */
-    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId) throws Exception {
-        if (friendship == null) return null;
+    public static FriendshipResponseDTO toDTOWithPerspective(Friendship friendship, Integer currentUserId)
+            throws Exception {
+        if (friendship == null)
+            return null;
 
         FriendshipResponseDTO dto = toDTO(friendship);
 
-        // If the current user is the recipient, swap the requester and recipient in the DTO
         if (friendship.getRecipientId().equals(currentUserId)) {
             UserSummaryDTO temp = dto.getRequester();
             dto.setRequester(dto.getRecipient());
@@ -86,25 +79,22 @@ public class FriendshipMapper {
         return dto;
     }
 
-    /**
-     * Convert a list of Friendship entities to a list of FriendshipResponseDTOs with user perspective
-     */
-    public static List<FriendshipResponseDTO> toDTOListWithPerspective(List<Friendship> friendships, Integer currentUserId) {
-        if (friendships == null) return new ArrayList<>();
+    public static List<FriendshipResponseDTO> toDTOListWithPerspective(List<Friendship> friendships,
+            Integer currentUserId) {
+        if (friendships == null)
+            return new ArrayList<>();
         return friendships.stream()
                 .map(f -> {
                     try {
                         return toDTOWithPerspective(f, currentUserId);
                     } catch (Exception e) {
-                        throw new RuntimeException("Error converting friendship to DTO with perspective: " + e.getMessage());
+                        throw new RuntimeException(
+                                "Error converting friendship to DTO with perspective: " + e.getMessage());
                     }
                 })
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create a friendship status summary for a specific user
-     */
     public static Map<String, Object> createFriendshipSummary(List<Friendship> friendships, Integer userId) {
         Map<String, Object> summary = new HashMap<>();
 
@@ -134,9 +124,6 @@ public class FriendshipMapper {
         return summary;
     }
 
-    /**
-     * Create a detailed friendship status object between two users
-     */
     public static Map<String, Object> createFriendshipStatus(Friendship friendship, Integer currentUserId) {
         Map<String, Object> result = new HashMap<>();
 
@@ -181,11 +168,9 @@ public class FriendshipMapper {
         return result;
     }
 
-    /**
-     * Extract a list of friend user IDs from friendships
-     */
     public static List<Integer> extractFriendIds(List<Friendship> friendships, Integer currentUserId) {
-        if (friendships == null) return new ArrayList<>();
+        if (friendships == null)
+            return new ArrayList<>();
 
         return friendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
@@ -199,10 +184,8 @@ public class FriendshipMapper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create a map of user IDs to their friendship status with the current user
-     */
-    public static Map<Integer, FriendshipStatus> createFriendshipStatusMap(List<Friendship> friendships, Integer currentUserId) {
+    public static Map<Integer, FriendshipStatus> createFriendshipStatusMap(List<Friendship> friendships,
+            Integer currentUserId) {
         Map<Integer, FriendshipStatus> statusMap = new HashMap<>();
 
         if (friendships != null) {
@@ -221,9 +204,6 @@ public class FriendshipMapper {
         return statusMap;
     }
 
-    /**
-     * Create a map of user IDs to their access level for the current user's data
-     */
     public static Map<Integer, AccessLevel> createAccessLevelMap(List<Friendship> friendships, Integer currentUserId) {
         Map<Integer, AccessLevel> accessMap = new HashMap<>();
 

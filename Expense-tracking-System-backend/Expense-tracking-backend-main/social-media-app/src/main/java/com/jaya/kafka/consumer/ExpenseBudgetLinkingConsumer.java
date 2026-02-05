@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 
-/**
- * Kafka consumer for handling expense-budget linking events
- */
+
+
+
 @Component
 @Slf4j
 public class ExpenseBudgetLinkingConsumer {
@@ -19,9 +19,9 @@ public class ExpenseBudgetLinkingConsumer {
     @Autowired
     private BulkExpenseBudgetService bulkExpenseBudgetService;
 
-    /**
-     * Listen for expense-budget linking events
-     */
+    
+
+
     @KafkaListener(
         topics = "expense-budget-linking-events",
         groupId = "expense-service-linking-group",
@@ -38,35 +38,35 @@ public class ExpenseBudgetLinkingConsumer {
             
             switch (event.getEventType()) {
                 case EXPENSE_BUDGET_LINK_UPDATE:
-                    // Budget Service is telling us to update expense with new budget ID
+                    
                     handleExpenseBudgetLinkUpdate(event);
                     break;
                     
                 case BUDGET_DELETED_REMOVE_FROM_EXPENSES:
-                    // Budget Service is telling us to remove budget IDs from expense
+                    
                     handleBudgetDeletedRemoveFromExpenses(event);
                     break;
                     
                 case BUDGET_EXPENSE_LINK_UPDATE:
-                    // This would be handled by Budget Service, but we log it for awareness
+                    
                     log.info("Budget-Expense link update event (handled by Budget Service): expense={}, budget={}", 
                         event.getNewExpenseId(), event.getNewBudgetId());
                     break;
                     
                 case EXPENSE_CREATED_WITH_OLD_BUDGETS:
-                    // This event is sent TO Budget Service, not consumed by Expense Service
+                    
                     log.debug("EXPENSE_CREATED_WITH_OLD_BUDGETS event (handled by Budget Service): expense={}", 
                         event.getNewExpenseId());
                     break;
                     
                 case EXPENSE_CREATED_WITH_EXISTING_BUDGETS:
-                    // This event is sent TO Budget Service, not consumed by Expense Service
+                    
                     log.debug("EXPENSE_CREATED_WITH_EXISTING_BUDGETS event (handled by Budget Service): expense={}", 
                         event.getNewExpenseId());
                     break;
                     
                 case BUDGET_CREATED_WITH_OLD_EXPENSES:
-                    // This event is sent TO Budget Service, not consumed by Expense Service
+                    
                     log.debug("BUDGET_CREATED_WITH_OLD_EXPENSES event (handled by Budget Service): budget={}", 
                         event.getOldBudgetId());
                     break;
@@ -80,9 +80,9 @@ public class ExpenseBudgetLinkingConsumer {
         }
     }
 
-    /**
-     * Handle expense-budget link update event
-     */
+    
+
+
     private void handleExpenseBudgetLinkUpdate(ExpenseBudgetLinkingEvent event) {
         try {
             log.info(">>> Handling EXPENSE_BUDGET_LINK_UPDATE event");
@@ -95,7 +95,7 @@ public class ExpenseBudgetLinkingConsumer {
             }
 
             log.info(">>> Calling updateExpenseWithNewBudgetIds...");
-            // Update expense with the new budget ID
+            
             bulkExpenseBudgetService.updateExpenseWithNewBudgetIds(
                 event.getNewExpenseId(),
                 Collections.singletonList(event.getNewBudgetId()),
@@ -110,9 +110,9 @@ public class ExpenseBudgetLinkingConsumer {
         }
     }
 
-    /**
-     * Handle budget deleted remove from expenses event
-     */
+    
+
+
     private void handleBudgetDeletedRemoveFromExpenses(ExpenseBudgetLinkingEvent event) {
         try {
             log.info(">>> Handling BUDGET_DELETED_REMOVE_FROM_EXPENSES event");
@@ -128,7 +128,7 @@ public class ExpenseBudgetLinkingConsumer {
             }
 
             log.info(">>> Calling removeBudgetIdsFromExpense...");
-            // Remove budget IDs from expense
+            
             bulkExpenseBudgetService.removeBudgetIdsFromExpense(
                 event.getNewExpenseId(),
                 event.getBudgetIdsToRemove(),

@@ -10,6 +10,7 @@ import java.util.Map;
 
 public interface NotificationService {
     Notification createNotification(Notification notification);
+
     List<Notification> getUserNotifications(Integer userId, Boolean isRead, Integer limit, Integer offset);
 
     Notification markAsRead(Integer notificationId, Integer userId);

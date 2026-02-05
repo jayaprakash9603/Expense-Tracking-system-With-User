@@ -5,9 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO for top expense category analytics
- */
+
+
+
 @Data
 @Builder
 @NoArgsConstructor

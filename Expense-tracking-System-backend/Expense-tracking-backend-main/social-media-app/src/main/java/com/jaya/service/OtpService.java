@@ -34,22 +34,22 @@ public class OtpService {
 
     @Transactional
     public String generateAndSendOtp(String email) {
-        // Delete any existing OTPs for this email
+        
         otpRepository.deleteByEmail(email);
 
-        // Generate new OTP
+        
         String otp = generateOtp();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiresAt = now.plusMinutes(OTP_VALIDITY_MINUTES);
 
-        // Save OTP
+        
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
 
-        // Send OTP via email (currently logged)
+        
         emailService.sendOtpEmail(email, otp);
 
-        return otp; // Return OTP for response
+        return otp; 
     }
 
     @Transactional
@@ -58,10 +58,10 @@ public class OtpService {
         if (otpEntity.isPresent()) {
             Otp storedOtp = otpEntity.get();
             if (LocalDateTime.now().isBefore(storedOtp.getExpiresAt())) {
-                otpRepository.deleteByEmail(email); // Invalidate OTP after use
+                otpRepository.deleteByEmail(email); 
                 return true;
             }
-            otpRepository.deleteByEmail(email); // Delete expired OTP
+            otpRepository.deleteByEmail(email); 
         }
         return false;
     }

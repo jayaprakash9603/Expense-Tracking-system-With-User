@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
 @Component
 @Slf4j
 public class FriendEventProcessor extends AbstractNotificationEventProcessor<FriendEventDTO> {

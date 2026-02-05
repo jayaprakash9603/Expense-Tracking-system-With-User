@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import java.util.List;
 
-/**
- * Request DTO for bulk expense and budget creation with linking
- * Updated structure: expenses and budgets are in separate arrays (no
- * duplicates)
- */
+
+
+
+
+
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BulkExpenseBudgetRequest {
@@ -17,21 +17,21 @@ public class BulkExpenseBudgetRequest {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExpenseBudgetMapping {
-        private List<ExpenseData> expenses; // Array of unique expenses
-        private List<BudgetData> budgets; // Array of unique budgets
+        private List<ExpenseData> expenses; 
+        private List<BudgetData> budgets; 
     }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ExpenseData {
-        private Long id; // Old expense ID for reference
+        private Long id; 
         private String date;
         private Long categoryId;
         private String categoryName;
         private ExpenseDetails expense;
         private Boolean includeInBudget;
         private Long userId;
-        private List<Long> budgetIds; // Old budget IDs
+        private List<Long> budgetIds; 
         private Boolean bill;
     }
 
@@ -52,14 +52,14 @@ public class BulkExpenseBudgetRequest {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BudgetData {
-        private Long id; // Old budget ID
+        private Long id; 
         private String name;
         private String description;
         private Double amount;
         private String startDate;
         private String endDate;
         private Long userId;
-        private List<Long> expenseIds; // Old expense IDs
+        private List<Long> expenseIds; 
         private Double remainingAmount;
         private Boolean includeInBudget;
         private Boolean budgetHasExpenses;

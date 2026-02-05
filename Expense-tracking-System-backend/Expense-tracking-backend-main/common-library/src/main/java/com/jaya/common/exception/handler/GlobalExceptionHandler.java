@@ -43,23 +43,23 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Global Exception Handler for all microservices.
- * Provides consistent error responses across the entire application.
- * 
- * Features:
- * - Handles all custom BaseException subclasses
- * - Handles validation errors with field-level details
- * - Handles JWT authentication errors
- * - Handles Spring framework exceptions
- * - Includes service name and trace ID in responses
- * - Comprehensive logging with context
- * 
- * Usage:
- * Import this class or let Spring auto-scan find it.
- * Can be extended by individual services for service-specific exception
- * handling.
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -67,13 +67,13 @@ public class GlobalExceptionHandler {
         @Value("${spring.application.name:unknown-service}")
         private String serviceName;
 
-        // ========================================
-        // CUSTOM EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
-        /**
-         * Handle all BaseException and its subclasses
-         */
+        
+
+
         @ExceptionHandler(BaseException.class)
         public ResponseEntity<ApiError> handleBaseException(BaseException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -92,9 +92,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, ex.getHttpStatus());
         }
 
-        /**
-         * Handle ResourceNotFoundException specifically (for detailed logging)
-         */
+        
+
+
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<ApiError> handleResourceNotFoundException(ResourceNotFoundException ex,
                         WebRequest request) {
@@ -115,9 +115,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, ex.getHttpStatus());
         }
 
-        // ========================================
-        // JWT EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
         @ExceptionHandler(ExpiredJwtException.class)
         public ResponseEntity<ApiError> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
@@ -167,9 +167,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
         }
 
-        // ========================================
-        // VALIDATION EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ApiError> handleMethodArgumentNotValidException(
@@ -284,9 +284,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 
-        // ========================================
-        // REQUEST EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
         @ExceptionHandler(MissingRequestHeaderException.class)
         public ResponseEntity<ApiError> handleMissingRequestHeaderException(
@@ -398,13 +398,13 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
 
-        // ========================================
-        // FEIGN CLIENT EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
-        /**
-         * Handle Feign Unauthorized Exception (401)
-         */
+        
+
+
         @ExceptionHandler(FeignException.Unauthorized.class)
         public ResponseEntity<ApiError> handleFeignUnauthorizedException(
                         FeignException.Unauthorized ex, WebRequest request) {
@@ -419,9 +419,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
         }
 
-        /**
-         * Handle Feign Forbidden Exception (403)
-         */
+        
+
+
         @ExceptionHandler(FeignException.Forbidden.class)
         public ResponseEntity<ApiError> handleFeignForbiddenException(
                         FeignException.Forbidden ex, WebRequest request) {
@@ -436,9 +436,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
         }
 
-        /**
-         * Handle Feign Not Found Exception (404)
-         */
+        
+
+
         @ExceptionHandler(FeignException.NotFound.class)
         public ResponseEntity<ApiError> handleFeignNotFoundException(
                         FeignException.NotFound ex, WebRequest request) {
@@ -453,9 +453,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
 
-        /**
-         * Handle Feign Bad Request Exception (400)
-         */
+        
+
+
         @ExceptionHandler(FeignException.BadRequest.class)
         public ResponseEntity<ApiError> handleFeignBadRequestException(
                         FeignException.BadRequest ex, WebRequest request) {
@@ -470,9 +470,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 
-        /**
-         * Handle Feign Service Unavailable Exception (503)
-         */
+        
+
+
         @ExceptionHandler(FeignException.ServiceUnavailable.class)
         public ResponseEntity<ApiError> handleFeignServiceUnavailableException(
                         FeignException.ServiceUnavailable ex, WebRequest request) {
@@ -487,9 +487,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
         }
 
-        /**
-         * Handle generic Feign Exception (other status codes)
-         */
+        
+
+
         @ExceptionHandler(FeignException.class)
         public ResponseEntity<ApiError> handleFeignException(
                         FeignException ex, WebRequest request) {
@@ -511,14 +511,14 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, httpStatus);
         }
 
-        // ========================================
-        // DATABASE EXCEPTION HANDLERS
-        // ========================================
+        
+        
+        
 
-        /**
-         * Handle JPA System Exception (e.g., missing column default values, schema
-         * mismatches)
-         */
+        
+
+
+
         @ExceptionHandler(JpaSystemException.class)
         public ResponseEntity<ApiError> handleJpaSystemException(JpaSystemException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -528,7 +528,7 @@ public class GlobalExceptionHandler {
 
                 String userMessage = "Database operation failed. ";
                 if (rootCauseMessage.contains("doesn't have a default value")) {
-                        // Extract field name from error message
+                        
                         String fieldName = extractFieldFromDefaultValueError(rootCauseMessage);
                         userMessage += "Missing required database field: " + fieldName;
                 } else if (rootCauseMessage.contains("constraint")) {
@@ -543,10 +543,10 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        /**
-         * Handle Data Integrity Violation (e.g., unique constraint violations, foreign
-         * key violations)
-         */
+        
+
+
+
         @ExceptionHandler(DataIntegrityViolationException.class)
         public ResponseEntity<ApiError> handleDataIntegrityViolationException(
                         DataIntegrityViolationException ex, WebRequest request) {
@@ -578,9 +578,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, status);
         }
 
-        /**
-         * Handle optimistic locking failures (concurrent modification)
-         */
+        
+
+
         @ExceptionHandler({ OptimisticLockingFailureException.class, OptimisticLockException.class })
         public ResponseEntity<ApiError> handleOptimisticLockingFailure(Exception ex, WebRequest request) {
                 String path = extractPath(request);
@@ -594,9 +594,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.CONFLICT);
         }
 
-        /**
-         * Handle entity not found exceptions
-         */
+        
+
+
         @ExceptionHandler(EntityNotFoundException.class)
         public ResponseEntity<ApiError> handleEntityNotFoundException(EntityNotFoundException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -609,9 +609,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
 
-        /**
-         * Handle empty result exceptions
-         */
+        
+
+
         @ExceptionHandler(EmptyResultDataAccessException.class)
         public ResponseEntity<ApiError> handleEmptyResultDataAccessException(
                         EmptyResultDataAccessException ex, WebRequest request) {
@@ -627,9 +627,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
 
-        /**
-         * Handle transaction system exceptions
-         */
+        
+
+
         @ExceptionHandler(TransactionSystemException.class)
         public ResponseEntity<ApiError> handleTransactionSystemException(
                         TransactionSystemException ex, WebRequest request) {
@@ -640,7 +640,7 @@ public class GlobalExceptionHandler {
 
                 log.error("Transaction error at path: {} - {}", path, rootCauseMessage, ex);
 
-                // Check if it's a validation error wrapped in transaction exception
+                
                 if (rootCause instanceof ConstraintViolationException) {
                         return handleConstraintViolationException((ConstraintViolationException) rootCause, request);
                 }
@@ -652,9 +652,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        /**
-         * Handle persistence exceptions
-         */
+        
+
+
         @ExceptionHandler(PersistenceException.class)
         public ResponseEntity<ApiError> handlePersistenceException(PersistenceException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -676,9 +676,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        /**
-         * Handle SQL exceptions
-         */
+        
+
+
         @ExceptionHandler(SQLException.class)
         public ResponseEntity<ApiError> handleSQLException(SQLException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -689,19 +689,19 @@ public class GlobalExceptionHandler {
                 String userMessage = "Database error occurred. ";
                 HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-                // Parse SQL state for better error messages
+                
                 String sqlState = ex.getSQLState();
                 if (sqlState != null) {
                         if (sqlState.startsWith("23")) {
-                                // Integrity constraint violation
+                                
                                 userMessage = "Data integrity constraint violated.";
                                 status = HttpStatus.CONFLICT;
                         } else if (sqlState.startsWith("22")) {
-                                // Data exception
+                                
                                 userMessage = "Invalid data format provided.";
                                 status = HttpStatus.BAD_REQUEST;
                         } else if (sqlState.startsWith("08")) {
-                                // Connection exception
+                                
                                 userMessage = "Database connection error. Please try again.";
                                 status = HttpStatus.SERVICE_UNAVAILABLE;
                         }
@@ -713,9 +713,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, status);
         }
 
-        /**
-         * Handle generic Data Access exceptions
-         */
+        
+
+
         @ExceptionHandler(DataAccessException.class)
         public ResponseEntity<ApiError> handleDataAccessException(DataAccessException ex, WebRequest request) {
                 String path = extractPath(request);
@@ -730,9 +730,9 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // ========================================
-        // ILLEGAL ARGUMENT HANDLER
-        // ========================================
+        
+        
+        
 
         @ExceptionHandler(IllegalArgumentException.class)
         public ResponseEntity<ApiError> handleIllegalArgumentException(
@@ -748,18 +748,18 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
 
-        // ========================================
-        // FALLBACK EXCEPTION HANDLER
-        // ========================================
+        
+        
+        
 
-        /**
-         * Catch-all exception handler for any unhandled exceptions
-         */
+        
+
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiError> handleGenericException(Exception ex, WebRequest request) {
                 String path = extractPath(request);
 
-                // Log the full stack trace for unexpected errors
+                
                 log.error("Unexpected error at path: {} - {}", path, ex.getMessage(), ex);
 
                 ApiError error = ApiError.internalError(path,
@@ -769,21 +769,21 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        // ========================================
-        // HELPER METHODS
-        // ========================================
+        
+        
+        
 
-        /**
-         * Extract path from WebRequest
-         */
+        
+
+
         private String extractPath(WebRequest request) {
                 String description = request.getDescription(false);
                 return description.replace("uri=", "");
         }
 
-        /**
-         * Map Spring FieldError to ApiError.FieldError
-         */
+        
+
+
         private ApiError.FieldError mapFieldError(FieldError error) {
                 return ApiError.FieldError.builder()
                                 .field(error.getField())
@@ -792,12 +792,12 @@ public class GlobalExceptionHandler {
                                 .build();
         }
 
-        /**
-         * Map ConstraintViolation to ApiError.FieldError
-         */
+        
+
+
         private ApiError.FieldError mapConstraintViolation(ConstraintViolation<?> violation) {
                 String field = violation.getPropertyPath().toString();
-                // Extract just the field name if it contains dots
+                
                 if (field.contains(".")) {
                         field = field.substring(field.lastIndexOf('.') + 1);
                 }
@@ -811,9 +811,9 @@ public class GlobalExceptionHandler {
                                 .build();
         }
 
-        /**
-         * Log exception with appropriate level
-         */
+        
+
+
         private void logException(BaseException ex, String path) {
                 if (ex.isServerError()) {
                         log.error("[{}] {} at path: {} - {}",
@@ -825,9 +825,9 @@ public class GlobalExceptionHandler {
                 }
         }
 
-        /**
-         * Extract root cause message from exception chain
-         */
+        
+
+
         private String extractRootCauseMessage(Throwable ex) {
                 Throwable rootCause = ex;
                 while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
@@ -836,16 +836,16 @@ public class GlobalExceptionHandler {
                 return rootCause.getMessage() != null ? rootCause.getMessage() : ex.getMessage();
         }
 
-        /**
-         * Extract field name from "Field 'xxx' doesn't have a default value" error
-         * message
-         */
+        
+
+
+
         private String extractFieldFromDefaultValueError(String message) {
                 if (message == null) {
                         return "unknown";
                 }
 
-                // Pattern: Field 'field_name' doesn't have a default value
+                
                 int startIdx = message.indexOf("'");
                 if (startIdx != -1) {
                         int endIdx = message.indexOf("'", startIdx + 1);

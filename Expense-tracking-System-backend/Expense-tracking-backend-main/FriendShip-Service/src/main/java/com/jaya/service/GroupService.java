@@ -1,4 +1,4 @@
-    
+
 package com.jaya.service;
 
 import com.jaya.dto.*;
@@ -11,67 +11,92 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface GroupService {
-    List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception;
-    GroupResponseDTO createGroup(GroupRequestDTO groupRequestDTO) throws Exception;
-    Optional<GroupResponseDTO> getGroupById(Integer id, Integer userId) throws Exception;
+        List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception;
 
-    GroupResponseDTO getGroupById(Integer id) throws Exception;
-    List<GroupResponseDTO> getAllUserGroups(Integer userId) throws Exception;
-    List<GroupResponseDTO> getGroupsCreatedByUser(Integer userId) throws Exception;
-    List<GroupResponseDTO> getGroupsWhereUserIsMember(Integer userId) throws Exception;
-    GroupResponseDTO updateGroup(Integer id, GroupUpdateDTO groupUpdateDTO, Integer userId) throws Exception;
-    void deleteGroup(Integer id, Integer userId) throws Exception;
-    GroupResponseDTO addMemberToGroup(Integer groupId, Integer userId, Integer requesterId) throws Exception;
-    GroupResponseDTO removeMemberFromGroup(Integer groupId, Integer userId, Integer requesterId) throws Exception;
-    boolean isUserMemberOfGroup(Integer groupId, Integer userId) throws Exception;
-    boolean isUserOwnerOfGroup(Integer groupId, Integer userId) throws Exception;
-    List<GroupMemberDTO> getGroupMembers(Integer groupId, Integer userId) throws Exception;
+        GroupResponseDTO createGroup(GroupRequestDTO groupRequestDTO) throws Exception;
 
-    GroupResponseDTO addMemberToGroupWithRole(Integer groupId, Integer userId, GroupRole role, Integer requesterId) throws Exception;
-    GroupResponseDTO changeUserRole(Integer groupId, Integer userId, GroupRole newRole, Integer requesterId) throws Exception;
-    GroupRole getUserRoleInGroup(Integer groupId, Integer userId) throws Exception;
-    boolean hasPermissionInGroup(Integer groupId, Integer userId, String permission) throws Exception;
+        Optional<GroupResponseDTO> getGroupById(Integer id, Integer userId) throws Exception;
 
-    Map<String, Object> getGroupStatistics(Integer groupId, Integer userId) throws Exception;
+        GroupResponseDTO getGroupById(Integer id) throws Exception;
 
-    List<Map<String, Object>> getGroupActivity(Integer groupId, Integer userId, int page, int size) throws Exception;
+        List<GroupResponseDTO> getAllUserGroups(Integer userId) throws Exception;
 
-    List<GroupResponseDTO> searchGroups(String query, Integer userId, int page, int size) throws Exception;
+        List<GroupResponseDTO> getGroupsCreatedByUser(Integer userId) throws Exception;
 
-    Map<String, Object> inviteUserToGroup(Integer groupId, Integer inviteeId, GroupRole role, Integer inviterId) throws Exception;
+        List<GroupResponseDTO> getGroupsWhereUserIsMember(Integer userId) throws Exception;
 
-    List<Map<String, Object>> getPendingInvitations(Integer userId) throws Exception;
+        GroupResponseDTO updateGroup(Integer id, GroupUpdateDTO groupUpdateDTO, Integer userId) throws Exception;
 
-    Map<String, Object> respondToInvitation(Integer invitationId, Integer userId, boolean accept) throws Exception;
+        void deleteGroup(Integer id, Integer userId) throws Exception;
 
-    List<GroupMemberDTO> getMembersByRole(Integer groupId, GroupRole role, Integer userId) throws Exception;
+        GroupResponseDTO addMemberToGroup(Integer groupId, Integer userId, Integer requesterId) throws Exception;
 
-    List<GroupMemberDTO> getRecentMembers(Integer groupId, Integer userId, int limit) throws Exception;
+        GroupResponseDTO removeMemberFromGroup(Integer groupId, Integer userId, Integer requesterId) throws Exception;
 
-    Map<String, Object> leaveGroup(Integer groupId, Integer userId) throws Exception;
+        boolean isUserMemberOfGroup(Integer groupId, Integer userId) throws Exception;
 
-    GroupResponseDTO updateGroupSettings(Integer groupId, GroupSettingsDTO settings, Integer userId) throws Exception;
+        boolean isUserOwnerOfGroup(Integer groupId, Integer userId) throws Exception;
 
-    Map<String, Object> getGroupSettings(Integer groupId, Integer userId) throws Exception;
+        List<GroupMemberDTO> getGroupMembers(Integer groupId, Integer userId) throws Exception;
 
-    GroupResponseDTO duplicateGroup(Integer groupId, GroupDuplicateRequestDTO duplicateRequest, Integer userId) throws Exception;
+        GroupResponseDTO addMemberToGroupWithRole(Integer groupId, Integer userId, GroupRole role, Integer requesterId)
+                        throws Exception;
 
-    Map<String, Object> archiveGroup(Integer groupId, Integer userId) throws Exception;
+        GroupResponseDTO changeUserRole(Integer groupId, Integer userId, GroupRole newRole, Integer requesterId)
+                        throws Exception;
 
-    Map<String, Object> restoreGroup(Integer groupId, Integer userId) throws Exception;
+        GroupRole getUserRoleInGroup(Integer groupId, Integer userId) throws Exception;
 
-    List<GroupResponseDTO> getArchivedGroups(Integer userId) throws Exception;
+        boolean hasPermissionInGroup(Integer groupId, Integer userId, String permission) throws Exception;
 
-    Map<String, Object> exportGroupData(Integer groupId, Integer userId, String format) throws Exception;
+        Map<String, Object> getGroupStatistics(Integer groupId, Integer userId) throws Exception;
 
-    List<Map<String, Object>> getGroupRecommendations(Integer userId, int limit) throws Exception;
+        List<Map<String, Object>> getGroupActivity(Integer groupId, Integer userId, int page, int size)
+                        throws Exception;
 
-    Map<String, Object> mergeGroups(Integer sourceGroupId, Integer targetGroupId, GroupMergeRequestDTO mergeRequest, Integer userId) throws Exception;
-    List<Map<String, Object>> getSentInvitations(Integer userId) throws Exception;
+        List<GroupResponseDTO> searchGroups(String query, Integer userId, int page, int size) throws Exception;
 
-    Map<String, Object> cancelInvitation(Integer invitationId, Integer userId) throws Exception;
+        Map<String, Object> inviteUserToGroup(Integer groupId, Integer inviteeId, GroupRole role, Integer inviterId)
+                        throws Exception;
 
-    void cleanupExpiredInvitations();
-List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception;
-void updateInvitationStatusToCancelled(Integer invitationId) throws Exception;
+        List<Map<String, Object>> getPendingInvitations(Integer userId) throws Exception;
+
+        Map<String, Object> respondToInvitation(Integer invitationId, Integer userId, boolean accept) throws Exception;
+
+        List<GroupMemberDTO> getMembersByRole(Integer groupId, GroupRole role, Integer userId) throws Exception;
+
+        List<GroupMemberDTO> getRecentMembers(Integer groupId, Integer userId, int limit) throws Exception;
+
+        Map<String, Object> leaveGroup(Integer groupId, Integer userId) throws Exception;
+
+        GroupResponseDTO updateGroupSettings(Integer groupId, GroupSettingsDTO settings, Integer userId)
+                        throws Exception;
+
+        Map<String, Object> getGroupSettings(Integer groupId, Integer userId) throws Exception;
+
+        GroupResponseDTO duplicateGroup(Integer groupId, GroupDuplicateRequestDTO duplicateRequest, Integer userId)
+                        throws Exception;
+
+        Map<String, Object> archiveGroup(Integer groupId, Integer userId) throws Exception;
+
+        Map<String, Object> restoreGroup(Integer groupId, Integer userId) throws Exception;
+
+        List<GroupResponseDTO> getArchivedGroups(Integer userId) throws Exception;
+
+        Map<String, Object> exportGroupData(Integer groupId, Integer userId, String format) throws Exception;
+
+        List<Map<String, Object>> getGroupRecommendations(Integer userId, int limit) throws Exception;
+
+        Map<String, Object> mergeGroups(Integer sourceGroupId, Integer targetGroupId, GroupMergeRequestDTO mergeRequest,
+                        Integer userId) throws Exception;
+
+        List<Map<String, Object>> getSentInvitations(Integer userId) throws Exception;
+
+        Map<String, Object> cancelInvitation(Integer invitationId, Integer userId) throws Exception;
+
+        void cleanupExpiredInvitations();
+
+        List<Map<String, Object>> getSentInvitationsByGroupId(Integer groupId, Integer userId) throws Exception;
+
+        void updateInvitationStatusToCancelled(Integer invitationId) throws Exception;
 }

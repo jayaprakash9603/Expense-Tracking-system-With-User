@@ -29,8 +29,8 @@ public class ExpenseDetails {
     private String comments;
     private double creditDue;
 
-    // This side owns the relationship, so we use @JoinColumn to specify the foreign
-    // key
+    
+    
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "expense_id")
     @JsonBackReference

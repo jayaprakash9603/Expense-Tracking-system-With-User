@@ -7,10 +7,10 @@ import com.jaya.task.user.service.service.BudgetReportPreferenceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * REST Controller for budget report layout preferences.
- * Provides endpoints to get, save, and reset budget report customization.
- */
+
+
+
+
 @RestController
 @RequestMapping("/api/user/budget-report-preferences")
 public class BudgetReportPreferenceController {
@@ -25,12 +25,12 @@ public class BudgetReportPreferenceController {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Get budget report preferences for the authenticated user.
-     *
-     * @param authHeader JWT token in Authorization header
-     * @return Preferences DTO or 204 No Content if not found
-     */
+    
+
+
+
+
+
     @GetMapping
     public ResponseEntity<BudgetReportPreferenceDTO> getPreferences(
             @RequestHeader("Authorization") String authHeader) {
@@ -47,13 +47,13 @@ public class BudgetReportPreferenceController {
         return ResponseEntity.ok(preferences);
     }
 
-    /**
-     * Save budget report preferences for the authenticated user.
-     *
-     * @param authHeader   JWT token in Authorization header
-     * @param layoutConfig JSON string containing layout configuration
-     * @return Saved preferences DTO
-     */
+    
+
+
+
+
+
+
     @PostMapping
     public ResponseEntity<BudgetReportPreferenceDTO> savePreferences(
             @RequestHeader("Authorization") String authHeader,
@@ -68,13 +68,13 @@ public class BudgetReportPreferenceController {
         return ResponseEntity.ok(saved);
     }
 
-    /**
-     * Reset budget report preferences for the authenticated user.
-     * Deletes saved preferences, causing frontend to use defaults.
-     *
-     * @param authHeader JWT token in Authorization header
-     * @return 204 No Content on success
-     */
+    
+
+
+
+
+
+
     @DeleteMapping
     public ResponseEntity<Void> resetPreferences(
             @RequestHeader("Authorization") String authHeader) {
@@ -88,13 +88,13 @@ public class BudgetReportPreferenceController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Extract user ID from JWT token in Authorization header.
-     * Uses the same pattern as other controllers in the application.
-     *
-     * @param authHeader Authorization header value
-     * @return User ID or null if extraction fails
-     */
+    
+
+
+
+
+
+
     private Integer extractUserId(String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {

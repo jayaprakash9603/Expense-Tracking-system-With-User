@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * REST Controller for user-facing story operations
- * Handles fetching, viewing, and interacting with stories
- */
+
+
+
+
 @RestController
 @RequestMapping("/api/stories")
 @RequiredArgsConstructor
@@ -23,10 +23,10 @@ public class StoryController {
 
     private final StoryService storyService;
 
-    /**
-     * Get active stories for the current user
-     * GET /api/stories?userId={userId}
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<StoryListResponse> getActiveStories(
             @RequestParam Integer userId) {
@@ -35,10 +35,10 @@ public class StoryController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get a specific story by ID
-     * GET /api/stories/{storyId}?userId={userId}
-     */
+    
+
+
+
     @GetMapping("/{storyId}")
     public ResponseEntity<StoryDTO> getStoryById(
             @PathVariable UUID storyId,
@@ -47,10 +47,10 @@ public class StoryController {
         return ResponseEntity.ok(story);
     }
 
-    /**
-     * Mark a story as seen
-     * POST /api/stories/{storyId}/seen
-     */
+    
+
+
+
     @PostMapping("/{storyId}/seen")
     public ResponseEntity<Map<String, String>> markStorySeen(
             @PathVariable UUID storyId,
@@ -60,10 +60,10 @@ public class StoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story marked as seen"));
     }
 
-    /**
-     * Mark CTA as clicked
-     * POST /api/stories/{storyId}/cta/{ctaId}/clicked
-     */
+    
+
+
+
     @PostMapping("/{storyId}/cta/{ctaId}/clicked")
     public ResponseEntity<Map<String, String>> markCtaClicked(
             @PathVariable UUID storyId,
@@ -74,10 +74,10 @@ public class StoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "CTA click recorded"));
     }
 
-    /**
-     * Dismiss a story for the user
-     * POST /api/stories/{storyId}/dismiss
-     */
+    
+
+
+
     @PostMapping("/{storyId}/dismiss")
     public ResponseEntity<Map<String, String>> dismissStory(
             @PathVariable UUID storyId,
@@ -87,10 +87,10 @@ public class StoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story dismissed"));
     }
 
-    /**
-     * Bulk mark multiple stories as seen
-     * POST /api/stories/seen-bulk
-     */
+    
+
+
+
     @PostMapping("/seen-bulk")
     public ResponseEntity<Map<String, String>> markStoriesSeenBulk(
             @RequestBody Map<String, Object> request) {

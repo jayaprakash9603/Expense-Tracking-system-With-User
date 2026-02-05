@@ -2,17 +2,17 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown for Kafka-related errors.
- * Used when producing or consuming Kafka messages fails.
- */
+
+
+
+
 public class KafkaException extends BaseException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The topic that was involved in the error
-     */
+    
+
+
     private final String topic;
 
     public KafkaException(ErrorCode errorCode) {
@@ -34,7 +34,7 @@ public class KafkaException extends BaseException {
         return topic;
     }
 
-    // Factory methods for common Kafka errors
+    
     public static KafkaException sendFailed(String topic, Throwable cause) {
         return new KafkaException(ErrorCode.KAFKA_SEND_FAILED, topic, cause);
     }

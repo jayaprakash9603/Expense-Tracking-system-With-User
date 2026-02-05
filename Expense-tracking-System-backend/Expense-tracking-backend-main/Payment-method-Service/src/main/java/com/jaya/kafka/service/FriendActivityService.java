@@ -14,10 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for sending friend activity notifications for payment method
- * operations.
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -25,28 +25,28 @@ public class FriendActivityService {
 
     private final FriendActivityProducer friendActivityProducer;
 
-    /**
-     * Send notification when a friend creates a payment method on behalf of another
-     * user.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
         sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates a payment method with target user
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
         sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle payment method creation notification.
-     */
+    
+
+
     private void sendPaymentMethodCreatedByFriendInternal(PaymentMethod paymentMethod, Integer targetUserId,
             UserDto actorUser,
             UserDto targetUser) {
@@ -85,18 +85,18 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates a payment method.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
         sendPaymentMethodUpdatedByFriendInternal(paymentMethod, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates a payment method with previous state
-     * and target user details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, PaymentMethod previousPaymentMethod,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -104,9 +104,9 @@ public class FriendActivityService {
                 targetUser);
     }
 
-    /**
-     * Internal method to handle payment method update notification.
-     */
+    
+
+
     private void sendPaymentMethodUpdatedByFriendInternal(PaymentMethod paymentMethod,
             PaymentMethod previousPaymentMethod,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -143,9 +143,9 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes a payment method.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
             Integer targetUserId, UserDto actorUser) {
@@ -153,10 +153,10 @@ public class FriendActivityService {
                 null);
     }
 
-    /**
-     * Send notification when a friend deletes a payment method with deleted entity
-     * details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
             PaymentMethod deletedPaymentMethod,
@@ -165,9 +165,9 @@ public class FriendActivityService {
                 actorUser, targetUser);
     }
 
-    /**
-     * Internal method to handle payment method deletion notification.
-     */
+    
+
+
     private void sendPaymentMethodDeletedByFriendInternal(Integer paymentMethodId, String paymentMethodName,
             PaymentMethod deletedPaymentMethod,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -204,27 +204,27 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes all payment methods.
-     */
+    
+
+
     @Async("friendActivityExecutor")
     public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
         sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
-    /**
-     * Send notification when a friend deletes all payment methods with deleted
-     * entities details.
-     */
+    
+
+
+
     @Async("friendActivityExecutor")
     public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser,
             int count, List<PaymentMethod> deletedPaymentMethods) {
         sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedPaymentMethods);
     }
 
-    /**
-     * Internal method to handle all payment methods deletion notification.
-     */
+    
+
+
     private void sendAllPaymentMethodsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser,
             UserDto targetUser,
             int count, List<PaymentMethod> deletedPaymentMethods) {
@@ -235,7 +235,7 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
-            // Build payload with deleted payment methods info
+            
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedPaymentMethods != null && !deletedPaymentMethods.isEmpty()) {
@@ -278,9 +278,9 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    /**
-     * Build UserInfo from UserDto for enhanced event data.
-     */
+    
+
+
     private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
         if (user == null)
             return null;
@@ -299,9 +299,9 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Build complete payment method payload as a Map for entity data.
-     */
+    
+
+
     private Map<String, Object> buildPaymentMethodPayload(PaymentMethod paymentMethod) {
         if (paymentMethod == null)
             return null;

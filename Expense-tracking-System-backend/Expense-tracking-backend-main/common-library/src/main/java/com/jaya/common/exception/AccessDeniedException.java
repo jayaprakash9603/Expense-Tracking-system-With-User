@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown when access to a resource is denied.
- * Used for authorization failures (403 Forbidden).
- */
+
+
+
+
 public class AccessDeniedException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +26,7 @@ public class AccessDeniedException extends BaseException {
         super(errorCode, details);
     }
 
-    // Factory methods for specific access denied scenarios
+    
     public static AccessDeniedException forExpense(Long expenseId) {
         return new AccessDeniedException(ErrorCode.EXPENSE_ACCESS_DENIED,
                 "Access denied to expense with ID: " + expenseId);

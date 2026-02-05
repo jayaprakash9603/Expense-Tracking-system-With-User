@@ -10,10 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * WebSocket Service for broadcasting story events to clients
- * Handles real-time updates for story creation, updates, and deletion
- */
+
+
+
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,13 +21,13 @@ public class StoryWebSocketService {
 
     private final SimpMessagingTemplate messagingTemplate;
 
-    // Topic destinations
+    
     private static final String GLOBAL_STORIES_TOPIC = "/topic/stories/global";
     private static final String USER_STORIES_TOPIC = "/topic/stories/user/%d";
 
-    /**
-     * Broadcast a new story to all connected clients
-     */
+    
+
+
     public void broadcastStoryCreated(StoryDTO story) {
         try {
             Map<String, Object> message = createMessage("STORY_CREATED", story);
@@ -38,9 +38,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Broadcast story update to all connected clients
-     */
+    
+
+
     public void broadcastStoryUpdated(StoryDTO story) {
         try {
             Map<String, Object> message = createMessage("STORY_UPDATED", story);
@@ -51,9 +51,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Broadcast story deletion to all connected clients
-     */
+    
+
+
     public void broadcastStoryDeleted(UUID storyId) {
         try {
             Map<String, Object> message = new HashMap<>();
@@ -68,9 +68,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Broadcast story expiration to all connected clients
-     */
+    
+
+
     public void broadcastStoryExpired(UUID storyId) {
         try {
             Map<String, Object> message = new HashMap<>();
@@ -85,9 +85,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Send story to a specific user
-     */
+    
+
+
     public void sendStoryToUser(Integer userId, StoryDTO story) {
         try {
             Map<String, Object> message = createMessage("STORY_CREATED", story);
@@ -99,9 +99,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Send story update to a specific user
-     */
+    
+
+
     public void sendStoryUpdateToUser(Integer userId, StoryDTO story) {
         try {
             Map<String, Object> message = createMessage("STORY_UPDATED", story);
@@ -113,9 +113,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Send story deletion to a specific user
-     */
+    
+
+
     public void sendStoryDeletionToUser(Integer userId, UUID storyId) {
         try {
             Map<String, Object> message = new HashMap<>();
@@ -131,9 +131,9 @@ public class StoryWebSocketService {
         }
     }
 
-    /**
-     * Notify all users about a system-wide story refresh needed
-     */
+    
+
+
     public void broadcastRefreshStories() {
         try {
             Map<String, Object> message = new HashMap<>();

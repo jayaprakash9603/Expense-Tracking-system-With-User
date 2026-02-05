@@ -18,7 +18,7 @@ public class DashboardPreferenceDTO {
     private Integer userId;
 
     @NotNull(message = "Layout configuration is required")
-    private String layoutConfig; // JSON string
+    private String layoutConfig; 
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -5,14 +5,14 @@ import org.apache.poi.ss.usermodel.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-/**
- * Utility for reading values from Excel cells with proper type conversion
- */
+
+
+
 public class ExcelCellReader {
 
-    /**
-     * Get cell value as String with formula evaluation
-     */
+    
+
+
     public static String getCellValueAsString(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null)
             return "";
@@ -30,7 +30,7 @@ public class ExcelCellReader {
                     return cell.getLocalDateTimeCellValue().toLocalDate().toString();
                 } else {
                     double val = cell.getNumericCellValue();
-                    // Remove trailing .0 for whole numbers
+                    
                     String s = Double.toString(val);
                     if (s.endsWith(".0")) {
                         s = s.substring(0, s.length() - 2);
@@ -48,19 +48,19 @@ public class ExcelCellReader {
         }
     }
 
-    /**
-     * Parse LocalDate from cell
-     */
+    
+
+
     public static LocalDate getCellValueAsLocalDate(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null)
             return null;
 
-        // Try numeric date first
+        
         if (cell.getCellType() == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
             return cell.getLocalDateTimeCellValue().toLocalDate();
         }
 
-        // Try parsing as string
+        
         String dateStr = getCellValueAsString(cell, evaluator);
         if (dateStr.isEmpty())
             return null;
@@ -72,9 +72,9 @@ public class ExcelCellReader {
         }
     }
 
-    /**
-     * Get cell value as Double
-     */
+    
+
+
     public static Double getCellValueAsDouble(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null)
             return null;
@@ -92,9 +92,9 @@ public class ExcelCellReader {
         return parseDoubleSafe(strValue, null);
     }
 
-    /**
-     * Get cell value as Integer
-     */
+    
+
+
     public static Integer getCellValueAsInteger(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null)
             return null;
@@ -112,9 +112,9 @@ public class ExcelCellReader {
         return parseIntegerSafe(strValue, null);
     }
 
-    /**
-     * Get cell value as Boolean
-     */
+    
+
+
     public static Boolean getCellValueAsBoolean(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null)
             return null;
@@ -132,7 +132,7 @@ public class ExcelCellReader {
         return parseBooleanSafe(strValue, null);
     }
 
-    // Helper parsing methods
+    
     private static Double parseDoubleSafe(String s, Double defaultVal) {
         if (s == null || s.trim().isEmpty())
             return defaultVal;

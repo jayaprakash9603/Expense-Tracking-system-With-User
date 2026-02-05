@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * REST Controller for admin story operations
- * Handles CRUD operations for stories by administrators
- * 
- * NOTE: In production, these endpoints should be secured with role-based access
- * e.g., @PreAuthorize("hasRole('ADMIN')")
- */
+
+
+
+
+
+
+
 @RestController
 @RequestMapping("/api/admin/stories")
 @RequiredArgsConstructor
@@ -33,10 +33,10 @@ public class AdminStoryController {
 
     private final StoryService storyService;
 
-    /**
-     * Create a new story
-     * POST /api/admin/stories
-     */
+    
+
+
+
     @PostMapping
     public ResponseEntity<StoryDTO> createStory(
             @Valid @RequestBody CreateStoryRequest request,
@@ -46,10 +46,10 @@ public class AdminStoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(story);
     }
 
-    /**
-     * Update an existing story
-     * PUT /api/admin/stories/{storyId}
-     */
+    
+
+
+
     @PutMapping("/{storyId}")
     public ResponseEntity<StoryDTO> updateStory(
             @PathVariable UUID storyId,
@@ -60,10 +60,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(story);
     }
 
-    /**
-     * Delete a story (soft delete)
-     * DELETE /api/admin/stories/{storyId}
-     */
+    
+
+
+
     @DeleteMapping("/{storyId}")
     public ResponseEntity<Map<String, String>> deleteStory(
             @PathVariable UUID storyId,
@@ -73,10 +73,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story deleted"));
     }
 
-    /**
-     * Activate a story
-     * POST /api/admin/stories/{storyId}/activate
-     */
+    
+
+
+
     @PostMapping("/{storyId}/activate")
     public ResponseEntity<Map<String, String>> activateStory(
             @PathVariable UUID storyId,
@@ -86,10 +86,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story activated"));
     }
 
-    /**
-     * Deactivate a story
-     * POST /api/admin/stories/{storyId}/deactivate
-     */
+    
+
+
+
     @PostMapping("/{storyId}/deactivate")
     public ResponseEntity<Map<String, String>> deactivateStory(
             @PathVariable UUID storyId,
@@ -99,10 +99,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story deactivated"));
     }
 
-    /**
-     * Archive a story
-     * POST /api/admin/stories/{storyId}/archive
-     */
+    
+
+
+
     @PostMapping("/{storyId}/archive")
     public ResponseEntity<Map<String, String>> archiveStory(
             @PathVariable UUID storyId,
@@ -112,10 +112,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story archived"));
     }
 
-    /**
-     * Unarchive a story
-     * POST /api/admin/stories/{storyId}/unarchive
-     */
+    
+
+
+
     @PostMapping("/{storyId}/unarchive")
     public ResponseEntity<Map<String, String>> unarchiveStory(
             @PathVariable UUID storyId,
@@ -125,10 +125,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(Map.of("status", "success", "message", "Story unarchived"));
     }
 
-    /**
-     * Get all stories with pagination
-     * GET /api/admin/stories?page=0&size=20
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Page<StoryDTO>> getAllStories(
             @RequestParam(defaultValue = "0") int page,
@@ -138,10 +138,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(stories);
     }
 
-    /**
-     * Get a single story by ID
-     * GET /api/admin/stories/{storyId}
-     */
+    
+
+
+
     @GetMapping("/{storyId}")
     public ResponseEntity<StoryDTO> getStoryById(@PathVariable UUID storyId) {
         log.info("Fetching story: {}", storyId);
@@ -149,10 +149,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(story);
     }
 
-    /**
-     * Get stories by status
-     * GET /api/admin/stories/status/{status}
-     */
+    
+
+
+
     @GetMapping("/status/{status}")
     public ResponseEntity<Page<StoryDTO>> getStoriesByStatus(
             @PathVariable StoryStatus status,
@@ -163,10 +163,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(stories);
     }
 
-    /**
-     * Get stories by type
-     * GET /api/admin/stories/type/{type}
-     */
+    
+
+
+
     @GetMapping("/type/{type}")
     public ResponseEntity<Page<StoryDTO>> getStoriesByType(
             @PathVariable StoryType type,
@@ -177,10 +177,10 @@ public class AdminStoryController {
         return ResponseEntity.ok(stories);
     }
 
-    /**
-     * Manually trigger story expiration job
-     * POST /api/admin/stories/expire
-     */
+    
+
+
+
     @PostMapping("/expire")
     public ResponseEntity<Map<String, Object>> expireStories(
             @RequestHeader(value = "X-Admin-Id", defaultValue = "1") Integer adminId) {
@@ -191,10 +191,10 @@ public class AdminStoryController {
                 "expiredCount", count));
     }
 
-    /**
-     * Manually trigger story archival job
-     * POST /api/admin/stories/archive-expired
-     */
+    
+
+
+
     @PostMapping("/archive-expired")
     public ResponseEntity<Map<String, Object>> archiveExpiredStories(
             @RequestHeader(value = "X-Admin-Id", defaultValue = "1") Integer adminId) {

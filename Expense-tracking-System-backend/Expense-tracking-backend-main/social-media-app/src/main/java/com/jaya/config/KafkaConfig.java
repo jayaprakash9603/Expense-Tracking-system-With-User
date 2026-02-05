@@ -29,7 +29,7 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    // String Producer Factory (Primary)
+    
     @Bean
     @Primary
     public ProducerFactory<String, String> producerFactory() {
@@ -40,7 +40,7 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    // Object Producer Factory
+    
     @Bean
     public ProducerFactory<String, Object> objectProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -48,25 +48,25 @@ public class KafkaConfig {
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         configProps.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
-        // Configure ObjectMapper for proper date serialization
-        // configProps.put(JsonSerializer.OBJECT_MAPPER, objectMapper());
+        
+        
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    // String KafkaTemplate (Primary)
+    
     @Bean
     @Primary
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    // Object KafkaTemplate
+    
     @Bean("objectKafkaTemplate")
     public KafkaTemplate<String, Object> objectKafkaTemplate() {
         return new KafkaTemplate<>(objectProducerFactory());
     }
 
-    // Consumer Factory for String messages
+    
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -78,7 +78,7 @@ public class KafkaConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    // Object Consumer Factory for PaymentMethodEvent
+    
     @Bean
     public ConsumerFactory<String, Object> objectConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -89,12 +89,12 @@ public class KafkaConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.jaya.dto.PaymentMethodEvent");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        // Configure ObjectMapper for proper date deserialization
-        // props.put(JsonDeserializer.OBJECT_MAPPER, objectMapper());
+        
+        
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    // UPDATED: Budget Expense Consumer Factory
+    
     @Bean
     public ConsumerFactory<String, Object> budgetExpenseConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -106,12 +106,12 @@ public class KafkaConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        // Configure ObjectMapper for proper date deserialization
-        // props.put(JsonDeserializer.OBJECT_MAPPER, objectMapper());
+        
+        
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    // UPDATED: Category Event Consumer Factory
+    
     @Bean
     public ConsumerFactory<String, Object> categoryEventConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -123,8 +123,8 @@ public class KafkaConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        // Configure ObjectMapper for proper date deserialization
-        // props.put(JsonDeserializer.OBJECT_MAPPER, objectMapper());
+        
+        
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
@@ -133,12 +133,12 @@ public class KafkaConfig {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
-        // Disable writing dates as timestamps (arrays)
+        
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         return mapper;
     }
 
-    // Default Kafka Listener Container Factory
+    
     @Bean
     @Primary
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
@@ -147,7 +147,7 @@ public class KafkaConfig {
         return factory;
     }
 
-    // Object Kafka Listener Container Factory
+    
     @Bean("objectKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> objectKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -155,7 +155,7 @@ public class KafkaConfig {
         return factory;
     }
 
-    // ADD THIS: Budget Expense Kafka Listener Container Factory
+    
     @Bean("budgetExpenseKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> budgetExpenseKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -163,7 +163,7 @@ public class KafkaConfig {
         return factory;
     }
 
-    // ADD THIS: Category Event Kafka Listener Container Factory
+    
     @Bean("categoryEventKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> categoryEventKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -171,7 +171,7 @@ public class KafkaConfig {
         return factory;
     }
 
-    // Expense Budget Linking Consumer Factory
+    
     @Bean
     public ConsumerFactory<String, ExpenseBudgetLinkingEvent> expenseBudgetLinkingConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -179,7 +179,7 @@ public class KafkaConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "expense-service-linking-group");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
-        // Use ErrorHandlingDeserializer to wrap JsonDeserializer
+        
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class.getName());
 
@@ -192,7 +192,7 @@ public class KafkaConfig {
                 new ErrorHandlingDeserializer<>(new JsonDeserializer<>(ExpenseBudgetLinkingEvent.class)));
     }
 
-    // Expense Budget Linking Kafka Listener Container Factory
+    
     @Bean("expenseBudgetLinkingKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, ExpenseBudgetLinkingEvent> expenseBudgetLinkingKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, ExpenseBudgetLinkingEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();

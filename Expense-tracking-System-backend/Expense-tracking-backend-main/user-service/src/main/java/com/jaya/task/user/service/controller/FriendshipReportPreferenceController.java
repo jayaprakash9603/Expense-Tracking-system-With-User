@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * REST Controller for Friendship Report Preferences
- * Handles CRUD operations for user-specific report layout configurations
- */
+
+
+
+
 @RestController
 @RequestMapping("/api/user/friendship-report-preferences")
 @Validated
@@ -29,10 +29,10 @@ public class FriendshipReportPreferenceController {
 
     private final FriendshipReportPreferenceService friendshipReportPreferenceService;
 
-    /**
-     * Get friendship report preference for current user
-     * Always returns a configuration (custom or default)
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Object> getFriendshipReportPreference(
             @RequestHeader("Authorization") String jwt) {
@@ -50,9 +50,9 @@ public class FriendshipReportPreferenceController {
         }
     }
 
-    /**
-     * Save or update friendship report preference for current user
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Object> saveFriendshipReportPreference(
             @RequestHeader("Authorization") String jwt,
@@ -73,9 +73,9 @@ public class FriendshipReportPreferenceController {
         }
     }
 
-    /**
-     * Reset friendship report preference to default
-     */
+    
+
+
     @DeleteMapping
     public ResponseEntity<Object> resetFriendshipReportPreference(
             @RequestHeader("Authorization") String jwt) {

@@ -17,7 +17,7 @@ public class InvestmentService {
         int totalPeriod = input.getSipPeriods().stream().mapToInt(SipPeriod::getTotalMonths).sum();
         double annualInflationRate = input.getInflationRate() / 100;
 
-        // Validate lumpsum times
+        
         if (input.getLumpsumInvestments() != null) {
             for (LumpsumInvestment lumpsum : input.getLumpsumInvestments()) {
                 if (lumpsum.getMonth() > totalPeriod) {
@@ -26,7 +26,7 @@ public class InvestmentService {
             }
         }
 
-        // Calculate future value of all SIP periods
+        
         List<InvestmentResult.SipContribution> sipContributions = new ArrayList<>();
         double totalSipValue = 0;
         int monthsElapsed = 0;
@@ -55,7 +55,7 @@ public class InvestmentService {
             monthsElapsed += period.getTotalMonths();
         }
 
-        // Calculate future value of lumpsum investments
+        
         List<InvestmentResult.LumpsumContribution> lumpsumContributions = new ArrayList<>();
         double totalLumpsumValue = 0;
         if (input.getLumpsumInvestments() != null) {
@@ -71,11 +71,11 @@ public class InvestmentService {
             }
         }
 
-        // Calculate nominal and real future values
+        
         double nominalFutureValue = totalSipValue + totalLumpsumValue;
         double realFutureValue = nominalFutureValue / Math.pow(1 + annualInflationRate, totalPeriod / 12.0);
 
-        // Build result
+        
         InvestmentResult result = new InvestmentResult();
         result.setTotalFutureValue(nominalFutureValue);
         result.setRealFutureValue(realFutureValue);
@@ -90,11 +90,11 @@ public class InvestmentService {
         double currentMonthlyAmount = initialMonthlyAmount;
 
         for (int month = 1; month <= months; month++) {
-            // Apply step-up at specified intervals
+            
             if (month % stepUpIntervalMonths == 1 && month > 1) {
                 currentMonthlyAmount *= (1 + annualStepUpRate);
             }
-            // Calculate future value of this month's investment
+            
             int globalMonth = monthsElapsed + month;
             totalFv += currentMonthlyAmount * calculateCompoundFactor(globalMonth, periods, totalPeriod);
         }
@@ -119,12 +119,12 @@ public class InvestmentService {
 
             if (startMonth <= periodEnd) {
                 foundPeriod = true;
-                // Calculate months to compound within this period
+                
                 int monthsInPeriod = Math.min(periodEnd - startMonth + 1, totalPeriod - startMonth + 1);
                 if (monthsInPeriod > 0) {
                     factor *= Math.pow(1 + monthlyRate, monthsInPeriod);
                 }
-                // Adjust startMonth for the next period
+                
                 startMonth += monthsInPeriod;
             }
             monthsElapsed += periodMonths;
@@ -132,7 +132,7 @@ public class InvestmentService {
             if (startMonth > totalPeriod) break;
         }
 
-        // If startMonth is before the first period, use the first period's rate
+        
         if (!foundPeriod && startMonth <= totalPeriod) {
             double defaultRate = periods.get(0).getAnnualReturnRate() / 100 / 12;
             factor *= Math.pow(1 + defaultRate, totalPeriod - startMonth + 1);

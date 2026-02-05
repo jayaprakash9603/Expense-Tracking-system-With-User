@@ -25,10 +25,10 @@ public class ExpenseReportPreferenceController {
 
     private final ExpenseReportPreferenceService expenseReportPreferenceService;
 
-    /**
-     * Get expense report preference for current user
-     * Always returns a configuration (custom or default)
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Object> getExpenseReportPreference(
             @RequestHeader("Authorization") String jwt) {
@@ -45,9 +45,9 @@ public class ExpenseReportPreferenceController {
         }
     }
 
-    /**
-     * Save or update expense report preference for current user
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Object> saveExpenseReportPreference(
             @RequestHeader("Authorization") String jwt,
@@ -68,9 +68,9 @@ public class ExpenseReportPreferenceController {
         }
     }
 
-    /**
-     * Reset expense report preference to default
-     */
+    
+
+
     @DeleteMapping
     public ResponseEntity<Object> resetExpenseReportPreference(
             @RequestHeader("Authorization") String jwt) {

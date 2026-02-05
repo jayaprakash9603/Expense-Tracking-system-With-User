@@ -14,7 +14,7 @@ public class LumpsumInvestment {
     @Min(value = 0, message = "Lumpsum investment time must be non-negative")
     private int month;
 
-    // Getters and Setters
+    
     public double getAmount() {
         return amount;
     }

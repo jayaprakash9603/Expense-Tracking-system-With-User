@@ -12,18 +12,12 @@ import java.util.Set;
 
 @Component
 public class AuditEventMapper {
-
-    /**
-     * Maps AuditEvent to PaymentMethodEvent
-     */
     public PaymentMethodEvent mapToPaymentMethodEvent(AuditEvent auditEvent) {
         PaymentMethodEvent paymentMethodEvent = new PaymentMethodEvent();
 
-        // Map basic fields
         paymentMethodEvent.setUserId(auditEvent.getUserId());
         paymentMethodEvent.setEventType(auditEvent.getActionType());
 
-        // Extract expense ID from entity ID if entity type is EXPENSE
         if ("EXPENSE".equals(auditEvent.getEntityType()) && auditEvent.getEntityId() != null) {
             try {
                 paymentMethodEvent.setExpenseId(Integer.valueOf(auditEvent.getEntityId()));
@@ -32,31 +26,24 @@ public class AuditEventMapper {
             }
         }
 
-        // Extract payment method details from newValues or oldValues
         if (auditEvent.getNewValues() != null) {
             extractPaymentMethodDetails(auditEvent.getNewValues(), paymentMethodEvent);
         } else if (auditEvent.getOldValues() != null) {
             extractPaymentMethodDetails(auditEvent.getOldValues(), paymentMethodEvent);
         }
 
-        // Set description from audit event details
-        paymentMethodEvent.setDescription(auditEvent.getDetails() != null ?
-                auditEvent.getDetails() : auditEvent.getDescription());
+        paymentMethodEvent.setDescription(
+                auditEvent.getDetails() != null ? auditEvent.getDetails() : auditEvent.getDescription());
 
         return paymentMethodEvent;
     }
 
-    /**
-     * Maps AuditEvent to CategoryExpenseEvent
-     */
     public CategoryExpenseEvent mapToCategoryExpenseEvent(AuditEvent auditEvent) {
         CategoryExpenseEvent categoryEvent = new CategoryExpenseEvent();
 
-        // Map basic fields
         categoryEvent.setUserId(auditEvent.getUserId());
         categoryEvent.setAction(auditEvent.getActionType());
 
-        // Extract expense ID from entity ID
         if (auditEvent.getEntityId() != null) {
             try {
                 categoryEvent.setExpenseId(Integer.valueOf(auditEvent.getEntityId()));
@@ -65,14 +52,12 @@ public class AuditEventMapper {
             }
         }
 
-        // Extract category details from newValues or oldValues
         if (auditEvent.getNewValues() != null) {
             extractCategoryDetails(auditEvent.getNewValues(), categoryEvent);
         } else if (auditEvent.getOldValues() != null) {
             extractCategoryDetails(auditEvent.getOldValues(), categoryEvent);
         }
 
-        // Set timestamp from audit event
         if (auditEvent.getTimestamp() != null) {
             categoryEvent.setTimestamp(auditEvent.getTimestamp());
         }
@@ -80,17 +65,12 @@ public class AuditEventMapper {
         return categoryEvent;
     }
 
-    /**
-     * Maps AuditEvent to BudgetExpenseEvent
-     */
     public BudgetExpenseEvent mapToBudgetExpenseEvent(AuditEvent auditEvent) {
         BudgetExpenseEvent budgetEvent = new BudgetExpenseEvent();
 
-        // Map basic fields
         budgetEvent.setUserId(auditEvent.getUserId());
         budgetEvent.setAction(auditEvent.getActionType());
 
-        // Extract expense ID from entity ID
         if (auditEvent.getEntityId() != null) {
             try {
                 budgetEvent.setExpenseId(Integer.valueOf(auditEvent.getEntityId()));
@@ -99,7 +79,6 @@ public class AuditEventMapper {
             }
         }
 
-        // Extract budget IDs from newValues or oldValues
         Set<Integer> budgetIds = new HashSet<>();
         if (auditEvent.getNewValues() != null) {
             budgetIds = extractBudgetIds(auditEvent.getNewValues());
@@ -111,9 +90,6 @@ public class AuditEventMapper {
         return budgetEvent;
     }
 
-    /**
-     * Generic method to map AuditEvent to any event type based on entity type
-     */
     public Object mapToSpecificEvent(AuditEvent auditEvent) {
         if (auditEvent == null || auditEvent.getEntityType() == null) {
             return null;
@@ -121,7 +97,6 @@ public class AuditEventMapper {
 
         switch (auditEvent.getEntityType().toUpperCase()) {
             case "EXPENSE":
-                // Determine specific event type based on details or action
                 if (auditEvent.getDetails() != null &&
                         auditEvent.getDetails().toLowerCase().contains("payment")) {
                     return mapToPaymentMethodEvent(auditEvent);
@@ -146,7 +121,6 @@ public class AuditEventMapper {
         return null;
     }
 
-    // Private helper methods
     private void extractPaymentMethodDetails(java.util.Map<String, Object> values, PaymentMethodEvent event) {
         if (values.containsKey("paymentMethod")) {
             event.setPaymentMethodName((String) values.get("paymentMethod"));
@@ -164,7 +138,6 @@ public class AuditEventMapper {
             event.setColor((String) values.get("color"));
         }
 
-        // Set default values if not present
         if (event.getPaymentMethodName() == null && values.containsKey("expenseName")) {
             event.setPaymentMethodName((String) values.get("expenseName"));
         }
@@ -200,7 +173,6 @@ public class AuditEventMapper {
             event.setCategoryName((String) values.get("categoryName"));
         }
 
-        // Fallback to other possible field names
         if (event.getCategoryName() == null && values.containsKey("category")) {
             event.setCategoryName((String) values.get("category"));
         }
@@ -221,14 +193,12 @@ public class AuditEventMapper {
                         try {
                             budgetIds.add(Integer.valueOf((String) id));
                         } catch (NumberFormatException e) {
-                            // Skip invalid budget ID
                         }
                     }
                 }
             }
         }
 
-        // Check for single budget ID
         if (budgetIds.isEmpty() && values.containsKey("budgetId")) {
             Object budgetId = values.get("budgetId");
             if (budgetId instanceof Integer) {
@@ -237,7 +207,6 @@ public class AuditEventMapper {
                 try {
                     budgetIds.add(Integer.valueOf((String) budgetId));
                 } catch (NumberFormatException e) {
-                    // Skip invalid budget ID
                 }
             }
         }
@@ -245,9 +214,6 @@ public class AuditEventMapper {
         return budgetIds;
     }
 
-    /**
-     * Utility method to determine event type from AuditEvent
-     */
     public String determineEventType(AuditEvent auditEvent) {
         if (auditEvent.getDetails() != null) {
             String details = auditEvent.getDetails().toLowerCase();

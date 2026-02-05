@@ -162,7 +162,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
 
     @Override
     public List<String> getUniqueTopExpensesByGain(Integer userId, int limit) {
-        Pageable pageable = PageRequest.of(0, limit);  // Limit the results to the 'limit' number
+        Pageable pageable = PageRequest.of(0, limit);  
         return expenseRepository.findTopExpensesByGainForUser(userId, pageable);
     }
 

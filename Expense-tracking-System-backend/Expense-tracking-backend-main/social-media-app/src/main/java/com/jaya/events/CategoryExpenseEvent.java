@@ -9,14 +9,14 @@ public class CategoryExpenseEvent implements Serializable {
     private Integer categoryId;
     private String categoryName;
     private String action;
-    // ADD, REMOVE, UPDATE
     private LocalDateTime timestamp;
 
     public CategoryExpenseEvent() {
         this.timestamp = LocalDateTime.now();
     }
 
-    public CategoryExpenseEvent(Integer userId, Integer expenseId, Integer categoryId, String categoryName, String action) {
+    public CategoryExpenseEvent(Integer userId, Integer expenseId, Integer categoryId, String categoryName,
+            String action) {
         this.userId = userId;
         this.expenseId = expenseId;
         this.categoryId = categoryId;
@@ -25,24 +25,53 @@ public class CategoryExpenseEvent implements Serializable {
         this.timestamp = LocalDateTime.now();
     }
 
-    // Getters and setters
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public Integer getUserId() {
+        return userId;
+    }
 
-    public Integer getExpenseId() { return expenseId; }
-    public void setExpenseId(Integer expenseId) { this.expenseId = expenseId; }
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
 
-    public Integer getCategoryId() { return categoryId; }
-    public void setCategoryId(Integer categoryId) { this.categoryId = categoryId; }
+    public Integer getExpenseId() {
+        return expenseId;
+    }
 
-    public String getCategoryName() { return categoryName; }
-    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public void setExpenseId(Integer expenseId) {
+        this.expenseId = expenseId;
+    }
 
-    public String getAction() { return action; }
-    public void setAction(String action) { this.action = action; }
+    public Integer getCategoryId() {
+        return categoryId;
+    }
 
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
 
     @Override
     public String toString() {

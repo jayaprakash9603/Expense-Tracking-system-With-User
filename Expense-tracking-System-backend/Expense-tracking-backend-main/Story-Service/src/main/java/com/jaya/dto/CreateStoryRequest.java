@@ -31,31 +31,31 @@ public class CreateStoryRequest {
     @NotNull(message = "Severity is required")
     private StorySeverity severity;
 
-    // Target user ID (null = global story)
+    
     private Integer targetUserId;
 
-    // Default: true (visible to all)
+    
     private Boolean isGlobal = true;
 
-    // Default: 5 seconds
+    
     private Integer durationSeconds = 5;
 
-    // Priority (higher = shown first)
+    
     private Integer priority = 0;
 
-    // Reference to related entity
+    
     private String referenceId;
     private String referenceType;
 
-    // Additional metadata as JSON
+    
     private String metadata;
 
-    // Expiration in hours (default 24)
+    
     private Integer expirationHours = 24;
 
-    // CTA buttons
+    
     private List<StoryCTADTO> ctaButtons;
 
-    // Auto-activate on creation
+    
     private Boolean autoActivate = true;
 }

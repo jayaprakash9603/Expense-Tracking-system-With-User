@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,6 +18,7 @@ public class UserAddedItemsDTO {
     private String shareToken;
     private Set<String> addedExternalRefs;
     private Integer addedCount;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

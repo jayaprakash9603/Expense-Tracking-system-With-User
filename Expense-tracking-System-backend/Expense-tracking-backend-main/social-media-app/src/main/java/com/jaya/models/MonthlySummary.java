@@ -9,7 +9,7 @@ import lombok.Data;
 public class MonthlySummary {
 
     private BigDecimal totalAmount;
-    private Map<String, BigDecimal> categoryBreakdown;  // Key: Category, Value: Total amount spent
+    private Map<String, BigDecimal> categoryBreakdown;  
     private BigDecimal balanceRemaining;
     private BigDecimal currentMonthCreditDue = BigDecimal.ZERO;
     private CashSummary cash;

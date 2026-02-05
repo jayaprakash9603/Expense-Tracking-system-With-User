@@ -46,8 +46,8 @@ public class CustomUserServiceImplementation implements UserDetailsService {
 
         System.out.println("User " + username + " has authorities: " + authorities);
 
-        // Handle null password for OAuth users - use empty string as placeholder
-        // OAuth users don't authenticate with password, so this is safe
+        
+        
         String password = user.getPassword() != null ? user.getPassword() : "";
 
         return new org.springframework.security.core.userdetails.User(

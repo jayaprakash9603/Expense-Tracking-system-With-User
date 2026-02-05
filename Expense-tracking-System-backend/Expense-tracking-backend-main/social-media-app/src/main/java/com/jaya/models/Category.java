@@ -22,7 +22,7 @@ public class Category {
     private String name;
     private String description;
 
-    private String type; // e.g., "income", "expense", "transfer"
+    private String type; 
     private boolean isGlobal = false;
 
     private String icon = "";
@@ -36,7 +36,7 @@ public class Category {
     @CollectionTable(name = "category_expense_ids", joinColumns = @JoinColumn(name = "category_id"))
     @MapKeyColumn(name = "expense_key")
     @Lob
-    @Column(name = "expense_value", columnDefinition = "LONGBLOB") // Changed to LONGBLOB
+    @Column(name = "expense_value", columnDefinition = "LONGBLOB") 
     private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 
     @ElementCollection

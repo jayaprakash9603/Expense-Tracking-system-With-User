@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-/**
- * Common Activity DTO used across all microservices.
- * Represents user activity for feed and activity tracking.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,7 +28,7 @@ public class ActivityDTO implements Serializable {
 
     private String eventId;
 
-    // Actor information
+    
     private Integer actorId;
 
     private String actorName;
@@ -37,21 +37,21 @@ public class ActivityDTO implements Serializable {
 
     private String actorType;
 
-    // Target information (for actions that affect another user)
+    
     private Integer targetId;
 
     private String targetName;
 
     private String targetImage;
 
-    // Entity information
+    
     private String entityType;
 
     private String entityId;
 
     private String entityName;
 
-    // Action details
+    
     private String action;
 
     private String title;
@@ -62,20 +62,20 @@ public class ActivityDTO implements Serializable {
 
     private String color;
 
-    // Timestamps
+    
     private LocalDateTime timestamp;
 
     private String relativeTime;
 
-    // Visibility
+    
     private boolean isPublic;
 
     private boolean visibleToFriends;
 
-    // Metadata
+    
     private Object metadata;
 
-    // ==================== Action Constants ====================
+    
 
     public static final String ACTION_CREATED = "CREATED";
     public static final String ACTION_UPDATED = "UPDATED";
@@ -85,7 +85,7 @@ public class ActivityDTO implements Serializable {
     public static final String ACTION_COMMENTED = "COMMENTED";
     public static final String ACTION_ACHIEVED = "ACHIEVED";
 
-    // ==================== Entity Types ====================
+    
 
     public static final String ENTITY_EXPENSE = "EXPENSE";
     public static final String ENTITY_BUDGET = "BUDGET";
@@ -94,11 +94,11 @@ public class ActivityDTO implements Serializable {
     public static final String ENTITY_FRIENDSHIP = "FRIENDSHIP";
     public static final String ENTITY_ACHIEVEMENT = "ACHIEVEMENT";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create an expense activity
-     */
+    
+
+
     public static ActivityDTO expenseActivity(Integer actorId, String actorName, String action, String expenseId,
             String expenseName, Double amount) {
         return ActivityDTO.builder()
@@ -116,9 +116,9 @@ public class ActivityDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a budget activity
-     */
+    
+
+
     public static ActivityDTO budgetActivity(Integer actorId, String actorName, String action, String budgetId,
             String budgetName) {
         return ActivityDTO.builder()
@@ -135,9 +135,9 @@ public class ActivityDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a friendship activity
-     */
+    
+
+
     public static ActivityDTO friendshipActivity(Integer actorId, String actorName, Integer targetId, String targetName,
             String action) {
         return ActivityDTO.builder()

@@ -39,7 +39,7 @@ public class UserServiceImplementation implements UserService {
         String email = JwtProvider.getEmailFromJwt(jwt);
         User user = userRepository.findByEmail(email);
 
-        // Debug logging
+        
         System.out.println("=== GET USER PROFILE DEBUG ===");
         System.out.println("Roles from user T: " + (user != null ? user.getRoles() : null));
         System.out.println("User found: " + (user != null));
@@ -49,9 +49,9 @@ public class UserServiceImplementation implements UserService {
                 System.out.println("User role: " + roleName);
             }
 
-            // Handle existing users with null currentMode (created before this feature)
+            
             if (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty()) {
-                // Set default mode to USER
+                
                 user.setCurrentMode("USER");
                 user.setUpdatedAt(LocalDateTime.now());
                 user = userRepository.save(user);
@@ -79,11 +79,11 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User not found");
         }
 
-        // If email is provided in the request, validate permission to update that user
-        // Otherwise, update the requesting user's own profile
+        
+        
         User userToUpdate;
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty()) {
-            // Validation: User can only update their own profile unless they're admin
+            
             if (!canUpdateProfile(reqUser, updateRequest.getEmail())) {
                 throw new RuntimeException("You can only update your own profile");
             }
@@ -92,72 +92,72 @@ public class UserServiceImplementation implements UserService {
                 throw new RuntimeException("User not found");
             }
         } else {
-            // No email provided, update requesting user's own profile
+            
             userToUpdate = reqUser;
         }
 
-        // Update user fields
+        
         updateUserFields(userToUpdate, updateRequest, reqUser);
 
-        // Save and return updated user
+        
         return userRepository.save(userToUpdate);
     }
 
     private void updateUserFields(User userToUpdate, UserUpdateRequest updateRequest, User requestingUser) {
-        // Update full name
+        
         applyIfHasText(updateRequest.getFullName(), v -> userToUpdate.setFullName(trim(v)));
 
-        // Update email
+        
         applyIfHasText(updateRequest.getEmail(), v -> userToUpdate.setEmail(trimToLower(v)));
 
-        // Update password if provided
+        
         applyIfHasText(updateRequest.getPassword(), v -> userToUpdate.setPassword(passwordEncoder.encode(v)));
 
-        // Update phone number (null check only, allow empty if that's desired)
+        
         applyIfPresent(updateRequest.getPhoneNumber(), v -> userToUpdate.setPhoneNumber(trim(v)));
 
-        // Update username
+        
         applyIfPresent(updateRequest.getUsername(), v -> userToUpdate.setUsername(trim(v)));
 
-        // Update website
+        
         applyIfPresent(updateRequest.getWebsite(), v -> userToUpdate.setWebsite(trim(v)));
 
-        // Update location
+        
         applyIfPresent(updateRequest.getLocation(), v -> userToUpdate.setLocation(trim(v)));
 
-        // Update bio
+        
         applyIfPresent(updateRequest.getBio(), v -> userToUpdate.setBio(trim(v)));
 
-        // Update profile image URL
+        
         applyIfPresent(updateRequest.getProfileImage(), v -> userToUpdate.setProfileImage(trim(v)));
 
-        // Update cover image URL
+        
         applyIfPresent(updateRequest.getCoverImage(), v -> userToUpdate.setCoverImage(trim(v)));
 
-        // Update mobile
+        
         applyIfPresent(updateRequest.getMobile(), v -> userToUpdate.setMobile(trim(v)));
 
-        // Update occupation
+        
         applyIfPresent(updateRequest.getOccupation(), v -> userToUpdate.setOccupation(trim(v)));
 
-        // Update date of birth
+        
         applyIfPresent(updateRequest.getDateOfBirth(), v -> userToUpdate.setDateOfBirth(trim(v)));
 
-        // Update first name
+        
         applyIfHasText(updateRequest.getFirstName(), v -> userToUpdate.setFirstName(trim(v)));
 
-        // Update last name
+        
         applyIfHasText(updateRequest.getLastName(), v -> userToUpdate.setLastName(trim(v)));
 
-        // Update gender
+        
         applyIfHasText(updateRequest.getGender(), v -> userToUpdate.setGender(upperTrim(v)));
 
-        // Update roles if provided and user is admin
+        
         if (updateRequest.getRoleNames() != null && requestingUser.hasRole("ADMIN")) {
             updateUserRoles(userToUpdate, updateRequest.getRoleNames());
         }
 
-        // Update timestamp
+        
         touchUpdatedAt(userToUpdate);
     }
 
@@ -169,7 +169,7 @@ public class UserServiceImplementation implements UserService {
             if (roleRepository.findByName(role).isPresent()) {
                 newRoles.add(role);
             } else {
-                // Extract original-like name for message (remove prefix if present)
+                
                 String originalName = role.startsWith("ROLE_") ? role.substring(5) : role;
                 throw new RuntimeException("Role not found: " + originalName);
             }
@@ -236,7 +236,7 @@ public class UserServiceImplementation implements UserService {
         newUser.setFullName((firstName + " " + lastName).trim());
         newUser.setPassword(passwordEncoder.encode(password));
 
-        // Roles
+        
         Set<String> userRoles = new HashSet<>();
         Set<Role> rolesToUpdate = new HashSet<>();
 
@@ -272,7 +272,7 @@ public class UserServiceImplementation implements UserService {
 
         User savedUser = userRepository.save(newUser);
 
-        // Update role user ids
+        
         for (Role role : rolesToUpdate) {
             if (role.getUsers() == null) {
                 role.setUsers(new java.util.HashSet<>());
@@ -292,46 +292,46 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User not found");
         }
 
-        // Validate the new mode
+        
         if (!newMode.equals("USER") && !newMode.equals("ADMIN")) {
             throw new IllegalArgumentException("Invalid mode. Must be USER or ADMIN");
         }
 
-        // Check if user has ADMIN role when trying to switch to ADMIN mode
+        
         if (newMode.equals("ADMIN") && !user.hasRole("ADMIN")) {
             throw new RuntimeException("User does not have ADMIN role");
         }
 
-        // Update the current mode
+        
         user.setCurrentMode(newMode);
         user.setUpdatedAt(LocalDateTime.now());
 
         return userRepository.save(user);
     }
 
-    // ========= Pure and reusable helpers =========
+    
 
-    // Pure: checks if a string has non-whitespace text
+    
     private static boolean hasText(String s) {
         return s != null && !s.trim().isEmpty();
     }
 
-    // Pure: trim or return null
+    
     private static String trim(String s) {
         return s == null ? null : s.trim();
     }
 
-    // Pure: lower case + trim
+    
     private static String trimToLower(String s) {
         return s == null ? null : s.toLowerCase().trim();
     }
 
-    // Pure: upper case + trim
+    
     private static String upperTrim(String s) {
         return s == null ? null : s.toUpperCase().trim();
     }
 
-    // Pure: normalize role names to ROLE_* UPPER format
+    
     private static Set<String> normalizeRoleNames(List<String> roleNames) {
         Set<String> result = new HashSet<>();
         if (roleNames == null)
@@ -348,7 +348,7 @@ public class UserServiceImplementation implements UserService {
         return result;
     }
 
-    // Pure: permission check for profile update
+    
     private static boolean canUpdateProfile(User requestingUser, String targetEmail) {
         if (requestingUser == null || !hasText(targetEmail))
             return false;
@@ -356,19 +356,19 @@ public class UserServiceImplementation implements UserService {
         return (reqEmail != null && reqEmail.equals(targetEmail)) || requestingUser.hasRole("ADMIN");
     }
 
-    // Reusable: apply setter if value is non-null
+    
     private static void applyIfPresent(String value, Consumer<String> setter) {
         if (value != null)
             setter.accept(value);
     }
 
-    // Reusable: apply setter if value has text (non-empty after trim)
+    
     private static void applyIfHasText(String value, Consumer<String> setter) {
         if (hasText(value))
             setter.accept(value);
     }
 
-    // Reusable: update timestamp
+    
     private static void touchUpdatedAt(User user) {
         user.setUpdatedAt(LocalDateTime.now());
     }

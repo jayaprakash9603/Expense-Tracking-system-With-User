@@ -15,10 +15,10 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Common Budget DTO used across all microservices.
- * Contains budget information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -62,7 +62,7 @@ public class BudgetDTO implements Serializable {
     @Builder.Default
     private boolean includeInBudget = false;
 
-    // Notification tracking flags
+    
     @Builder.Default
     private boolean notification50PercentSent = false;
 
@@ -76,7 +76,7 @@ public class BudgetDTO implements Serializable {
 
     private boolean edited;
 
-    // Status fields
+    
     private String status;
 
     private boolean active;
@@ -85,11 +85,11 @@ public class BudgetDTO implements Serializable {
 
     private boolean exceeded;
 
-    // ==================== Computed Methods ====================
+    
 
-    /**
-     * Calculate percentage used
-     */
+    
+
+
     public Double calculatePercentageUsed() {
         if (amount == null || amount <= 0 || spentAmount == null) {
             return 0.0;
@@ -97,9 +97,9 @@ public class BudgetDTO implements Serializable {
         return (spentAmount / amount) * 100;
     }
 
-    /**
-     * Calculate remaining amount
-     */
+    
+
+
     public Double calculateRemainingAmount() {
         if (amount == null || spentAmount == null) {
             return amount;
@@ -107,30 +107,30 @@ public class BudgetDTO implements Serializable {
         return amount - spentAmount;
     }
 
-    /**
-     * Check if budget is exceeded
-     */
+    
+
+
     public boolean isExceeded() {
         return spentAmount != null && amount != null && spentAmount > amount;
     }
 
-    /**
-     * Check if budget is expired
-     */
+    
+
+
     public boolean isExpired() {
         return endDate != null && LocalDate.now().isAfter(endDate);
     }
 
-    /**
-     * Check if budget is active
-     */
+    
+
+
     public boolean isActive() {
         return !isExpired() && !isExceeded();
     }
 
-    /**
-     * Get budget status string
-     */
+    
+
+
     public String getStatusString() {
         if (isExpired())
             return "EXPIRED";
@@ -142,11 +142,11 @@ public class BudgetDTO implements Serializable {
         return "ACTIVE";
     }
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a minimal BudgetDTO
-     */
+    
+
+
     public static BudgetDTO minimal(Integer id, Integer userId) {
         return BudgetDTO.builder()
                 .id(id)
@@ -154,9 +154,9 @@ public class BudgetDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create BudgetDTO with basic info
-     */
+    
+
+
     public static BudgetDTO basic(Integer id, String name, Double amount, Integer userId) {
         return BudgetDTO.builder()
                 .id(id)

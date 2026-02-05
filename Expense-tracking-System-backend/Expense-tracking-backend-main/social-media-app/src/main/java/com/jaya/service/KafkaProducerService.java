@@ -34,7 +34,7 @@ public class KafkaProducerService {
             System.out.println("Produced audit event: " + auditEventJson);
         } catch (JsonProcessingException e) {
             System.err.println("Error serializing audit event: " + e.getMessage());
-            // Fallback to synchronous logging if Kafka fails
+            
             System.err.println("Fallback audit log: " + auditEvent.toString());
         }
     }

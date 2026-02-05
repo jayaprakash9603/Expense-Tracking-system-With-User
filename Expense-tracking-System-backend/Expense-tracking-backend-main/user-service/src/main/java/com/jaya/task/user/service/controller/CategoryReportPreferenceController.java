@@ -25,10 +25,10 @@ public class CategoryReportPreferenceController {
 
     private final CategoryReportPreferenceService categoryReportPreferenceService;
 
-    /**
-     * Get category report preference for current user
-     * Always returns a configuration (custom or default)
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Object> getCategoryReportPreference(
             @RequestHeader("Authorization") String jwt) {
@@ -46,9 +46,9 @@ public class CategoryReportPreferenceController {
         }
     }
 
-    /**
-     * Save or update category report preference for current user
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Object> saveCategoryReportPreference(
             @RequestHeader("Authorization") String jwt,
@@ -69,9 +69,9 @@ public class CategoryReportPreferenceController {
         }
     }
 
-    /**
-     * Reset category report preference to default
-     */
+    
+
+
     @DeleteMapping
     public ResponseEntity<Object> resetCategoryReportPreference(
             @RequestHeader("Authorization") String jwt) {

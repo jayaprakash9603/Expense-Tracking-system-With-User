@@ -3,10 +3,10 @@ package com.jaya.task.user.service.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * Entity for storing user's bill report layout preferences.
- * Follows the same pattern as other report preferences (DRY principle).
- */
+
+
+
+
 @Entity
 @Table(name = "bill_report_preferences")
 public class BillReportPreference {
@@ -48,7 +48,7 @@ public class BillReportPreference {
         updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
+    
     public Long getId() {
         return id;
     }

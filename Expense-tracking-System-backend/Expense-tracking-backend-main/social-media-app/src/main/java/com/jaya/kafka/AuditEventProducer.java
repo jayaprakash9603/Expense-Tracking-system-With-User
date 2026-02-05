@@ -71,8 +71,7 @@ public class AuditEventProducer {
                 auditTopic,
                 budgetExpenseTopic,
                 categoryExpenseTopic,
-                paymentMethodTopic
-        );
+                paymentMethodTopic);
 
         for (String topic : topics) {
             publishToTopic(auditEvent, topic);
@@ -87,15 +86,12 @@ public class AuditEventProducer {
 
     private void publishToTopic(AuditEvent auditEvent, String topic) {
         try {
-            // Enrich audit event with service information
             enrichAuditEvent(auditEvent);
 
-            // Convert to JSON string
             String auditEventJson = objectMapper.writeValueAsString(auditEvent);
 
-            // Send to Kafka
-            CompletableFuture<SendResult<String, String>> future =
-                    kafkaTemplate.send(topic, auditEvent.getCorrelationId(), auditEventJson);
+            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic,
+                    auditEvent.getCorrelationId(), auditEventJson);
 
             future.whenComplete((result, exception) -> {
                 if (exception == null) {
@@ -121,14 +117,12 @@ public class AuditEventProducer {
 
     private void publishToTopicSync(AuditEvent auditEvent, String topic) {
         try {
-            // Enrich audit event with service information
             enrichAuditEvent(auditEvent);
 
-            // Convert to JSON string
             String auditEventJson = objectMapper.writeValueAsString(auditEvent);
 
-            // Send to Kafka synchronously
-            SendResult<String, String> result = kafkaTemplate.send(topic, auditEvent.getCorrelationId(), auditEventJson).get();
+            SendResult<String, String> result = kafkaTemplate.send(topic, auditEvent.getCorrelationId(), auditEventJson)
+                    .get();
 
             log.debug("Audit event published synchronously: correlationId={}, topic={}, partition={}, offset={}",
                     auditEvent.getCorrelationId(),
@@ -170,7 +164,6 @@ public class AuditEventProducer {
                 Thread.currentThread().getId();
     }
 
-    // Configure ObjectMapper bean if not already present
     private ObjectMapper createObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());

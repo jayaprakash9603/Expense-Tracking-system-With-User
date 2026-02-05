@@ -1,4 +1,5 @@
 package com.jaya.modal;
+
 public enum NotificationType {
     BUDGET_EXCEEDED,
     BUDGET_WARNING,

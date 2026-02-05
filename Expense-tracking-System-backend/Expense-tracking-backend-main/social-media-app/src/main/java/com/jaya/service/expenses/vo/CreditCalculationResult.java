@@ -4,9 +4,9 @@ import lombok.Builder;
 import lombok.Value;
 import java.math.BigDecimal;
 
-/**
- * Immutable Value Object for credit calculation results
- */
+
+
+
 @Value
 @Builder
 public class CreditCalculationResult {

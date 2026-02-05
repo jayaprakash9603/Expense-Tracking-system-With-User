@@ -26,7 +26,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
     private static final String LABELS = "labels";
     private static final String LABEL = "label";
     private static final String DATA_SETS = "datasets";
-    // Constants
+    
     private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
     private static final String CREDIT_PAID = "creditPaid";
     private static final String CASH = "cash";
@@ -385,7 +385,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return generateDailySpendingResponse(dateRangePeriod, dailySpending);
     }
 
-    // Helper Classes and Methods
+    
 
     private static class DatePeriod {
         private final LocalDate startDate;
@@ -488,24 +488,24 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private double lastMonthRemainingBudget = 0.0;
         private double lastMonthCreditPaidAmount = 0.0;
 
-        // New fields for credit card bill payment tracking
+        
         private double lastCreditBillPaidAmount = 0.0;
         private LocalDate lastCreditBillPaidDate = null;
         private double previousCreditBillPaidAmount = 0.0;
         private LocalDate previousCreditBillPaidDate = null;
-        private double currentMonthBillPaid = 0.0; // New field for current month bill paid
+        private double currentMonthBillPaid = 0.0; 
 
-        // Last 30 days metrics
+        
         private double last30DaysTotalLosses = 0.0;
         private double last30DaysSavings = 0.0;
 
-        // Upcoming bills (current credit period outstanding amount)
+        
         private double creditDueCurrentPeriod = 0.0;
 
-        // Payments made after the current credit period end, treated as bill payments
+        
         private double creditBillPaidAfterCurrentPeriod = 0.0;
 
-        // Aggregated top expenses for last 30 days
+        
         private final Map<String, AggregatedExpense> last30DaysExpenseAggregates = new HashMap<>();
 
         public void processExpense(Expense expense, DatePeriod currentPeriod) {
@@ -527,7 +527,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             processCreditExpense(paymentMethod, amount, date, currentPeriod);
             processCreditPaidLastMonth(paymentMethod, amount, date);
             processLastMonthComparison(type, paymentMethod, amount, date);
-            processCreditBillPayments(paymentMethod, amount, date); // Updated method
+            processCreditBillPayments(paymentMethod, amount, date); 
             processLast30DaysMetrics(expense, details);
         }
 
@@ -553,7 +553,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                     last30DaysSavings += amount;
                 }
 
-                // Aggregate by expense name (excluding credit bill payments) for top 4 view
+                
                 String paymentMethod = details.getPaymentMethod();
                 if (!CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
                     String expenseName = details.getExpenseName() != null
@@ -612,7 +612,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 if (isDateInPeriod(date, currentPeriod)) {
                     creditDueCurrentPeriod -= amount;
                 } else if (date.isAfter(currentPeriod.getEndDate())) {
-                    // Treat payments after the credit period end as bill payments against that bill
+                    
                     creditBillPaidAfterCurrentPeriod += amount;
                 }
             }
@@ -627,31 +627,31 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             }
         }
 
-        // Updated method to track credit bill payments for comparison
+        
         private void processCreditBillPayments(String paymentMethod, double amount, LocalDate date) {
             if (CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
                 DatePeriod lastMonthCreditPeriod = getLastMonthCreditPeriod();
                 DatePeriod currentMonthBillPeriod = getCurrentMonthBillPeriod();
 
-                // Check if this payment is within the current month bill period (17th to 5th
-                // next month)
+                
+                
                 if (isDateInPeriod(date, currentMonthBillPeriod)) {
                     currentMonthBillPaid += amount;
-                    // Update last credit bill payment if this is more recent or first one found
+                    
                     if (lastCreditBillPaidDate == null || date.isAfter(lastCreditBillPaidDate)) {
                         lastCreditBillPaidAmount = amount;
                         lastCreditBillPaidDate = date;
                     }
                 } else if (isDateInPeriod(date, lastMonthCreditPeriod)) {
-                    // This is a payment within the last month credit period (17th to 16th)
-                    // Update last credit bill payment if this is more recent or first one found
+                    
+                    
                     if (lastCreditBillPaidDate == null || date.isAfter(lastCreditBillPaidDate)) {
                         lastCreditBillPaidAmount = amount;
                         lastCreditBillPaidDate = date;
                     }
                 } else if (date.isBefore(lastMonthCreditPeriod.getStartDate())) {
-                    // This is a payment before the last month credit period
-                    // Update previous credit bill payment if this is more recent or first one found
+                    
+                    
                     if (previousCreditBillPaidDate == null || date.isAfter(previousCreditBillPaidDate)) {
                         previousCreditBillPaidAmount = amount;
                         previousCreditBillPaidDate = date;
@@ -662,13 +662,13 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
         private DatePeriod getLastMonthCreditPeriod() {
             LocalDate today = LocalDate.now();
-            // Calculate from 17th of previous month to 16th of current month
+            
             LocalDate endDate = today.minusMonths(1).withDayOfMonth(17);
             LocalDate startDate = today.minusMonths(2).withDayOfMonth(16);
             return new DatePeriod(startDate, endDate);
         }
 
-        // New method to get current month bill payment period (17th to 5th next month)
+        
         private DatePeriod getCurrentMonthBillPeriod() {
             LocalDate today = LocalDate.now();
             LocalDate endDate = today.withDayOfMonth(16);
@@ -680,12 +680,12 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             DatePeriod lastMonthPeriod = getLastMonthPeriod();
 
             if (isDateInPeriod(date, lastMonthPeriod)) {
-                // Last month losses (for currentMonthLosses comparison)
+                
                 if (LOSS.equalsIgnoreCase(type) && CASH.equalsIgnoreCase(paymentMethod)) {
                     lastMonthLosses += amount;
                 }
 
-                // Last month credit calculations
+                
                 if (CREDIT_NEED_TO_PAID.equalsIgnoreCase(paymentMethod)) {
                     lastMonthCreditDue += amount;
                 } else if (CREDIT_PAID.equalsIgnoreCase(paymentMethod)) {
@@ -693,7 +693,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                     lastMonthCreditPaidAmount += amount;
                 }
 
-                // Calculate last month remaining budget
+                
                 if (GAIN.equalsIgnoreCase(type) && CASH.equals(paymentMethod)) {
                     lastMonthRemainingBudget += amount;
                 } else if (LOSS.equalsIgnoreCase(type) && CASH.equalsIgnoreCase(paymentMethod)) {
@@ -722,7 +722,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private Map<String, Object> calculateComparison(String label, double currentValue, double lastMonthValue) {
             Map<String, Object> comparison = new HashMap<>();
 
-            // Convert values to positive for proper comparison
+            
             double currentForComparison = currentValue;
             double lastMonthForComparison = lastMonthValue;
 
@@ -731,7 +731,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 lastMonthForComparison = Math.abs(lastMonthValue);
             }
 
-            comparison.put("current", currentValue); // Keep original values in response
+            comparison.put("current", currentValue); 
             comparison.put("lastMonth", lastMonthValue);
 
             if (lastMonthForComparison == 0.0) {
@@ -767,7 +767,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             return comparison;
         }
 
-        // Updated method to calculate credit bill payment comparison
+        
         private Map<String, Object> calculateCreditBillComparison() {
             Map<String, Object> comparison = new HashMap<>();
 
@@ -777,7 +777,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             comparison.put("previousCreditBillPaid", previousCreditBillPaidAmount);
             comparison.put("previousCreditBillPaidDate",
                     previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
-            comparison.put("currentMonthBillPaid", currentMonthBillPaid); // New field
+            comparison.put("currentMonthBillPaid", currentMonthBillPaid); 
 
             if (previousCreditBillPaidAmount == 0.0) {
                 if (lastCreditBillPaidAmount > 0) {
@@ -838,33 +838,33 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             response.put("currentMonthLosses", currentMonthLosses);
             response.put("creditPaidLastMonth", creditPaidLastMonth);
 
-            // Last 30 days metrics
+            
             response.put("last30DaysTotalLosses", last30DaysTotalLosses);
             response.put("last30DaysSavings", last30DaysSavings);
             response.put("avgDailySpendLast30Days", avgDailySpendLast30Days);
             response.put("savingsRateLast30Days", savingsRateLast30Days);
 
-            // Last month values for specific fields
+            
             response.put("lastMonthLosses", lastMonthLosses);
             response.put("lastMonthCreditDue", lastMonthCreditDue);
             response.put("lastMonthRemainingBudget", lastMonthRemainingBudget);
             response.put("lastMonthCreditPaidAmount", lastMonthCreditPaidAmount);
 
-            // Credit bill payment tracking
+            
             response.put("lastCreditBillPaidAmount", lastCreditBillPaidAmount);
             response.put("lastCreditBillPaidDate",
                     lastCreditBillPaidDate != null ? lastCreditBillPaidDate.toString() : null);
             response.put("previousCreditBillPaidAmount", previousCreditBillPaidAmount);
             response.put("previousCreditBillPaidDate",
                     previousCreditBillPaidDate != null ? previousCreditBillPaidDate.toString() : null);
-            response.put("currentMonthBillPaid", currentMonthBillPaid); // New field
+            response.put("currentMonthBillPaid", currentMonthBillPaid); 
 
-            // Upcoming bills amount based on current credit period outstanding and bill
-            // payments
-            // If we are before or on the credit period end date, show the full outstanding
-            // amount.
-            // After the period end (statement date), subtract any bill payments made; if
-            // fully paid, show 0.
+            
+            
+            
+            
+            
+            
             DatePeriod currentCreditPeriod = getCurrentCreditPeriod();
             LocalDate statementDate = currentCreditPeriod.getEndDate().plusDays(1);
             double upcomingBillsAmount;
@@ -876,8 +876,8 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             }
             response.put("upcomingBillsAmount", upcomingBillsAmount);
 
-            // Top aggregated expenses for the last 30 days (grouped by name), top 4 by
-            // total amount
+            
+            
             List<Map<String, Object>> topExpenses = last30DaysExpenseAggregates.values().stream()
                     .sorted((a, b) -> Double.compare(b.totalAmount, a.totalAmount))
                     .limit(4)
@@ -892,7 +892,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                     .toList();
             response.put("topExpenses", topExpenses);
 
-            // Comparisons with percentage changes for specific fields only
+            
             response.put("currentMonthLossesComparison",
                     calculateComparison("currentMonthLosses", currentMonthLosses, lastMonthLosses));
             response.put("creditPaidLastMonthComparison",
@@ -902,7 +902,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             response.put("remainingBudgetComparison",
                     calculateComparison("remainingBudget", remainingBudget, lastMonthRemainingBudget));
 
-            // Credit bill payment comparison
+            
             response.put("creditBillPaymentComparison", calculateCreditBillComparison());
 
             return response;
@@ -1050,7 +1050,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         }
     }
 
-    // Core calculation methods
+    
 
     private List<Expense> getExpensesForPeriod(Integer userId, DatePeriod period) {
         return expenseRepository.findByUserIdAndDateBetween(userId, period.getStartDate(), period.getEndDate());
@@ -1131,7 +1131,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         return summary;
     }
 
-    // Utility methods
+    
 
     private boolean isGainCategory(String category) {
         return GAIN.equalsIgnoreCase(category) || INCOME.equalsIgnoreCase(category);
@@ -1454,7 +1454,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         if (filterType != null && !filterType.trim().isEmpty()) {
             return filterType.equalsIgnoreCase(expenseType);
         }
-        // Default behavior: only include LOSS type expenses
+        
         return LOSS.equalsIgnoreCase(expenseType);
     }
 

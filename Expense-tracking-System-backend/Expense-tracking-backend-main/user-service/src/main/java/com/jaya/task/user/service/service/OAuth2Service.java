@@ -20,10 +20,10 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Optional;
 
-/**
- * Service for handling Google OAuth2 authentication.
- * Manages user creation/authentication based on Google user info.
- */
+
+
+
+
 @Service
 @Slf4j
 public class OAuth2Service {
@@ -40,31 +40,31 @@ public class OAuth2Service {
     @Autowired
     private CustomUserServiceImplementation customUserService;
 
-    /**
-     * Authenticates a user using Google OAuth2 user info.
-     * Creates a new user if one doesn't exist, or links/authenticates existing
-     * user.
-     *
-     * @param request The Google auth request containing user info from frontend
-     * @return AuthResponse containing JWT token and status
-     */
+    
+
+
+
+
+
+
+
     @Transactional
     public AuthResponse authenticateWithGoogle(GoogleAuthRequest request) {
         AuthResponse response = new AuthResponse();
 
         try {
-            // Validate required fields
+            
             if (request.getEmail() == null || request.getEmail().isEmpty()) {
                 response.setStatus(false);
                 response.setMessage("Email is required");
                 return response;
             }
 
-            // Build GoogleUserInfo from request
+            
             GoogleUserInfo googleUser = GoogleUserInfo.builder()
                     .sub(request.getSub())
                     .email(request.getEmail())
-                    .emailVerified(true) // Google only returns verified emails via OAuth
+                    .emailVerified(true) 
                     .name(request.getName())
                     .givenName(request.getGivenName())
                     .familyName(request.getFamilyName())
@@ -77,10 +77,10 @@ public class OAuth2Service {
 
             log.info("Google authentication for email: {}", googleUser.getEmail());
 
-            // Find or create user
+            
             User user = findOrCreateGoogleUser(googleUser);
 
-            // Generate JWT token
+            
             UserDetails userDetails = customUserService.loadUserByUsername(user.getEmail());
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDetails.getUsername(),
@@ -105,13 +105,13 @@ public class OAuth2Service {
         return response;
     }
 
-    /**
-     * Finds an existing user by email or creates a new Google user.
-     * Handles account linking when a LOCAL user signs in with Google.
-     *
-     * @param googleUser User info from Google
-     * @return The User entity
-     */
+    
+
+
+
+
+
+
     private User findOrCreateGoogleUser(GoogleUserInfo googleUser) {
         Optional<User> existingUserOpt = Optional.ofNullable(
                 userRepository.findByEmail(googleUser.getEmail()));
@@ -119,13 +119,13 @@ public class OAuth2Service {
         if (existingUserOpt.isPresent()) {
             User existingUser = existingUserOpt.get();
 
-            // If existing user was LOCAL, link their Google account
+            
             if (AUTH_PROVIDER_LOCAL.equals(existingUser.getAuthProvider())) {
                 log.info("Linking Google account to existing LOCAL user: {}", existingUser.getEmail());
                 existingUser.setAuthProvider(AUTH_PROVIDER_GOOGLE);
                 existingUser.setProviderId(googleUser.getSub());
 
-                // Update profile image if not set
+                
                 if (existingUser.getProfileImage() == null && googleUser.getPicture() != null) {
                     existingUser.setOauthProfileImage(googleUser.getPicture());
                 }
@@ -133,11 +133,11 @@ public class OAuth2Service {
                 return userRepository.save(existingUser);
             }
 
-            // User already authenticated with Google before
+            
             return existingUser;
         }
 
-        // Create new Google user
+        
         log.info("Creating new Google user: {}", googleUser.getEmail());
 
         User newUser = new User();
@@ -151,9 +151,9 @@ public class OAuth2Service {
         newUser.setOauthProfileImage(googleUser.getPicture());
         newUser.setProfileImage(googleUser.getPicture());
 
-        // Set additional fields from Google People API
+        
         if (googleUser.getGender() != null) {
-            // Convert Google's gender format to our format (MALE, FEMALE, OTHER)
+            
             String gender = googleUser.getGender().toUpperCase();
             if (gender.equals("MALE") || gender.equals("FEMALE") || gender.equals("OTHER")) {
                 newUser.setGender(gender);
@@ -169,10 +169,10 @@ public class OAuth2Service {
             newUser.setPhoneNumber(googleUser.getPhoneNumber());
         }
 
-        // No password for OAuth users
+        
         newUser.setPassword(null);
 
-        // Set default role
+        
         newUser.setRoles(new HashSet<>());
         newUser.addRole("USER");
         newUser.setCurrentMode("USER");
@@ -183,22 +183,22 @@ public class OAuth2Service {
         return userRepository.save(newUser);
     }
 
-    /**
-     * Checks if a user can sign in with Google.
-     * Users who registered locally can still link their Google account.
-     *
-     * @param email The user's email
-     * @return true if user can authenticate with Google
-     */
+    
+
+
+
+
+
+
     public boolean canAuthenticateWithGoogle(String email) {
         User user = userRepository.findByEmail(email);
 
         if (user == null) {
-            // New user can sign up with Google
+            
             return true;
         }
 
-        // Existing users can always link/use Google
+        
         return true;
     }
 }

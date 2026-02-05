@@ -1,41 +1,41 @@
 package com.jaya.task.user.service.request;
 
-/**
- * =============================================================================
- * MfaStatusResponse - Response DTO for MFA status queries
- * =============================================================================
- * Provides current MFA configuration status for user.
- * =============================================================================
- */
+
+
+
+
+
+
+
 public class MfaStatusResponse {
 
-    /**
-     * Whether MFA (Google Authenticator) is enabled.
-     */
+    
+
+
     private boolean mfaEnabled;
 
-    /**
-     * Whether email-based 2FA is enabled.
-     */
+    
+
+
     private boolean twoFactorEnabled;
 
-    /**
-     * Number of remaining backup codes (if MFA enabled).
-     */
+    
+
+
     private int remainingBackupCodes;
 
-    /**
-     * Timestamp when MFA was enabled (if enabled).
-     */
+    
+
+
     private String mfaEnabledAt;
 
-    /**
-     * Indicates which method takes priority during login.
-     * "MFA" if mfaEnabled, "2FA" if only twoFactorEnabled, "NONE" if neither.
-     */
+    
+
+
+
     private String activePriority;
 
-    // Constructors
+    
     public MfaStatusResponse() {
     }
 
@@ -46,7 +46,7 @@ public class MfaStatusResponse {
         this.remainingBackupCodes = remainingBackupCodes;
         this.mfaEnabledAt = mfaEnabledAt;
 
-        // MFA takes priority over email 2FA
+        
         if (mfaEnabled) {
             this.activePriority = "MFA";
         } else if (twoFactorEnabled) {
@@ -56,7 +56,7 @@ public class MfaStatusResponse {
         }
     }
 
-    // Getters and Setters
+    
     public boolean isMfaEnabled() {
         return mfaEnabled;
     }

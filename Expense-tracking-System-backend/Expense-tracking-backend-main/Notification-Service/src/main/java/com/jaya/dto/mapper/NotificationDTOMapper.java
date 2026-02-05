@@ -33,8 +33,8 @@ public class NotificationDTOMapper {
             try {
                 Map<String, Object> metadata = objectMapper.readValue(
                         notification.getMetadata(),
-                        new TypeReference<Map<String, Object>>() {}
-                );
+                        new TypeReference<Map<String, Object>>() {
+                        });
                 dto.setMetadata(metadata);
             } catch (Exception e) {
                 dto.setMetadata(new HashMap<>());

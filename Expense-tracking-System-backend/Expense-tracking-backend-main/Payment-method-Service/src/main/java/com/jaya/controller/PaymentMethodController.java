@@ -139,7 +139,7 @@ public class PaymentMethodController {
                 throw new RuntimeException("Payment method cannot be null");
             }
 
-            // Log incoming payment method for debugging
+            
             System.out.println("Saving payment method: " + paymentMethod.getName() +
                     ", userId: " + paymentMethod.getUserId() +
                     ", type: " + paymentMethod.getType());
@@ -173,7 +173,7 @@ public class PaymentMethodController {
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
 
-            // Send unified event (handles both own action and friend activity)
+            
             unifiedActivityService.sendPaymentMethodCreatedEvent(created, reqUser, targetUser);
 
             return new ResponseEntity<>(created, HttpStatus.CREATED);
@@ -198,12 +198,12 @@ public class PaymentMethodController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
-            // Get old payment method for audit tracking
+            
             PaymentMethod oldPaymentMethod = paymentMethodService.getById(targetUser.getId(), id);
 
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
 
-            // Send unified event (handles both own action and friend activity)
+            
             unifiedActivityService.sendPaymentMethodUpdatedEvent(updated, oldPaymentMethod, reqUser, targetUser);
 
             return ResponseEntity.ok(updated);
@@ -225,13 +225,13 @@ public class PaymentMethodController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            // Get payment method details before deletion for notification
+            
             PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
             String pmName = pm != null ? pm.getName() : null;
             String pmType = pm != null ? pm.getType() : null;
             paymentMethodService.deletePaymentMethod(targetUser.getId(), id);
 
-            // Send unified event (handles both own action and friend activity)
+            
             if (pmName != null) {
                 unifiedActivityService.sendPaymentMethodDeletedEvent(id, pmName, pmType, reqUser, targetUser);
             }
@@ -254,11 +254,11 @@ public class PaymentMethodController {
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-            // Get count before deletion for notification
+            
             int count = paymentMethodService.getAllPaymentMethods(targetUser.getId()).size();
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
 
-            // Send unified event for bulk deletion
+            
             unifiedActivityService.sendAllPaymentMethodsDeletedEvent(count, reqUser, targetUser);
 
             return ResponseEntity.noContent().build();
@@ -270,7 +270,7 @@ public class PaymentMethodController {
         }
     }
 
-    // Java
+    
     @GetMapping("/unused")
     public ResponseEntity<?> getUnusedPaymentMethods(
             @RequestHeader("Authorization") String jwt,
@@ -292,12 +292,12 @@ public class PaymentMethodController {
         }
     }
 
-    /**
-     * Fuzzy search payment methods by name or type.
-     * Includes both user-specific and global payment methods.
-     * Supports partial text matching for typeahead/search functionality.
-     * Optimized query - avoids N+1 problem by returning DTOs.
-     */
+    
+
+
+
+
+
     @GetMapping("/search")
     public ResponseEntity<?> searchPaymentMethods(
             @RequestParam String query,

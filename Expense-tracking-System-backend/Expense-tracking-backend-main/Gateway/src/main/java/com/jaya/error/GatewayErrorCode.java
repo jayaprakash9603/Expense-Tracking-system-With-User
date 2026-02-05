@@ -1,6 +1,7 @@
 package com.jaya.error;
 
 import org.springframework.http.HttpStatus;
+
 public enum GatewayErrorCode {
     UNAUTHORIZED("UNAUTHORIZED", "Authentication failed or token expired", HttpStatus.UNAUTHORIZED),
 

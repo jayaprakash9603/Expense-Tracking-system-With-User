@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Global exception handler for Story-Service
- * Catches and handles all exceptions to provide meaningful error responses
- */
+
+
+
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {

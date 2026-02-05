@@ -21,7 +21,7 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Enable @PreAuthorize annotations
+@EnableMethodSecurity(prePostEnabled = true) 
 public class ApplicationConfiguration {
 
     @Bean
@@ -29,19 +29,19 @@ public class ApplicationConfiguration {
         http
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Public endpoints (auth endpoints)
+                        
                         .requestMatchers("/auth/**").permitAll()
 
-                        // Admin-only endpoints
+                        
                         .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // General authenticated endpoints
+                        
                         .requestMatchers("/api/user/profile").authenticated()
                         .requestMatchers("/api/user/debug").authenticated()
                         .requestMatchers("/api/**").authenticated()
 
-                        // Everything else is permitted
+                        
                         .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
@@ -60,11 +60,11 @@ public class ApplicationConfiguration {
                 String origin = request.getHeader("Origin");
 
                 if (origin != null) {
-                    // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is
-                    // true
+                    
+                    
                     cfg.setAllowedOriginPatterns(Arrays.asList(origin));
                 } else {
-                    // For development, allow common localhost patterns
+                    
                     cfg.setAllowedOriginPatterns(Arrays.asList(
                             "http://localhost:*",
                             "https://localhost:*",
@@ -72,7 +72,7 @@ public class ApplicationConfiguration {
                             "https://127.0.0.1:*"));
                 }
 
-                // Include PATCH (needed for reset-password) and HEAD for completeness
+                
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));
                 cfg.setExposedHeaders(Arrays.asList("Authorization"));

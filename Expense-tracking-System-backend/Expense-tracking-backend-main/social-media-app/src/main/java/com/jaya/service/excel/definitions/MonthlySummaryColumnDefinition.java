@@ -7,9 +7,9 @@ import com.jaya.service.excel.ExcelColumnDefinition;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Column definition for MonthlySummary entity
- */
+
+
+
 public class MonthlySummaryColumnDefinition implements ExcelColumnDefinition<MonthlySummary> {
 
     @Override

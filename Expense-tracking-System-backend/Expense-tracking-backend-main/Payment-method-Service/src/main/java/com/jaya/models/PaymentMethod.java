@@ -22,7 +22,7 @@ import java.util.Set;
         @NamedAttributeNode("editUserIds"),
         @NamedAttributeNode("expenseIds")
 })
-@BatchSize(size = 50) // Batch fetch payment methods to reduce queries
+@BatchSize(size = 50) 
 public class PaymentMethod {
 
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -50,13 +50,13 @@ public class PaymentMethod {
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "payment_method_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
     @Column(name = "user_id", columnDefinition = "LONGBLOB")
-    @BatchSize(size = 50) // Batch fetch user IDs collection
+    @BatchSize(size = 50) 
     private Set<Integer> userIds = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "payment_method_edit_user_ids", joinColumns = @JoinColumn(name = "payment_method_id"))
     @Column(name = "edit_user_id", columnDefinition = "LONGBLOB")
-    @BatchSize(size = 50) // Batch fetch edit user IDs collection
+    @BatchSize(size = 50) 
     private Set<Integer> editUserIds = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
@@ -64,6 +64,6 @@ public class PaymentMethod {
     @MapKeyColumn(name = "expense_key")
     @Lob
     @Column(name = "expense_value", columnDefinition = "LONGBLOB")
-    @BatchSize(size = 50) // Batch fetch expense IDs collection
+    @BatchSize(size = 50) 
     private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 }

@@ -16,7 +16,6 @@ public class JsonConverter {
     public JsonConverter() {
         try {
             this.objectMapper = new ObjectMapper();
-            // Register JavaTimeModule to handle Java 8 date/time types correctly
             objectMapper.registerModule(new JavaTimeModule());
             objectMapper.findAndRegisterModules();
             objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -27,10 +26,6 @@ public class JsonConverter {
         }
     }
 
-    /**
-     * Converts an object to JSON string.
-     * Returns null if serialization fails.
-     */
     public String toJson(Object obj) {
         try {
             return objectMapper.writeValueAsString(obj);
@@ -40,10 +35,6 @@ public class JsonConverter {
         }
     }
 
-    /**
-     * Converts JSON string to object of specified type.
-     * Returns null if deserialization fails.
-     */
     public <T> T fromJson(String json, Class<T> clazz) {
         try {
             return objectMapper.readValue(json, clazz);

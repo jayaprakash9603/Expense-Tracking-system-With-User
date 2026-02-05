@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-/**
- * Security-specific exception handler that only loads when Spring Security is
- * on the classpath.
- * This handler is conditionally loaded to avoid ClassNotFoundException when
- * services
- * don't include Spring Security dependency.
- */
+
+
+
+
+
+
+
 @RestControllerAdvice
 @Slf4j
 @ConditionalOnClass(name = "org.springframework.security.core.AuthenticationException")

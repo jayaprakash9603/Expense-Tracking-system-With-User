@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Entity for storing user's Payment Report layout preferences.
- * Follows the same pattern as CategoryReportPreference for consistency.
- */
+
+
+
+
 @Entity
 @Table(name = "payment_report_preferences")
 @Data
@@ -29,7 +29,7 @@ public class PaymentReportPreference {
 
     @NotNull(message = "Layout configuration is required")
     @Column(name = "layout_config", columnDefinition = "TEXT", nullable = false)
-    private String layoutConfig; // JSON string storing the payment report sections configuration
+    private String layoutConfig; 
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

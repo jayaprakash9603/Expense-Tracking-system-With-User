@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Controller for admin analytics endpoints.
- * Provides system-wide statistics and metrics for the admin dashboard.
- */
+
+
+
+
 @RestController
 @RequestMapping("/api/admin/analytics")
 @RequiredArgsConstructor
@@ -23,12 +23,12 @@ public class AdminAnalyticsController {
 
     private final AdminAnalyticsService adminAnalyticsService;
 
-    /**
-     * Get system-wide analytics overview
-     * 
-     * @param timeRange Time range: 24h, 7d, 30d, 90d, 1y
-     * @return Analytics overview with user, expense, and revenue stats
-     */
+    
+
+
+
+
+
     @GetMapping("/overview")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AdminAnalyticsOverviewDTO> getAnalyticsOverview(
@@ -39,13 +39,13 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok(overview);
     }
 
-    /**
-     * Get top expense categories across all users
-     * 
-     * @param timeRange Time range for category analysis
-     * @param limit     Maximum number of categories to return
-     * @return List of top categories with counts and amounts
-     */
+    
+
+
+
+
+
+
     @GetMapping("/top-categories")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TopCategoryDTO>> getTopCategories(
@@ -57,12 +57,12 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok(categories);
     }
 
-    /**
-     * Get recent system activity
-     * 
-     * @param hours Number of hours to look back
-     * @return List of recent activities with counts
-     */
+    
+
+
+
+
+
     @GetMapping("/recent-activity")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<RecentActivityDTO>> getRecentActivity(
@@ -73,13 +73,13 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get top users by expense activity
-     * 
-     * @param timeRange Time range for user analysis
-     * @param limit     Maximum number of users to return
-     * @return List of top users with expense counts and totals
-     */
+    
+
+
+
+
+
+
     @GetMapping("/top-users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TopUserDTO>> getTopUsers(
@@ -91,11 +91,11 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok(topUsers);
     }
 
-    /**
-     * Get user statistics
-     * 
-     * @return User stats including counts by status and role
-     */
+    
+
+
+
+
     @GetMapping("/user-stats")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserStatsDTO> getUserStats() {
@@ -104,12 +104,12 @@ public class AdminAnalyticsController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Get all analytics data in a single call (for dashboard initialization)
-     * 
-     * @param timeRange Time range for analysis
-     * @return Combined analytics response
-     */
+    
+
+
+
+
+
     @GetMapping("/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DashboardAnalyticsDTO> getDashboardAnalytics(

@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown when a business rule is violated.
- * Used for domain-specific errors that don't fit other categories.
- */
+
+
+
+
 public class BusinessException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +26,7 @@ public class BusinessException extends BaseException {
         super(errorCode, details, cause);
     }
 
-    // Factory methods for common business errors
+    
     public static BusinessException budgetExceeded(Long budgetId, Double currentAmount, Double budgetLimit) {
         return new BusinessException(ErrorCode.BUDGET_EXCEEDED,
                 String.format("Budget %d exceeded: current %.2f, limit %.2f", budgetId, currentAmount, budgetLimit));
@@ -46,9 +46,9 @@ public class BusinessException extends BaseException {
                 "Rate limit exceeded for: " + resource);
     }
 
-    // ========================================
-    // NOTIFICATION BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException notificationSendFailed(String reason) {
         return new BusinessException(ErrorCode.NOTIFICATION_SEND_FAILED, reason);
@@ -68,9 +68,9 @@ public class BusinessException extends BaseException {
                 "Failed to delete notification with ID: " + notificationId);
     }
 
-    // ========================================
-    // CATEGORY BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException categoryInUse(Long categoryId) {
         return new BusinessException(ErrorCode.CATEGORY_IN_USE,
@@ -82,9 +82,9 @@ public class BusinessException extends BaseException {
                 "Category with name '" + categoryName + "' already exists");
     }
 
-    // ========================================
-    // PAYMENT METHOD BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException paymentMethodInUse(Long paymentMethodId) {
         return new BusinessException(ErrorCode.PAYMENT_METHOD_IN_USE,
@@ -96,9 +96,9 @@ public class BusinessException extends BaseException {
                 "Payment method with name '" + name + "' already exists");
     }
 
-    // ========================================
-    // BILL BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException billAlreadyPaid(Long billId) {
         return new BusinessException(ErrorCode.BILL_ALREADY_PAID,
@@ -110,9 +110,9 @@ public class BusinessException extends BaseException {
                 "Payment failed for bill " + billId + ": " + reason);
     }
 
-    // ========================================
-    // USER BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException userAlreadyExists(String email) {
         return new BusinessException(ErrorCode.USER_ALREADY_EXISTS,
@@ -129,9 +129,9 @@ public class BusinessException extends BaseException {
                 "Username '" + username + "' is already taken");
     }
 
-    // ========================================
-    // FRIENDSHIP BUSINESS ERRORS
-    // ========================================
+    
+    
+    
 
     public static BusinessException friendRequestAlreadySent(Long userId, Long friendId) {
         return new BusinessException(ErrorCode.FRIEND_REQUEST_ALREADY_SENT,

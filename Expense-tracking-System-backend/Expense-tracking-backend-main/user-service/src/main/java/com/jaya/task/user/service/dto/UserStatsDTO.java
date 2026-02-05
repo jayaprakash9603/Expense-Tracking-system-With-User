@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
-/**
- * DTO for user statistics
- */
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,5 +22,5 @@ public class UserStatsDTO {
     private long newThisMonth;
     private long newThisWeek;
     private double growthPercentage;
-    private Map<String, Long> byRole; // e.g., {"ADMIN": 2, "USER": 100, "MODERATOR": 5}
+    private Map<String, Long> byRole; 
 }

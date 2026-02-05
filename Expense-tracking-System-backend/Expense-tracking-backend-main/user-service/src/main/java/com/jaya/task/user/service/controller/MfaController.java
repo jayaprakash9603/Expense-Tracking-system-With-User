@@ -22,29 +22,29 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * =============================================================================
- * MfaController - Multi-Factor Authentication (Google Authenticator) Endpoints
- * =============================================================================
- * 
- * Production-grade MFA implementation following security best practices:
- * - TOTP secrets encrypted at rest (AES-256-GCM)
- * - Backup codes hashed with BCrypt
- * - Rate limiting on verification attempts (implemented at Gateway level)
- * - Secure token handling for MFA flow
- * 
- * Endpoints:
- * - GET /auth/mfa/status - Check user's MFA configuration
- * - POST /auth/mfa/setup - Initiate MFA setup (generates QR code)
- * - POST /auth/mfa/enable - Enable MFA after verifying first OTP
- * - POST /auth/mfa/verify - Verify TOTP during login
- * - POST /auth/mfa/disable - Disable MFA (requires password or OTP)
- * - POST /auth/mfa/regenerate-backup-codes - Generate new backup codes
- * 
- * @author Expense Tracking System
- * @version 1.0
- *          =============================================================================
- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @RestController
 @RequestMapping("/auth/mfa")
 public class MfaController {
@@ -64,17 +64,17 @@ public class MfaController {
     @Autowired
     private CustomUserServiceImplementation customUserService;
 
-    // =========================================================================
-    // MFA Status Check
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * GET /auth/mfa/status
-     * Returns the current MFA status for the authenticated user.
-     * 
-     * @param jwt Authorization header with JWT token
-     * @return MfaStatusResponse with MFA configuration details
-     */
+    
+
+
+
+
+
+
     @GetMapping("/status")
     public ResponseEntity<?> getMfaStatus(@RequestHeader("Authorization") String jwt) {
         try {
@@ -110,18 +110,18 @@ public class MfaController {
         }
     }
 
-    // =========================================================================
-    // MFA Setup - Step 1: Generate QR Code
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * POST /auth/mfa/setup
-     * Initiates MFA setup by generating a new TOTP secret and QR code.
-     * The secret is NOT stored until user verifies with enable endpoint.
-     * 
-     * @param jwt Authorization header with JWT token
-     * @return MfaSetupResponse with QR code and secret
-     */
+    
+
+
+
+
+
+
+
     @PostMapping("/setup")
     public ResponseEntity<?> setupMfa(@RequestHeader("Authorization") String jwt) {
         try {
@@ -133,7 +133,7 @@ public class MfaController {
                         .body(Map.of("error", "User not found"));
             }
 
-            // Generate new TOTP secret (not stored yet)
+            
             String secret = totpService.generateSecret();
             String qrCodeDataUri = totpService.generateQrCodeDataUri(email, secret);
             String otpAuthUri = totpService.generateOtpAuthUri(email, secret);
@@ -154,19 +154,19 @@ public class MfaController {
         }
     }
 
-    // =========================================================================
-    // MFA Enable - Step 2: Verify and Activate
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * POST /auth/mfa/enable
-     * Enables MFA after user verifies their first TOTP code.
-     * This confirms the user has correctly set up their authenticator.
-     * 
-     * @param jwt     Authorization header with JWT token
-     * @param request Contains tempSecret and OTP code
-     * @return MfaEnableResponse with backup codes (show once!)
-     */
+    
+
+
+
+
+
+
+
+
     @PostMapping("/enable")
     public ResponseEntity<?> enableMfa(
             @RequestHeader("Authorization") String jwt,
@@ -185,7 +185,7 @@ public class MfaController {
                         .body(Map.of("error", "MFA is already enabled"));
             }
 
-            // Verify the OTP code with the temporary secret
+            
             String tempSecret = request.getTempSecret();
             String otp = request.getOtp();
 
@@ -195,13 +195,13 @@ public class MfaController {
                         .body(Map.of("error", "Invalid verification code. Please try again."));
             }
 
-            // Generate backup codes
+            
             Map<String, Object> backupCodesResult = totpService.generateBackupCodes();
             @SuppressWarnings("unchecked")
             List<String> plainCodes = (List<String>) backupCodesResult.get("plainCodes");
             String hashedCodes = (String) backupCodesResult.get("hashedCodes");
 
-            // Encrypt and store the secret
+            
             String encryptedSecret = totpService.encryptSecret(tempSecret);
             LocalDateTime now = LocalDateTime.now();
 
@@ -227,18 +227,18 @@ public class MfaController {
         }
     }
 
-    // =========================================================================
-    // MFA Verify - During Login
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * POST /auth/mfa/verify
-     * Verifies TOTP code during login and issues JWT on success.
-     * Supports both regular TOTP codes and backup codes.
-     * 
-     * @param request Contains mfaToken, OTP code, and isBackupCode flag
-     * @return AuthResponse with JWT on success
-     */
+    
+
+
+
+
+
+
+
     @PostMapping("/verify")
     public ResponseEntity<?> verifyMfa(@RequestBody MfaVerifyRequest request) {
         try {
@@ -246,7 +246,7 @@ public class MfaController {
             String otp = request.getOtp();
             boolean isBackupCode = request.isBackupCode();
 
-            // Validate MFA token and extract email
+            
             if (mfaToken == null || mfaToken.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("error", "MFA token is required"));
@@ -254,7 +254,7 @@ public class MfaController {
 
             String email;
             try {
-                // Extract email from MFA token (same as regular JWT)
+                
                 email = JwtProvider.getEmailFromJwt("Bearer " + mfaToken);
             } catch (Exception e) {
                 logger.warn("Invalid or expired MFA token");
@@ -272,11 +272,11 @@ public class MfaController {
             int remainingBackupCodes = totpService.countRemainingBackupCodes(user.getMfaBackupCodes());
 
             if (isBackupCode) {
-                // Log backup code attempt
+                
                 logger.info("Backup code verification attempt: email={}, codeLength={}, remainingCodes={}",
                         email, otp != null ? otp.length() : 0, remainingBackupCodes);
 
-                // Verify backup code
+                
                 String updatedBackupCodes = totpService.verifyAndConsumeBackupCode(
                         user.getMfaBackupCodes(), otp);
 
@@ -290,7 +290,7 @@ public class MfaController {
                     logger.warn("Invalid backup code attempt: email={}, codeProvided={}", email, otp);
                 }
             } else {
-                // Verify TOTP code
+                
                 isValid = totpService.verifyCodeWithEncryptedSecret(user.getMfaSecret(), otp);
                 if (isValid) {
                     logger.info("TOTP code verified successfully: email={}", email);
@@ -306,7 +306,7 @@ public class MfaController {
                         .body(Map.of("error", errorMsg));
             }
 
-            // Generate full JWT token
+            
             UserDetails userDetails = customUserService.loadUserByUsername(email);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDetails.getUsername(),
@@ -333,18 +333,18 @@ public class MfaController {
         }
     }
 
-    // =========================================================================
-    // MFA Disable
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * POST /auth/mfa/disable
-     * Disables MFA for the user. Requires password or current OTP for security.
-     * 
-     * @param jwt     Authorization header with JWT token
-     * @param request Contains password or OTP for verification
-     * @return Success message on disable
-     */
+    
+
+
+
+
+
+
+
     @PostMapping("/disable")
     public ResponseEntity<?> disableMfa(
             @RequestHeader("Authorization") String jwt,
@@ -363,15 +363,15 @@ public class MfaController {
                         .body(Map.of("error", "MFA is not enabled"));
             }
 
-            // Verify identity before disabling
+            
             boolean verified = false;
 
             if (request.isUseOtp()) {
-                // Verify with current TOTP code
+                
                 verified = totpService.verifyCodeWithEncryptedSecret(
                         user.getMfaSecret(), request.getOtp());
             } else {
-                // Verify with password (not available for Google OAuth users without password)
+                
                 if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                     verified = passwordEncoder.matches(request.getPassword(), user.getPassword());
                 } else {
@@ -387,7 +387,7 @@ public class MfaController {
                                 (request.isUseOtp() ? "code" : "password") + " and try again."));
             }
 
-            // Disable MFA
+            
             user.setMfaEnabled(false);
             user.setMfaSecret(null);
             user.setMfaBackupCodes(null);
@@ -406,19 +406,19 @@ public class MfaController {
         }
     }
 
-    // =========================================================================
-    // Regenerate Backup Codes
-    // =========================================================================
+    
+    
+    
 
-    /**
-     * POST /auth/mfa/regenerate-backup-codes
-     * Generates new backup codes, invalidating all previous codes.
-     * Requires current OTP for verification.
-     * 
-     * @param jwt     Authorization header with JWT token
-     * @param request Contains current OTP for verification
-     * @return New backup codes (show once!)
-     */
+    
+
+
+
+
+
+
+
+
     @PostMapping("/regenerate-backup-codes")
     public ResponseEntity<?> regenerateBackupCodes(
             @RequestHeader("Authorization") String jwt,
@@ -437,14 +437,14 @@ public class MfaController {
                         .body(Map.of("error", "MFA is not enabled"));
             }
 
-            // Verify current OTP
+            
             String otp = request.get("otp");
             if (otp == null || !totpService.verifyCodeWithEncryptedSecret(user.getMfaSecret(), otp)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("error", "Invalid verification code"));
             }
 
-            // Generate new backup codes
+            
             Map<String, Object> backupCodesResult = totpService.generateBackupCodes();
             @SuppressWarnings("unchecked")
             List<String> plainCodes = (List<String>) backupCodesResult.get("plainCodes");

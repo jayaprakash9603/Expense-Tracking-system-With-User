@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Utility to map Excel column headers to their indices
- * Supports flexible header matching with synonyms
- */
+
+
+
+
 public class ExcelColumnMapper {
 
     private final Map<String, Integer> columnIndices;
@@ -28,9 +28,9 @@ public class ExcelColumnMapper {
         }
     }
 
-    /**
-     * Find column index by trying multiple synonym variations
-     */
+    
+
+
     public Integer findColumn(String... synonyms) {
         for (String synonym : synonyms) {
             Integer index = columnIndices.get(DataParser.normalizeHeader(synonym));
@@ -41,16 +41,16 @@ public class ExcelColumnMapper {
         return null;
     }
 
-    /**
-     * Check if a column exists
-     */
+    
+
+
     public boolean hasColumn(String... synonyms) {
         return findColumn(synonyms) != null;
     }
 
-    /**
-     * Get cell value from row using column synonyms
-     */
+    
+
+
     public String getCellValue(Row row, FormulaEvaluator evaluator, String... synonyms) {
         Integer colIndex = findColumn(synonyms);
         if (colIndex == null) {
@@ -60,9 +60,9 @@ public class ExcelColumnMapper {
         return ExcelCellReader.getCellValueAsString(cell, evaluator);
     }
 
-    /**
-     * Get cell from row using column synonyms
-     */
+    
+
+
     public Cell getCell(Row row, String... synonyms) {
         Integer colIndex = findColumn(synonyms);
         if (colIndex == null) {
@@ -71,9 +71,9 @@ public class ExcelColumnMapper {
         return row.getCell(colIndex);
     }
 
-    /**
-     * Get all mapped columns
-     */
+    
+
+
     public Map<String, Integer> getColumnIndices() {
         return new HashMap<>(columnIndices);
     }

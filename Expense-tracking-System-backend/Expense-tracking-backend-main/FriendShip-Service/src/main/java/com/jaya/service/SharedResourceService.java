@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.jaya.dto.ExpenseDTO;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -308,6 +309,7 @@ public class SharedResourceService {
                 .invalidReason(reason)
                 .build();
     }
+
     @Transactional
     public void revokeShare(String token, Integer userId) {
         log.info("Revoking share for user {}", userId);
@@ -321,6 +323,7 @@ public class SharedResourceService {
 
         log.info("Revoked share {} for user {}", share.getId(), userId);
     }
+
     @Transactional(readOnly = true)
     public List<ShareListItem> getUserShares(Integer userId) {
         List<SharedResource> shares = sharedResourceRepository.findByOwnerUserId(userId);
@@ -329,6 +332,7 @@ public class SharedResourceService {
                 .map(this::mapToListItem)
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public List<ShareListItem> getActiveUserShares(Integer userId) {
         List<SharedResource> shares = sharedResourceRepository.findActiveByOwnerUserId(userId);
@@ -337,6 +341,7 @@ public class SharedResourceService {
                 .map(this::mapToListItem)
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public ShareStats getShareStats(Integer userId) {
         List<SharedResource> allShares = sharedResourceRepository.findByOwnerUserId(userId);
@@ -355,6 +360,7 @@ public class SharedResourceService {
                 .totalAccessCount(totalAccess)
                 .build();
     }
+
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deactivateExpiredShares() {
@@ -397,6 +403,7 @@ public class SharedResourceService {
                 .invalidReason(reason)
                 .build();
     }
+
     private String checkVisibilityAccess(SharedResource share, Integer accessingUserId) {
         ShareVisibility visibility = share.getVisibility();
         if (visibility == null) {
@@ -434,6 +441,7 @@ public class SharedResourceService {
                 return null;
         }
     }
+
     private boolean isFriendOf(Integer ownerId, Integer userId) {
         try {
             return friendshipService.areFriends(ownerId, userId);
@@ -456,6 +464,7 @@ public class SharedResourceService {
                     .build();
         }
     }
+
     private List<SharedDataResponse.SharedItem> fetchExpensesBatch(
             List<ResourceRef> typeRefs,
             Integer ownerUserId,
@@ -675,6 +684,7 @@ public class SharedResourceService {
 
         return false;
     }
+
     @Transactional
     public void recordUserAccess(String token, Integer accessingUserId) {
         if (accessingUserId == null) {
@@ -714,6 +724,7 @@ public class SharedResourceService {
                 .filter(item -> item != null)
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public List<SharedWithMeItem> getSavedShares(Integer userId) {
         List<ShareAccessLog> accessLogs = shareAccessLogRepository.findSavedByAccessingUserId(userId);
@@ -723,6 +734,7 @@ public class SharedResourceService {
                 .filter(item -> item != null)
                 .collect(Collectors.toList());
     }
+
     @Transactional
     public boolean toggleSaveShare(String token, Integer userId) {
         SharedResource share = sharedResourceRepository.findByShareToken(token)
@@ -796,6 +808,7 @@ public class SharedResourceService {
                 .lastName("#" + ownerId)
                 .build();
     }
+
     @Transactional(readOnly = true)
     public List<PublicShareItem> getPublicShares(Integer requestingUserId) {
         List<SharedResource> publicShares = sharedResourceRepository.findAllPublicShares(
@@ -856,10 +869,10 @@ public class SharedResourceService {
         } catch (Exception e) {
             log.debug("Could not fetch owner info for user {}: {}", ownerId, e.getMessage());
         }
-            return PublicShareItem.OwnerInfo.builder()
-                    .id(ownerId)
-                    .firstName("User")
-                    .lastName("#" + ownerId)
-                    .build();
-        }
+        return PublicShareItem.OwnerInfo.builder()
+                .id(ownerId)
+                .firstName("User")
+                .lastName("#" + ownerId)
+                .build();
     }
+}

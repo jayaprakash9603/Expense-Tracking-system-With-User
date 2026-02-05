@@ -20,7 +20,7 @@ public class CategoryReportPreferenceService {
     private final CategoryReportPreferenceRepository categoryReportPreferenceRepository;
     private final UserService userService;
 
-    // Default category report configuration
+    
     private static final String DEFAULT_LAYOUT_CONFIG = """
             [
               {"id":"overview-cards","name":"Overview Cards","visible":true,"type":"full"},
@@ -31,10 +31,10 @@ public class CategoryReportPreferenceService {
             ]
             """.trim();
 
-    /**
-     * Get category report preference for the authenticated user
-     * Returns default configuration if no custom preference exists
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public CategoryReportPreferenceDTO getUserCategoryReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -44,7 +44,7 @@ public class CategoryReportPreferenceService {
         if (existing.isPresent()) {
             return toDTO(existing.get());
         } else {
-            // Return default configuration without saving
+            
             CategoryReportPreferenceDTO defaultDto = new CategoryReportPreferenceDTO();
             defaultDto.setUserId(user.getId());
             defaultDto.setLayoutConfig(DEFAULT_LAYOUT_CONFIG);
@@ -57,9 +57,9 @@ public class CategoryReportPreferenceService {
         }
     }
 
-    /**
-     * Save or update category report preference for authenticated user
-     */
+    
+
+
     @Transactional
     public CategoryReportPreferenceDTO saveCategoryReportPreference(String jwt, String layoutConfig) {
         User user = userService.getUserProfile(jwt);
@@ -78,9 +78,9 @@ public class CategoryReportPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset category report preference to default (delete custom preference)
-     */
+    
+
+
     @Transactional
     public void resetCategoryReportPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -90,9 +90,9 @@ public class CategoryReportPreferenceService {
         log.info("Category report preference reset for user: userId={}", user.getId());
     }
 
-    /**
-     * Convert entity to DTO
-     */
+    
+
+
     private CategoryReportPreferenceDTO toDTO(CategoryReportPreference entity) {
         CategoryReportPreferenceDTO dto = new CategoryReportPreferenceDTO();
         dto.setId(entity.getId());

@@ -24,10 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-/**
- * Service for handling bulk expense and budget creation with linking and
- * recovery
- */
 @Service
 @Slf4j
 public class BulkExpenseBudgetService {
@@ -45,14 +41,9 @@ public class BulkExpenseBudgetService {
     private BulkProgressTracker progressTracker;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
-    private static final int BATCH_SIZE = 20; // Smaller batches for better parallelism (5x more concurrent batches)
-    private static final int PROGRESS_UPDATE_INTERVAL = 10; // More frequent progress updates
+    private static final int BATCH_SIZE = 20;
+    private static final int PROGRESS_UPDATE_INTERVAL = 10;
 
-    /**
-     * Publish Kafka event after transaction commits
-     * This ensures the data is visible in the database before consumers try to read
-     * it
-     */
     private void publishAfterCommit(Object event) {
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -62,25 +53,15 @@ public class BulkExpenseBudgetService {
                 }
             });
         } else {
-            // If no transaction is active, send immediately
             kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         }
     }
 
-    /**
-     * Process bulk expense and budget creation with automatic linking
-     * Updated to handle expenses and budgets in separate arrays
-     * 
-     * @param request The bulk request containing expenses and budgets
-     * @param userId  The user ID
-     * @return Response with mapping results
-     */
     @Transactional
     public BulkExpenseBudgetResponse processBulkExpensesAndBudgets(BulkExpenseBudgetRequest request, Integer userId) {
         log.info("Processing bulk expense and budget request for user: {} with {} mappings", userId,
                 request.getMappings() != null ? request.getMappings().size() : 0);
 
-        // Validate request
         if (request.getMappings() == null || request.getMappings().isEmpty()) {
             log.warn("Empty mappings received for user: {}", userId);
             return BulkExpenseBudgetResponse.builder()
@@ -102,10 +83,8 @@ public class BulkExpenseBudgetService {
         int successCount = 0;
         int failureCount = 0;
 
-        // Process each mapping group
         for (BulkExpenseBudgetRequest.ExpenseBudgetMapping mapping : request.getMappings()) {
             try {
-                // Validate mapping
                 if (mapping.getExpenses() == null || mapping.getExpenses().isEmpty()) {
                     log.error("Null or empty expenses in mapping");
                     failureCount++;
@@ -117,7 +96,6 @@ public class BulkExpenseBudgetService {
                     continue;
                 }
 
-                // Process all expenses and budgets in this mapping
                 processMappingGroup(
                         mapping,
                         userId,
@@ -125,7 +103,6 @@ public class BulkExpenseBudgetService {
                         oldToNewBudgetIds,
                         results);
 
-                // Count successes and failures from results
                 long groupSuccess = results.stream()
                         .filter(r -> r.getSuccess() != null && r.getSuccess())
                         .count();
@@ -158,9 +135,6 @@ public class BulkExpenseBudgetService {
                 .build();
     }
 
-    /**
-     * Process a mapping group containing arrays of expenses and budgets
-     */
     private void processMappingGroup(
             BulkExpenseBudgetRequest.ExpenseBudgetMapping mapping,
             Integer userId,
@@ -171,30 +145,23 @@ public class BulkExpenseBudgetService {
                 mapping.getExpenses().size(),
                 mapping.getBudgets() != null ? mapping.getBudgets().size() : 0);
 
-        // Step 1: Publish budget creation events FIRST (so Budget Service creates them
-        // before expenses need them)
         if (mapping.getBudgets() != null && !mapping.getBudgets().isEmpty()) {
             for (BulkExpenseBudgetRequest.BudgetData budgetData : mapping.getBudgets()) {
                 try {
                     Long oldBudgetId = budgetData.getId();
 
-                    // Check if this budget was already processed
                     if (oldToNewBudgetIds.containsKey(oldBudgetId)) {
                         log.info("Budget {} already processed, skipping duplicate", oldBudgetId);
                         continue;
                     }
 
-                    // Publish event to Budget Service to create budget
-                    // Note: We haven't created expenses yet, so we pass the current
-                    // oldToNewExpenseIds mapping
                     publishBudgetCreationEvent(
                             budgetData,
-                            null, // No single old expense ID (multiple expenses may reference this budget)
-                            null, // No single new expense ID
+                            null,
+                            null,
                             userId,
                             oldToNewExpenseIds);
 
-                    // Mark as pending (will be updated via Kafka when Budget Service creates it)
                     oldToNewBudgetIds.put(oldBudgetId, null);
 
                     log.info("Published budget creation event for old budget ID: {}", oldBudgetId);
@@ -205,39 +172,32 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        // Step 2: Create all expenses and track old->new ID mappings
         for (BulkExpenseBudgetRequest.ExpenseData expenseData : mapping.getExpenses()) {
             try {
                 Long oldExpenseId = expenseData.getId();
 
-                // Check if this expense was already created
                 if (oldToNewExpenseIds.containsKey(oldExpenseId)) {
                     log.info("Expense {} already created, skipping duplicate", oldExpenseId);
                     continue;
                 }
 
-                // Create the expense
                 Expense newExpense = createExpenseFromData(expenseData, userId);
                 Long newExpenseId = newExpense.getId().longValue();
                 oldToNewExpenseIds.put(oldExpenseId, newExpenseId);
 
                 log.info("Created expense: old ID {} -> new ID {}", oldExpenseId, newExpenseId);
 
-                // Publish event if expense has old budget IDs
                 if (expenseData.getBudgetIds() != null && !expenseData.getBudgetIds().isEmpty()) {
-                    // Check if these budgets were just created or already exist
                     boolean budgetsJustCreated = expenseData.getBudgetIds().stream()
                             .anyMatch(oldToNewBudgetIds::containsKey);
 
                     if (budgetsJustCreated) {
-                        // Budgets don't exist yet - Budget Service will create them
                         publishExpenseCreatedWithOldBudgetsEvent(
                                 newExpenseId,
                                 oldExpenseId,
                                 expenseData.getBudgetIds(),
                                 userId);
                     } else {
-                        // Budgets already exist - notify Budget Service to replace old expense ID
                         publishExpenseCreatedWithExistingBudgetsEvent(
                                 newExpenseId,
                                 oldExpenseId,
@@ -256,19 +216,16 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        // Step 3: Create results for all expenses
         for (BulkExpenseBudgetRequest.ExpenseData expenseData : mapping.getExpenses()) {
             Long oldExpenseId = expenseData.getId();
             Long newExpenseId = oldToNewExpenseIds.get(oldExpenseId);
 
-            // Create budget mappings for this expense
             List<BulkExpenseBudgetResponse.BudgetMapping> budgetMappings = new ArrayList<>();
             if (expenseData.getBudgetIds() != null) {
                 for (Long oldBudgetId : expenseData.getBudgetIds()) {
                     budgetMappings.add(BulkExpenseBudgetResponse.BudgetMapping.builder()
                             .oldBudgetId(oldBudgetId)
-                            .newBudgetId(oldToNewBudgetIds.get(oldBudgetId)) // Will be null until Kafka event updates
-                                                                             // it
+                            .newBudgetId(oldToNewBudgetIds.get(oldBudgetId))
                             .success(true)
                             .build());
                 }
@@ -284,16 +241,6 @@ public class BulkExpenseBudgetService {
         }
     }
 
-    /**
-     * HIGH-PERFORMANCE ASYNC PROCESSING
-     * Process bulk expense and budget creation asynchronously with progress
-     * tracking
-     * Uses CompletableFuture and parallel streams for maximum throughput
-     * 
-     * @param request The bulk request containing expenses and budgets
-     * @param userId  The user ID
-     * @param jobId   The job ID for progress tracking
-     */
     @Async
     public void processBulkExpensesAndBudgetsAsync(
             BulkExpenseBudgetRequest request,
@@ -302,7 +249,6 @@ public class BulkExpenseBudgetService {
         try {
             log.info("Starting async bulk processing for job: {} with user: {}", jobId, userId);
 
-            // Calculate total items to process
             int totalExpenses = 0;
             int totalBudgets = 0;
             for (BulkExpenseBudgetRequest.ExpenseBudgetMapping mapping : request.getMappings()) {
@@ -314,24 +260,20 @@ public class BulkExpenseBudgetService {
             log.info("Processing {} expenses and {} budgets (total: {} items)",
                     totalExpenses, totalBudgets, totalItems);
 
-            // Thread-safe counters for progress tracking
             AtomicInteger processedCount = new AtomicInteger(0);
             AtomicInteger successCount = new AtomicInteger(0);
             AtomicInteger failureCount = new AtomicInteger(0);
 
-            // Thread-safe maps for ID tracking
             ConcurrentHashMap<Long, Long> oldToNewExpenseIds = new ConcurrentHashMap<>();
             ConcurrentHashMap<Long, Long> oldToNewBudgetIds = new ConcurrentHashMap<>();
 
-            // Process each mapping
             for (BulkExpenseBudgetRequest.ExpenseBudgetMapping mapping : request.getMappings()) {
 
-                // PHASE 1: Create budgets in parallel
                 if (mapping.getBudgets() != null && !mapping.getBudgets().isEmpty()) {
                     progressTracker.updateStage(jobId, "Creating Budgets");
                     int totalBatchesForBudgets = (int) Math.ceil(mapping.getBudgets().size() / (double) BATCH_SIZE);
                     progressTracker.updateBatch(jobId, 0, totalBatchesForBudgets);
-                    
+
                     processBudgetsInParallel(
                             mapping.getBudgets(),
                             userId,
@@ -343,12 +285,11 @@ public class BulkExpenseBudgetService {
                             failureCount);
                 }
 
-                // PHASE 2: Create expenses in parallel
                 if (mapping.getExpenses() != null && !mapping.getExpenses().isEmpty()) {
                     progressTracker.updateStage(jobId, "Creating Expenses");
                     int totalBatchesForExpenses = (int) Math.ceil(mapping.getExpenses().size() / (double) BATCH_SIZE);
                     progressTracker.updateBatch(jobId, 0, totalBatchesForExpenses);
-                    
+
                     processExpensesInParallel(
                             mapping.getExpenses(),
                             userId,
@@ -358,12 +299,11 @@ public class BulkExpenseBudgetService {
                             processedCount,
                             successCount,
                             failureCount);
-                    
+
                     progressTracker.updateStage(jobId, "Linking Budgets & Expenses");
                 }
             }
 
-            // Mark as complete
             progressTracker.complete(jobId,
                     String.format("Completed: %d successful, %d failed out of %d items",
                             successCount.get(), failureCount.get(), totalItems));
@@ -377,10 +317,6 @@ public class BulkExpenseBudgetService {
         }
     }
 
-    /**
-     * Process budgets in parallel using CompletableFuture
-     * Splits work across multiple threads for maximum CPU utilization
-     */
     private void processBudgetsInParallel(
             List<BulkExpenseBudgetRequest.BudgetData> budgets,
             Integer userId,
@@ -392,7 +328,6 @@ public class BulkExpenseBudgetService {
             AtomicInteger failureCount) {
         log.info("Processing {} budgets in parallel", budgets.size());
 
-        // Split budgets into batches for parallel processing
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (int i = 0; i < budgets.size(); i += BATCH_SIZE) {
@@ -414,15 +349,11 @@ public class BulkExpenseBudgetService {
             futures.add(future);
         }
 
-        // Wait for all batches to complete
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         log.info("Completed processing {} budgets", budgets.size());
     }
 
-    /**
-     * Process a batch of budgets
-     */
     private void processBudgetBatch(
             List<BulkExpenseBudgetRequest.BudgetData> batch,
             Integer userId,
@@ -436,14 +367,12 @@ public class BulkExpenseBudgetService {
             try {
                 Long oldBudgetId = budgetData.getId();
 
-                // Skip if already processed
                 if (oldToNewBudgetIds.containsKey(oldBudgetId)) {
                     processedCount.incrementAndGet();
                     updateProgressIfNeeded(jobId, processedCount.get());
                     continue;
                 }
 
-                // Publish budget creation event
                 publishBudgetCreationEvent(
                         budgetData,
                         null,
@@ -451,14 +380,11 @@ public class BulkExpenseBudgetService {
                         userId,
                         new HashMap<>(oldToNewExpenseIds));
 
-                // Mark as processed (-1L placeholder since ConcurrentHashMap doesn't allow null
-                // values)
                 oldToNewBudgetIds.put(oldBudgetId, -1L);
                 successCount.incrementAndGet();
-                
-                // Add recent item for UI display
-                progressTracker.addRecentItem(jobId, 
-                    String.format("Budget: %s (%.0f)", budgetData.getName(), budgetData.getAmount()));
+
+                progressTracker.addRecentItem(jobId,
+                        String.format("Budget: %s (%.0f)", budgetData.getName(), budgetData.getAmount()));
 
             } catch (Exception e) {
                 log.error("Error processing budget ID: {}", budgetData.getId(), e);
@@ -470,10 +396,6 @@ public class BulkExpenseBudgetService {
         }
     }
 
-    /**
-     * Process expenses in parallel using CompletableFuture
-     * Maximum parallelism for CPU-intensive operations
-     */
     private void processExpensesInParallel(
             List<BulkExpenseBudgetRequest.ExpenseData> expenses,
             Integer userId,
@@ -485,7 +407,6 @@ public class BulkExpenseBudgetService {
             AtomicInteger failureCount) {
         log.info("Processing {} expenses in parallel", expenses.size());
 
-        // Split expenses into batches
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         for (int i = 0; i < expenses.size(); i += BATCH_SIZE) {
@@ -507,16 +428,11 @@ public class BulkExpenseBudgetService {
             futures.add(future);
         }
 
-        // Wait for all batches to complete
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         log.info("Completed processing {} expenses", expenses.size());
     }
 
-    /**
-     * Process a batch of expenses with batch-level transaction
-     * OPTIMIZED: Batch save + deferred Kafka events for 10x speed boost
-     */
     @Transactional
     private void processExpenseBatch(
             List<BulkExpenseBudgetRequest.ExpenseData> batch,
@@ -527,51 +443,45 @@ public class BulkExpenseBudgetService {
             AtomicInteger processedCount,
             AtomicInteger successCount,
             AtomicInteger failureCount) {
-        
+
         List<Expense> expensesToSave = new ArrayList<>();
         List<BulkExpenseBudgetRequest.ExpenseData> validExpenseData = new ArrayList<>();
-        
-        // Prepare all expenses for batch save
+
         for (BulkExpenseBudgetRequest.ExpenseData expenseData : batch) {
             try {
                 Long oldExpenseId = expenseData.getId();
-                
-                // Skip if already processed
+
                 if (oldToNewExpenseIds.containsKey(oldExpenseId)) {
                     processedCount.incrementAndGet();
                     continue;
                 }
-                
-                // Create expense object (no DB save yet)
+
                 Expense newExpense = createExpenseFromData(expenseData, userId);
                 expensesToSave.add(newExpense);
                 validExpenseData.add(expenseData);
-                
+
             } catch (Exception e) {
                 log.error("Error preparing expense ID: {}", expenseData.getId(), e);
                 failureCount.incrementAndGet();
                 processedCount.incrementAndGet();
             }
         }
-        
-        // Batch save all expenses at once (10x faster than individual saves)
+
         if (!expensesToSave.isEmpty()) {
             List<Expense> savedExpenses = expenseRepository.saveAll(expensesToSave);
-            
-            // Map old IDs to new IDs and prepare Kafka events
+
             for (int i = 0; i < savedExpenses.size(); i++) {
                 Expense savedExpense = savedExpenses.get(i);
                 BulkExpenseBudgetRequest.ExpenseData expenseData = validExpenseData.get(i);
                 Long oldExpenseId = expenseData.getId();
                 Long newExpenseId = savedExpense.getId().longValue();
-                
+
                 oldToNewExpenseIds.put(oldExpenseId, newExpenseId);
-                
-                // Publish linking events (after transaction commits)
+
                 if (expenseData.getBudgetIds() != null && !expenseData.getBudgetIds().isEmpty()) {
                     boolean budgetsJustCreated = expenseData.getBudgetIds().stream()
                             .anyMatch(oldToNewBudgetIds::containsKey);
-                    
+
                     if (budgetsJustCreated) {
                         publishExpenseCreatedWithOldBudgetsEvent(
                                 newExpenseId, oldExpenseId, expenseData.getBudgetIds(), userId);
@@ -580,34 +490,27 @@ public class BulkExpenseBudgetService {
                                 newExpenseId, oldExpenseId, expenseData.getBudgetIds(), userId);
                     }
                 }
-                
+
                 successCount.incrementAndGet();
-                
-                // Add recent item for UI display (every 3rd item to avoid spam)
+
                 if (i % 3 == 0) {
                     progressTracker.addRecentItem(jobId,
-                        String.format("Expense: %s (%.0f)", 
-                            expenseData.getExpense().getExpenseName(), 
-                            expenseData.getExpense().getAmount()));
+                            String.format("Expense: %s (%.0f)",
+                                    expenseData.getExpense().getExpenseName(),
+                                    expenseData.getExpense().getAmount()));
                 }
             }
         }
-        
-        // Update progress and counts
+
         int current = processedCount.addAndGet(batch.size());
         updateProgressIfNeeded(jobId, current);
-        
-        // Update detailed counts
+
         int budgetCount = oldToNewBudgetIds.size();
         int expenseCount = oldToNewExpenseIds.size();
-        progressTracker.updateCounts(jobId, budgetCount, expenseCount, 
-            successCount.get(), failureCount.get());
+        progressTracker.updateCounts(jobId, budgetCount, expenseCount,
+                successCount.get(), failureCount.get());
     }
 
-    /**
-     * Transactional wrapper for expense creation
-     * Each expense creation is its own transaction for maximum parallelism
-     */
     @Transactional
     public Expense createExpenseFromDataTransactional(
             BulkExpenseBudgetRequest.ExpenseData data,
@@ -615,20 +518,13 @@ public class BulkExpenseBudgetService {
         return createExpenseFromData(data, userId);
     }
 
-    /**
-     * Update progress tracker only at intervals to reduce overhead
-     */
     private void updateProgressIfNeeded(String jobId, int currentCount) {
         if (currentCount % PROGRESS_UPDATE_INTERVAL == 0) {
             progressTracker.increment(jobId, PROGRESS_UPDATE_INTERVAL);
         }
     }
 
-    /**
-     * Create expense from request data
-     */
     private Expense createExpenseFromData(BulkExpenseBudgetRequest.ExpenseData data, Integer userId) throws Exception {
-        // Validate required fields
         if (data.getDate() == null || data.getDate().isEmpty()) {
             throw new IllegalArgumentException("Expense date is required");
         }
@@ -648,10 +544,9 @@ public class BulkExpenseBudgetService {
         expense.setCategoryName(data.getCategoryName() != null ? data.getCategoryName() : "");
         expense.setIncludeInBudget(data.getIncludeInBudget() != null ? data.getIncludeInBudget() : false);
         expense.setUserId(userId);
-        expense.setBudgetIds(new HashSet<>()); // Will be populated later via events
+        expense.setBudgetIds(new HashSet<>());
         expense.setBill(data.getBill() != null ? data.getBill() : false);
 
-        // Create expense details
         ExpenseDetails details = new ExpenseDetails();
         BulkExpenseBudgetRequest.ExpenseDetails expenseDetails = data.getExpense();
         details.setExpenseName(expenseDetails.getExpenseName());
@@ -663,25 +558,19 @@ public class BulkExpenseBudgetService {
                 expenseDetails.getNetAmount() != null ? expenseDetails.getNetAmount() : -expenseDetails.getAmount());
         details.setComments(expenseDetails.getComments());
         details.setCreditDue(expenseDetails.getCreditDue() != null ? expenseDetails.getCreditDue() : 0.0);
-        // Note: masked field not present in ExpenseDetails entity
 
         expense.setExpense(details);
         details.setExpense(expense);
 
-        // Save the expense
         ExpenseDTO expenseDTO = convertToExpenseDTO(expense);
         ExpenseDTO savedDTO = expenseService.addExpense(expenseDTO, userId);
 
         log.info("Successfully created expense: {} with amount: {}", savedDTO.getId(), expenseDetails.getAmount());
 
-        // Convert back to entity
         return expenseRepository.findById(savedDTO.getId()).orElseThrow(
                 () -> new RuntimeException("Failed to retrieve saved expense"));
     }
 
-    /**
-     * Convert Expense entity to ExpenseDTO
-     */
     private ExpenseDTO convertToExpenseDTO(Expense expense) {
         ExpenseDTO dto = new ExpenseDTO();
         dto.setDate(expense.getDate() != null ? expense.getDate().toString() : null);
@@ -701,7 +590,6 @@ public class BulkExpenseBudgetService {
             detailsDTO.setNetAmount(expense.getExpense().getNetAmount());
             detailsDTO.setComments(expense.getExpense().getComments());
             detailsDTO.setCreditDue(expense.getExpense().getCreditDue());
-            // Note: masked field not present in ExpenseDetails entity
             detailsDTO.setMasked(false);
             dto.setExpense(detailsDTO);
         }
@@ -709,17 +597,12 @@ public class BulkExpenseBudgetService {
         return dto;
     }
 
-    /**
-     * Publish event for Budget Service to create budget
-     */
     private void publishBudgetCreationEvent(
             BulkExpenseBudgetRequest.BudgetData budgetData,
             Long oldExpenseId,
             Long newExpenseId,
             Integer userId,
             Map<Long, Long> oldToNewExpenseIds) {
-        // Convert old expense IDs to new expense IDs where available
-        // IMPORTANT: Only include expenses that have been successfully mapped
         List<Long> mappedNewExpenseIds = new ArrayList<>();
         if (budgetData.getExpenseIds() != null && !budgetData.getExpenseIds().isEmpty()) {
             for (Long oldId : budgetData.getExpenseIds()) {
@@ -734,7 +617,6 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        // Create budget details
         ExpenseBudgetLinkingEvent.BudgetDetails budgetDetails = ExpenseBudgetLinkingEvent.BudgetDetails.builder()
                 .name(budgetData.getName())
                 .description(budgetData.getDescription())
@@ -754,7 +636,7 @@ public class BulkExpenseBudgetService {
                 .oldExpenseId(oldExpenseId)
                 .newExpenseId(newExpenseId)
                 .oldBudgetIds(budgetData.getExpenseIds() != null ? budgetData.getExpenseIds() : new ArrayList<>())
-                .newBudgetIds(mappedNewExpenseIds) // Only include successfully mapped expense IDs
+                .newBudgetIds(mappedNewExpenseIds)
                 .budgetDetails(budgetDetails)
                 .timestamp(LocalDateTime.now().toString())
                 .build();
@@ -771,9 +653,6 @@ public class BulkExpenseBudgetService {
         }
     }
 
-    /**
-     * Publish event when expense is created with old budget IDs
-     */
     private void publishExpenseCreatedWithOldBudgetsEvent(
             Long newExpenseId,
             Long oldExpenseId,
@@ -792,10 +671,6 @@ public class BulkExpenseBudgetService {
         log.info("Published expense created event with old budget IDs: {}", oldBudgetIds);
     }
 
-    /**
-     * Publish event when expense is created with existing budgets (replace old
-     * expense ID with new)
-     */
     private void publishExpenseCreatedWithExistingBudgetsEvent(
             Long newExpenseId,
             Long oldExpenseId,
@@ -816,15 +691,10 @@ public class BulkExpenseBudgetService {
                 newExpenseId, oldExpenseId, oldBudgetIds.size());
     }
 
-    /**
-     * Update expense with new budget IDs (called from Kafka consumer)
-     * Includes retry logic to handle transaction visibility issues
-     * Note: With publishAfterCommit(), this should rarely need retries
-     */
     @Transactional
     public void updateExpenseWithNewBudgetIds(Long expenseId, List<Long> newBudgetIds, Integer userId) {
         int maxRetries = 3;
-        int retryDelayMs = 1000; // Increased from 500ms to 1000ms for transaction commit delays
+        int retryDelayMs = 1000;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
@@ -839,16 +709,15 @@ public class BulkExpenseBudgetService {
                         continue;
                     } else {
                         log.error("Expense {} not found after {} attempts, skipping", expenseId, maxRetries);
-                        return; // Skip instead of throwing - expense might not exist in this batch
+                        return;
                     }
                 }
 
                 if (!expense.getUserId().equals(userId)) {
                     log.warn("Unauthorized access attempt to expense: {} by user: {}", expenseId, userId);
-                    return; // Skip unauthorized access
+                    return;
                 }
 
-                // Convert Long to Integer for budget IDs
                 Set<Integer> budgetIdsSet = newBudgetIds.stream()
                         .map(Long::intValue)
                         .collect(Collectors.toSet());
@@ -857,7 +726,7 @@ public class BulkExpenseBudgetService {
                 expenseRepository.save(expense);
 
                 log.info("Updated expense {} with new budget IDs: {}", expenseId, newBudgetIds);
-                return; // Success - exit retry loop
+                return;
 
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
@@ -876,15 +745,11 @@ public class BulkExpenseBudgetService {
                 } else {
                     log.error("Failed to update expense {} with budget IDs after {} attempts",
                             expenseId, maxRetries, e);
-                    // Don't throw - just log and continue to avoid blocking Kafka consumer
                 }
             }
         }
     }
 
-    /**
-     * Publish event to update expense with new budget ID
-     */
     public void publishExpenseBudgetLinkUpdate(Long expenseId, Long budgetId, Integer userId) {
         ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
                 .eventType(ExpenseBudgetLinkingEvent.EventType.EXPENSE_BUDGET_LINK_UPDATE)
@@ -898,21 +763,17 @@ public class BulkExpenseBudgetService {
         log.info("Published expense-budget link update event for expense: {}, budget: {}", expenseId, budgetId);
     }
 
-    /**
-     * Remove budget IDs from an expense (triggered by Kafka event)
-     * This method is called when budgets are deleted
-     */
     public void removeBudgetIdsFromExpense(Long expenseId, List<Long> budgetIdsToRemove, Integer userId) {
         int maxRetries = 3;
         int retryDelayMs = 1000;
 
-        log.info(">>> Starting removeBudgetIdsFromExpense for expenseId={}, budgetsToRemove={}, userId={}", 
-            expenseId, budgetIdsToRemove, userId);
+        log.info(">>> Starting removeBudgetIdsFromExpense for expenseId={}, budgetsToRemove={}, userId={}",
+                expenseId, budgetIdsToRemove, userId);
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                log.info(">>> Removing budget IDs from expense {} (attempt {}/{})", 
-                    expenseId, attempt, maxRetries);
+                log.info(">>> Removing budget IDs from expense {} (attempt {}/{})",
+                        expenseId, attempt, maxRetries);
 
                 Expense expense = expenseRepository.findById(expenseId.intValue())
                         .orElseThrow(() -> new UserException("Expense not found: " + expenseId));
@@ -924,33 +785,31 @@ public class BulkExpenseBudgetService {
                     return;
                 }
 
-                // Convert Long to Integer for budget IDs
                 Set<Integer> budgetIdsSetToRemove = budgetIdsToRemove.stream()
                         .map(Long::intValue)
                         .collect(Collectors.toSet());
 
                 log.info(">>> Budget IDs to remove (as Integer): {}", budgetIdsSetToRemove);
 
-                // Remove budget IDs from expense
                 int initialSize = expense.getBudgetIds().size();
                 boolean removed = expense.getBudgetIds().removeAll(budgetIdsSetToRemove);
                 int removedCount = initialSize - expense.getBudgetIds().size();
 
-                log.info(">>> Removal result - removed={}, removedCount={}, remainingBudgetIds={}", 
-                    removed, removedCount, expense.getBudgetIds());
+                log.info(">>> Removal result - removed={}, removedCount={}, remainingBudgetIds={}",
+                        removed, removedCount, expense.getBudgetIds());
 
                 Expense savedExpense = expenseRepository.save(expense);
-                log.info(">>> Saved expense {}. Final budgetIds: {}", 
-                    savedExpense.getId(), savedExpense.getBudgetIds());
+                log.info(">>> Saved expense {}. Final budgetIds: {}",
+                        savedExpense.getId(), savedExpense.getBudgetIds());
 
                 log.info(">>> Successfully removed {} budget IDs from expense {}. Remaining budgets: {}",
-                    removedCount, expenseId, expense.getBudgetIds().size());
-                return; // Success - exit retry loop
+                        removedCount, expenseId, expense.getBudgetIds().size());
+                return;
 
             } catch (Exception e) {
-                log.error(">>> Error removing budgets from expense {} (attempt {}/{}): {}", 
-                    expenseId, attempt, maxRetries, e.getMessage(), e);
-                
+                log.error(">>> Error removing budgets from expense {} (attempt {}/{}): {}",
+                        expenseId, attempt, maxRetries, e.getMessage(), e);
+
                 if (attempt < maxRetries) {
                     try {
                         log.info(">>> Retrying in {} ms...", retryDelayMs);
@@ -963,7 +822,6 @@ public class BulkExpenseBudgetService {
                 } else {
                     log.error(">>> Failed to remove budget IDs from expense {} after {} attempts. Giving up.",
                             expenseId, maxRetries);
-                    // Don't throw - just log and continue to avoid blocking Kafka consumer
                 }
             }
         }

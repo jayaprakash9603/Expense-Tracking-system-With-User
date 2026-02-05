@@ -8,10 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Common pagination request parameters.
- * Used for standardized pagination across all services.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,18 +33,18 @@ public class PageRequest {
     @Builder.Default
     private String sortDirection = "DESC";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create default pagination (page 0, size 20)
-     */
+    
+
+
     public static PageRequest defaults() {
         return PageRequest.builder().build();
     }
 
-    /**
-     * Create pagination with specific page and size
-     */
+    
+
+
     public static PageRequest of(int page, int size) {
         return PageRequest.builder()
                 .page(page)
@@ -52,9 +52,9 @@ public class PageRequest {
                 .build();
     }
 
-    /**
-     * Create pagination with sorting
-     */
+    
+
+
     public static PageRequest of(int page, int size, String sortBy, String sortDirection) {
         return PageRequest.builder()
                 .page(page)
@@ -64,9 +64,9 @@ public class PageRequest {
                 .build();
     }
 
-    /**
-     * Convert to Spring's PageRequest
-     */
+    
+
+
     public org.springframework.data.domain.PageRequest toSpringPageRequest() {
         if (sortBy != null && !sortBy.isBlank()) {
             org.springframework.data.domain.Sort.Direction direction = "ASC".equalsIgnoreCase(sortDirection)
@@ -78,9 +78,9 @@ public class PageRequest {
         return org.springframework.data.domain.PageRequest.of(page, size);
     }
 
-    /**
-     * Check if sort is ascending
-     */
+    
+
+
     public boolean isAscending() {
         return "ASC".equalsIgnoreCase(sortDirection);
     }

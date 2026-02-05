@@ -8,19 +8,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-/**
- * Service for managing budget report layout preferences.
- * Follows the same pattern as other report preference services (DRY principle).
- */
+
+
+
+
 @Service
 public class BudgetReportPreferenceService {
 
     private final BudgetReportPreferenceRepository repository;
 
-    /**
-     * Default layout configuration for budget report.
-     * This is returned when user has no saved preferences.
-     */
+    
+
+
+
     public static final String DEFAULT_LAYOUT_CONFIG = """
             [
                 {"id":"overview-cards","name":"Overview Cards","visible":true,"type":"full"},
@@ -38,25 +38,25 @@ public class BudgetReportPreferenceService {
         this.repository = repository;
     }
 
-    /**
-     * Get budget report preferences for a user.
-     * Returns null if no preferences are saved (frontend will use defaults).
-     *
-     * @param userId The user's ID
-     * @return DTO with preferences or null if not found
-     */
+    
+
+
+
+
+
+
     public BudgetReportPreferenceDTO getPreferences(Integer userId) {
         Optional<BudgetReportPreference> preference = repository.findByUserId(userId);
         return preference.map(this::toDTO).orElse(null);
     }
 
-    /**
-     * Save or update budget report preferences for a user.
-     *
-     * @param userId       The user's ID
-     * @param layoutConfig JSON string containing layout configuration
-     * @return DTO with saved preferences
-     */
+    
+
+
+
+
+
+
     @Transactional
     public BudgetReportPreferenceDTO savePreferences(Integer userId, String layoutConfig) {
         Optional<BudgetReportPreference> existing = repository.findByUserId(userId);
@@ -73,23 +73,23 @@ public class BudgetReportPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset budget report preferences for a user (delete saved preferences).
-     * Frontend will revert to default layout.
-     *
-     * @param userId The user's ID
-     */
+    
+
+
+
+
+
     @Transactional
     public void resetPreferences(Integer userId) {
         repository.deleteByUserId(userId);
     }
 
-    /**
-     * Convert entity to DTO.
-     *
-     * @param entity The entity to convert
-     * @return DTO representation
-     */
+    
+
+
+
+
+
     private BudgetReportPreferenceDTO toDTO(BudgetReportPreference entity) {
         return new BudgetReportPreferenceDTO(
                 entity.getId(),

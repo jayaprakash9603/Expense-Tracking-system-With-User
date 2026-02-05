@@ -89,7 +89,7 @@ public class TestTokenConfig {
             this.adminUsersEndpoint = adminUsersEndpoint;
         }
 
-        // Token methods
+        
         public String getAdminToken() {
             return "Bearer " + adminToken;
         }
@@ -106,7 +106,7 @@ public class TestTokenConfig {
             return userToken;
         }
 
-        // User data methods
+        
         public String getAdminEmail() {
             return adminEmail;
         }
@@ -123,7 +123,7 @@ public class TestTokenConfig {
             return regularUserName;
         }
 
-        // Endpoint methods
+        
         public String getSignupEndpoint() {
             return signupEndpoint;
         }
@@ -148,7 +148,7 @@ public class TestTokenConfig {
             return adminUsersEndpoint;
         }
 
-        // Utility methods for building endpoints
+        
         public String getUserByIdEndpoint(Long userId) {
             return userBaseEndpoint + "/" + userId;
         }

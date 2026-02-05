@@ -13,10 +13,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Common Category DTO used across all microservices.
- * Contains category information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,7 +33,7 @@ public class CategoryDTO implements Serializable {
 
     private String description;
 
-    private String type; // e.g., "income", "expense", "transfer"
+    private String type; 
 
     @Builder.Default
     private boolean isGlobal = false;
@@ -57,17 +57,17 @@ public class CategoryDTO implements Serializable {
 
     private Double totalAmount;
 
-    // ==================== Category Types ====================
+    
 
     public static final String TYPE_INCOME = "income";
     public static final String TYPE_EXPENSE = "expense";
     public static final String TYPE_TRANSFER = "transfer";
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Constructor for JPA projection queries
-     */
+    
+
+
     public CategoryDTO(Integer id, String name, String description, String type,
             boolean isGlobal, String icon, String color, Integer userId) {
         this.id = id;
@@ -83,9 +83,9 @@ public class CategoryDTO implements Serializable {
         this.editUserIds = new HashSet<>();
     }
 
-    /**
-     * Create a minimal CategoryDTO
-     */
+    
+
+
     public static CategoryDTO minimal(Integer id, String name) {
         return CategoryDTO.builder()
                 .id(id)
@@ -93,9 +93,9 @@ public class CategoryDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create CategoryDTO with basic info
-     */
+    
+
+
     public static CategoryDTO basic(Integer id, String name, String type, String icon, String color) {
         return CategoryDTO.builder()
                 .id(id)
@@ -106,9 +106,9 @@ public class CategoryDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a global CategoryDTO
-     */
+    
+
+
     public static CategoryDTO global(Integer id, String name, String type, String icon, String color) {
         return CategoryDTO.builder()
                 .id(id)
@@ -120,9 +120,9 @@ public class CategoryDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create a user-specific CategoryDTO
-     */
+    
+
+
     public static CategoryDTO forUser(Integer id, String name, String type, Integer userId) {
         return CategoryDTO.builder()
                 .id(id)

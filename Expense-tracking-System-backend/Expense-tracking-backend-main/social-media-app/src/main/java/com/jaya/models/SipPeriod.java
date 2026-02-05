@@ -25,7 +25,7 @@ public class SipPeriod {
     @Min(value = 1, message = "Step-up interval must be at least 1 month")
     private int stepUpIntervalMonths;
 
-    // Getters and Setters
+    
     public double getAmount() {
         return amount;
     }

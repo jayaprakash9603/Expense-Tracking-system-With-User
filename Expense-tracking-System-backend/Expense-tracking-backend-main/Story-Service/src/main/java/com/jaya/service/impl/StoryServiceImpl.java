@@ -32,7 +32,7 @@ public class StoryServiceImpl implements StoryService {
     private final StoryWebSocketService webSocketService;
     private final ObjectMapper objectMapper;
 
-    // ==================== User-facing APIs ====================
+    
 
     @Override
     @Transactional(readOnly = true)
@@ -42,15 +42,15 @@ public class StoryServiceImpl implements StoryService {
         List<Story> stories = storyRepository.findActiveStoriesForUser(
                 StoryStatus.ACTIVE, userId, LocalDateTime.now());
 
-        // Get dismissed story IDs for this user
+        
         Set<UUID> dismissedIds = visibilityRepository.findDismissedStoryIdsByUserId(userId);
 
-        // Filter out dismissed stories
+        
         stories = stories.stream()
                 .filter(s -> !dismissedIds.contains(s.getId()))
                 .collect(Collectors.toList());
 
-        // Get visibility info for all stories
+        
         List<UUID> storyIds = stories.stream().map(Story::getId).collect(Collectors.toList());
         Map<UUID, StoryVisibility> visibilityMap = getVisibilityMap(userId, storyIds);
 
@@ -128,7 +128,7 @@ public class StoryServiceImpl implements StoryService {
         visibilityRepository.save(visibility);
     }
 
-    // ==================== Admin APIs ====================
+    
 
     @Override
     public StoryDTO createStory(CreateStoryRequest request, Integer adminId) {
@@ -159,7 +159,7 @@ public class StoryServiceImpl implements StoryService {
             story.activate();
         }
 
-        // Add CTA buttons
+        
         if (request.getCtaButtons() != null) {
             for (StoryCTADTO ctaDTO : request.getCtaButtons()) {
                 StoryCTA cta = storyMapper.toEntity(ctaDTO);
@@ -169,10 +169,10 @@ public class StoryServiceImpl implements StoryService {
 
         Story savedStory = storyRepository.save(story);
 
-        // Audit log
+        
         createAuditLog(savedStory.getId(), adminId, "CREATE", null, savedStory);
 
-        // Broadcast via WebSocket
+        
         StoryDTO dto = storyMapper.toDTO(savedStory);
         if (savedStory.getIsGlobal()) {
             webSocketService.broadcastStoryCreated(dto);
@@ -215,7 +215,7 @@ public class StoryServiceImpl implements StoryService {
             story.setExpiresAt(LocalDateTime.now().plusHours(request.getExpirationHours()));
         }
 
-        // Update CTA buttons
+        
         if (request.getCtaButtons() != null) {
             story.getCtaButtons().clear();
             for (StoryCTADTO ctaDTO : request.getCtaButtons()) {
@@ -226,10 +226,10 @@ public class StoryServiceImpl implements StoryService {
 
         Story savedStory = storyRepository.save(story);
 
-        // Audit log
+        
         createAuditLog(storyId, adminId, "UPDATE", oldStory, savedStory);
 
-        // Broadcast update via WebSocket
+        
         StoryDTO dto = storyMapper.toDTO(savedStory);
         webSocketService.broadcastStoryUpdated(dto);
 
@@ -246,10 +246,10 @@ public class StoryServiceImpl implements StoryService {
         story.softDelete();
         storyRepository.save(story);
 
-        // Audit log
+        
         createAuditLog(storyId, adminId, "DELETE", story, null);
 
-        // Broadcast deletion via WebSocket
+        
         webSocketService.broadcastStoryDeleted(storyId);
     }
 
@@ -312,7 +312,7 @@ public class StoryServiceImpl implements StoryService {
         createAuditLog(storyId, adminId, "UNARCHIVE", null, null);
     }
 
-    // ==================== Admin Listing ====================
+    
 
     @Override
     @Transactional(readOnly = true)
@@ -335,13 +335,13 @@ public class StoryServiceImpl implements StoryService {
                 .map(storyMapper::toDTO);
     }
 
-    // ==================== System Story Generation ====================
+    
 
     @Override
     public Story createSystemStory(CreateStoryRequest request) {
         log.info("Creating system story: {}", request.getTitle());
 
-        // Check for duplicate (avoid spamming same story)
+        
         if (request.getReferenceId() != null && request.getReferenceType() != null) {
             Optional<Story> existing = storyRepository.findActiveByReference(
                     request.getReferenceType(),
@@ -377,7 +377,7 @@ public class StoryServiceImpl implements StoryService {
 
         story.activate();
 
-        // Add CTA buttons
+        
         if (request.getCtaButtons() != null) {
             for (StoryCTADTO ctaDTO : request.getCtaButtons()) {
                 StoryCTA cta = storyMapper.toEntity(ctaDTO);
@@ -387,7 +387,7 @@ public class StoryServiceImpl implements StoryService {
 
         Story savedStory = storyRepository.save(story);
 
-        // Broadcast via WebSocket
+        
         StoryDTO dto = storyMapper.toDTO(savedStory);
         if (savedStory.getTargetUserId() != null) {
             webSocketService.sendStoryToUser(savedStory.getTargetUserId(), dto);
@@ -537,7 +537,7 @@ public class StoryServiceImpl implements StoryService {
         createSystemStory(request);
     }
 
-    // ==================== Lifecycle Management ====================
+    
 
     @Override
     public int expireOldStories() {
@@ -585,7 +585,7 @@ public class StoryServiceImpl implements StoryService {
     public void generateDailyWelcomeStory() {
         log.info("Generating daily welcome story");
 
-        // Create a global welcome/tip story for the day
+        
         String[] tips = {
                 "💡 Tip: Review your weekly expenses every Sunday to stay on budget!",
                 "💡 Tip: Set up automatic bill reminders to never miss a payment!",
@@ -613,22 +613,22 @@ public class StoryServiceImpl implements StoryService {
     @Override
     public void checkAndGenerateBudgetStories() {
         log.info("Checking budgets for threshold stories");
-        // This method is primarily triggered by Kafka events from Budget-Service
-        // The periodic check is a fallback for any missed events
-        // In a full implementation, this would query Budget-Service via Feign client
-        // For now, budget stories are created via createBudgetThresholdStory() when
-        // called
+        
+        
+        
+        
+        
         log.debug("Budget story check complete - stories generated via Kafka events");
     }
 
     @Override
     public void checkAndGenerateBillReminders() {
         log.info("Checking bills for reminder stories");
-        // This method is primarily triggered by Kafka events from Bill-Service
-        // The periodic check is a fallback for any missed events
-        // In a full implementation, this would query Bill-Service via Feign client
-        // For now, bill reminder stories are created via createBillReminderStory() when
-        // called
+        
+        
+        
+        
+        
         log.debug("Bill reminder check complete - stories generated via Kafka events");
     }
 
@@ -636,7 +636,7 @@ public class StoryServiceImpl implements StoryService {
     public void generateWeeklySummaryStories() {
         log.info("Generating weekly summary stories");
 
-        // Create a global weekly summary prompt
+        
         CreateStoryRequest request = CreateStoryRequest.builder()
                 .title("📊 Week in Review")
                 .content("Review your spending this week! Check your reports to see where your money went.")
@@ -662,7 +662,7 @@ public class StoryServiceImpl implements StoryService {
     public void generateMonthlyAchievementStories() {
         log.info("Generating monthly achievement stories");
 
-        // Create a global monthly milestone story
+        
         CreateStoryRequest request = CreateStoryRequest.builder()
                 .title("🎉 New Month, New Goals!")
                 .content("A new month has begun! Set new budget goals and track your progress.")
@@ -684,7 +684,7 @@ public class StoryServiceImpl implements StoryService {
         createSystemStory(request);
     }
 
-    // ==================== Helper Methods ====================
+    
 
     private Map<UUID, StoryVisibility> getVisibilityMap(Integer userId, List<UUID> storyIds) {
         List<StoryVisibility> visibilities = new ArrayList<>();

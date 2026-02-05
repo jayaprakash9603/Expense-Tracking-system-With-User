@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for Payment Report layout preferences.
- * Follows the same pattern as CategoryReportPreferenceDTO for consistency.
- */
+
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

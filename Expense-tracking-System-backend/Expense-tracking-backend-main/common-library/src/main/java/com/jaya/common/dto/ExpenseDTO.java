@@ -12,10 +12,10 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Common Expense DTO used across all microservices.
- * Contains expense information for inter-service communication.
- */
+
+
+
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -61,11 +61,11 @@ public class ExpenseDTO implements Serializable {
     @Builder.Default
     private Set<Integer> budgetIds = new HashSet<>();
 
-    // ==================== Nested DTO ====================
+    
 
-    /**
-     * Detailed expense information
-     */
+    
+
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -95,33 +95,33 @@ public class ExpenseDTO implements Serializable {
         @Builder.Default
         private boolean masked = false;
 
-        /**
-         * Get amount as double safely
-         */
+        
+
+
         public double getAmountSafe() {
             return amount != null ? amount : 0.0;
         }
 
-        /**
-         * Get net amount as double safely
-         */
+        
+
+
         public double getNetAmountSafe() {
             return netAmount != null ? netAmount : 0.0;
         }
 
-        /**
-         * Get credit due as double safely
-         */
+        
+
+
         public double getCreditDueSafe() {
             return creditDue != null ? creditDue : 0.0;
         }
     }
 
-    // ==================== Factory Methods ====================
+    
 
-    /**
-     * Create a minimal ExpenseDTO
-     */
+    
+
+
     public static ExpenseDTO minimal(Integer id, Integer userId) {
         return ExpenseDTO.builder()
                 .id(id)
@@ -129,9 +129,9 @@ public class ExpenseDTO implements Serializable {
                 .build();
     }
 
-    /**
-     * Create ExpenseDTO with basic info
-     */
+    
+
+
     public static ExpenseDTO basic(Integer id, Integer userId, Integer categoryId, Double amount) {
         return ExpenseDTO.builder()
                 .id(id)

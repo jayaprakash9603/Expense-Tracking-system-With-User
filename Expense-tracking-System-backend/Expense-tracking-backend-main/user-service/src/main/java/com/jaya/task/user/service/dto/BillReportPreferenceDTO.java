@@ -2,10 +2,10 @@ package com.jaya.task.user.service.dto;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for BillReportPreference entity.
- * Used for API responses to avoid exposing internal entity structure.
- */
+
+
+
+
 public class BillReportPreferenceDTO {
 
     private Long id;
@@ -26,7 +26,7 @@ public class BillReportPreferenceDTO {
         this.updatedAt = updatedAt;
     }
 
-    // Getters and Setters
+    
     public Long getId() {
         return id;
     }

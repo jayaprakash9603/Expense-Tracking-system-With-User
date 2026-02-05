@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown for authentication-related failures.
- * Used for 401 Unauthorized responses.
- */
+
+
+
+
 public class AuthenticationException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -22,7 +22,7 @@ public class AuthenticationException extends BaseException {
         super(errorCode, cause);
     }
 
-    // Factory methods for common authentication errors
+    
     public static AuthenticationException tokenExpired() {
         return new AuthenticationException(ErrorCode.AUTH_TOKEN_EXPIRED);
     }

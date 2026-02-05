@@ -17,7 +17,7 @@ public class InvestmentInput {
     @Min(value = 0, message = "Inflation rate must be non-negative")
     private double inflationRate;
 
-    // Getters and Setters
+    
     public List<SipPeriod> getSipPeriods() {
         return sipPeriods;
     }

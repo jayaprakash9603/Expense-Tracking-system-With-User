@@ -28,7 +28,7 @@ public class User {
 
     private String email;
 
-    // Password should not be included in DTOs for security
+    
     private String password;
 
     @JsonProperty("phone_number")
@@ -48,9 +48,9 @@ public class User {
     private String gender;
 
     @JsonProperty("profileImage")
-    private String image; // Added for profile image
+    private String image; 
 
-    private String coverImage; // Added for cover background image
+    private String coverImage; 
 
     private Set<String> roles = new HashSet<>();
 
@@ -60,7 +60,7 @@ public class User {
     @JsonProperty("updated_at")
     private LocalDateTime updatedAt;
 
-    // Helper methods
+    
     public String getDisplayName() {
         if (fullName != null && !fullName.trim().isEmpty()) {
             return fullName;

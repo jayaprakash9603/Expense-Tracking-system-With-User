@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,6 +28,7 @@ public class SharedDataPageResponse {
     private Map<String, Integer> countsByType;
     private PagedItems pagedItems;
     private List<String> warnings;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

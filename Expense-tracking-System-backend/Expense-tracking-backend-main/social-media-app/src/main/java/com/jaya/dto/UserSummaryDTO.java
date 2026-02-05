@@ -1,4 +1,4 @@
-// File: Expense-tracking-System-backend/Expense-tracking-backend-main/social-media-app/src/main/java/com/jaya/dto/UserSummaryDTO.java
+
 package com.jaya.dto;
 
 import lombok.AllArgsConstructor;
@@ -16,7 +16,7 @@ public class UserSummaryDTO {
     private String lastName;
     private String image;
 
-    // Add this method to a utility class or inside UserSummaryDTO as a static method
+    
 
     public static UserSummaryDTO fromUser(com.jaya.dto.User user) {
         if (user == null) return null;

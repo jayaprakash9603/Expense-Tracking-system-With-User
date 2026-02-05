@@ -9,25 +9,25 @@ public class ProgressStatus {
     private String jobId;
     private int total;
     private int processed;
-    private int percent; // 0-100
-    private String status; // INIT, IN_PROGRESS, COMPLETED, FAILED
+    private int percent; 
+    private String status; 
     private String message;
     private Integer userId;
     private LocalDateTime startedAt;
     private LocalDateTime updatedAt;
     
-    // Enhanced progress details
-    private String currentStage;        // "Creating Budgets", "Creating Expenses", "Linking", "Completed"
-    private int budgetsProcessed;       // Count of budgets processed
-    private int expensesProcessed;      // Count of expenses processed
-    private Double itemsPerSecond;      // Processing speed
-    private Long elapsedSeconds;        // Time elapsed since start
-    private Long estimatedSecondsRemaining; // ETA
-    private List<String> recentItems;   // Last 3-5 items processed
-    private int successCount;           // Successful items
-    private int failureCount;           // Failed items
-    private int currentBatch;           // Current batch number
-    private int totalBatches;           // Total batches
+    
+    private String currentStage;        
+    private int budgetsProcessed;       
+    private int expensesProcessed;      
+    private Double itemsPerSecond;      
+    private Long elapsedSeconds;        
+    private Long estimatedSecondsRemaining; 
+    private List<String> recentItems;   
+    private int successCount;           
+    private int failureCount;           
+    private int currentBatch;           
+    private int totalBatches;           
 
     public ProgressStatus() {
         this.recentItems = new ArrayList<>();
@@ -52,7 +52,7 @@ public class ProgressStatus {
         this.totalBatches = 0;
     }
     
-    // Calculate dynamic metrics
+    
     public void updateMetrics() {
         if (this.startedAt != null) {
             Duration elapsed = Duration.between(this.startedAt, LocalDateTime.now());
@@ -96,7 +96,7 @@ public class ProgressStatus {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     
-    // Enhanced progress getters and setters
+    
     public String getCurrentStage() { return currentStage; }
     public void setCurrentStage(String currentStage) { this.currentStage = currentStage; }
     

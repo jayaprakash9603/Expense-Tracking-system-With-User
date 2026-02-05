@@ -7,10 +7,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Story Audit Log Entity
- * Tracks admin actions on stories for accountability
- */
+
+
+
+
 @Entity
 @Table(name = "story_audit_log", indexes = {
         @Index(name = "idx_audit_story", columnList = "story_id"),
@@ -39,7 +39,7 @@ public class StoryAuditLog {
     private String adminEmail;
 
     @Column(nullable = false, length = 50)
-    private String action; // CREATE, UPDATE, DELETE, ACTIVATE, DEACTIVATE, ARCHIVE
+    private String action; 
 
     @Column(name = "old_value", columnDefinition = "JSON")
     private String oldValue;

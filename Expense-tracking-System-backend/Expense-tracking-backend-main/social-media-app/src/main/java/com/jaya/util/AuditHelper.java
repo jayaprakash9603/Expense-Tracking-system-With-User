@@ -27,12 +27,12 @@ public class AuditHelper {
     private final UserService userservice;
 
     public void auditAction(Integer userId, String entityId,
-                            String entityType, String actionType, Object details) throws Exception {
+            String entityType, String actionType, Object details) throws Exception {
 
-        String json= helper.toJson(details);
-        User user=userservice.findUserById(userId);
+        String json = helper.toJson(details);
+        User user = userservice.findUserById(userId);
 
-        String username= user.getUsername() != null ? user.getUsername() : user.getEmail().split("@")[0];
+        String username = user.getUsername() != null ? user.getUsername() : user.getEmail().split("@")[0];
         try {
             AuditEvent auditEvent = AuditEvent.builder()
                     .userId(userId)
@@ -56,23 +56,21 @@ public class AuditHelper {
         }
     }
 
-    // Accepts optional/extra fields as parameters (add more as needed)
     public void auditAction(
             Integer userId,
             String username,
-            String userRole,             // New (or keep default)
+            String userRole,
             String entityId,
             String entityType,
             String actionType,
             String details,
-            String description,          // New
-            Map<String, Object> oldValues, // New
-            Map<String, Object> newValues, // New
-            String status,               // New, e.g., "SUCCESS"
-            String errorMessage,         // New (nullable)
-            Integer responseCode,        // New (nullable)
-            Long executionTimeMs         // New (nullable)
-    ) {
+            String description,
+            Map<String, Object> oldValues,
+            Map<String, Object> newValues,
+            String status,
+            String errorMessage,
+            Integer responseCode,
+            Long executionTimeMs) {
         try {
             AuditEvent auditEvent = AuditEvent.builder()
                     .userId(userId)
@@ -100,10 +98,9 @@ public class AuditHelper {
         }
     }
 
-
     public void auditActionWithChanges(Integer userId, String username, String entityId,
-                                       String entityType, String actionType, String details,
-                                       Map<String, Object> oldValues, Map<String, Object> newValues) {
+            String entityType, String actionType, String details,
+            Map<String, Object> oldValues, Map<String, Object> newValues) {
         try {
             AuditEvent auditEvent = AuditEvent.builder()
                     .userId(userId)
@@ -129,7 +126,7 @@ public class AuditHelper {
     }
 
     public void auditFailure(Integer userId, String username, String entityId,
-                             String entityType, String actionType, String errorMessage, Exception exception) {
+            String entityType, String actionType, String errorMessage, Exception exception) {
         try {
             AuditEvent auditEvent = AuditEvent.builder()
                     .userId(userId)
@@ -155,8 +152,8 @@ public class AuditHelper {
 
     private void enrichWithRequestInfo(AuditEvent auditEvent) {
         try {
-            ServletRequestAttributes attributes =
-                    (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder
+                    .getRequestAttributes();
 
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
@@ -166,18 +163,15 @@ public class AuditHelper {
                 auditEvent.setEndpoint(request.getRequestURI());
                 auditEvent.setSessionId(request.getSession().getId());
 
-                // Add request ID if present
                 String requestId = request.getHeader("X-Request-ID");
                 if (requestId != null) {
                     auditEvent.setRequestId(requestId);
                 }
 
-                // Determine source based on User-Agent or headers
                 auditEvent.setSource(determineSource(request));
             }
         } catch (Exception e) {
             log.debug("Could not enrich audit event with request info", e);
-            // Log but don't fail the audit
         }
     }
 
@@ -190,7 +184,6 @@ public class AuditHelper {
             }
             return request.getRemoteAddr();
         } else {
-            // X-Forwarded-For can contain multiple IPs, get the first one
             return xForwardedForHeader.split(",")[0].trim();
         }
     }

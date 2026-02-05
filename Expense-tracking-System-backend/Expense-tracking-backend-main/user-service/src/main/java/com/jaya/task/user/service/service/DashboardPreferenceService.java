@@ -21,7 +21,7 @@ public class DashboardPreferenceService {
     private final DashboardPreferenceRepository dashboardPreferenceRepository;
     private final UserService userService;
 
-    // Default dashboard configuration
+    
     private static final String DEFAULT_LAYOUT_CONFIG = """
             [
               {"id":"metrics","name":"Key Metrics","visible":true,"type":"full"},
@@ -36,10 +36,10 @@ public class DashboardPreferenceService {
             ]
             """.trim();
 
-    /**
-     * Get dashboard preference for the authenticated user
-     * Returns default configuration if no custom preference exists
-     */
+    
+
+
+
     @Transactional(readOnly = true)
     public DashboardPreferenceDTO getUserDashboardPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -49,7 +49,7 @@ public class DashboardPreferenceService {
         if (existing.isPresent()) {
             return toDTO(existing.get());
         } else {
-            // Return default configuration without saving
+            
             DashboardPreferenceDTO defaultDto = new DashboardPreferenceDTO();
             defaultDto.setUserId(user.getId());
             defaultDto.setLayoutConfig(DEFAULT_LAYOUT_CONFIG);
@@ -62,9 +62,9 @@ public class DashboardPreferenceService {
         }
     }
 
-    /**
-     * Save or update dashboard preference for authenticated user
-     */
+    
+
+
     @Transactional
     public DashboardPreferenceDTO saveDashboardPreference(String jwt, String layoutConfig) {
         User user = userService.getUserProfile(jwt);
@@ -83,9 +83,9 @@ public class DashboardPreferenceService {
         return toDTO(saved);
     }
 
-    /**
-     * Reset dashboard preference to default (delete custom preference)
-     */
+    
+
+
     @Transactional
     public void resetDashboardPreference(String jwt) {
         User user = userService.getUserProfile(jwt);
@@ -95,9 +95,9 @@ public class DashboardPreferenceService {
         log.info("Dashboard preference reset for user: userId={}", user.getId());
     }
 
-    /**
-     * Convert entity to DTO
-     */
+    
+
+
     private DashboardPreferenceDTO toDTO(DashboardPreference entity) {
         DashboardPreferenceDTO dto = new DashboardPreferenceDTO();
         dto.setId(entity.getId());

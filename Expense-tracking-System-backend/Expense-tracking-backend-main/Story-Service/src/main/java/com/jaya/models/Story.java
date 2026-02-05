@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Story Entity
- * Represents a system or admin-generated story displayed in the story bar
- */
+
+
+
+
 @Entity
 @Table(name = "stories", indexes = {
         @Index(name = "idx_story_status", columnList = "status"),
@@ -63,46 +63,46 @@ public class Story {
     @Builder.Default
     private StoryStatus status = StoryStatus.CREATED;
 
-    // Target user ID (null = broadcast to all users)
+    
     @Column(name = "target_user_id")
     private Integer targetUserId;
 
-    // Whether this is a global story visible to all users
+    
     @Column(name = "is_global", nullable = false)
     @Builder.Default
     private Boolean isGlobal = true;
 
-    // Duration in seconds for display (default 5 seconds like Instagram)
+    
     @Column(name = "duration_seconds", nullable = false)
     @Builder.Default
     private Integer durationSeconds = 5;
 
-    // Order priority (higher = shown first)
+    
     @Column(name = "priority", nullable = false)
     @Builder.Default
     private Integer priority = 0;
 
-    // Reference to related entity (budgetId, expenseId, billId, etc.)
+    
     @Column(name = "reference_id")
     private String referenceId;
 
     @Column(name = "reference_type", length = 50)
     private String referenceType;
 
-    // Metadata as JSON string
+    
     @Column(columnDefinition = "JSON")
     private String metadata;
 
-    // CTA Buttons (stored as embedded collection)
+    
     @OneToMany(mappedBy = "story", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<StoryCTA> ctaButtons = new ArrayList<>();
 
-    // Admin who created (null for system-generated)
+    
     @Column(name = "created_by_admin_id")
     private Integer createdByAdminId;
 
-    // Timestamps
+    
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -117,7 +117,7 @@ public class Story {
     @Column(name = "activated_at")
     private LocalDateTime activatedAt;
 
-    // Soft delete
+    
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default
     private Boolean isDeleted = false;
@@ -125,7 +125,7 @@ public class Story {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // Helper methods
+    
     public void addCTA(StoryCTA cta) {
         ctaButtons.add(cta);
         cta.setStory(this);
@@ -137,7 +137,7 @@ public class Story {
     }
 
     public boolean isExpired() {
-        // If expiresAt is null, the story never expires
+        
         if (expiresAt == null) {
             return false;
         }

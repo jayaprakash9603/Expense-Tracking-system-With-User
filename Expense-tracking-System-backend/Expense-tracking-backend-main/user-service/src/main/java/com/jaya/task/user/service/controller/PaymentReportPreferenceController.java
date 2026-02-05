@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * REST Controller for Payment Report layout preferences.
- * Follows the same pattern as CategoryReportPreferenceController for
- * consistency.
- */
+
+
+
+
+
 @RestController
 @RequestMapping("/api/user/payment-report-preferences")
 @Validated
@@ -30,10 +30,10 @@ public class PaymentReportPreferenceController {
 
     private final PaymentReportPreferenceService paymentReportPreferenceService;
 
-    /**
-     * Get payment report preference for current user
-     * Always returns a configuration (custom or default)
-     */
+    
+
+
+
     @GetMapping
     public ResponseEntity<Object> getPaymentReportPreference(
             @RequestHeader("Authorization") String jwt) {
@@ -51,9 +51,9 @@ public class PaymentReportPreferenceController {
         }
     }
 
-    /**
-     * Save or update payment report preference for current user
-     */
+    
+
+
     @PostMapping
     public ResponseEntity<Object> savePaymentReportPreference(
             @RequestHeader("Authorization") String jwt,
@@ -74,9 +74,9 @@ public class PaymentReportPreferenceController {
         }
     }
 
-    /**
-     * Reset payment report preference to default
-     */
+    
+
+
     @DeleteMapping
     public ResponseEntity<Object> resetPaymentReportPreference(
             @RequestHeader("Authorization") String jwt) {

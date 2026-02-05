@@ -6,9 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for Report History response
- */
+
+
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

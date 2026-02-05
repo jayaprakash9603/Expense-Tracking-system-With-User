@@ -2,10 +2,10 @@ package com.jaya.common.exception;
 
 import com.jaya.common.error.ErrorCode;
 
-/**
- * Exception thrown when a validation fails.
- * Used for input validation errors (400 Bad Request).
- */
+
+
+
+
 public class ValidationException extends BaseException {
 
     private static final long serialVersionUID = 1L;
@@ -26,7 +26,7 @@ public class ValidationException extends BaseException {
         super(errorCode, cause);
     }
 
-    // Factory methods for common validation errors
+    
     public static ValidationException fieldRequired(String fieldName) {
         return new ValidationException(ErrorCode.VALIDATION_FIELD_REQUIRED,
                 "Field '" + fieldName + "' is required");
