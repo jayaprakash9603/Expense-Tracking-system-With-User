@@ -54,8 +54,6 @@ public class YearlyComparisonSheetCreator extends AbstractSheetCreator {
 
         int dataStartRow = createTableHeaders(sheet, startRow, HEADERS, sf);
         int rowIdx = createDataRows(sheet, dataStartRow, yearlyData, sf);
-
-        // Add bar chart
         if (context.isIncludeCharts() && yearlyData.size() > 1) {
             ChartDataRange dataRange = ChartDataRange.simple("Yearly Totals", dataStartRow, rowIdx - 1, 0, 1);
             ChartPosition position = ChartPosition.standard(CHART_START_COL + 2, 2);

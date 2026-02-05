@@ -48,8 +48,6 @@ public class DailySpendingSheetCreator extends AbstractSheetCreator {
 
         int dataStartRow = createTableHeaders(sheet, startRow, HEADERS, sf);
         int rowIdx = createDataRows(sheet, dataStartRow, daily, sf);
-
-        // Add line chart
         if (context.isIncludeCharts() && daily.size() > 7) {
             ChartDataRange dataRange = ChartDataRange.simple("Daily Spending", dataStartRow, rowIdx - 1, 0, 2);
             ChartPosition position = ChartPosition.large(CHART_START_COL, 2);

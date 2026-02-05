@@ -20,11 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-/**
- * Service for generating comprehensive visual Excel reports.
- * Aggregates data from multiple sources (expenses, budgets, categories) and
- * delegates to VisualReportGenerator for Excel creation.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -39,21 +34,12 @@ public class VisualReportService {
 
     private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(4);
 
-    /**
-     * Generate a visual Excel report based on the request parameters
-     */
     public ByteArrayInputStream generateVisualReport(String jwt, VisualReportRequest request) throws IOException {
         log.info("Generating visual report: type={}, dateRange={} to {}",
                 request.getReportType(), request.getStartDate(), request.getEndDate());
-
-        // Set default dates if not provided
         LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : LocalDate.now();
         LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : endDate.minusMonths(3);
-
-        // Collect all data in parallel
         ReportData reportData = collectReportData(jwt, startDate, endDate, request.getTargetId());
-
-        // Generate the Excel report
         return reportGenerator.generateReport(
                 reportData,
                 request.isIncludeCharts(),
@@ -61,9 +47,6 @@ public class VisualReportService {
                 request.isIncludeConditionalFormatting());
     }
 
-    /**
-     * Generate a quick expense report for a date range
-     */
     public ByteArrayInputStream generateExpenseReport(String jwt, LocalDate startDate, LocalDate endDate,
             Integer targetId) throws IOException {
         VisualReportRequest request = VisualReportRequest.builder()
@@ -79,9 +62,6 @@ public class VisualReportService {
         return generateVisualReport(jwt, request);
     }
 
-    /**
-     * Generate a monthly summary report
-     */
     public ByteArrayInputStream generateMonthlyReport(String jwt, int year, int month,
             Integer targetId) throws IOException {
         LocalDate startDate = LocalDate.of(year, month, 1);
@@ -90,14 +70,10 @@ public class VisualReportService {
         return generateExpenseReport(jwt, startDate, endDate, targetId);
     }
 
-    /**
-     * Collect all data needed for the report from various services
-     */
     private ReportData collectReportData(String jwt, LocalDate startDate, LocalDate endDate, Integer targetId) {
         log.debug("Collecting report data from {} to {}", startDate, endDate);
 
         try {
-            // Fetch data in parallel
             CompletableFuture<Map<String, Object>> expenseDataFuture = CompletableFuture.supplyAsync(
                     () -> fetchExpenseData(jwt, startDate, endDate, targetId), asyncExecutor);
 
@@ -106,16 +82,10 @@ public class VisualReportService {
 
             CompletableFuture<List<Map<String, Object>>> budgetsFuture = CompletableFuture.supplyAsync(
                     () -> fetchBudgets(jwt, targetId), asyncExecutor);
-
-            // Wait for all to complete
             CompletableFuture.allOf(expenseDataFuture, summaryFuture, budgetsFuture).join();
-
-            // Get results
             Map<String, Object> expenseData = expenseDataFuture.get();
             Map<String, Object> summaryData = summaryFuture.get();
             List<Map<String, Object>> budgetsData = budgetsFuture.get();
-
-            // Build report data
             return ReportData.builder()
                     .reportTitle("Expense Report")
                     .generatedDate(LocalDate.now())
@@ -214,7 +184,6 @@ public class VisualReportService {
             }
         }
 
-        // Sort by date descending
         rows.sort((a, b) -> b.getDate().compareTo(a.getDate()));
         return rows;
     }
@@ -224,14 +193,9 @@ public class VisualReportService {
         String dateStr = extractString(expense, "date");
         LocalDate date = dateStr != null ? LocalDate.parse(dateStr) : LocalDate.now();
 
-        // API returns 'expense' field containing ExpenseDetailsDTO, not
-        // 'expenseDetails'
         Map<String, Object> details = (Map<String, Object>) expense.get("expense");
         if (details == null)
             details = expense;
-
-        // Use Math.abs() to ensure positive amounts (expenses are losses, shown as
-        // positive values)
         double amount = Math.abs(extractDouble(details, "amount"));
         double creditAmount = Math.abs(extractDouble(details, "creditDue"));
 
@@ -243,9 +207,9 @@ public class VisualReportService {
                 .category(category)
                 .paymentMethod(extractString(details, "paymentMethod"))
                 .type(extractString(details, "type"))
-                .notes(extractString(details, "comments")) // Field is 'comments' not 'note'
+                .notes(extractString(details, "comments"))
                 .creditAmount(creditAmount)
-                .isBillPayment(extractBoolean(expense, "isBill")) // Field is 'isBill' not 'bill'
+                .isBillPayment(extractBoolean(expense, "isBill"))
                 .budgetIds((List<Integer>) expense.get("budgetIds"))
                 .build();
     }
@@ -254,29 +218,23 @@ public class VisualReportService {
     private List<CategoryData> buildCategoryBreakdown(Map<String, Object> expenseData) {
         List<CategoryData> categories = new ArrayList<>();
         double totalAmount = 0;
-
-        // First pass: calculate totals
         for (Map.Entry<String, Object> entry : expenseData.entrySet()) {
             if ("summary".equals(entry.getKey()))
                 continue;
 
             if (entry.getValue() instanceof Map) {
                 Map<String, Object> categoryData = (Map<String, Object>) entry.getValue();
-                // Use Math.abs to ensure positive amounts
                 totalAmount += Math.abs(extractDouble(categoryData, "totalAmount"));
             }
         }
-
-        // Second pass: build category data
         for (Map.Entry<String, Object> entry : expenseData.entrySet()) {
             if ("summary".equals(entry.getKey()))
                 continue;
 
             if (entry.getValue() instanceof Map) {
                 Map<String, Object> categoryData = (Map<String, Object>) entry.getValue();
-                // Use Math.abs to ensure positive amounts
                 double catAmount = Math.abs(extractDouble(categoryData, "totalAmount"));
-                int count = extractInt(categoryData, "expenseCount"); // Field is 'expenseCount' not 'count'
+                int count = extractInt(categoryData, "expenseCount");
 
                 categories.add(CategoryData.builder()
                         .categoryId(extractInt(categoryData, "id"))
@@ -290,15 +248,12 @@ public class VisualReportService {
                         .build());
             }
         }
-
-        // Sort by amount descending
         categories.sort((a, b) -> Double.compare(b.getTotalAmount(), a.getTotalAmount()));
         return categories;
     }
 
     private List<MonthlyTrendData> buildMonthlyTrends(Map<String, Object> expenseData,
             LocalDate startDate, LocalDate endDate) {
-        // Group expenses by month
         Map<String, MonthlyTrendData> monthlyMap = new LinkedHashMap<>();
         List<ExpenseRow> expenses = buildExpenseRows(expenseData);
 
@@ -321,8 +276,6 @@ public class VisualReportService {
             trend.setTotalAmount(trend.getTotalAmount() + expense.getAmount());
             trend.setTransactionCount(trend.getTransactionCount() + 1);
         }
-
-        // Calculate changes
         List<MonthlyTrendData> trends = new ArrayList<>(monthlyMap.values());
         for (int i = 1; i < trends.size(); i++) {
             MonthlyTrendData current = trends.get(i);
@@ -339,7 +292,6 @@ public class VisualReportService {
     }
 
     private List<DailySpendingData> buildDailySpending(Map<String, Object> expenseData) {
-        // Group expenses by day
         Map<LocalDate, DailySpendingData> dailyMap = new TreeMap<>();
         List<ExpenseRow> expenses = buildExpenseRows(expenseData);
 
@@ -357,13 +309,9 @@ public class VisualReportService {
 
             daily.setAmount(daily.getAmount() + expense.getAmount());
             daily.setTransactionCount(daily.getTransactionCount() + 1);
-
-            // Track top category per day
             categoryAmounts.computeIfAbsent(date, d -> new HashMap<>())
                     .merge(expense.getCategory(), expense.getAmount(), Double::sum);
         }
-
-        // Set top category for each day
         for (DailySpendingData daily : dailyMap.values()) {
             Map<String, Double> dayCats = categoryAmounts.get(daily.getDate());
             if (dayCats != null && !dayCats.isEmpty()) {
@@ -455,7 +403,6 @@ public class VisualReportService {
 
                 if (expenses != null) {
                     for (Map<String, Object> expense : expenses) {
-                        // API returns 'expense' field containing ExpenseDetailsDTO
                         Map<String, Object> details = (Map<String, Object>) expense.get("expense");
                         if (details == null)
                             details = expense;
@@ -463,8 +410,6 @@ public class VisualReportService {
                         String method = extractString(details, "paymentMethod");
                         if (method == null || method.isEmpty())
                             method = "Unknown";
-
-                        // Use Math.abs() to ensure positive amounts
                         double amount = Math.abs(extractDouble(details, "amount"));
                         totalAmount += amount;
 
@@ -482,11 +427,8 @@ public class VisualReportService {
             }
         }
 
-        // Calculate percentages
         final double total = totalAmount;
         methodMap.values().forEach(pm -> pm.setPercentage(total > 0 ? (pm.getTotalAmount() / total) * 100 : 0));
-
-        // Sort by amount descending
         List<PaymentMethodData> result = new ArrayList<>(methodMap.values());
         result.sort((a, b) -> Double.compare(b.getTotalAmount(), a.getTotalAmount()));
         return result;
@@ -495,20 +437,15 @@ public class VisualReportService {
     private String formatPaymentMethodName(String method) {
         if (method == null)
             return "Unknown";
-        // Convert SNAKE_CASE to Title Case
         return Arrays.stream(method.toLowerCase().split("_"))
                 .map(word -> word.substring(0, 1).toUpperCase() + word.substring(1))
                 .collect(Collectors.joining(" "));
     }
 
-    // ==================== NEW ANALYTICS BUILDERS ====================
-
     private List<WeekdaySpendingData> buildWeekdaySpending(Map<String, Object> expenseData) {
         Map<Integer, WeekdaySpendingData> weekdayMap = new LinkedHashMap<>();
         List<ExpenseRow> expenses = buildExpenseRows(expenseData);
         double totalAmount = 0;
-
-        // Initialize all days
         String[] dayNames = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
         for (int i = 1; i <= 7; i++) {
             weekdayMap.put(i, WeekdaySpendingData.builder()
@@ -518,17 +455,13 @@ public class VisualReportService {
                     .transactionCount(0)
                     .build());
         }
-
-        // Aggregate by weekday
         for (ExpenseRow expense : expenses) {
-            int dayOfWeek = expense.getDate().getDayOfWeek().getValue(); // 1=Monday, 7=Sunday
+            int dayOfWeek = expense.getDate().getDayOfWeek().getValue();
             WeekdaySpendingData data = weekdayMap.get(dayOfWeek);
             data.setTotalAmount(data.getTotalAmount() + expense.getAmount());
             data.setTransactionCount(data.getTransactionCount() + 1);
             totalAmount += expense.getAmount();
         }
-
-        // Calculate averages and percentages
         final double total = totalAmount;
         List<WeekdaySpendingData> result = new ArrayList<>(weekdayMap.values());
         result.forEach(d -> {
@@ -543,11 +476,7 @@ public class VisualReportService {
     private List<YearlyComparisonData> buildYearlyComparison(Map<String, Object> expenseData) {
         Map<Integer, YearlyComparisonData> yearlyMap = new TreeMap<>();
         List<ExpenseRow> expenses = buildExpenseRows(expenseData);
-
-        // Track category totals per year
         Map<Integer, Map<String, Double>> yearCategoryTotals = new HashMap<>();
-
-        // Aggregate by year
         for (ExpenseRow expense : expenses) {
             int year = expense.getDate().getYear();
 
@@ -559,19 +488,13 @@ public class VisualReportService {
 
             data.setTotalAmount(data.getTotalAmount() + expense.getAmount());
             data.setTransactionCount(data.getTransactionCount() + 1);
-
-            // Track category for this year
             yearCategoryTotals.computeIfAbsent(year, y -> new HashMap<>())
                     .merge(expense.getCategory(), expense.getAmount(), Double::sum);
         }
-
-        // Calculate year-over-year changes and find top categories
         List<YearlyComparisonData> result = new ArrayList<>(yearlyMap.values());
         for (int i = 0; i < result.size(); i++) {
             YearlyComparisonData current = result.get(i);
             current.setAverageMonthlySpend(current.getTotalAmount() / 12.0);
-
-            // Find top category for this year
             Map<String, Double> catTotals = yearCategoryTotals.get(current.getYear());
             if (catTotals != null && !catTotals.isEmpty()) {
                 Map.Entry<String, Double> topCat = catTotals.entrySet().stream()
@@ -597,8 +520,6 @@ public class VisualReportService {
 
     private List<TopExpenseData> buildTopExpenses(Map<String, Object> expenseData) {
         List<ExpenseRow> expenses = buildExpenseRows(expenseData);
-
-        // Sort by amount descending and take top 10
         return expenses.stream()
                 .sorted((a, b) -> Double.compare(b.getAmount(), a.getAmount()))
                 .limit(10)
@@ -658,8 +579,6 @@ public class VisualReportService {
             trend = "INCREASING";
         else if (last30Change < -10)
             trend = "DECREASING";
-
-        // Project monthly spend based on daily average of last 30 days
         double projectedMonthly = last30Days > 0 ? (last30Days / 30.0) * 30 : monthlyAvg;
 
         return ExpenseVelocityData.builder()
@@ -678,7 +597,6 @@ public class VisualReportService {
     private List<InsightData> generateInsights(Map<String, Object> summaryData, List<Map<String, Object>> budgets) {
         List<InsightData> insights = new ArrayList<>();
 
-        // === BUDGET INSIGHTS ===
         int exceededBudgets = 0;
         int warningBudgets = 0;
         int healthyBudgets = 0;
@@ -717,8 +635,6 @@ public class VisualReportService {
                 healthyBudgets++;
             }
         }
-
-        // Overall budget health summary
         if (!budgets.isEmpty()) {
             double overallUtilization = totalAllocated > 0 ? (totalUsed / totalAllocated) * 100 : 0;
             insights.add(InsightData.builder()
@@ -739,8 +655,6 @@ public class VisualReportService {
                         .build());
             }
         }
-
-        // === SPENDING INSIGHTS ===
         double avgDaily = extractDouble(summaryData, "avgDailySpendLast30Days");
         double totalExpenses = extractDouble(summaryData, "totalExpenses");
         int expenseCount = extractInt(summaryData, "numberOfExpenses");
@@ -767,8 +681,6 @@ public class VisualReportService {
                     .value(avgTransactionSize)
                     .build());
         }
-
-        // === PAYMENT METHOD INSIGHTS ===
         double cashSpending = extractDouble(summaryData, "totalCashLosses");
         double creditSpending = extractDouble(summaryData, "totalCreditLosses");
         double creditDue = extractDouble(summaryData, "totalCreditDue");
@@ -801,8 +713,6 @@ public class VisualReportService {
                     .value(creditDue)
                     .build());
         }
-
-        // === SAVINGS RECOMMENDATIONS ===
         double totalIncome = extractDouble(summaryData, "totalIncome");
         if (totalIncome > 0 && totalExpenses > 0) {
             double savingsRate = ((totalIncome - totalExpenses) / totalIncome) * 100;
@@ -834,8 +744,6 @@ public class VisualReportService {
                         .build());
             }
         }
-
-        // === POSITIVE REINFORCEMENT ===
         if (healthyBudgets > 0 && exceededBudgets == 0 && warningBudgets == 0) {
             insights.add(InsightData.builder()
                     .type("SUCCESS")
@@ -843,8 +751,6 @@ public class VisualReportService {
                     .message("Excellent! All your budgets are under control. Keep maintaining this discipline.")
                     .build());
         }
-
-        // Add general success if no warnings
         long warningCount = insights.stream().filter(i -> "WARNING".equals(i.getType())).count();
         if (warningCount == 0) {
             insights.add(InsightData.builder()
@@ -856,8 +762,6 @@ public class VisualReportService {
 
         return insights;
     }
-
-    // ==================== UTILITY METHODS ====================
 
     private double extractDouble(Map<String, Object> map, String key) {
         if (map == null || !map.containsKey(key))

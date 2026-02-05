@@ -45,16 +45,12 @@ public class CategorySheetCreator extends AbstractSheetCreator {
         ExcelStyleFactory sf = context.getStyleFactory();
 
         int rowIdx = createTableHeaders(sheet, startRow, HEADERS, sf);
-
-        // Create data rows using functional approach
         rowIdx = createDataTable(sheet, startRow, categories, HEADERS, sf, Arrays.asList(
                 textCell(CategoryData::getCategoryName),
                 currencyCell(CategoryData::getTotalAmount),
                 intCell(CategoryData::getTransactionCount),
                 percentCell(CategoryData::getPercentage),
                 currencyCell(CategoryData::getAverageAmount)));
-
-        // Add pie chart
         if (context.isIncludeCharts() && categories.size() > 1) {
             addCategoryChart(sheet, startRow + 1, rowIdx - 1);
         }

@@ -44,19 +44,6 @@ public class AnalyticsController {
         return ResponseEntity.ok(overview);
     }
 
-    /**
-     * Get comprehensive analytics for a specific category.
-     * Returns all analytics data including trends, budgets, payments, transactions,
-     * and insights.
-     *
-     * @param jwt        Authorization token
-     * @param categoryId The category ID to analyze
-     * @param startDate  Start date for the analysis period (YYYY-MM-DD)
-     * @param endDate    End date for the analysis period (YYYY-MM-DD)
-     * @param trendType  Type of trend aggregation: DAILY, WEEKLY, MONTHLY, YEARLY
-     * @param targetId   Optional target user ID for friend expense viewing
-     * @return Complete category analytics DTO
-     */
     @GetMapping("/categories/{categoryId}")
     public ResponseEntity<CategoryAnalyticsDTO> getCategoryAnalytics(
             @RequestHeader("Authorization") String jwt,
@@ -68,8 +55,6 @@ public class AnalyticsController {
 
         log.info("Fetching category analytics: categoryId={}, startDate={}, endDate={}, trendType={}, targetId={}",
                 categoryId, startDate, endDate, trendType, targetId);
-
-        // Default date range to last 6 months if not provided
         if (endDate == null) {
             endDate = LocalDate.now();
         }
@@ -99,10 +84,8 @@ public class AnalyticsController {
 
         log.info("Generating Excel report: type={}, year={}, month={}, startDate={}, endDate={}, allTime={}",
                 reportType, year, month, startDate, endDate, allTime);
-
-        // Handle allTime option - use a very early start date
         if (allTime) {
-            startDate = LocalDate.of(2000, 1, 1); // Start from year 2000 to capture all data
+            startDate = LocalDate.of(2000, 1, 1);
             endDate = LocalDate.now();
         } else if (year != null && month != null) {
             startDate = LocalDate.of(year, month, 1);
@@ -125,8 +108,6 @@ public class AnalyticsController {
                 .build();
 
         ByteArrayInputStream reportStream = visualReportService.generateVisualReport(jwt, request);
-
-        // Generate filename with timestamp
         String timestamp = LocalDateTime.now().format(TIMESTAMP_FORMAT);
         String dateRange = allTime ? "all_time"
                 : (startDate.format(FILE_DATE_FORMAT) + "_to_" + endDate.format(FILE_DATE_FORMAT));

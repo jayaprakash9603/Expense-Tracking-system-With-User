@@ -51,8 +51,6 @@ public class MonthlyTrendsSheetCreator extends AbstractSheetCreator {
 
         int dataStartRow = createTableHeaders(sheet, startRow, HEADERS, sf);
         int rowIdx = createDataRows(sheet, dataStartRow, trends, sf);
-
-        // Add chart
         if (context.isIncludeCharts() && trends.size() > 1) {
             ChartDataRange dataRange = ChartDataRange.simple("Monthly Trends", dataStartRow, rowIdx - 1, 0, 1);
             ChartPosition position = ChartPosition.large(CHART_START_COL + 1, 2);

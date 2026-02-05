@@ -47,12 +47,8 @@ public class InsightsSheetCreator extends AbstractSheetCreator {
         ExcelStyleFactory sf = context.getStyleFactory();
 
         int rowIdx = startRow;
-
-        // Summary Section
         rowIdx = createInsightSummary(sheet, rowIdx, insights, sf);
         rowIdx += 2;
-
-        // Detailed Insights Section
         rowIdx = createDetailedInsights(sheet, rowIdx, insights, sf);
 
         setColumnWidths(sheet, 4500, 10000, 20000, 5000);
@@ -85,12 +81,8 @@ public class InsightsSheetCreator extends AbstractSheetCreator {
     private int createDetailedInsights(XSSFSheet sheet, int rowIdx, List<InsightData> insights, ExcelStyleFactory sf) {
         rowIdx = createSectionHeader(sheet, rowIdx, "Detailed Insights", sf, 4);
         rowIdx++;
-
-        // Table headers
         String[] headers = { "Status", "Category", "Details", "Value" };
         rowIdx = createTableHeaders(sheet, rowIdx, headers, sf);
-
-        // Group and display insights by type
         for (String type : INSIGHT_TYPE_ORDER) {
             List<InsightData> typeInsights = insights.stream()
                     .filter(i -> type.equals(i.getType()))
@@ -109,23 +101,15 @@ public class InsightsSheetCreator extends AbstractSheetCreator {
 
     private int createInsightRow(XSSFSheet sheet, int rowIdx, InsightData insight, ExcelStyleFactory sf) {
         Row row = sheet.createRow(rowIdx);
-
-        // Status icon
         Cell typeCell = row.createCell(0);
         typeCell.setCellValue(getStatusIcon(insight.getType()));
         typeCell.setCellStyle(getStyleForType(insight.getType(), sf));
-
-        // Title
         Cell titleCell = row.createCell(1);
         titleCell.setCellValue(insight.getTitle());
         titleCell.setCellStyle(sf.createTableHeaderStyle());
-
-        // Message
         Cell messageCell = row.createCell(2);
         messageCell.setCellValue(insight.getMessage());
         messageCell.setCellStyle(sf.createDataStyle());
-
-        // Value
         if (insight.getValue() != null) {
             Cell valueCell = row.createCell(3);
             valueCell.setCellValue(insight.getValue());

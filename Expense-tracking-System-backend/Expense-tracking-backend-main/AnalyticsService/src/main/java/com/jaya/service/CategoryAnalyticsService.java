@@ -19,12 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-/**
- * Service for computing comprehensive category analytics.
- * Aggregates data from multiple services to build the complete analytics
- * response.
- * Uses parallel async execution for better performance.
- */
 @Service
 @RequiredArgsConstructor
 public class CategoryAnalyticsService {
@@ -37,18 +31,12 @@ public class CategoryAnalyticsService {
     private final ExpenseService expenseService;
     private final BudgetService budgetService;
 
-    // Executor for parallel async calls
     private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(4);
 
-    // Configurable thresholds for insights
     private static final double BUDGET_WARNING_THRESHOLD = 80.0;
     private static final double SPENDING_INCREASE_THRESHOLD = 10.0;
     private static final double CONSISTENCY_GOOD_THRESHOLD = 6;
 
-    /**
-     * Main entry point - builds complete category analytics
-     * Uses parallel async execution for fetching data from multiple services
-     */
     public CategoryAnalyticsDTO getCategoryAnalytics(
             String jwt,
             Integer categoryId,
@@ -61,7 +49,6 @@ public class CategoryAnalyticsService {
                 categoryId, startDate, endDate, trendType);
 
         try {
-            // Start both API calls in parallel
             CompletableFuture<Map<String, Object>> categoryDataFuture = CompletableFuture.supplyAsync(
                     () -> fetchAllCategoryDataDetailed(jwt, startDate, endDate, targetId),
                     asyncExecutor);
@@ -70,18 +57,13 @@ public class CategoryAnalyticsService {
                     () -> fetchAllBudgets(jwt, targetId),
                     asyncExecutor);
 
-            // Wait for both to complete
             CompletableFuture.allOf(categoryDataFuture, budgetsFuture).join();
 
-            // Get results
             Map<String, Object> allCategoryData = categoryDataFuture.get();
             List<Map<String, Object>> allBudgets = budgetsFuture.get();
 
-            // 2. Extract data for specific category
             Map<String, Object> categoryData = extractCategoryData(allCategoryData, categoryId);
 
-            // 3. Build category metadata from the response
-            // If category has no expenses, fetch metadata directly from Category Service
             CategoryMetadata metadata;
             if (categoryData.isEmpty()) {
                 log.info("Category {} has no expenses in date range, fetching metadata from Category Service",
@@ -91,19 +73,15 @@ public class CategoryAnalyticsService {
                 metadata = buildCategoryMetadataFromData(categoryData, categoryId);
             }
 
-            // 4. Extract expenses list from category data
             List<Map<String, Object>> expenses = extractExpensesFromCategoryData(categoryData);
 
             log.info("Found {} expenses for categoryId={}", expenses.size(), categoryId);
 
-            // 5. Filter budgets for this category
             Set<Integer> categoryBudgetIds = extractBudgetIdsFromExpenses(expenses);
             List<Map<String, Object>> categoryBudgets = filterBudgetsForCategory(allBudgets, categoryBudgetIds);
 
-            // 6. Get summary data from the response
             Map<String, Object> summaryData = extractSummary(allCategoryData);
 
-            // 7. Build all analytics components in parallel
             CompletableFuture<SummaryStatistics> summaryFuture = CompletableFuture.supplyAsync(
                     () -> calculateSummaryStatistics(expenses, startDate, endDate, summaryData, categoryData),
                     asyncExecutor);
@@ -132,12 +110,10 @@ public class CategoryAnalyticsService {
                     () -> buildBudgetReportsFromBudgets(categoryBudgets),
                     asyncExecutor);
 
-            // Wait for all analytics computations
             CompletableFuture.allOf(
                     summaryFuture, trendFuture, paymentFuture, budgetAnalyticsFuture,
                     highlightsFuture, transactionFuture, budgetReportsFuture).join();
 
-            // Get results
             SummaryStatistics summaryStats = summaryFuture.get();
             TrendAnalytics trendAnalytics = trendFuture.get();
             List<PaymentMethodDistribution> paymentDistribution = paymentFuture.get();
@@ -146,7 +122,6 @@ public class CategoryAnalyticsService {
             TransactionData transactionData = transactionFuture.get();
             List<BudgetCategoryReport> budgetReports = budgetReportsFuture.get();
 
-            // Generate insights (depends on other results)
             List<InsightItem> insights = generateInsights(summaryStats, trendAnalytics, budgetAnalytics,
                     paymentDistribution);
 
@@ -168,11 +143,6 @@ public class CategoryAnalyticsService {
         }
     }
 
-    // ==================== NEW DATA FETCHING METHODS ====================
-
-    /**
-     * Fetch all category data using the detailed filtered endpoint
-     */
     private Map<String, Object> fetchAllCategoryDataDetailed(String jwt, LocalDate startDate, LocalDate endDate,
             Integer targetId) {
         try {
@@ -187,13 +157,8 @@ public class CategoryAnalyticsService {
         }
     }
 
-    /**
-     * Extract data for a specific category from the response
-     */
     @SuppressWarnings("unchecked")
     private Map<String, Object> extractCategoryData(Map<String, Object> allData, Integer categoryId) {
-        // The response has category data keyed by category name
-        // We need to find the category with matching ID
         log.debug("Searching for categoryId={} in response with {} entries", categoryId, allData.size());
 
         for (Map.Entry<String, Object> entry : allData.entrySet()) {
@@ -215,9 +180,6 @@ public class CategoryAnalyticsService {
         return Collections.emptyMap();
     }
 
-    /**
-     * Build CategoryMetadata from the category data
-     */
     private CategoryMetadata buildCategoryMetadataFromData(Map<String, Object> categoryData, Integer categoryId) {
         if (categoryData.isEmpty()) {
             return CategoryMetadata.builder()
@@ -235,9 +197,6 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Extract expenses list from category data
-     */
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> extractExpensesFromCategoryData(Map<String, Object> categoryData) {
         if (categoryData == null || categoryData.isEmpty()) {
@@ -250,9 +209,6 @@ public class CategoryAnalyticsService {
         return Collections.emptyList();
     }
 
-    /**
-     * Extract summary data from the response
-     */
     @SuppressWarnings("unchecked")
     private Map<String, Object> extractSummary(Map<String, Object> allData) {
         Object summaryObj = allData.get("summary");
@@ -262,9 +218,6 @@ public class CategoryAnalyticsService {
         return Collections.emptyMap();
     }
 
-    /**
-     * Fetch all user budgets from Budget Service
-     */
     private List<Map<String, Object>> fetchAllBudgets(String jwt, Integer targetId) {
         try {
             log.info("Fetching budgets from Budget Service for targetId={}", targetId);
@@ -277,9 +230,6 @@ public class CategoryAnalyticsService {
         }
     }
 
-    /**
-     * Extract all budget IDs from expenses
-     */
     @SuppressWarnings("unchecked")
     private Set<Integer> extractBudgetIdsFromExpenses(List<Map<String, Object>> expenses) {
         Set<Integer> budgetIds = new HashSet<>();
@@ -297,9 +247,6 @@ public class CategoryAnalyticsService {
         return budgetIds;
     }
 
-    /**
-     * Filter budgets to only include those associated with this category's expenses
-     */
     private List<Map<String, Object>> filterBudgetsForCategory(List<Map<String, Object>> allBudgets,
             Set<Integer> categoryBudgetIds) {
         if (categoryBudgetIds.isEmpty()) {
@@ -313,9 +260,6 @@ public class CategoryAnalyticsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Calculate budget analytics from the budgets list
-     */
     private BudgetAnalytics calculateBudgetAnalyticsFromBudgets(List<Map<String, Object>> budgets,
             List<Map<String, Object>> expenses) {
         if (budgets.isEmpty()) {
@@ -361,9 +305,6 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Build budget reports from budgets list
-     */
     private List<BudgetCategoryReport> buildBudgetReportsFromBudgets(List<Map<String, Object>> budgets) {
         return budgets.stream()
                 .map(budget -> BudgetCategoryReport.builder()
@@ -378,9 +319,6 @@ public class CategoryAnalyticsService {
                         .build())
                 .collect(Collectors.toList());
     }
-
-    // ==================== LEGACY HELPER METHODS (kept for compatibility)
-    // ====================
 
     private CategoryMetadata fetchCategoryMetadata(String jwt, Integer categoryId, Integer targetId) {
         try {
@@ -425,10 +363,6 @@ public class CategoryAnalyticsService {
         }
     }
 
-    /**
-     * Calculate summary statistics from expenses
-     * Handles both old format (direct amount) and new format (expense.amount)
-     */
     private SummaryStatistics calculateSummaryStatistics(
             List<Map<String, Object>> expenses,
             LocalDate startDate,
@@ -450,7 +384,6 @@ public class CategoryAnalyticsService {
                     .build();
         }
 
-        // Get total from category data if available, otherwise calculate from expenses
         double totalSpent = extractDouble(categoryData, "totalAmount");
         if (totalSpent == 0) {
             totalSpent = expenses.stream()
@@ -461,7 +394,6 @@ public class CategoryAnalyticsService {
         int totalTransactions = expenses.size();
         double averageExpense = totalTransactions > 0 ? totalSpent / totalTransactions : 0;
 
-        // Calculate active days from expense dates
         Set<LocalDate> activeDates = expenses.stream()
                 .map(this::extractExpenseDate)
                 .filter(Objects::nonNull)
@@ -474,7 +406,6 @@ public class CategoryAnalyticsService {
 
         double costPerDay = totalDays > 0 ? totalSpent / totalDays : 0;
 
-        // Calculate consistency (months with expenses)
         Set<String> activeMonths = expenses.stream()
                 .map(e -> {
                     LocalDate date = extractExpenseDate(e);
@@ -483,11 +414,9 @@ public class CategoryAnalyticsService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-        // Calculate percentage of all expenses from summary
         double totalAllExpenses = extractDouble(summaryData, "totalAmount");
         double categoryPercentage = totalAllExpenses > 0 ? (totalSpent / totalAllExpenses) * 100 : 0;
 
-        // Min/Max
         DoubleSummaryStatistics stats = expenses.stream()
                 .mapToDouble(this::extractExpenseAmount)
                 .summaryStatistics();
@@ -505,32 +434,22 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Extract expense amount - handles nested expense object structure
-     */
     @SuppressWarnings("unchecked")
     private double extractExpenseAmount(Map<String, Object> expenseWrapper) {
-        // Try nested expense object first (new format)
         Object expenseObj = expenseWrapper.get("expense");
         if (expenseObj instanceof Map) {
             Map<String, Object> expense = (Map<String, Object>) expenseObj;
             return extractDouble(expense, "amount");
         }
-        // Fall back to direct amount (old format)
         return extractDouble(expenseWrapper, "amount");
     }
 
-    /**
-     * Extract expense date - handles nested expense object structure
-     */
     @SuppressWarnings("unchecked")
     private LocalDate extractExpenseDate(Map<String, Object> expenseWrapper) {
-        // Try direct date field first (new format has "date" at wrapper level)
         String date = extractString(expenseWrapper, "date");
         if (date != null && !date.isEmpty()) {
             return parseDate(date);
         }
-        // Try nested expense object
         Object expenseObj = expenseWrapper.get("expense");
         if (expenseObj instanceof Map) {
             Map<String, Object> expense = (Map<String, Object>) expenseObj;
@@ -548,22 +467,16 @@ public class CategoryAnalyticsService {
             LocalDate endDate,
             String trendType) {
 
-        // Daily spending trend
         List<DailySpending> dailyTrend = calculateDailySpending(expenses);
 
-        // Weekly spending trend
         List<WeeklySpending> weeklyTrend = calculateWeeklySpending(expenses);
 
-        // Monthly spending trend
         List<MonthlySpending> monthlyTrend = calculateMonthlySpending(expenses);
 
-        // Yearly spending trend
         List<YearlySpending> yearlyTrend = calculateYearlySpending(expenses);
 
-        // Month comparison
         MonthComparison monthComparison = calculateMonthComparison(expenses);
 
-        // Most/Least active months
         MonthlySpending mostActive = monthlyTrend.stream()
                 .max(Comparator.comparingDouble(MonthlySpending::getAmount))
                 .orElse(null);
@@ -719,7 +632,6 @@ public class CategoryAnalyticsService {
         Map<String, List<Map<String, Object>>> groupedByPayment = expenses.stream()
                 .collect(Collectors.groupingBy(this::extractPaymentMethod));
 
-        // Payment method colors
         Map<String, String> paymentColors = Map.of(
                 "UPI", "#6366f1",
                 "Cash", "#22c55e",
@@ -747,24 +659,18 @@ public class CategoryAnalyticsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Extract payment method - handles nested expense object structure
-     */
     @SuppressWarnings("unchecked")
     private String extractPaymentMethod(Map<String, Object> expenseWrapper) {
-        // Try nested paymentMethod object first (new format)
         Object paymentMethodObj = expenseWrapper.get("paymentMethod");
         if (paymentMethodObj instanceof Map) {
             Map<String, Object> paymentMethod = (Map<String, Object>) paymentMethodObj;
             return extractString(paymentMethod, "name");
         }
-        // Try nested expense object
         Object expenseObj = expenseWrapper.get("expense");
         if (expenseObj instanceof Map) {
             Map<String, Object> expense = (Map<String, Object>) expenseObj;
             return extractString(expense, "paymentMethod");
         }
-        // Fall back to direct field (old format)
         return extractString(expenseWrapper, "paymentMethod");
     }
 
@@ -778,7 +684,6 @@ public class CategoryAnalyticsService {
 
             if (budgetReports != null) {
                 for (Map<String, Object> budget : budgetReports) {
-                    // Check if this budget contains the category
                     @SuppressWarnings("unchecked")
                     List<Map<String, Object>> categoryBreakdown = (List<Map<String, Object>>) budget
                             .get("categoryBreakdown");
@@ -858,15 +763,11 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Build expense highlight item - handles nested expense object structure
-     */
     @SuppressWarnings("unchecked")
     private ExpenseHighlightItem buildExpenseHighlightItem(Map<String, Object> expenseWrapper) {
         if (expenseWrapper == null)
             return null;
 
-        // Extract from nested expense object if present
         Map<String, Object> expense = expenseWrapper;
         Object expenseObj = expenseWrapper.get("expense");
         if (expenseObj instanceof Map) {
@@ -883,16 +784,12 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Build transaction data from expenses
-     */
     private TransactionData buildTransactionData(List<Map<String, Object>> expenses) {
         List<ExpenseTransaction> allTransactions = expenses.stream()
                 .map(this::mapToExpenseTransaction)
                 .sorted(Comparator.comparing(ExpenseTransaction::getDate).reversed())
                 .collect(Collectors.toList());
 
-        // Recent transactions (last 10)
         List<ExpenseTransaction> recentTransactions = allTransactions.stream()
                 .limit(10)
                 .collect(Collectors.toList());
@@ -904,13 +801,8 @@ public class CategoryAnalyticsService {
                 .build();
     }
 
-    /**
-     * Map expense wrapper to ExpenseTransaction - handles nested expense object
-     * structure
-     */
     @SuppressWarnings("unchecked")
     private ExpenseTransaction mapToExpenseTransaction(Map<String, Object> expenseWrapper) {
-        // Extract budget IDs from wrapper
         List<Integer> budgetIds = Collections.emptyList();
         Object budgetIdsObj = expenseWrapper.get("budgetIds");
         if (budgetIdsObj instanceof List) {
@@ -920,7 +812,6 @@ public class CategoryAnalyticsService {
                     .collect(Collectors.toList());
         }
 
-        // Extract expense details from nested object if present
         Map<String, Object> expense = expenseWrapper;
         Object expenseObj = expenseWrapper.get("expense");
         if (expenseObj instanceof Map) {
@@ -991,7 +882,6 @@ public class CategoryAnalyticsService {
 
         List<InsightItem> insights = new ArrayList<>();
 
-        // Spending trend insight
         MonthComparison monthComp = trendAnalytics.getPreviousVsCurrentMonth();
         if (monthComp != null && monthComp.getPercentageChange() != null) {
             if (monthComp.getPercentageChange() > SPENDING_INCREASE_THRESHOLD) {
@@ -1017,7 +907,6 @@ public class CategoryAnalyticsService {
             }
         }
 
-        // Budget usage insight
         if (budgetAnalytics != null && budgetAnalytics.getUsagePercentage() != null) {
             double usagePercent = budgetAnalytics.getUsagePercentage();
             if (usagePercent >= BUDGET_WARNING_THRESHOLD) {
@@ -1033,7 +922,6 @@ public class CategoryAnalyticsService {
             }
         }
 
-        // Consistency insight
         if (summaryStats.getConsistency() >= CONSISTENCY_GOOD_THRESHOLD) {
             insights.add(InsightItem.builder()
                     .type("INFO")
@@ -1046,7 +934,6 @@ public class CategoryAnalyticsService {
                     .build());
         }
 
-        // Payment method insight
         if (!paymentDistribution.isEmpty()) {
             PaymentMethodDistribution topMethod = paymentDistribution.get(0);
             if (topMethod.getPercentage() > 50) {
@@ -1062,7 +949,6 @@ public class CategoryAnalyticsService {
             }
         }
 
-        // Cost per day insight
         if (summaryStats.getCostPerDay() > 0) {
             insights.add(InsightItem.builder()
                     .type("SUGGESTION")
@@ -1077,8 +963,6 @@ public class CategoryAnalyticsService {
         return insights;
     }
 
-    // ==================== UTILITY METHODS ====================
-
     private String formatPaymentMethodName(String method) {
         if (method == null || method.isEmpty())
             return "Unknown";
@@ -1089,7 +973,7 @@ public class CategoryAnalyticsService {
         if (dateStr == null || dateStr.isEmpty())
             return null;
         try {
-            return LocalDate.parse(dateStr.substring(0, 10)); // Handle ISO dates
+            return LocalDate.parse(dateStr.substring(0, 10));
         } catch (Exception e) {
             return null;
         }

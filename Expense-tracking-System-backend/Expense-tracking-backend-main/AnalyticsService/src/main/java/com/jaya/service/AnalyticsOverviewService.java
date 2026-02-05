@@ -31,8 +31,6 @@ public class AnalyticsOverviewService {
         double avgDailySpendLast30Days = extractDouble(summary, "avgDailySpendLast30Days");
         double savingsRateLast30Days = extractDouble(summary, "savingsRateLast30Days");
         double upcomingBillsAmount = extractDouble(summary, "upcomingBillsAmount");
-
-        // Top aggregated expenses for last 30 days (if available)
         List<TopExpenseDTO> topExpenses = extractTopExpenses(summary.get("topExpenses"));
 
         int totalBudgets = 0;
@@ -42,20 +40,15 @@ public class AnalyticsOverviewService {
         int groupsMember = 0;
         int friendsCount = 0;
         int pendingFriendRequests = 0;
-
-        // Budget metrics
         try {
             List<Map<String, Object>> budgetReports = budgetAnalyticsClient.getAllBudgetReportsForUser(jwt, targetId);
             if (budgetReports != null) {
                 totalBudgets = budgetReports.size();
-                // For now, treat all reported budgets as active
                 activeBudgets = totalBudgets;
             }
         } catch (Exception ex) {
             log.warn("Failed to fetch budget reports for analytics overview", ex);
         }
-
-        // Friendship metrics
         try {
             Map<String, Object> friendshipStats = friendshipAnalyticsClient.getFriendshipStats(jwt);
             friendsCount = extractInt(friendshipStats, "totalFriends");
@@ -63,8 +56,6 @@ public class AnalyticsOverviewService {
         } catch (Exception ex) {
             log.warn("Failed to fetch friendship stats for analytics overview", ex);
         }
-
-        // Group metrics
         try {
             List<Map<String, Object>> allGroups = groupAnalyticsClient.getAllUserGroups(jwt);
             List<Map<String, Object>> createdGroups = groupAnalyticsClient.getGroupsCreatedByUser(jwt);

@@ -53,8 +53,6 @@ public class WeekdayAnalysisSheetCreator extends AbstractSheetCreator {
 
         int dataStartRow = createTableHeaders(sheet, startRow, HEADERS, sf);
         int rowIdx = createDataRows(sheet, dataStartRow, weekdayData, sf);
-
-        // Add bar chart
         if (context.isIncludeCharts() && weekdayData.size() > 1) {
             ChartDataRange dataRange = ChartDataRange.simple("Weekday Spending", dataStartRow, rowIdx - 1, 0, 1);
             ChartPosition position = ChartPosition.standard(CHART_START_COL, 2);

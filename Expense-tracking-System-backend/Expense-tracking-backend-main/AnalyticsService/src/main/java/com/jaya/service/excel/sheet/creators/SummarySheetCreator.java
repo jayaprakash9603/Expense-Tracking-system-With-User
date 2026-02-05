@@ -47,32 +47,26 @@ public class SummarySheetCreator extends AbstractSheetCreator {
         ExcelStyleFactory sf = context.getStyleFactory();
 
         int rowIdx = startRow;
-
-        // Report period
         Row periodRow = sheet.createRow(rowIdx++);
         periodRow.createCell(0).setCellValue("Report Period: " +
                 context.getData().getStartDate().format(DATE_FORMATTER) + " to " +
                 context.getData().getEndDate().format(DATE_FORMATTER));
 
-        rowIdx++; // Empty row
+        rowIdx++;
 
-        // KPI Section
         rowIdx = createSectionHeader(sheet, rowIdx, "Key Metrics", sf, 2);
         rowIdx = createKpiSection(sheet, rowIdx, summary, sf);
 
-        rowIdx++; // Empty row
+        rowIdx++;
 
-        // Budget Summary Section
         rowIdx = createSectionHeader(sheet, rowIdx, "Budget Summary", sf, 2);
         rowIdx = createBudgetSummarySection(sheet, rowIdx, summary, sf);
 
-        // Top category info
         rowIdx++;
         Row topCatRow = sheet.createRow(rowIdx++);
         topCatRow.createCell(0).setCellValue("Top Category");
         topCatRow.createCell(1).setCellValue(summary.getTopCategory());
 
-        // Add chart if enabled
         if (context.isIncludeCharts()) {
             addCategoryPieChart(sheet, context);
         }

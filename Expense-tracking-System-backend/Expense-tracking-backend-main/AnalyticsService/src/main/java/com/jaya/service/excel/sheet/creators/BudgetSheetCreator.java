@@ -53,27 +53,21 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
         ExcelStyleFactory sf = context.getStyleFactory();
 
         int rowIdx = startRow;
-
-        // Summary Section
         rowIdx = createBudgetSummarySection(sheet, rowIdx, budgets, sf);
-        rowIdx++; // Empty row
+        rowIdx++;
 
-        // Status Breakdown Section
         rowIdx = createStatusBreakdownSection(sheet, rowIdx, budgets, sf);
-        rowIdx += 2; // Empty rows
+        rowIdx += 2;
 
-        // Detailed Budget Table
         rowIdx = createSectionHeader(sheet, rowIdx, "Detailed Budget Analysis", sf, 6);
         int dataStartRow = createTableHeaders(sheet, rowIdx, HEADERS, sf);
         int dataEndRow = createBudgetDataRows(sheet, dataStartRow, budgets, sf);
 
-        // Apply conditional formatting
         if (context.isIncludeConditionalFormatting() && budgets.size() > 0) {
             ConditionalFormattingHelper cfHelper = new ConditionalFormattingHelper(context.getWorkbook(), sheet);
             cfHelper.applyBudgetStatusRules(dataStartRow, dataEndRow - 1, 4);
         }
 
-        // Add chart
         if (context.isIncludeCharts() && budgets.size() > 1) {
             addBudgetChart(sheet, dataStartRow, dataEndRow - 1);
         }
@@ -85,8 +79,6 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
     private int createBudgetSummarySection(XSSFSheet sheet, int rowIdx, List<BudgetData> budgets,
             ExcelStyleFactory sf) {
         rowIdx = createSectionHeader(sheet, rowIdx, "Budget Overview Summary", sf, 4);
-
-        // Calculate metrics
         double totalAllocated = budgets.stream().mapToDouble(BudgetData::getAllocatedAmount).sum();
         double totalUsed = budgets.stream().mapToDouble(BudgetData::getUsedAmount).sum();
         double totalRemaining = budgets.stream().mapToDouble(BudgetData::getRemainingAmount).sum();
@@ -99,8 +91,6 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
         rowIdx = addKpiRow(sheet, rowIdx, "Total Allocated", totalAllocated, labelStyle, valueStyle);
         rowIdx = addKpiRow(sheet, rowIdx, "Total Used", totalUsed, labelStyle, valueStyle);
         rowIdx = addKpiRow(sheet, rowIdx, "Total Remaining", totalRemaining, labelStyle, valueStyle);
-
-        // Utilization row
         Row utilizationRow = sheet.createRow(rowIdx++);
         utilizationRow.createCell(0).setCellValue("Overall Utilization");
         utilizationRow.getCell(0).setCellStyle(labelStyle);
@@ -147,8 +137,6 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
         int rowIdx = startRow;
         for (BudgetData budget : budgets) {
             Row row = sheet.createRow(rowIdx++);
-
-            // Budget Name
             String budgetName = budget.getBudgetName();
             row.createCell(0).setCellValue(
                     budgetName != null && !budgetName.isEmpty() ? budgetName : "Budget #" + budget.getBudgetId());
@@ -160,8 +148,6 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
             Cell utilizationCell = row.createCell(4);
             utilizationCell.setCellValue(budget.getUtilizationPercent() / 100.0);
             utilizationCell.setCellStyle(percentStyle);
-
-            // Status with conditional styling
             Cell statusCell = row.createCell(5);
             statusCell.setCellValue(budget.getStatus());
             statusCell.setCellStyle(getStatusStyle(budget.getStatus(), sf));
@@ -172,16 +158,12 @@ public class BudgetSheetCreator extends AbstractSheetCreator {
             createCurrencyCell(row, 9, budget.getDailyBudget(), currencyStyle);
             createCurrencyCell(row, 10, budget.getDailySpendRate(), currencyStyle);
             row.createCell(11).setCellValue(budget.getDaysRemaining());
-
-            // Period
             String period = "";
             if (budget.getStartDate() != null && budget.getEndDate() != null) {
                 period = budget.getStartDate().format(DATE_FORMATTER) + " to " +
                         budget.getEndDate().format(DATE_FORMATTER);
             }
             row.createCell(12).setCellValue(period);
-
-            // Projected Overspend
             Cell overspendCell = row.createCell(13);
             overspendCell.setCellValue(budget.getProjectedOverspend());
             overspendCell.setCellStyle(budget.getProjectedOverspend() > 0 ? sf.createDangerStyle() : currencyStyle);

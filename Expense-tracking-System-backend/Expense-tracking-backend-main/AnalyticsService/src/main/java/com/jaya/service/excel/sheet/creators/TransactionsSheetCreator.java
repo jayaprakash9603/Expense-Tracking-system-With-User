@@ -40,7 +40,6 @@ public class TransactionsSheetCreator extends AbstractSheetCreator {
 
     @Override
     protected int createTitle(XSSFSheet sheet, SheetContext context) {
-        // Skip title for this sheet - starts directly with headers
         return 0;
     }
 
@@ -48,24 +47,14 @@ public class TransactionsSheetCreator extends AbstractSheetCreator {
     protected int createContent(XSSFSheet sheet, SheetContext context, int startRow) {
         List<ExpenseRow> expenses = context.getData().getExpenses();
         ExcelStyleFactory sf = context.getStyleFactory();
-
-        // Create headers
         int rowIdx = createTableHeaders(sheet, startRow, HEADERS, sf);
-
-        // Create data rows
         rowIdx = createDataRows(sheet, rowIdx, expenses, sf);
-
-        // Add formulas if enabled
         if (context.isIncludeFormulas()) {
             addFormulaRows(sheet, rowIdx, expenses.size(), sf);
         }
-
-        // Add conditional formatting
         if (context.isIncludeConditionalFormatting() && expenses.size() > 1) {
             applyConditionalFormatting(context, sheet, expenses.size());
         }
-
-        // Enable auto-filter
         sheet.setAutoFilter(new CellRangeAddress(0, expenses.size(), 0, HEADERS.length - 1));
 
         autoSizeColumns(sheet, HEADERS.length);
@@ -105,8 +94,6 @@ public class TransactionsSheetCreator extends AbstractSheetCreator {
 
     private void addFormulaRows(XSSFSheet sheet, int rowIdx, int dataCount, ExcelStyleFactory sf) {
         int lastDataRow = rowIdx - 1;
-
-        // Total row
         Row totalRow = sheet.createRow(rowIdx + 1);
         Cell totalLabelCell = totalRow.createCell(1);
         totalLabelCell.setCellValue("TOTAL");
@@ -119,15 +106,11 @@ public class TransactionsSheetCreator extends AbstractSheetCreator {
         Cell totalCreditCell = totalRow.createCell(7);
         totalCreditCell.setCellFormula(ExcelFormulaBuilder.sum("H", 2, lastDataRow + 1));
         totalCreditCell.setCellStyle(sf.createTotalCurrencyStyle());
-
-        // Average row
         Row avgRow = sheet.createRow(rowIdx + 2);
         avgRow.createCell(1).setCellValue("AVERAGE");
         Cell avgCell = avgRow.createCell(2);
         avgCell.setCellFormula(ExcelFormulaBuilder.average("C", 2, lastDataRow + 1));
         avgCell.setCellStyle(sf.createCurrencyStyle());
-
-        // Count row
         Row countRow = sheet.createRow(rowIdx + 3);
         countRow.createCell(1).setCellValue("COUNT");
         Cell countCell = countRow.createCell(2);
@@ -137,11 +120,7 @@ public class TransactionsSheetCreator extends AbstractSheetCreator {
     private void applyConditionalFormatting(SheetContext context, XSSFSheet sheet, int dataCount) {
         ConditionalFormattingHelper cfHelper = new ConditionalFormattingHelper(
                 context.getWorkbook(), sheet);
-
-        // Highlight high expenses (> $500)
         cfHelper.highlightHighAmounts(1, dataCount, 2, 500);
-
-        // Alternating row colors
         cfHelper.applyAlternatingRowColors(1, dataCount, 0, 7);
     }
 }

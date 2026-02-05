@@ -48,8 +48,6 @@ public class PaymentMethodSheetCreator extends AbstractSheetCreator {
 
         int dataStartRow = createTableHeaders(sheet, startRow, HEADERS, sf);
         int rowIdx = createDataRows(sheet, dataStartRow, methods, sf);
-
-        // Add pie chart
         if (context.isIncludeCharts() && methods.size() > 1) {
             ChartDataRange dataRange = ChartDataRange.simple("Payment Methods", dataStartRow, rowIdx - 1, 0, 1);
             ChartPosition position = ChartPosition.standard(CHART_START_COL, 2);

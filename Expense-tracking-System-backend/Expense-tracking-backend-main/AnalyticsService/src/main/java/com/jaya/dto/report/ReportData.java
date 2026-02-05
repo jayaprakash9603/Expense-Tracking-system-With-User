@@ -9,60 +9,28 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Internal DTO containing all data needed to generate a visual Excel report.
- * Aggregates data from multiple services into a single structure.
- */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReportData {
-
-    // ==================== METADATA ====================
     private String reportTitle;
     private LocalDate generatedDate;
     private LocalDate startDate;
     private LocalDate endDate;
     private String userName;
-
-    // ==================== SUMMARY SECTION ====================
     private SummaryData summary;
-
-    // ==================== EXPENSE DATA ====================
     private List<ExpenseRow> expenses;
-
-    // ==================== CATEGORY DATA ====================
     private List<CategoryData> categoryBreakdown;
-
-    // ==================== MONTHLY TRENDS ====================
     private List<MonthlyTrendData> monthlyTrends;
-
-    // ==================== DAILY SPENDING ====================
     private List<DailySpendingData> dailySpending;
-
-    // ==================== BUDGET DATA ====================
     private List<BudgetData> budgets;
-
-    // ==================== PAYMENT METHOD DATA ====================
     private List<PaymentMethodData> paymentMethods;
-
-    // ==================== WEEKDAY ANALYSIS ====================
     private List<WeekdaySpendingData> weekdaySpending;
-
-    // ==================== YEAR OVER YEAR COMPARISON ====================
     private List<YearlyComparisonData> yearlyComparison;
-
-    // ==================== TOP EXPENSES ====================
     private List<TopExpenseData> topExpenses;
-
-    // ==================== EXPENSE VELOCITY ====================
     private ExpenseVelocityData expenseVelocity;
-
-    // ==================== INSIGHTS ====================
     private List<InsightData> insights;
-
-    // ==================== NESTED DTOs ====================
 
     @Data
     @Builder
@@ -96,7 +64,7 @@ public class ReportData {
         private double amount;
         private String category;
         private String paymentMethod;
-        private String type; // CASH, CREDIT
+        private String type;
         private String notes;
         private double creditAmount;
         private boolean isBillPayment;
@@ -123,7 +91,7 @@ public class ReportData {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class MonthlyTrendData {
-        private String month; // e.g., "January 2026"
+        private String month;
         private int year;
         private int monthNumber;
         private double totalAmount;
@@ -139,7 +107,7 @@ public class ReportData {
     @AllArgsConstructor
     public static class DailySpendingData {
         private LocalDate date;
-        private String dayName; // Mon, Tue, etc.
+        private String dayName;
         private double amount;
         private int transactionCount;
         private String topCategory;
@@ -159,7 +127,7 @@ public class ReportData {
         private double utilizationPercent;
         private LocalDate startDate;
         private LocalDate endDate;
-        private String status; // ACTIVE, EXCEEDED, WARNING, EXPIRED
+        private String status;
         private int expenseCount;
         private int daysRemaining;
         private int totalDays;
@@ -189,7 +157,7 @@ public class ReportData {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class InsightData {
-        private String type; // INFO, WARNING, SUGGESTION, SUCCESS
+        private String type;
         private String title;
         private String message;
         private String icon;
@@ -201,8 +169,8 @@ public class ReportData {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class WeekdaySpendingData {
-        private String dayName; // Monday, Tuesday, etc.
-        private int dayOfWeek; // 1-7
+        private String dayName;
+        private int dayOfWeek;
         private double totalAmount;
         private int transactionCount;
         private double averageAmount;
@@ -248,9 +216,9 @@ public class ReportData {
         private double monthlyAverage;
         private double last7DaysTotal;
         private double last30DaysTotal;
-        private double last7DaysChange; // % change compared to previous 7 days
-        private double last30DaysChange; // % change compared to previous 30 days
-        private String trend; // INCREASING, DECREASING, STABLE
+        private double last7DaysChange;
+        private double last30DaysChange;
+        private String trend;
         private double projectedMonthlySpend;
     }
 }
