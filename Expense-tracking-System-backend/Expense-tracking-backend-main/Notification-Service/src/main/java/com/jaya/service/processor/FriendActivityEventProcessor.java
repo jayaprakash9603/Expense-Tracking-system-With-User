@@ -7,21 +7,6 @@ import com.jaya.service.NotificationPreferencesChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-/**
- * Processor for Friend Activity events
- * Handles notifications when friends manage expenses, categories, bills, etc.
- * on behalf of another user
- * 
- * Notification Types:
- * - friendExpenseCreated/Updated/Deleted: When a friend manages your expenses
- * - friendCategoryCreated/Updated/Deleted: When a friend manages your
- * categories
- * - friendBudgetCreated/Updated/Deleted: When a friend manages your budgets
- * - friendBillCreated/Updated/Deleted: When a friend manages your bills
- * - friendPaymentMethodCreated/Updated/Deleted: When a friend manages your
- * payment methods
- */
 @Component
 @Slf4j
 public class FriendActivityEventProcessor extends AbstractNotificationEventProcessor<FriendActivityEventDTO> {
@@ -37,15 +22,11 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
         String entityType = event.getEntityType() != null ? event.getEntityType().toUpperCase() : "UNKNOWN";
         String action = event.getAction() != null ? event.getAction().toUpperCase() : "CREATE";
 
-        // Build notification type like "friendExpenseCreated" or
-        // "friendPaymentMethodCreated"
-        // Handle underscored entity types like PAYMENT_METHOD -> PaymentMethod
         String entityName = convertToTitleCase(entityType);
 
         String actionName = action.toLowerCase();
         actionName = actionName.substring(0, 1).toUpperCase() + actionName.substring(1);
 
-        // Handle special case for DELETE -> Deleted
         if ("Delete".equals(actionName)) {
             actionName = "Deleted";
         } else if ("Create".equals(actionName)) {
@@ -57,10 +38,6 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
         return "friend" + entityName + actionName;
     }
 
-    /**
-     * Convert SNAKE_CASE or lowercase to TitleCase
-     * e.g., "PAYMENT_METHOD" -> "PaymentMethod", "expense" -> "Expense"
-     */
     private String convertToTitleCase(String input) {
         if (input == null || input.isEmpty()) {
             return input;
@@ -83,7 +60,6 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
 
     @Override
     public Integer getUserId(FriendActivityEventDTO event) {
-        // The target user receives the notification
         return event.getTargetUserId();
     }
 
@@ -97,14 +73,12 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
         String entityType = event.getEntityType() != null ? event.getEntityType().toLowerCase() : "item";
         String action = event.getAction() != null ? event.getAction().toUpperCase() : "CREATE";
 
-        // Use the description from the event if available
         if (event.getDescription() != null && !event.getDescription().isEmpty()) {
             message = event.getDescription();
         } else {
             message = buildDefaultMessage(actorName, entityType, action, event);
         }
 
-        // Build title and priority based on entity type and action
         switch (entityType.toUpperCase()) {
             case "EXPENSE":
                 title = buildExpenseTitle(action, actorName);
@@ -128,7 +102,7 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
 
             case "PAYMENT_METHOD":
                 title = buildPaymentMethodTitle(action, actorName);
-                priority = "HIGH"; // Payment method changes are always important
+                priority = "HIGH";
                 break;
 
             default:
@@ -143,11 +117,9 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
                 message,
                 priority);
 
-        // Add additional data
         notification.setRelatedEntityId(event.getEntityId());
         notification.setRelatedEntityType(event.getEntityType());
 
-        // Add actor information to metadata
         if (event.getActorUserId() != null) {
             notification.setMetadata(String.format("{\"actorUserId\":%d,\"actorName\":\"%s\",\"sourceService\":\"%s\"}",
                     event.getActorUserId(),
@@ -242,7 +214,6 @@ public class FriendActivityEventProcessor extends AbstractNotificationEventProce
 
         String message = String.format("%s %s a %s for you", actorName, actionVerb, entityType);
 
-        // Add amount if available
         if (event.getAmount() != null) {
             message += String.format(" (₹%.2f)", event.getAmount());
         }

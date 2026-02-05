@@ -28,7 +28,6 @@ public class Group {
     @Column(length = 500)
     private String description;
 
-    // Avatar emoji or image
     @Column(name = "avatar", length = 16)
     private String avatar;
 
@@ -46,7 +45,6 @@ public class Group {
     @Column(name = "user_id")
     private Set<Integer> memberIds;
 
-    // New: Store user roles as a map (userId -> role)
     @ElementCollection
     @CollectionTable(name = "group_member_roles", joinColumns = @JoinColumn(name = "group_id"))
     @MapKeyColumn(name = "user_id")
@@ -54,14 +52,12 @@ public class Group {
     @Enumerated(EnumType.STRING)
     private Map<Integer, GroupRole> memberRoles = new HashMap<>();
 
-    // New: Store when each member joined
     @ElementCollection
     @CollectionTable(name = "group_member_joined_dates", joinColumns = @JoinColumn(name = "group_id"))
     @MapKeyColumn(name = "user_id")
     @Column(name = "joined_at")
     private Map<Integer, LocalDateTime> memberJoinedDates = new HashMap<>();
 
-    // New: Store who added each member
     @ElementCollection
     @CollectionTable(name = "group_member_added_by", joinColumns = @JoinColumn(name = "group_id"))
     @MapKeyColumn(name = "user_id")
@@ -73,7 +69,6 @@ public class Group {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
 
-        // Automatically assign ADMIN role to creator
         if (createdBy != null) {
             if (memberRoles == null) {
                 memberRoles = new HashMap<>();
@@ -96,7 +91,6 @@ public class Group {
         updatedAt = LocalDateTime.now();
     }
 
-    // Helper methods for role management
     public GroupRole getUserRole(Integer userId) {
         return memberRoles.getOrDefault(userId, GroupRole.VIEWER);
     }

@@ -28,5 +28,5 @@ public class BudgetDTO {
     private double spentAmount;
     private double percentageUsed;
     private int daysRemaining;
-    private String status; // ACTIVE, EXCEEDED, WARNING, COMPLETED
+    private String status;
 }

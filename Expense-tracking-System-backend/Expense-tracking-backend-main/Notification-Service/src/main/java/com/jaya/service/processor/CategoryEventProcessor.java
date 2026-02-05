@@ -7,17 +7,6 @@ import com.jaya.service.NotificationPreferencesChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-/**
- * Processor for Category events
- * Follows Single Responsibility Principle - only handles category notifications
- * 
- * Supports the following notification types:
- * - categoryCreated: When a new category is created
- * - categoryUpdated: When an existing category is updated
- * - categoryDeleted: When a category is deleted
- * - categoryBudgetExceeded: When a category budget limit is exceeded
- */
 @Component
 @Slf4j
 public class CategoryEventProcessor extends AbstractNotificationEventProcessor<CategoryEventDTO> {
@@ -106,7 +95,6 @@ public class CategoryEventProcessor extends AbstractNotificationEventProcessor<C
                 message,
                 priority);
 
-        // Add additional data
         notification.setRelatedEntityId(event.getCategoryId());
         notification.setRelatedEntityType("CATEGORY");
 

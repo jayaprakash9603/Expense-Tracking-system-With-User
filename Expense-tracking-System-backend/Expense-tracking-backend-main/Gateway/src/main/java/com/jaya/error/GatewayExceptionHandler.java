@@ -50,7 +50,6 @@ public class GatewayExceptionHandler {
 
     private String safeBody(WebClientResponseException ex) {
         String body = ex.getResponseBodyAsString();
-        // Avoid leaking large or sensitive internal payloads
         return truncate(body, 500);
     }
 
@@ -105,7 +104,6 @@ public class GatewayExceptionHandler {
     @ExceptionHandler(java.net.ConnectException.class)
     public ResponseEntity<GatewayErrorResponse> handleConnectException(java.net.ConnectException ex,
             ServerWebExchange exchange) {
-        // This handles "Connection refused" when a downstream service is down
         GatewayErrorResponse body = build(GatewayErrorCode.SERVICE_UNAVAILABLE,
                 "Service is currently unavailable. Please try again later.",
                 path(exchange),
@@ -149,20 +147,19 @@ public class GatewayExceptionHandler {
         } else if (status == 403) {
             mapped = GatewayErrorCode.ACCESS_DENIED;
         } else if (status == 502) {
-            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR; // preserve 502 Bad Gateway
+            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR;
         } else if (status == 503) {
-            mapped = GatewayErrorCode.SERVICE_UNAVAILABLE; // preserve 503 Service Unavailable
+            mapped = GatewayErrorCode.SERVICE_UNAVAILABLE;
         } else if (status >= 500) {
-            // Treat as internal unless explicitly known as external (WebClient) via cause
             if (ex.getCause() instanceof WebClientResponseException) {
                 mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR;
             } else {
                 mapped = GatewayErrorCode.INTERNAL_SERVER_ERROR;
             }
         } else if (status >= 400) {
-            mapped = GatewayErrorCode.ILLEGAL_ARGUMENT; // generic 4xx fallback
+            mapped = GatewayErrorCode.ILLEGAL_ARGUMENT;
         } else {
-            mapped = GatewayErrorCode.INTERNAL_SERVER_ERROR; // unexpected status category
+            mapped = GatewayErrorCode.INTERNAL_SERVER_ERROR;
         }
         GatewayErrorResponse body = build(mapped, ex.getReason(), path(exchange), null, requestId(exchange));
         log.error("Gateway ResponseStatusException status={} mapped={} path={} msg={}", status, mapped.getCode(),
@@ -173,10 +170,10 @@ public class GatewayExceptionHandler {
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<GatewayErrorResponse> handleWebClient(WebClientResponseException ex,
             ServerWebExchange exchange) {
-        int rawStatus = ex.getStatusCode().value(); // non-deprecated
+        int rawStatus = ex.getStatusCode().value();
         GatewayErrorCode mapped;
         if (rawStatus == 404) {
-            mapped = GatewayErrorCode.ROUTE_NOT_FOUND; // Upstream 404 surfaces as route not found
+            mapped = GatewayErrorCode.ROUTE_NOT_FOUND;
         } else if (rawStatus == 401) {
             mapped = GatewayErrorCode.UNAUTHORIZED;
         } else if (rawStatus == 403) {
@@ -184,15 +181,15 @@ public class GatewayExceptionHandler {
         } else if (rawStatus == 408 || rawStatus == 504) {
             mapped = GatewayErrorCode.TIMEOUT;
         } else if (rawStatus == 502) {
-            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR; // propagate 502
+            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR;
         } else if (rawStatus == 503) {
-            mapped = GatewayErrorCode.SERVICE_UNAVAILABLE; // propagate 503
+            mapped = GatewayErrorCode.SERVICE_UNAVAILABLE;
         } else if (rawStatus >= 500) {
             mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR;
         } else if (rawStatus >= 400) {
-            mapped = GatewayErrorCode.ILLEGAL_ARGUMENT; // client error propagated
+            mapped = GatewayErrorCode.ILLEGAL_ARGUMENT;
         } else {
-            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR; // unexpected non-error code treated as external issue
+            mapped = GatewayErrorCode.EXTERNAL_SERVICE_ERROR;
         }
         String details = "upstream_status=" + rawStatus + ", body=" + safeBody(ex);
         GatewayErrorResponse body = build(mapped, ex.getMessage(), path(exchange), details, requestId(exchange));
@@ -204,7 +201,6 @@ public class GatewayExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<GatewayErrorResponse> handleGeneric(Exception ex, ServerWebExchange exchange) {
         log.error("Unhandled gateway exception path={}", path(exchange), ex);
-        // Do not leak internal exception message if blank or sensitive
         String msg = (ex.getMessage() == null || ex.getMessage().isBlank()) ? "Internal error" : ex.getMessage();
         GatewayErrorResponse body = build(GatewayErrorCode.INTERNAL_SERVER_ERROR, msg, path(exchange), null,
                 requestId(exchange));

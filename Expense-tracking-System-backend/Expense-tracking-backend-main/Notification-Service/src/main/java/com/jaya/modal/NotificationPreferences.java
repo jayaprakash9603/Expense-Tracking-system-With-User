@@ -5,31 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-/**
- * NotificationPreferences Entity
- * Stores comprehensive notification settings for each user
- * Supports multi-level configuration: global, service-level, and
- * notification-level
- * 
- * Architecture:
- * - Master toggle for all notifications
- * - Global settings (DND, sound, browser notifications)
- * - Service-specific toggles (expense, budget, bill, etc.)
- * - Individual notification type preferences
- * - Delivery method preferences (in-app, email, push, SMS)
- * - Frequency settings (instant, hourly, daily, weekly)
- * 
- * Performance Optimization:
- * - @DynamicUpdate: Only updates modified fields in SQL query
- */
 @Entity
 @Table(name = "notification_preferences")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// @DynamicUpdate
 public class NotificationPreferences {
 
     @Id
@@ -38,10 +19,6 @@ public class NotificationPreferences {
 
     @Column(name = "user_id", nullable = false, unique = true)
     private Integer userId;
-
-    // ============================================
-    // GLOBAL SETTINGS
-    // ============================================
 
     @Builder.Default
     @Column(name = "master_enabled", nullable = false)
@@ -62,10 +39,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "floating_notifications", nullable = false)
     private Boolean floatingNotifications = true;
-
-    // ============================================
-    // SERVICE-LEVEL TOGGLES
-    // ============================================
 
     @Builder.Default
     @Column(name = "expense_service_enabled", nullable = false)
@@ -103,10 +76,6 @@ public class NotificationPreferences {
     @Column(name = "system_notifications_enabled", nullable = false)
     private Boolean systemNotificationsEnabled = true;
 
-    // ============================================
-    // EXPENSE SERVICE NOTIFICATIONS
-    // ============================================
-
     @Builder.Default
     @Column(name = "expense_added_enabled", nullable = false)
     private Boolean expenseAddedEnabled = true;
@@ -122,10 +91,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "large_expense_alert_enabled", nullable = false)
     private Boolean largeExpenseAlertEnabled = true;
-
-    // ============================================
-    // BUDGET SERVICE NOTIFICATIONS
-    // ============================================
 
     @Builder.Default
     @Column(name = "budget_exceeded_enabled", nullable = false)
@@ -151,10 +116,6 @@ public class NotificationPreferences {
     @Column(name = "budget_deleted_enabled", nullable = false)
     private Boolean budgetDeletedEnabled = false;
 
-    // ============================================
-    // BILL SERVICE NOTIFICATIONS
-    // ============================================
-
     @Builder.Default
     @Column(name = "bill_added_enabled", nullable = false)
     private Boolean billAddedEnabled = true;
@@ -179,10 +140,6 @@ public class NotificationPreferences {
     @Column(name = "bill_paid_enabled", nullable = false)
     private Boolean billPaidEnabled = true;
 
-    // ============================================
-    // PAYMENT METHOD SERVICE NOTIFICATIONS
-    // ============================================
-
     @Builder.Default
     @Column(name = "payment_method_added_enabled", nullable = false)
     private Boolean paymentMethodAddedEnabled = true;
@@ -194,10 +151,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "payment_method_removed_enabled", nullable = false)
     private Boolean paymentMethodRemovedEnabled = true;
-
-    // ============================================
-    // CATEGORY SERVICE NOTIFICATIONS
-    // ============================================
 
     @Builder.Default
     @Column(name = "category_created_enabled", nullable = false)
@@ -214,10 +167,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "category_budget_exceeded_enabled", nullable = false)
     private Boolean categoryBudgetExceededEnabled = true;
-
-    // ============================================
-    // FRIEND SERVICE NOTIFICATIONS
-    // ============================================
 
     @Builder.Default
     @Column(name = "friend_request_received_enabled", nullable = false)
@@ -254,10 +203,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "user_unblocked_enabled", nullable = false)
     private Boolean userUnblockedEnabled = true;
-
-    // ============================================
-    // FRIEND ACTIVITY SERVICE NOTIFICATIONS
-    // ============================================
 
     @Builder.Default
     @Column(name = "friend_expense_created_enabled", nullable = false)
@@ -319,10 +264,6 @@ public class NotificationPreferences {
     @Column(name = "friend_payment_method_deleted_enabled", nullable = false)
     private Boolean friendPaymentMethodDeletedEnabled = true;
 
-    // ============================================
-    // ANALYTICS SERVICE NOTIFICATIONS
-    // ============================================
-
     @Builder.Default
     @Column(name = "weekly_summary_enabled", nullable = false)
     private Boolean weeklySummaryEnabled = true;
@@ -334,10 +275,6 @@ public class NotificationPreferences {
     @Builder.Default
     @Column(name = "spending_trend_alert_enabled", nullable = false)
     private Boolean spendingTrendAlertEnabled = true;
-
-    // ============================================
-    // SYSTEM NOTIFICATIONS
-    // ============================================
 
     @Builder.Default
     @Column(name = "security_alert_enabled", nullable = false)
@@ -351,16 +288,8 @@ public class NotificationPreferences {
     @Column(name = "maintenance_notice_enabled", nullable = false)
     private Boolean maintenanceNoticeEnabled = true;
 
-    // ============================================
-    // DELIVERY METHODS (JSON format for flexibility)
-    // ============================================
-
     @Column(name = "notification_preferences_json", columnDefinition = "TEXT")
     private String notificationPreferencesJson;
-
-    // ============================================
-    // LEGACY FIELDS (Keep for backward compatibility)
-    // ============================================
 
     @Builder.Default
     @Column(name = "budget_alerts_enabled", nullable = false)
@@ -404,5 +333,5 @@ public class NotificationPreferences {
 
     @Builder.Default
     @Column(name = "budget_warning_threshold", nullable = false)
-    private Double budgetWarningThreshold = 80.0; // 80% of budget
+    private Double budgetWarningThreshold = 80.0;
 }

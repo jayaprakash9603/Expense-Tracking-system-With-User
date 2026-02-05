@@ -13,23 +13,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-/**
- * Unified Activity Event Consumer for Notification Service
- * 
- * This consumer receives unified events from a single Kafka topic and routes
- * them
- * to the appropriate processors based on:
- * - Entity type (EXPENSE, BUDGET, BILL, CATEGORY, PAYMENT_METHOD)
- * - Action type (CREATE, UPDATE, DELETE)
- * - Whether it's a friend activity or own action
- * 
- * Benefits:
- * - Single topic subscription instead of multiple
- * - Unified event processing
- * - Simplified routing logic
- * - Support for both regular notifications and friend activity notifications
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,9 +26,6 @@ public class UnifiedActivityEventConsumer {
     private final FriendActivityEventProcessor friendActivityEventProcessor;
     private final ObjectMapper objectMapper;
 
-    /**
-     * BATCH: Consumes unified activity events from the single topic
-     */
     @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "notification-unified-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeUnifiedEventsBatch(List<Object> payloads) {
@@ -55,7 +35,6 @@ public class UnifiedActivityEventConsumer {
         long startTime = System.currentTimeMillis();
         log.info("📦 Received BATCH of {} unified activity events - processing...", payloads.size());
 
-        // Parse all events first
         List<UnifiedActivityEventDTO> parsed = new ArrayList<>(payloads.size());
         for (Object payload : payloads) {
             try {
@@ -71,7 +50,6 @@ public class UnifiedActivityEventConsumer {
         if (parsed.isEmpty())
             return;
 
-        // Process all events
         int successCount = 0;
         int friendActivityCount = 0;
         int regularNotificationCount = 0;
@@ -98,19 +76,14 @@ public class UnifiedActivityEventConsumer {
                 successCount, payloads.size(), duration, regularNotificationCount, friendActivityCount);
     }
 
-    /**
-     * Process a single unified event by routing to appropriate processor
-     */
     private boolean processUnifiedEvent(UnifiedActivityEventDTO event) {
         log.debug("Processing unified event: eventId={}, entityType={}, action={}, isOwnAction={}",
                 event.getEventId(), event.getEntityType(), event.getAction(), event.getIsOwnAction());
 
-        // Route to friend activity processor if it's a friend action
         if (event.shouldProcessAsFriendActivity()) {
             return processAsFriendActivity(event);
         }
 
-        // Route to regular notification processor based on entity type
         if (event.shouldProcessAsRegularNotification()) {
             return processAsRegularNotification(event);
         }
@@ -119,12 +92,8 @@ public class UnifiedActivityEventConsumer {
         return false;
     }
 
-    /**
-     * Process event as friend activity notification
-     */
     private boolean processAsFriendActivity(UnifiedActivityEventDTO event) {
         try {
-            // Convert to FriendActivityEventDTO for the existing processor
             FriendActivityEventDTO friendEvent = convertToFriendActivityEvent(event);
             friendActivityEventProcessor.process(friendEvent);
             log.debug("Processed as friend activity: eventId={}", event.getEventId());
@@ -136,9 +105,6 @@ public class UnifiedActivityEventConsumer {
         }
     }
 
-    /**
-     * Process event as regular notification
-     */
     private boolean processAsRegularNotification(UnifiedActivityEventDTO event) {
         try {
             String entityType = event.getEntityType();
@@ -177,10 +143,6 @@ public class UnifiedActivityEventConsumer {
             return false;
         }
     }
-
-    // =============================================
-    // CONVERSION METHODS
-    // =============================================
 
     private FriendActivityEventDTO convertToFriendActivityEvent(UnifiedActivityEventDTO event) {
         FriendActivityEventDTO.UserInfo actorUserInfo = null;
@@ -251,7 +213,7 @@ public class UnifiedActivityEventConsumer {
                 .budgetName(event.getEntityName())
                 .amount(event.getAmount())
                 .timestamp(event.getTimestamp())
-                .metadata(event.getNewValues()) // Use newValues map for metadata
+            .metadata(event.getNewValues())
                 .build();
     }
 
@@ -286,22 +248,15 @@ public class UnifiedActivityEventConsumer {
                 .build();
     }
 
-    /**
-     * Map source service name to the format expected by FriendActivityEventDTO
-     */
     private String mapSourceService(String sourceService) {
         if (sourceService == null)
             return "UNKNOWN";
 
-        // Convert SERVICE-NAME format to enum-compatible format
         return sourceService
                 .replace("-SERVICE", "")
                 .replace("-", "_");
     }
 
-    /**
-     * Converts payload to DTO
-     */
     private <T> T convertToDto(Object payload, Class<T> dtoClass) {
         try {
             if (payload instanceof Map) {

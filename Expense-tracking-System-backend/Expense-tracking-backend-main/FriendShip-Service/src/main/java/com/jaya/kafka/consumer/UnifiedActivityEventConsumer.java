@@ -21,16 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Event Consumer for FriendShip Service.
- * 
- * Consumes events from the unified-activity-events topic and stores
- * friend activities for users to see what their friends did on their behalf.
- * 
- * Only processes events where:
- * - isFriendActivity = true (actions performed by friends)
- * - The target user needs to see what happened
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -39,10 +29,6 @@ public class UnifiedActivityEventConsumer {
     private final FriendActivityRepository friendActivityRepository;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Consumes unified activity events from the single topic.
-     * Only processes events that are friend activities.
-     */
     @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${kafka.consumer.group-id:friendship-unified-activity-group}", containerFactory = "kafkaListenerContainerFactory")
     @Transactional
     public void consumeUnifiedActivityEvent(
@@ -60,8 +46,6 @@ public class UnifiedActivityEventConsumer {
                 return;
             }
 
-            // Only process friend activities (actions performed by friends on behalf of
-            // target user)
             if (!Boolean.TRUE.equals(event.getIsFriendActivity())) {
                 log.debug("Skipping non-friend-activity event: {} (isOwnAction={})",
                         event.getEventId(), event.getIsOwnAction());
@@ -74,14 +58,12 @@ public class UnifiedActivityEventConsumer {
                     event.getEventId(), event.getActorUserId(), event.getTargetUserId(),
                     event.getAction(), event.getEntityType());
 
-            // Validate event
             if (!isValidEvent(event)) {
                 log.warn("Invalid unified activity event received, skipping: {}", event.getEventId());
                 acknowledgment.acknowledge();
                 return;
             }
 
-            // Convert event to FriendActivity entity and save
             FriendActivity activity = mapEventToEntity(event);
             FriendActivity savedActivity = friendActivityRepository.save(activity);
 
@@ -94,29 +76,10 @@ public class UnifiedActivityEventConsumer {
         } catch (Exception e) {
             log.error("Error processing unified activity event from topic: {}, offset: {}",
                     topic, offset, e);
-            // Acknowledge to prevent infinite retry - consider DLQ for production
             acknowledgment.acknowledge();
         }
     }
 
-    /**
-     * Batch consumer for high throughput scenarios
-     * 
-     * DISABLED: This batch consumer has been disabled to prevent duplicate event
-     * processing.
-     * The single-message consumer above handles all events. Both consumers were
-     * processing
-     * the same events because they use different consumer groups.
-     * 
-     * To re-enable batch processing, either:
-     * 1. Use the same consumer group ID for both consumers (they'll share messages)
-     * 2. Remove the single-message consumer and use only batch processing
-     */
-    // @KafkaListener(topics =
-    // "${kafka.topics.unified-activity-events:unified-activity-events}", groupId =
-    // "${kafka.consumer.batch-group-id:friendship-unified-activity-batch-group}",
-    // containerFactory = "batchKafkaListenerContainerFactory")
-    // @Transactional
     public void consumeUnifiedActivityEventsBatch(
             @Payload List<ConsumerRecord<String, Object>> records,
             Acknowledgment acknowledgment) {
@@ -133,7 +96,6 @@ public class UnifiedActivityEventConsumer {
 
         for (ConsumerRecord<String, Object> record : records) {
             try {
-                // Extract the value from the ConsumerRecord
                 Object payload = record.value();
                 UnifiedActivityEventDTO event = convertToDto(payload);
 
@@ -142,7 +104,6 @@ public class UnifiedActivityEventConsumer {
                     continue;
                 }
 
-                // Only process friend activities
                 if (!Boolean.TRUE.equals(event.getIsFriendActivity())) {
                     skippedCount++;
                     continue;
@@ -167,12 +128,8 @@ public class UnifiedActivityEventConsumer {
         acknowledgment.acknowledge();
     }
 
-    /**
-     * Converts payload to UnifiedActivityEventDTO
-     */
     private UnifiedActivityEventDTO convertToDto(Object payload) {
         try {
-            // Handle ConsumerRecord - extract the value
             if (payload instanceof ConsumerRecord) {
                 ConsumerRecord<?, ?> record = (ConsumerRecord<?, ?>) payload;
                 payload = record.value();
@@ -194,7 +151,6 @@ public class UnifiedActivityEventConsumer {
             } else if (payload instanceof java.util.LinkedHashMap) {
                 return objectMapper.convertValue(payload, UnifiedActivityEventDTO.class);
             } else {
-                // Try to convert via JSON serialization
                 String json = objectMapper.writeValueAsString(payload);
                 return objectMapper.readValue(json, UnifiedActivityEventDTO.class);
             }
@@ -204,9 +160,6 @@ public class UnifiedActivityEventConsumer {
         }
     }
 
-    /**
-     * Validates the incoming event has required fields.
-     */
     private boolean isValidEvent(UnifiedActivityEventDTO event) {
         if (event == null) {
             return false;
@@ -226,9 +179,6 @@ public class UnifiedActivityEventConsumer {
         return true;
     }
 
-    /**
-     * Maps a UnifiedActivityEventDTO to a FriendActivity entity.
-     */
     private FriendActivity mapEventToEntity(UnifiedActivityEventDTO event) {
         return FriendActivity.builder()
                 .targetUserId(toInteger(event.getTargetUserId()))
@@ -243,7 +193,6 @@ public class UnifiedActivityEventConsumer {
                 .metadata(toJson(event.getMetadata()))
                 .timestamp(event.getTimestamp() != null ? event.getTimestamp() : LocalDateTime.now())
                 .isRead(false)
-                // JSON fields
                 .actorUserJson(toJson(event.getActorUser()))
                 .targetUserJson(toJson(event.getTargetUser()))
                 .entityPayloadJson(toJson(event.getEntityPayload()))
@@ -253,23 +202,14 @@ public class UnifiedActivityEventConsumer {
                 .build();
     }
 
-    /**
-     * Safely converts Long to Integer
-     */
     private Integer toInteger(Long value) {
         return value != null ? value.intValue() : null;
     }
 
-    /**
-     * Safely converts BigDecimal to Double
-     */
     private Double toDouble(BigDecimal value) {
         return value != null ? value.doubleValue() : null;
     }
 
-    /**
-     * Converts an object to JSON string.
-     */
     private String toJson(Object obj) {
         if (obj == null) {
             return null;

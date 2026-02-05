@@ -12,11 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-/**
- * Service for tracking which shared items users have added to their accounts.
- * Provides persistence across login/logout sessions.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -24,9 +19,6 @@ public class UserAddedItemsService {
 
     private final UserAddedSharedItemRepository repository;
 
-    /**
-     * Get all external refs that a user has added from a specific share.
-     */
     @Transactional(readOnly = true)
     public UserAddedItemsDTO getAddedItems(Integer userId, String shareToken) {
         Set<String> addedRefs = repository.findExternalRefsByUserIdAndShareToken(userId, shareToken);
@@ -39,17 +31,10 @@ public class UserAddedItemsService {
                 .build();
     }
 
-    /**
-     * Check if a specific item has already been added.
-     */
     @Transactional(readOnly = true)
     public boolean isItemAdded(Integer userId, String shareToken, String externalRef) {
         return repository.existsByUserIdAndShareTokenAndExternalRef(userId, shareToken, externalRef);
     }
-
-    /**
-     * Track that a user has added an item from a share.
-     */
     @Transactional
     public UserAddedItemsDTO.AddItemResponse trackAddedItem(
             Integer userId,
@@ -58,8 +43,6 @@ public class UserAddedItemsService {
 
         log.debug("Tracking added item: userId={}, shareToken={}, ref={}",
                 userId, shareToken, request.getExternalRef());
-
-        // Check if already added
         if (repository.existsByUserIdAndShareTokenAndExternalRef(
                 userId, shareToken, request.getExternalRef())) {
             return UserAddedItemsDTO.AddItemResponse.builder()
@@ -68,8 +51,6 @@ public class UserAddedItemsService {
                     .message("Item was already added previously")
                     .build();
         }
-
-        // Create tracking record
         UserAddedSharedItem item = UserAddedSharedItem.builder()
                 .userId(userId)
                 .shareToken(shareToken)
@@ -91,10 +72,6 @@ public class UserAddedItemsService {
                 .addedAt(item.getAddedAt())
                 .build();
     }
-
-    /**
-     * Track multiple items at once.
-     */
     @Transactional
     public UserAddedItemsDTO.BulkAddResponse trackAddedItems(
             Integer userId,
@@ -133,19 +110,11 @@ public class UserAddedItemsService {
                 .errors(errors)
                 .build();
     }
-
-    /**
-     * Remove tracking for an item (if user wants to re-add later).
-     */
     @Transactional
     public void untrackItem(Integer userId, String shareToken, String externalRef) {
         repository.deleteByUserIdAndShareTokenAndExternalRef(userId, shareToken, externalRef);
         log.info("Untracked item: userId={}, shareToken={}, ref={}", userId, shareToken, externalRef);
     }
-
-    /**
-     * Get count of items added from a share.
-     */
     @Transactional(readOnly = true)
     public long getAddedCount(Integer userId, String shareToken) {
         return repository.countByUserIdAndShareToken(userId, shareToken);

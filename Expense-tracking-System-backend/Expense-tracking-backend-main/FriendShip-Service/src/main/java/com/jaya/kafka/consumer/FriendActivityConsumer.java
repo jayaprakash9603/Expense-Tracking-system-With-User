@@ -11,11 +11,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Kafka consumer for friend activity events.
- * Consumes events from various services (Expense, Budget, Bill, etc.)
- * and stores them for later retrieval.
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -24,10 +19,6 @@ public class FriendActivityConsumer {
     private final FriendActivityRepository friendActivityRepository;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Consumes friend activity events from the friend-activity-events topic.
-     * Stores the activity in the database for the target user to view.
-     */
     @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "${kafka.consumer.group-id:friendship-activity-group}", containerFactory = "kafkaListenerContainerFactory")
     @Transactional
     public void consumeFriendActivity(FriendActivityEvent event) {
@@ -35,13 +26,11 @@ public class FriendActivityConsumer {
             log.info("Received friend activity event: actorUserId={}, targetUserId={}, action={}, entityType={}",
                     event.getActorUserId(), event.getTargetUserId(), event.getAction(), event.getEntityType());
 
-            // Validate event
             if (!isValidEvent(event)) {
                 log.warn("Invalid friend activity event received, skipping: {}", event);
                 return;
             }
 
-            // Convert event to entity and save
             FriendActivity activity = mapEventToEntity(event);
             FriendActivity savedActivity = friendActivityRepository.save(activity);
 
@@ -51,14 +40,9 @@ public class FriendActivityConsumer {
 
         } catch (Exception e) {
             log.error("Error processing friend activity event: {}", e.getMessage(), e);
-            // Don't rethrow - we don't want to block the consumer for failed events
-            // Consider implementing dead letter queue for failed events
         }
     }
 
-    /**
-     * Validates the incoming event has required fields.
-     */
     private boolean isValidEvent(FriendActivityEvent event) {
         if (event == null) {
             return false;
@@ -82,9 +66,6 @@ public class FriendActivityConsumer {
         return true;
     }
 
-    /**
-     * Maps a FriendActivityEvent to a FriendActivity entity.
-     */
     private FriendActivity mapEventToEntity(FriendActivityEvent event) {
         return FriendActivity.builder()
                 .targetUserId(event.getTargetUserId())
@@ -99,7 +80,6 @@ public class FriendActivityConsumer {
                 .metadata(event.getMetadata())
                 .timestamp(event.getTimestamp() != null ? event.getTimestamp() : java.time.LocalDateTime.now())
                 .isRead(event.getIsRead() != null ? event.getIsRead() : false)
-                // New fields
                 .actorUserJson(toJson(event.getActorUser()))
                 .targetUserJson(toJson(event.getTargetUser()))
                 .entityPayloadJson(toJson(event.getEntityPayload()))
@@ -109,9 +89,6 @@ public class FriendActivityConsumer {
                 .build();
     }
 
-    /**
-     * Converts an object to JSON string.
-     */
     private String toJson(Object obj) {
         if (obj == null) {
             return null;

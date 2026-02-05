@@ -14,19 +14,12 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Kafka Configuration for FriendShip Service
- * Configures producers for publishing friend request events
- */
 @Configuration
 public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    /**
-     * Producer configuration for Friend Request Events
-     */
     @Bean
     public ProducerFactory<String, FriendRequestEvent> friendRequestEventProducerFactory() {
         Map<String, Object> config = new HashMap<>();

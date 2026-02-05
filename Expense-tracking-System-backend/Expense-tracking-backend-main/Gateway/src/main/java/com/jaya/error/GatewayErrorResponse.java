@@ -2,10 +2,6 @@ package com.jaya.error;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDateTime;
-
-/**
- * Standard error response shape emitted by the gateway.
- */
 public class GatewayErrorResponse {
     private String error;
     private String message;

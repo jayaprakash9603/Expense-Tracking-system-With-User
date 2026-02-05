@@ -16,11 +16,6 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
-
-/**
- * Service for generating QR codes.
- * QR codes contain only URLs with secure tokens - never raw data.
- */
 @Service
 @Slf4j
 public class QrCodeService {
@@ -36,23 +31,11 @@ public class QrCodeService {
 
     private static final String IMAGE_FORMAT = "PNG";
 
-    /**
-     * Generate a QR code data URI for the given share token.
-     * 
-     * @param shareToken The secure token to encode in the QR
-     * @return Base64-encoded PNG image as data URI
-     */
     public String generateQrCodeDataUri(String shareToken) {
         String shareUrl = buildShareUrl(shareToken);
         return generateQrCodeForUrl(shareUrl);
     }
 
-    /**
-     * Generate a QR code data URI for any URL.
-     * 
-     * @param url The URL to encode
-     * @return Base64-encoded PNG image as data URI
-     */
     public String generateQrCodeForUrl(String url) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
@@ -78,23 +61,10 @@ public class QrCodeService {
         }
     }
 
-    /**
-     * Build the full share URL from a token.
-     * 
-     * @param shareToken The share token
-     * @return Full share URL
-     */
     public String buildShareUrl(String shareToken) {
         return shareBaseUrl + "/share/" + shareToken;
     }
 
-    /**
-     * Generate QR code with custom size.
-     * 
-     * @param shareToken The share token
-     * @param size       Custom size in pixels
-     * @return Base64-encoded PNG image as data URI
-     */
     public String generateQrCodeWithSize(String shareToken, int size) {
         String shareUrl = buildShareUrl(shareToken);
         try {

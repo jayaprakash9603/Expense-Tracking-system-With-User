@@ -9,10 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Kafka Event Publisher Service for FriendShip Service
- * Publishes friend request events to Kafka topics
- */
 @Service
 @Slf4j
 public class FriendRequestEventPublisher {
@@ -22,11 +18,6 @@ public class FriendRequestEventPublisher {
     @Autowired
     private KafkaTemplate<String, FriendRequestEvent> friendRequestKafkaTemplate;
 
-    /**
-     * Publish friend request event to Kafka
-     * 
-     * @param event The friend request event to publish
-     */
     public void publishFriendRequestEvent(FriendRequestEvent event) {
         try {
             log.info("Publishing friend request event: {} for friendship ID: {}",

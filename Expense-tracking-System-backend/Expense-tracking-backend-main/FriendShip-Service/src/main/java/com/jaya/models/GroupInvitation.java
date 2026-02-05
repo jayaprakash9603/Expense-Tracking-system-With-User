@@ -40,8 +40,8 @@ public class GroupInvitation {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    // Constructors
-    public GroupInvitation() {}
+    public GroupInvitation() {
+    }
 
     public GroupInvitation(Integer groupId, Integer inviterId, Integer inviteeId, GroupRole role, String message) {
         this.groupId = groupId;
@@ -50,10 +50,9 @@ public class GroupInvitation {
         this.role = role;
         this.message = message;
         this.createdAt = LocalDateTime.now();
-        this.expiresAt = LocalDateTime.now().plusDays(7); // Expires in 7 days
+        this.expiresAt = LocalDateTime.now().plusDays(7);
     }
 
-    // Getters and Setters
     public Integer getId() {
         return id;
     }

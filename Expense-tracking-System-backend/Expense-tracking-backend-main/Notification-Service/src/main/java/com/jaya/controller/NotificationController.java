@@ -195,9 +195,6 @@ public class NotificationController {
         return ResponseEntity.ok("Old notifications cleaned up successfully");
     }
 
-    /**
-     * Delete all notifications for the user
-     */
     @DeleteMapping("/all")
     public ResponseEntity<String> deleteAllNotifications(@RequestHeader("Authorization") String jwt) {
         UserDto user = userService.getuserProfile(jwt);
@@ -205,9 +202,6 @@ public class NotificationController {
         return ResponseEntity.ok("All notifications deleted successfully");
     }
 
-    /**
-     * Get notifications with filtering and pagination
-     */
     @GetMapping("/filter")
     public ResponseEntity<List<Notification>> getFilteredNotifications(
             @RequestHeader("Authorization") String jwt,

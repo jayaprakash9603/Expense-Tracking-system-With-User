@@ -22,7 +22,6 @@ public class GroupMemberDTO {
     private Integer addedBy;
     private String addedByUsername;
 
-    // Constructor without user details
     public GroupMemberDTO(Integer userId, GroupRole role, LocalDateTime joinedAt, Integer addedBy) {
         this.userId = userId;
         this.role = role;

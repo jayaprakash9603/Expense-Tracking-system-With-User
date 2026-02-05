@@ -38,12 +38,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Autowired
     private UnifiedActivityService unifiedActivityService;
-    // @Autowired
-    // private SocketService socketService;
 
     @Override
     public Friendship sendFriendRequest(Integer requesterId, Integer recipientId) throws Exception {
-        // Check if user is trying to send request to themselves
         if (requesterId.equals(recipientId)) {
             throw new RuntimeException("Cannot send friend request to yourself");
         }
@@ -51,7 +48,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto requester = helper.validateUser(requesterId);
         UserDto recipient = helper.validateUser(recipientId);
 
-        // Check if request already exists in either direction
         if (friendshipRepository.findByRequesterIdAndRecipientId(requester.getId(), recipient.getId()).isPresent() ||
                 friendshipRepository.findByRequesterIdAndRecipientId(recipient.getId(), requester.getId())
                         .isPresent()) {
@@ -67,11 +63,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .build();
         friendship = friendshipRepository.save(friendship);
 
-        // Send unified event for friend request sent (handles audit + notification)
         unifiedActivityService.sendFriendRequestSentEvent(friendship, requester, recipient);
-
-        // Notify recipient about the new friend request
-        // socketService.notifyNewFriendRequest(friendship);
 
         return friendship;
     }
@@ -86,14 +78,12 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("This request has already been processed");
         }
 
-        // Verify that the responder is the recipient of the friend request
         if (!friendship.getRecipientId().equals(responderId)) {
             throw new RuntimeException("Only the recipient of a friend request can respond to it");
         }
 
         friendship.setStatus(accept ? FriendshipStatus.ACCEPTED : FriendshipStatus.REJECTED);
 
-        // If accepted, set default access levels (NONE for both users)
         if (accept) {
             friendship.setRequesterAccess(AccessLevel.NONE);
             friendship.setRecipientAccess(AccessLevel.NONE);
@@ -101,7 +91,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         friendship = friendshipRepository.save(friendship);
 
-        // Send unified event for friend request response (handles audit + notification)
         try {
             UserDto requester = helper.validateUser(friendship.getRequesterId());
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
@@ -112,12 +101,8 @@ public class FriendshipServiceImpl implements FriendshipService {
                 unifiedActivityService.sendFriendRequestRejectedEvent(friendship, requester, recipient);
             }
         } catch (Exception e) {
-            // Log error but don't fail the operation
             System.err.println("Failed to send friend request response event: " + e.getMessage());
         }
-
-        // Notify requester about the response
-        // socketService.notifyFriendRequestResponse(friendship);
 
         return friendship;
     }
@@ -132,12 +117,9 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot set access level for non-accepted friendship");
         }
 
-        // Store old access level for notification
         AccessLevel oldAccess = null;
         Integer otherUserId = null;
 
-        // Determine if the user is the requester or recipient and set the appropriate
-        // access level
         if (friendship.getRequesterId().equals(userId)) {
             oldAccess = friendship.getRecipientAccess();
             friendship.setRecipientAccess(accessLevel);
@@ -152,7 +134,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship savedFriendship = friendshipRepository.save(friendship);
 
-        // Send unified event for access level change (handles audit + notification)
         try {
             UserDto changer = helper.validateUser(userId);
             UserDto targetUser = helper.validateUser(otherUserId);
@@ -206,7 +187,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship request not found with ID: " + friendshipId));
 
-        // Only the requester can cancel a pending request
         if (!friendship.getRequesterId().equals(userId)) {
             throw new RuntimeException("Only the requester can cancel a friend request");
         }
@@ -215,7 +195,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Only pending requests can be cancelled");
         }
 
-        // Send unified event for friend request cancelled before deleting
         try {
             UserDto canceller = helper.validateUser(userId);
             UserDto recipient = helper.validateUser(friendship.getRecipientId());
@@ -234,7 +213,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new RuntimeException("Friendship not found with ID: " + friendshipId));
 
-        // Verify the user is part of this friendship
         if (!friendship.getRequesterId().equals(userId) && !friendship.getRecipientId().equals(userId)) {
             throw new RuntimeException("User is not part of this friendship");
         }
@@ -243,12 +221,10 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Only accepted friendships can be removed");
         }
 
-        // Determine the other user ID
         Integer otherUserId = friendship.getRequesterId().equals(userId)
                 ? friendship.getRecipientId()
                 : friendship.getRequesterId();
 
-        // Send unified event for friendship removed before deleting
         try {
             UserDto remover = helper.validateUser(userId);
             UserDto removedUser = helper.validateUser(otherUserId);
@@ -263,7 +239,6 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     @Transactional
     public void blockUser(Integer blockerId, Integer blockedId) throws Exception {
-        // Prevent self-blocking
         if (blockerId.equals(blockedId)) {
             throw new RuntimeException("Cannot block yourself");
         }
@@ -271,7 +246,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto blocker = helper.validateUser(blockerId);
         UserDto blocked = helper.validateUser(blockedId);
 
-        // Check if there's an existing friendship in either direction
         Optional<Friendship> existingFriendship = friendshipRepository.findByRequesterIdAndRecipientId(blocker.getId(),
                 blocked.getId());
         if (existingFriendship.isEmpty()) {
@@ -280,23 +254,18 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship;
         if (existingFriendship.isPresent()) {
-            // Update existing friendship to blocked status
             friendship = existingFriendship.get();
             friendship.setStatus(FriendshipStatus.BLOCKED);
 
-            // Ensure the blocker is the requester in the blocked relationship
             if (!friendship.getRequesterId().equals(blockerId)) {
-                // Swap requester and recipient
                 Integer tempRequester = friendship.getRequesterId();
                 friendship.setRequesterId(friendship.getRecipientId());
                 friendship.setRecipientId(tempRequester);
 
-                // Reset access levels
                 friendship.setRequesterAccess(AccessLevel.NONE);
                 friendship.setRecipientAccess(AccessLevel.NONE);
             }
         } else {
-            // Create a new blocked relationship
             friendship = Friendship.builder()
                     .requesterId(blocker.getId())
                     .recipientId(blocked.getId())
@@ -307,17 +276,11 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         friendshipRepository.save(friendship);
-
-        // Note: Typically we don't notify blocked users for privacy/security reasons
-        // Uncomment below if you want to send notifications
-        // friendshipNotificationService.sendUserBlockedNotification(friendship.getId(),
-        // blocker, blockedId);
     }
 
     @Override
     @Transactional
     public void unblockUser(Integer unblockerId, Integer unblockedId) throws Exception {
-        // Prevent self-unblocking (though this should never happen)
         if (unblockerId.equals(unblockedId)) {
             throw new RuntimeException("Cannot unblock yourself");
         }
@@ -325,7 +288,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto unblocker = helper.validateUser(unblockerId);
         UserDto unblocked = helper.validateUser(unblockedId);
 
-        // Find the blocked relationship
         Optional<Friendship> blockedFriendship = friendshipRepository.findByRequesterIdAndRecipientIdAndStatus(
                 unblocker.getId(), unblocked.getId(), FriendshipStatus.BLOCKED);
 
@@ -335,10 +297,8 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = blockedFriendship.get();
 
-        // Send unified event for user unblocked (for audit purposes)
         unifiedActivityService.sendUserUnblockedEvent(unblocker, unblocked);
 
-        // Delete the blocked relationship
         friendshipRepository.delete(friendship);
     }
 
@@ -393,7 +353,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public FriendshipStatus getFriendshipStatus(Integer userId1, Integer userId2) throws Exception {
-        // If checking status with self, return NONE
         if (userId1.equals(userId2)) {
             return FriendshipStatus.NONE;
         }
@@ -401,14 +360,12 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto user1 = helper.validateUser(userId1);
         UserDto user2 = helper.validateUser(userId2);
 
-        // OPTIMIZED: Single bidirectional query instead of two separate queries
         Optional<Friendship> friendship = friendshipRepository.findBidirectional(user1.getId(), user2.getId());
         return friendship.map(Friendship::getStatus).orElse(FriendshipStatus.NONE);
     }
 
     @Override
     public boolean isRequestSentByUser(Integer userId, Integer otherUserId) throws Exception {
-        // Cannot send request to self
         if (userId.equals(otherUserId)) {
             return false;
         }
@@ -435,7 +392,6 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     @Cacheable(value = "friendships", key = "#userId1 + '-' + #userId2", unless = "#result == null")
     public Friendship getFriendship(Integer userId1, Integer userId2) throws Exception {
-        // No friendship with self
         if (userId1.equals(userId2)) {
             return null;
         }
@@ -443,7 +399,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         UserDto user1 = helper.validateUser(userId1);
         UserDto user2 = helper.validateUser(userId2);
 
-        // OPTIMIZED: Single bidirectional query instead of two separate queries
         return friendshipRepository.findBidirectional(user1.getId(), user2.getId()).orElse(null);
     }
 
@@ -458,12 +413,10 @@ public class FriendshipServiceImpl implements FriendshipService {
     public List<UserDto> getFriendSuggestions(Integer userId, int limit) throws Exception {
         helper.validateUser(userId);
 
-        // Get all current friends and pending requests
         List<Friendship> allRelationships = friendshipRepository.findByRequesterIdOrRecipientId(userId);
 
-        // Extract all user IDs that should be excluded from suggestions
         Set<Integer> excludedUserIds = new HashSet<>();
-        excludedUserIds.add(userId); // Explicitly exclude self
+        excludedUserIds.add(userId);
 
         for (Friendship friendship : allRelationships) {
             if (friendship.getRequesterId().equals(userId)) {
@@ -473,7 +426,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             }
         }
 
-        // Get friends of friends (for better suggestions)
         List<UserDto> friendsOfFriends = new ArrayList<>();
         List<Friendship> userFriendships = getUserFriendships(userId);
 
@@ -484,7 +436,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
                 UserDto friend = helper.validateUser(friendId);
 
-                // Get friend's friendships
                 List<Friendship> friendFriendships = getUserFriendships(friend.getId());
 
                 for (Friendship friendFriendship : friendFriendships) {
@@ -493,31 +444,26 @@ public class FriendshipServiceImpl implements FriendshipService {
                                 ? friendFriendship.getRecipientId()
                                 : friendFriendship.getRequesterId();
 
-                        // Check if this user should be excluded
                         if (!excludedUserIds.contains(friendFriendId)) {
                             UserDto friendOfFriend = helper.validateUser(friendFriendId);
                             friendsOfFriends.add(friendOfFriend);
-                            excludedUserIds.add(friendFriendId); // Avoid duplicates
+                            excludedUserIds.add(friendFriendId);
                         }
                     } catch (Exception e) {
-                        // Log and skip this friend's friend
                         System.err.println("Error retrieving friend's friend: " + e.getMessage());
                     }
                 }
             } catch (Exception e) {
-                // Log and skip this friend
                 System.err.println("Error retrieving friend: " + e.getMessage());
             }
         }
 
-        // If we don't have enough suggestions from friends of friends, get random users
         if (friendsOfFriends.size() < limit) {
             int remainingCount = limit - friendsOfFriends.size();
             List<UserDto> randomUsers = getRandomUsersExcluding(excludedUserIds, remainingCount);
             friendsOfFriends.addAll(randomUsers);
         }
 
-        // Limit the results
         if (friendsOfFriends.size() > limit) {
             return friendsOfFriends.subList(0, limit);
         }
@@ -529,18 +475,14 @@ public class FriendshipServiceImpl implements FriendshipService {
         List<UserDto> randomUsers = new ArrayList<>();
 
         try {
-            // Get all users from the user service instead of just from friendship table
-            List<UserDto> allUsers = userService.getAllUsers(); // You'll need to implement this method
+            List<UserDto> allUsers = userService.getAllUsers();
 
-            // Filter out excluded users
             List<UserDto> availableUsers = allUsers.stream()
                     .filter(user -> !excludedUserIds.contains(user.getId()))
                     .collect(Collectors.toList());
 
-            // Shuffle the list for randomness
             Collections.shuffle(availableUsers);
 
-            // Get the required number of users
             int usersToGet = Math.min(count, availableUsers.size());
 
             for (int i = 0; i < usersToGet; i++) {
@@ -550,7 +492,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         } catch (Exception e) {
             System.err.println("Error getting random users: " + e.getMessage());
 
-            // Fallback: try the original approach if the new method fails
             try {
                 List<Friendship> allFriendships = friendshipRepository.findAll();
                 Set<Integer> uniqueUserIds = new HashSet<>();
@@ -588,12 +529,10 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public List<UserDto> getMutualFriends(Integer userId1, Integer userId2) throws Exception {
-        // No mutual friends with self
         if (userId1.equals(userId2)) {
             return Collections.emptyList();
         }
 
-        // Get friends of both users
         List<Integer> friendsOfUser1 = getUserFriendships(userId1).stream()
                 .map(f -> f.getRequesterId().equals(userId1) ? f.getRecipientId() : f.getRequesterId())
                 .collect(Collectors.toList());
@@ -602,7 +541,6 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .map(f -> f.getRequesterId().equals(userId2) ? f.getRecipientId() : f.getRequesterId())
                 .collect(Collectors.toList());
 
-        // Find the intersection (mutual friends)
         Set<UserDto> friendIds1 = friendsOfUser1.stream()
                 .map(e -> {
                     try {
@@ -623,9 +561,8 @@ public class FriendshipServiceImpl implements FriendshipService {
                 })
                 .collect(Collectors.toSet());
 
-        // FIXED: Use contains() to check if the user exists in the set
         return friendIds2.stream()
-                .filter(user -> friendIds1.contains(user)) // ✅ CORRECT: Check if the set contains the user
+            .filter(user -> friendIds1.contains(user))
                 .collect(Collectors.toList());
     }
 
@@ -635,7 +572,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             return List.of();
         }
 
-        // Get all friends of the user
         List<Integer> friends = getUserFriendships(userId).stream()
                 .map(f -> f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId())
                 .collect(Collectors.toList());
@@ -647,7 +583,6 @@ public class FriendshipServiceImpl implements FriendshipService {
                 throw new RuntimeException(ex);
             }
         }).collect(Collectors.toList());
-        // Filter friends based on the search query
         String lowercaseQuery = query.toLowerCase();
         return users.stream()
                 .filter(friend -> (friend.getFirstName() != null
@@ -660,13 +595,10 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public boolean canUserAccessExpenses(Integer ownerId, Integer viewerId) throws Exception {
-        // If it's the same user, they can access their own expenses
         if (ownerId.equals(viewerId)) {
             return true;
         }
 
-        // OPTIMIZED: Use bidirectional query with status filter to get accepted
-        // friendship in one query
         Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
                 ownerId, viewerId, FriendshipStatus.ACCEPTED);
 
@@ -676,7 +608,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = friendshipOpt.get();
 
-        // Determine the access level based on the friendship direction
         AccessLevel accessLevel;
         if (friendship.getRequesterId().equals(ownerId)) {
             accessLevel = friendship.getRecipientAccess();
@@ -684,7 +615,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             accessLevel = friendship.getRequesterAccess();
         }
 
-        // READ, WRITE, FULL, LIMITED, or SUMMARY access allows viewing expenses
         return accessLevel == AccessLevel.READ ||
                 accessLevel == AccessLevel.WRITE ||
                 accessLevel == AccessLevel.FULL ||
@@ -694,13 +624,10 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public boolean canUserModifyExpenses(Integer ownerId, Integer viewerId) throws Exception {
-        // If it's the same user, they can modify their own expenses
         if (ownerId.equals(viewerId)) {
             return true;
         }
 
-        // OPTIMIZED: Use bidirectional query with status filter to get accepted
-        // friendship in one query
         Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
                 ownerId, viewerId, FriendshipStatus.ACCEPTED);
 
@@ -710,7 +637,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = friendshipOpt.get();
 
-        // Determine the access level based on the friendship direction
         AccessLevel accessLevel;
         if (friendship.getRequesterId().equals(ownerId)) {
             accessLevel = friendship.getRecipientAccess();
@@ -718,19 +644,15 @@ public class FriendshipServiceImpl implements FriendshipService {
             accessLevel = friendship.getRequesterAccess();
         }
 
-        // Only WRITE or FULL access allows modifying expenses
         return accessLevel == AccessLevel.WRITE || accessLevel == AccessLevel.FULL;
     }
 
     @Override
     public AccessLevel getUserAccessLevel(Integer ownerId, Integer viewerId) throws Exception {
-        // If it's the same user, they have full access to their own expenses
         if (ownerId.equals(viewerId)) {
             return AccessLevel.FULL;
         }
 
-        // OPTIMIZED: Use bidirectional query with status filter to get accepted
-        // friendship in one query
         Optional<Friendship> friendshipOpt = friendshipRepository.findBidirectionalByStatus(
                 ownerId, viewerId, FriendshipStatus.ACCEPTED);
 
@@ -740,14 +662,9 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = friendshipOpt.get();
 
-        // Determine the access level based on the friendship direction
         if (friendship.getRequesterId().equals(ownerId)) {
-            // Owner is the requester, so check what access they gave to the recipient
-            // (viewer)
             return friendship.getRecipientAccess();
         } else {
-            // Owner is the recipient, so check what access they gave to the requester
-            // (viewer)
             return friendship.getRequesterAccess();
         }
     }
@@ -758,7 +675,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Friendship cannot be null");
         }
 
-        // Verify the friendship exists
         friendshipRepository.findById(friendship.getId())
                 .orElseThrow(() -> new RuntimeException("Friendship not found with ID: " + friendship.getId()));
 
@@ -772,7 +688,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             try {
                 Integer targetUserId = item.getUserId();
 
-                // Prevent sharing with self
                 if (userId.equals(targetUserId)) {
                     results.add("User ID " + targetUserId + ": Cannot share expenses with yourself");
                     continue;
@@ -880,7 +795,6 @@ public class FriendshipServiceImpl implements FriendshipService {
     @Override
     public Map<String, Object> quickShareExpenses(Integer currentUserId, Integer targetUserId, AccessLevel accessLevel)
             throws Exception {
-        // Prevent sharing with self
         if (currentUserId.equals(targetUserId)) {
             throw new RuntimeException("Cannot share expenses with yourself");
         }
@@ -1006,20 +920,17 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
         if (!friendship.getRequesterId().equals(userId) &&
                 !friendship.getRecipientId().equals(userId)) {
-            // Not a participant, deny access
             throw new RuntimeException("Access denied: User is not part of this friendship");
         }
         return friendship;
     }
 
-    // FriendshipServiceImpl.java
     @Override
     public List<Map<String, Object>> getDetailedFriends(Integer userId) throws Exception {
         List<Friendship> friendships = getUserFriendships(userId);
         List<Map<String, Object>> result = new ArrayList<>();
         for (Friendship f : friendships) {
             try {
-                // Only include if requesterAccess is not NONE
                 if (f.getRequesterId().equals(userId) && f.getRequesterAccess() == AccessLevel.NONE) {
                     continue;
                 }
@@ -1120,15 +1031,11 @@ public class FriendshipServiceImpl implements FriendshipService {
                     UserDto friend = helper.validateUser(friendId);
                     friends.add(friend);
                 } catch (Exception e) {
-                    // Skip if user not found
                 }
             }
         }
         return friends;
     }
-
-    // Note: Old helper methods removed - now using UnifiedActivityService for all
-    // events
 
     @Override
     public FriendshipReportDTO generateFriendshipReport(
@@ -1141,21 +1048,13 @@ public class FriendshipServiceImpl implements FriendshipService {
             String sortDirection,
             int page,
             int size) throws Exception {
-
-        // Build sort
         Sort sort = Sort.by(
                 "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC,
                 sortBy != null ? sortBy : "createdAt");
         Pageable pageable = PageRequest.of(page, size, sort);
-
-        // Get paginated friendships
         Page<Friendship> friendshipsPage = friendshipRepository.findFriendshipsForReport(
                 userId, status, fromDate, toDate, pageable);
-
-        // Get all friendships for stats (without pagination)
         List<Friendship> allFriendships = friendshipRepository.findByRequesterIdOrRecipientId(userId);
-
-        // Calculate stats
         int totalFriends = (int) allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .count();
@@ -1165,8 +1064,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         int blockedUsers = (int) allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.REJECTED)
                 .count();
-
-        // Debug: Log friendship details for troubleshooting
         System.out.println("=== Friendship Report Debug for userId: " + userId + " ===");
         allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
@@ -1181,38 +1078,25 @@ public class FriendshipServiceImpl implements FriendshipService {
                             ", iSharedAccess: " + iSharedAccess +
                             ", sharedWithMeAccess: " + sharedWithMeAccess);
                 });
-
-        // Calculate I shared with / shared with me counts
-        // I Shared With: Friends who can see MY data (access I granted TO them)
-        // - If I'm requester: I set recipientAccess for recipient to see my data
-        // - If I'm recipient: I set requesterAccess for requester to see my data
         int iSharedWithCount = (int) allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .filter(f -> {
                     AccessLevel iSharedLevel;
                     if (f.getRequesterId().equals(userId)) {
-                        // I'm requester, recipientAccess = what recipient can see of MY data
                         iSharedLevel = f.getRecipientAccess();
                     } else {
-                        // I'm recipient, requesterAccess = what requester can see of MY data
                         iSharedLevel = f.getRequesterAccess();
                     }
                     return iSharedLevel != null && iSharedLevel != AccessLevel.NONE;
                 })
                 .count();
-
-        // Shared With Me: Friends whose data I can see (access they granted TO me)
-        // - If I'm requester: Recipient set requesterAccess for me to see their data
-        // - If I'm recipient: Requester set recipientAccess for me to see their data
         int sharedWithMeCount = (int) allFriendships.stream()
                 .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
                 .filter(f -> {
                     AccessLevel sharedWithMeLevel;
                     if (f.getRequesterId().equals(userId)) {
-                        // I'm requester, requesterAccess = what I can see of recipient's data
                         sharedWithMeLevel = f.getRequesterAccess();
                     } else {
-                        // I'm recipient, recipientAccess = what I can see of requester's data
                         sharedWithMeLevel = f.getRecipientAccess();
                     }
                     return sharedWithMeLevel != null && sharedWithMeLevel != AccessLevel.NONE;
@@ -1221,8 +1105,6 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         System.out.println("iSharedWithCount: " + iSharedWithCount + ", sharedWithMeCount: " + sharedWithMeCount);
         System.out.println("=== End Debug ===");
-
-        // Calculate access level distribution
         Map<String, Integer> accessLevelDistribution = new HashMap<>();
         for (AccessLevel level : AccessLevel.values()) {
             accessLevelDistribution.put(level.name(), 0);
@@ -1238,11 +1120,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                     }
                     accessLevelDistribution.merge(myAccess.name(), 1, Integer::sum);
                 });
-
-        // Generate monthly activity data (last 6 months)
         List<FriendshipReportDTO.MonthlyActivityDTO> monthlyActivity = generateMonthlyActivity(userId);
-
-        // Generate sharing status data
         List<FriendshipReportDTO.SharingStatusDTO> sharingStatus = Arrays.asList(
                 FriendshipReportDTO.SharingStatusDTO.builder()
                         .name("I Shared With").count(iSharedWithCount).build(),
@@ -1252,11 +1130,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                         .name("Pending Requests").count(pendingRequests).build(),
                 FriendshipReportDTO.SharingStatusDTO.builder()
                         .name("Total Friends").count(totalFriends).build());
-
-        // Generate top friends
         List<FriendshipReportDTO.TopFriendDTO> topFriends = generateTopFriends(userId, allFriendships);
-
-        // Convert friendships to detail DTOs
         List<FriendshipReportDTO.FriendshipDetailDTO> friendshipDetails = new ArrayList<>();
         for (Friendship f : friendshipsPage.getContent()) {
             try {
@@ -1282,11 +1156,8 @@ public class FriendshipServiceImpl implements FriendshipService {
                         .lastUpdated(f.getUpdatedAt())
                         .build());
             } catch (Exception e) {
-                // Skip if user not found
             }
         }
-
-        // Build filter info
         FriendshipReportDTO.FilterInfo filterInfo = FriendshipReportDTO.FilterInfo.builder()
                 .fromDate(fromDate)
                 .toDate(toDate)
@@ -1318,13 +1189,9 @@ public class FriendshipServiceImpl implements FriendshipService {
     private List<FriendshipReportDTO.MonthlyActivityDTO> generateMonthlyActivity(Integer userId) {
         LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
         List<FriendshipReportDTO.MonthlyActivityDTO> activity = new ArrayList<>();
-
-        // Get data from repository
         List<Object[]> newFriendsData = friendshipRepository.countNewFriendsByMonth(userId, sixMonthsAgo);
         List<Object[]> requestsSentData = friendshipRepository.countRequestsSentByMonth(userId, sixMonthsAgo);
         List<Object[]> requestsReceivedData = friendshipRepository.countRequestsReceivedByMonth(userId, sixMonthsAgo);
-
-        // Convert to maps for easy lookup
         Map<Integer, Long> newFriendsMap = new HashMap<>();
         Map<Integer, Long> requestsSentMap = new HashMap<>();
         Map<Integer, Long> requestsReceivedMap = new HashMap<>();
@@ -1338,8 +1205,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         for (Object[] row : requestsReceivedData) {
             requestsReceivedMap.put((Integer) row[0], (Long) row[1]);
         }
-
-        // Generate last 6 months data
         LocalDateTime now = LocalDateTime.now();
         for (int i = 5; i >= 0; i--) {
             LocalDateTime month = now.minusMonths(i);
@@ -1371,8 +1236,6 @@ public class FriendshipServiceImpl implements FriendshipService {
             try {
                 Integer friendId = f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId();
                 UserDto friend = helper.validateUser(friendId);
-
-                // Calculate interaction score based on access levels
                 int score = calculateInteractionScore(f, userId);
 
                 topFriends.add(FriendshipReportDTO.TopFriendDTO.builder()
@@ -1384,7 +1247,6 @@ public class FriendshipServiceImpl implements FriendshipService {
                         .build());
                 colorIndex++;
             } catch (Exception e) {
-                // Skip if user not found
             }
         }
 
@@ -1392,7 +1254,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     private int calculateInteractionScore(Friendship f, Integer userId) {
-        int score = 10; // Base score for being friends
+        int score = 10;
 
         AccessLevel myAccess = f.getRequesterId().equals(userId)
                 ? f.getRequesterAccess()
@@ -1400,8 +1262,6 @@ public class FriendshipServiceImpl implements FriendshipService {
         AccessLevel theirAccess = f.getRequesterId().equals(userId)
                 ? f.getRecipientAccess()
                 : f.getRequesterAccess();
-
-        // Add score based on access levels
         if (myAccess != null) {
             switch (myAccess) {
                 case FULL:

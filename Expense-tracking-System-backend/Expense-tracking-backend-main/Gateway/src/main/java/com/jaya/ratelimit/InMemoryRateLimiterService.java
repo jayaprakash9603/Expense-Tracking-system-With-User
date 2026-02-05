@@ -7,11 +7,6 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-/**
- * Simple in-memory rolling window rate limiter.
- * NOT for clustered production use (replace with Redis/Bucket4j).
- */
 @Service
 public class InMemoryRateLimiterService {
 
@@ -24,11 +19,6 @@ public class InMemoryRateLimiterService {
         this.properties = properties;
     }
 
-    /**
-     * Attempt to consume one request for a given user key.
-     * 
-     * @return true if allowed, false if rate limit exceeded.
-     */
     public boolean tryConsume(String key) {
         if (!properties.isEnabled())
             return true;
@@ -37,13 +27,12 @@ public class InMemoryRateLimiterService {
         long now = Instant.now().toEpochMilli();
         Window w = windows.compute(key, (k, existing) -> {
             if (existing == null || now - existing.start >= windowMillis) {
-                return new Window(now, 1); // new window
+                return new Window(now, 1);
             }
             if (existing.count < limit) {
                 existing.count++;
                 return existing;
             }
-            // over limit
             return existing;
         });
         boolean allowed = w.count <= limit;

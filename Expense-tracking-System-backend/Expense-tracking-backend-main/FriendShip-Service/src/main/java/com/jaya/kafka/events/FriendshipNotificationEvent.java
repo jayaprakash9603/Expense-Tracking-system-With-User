@@ -10,24 +10,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * FriendshipNotificationEvent
- * Event DTO for friendship-related notifications sent to Kafka
- * Follows DRY principle by reusing common event structure
- * 
- * Notification Types:
- * - FRIEND_REQUEST_SENT: When a user sends a friend request
- * - FRIEND_REQUEST_RECEIVED: When a user receives a friend request
- * - FRIEND_REQUEST_ACCEPTED: When a friend request is accepted
- * - FRIEND_REQUEST_REJECTED: When a friend request is rejected
- * - FRIEND_REQUEST_CANCELLED: When requester cancels their friend request
- * - FRIENDSHIP_REMOVED: When friendship is terminated
- * - ACCESS_LEVEL_CHANGED: When expense sharing access is modified
- * - USER_BLOCKED: When a user blocks another user
- * - USER_UNBLOCKED: When a user unblocks another user
- * 
- * @author Friendship Service Team
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,7 +18,6 @@ public class FriendshipNotificationEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    // Action Constants
     public static final String FRIEND_REQUEST_SENT = "FRIEND_REQUEST_SENT";
     public static final String FRIEND_REQUEST_RECEIVED = "FRIEND_REQUEST_RECEIVED";
     public static final String FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
@@ -48,43 +29,30 @@ public class FriendshipNotificationEvent implements Serializable {
     public static final String USER_UNBLOCKED = "USER_UNBLOCKED";
     public static final String DATA_SHARED = "DATA_SHARED";
 
-    // Core Identifiers
     private Integer friendshipId;
-    private Integer userId; // The user who will receive this notification
-    private Integer actorId; // The user who performed the action
+    private Integer userId;
+    private Integer actorId;
 
-    // Action Type
     private String action;
 
-    // Friendship Details
-    private Integer requesterId; // Original requester
-    private Integer recipientId; // Original recipient
-    private String friendshipStatus; // PENDING, ACCEPTED, REJECTED, BLOCKED
+    private Integer requesterId;
+    private Integer recipientId;
+    private String friendshipStatus;
 
-    // Access Level Information (for expense sharing)
-    private String requesterAccess; // Access level given by recipient to requester
-    private String recipientAccess; // Access level given by requester to recipient
-    private String oldAccessLevel; // Previous access level (for ACCESS_LEVEL_CHANGED)
-    private String newAccessLevel; // New access level (for ACCESS_LEVEL_CHANGED)
+    private String requesterAccess;
+    private String recipientAccess;
+    private String oldAccessLevel;
+    private String newAccessLevel;
 
-    // User Information (for display)
-    private String actorName; // Name of the user who performed action
-    private String actorEmail; // Email of the user who performed action
+    private String actorName;
+    private String actorEmail;
 
-    // Timestamp
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
 
-    // Additional metadata (optional)
     private Map<String, Object> metadata;
 
-    /**
-     * Validate the event has required fields.
-     * Note: friendshipId can be null for DATA_SHARED events (no friendship
-     * required).
-     */
     public void validate() {
-        // friendshipId can be null for DATA_SHARED events
         if (friendshipId == null && !DATA_SHARED.equals(action)) {
             throw new IllegalArgumentException("Friendship ID cannot be null");
         }
@@ -102,72 +70,42 @@ public class FriendshipNotificationEvent implements Serializable {
         }
     }
 
-    /**
-     * Check if this is a FRIEND_REQUEST_SENT action
-     */
     public boolean isFriendRequestSent() {
         return FRIEND_REQUEST_SENT.equals(action);
     }
 
-    /**
-     * Check if this is a FRIEND_REQUEST_RECEIVED action
-     */
     public boolean isFriendRequestReceived() {
         return FRIEND_REQUEST_RECEIVED.equals(action);
     }
 
-    /**
-     * Check if this is a FRIEND_REQUEST_ACCEPTED action
-     */
     public boolean isFriendRequestAccepted() {
         return FRIEND_REQUEST_ACCEPTED.equals(action);
     }
 
-    /**
-     * Check if this is a FRIEND_REQUEST_REJECTED action
-     */
     public boolean isFriendRequestRejected() {
         return FRIEND_REQUEST_REJECTED.equals(action);
     }
 
-    /**
-     * Check if this is a FRIEND_REQUEST_CANCELLED action
-     */
     public boolean isFriendRequestCancelled() {
         return FRIEND_REQUEST_CANCELLED.equals(action);
     }
 
-    /**
-     * Check if this is a FRIENDSHIP_REMOVED action
-     */
     public boolean isFriendshipRemoved() {
         return FRIENDSHIP_REMOVED.equals(action);
     }
 
-    /**
-     * Check if this is an ACCESS_LEVEL_CHANGED action
-     */
     public boolean isAccessLevelChanged() {
         return ACCESS_LEVEL_CHANGED.equals(action);
     }
 
-    /**
-     * Check if this is a USER_BLOCKED action
-     */
     public boolean isUserBlocked() {
         return USER_BLOCKED.equals(action);
     }
 
-    /**
-     * Check if this is a USER_UNBLOCKED action
-     */
     public boolean isUserUnblocked() {
         return USER_UNBLOCKED.equals(action);
     }
 
-    /**
-     * Check if this is a DATA_SHARED action
-     */
     public boolean isDataShared() {
         return DATA_SHARED.equals(action);
     }

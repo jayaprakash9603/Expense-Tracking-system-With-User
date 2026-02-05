@@ -55,16 +55,16 @@ public class Notification {
     private LocalDateTime readAt;
 
     @Column(name = "channel")
-    private String channel; // EMAIL, SMS, PUSH, IN_APP
+    private String channel;
 
     @Column(name = "metadata", length = 2000)
-    private String metadata; // JSON string for additional data
+    private String metadata;
 
     @Column(name = "related_entity_id")
-    private Integer relatedEntityId; // ID of the related entity (expense, budget, bill, etc.)
+    private Integer relatedEntityId;
 
     @Column(name = "related_entity_type", length = 50)
-    private String relatedEntityType; // Type of entity: EXPENSE, BUDGET, BILL, PAYMENT_METHOD, FRIENDSHIP
+    private String relatedEntityType;
 
     @PrePersist
     protected void onCreate() {

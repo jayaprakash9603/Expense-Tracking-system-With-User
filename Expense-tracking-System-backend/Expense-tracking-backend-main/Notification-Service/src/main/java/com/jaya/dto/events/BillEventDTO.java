@@ -15,10 +15,6 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-/**
- * Event DTO for Bill-related events from Bill-Service
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,7 +24,7 @@ public class BillEventDTO implements Serializable {
 
     private Integer billId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, PAID, REMINDER, OVERDUE
+    private String action;
     private String name;
     private String description;
     private Double amount;

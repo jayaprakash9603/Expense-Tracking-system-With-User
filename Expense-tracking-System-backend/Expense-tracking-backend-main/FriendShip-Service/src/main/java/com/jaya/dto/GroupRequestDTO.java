@@ -16,6 +16,6 @@ public class GroupRequestDTO {
     private String description;
     private Integer createdBy;
     private List<Integer> memberIds;
-    private Map<Integer, GroupRole> memberRoles; // Optional: specify roles for initial members
+    private Map<Integer, GroupRole> memberRoles;
     private String avatar;
 }

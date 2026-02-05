@@ -31,21 +31,11 @@ public class NotificationServiceImpl implements NotificationService {
         @Autowired
         private ObjectMapper objectMapper;
 
-        // =========================
-        // NEW METHODS FOR EVENT-BASED NOTIFICATIONS
-        // =========================
-
-        /**
-         * Create and save a notification
-         */
         @Override
         public Notification createNotification(Notification notification) {
                 return notificationRepository.save(notification);
         }
 
-        /**
-         * Get user notifications with pagination and filtering
-         */
         @Override
         public List<Notification> getUserNotifications(Integer userId, Boolean isRead, Integer limit, Integer offset) {
                 if (limit == null)
@@ -65,9 +55,6 @@ public class NotificationServiceImpl implements NotificationService {
                 }
         }
 
-        /**
-         * Mark notification as read
-         */
         @Override
         public Notification markAsRead(Integer notificationId, Integer userId) {
                 Notification notification = notificationRepository.findById(notificationId)
@@ -82,9 +69,6 @@ public class NotificationServiceImpl implements NotificationService {
                 return notificationRepository.save(notification);
         }
 
-        /**
-         * Delete a notification
-         */
         @Override
         public void deleteNotification(Integer notificationId, Integer userId) {
                 Notification notification = notificationRepository.findById(notificationId)
@@ -97,35 +81,21 @@ public class NotificationServiceImpl implements NotificationService {
                 notificationRepository.delete(notification);
         }
 
-        /**
-         * Delete all notifications for a user using bulk DELETE query.
-         * Optimized to execute as single SQL DELETE - no N+1 problem.
-         */
         @Override
         public void deleteAllNotifications(Integer userId) {
                 notificationRepository.bulkDeleteByUserId(userId);
         }
 
-        /**
-         * Mark all notifications as read for a user using bulk UPDATE query.
-         * Optimized to execute as single SQL UPDATE - no N+1 problem.
-         */
         @Override
         public void markAllAsRead(Integer userId) {
                 notificationRepository.bulkMarkAllAsRead(userId, LocalDateTime.now());
         }
 
-        /**
-         * Get unread notification count for a user
-         */
         @Override
         public Long getUnreadCount(Integer userId) {
                 return notificationRepository.countByUserIdAndIsRead(userId, false);
         }
 
-        // =========================
-        // EXISTING METHODS
-        // =========================
 
         @Override
         @Async
@@ -413,7 +383,6 @@ public class NotificationServiceImpl implements NotificationService {
         @Override
         @Async
         public void scheduleMonthlyReports(UserDto user) {
-                // This would typically be called by a scheduler
                 sendMonthlySpendingSummary(user, LocalDate.now().minusMonths(1));
         }
 
@@ -464,7 +433,6 @@ public class NotificationServiceImpl implements NotificationService {
                 preferencesRepository.save(prefs);
         }
 
-        // Helper methods
         private void createAndSendNotification(UserDto user, String title, String message,
                         NotificationType type, NotificationPriority priority,
                         Map<String, Object> metadata) {
@@ -479,16 +447,13 @@ public class NotificationServiceImpl implements NotificationService {
 
                         NotificationPreferences prefs = getUserPreferences(user.getId());
 
-                        // Save notification
                         notification = notificationRepository.save(notification);
 
-                        // Send via enabled channels
                         if (prefs.getEmailNotifications()) {
                                 sendEmailNotification(user, notification);
                         }
 
                         if (prefs.getInAppNotifications()) {
-                                // In-app notifications are handled by saving to database
                                 notification.setChannel("IN_APP");
                         }
 
@@ -497,7 +462,6 @@ public class NotificationServiceImpl implements NotificationService {
                         notificationRepository.save(notification);
 
                 } catch (Exception e) {
-                        // Log error
                         System.err.println("Failed to create notification: " + e.getMessage());
                 }
         }

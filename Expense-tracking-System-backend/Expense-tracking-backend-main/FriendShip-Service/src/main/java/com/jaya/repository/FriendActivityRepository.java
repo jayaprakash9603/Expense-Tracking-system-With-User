@@ -12,84 +12,45 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Repository for FriendActivity entities.
- * Provides data access methods for friend activity tracking.
- */
 @Repository
 public interface FriendActivityRepository extends JpaRepository<FriendActivity, Long> {
+        List<FriendActivity> findByTargetUserIdOrderByTimestampDesc(Integer targetUserId);
 
-    /**
-     * Find all activities for a specific target user, ordered by timestamp
-     * descending.
-     */
-    List<FriendActivity> findByTargetUserIdOrderByTimestampDesc(Integer targetUserId);
+        Page<FriendActivity> findByTargetUserIdOrderByTimestampDesc(Integer targetUserId, Pageable pageable);
 
-    /**
-     * Find all activities for a specific target user with pagination.
-     */
-    Page<FriendActivity> findByTargetUserIdOrderByTimestampDesc(Integer targetUserId, Pageable pageable);
+        List<FriendActivity> findByTargetUserIdAndIsReadFalseOrderByTimestampDesc(Integer targetUserId);
 
-    /**
-     * Find unread activities for a specific target user.
-     */
-    List<FriendActivity> findByTargetUserIdAndIsReadFalseOrderByTimestampDesc(Integer targetUserId);
+        List<FriendActivity> findByTargetUserIdAndSourceServiceOrderByTimestampDesc(
+                        Integer targetUserId, FriendActivity.SourceService sourceService);
 
-    /**
-     * Find activities by target user and source service.
-     */
-    List<FriendActivity> findByTargetUserIdAndSourceServiceOrderByTimestampDesc(
-            Integer targetUserId, FriendActivity.SourceService sourceService);
+        List<FriendActivity> findByTargetUserIdAndActorUserIdOrderByTimestampDesc(
+                        Integer targetUserId, Integer actorUserId);
 
-    /**
-     * Find activities performed by a specific actor on a target user's account.
-     */
-    List<FriendActivity> findByTargetUserIdAndActorUserIdOrderByTimestampDesc(
-            Integer targetUserId, Integer actorUserId);
+        long countByTargetUserIdAndIsReadFalse(Integer targetUserId);
 
-    /**
-     * Count unread activities for a user.
-     */
-    long countByTargetUserIdAndIsReadFalse(Integer targetUserId);
+        @Modifying
+        @Query("UPDATE FriendActivity fa SET fa.isRead = true WHERE fa.targetUserId = :targetUserId AND fa.isRead = false")
+        int markAllAsReadForUser(@Param("targetUserId") Integer targetUserId);
 
-    /**
-     * Mark all activities as read for a user.
-     */
-    @Modifying
-    @Query("UPDATE FriendActivity fa SET fa.isRead = true WHERE fa.targetUserId = :targetUserId AND fa.isRead = false")
-    int markAllAsReadForUser(@Param("targetUserId") Integer targetUserId);
+        @Modifying
+        @Query("UPDATE FriendActivity fa SET fa.isRead = true WHERE fa.id = :activityId")
+        int markAsRead(@Param("activityId") Long activityId);
 
-    /**
-     * Mark specific activity as read.
-     */
-    @Modifying
-    @Query("UPDATE FriendActivity fa SET fa.isRead = true WHERE fa.id = :activityId")
-    int markAsRead(@Param("activityId") Long activityId);
+        @Query("SELECT fa FROM FriendActivity fa WHERE fa.targetUserId = :targetUserId " +
+                        "AND fa.timestamp >= :startDate AND fa.timestamp <= :endDate " +
+                        "ORDER BY fa.timestamp DESC")
+        List<FriendActivity> findByTargetUserIdAndTimestampBetween(
+                        @Param("targetUserId") Integer targetUserId,
+                        @Param("startDate") LocalDateTime startDate,
+                        @Param("endDate") LocalDateTime endDate);
 
-    /**
-     * Find activities within a date range.
-     */
-    @Query("SELECT fa FROM FriendActivity fa WHERE fa.targetUserId = :targetUserId " +
-            "AND fa.timestamp >= :startDate AND fa.timestamp <= :endDate " +
-            "ORDER BY fa.timestamp DESC")
-    List<FriendActivity> findByTargetUserIdAndTimestampBetween(
-            @Param("targetUserId") Integer targetUserId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate);
+        @Modifying
+        @Query("DELETE FROM FriendActivity fa WHERE fa.timestamp < :cutoffDate")
+        int deleteActivitiesOlderThan(@Param("cutoffDate") LocalDateTime cutoffDate);
 
-    /**
-     * Delete old activities (for cleanup).
-     */
-    @Modifying
-    @Query("DELETE FROM FriendActivity fa WHERE fa.timestamp < :cutoffDate")
-    int deleteActivitiesOlderThan(@Param("cutoffDate") LocalDateTime cutoffDate);
-
-    /**
-     * Find recent activities for a user (last N days).
-     */
-    @Query("SELECT fa FROM FriendActivity fa WHERE fa.targetUserId = :targetUserId " +
-            "AND fa.timestamp >= :since ORDER BY fa.timestamp DESC")
-    List<FriendActivity> findRecentActivities(
-            @Param("targetUserId") Integer targetUserId,
-            @Param("since") LocalDateTime since);
+        @Query("SELECT fa FROM FriendActivity fa WHERE fa.targetUserId = :targetUserId " +
+                        "AND fa.timestamp >= :since ORDER BY fa.timestamp DESC")
+        List<FriendActivity> findRecentActivities(
+                        @Param("targetUserId") Integer targetUserId,
+                        @Param("since") LocalDateTime since);
 }

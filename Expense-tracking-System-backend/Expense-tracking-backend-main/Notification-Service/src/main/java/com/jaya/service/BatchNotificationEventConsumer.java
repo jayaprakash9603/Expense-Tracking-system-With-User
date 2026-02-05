@@ -12,20 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-/**
- * BATCH Kafka consumer for notification events
- * Follows the same pattern as CategoryExpenseEventConsumer for consistency
- * 
- * Key Pattern:
- * - Receives List<Object> payloads (LinkedHashMap from Kafka)
- * - Parses all events first, preserving poll order
- * - Processes all events in a single batch
- * - No complex threading - let Kafka concurrency handle parallelism
- * - Simple, reliable, fast
- * 
- * @author Jaya
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -40,9 +26,6 @@ public class BatchNotificationEventConsumer {
     private final FriendActivityEventProcessor friendActivityEventProcessor;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Converts payload (LinkedHashMap or Map) to DTO
-     */
     private <T> T convertToDto(Object payload, Class<T> dtoClass) {
         try {
             if (payload instanceof Map) {
@@ -54,14 +37,9 @@ public class BatchNotificationEventConsumer {
             throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
         } catch (Exception e) {
             log.error("Failed to convert payload to {}: {}", dtoClass.getSimpleName(), e.getMessage());
-            return null; // Return null to skip invalid events
+            return null;
         }
     }
-
-    /**
-     * BATCH: Consumes expense events from Kafka
-     * Processes all events in batch for better throughput
-     */
     @KafkaListener(topics = "${kafka.topics.expense-events:expense-events}", groupId = "notification-expense-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeExpenseEventsBatch(List<Object> payloads) {
@@ -71,7 +49,6 @@ public class BatchNotificationEventConsumer {
         long startTime = System.currentTimeMillis();
         log.info("📦 Received BATCH of {} expense events - processing...", payloads.size());
 
-        // Parse all events first, preserving poll order
         List<ExpenseEventDTO> parsed = new ArrayList<>(payloads.size());
         for (Object payload : payloads) {
             try {
@@ -87,7 +64,6 @@ public class BatchNotificationEventConsumer {
         if (parsed.isEmpty())
             return;
 
-        // Process all events in order
         int successCount = 0;
         for (ExpenseEventDTO event : parsed) {
             try {
@@ -104,9 +80,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes budget events from Kafka
-     */
     @KafkaListener(topics = "${kafka.topics.budget-events:budget-events}", groupId = "notification-budget-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeBudgetEventsBatch(List<Object> payloads) {
@@ -147,9 +120,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes bill events from Kafka
-     */
     @KafkaListener(topics = "${kafka.topics.bill-events:bill-events}", groupId = "notification-bill-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeBillEventsBatch(List<Object> payloads) {
@@ -190,9 +160,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes payment method events from Kafka
-     */
     @KafkaListener(topics = "${kafka.topics.payment-method-events:payment-method-events}", groupId = "notification-payment-method-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumePaymentMethodEventsBatch(List<Object> payloads) {
@@ -233,9 +200,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes category events from Kafka
-     */
     @KafkaListener(topics = "${kafka.topics.category-events:category-events}", groupId = "notification-category-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeCategoryEventsBatch(List<Object> payloads) {
@@ -276,9 +240,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes friend/friendship events from Kafka
-     */
     @KafkaListener(topics = {
             "${kafka.topics.friend-events:friend-events}",
             "${kafka.topics.friendship-events:friendship-events}"
@@ -322,9 +283,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * BATCH: Consumes friend request events from Kafka
-     */
     @KafkaListener(topics = "${kafka.topics.friend-request-events:friend-request-events}", groupId = "notification-friend-request-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeFriendRequestEventsBatch(List<Object> payloads) {
@@ -352,7 +310,6 @@ public class BatchNotificationEventConsumer {
         int successCount = 0;
         for (FriendRequestEventDTO event : parsed) {
             try {
-                // Convert to FriendEventDTO
                 FriendEventDTO friendEvent = convertToFriendEvent(event);
                 friendEventProcessor.process(friendEvent);
                 successCount++;
@@ -366,9 +323,6 @@ public class BatchNotificationEventConsumer {
                 successCount, payloads.size(), duration, duration / Math.max(1, successCount));
     }
 
-    /**
-     * Converts FriendRequestEventDTO to FriendEventDTO for processing
-     */
     private FriendEventDTO convertToFriendEvent(FriendRequestEventDTO requestEvent) {
         Integer userId;
         Integer friendId;
@@ -421,11 +375,6 @@ public class BatchNotificationEventConsumer {
                 .build();
     }
 
-    /**
-     * BATCH: Consumes friend activity events from Kafka
-     * Handles notifications when friends manage expenses, categories, etc. on
-     * behalf of users
-     */
     @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "notification-friend-activity-batch-group", containerFactory = "notificationBatchFactory")
     @Transactional
     public void consumeFriendActivityEventsBatch(List<Object> payloads) {
@@ -435,7 +384,6 @@ public class BatchNotificationEventConsumer {
         long startTime = System.currentTimeMillis();
         log.info("📦 Received BATCH of {} friend activity events - processing...", payloads.size());
 
-        // Parse all events first, preserving poll order
         List<FriendActivityEventDTO> parsed = new ArrayList<>(payloads.size());
         for (Object payload : payloads) {
             try {
@@ -451,7 +399,6 @@ public class BatchNotificationEventConsumer {
         if (parsed.isEmpty())
             return;
 
-        // Process all events in order
         int successCount = 0;
         for (FriendActivityEventDTO event : parsed) {
             try {

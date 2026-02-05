@@ -330,10 +330,14 @@ public class EventServiceImpl implements EventService {
         BigDecimal totalExpenses = getTotalExpensesByEvent(eventId);
         BigDecimal totalDonations = getTotalDonationsByEvent(eventId);
 
-        analytics.put("budgetUtilization", totalBudget.compareTo(BigDecimal.ZERO) > 0 ?
-                totalExpenses.divide(totalBudget, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)) : BigDecimal.ZERO);
-        analytics.put("donationCoverage", totalExpenses.compareTo(BigDecimal.ZERO) > 0 ?
-                totalDonations.divide(totalExpenses, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)) : BigDecimal.ZERO);
+        analytics.put("budgetUtilization",
+                totalBudget.compareTo(BigDecimal.ZERO) > 0 ? totalExpenses
+                        .divide(totalBudget, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100))
+                        : BigDecimal.ZERO);
+        analytics.put("donationCoverage",
+                totalExpenses.compareTo(BigDecimal.ZERO) > 0 ? totalDonations
+                        .divide(totalExpenses, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100))
+                        : BigDecimal.ZERO);
         analytics.put("categoryWiseExpenses", getCategoryWiseExpenses(eventId));
         analytics.put("paymentMethodWiseDonations", getPaymentMethodWiseDonations(eventId));
 
@@ -395,7 +399,6 @@ public class EventServiceImpl implements EventService {
 
         eventRepository.save(event);
 
-        // Update budget spent amounts
         updateBudgetSpentAmounts(eventId);
     }
 
@@ -404,16 +407,14 @@ public class EventServiceImpl implements EventService {
         return Arrays.asList(
                 "Venue", "Catering", "Decoration", "Entertainment", "Photography",
                 "Transportation", "Gifts", "Flowers", "Music", "Security",
-                "Lighting", "Sound System", "Invitations", "Miscellaneous"
-        );
+                "Lighting", "Sound System", "Invitations", "Miscellaneous");
     }
 
     @Override
     public List<String> getPaymentMethods() {
         return Arrays.asList(
                 "Cash", "Credit Card", "Debit Card", "UPI", "Net Banking",
-                "Cheque", "Digital Wallet", "Bank Transfer"
-        );
+                "Cheque", "Digital Wallet", "Bank Transfer");
     }
 
     @Override
@@ -428,7 +429,6 @@ public class EventServiceImpl implements EventService {
         return statusCounts;
     }
 
-    // Helper methods for updating budget spent amounts
     private void updateBudgetSpentAmounts(Integer eventId) {
         List<EventBudget> budgets = eventBudgetRepository.findByEventIdAndUserId(eventId, null);
 
@@ -446,7 +446,6 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    // Conversion methods
     private Event convertToEntity(EventDTO dto) {
         Event event = new Event();
         event.setId(dto.getId());
@@ -570,7 +569,6 @@ public class EventServiceImpl implements EventService {
         return dto;
     }
 
-    // Update helper methods
     private void updateEventFields(Event event, EventDTO dto) {
         event.setEventName(dto.getEventName());
         event.setDescription(dto.getDescription());

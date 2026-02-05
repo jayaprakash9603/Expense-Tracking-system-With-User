@@ -22,7 +22,6 @@ public class EventController {
 
     private final EventService eventService;
 
-    // Event CRUD endpoints
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@RequestBody EventDTO eventDTO) {
         EventDTO createdEvent = eventService.createEvent(eventDTO);
@@ -93,7 +92,6 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
-    // Event Expense endpoints
     @PostMapping("/expenses")
     public ResponseEntity<EventExpenseDTO> addExpenseToEvent(@RequestBody EventExpenseDTO expenseDTO) {
         EventExpenseDTO createdExpense = eventService.addExpenseToEvent(expenseDTO);
@@ -145,7 +143,6 @@ public class EventController {
         return ResponseEntity.ok(categoryExpenses);
     }
 
-    // Event Donation endpoints
     @PostMapping("/donations")
     public ResponseEntity<EventDonationDTO> addDonationToEvent(@RequestBody EventDonationDTO donationDTO) {
         EventDonationDTO createdDonation = eventService.addDonationToEvent(donationDTO);
@@ -189,7 +186,6 @@ public class EventController {
         return ResponseEntity.ok(paymentMethodDonations);
     }
 
-    // Event Budget endpoints
     @PostMapping("/budgets")
     public ResponseEntity<EventBudgetDTO> createEventBudget(@RequestBody EventBudgetDTO budgetDTO) {
         EventBudgetDTO createdBudget = eventService.createEventBudget(budgetDTO);
@@ -227,7 +223,6 @@ public class EventController {
         return ResponseEntity.ok(total);
     }
 
-    // Analytics and Reports endpoints
     @GetMapping("/{eventId}/summary/user/{userId}")
     public ResponseEntity<Map<String, Object>> getEventSummary(
             @PathVariable Integer eventId,
@@ -261,7 +256,6 @@ public class EventController {
         return ResponseEntity.ok(overview);
     }
 
-    // Utility endpoints
     @GetMapping("/categories")
     public ResponseEntity<List<String>> getEventCategories() {
         List<String> categories = eventService.getEventCategories();

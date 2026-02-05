@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Event DTO for Friend Request notifications
- * Published when a user sends or responds to a friend request
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,7 +14,7 @@ import java.time.LocalDateTime;
 public class FriendRequestEvent {
 
     private Long eventId;
-    private String eventType; // FRIEND_REQUEST_SENT, FRIEND_REQUEST_ACCEPTED, FRIEND_REQUEST_REJECTED
+    private String eventType;
     private Integer friendshipId;
     private Integer requesterId;
     private String requesterName;
@@ -28,11 +24,10 @@ public class FriendRequestEvent {
     private String recipientName;
     private String recipientEmail;
     private String recipientImage;
-    private String friendshipStatus; // PENDING, ACCEPTED, REJECTED
+    private String friendshipStatus;
     private LocalDateTime timestamp;
     private String message;
 
-    // Metadata
-    private String source; // "FRIENDSHIP_SERVICE"
-    private Integer notificationPriority; // 1=HIGH, 2=MEDIUM, 3=LOW
+    private String source;
+    private Integer notificationPriority;
 }

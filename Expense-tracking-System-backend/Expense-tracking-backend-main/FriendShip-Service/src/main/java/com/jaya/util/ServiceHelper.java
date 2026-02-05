@@ -45,8 +45,6 @@ public class ServiceHelper {
             throw new IllegalArgumentException("User ID cannot be null");
         }
 
-        // Load all users once and serve from in-memory cache to avoid
-        // repeated remote calls and database queries for each group member.
         ensureAllUsersLoaded();
 
         UserDto cached = userCacheById.get(userId);

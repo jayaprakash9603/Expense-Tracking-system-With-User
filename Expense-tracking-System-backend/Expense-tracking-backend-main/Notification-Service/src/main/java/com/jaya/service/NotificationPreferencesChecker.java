@@ -5,13 +5,6 @@ import com.jaya.repository.NotificationPreferencesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-/**
- * Service responsible for checking if a notification should be sent
- * based on user preferences
- * 
- * Follows Single Responsibility Principle - Only handles preference checking
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -19,42 +12,29 @@ public class NotificationPreferencesChecker {
 
     private final NotificationPreferencesRepository preferencesRepository;
 
-    /**
-     * Check if notifications are enabled for a specific user and notification type
-     * 
-     * @param userId           User ID
-     * @param notificationType Type of notification (e.g., "expenseAdded",
-     *                         "budgetExceeded")
-     * @return true if notification should be sent, false otherwise
-     */
     public boolean shouldSendNotification(Integer userId, String notificationType) {
         try {
             NotificationPreferences preferences = preferencesRepository
                     .findByUserId(userId)
                     .orElse(null);
 
-            // If no preferences found, send notification by default
             if (preferences == null) {
                 log.debug("No preferences found for user {}. Sending notification by default.", userId);
                 return true;
             }
 
-            // Check master toggle first
             if (!preferences.getMasterEnabled()) {
                 log.debug("Master notifications disabled for user {}. Skipping notification.", userId);
                 return false;
             }
 
-            // Check Do Not Disturb mode
             if (preferences.getDoNotDisturb()) {
-                // Only send critical notifications in DND mode
                 if (!isCriticalNotification(notificationType)) {
                     log.debug("Do Not Disturb enabled for user {}. Skipping non-critical notification.", userId);
                     return false;
                 }
             }
 
-            // Check specific notification type
             boolean isEnabled = isNotificationTypeEnabled(preferences, notificationType);
 
             if (!isEnabled) {
@@ -66,17 +46,12 @@ public class NotificationPreferencesChecker {
 
         } catch (Exception e) {
             log.error("Error checking notification preferences for user {}: {}", userId, e.getMessage(), e);
-            // Default to sending notification if there's an error
             return true;
         }
     }
 
-    /**
-     * Check if a specific notification type is enabled in preferences
-     */
     private boolean isNotificationTypeEnabled(NotificationPreferences prefs, String notificationType) {
         switch (notificationType) {
-            // Expense Service Notifications
             case "expenseAdded":
                 return prefs.getExpenseServiceEnabled() && prefs.getExpenseAddedEnabled();
             case "expenseUpdated":
@@ -86,7 +61,6 @@ public class NotificationPreferencesChecker {
             case "largeExpenseAlert":
                 return prefs.getExpenseServiceEnabled() && prefs.getLargeExpenseAlertEnabled();
 
-            // Budget Service Notifications
             case "budgetExceeded":
                 return prefs.getBudgetServiceEnabled() && prefs.getBudgetExceededEnabled();
             case "budgetWarning":
@@ -100,7 +74,6 @@ public class NotificationPreferencesChecker {
             case "budgetDeleted":
                 return prefs.getBudgetServiceEnabled() && prefs.getBudgetDeletedEnabled();
 
-            // Bill Service Notifications
             case "billAdded":
                 return prefs.getBillServiceEnabled() && prefs.getBillAddedEnabled();
             case "billUpdated":
@@ -114,7 +87,6 @@ public class NotificationPreferencesChecker {
             case "billPaid":
                 return prefs.getBillServiceEnabled() && prefs.getBillPaidEnabled();
 
-            // Payment Method Service Notifications
             case "paymentMethodAdded":
                 return prefs.getPaymentMethodServiceEnabled() && prefs.getPaymentMethodAddedEnabled();
             case "paymentMethodUpdated":
@@ -122,7 +94,6 @@ public class NotificationPreferencesChecker {
             case "paymentMethodRemoved":
                 return prefs.getPaymentMethodServiceEnabled() && prefs.getPaymentMethodRemovedEnabled();
 
-            // Category Service Notifications
             case "categoryCreated":
                 return prefs.getCategoryServiceEnabled() && prefs.getCategoryCreatedEnabled();
             case "categoryUpdated":
@@ -130,7 +101,6 @@ public class NotificationPreferencesChecker {
             case "categoryDeleted":
                 return prefs.getCategoryServiceEnabled() && prefs.getCategoryDeletedEnabled();
 
-            // Friend Service Notifications
             case "friendRequestReceived":
                 return prefs.getFriendServiceEnabled() && prefs.getFriendRequestReceivedEnabled();
             case "friendRequestAccepted":
@@ -150,7 +120,6 @@ public class NotificationPreferencesChecker {
             case "userUnblocked":
                 return prefs.getFriendServiceEnabled() && prefs.getUserUnblockedEnabled();
 
-            // Analytics Service Notifications
             case "weeklySummary":
                 return prefs.getAnalyticsServiceEnabled() && prefs.getWeeklySummaryEnabled();
             case "monthlyReport":
@@ -158,7 +127,6 @@ public class NotificationPreferencesChecker {
             case "spendingTrendAlert":
                 return prefs.getAnalyticsServiceEnabled() && prefs.getSpendingTrendAlertEnabled();
 
-            // System Notifications
             case "securityAlert":
                 return prefs.getSystemNotificationsEnabled() && prefs.getSecurityAlertEnabled();
             case "appUpdate":
@@ -166,7 +134,6 @@ public class NotificationPreferencesChecker {
             case "maintenanceNotice":
                 return prefs.getSystemNotificationsEnabled() && prefs.getMaintenanceNoticeEnabled();
 
-            // Friend Activity Service Notifications
             case "friendExpenseCreated":
                 return prefs.getFriendActivityServiceEnabled() && prefs.getFriendExpenseCreatedEnabled();
             case "friendExpenseUpdated":
@@ -204,10 +171,6 @@ public class NotificationPreferencesChecker {
         }
     }
 
-    /**
-     * Determine if a notification type is critical
-     * Critical notifications bypass Do Not Disturb mode
-     */
     private boolean isCriticalNotification(String notificationType) {
         return "budgetExceeded".equals(notificationType) ||
                 "billOverdue".equals(notificationType) ||

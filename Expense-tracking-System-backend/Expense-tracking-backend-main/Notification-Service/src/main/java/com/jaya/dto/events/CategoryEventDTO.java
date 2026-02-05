@@ -12,10 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
-/**
- * Event DTO for Category-related events from Category-Service
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,7 +21,7 @@ public class CategoryEventDTO implements Serializable {
 
     private Integer categoryId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, BUDGET_EXCEEDED
+    private String action;
     private String categoryName;
     private String description;
     private String icon;

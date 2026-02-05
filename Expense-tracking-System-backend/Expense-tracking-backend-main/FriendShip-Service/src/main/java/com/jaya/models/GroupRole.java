@@ -22,7 +22,6 @@ public enum GroupRole {
         return description;
     }
 
-    // Permission methods
     public boolean canDeleteGroup() {
         return this == ADMIN;
     }
@@ -40,7 +39,7 @@ public enum GroupRole {
     }
 
     public boolean canViewExpenses() {
-        return true; // All roles can view
+        return true;
     }
 
     public boolean canAddExpenses() {

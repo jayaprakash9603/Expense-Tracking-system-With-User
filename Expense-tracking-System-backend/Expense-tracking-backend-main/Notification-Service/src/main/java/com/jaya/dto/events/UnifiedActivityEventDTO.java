@@ -16,12 +16,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
-
-/**
- * Unified Activity Event DTO for receiving events from all services.
- * This single DTO replaces multiple separate event DTOs and enables
- * the Notification Service to route events appropriately.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +24,6 @@ import java.util.UUID;
 public class UnifiedActivityEventDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    // Core identification
     @Builder.Default
     private String eventId = UUID.randomUUID().toString();
 
@@ -40,40 +33,33 @@ public class UnifiedActivityEventDTO implements Serializable {
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // Actor information (who performed the action)
     private Integer actorUserId;
     private String actorUserName;
     private String actorEmail;
     private String actorRole;
     private UserInfo actorUser;
 
-    // Target information (whose data was affected)
     private Integer targetUserId;
     private String targetUserName;
     private UserInfo targetUser;
 
-    // Entity information
     private String entityType;
     private Long entityId;
     private String entityName;
 
-    // Action information
     private String action;
     private String description;
     private Double amount;
 
-    // Data payloads
     private Map<String, Object> oldValues;
     private Map<String, Object> newValues;
     private Map<String, Object> entityPayload;
     private String metadata;
 
-    // Source service information
     private String sourceService;
     private String serviceVersion;
     private String environment;
 
-    // Request context
     private String ipAddress;
     private String userAgent;
     private String sessionId;
@@ -83,13 +69,11 @@ public class UnifiedActivityEventDTO implements Serializable {
     private String endpoint;
     private Long executionTimeMs;
 
-    // Status
     @Builder.Default
     private String status = "SUCCESS";
     private String errorMessage;
     private Integer responseCode;
 
-    // Routing flags
     @Builder.Default
     private Boolean isOwnAction = true;
     @Builder.Default
@@ -117,7 +101,7 @@ public class UnifiedActivityEventDTO implements Serializable {
         private String phoneNumber;
         private String location;
         private String bio;
-        private String displayName; // Can be serialized from producer
+        private String displayName;
 
         public String getDisplayName() {
             if (displayName != null && !displayName.trim().isEmpty())
@@ -157,17 +141,11 @@ public class UnifiedActivityEventDTO implements Serializable {
         }
     }
 
-    /**
-     * Convenience method to check if this is a friend activity event
-     */
     public boolean shouldProcessAsFriendActivity() {
         return Boolean.TRUE.equals(isFriendActivity) ||
                 (actorUserId != null && targetUserId != null && !actorUserId.equals(targetUserId));
     }
 
-    /**
-     * Convenience method to check if regular notification should be sent
-     */
     public boolean shouldProcessAsRegularNotification() {
         return Boolean.TRUE.equals(requiresNotification) && Boolean.TRUE.equals(isOwnAction);
     }

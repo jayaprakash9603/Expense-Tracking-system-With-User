@@ -13,10 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * REST controller for friend activity endpoints.
- * Provides APIs for users to view activities performed by their friends.
- */
 @RestController
 @RequestMapping("/api/activities")
 @RequiredArgsConstructor
@@ -26,9 +22,6 @@ public class FriendActivityController {
     private final FriendActivityService friendActivityService;
     private final UserService userService;
 
-    /**
-     * Get all activities for the authenticated user.
-     */
     @GetMapping
     public ResponseEntity<List<FriendActivityDTO>> getActivities(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -38,9 +31,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get activities with pagination.
-     */
     @GetMapping("/paged")
     public ResponseEntity<Page<FriendActivityDTO>> getActivitiesPaged(
             @RequestHeader("Authorization") String jwt,
@@ -52,9 +42,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get unread activities for the authenticated user.
-     */
     @GetMapping("/unread")
     public ResponseEntity<List<FriendActivityDTO>> getUnreadActivities(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -64,9 +51,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get unread activity count.
-     */
     @GetMapping("/unread/count")
     public ResponseEntity<Map<String, Long>> getUnreadCount(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -79,9 +63,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get activities from a specific service.
-     */
     @GetMapping("/service/{service}")
     public ResponseEntity<List<FriendActivityDTO>> getActivitiesByService(
             @RequestHeader("Authorization") String jwt,
@@ -92,9 +73,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get activities by a specific friend.
-     */
     @GetMapping("/friend/{friendId}")
     public ResponseEntity<List<FriendActivityDTO>> getActivitiesByFriend(
             @RequestHeader("Authorization") String jwt,
@@ -105,9 +83,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Get recent activities (last N days).
-     */
     @GetMapping("/recent")
     public ResponseEntity<List<FriendActivityDTO>> getRecentActivities(
             @RequestHeader("Authorization") String jwt,
@@ -118,15 +93,11 @@ public class FriendActivityController {
         return ResponseEntity.ok(activities);
     }
 
-    /**
-     * Mark a specific activity as read.
-     */
     @PutMapping("/{activityId}/read")
     public ResponseEntity<Map<String, String>> markAsRead(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Long activityId) throws Exception {
 
-        // Verify user is authenticated
         getUserIdFromToken(jwt);
 
         friendActivityService.markAsRead(activityId);
@@ -136,9 +107,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Mark all activities as read for the authenticated user.
-     */
     @PutMapping("/read-all")
     public ResponseEntity<Map<String, Object>> markAllAsRead(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -152,9 +120,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Get activity summary (counts by service type).
-     */
     @GetMapping("/summary")
     public ResponseEntity<Map<String, Object>> getActivitySummary(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -169,9 +134,6 @@ public class FriendActivityController {
         return ResponseEntity.ok(summary);
     }
 
-    /**
-     * Helper method to extract user ID from JWT token.
-     */
     private Integer getUserIdFromToken(String jwt) throws Exception {
         return userService.getuserProfile(jwt).getId();
     }

@@ -9,10 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
-/**
- * DTO for listing user's shares.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,14 +29,7 @@ public class ShareListItem {
     private Integer accessCount;
     private LocalDateTime lastAccessedAt;
 
-    /**
-     * Summary of shared items.
-     */
     private List<ResourceSummary> resources;
-
-    /**
-     * Status derived from isActive and expiresAt.
-     */
     public String getStatus() {
         if (!Boolean.TRUE.equals(isActive)) {
             return revokedAt != null ? "REVOKED" : "INACTIVE";

@@ -7,11 +7,6 @@ import com.jaya.service.NotificationPreferencesChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-/**
- * Processor for Expense events
- * Follows Single Responsibility Principle - only handles expense notifications
- */
 @Component
 @Slf4j
 public class ExpenseEventProcessor extends AbstractNotificationEventProcessor<ExpenseEventDTO> {
@@ -26,7 +21,6 @@ public class ExpenseEventProcessor extends AbstractNotificationEventProcessor<Ex
     public String getNotificationType(ExpenseEventDTO event) {
         switch (event.getAction()) {
             case "CREATE":
-                // Check if it's a large expense
                 if (isLargeExpense(event.getAmount())) {
                     return "largeExpenseAlert";
                 }
@@ -93,17 +87,12 @@ public class ExpenseEventProcessor extends AbstractNotificationEventProcessor<Ex
                 message,
                 priority);
 
-        // Add additional data
         notification.setRelatedEntityId(event.getExpenseId());
         notification.setRelatedEntityType("EXPENSE");
 
         return notification;
     }
 
-    /**
-     * Check if expense amount is considered "large"
-     * Threshold: 5000 (can be made configurable)
-     */
     private boolean isLargeExpense(Double amount) {
         return amount != null && amount >= 5000.0;
     }

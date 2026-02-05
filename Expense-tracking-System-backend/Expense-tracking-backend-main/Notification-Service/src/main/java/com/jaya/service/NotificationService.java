@@ -9,11 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface NotificationService {
-
-    // New method for creating notifications from events
     Notification createNotification(Notification notification);
-
-    // New methods for notification management
     List<Notification> getUserNotifications(Integer userId, Boolean isRead, Integer limit, Integer offset);
 
     Notification markAsRead(Integer notificationId, Integer userId);
@@ -62,6 +58,4 @@ public interface NotificationService {
     public void sendRecurringExpenseReminder(UserDto user, List<ExpenseDTO> recurringExpenses);
 
     public void updateNotificationPreferences(UserDto user, Map<String, Boolean> preferences);
-    // void updateNotificationPreferences(UserDto UserDto, Map<String, Boolean>
-    // preferences);
 }

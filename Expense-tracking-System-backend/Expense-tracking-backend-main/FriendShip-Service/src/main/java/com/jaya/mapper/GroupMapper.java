@@ -40,10 +40,8 @@ public class GroupMapper {
         dto.setMemberIds(group.getMemberIds() != null ? new ArrayList<>(group.getMemberIds()) : new ArrayList<>());
         dto.setTotalMembers(group.getMemberIds() != null ? group.getMemberIds().size() : 0);
 
-        // Set avatar
         dto.setAvatar(group.getAvatar());
 
-        // Set creator username
         try {
             UserDto creator = helper.validateUser(group.getCreatedBy());
             dto.setCreatedByUsername(creator.getUsername());
@@ -51,20 +49,16 @@ public class GroupMapper {
             dto.setCreatedByUsername("Unknown");
         }
 
-        // Set current user's role and permissions
         dto.setCurrentUserRole(group.getUserRole(currentUserId));
         dto.setCurrentUserPermissions(getCurrentUserPermissions(group, currentUserId));
 
-        // Set detailed member information
         dto.setMembers(getDetailedMembers(group));
 
-        // Set role count
         dto.setRoleCount(getRoleCount(group));
 
         return dto;
     }
 
-    // Overloaded method for backward compatibility
     public GroupResponseDTO toResponseDTO(Group group) throws Exception {
         return toResponseDTO(group, group.getCreatedBy());
     }
@@ -98,7 +92,6 @@ public class GroupMapper {
                         memberDTO.setJoinedAt(group.getMemberJoinedDate(memberId));
                         memberDTO.setAddedBy(group.getMemberAddedBy(memberId));
 
-                        // Set who added this member
                         Integer addedBy = group.getMemberAddedBy(memberId);
                         if (addedBy != null) {
                             try {
@@ -111,7 +104,6 @@ public class GroupMapper {
 
                         return memberDTO;
                     } catch (Exception e) {
-                        // Return basic info if user details can't be fetched
                         return new GroupMemberDTO(
                                 memberId,
                                 group.getUserRole(memberId),

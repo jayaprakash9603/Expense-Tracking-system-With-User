@@ -8,11 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
-/**
- * DTO for representing a public share visible to all users.
- * Used in the "Public Shares" list.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,30 +25,14 @@ public class PublicShareItem {
     private LocalDateTime createdAt;
     private Integer accessCount;
 
-    /**
-     * Visibility type (PUBLIC, FRIENDS_ONLY, etc.).
-     */
     private String visibility;
 
-    /**
-     * Whether the share is currently active.
-     */
     private Boolean isActive;
 
-    /**
-     * Whether this share belongs to the requesting user.
-     * Helps frontend distinguish own shares from others.
-     */
     private Boolean isOwnShare;
 
-    /**
-     * Owner information (public view).
-     */
     private OwnerInfo owner;
 
-    /**
-     * Status derived from expiresAt (public shares are always active).
-     */
     public String getStatus() {
         if (expiresAt != null && LocalDateTime.now().isAfter(expiresAt)) {
             return "EXPIRED";

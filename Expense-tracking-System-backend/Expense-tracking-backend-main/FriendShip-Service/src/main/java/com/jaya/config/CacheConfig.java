@@ -9,11 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Arrays;
 
-/**
- * Cache configuration for FriendShip-Service
- * Uses in-memory caching to reduce database queries for frequently accessed
- * data
- */
 @Configuration
 @EnableCaching
 public class CacheConfig {
@@ -22,10 +17,9 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         cacheManager.setCaches(Arrays.asList(
-                new ConcurrentMapCache("friendships"), // Cache for friendship lookups
-                new ConcurrentMapCache("friendshipStatus"), // Cache for status checks
-                new ConcurrentMapCache("accessLevels") // Cache for access level checks
-        ));
+                new ConcurrentMapCache("friendships"),
+                new ConcurrentMapCache("friendshipStatus"),
+                new ConcurrentMapCache("accessLevels")));
         return cacheManager;
     }
 }

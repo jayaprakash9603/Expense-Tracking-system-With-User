@@ -23,6 +23,5 @@ public class ExpenseDTO {
     private boolean isBill = false;
     private Integer userId;
 
-    // Expense Details
     private ExpenseDetailsDTO expenseDetails;
 }

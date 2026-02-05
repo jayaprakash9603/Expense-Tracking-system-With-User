@@ -10,11 +10,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
-/**
- * Processor for Bill events
- * Follows Single Responsibility Principle - only handles bill notifications
- */
 @Component
 @Slf4j
 public class BillEventProcessor extends AbstractNotificationEventProcessor<BillEventDTO> {
@@ -119,9 +114,6 @@ public class BillEventProcessor extends AbstractNotificationEventProcessor<BillE
         return notification;
     }
 
-    /**
-     * Format due date in a user-friendly way
-     */
     private String formatDueDate(LocalDate dueDate) {
         if (dueDate == null)
             return "N/A";

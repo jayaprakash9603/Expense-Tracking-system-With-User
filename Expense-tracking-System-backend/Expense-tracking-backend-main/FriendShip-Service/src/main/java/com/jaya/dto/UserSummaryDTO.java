@@ -1,4 +1,3 @@
-// File: Expense-tracking-System-backend/Expense-tracking-backend-main/social-media-app/src/main/java/com/jaya/dto/UserSummaryDTO.java
 package com.jaya.dto;
 
 import com.jaya.models.UserDto;
@@ -17,9 +16,6 @@ public class UserSummaryDTO {
     private String lastName;
     private String image;
     private String profileImage;
-
-    // Add this method to a utility class or inside UserSummaryDTO as a static
-    // method
 
     public static UserSummaryDTO fromUser(UserDto user) {
         if (user == null)

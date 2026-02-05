@@ -18,18 +18,6 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Kafka Consumer Configuration for Friendship Service.
- * Configures Kafka consumers for receiving friend activity events from other
- * services.
- * 
- * SOLID Principles:
- * - Single Responsibility: Only handles Kafka consumer configuration
- * - Dependency Inversion: Provides ConsumerFactory abstraction
- * 
- * NOTE: Main kafkaListenerContainerFactory is defined in KafkaConfig.java
- * This config only defines the FriendActivity-specific consumer factory.
- */
 @Configuration
 @EnableKafka
 public class KafkaConsumerConfig {
@@ -43,28 +31,21 @@ public class KafkaConsumerConfig {
     @Autowired
     private ObjectMapper objectMapper;
 
-    /**
-     * Configure Kafka Consumer Factory for FriendActivityEvent.
-     */
     @Bean
     public ConsumerFactory<String, FriendActivityEvent> friendActivityConsumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
 
-        // Basic configuration
         configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         configProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        // Performance settings
         configProps.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
         configProps.put(ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 1);
         configProps.put(ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 500);
 
-        // Key deserializer
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
-        // Create deserializers programmatically (not via config properties)
         JsonDeserializer<FriendActivityEvent> jsonDeserializer = new JsonDeserializer<>(FriendActivityEvent.class,
                 objectMapper);
         jsonDeserializer.setRemoveTypeHeaders(true);
@@ -76,23 +57,15 @@ public class KafkaConsumerConfig {
                 jsonDeserializer);
     }
 
-    /**
-     * Configure Kafka Listener Container Factory specifically for
-     * FriendActivityEvent.
-     * This is used for legacy friend-activity-events topic consumers.
-     */
     @Bean("friendActivityKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, FriendActivityEvent> friendActivityKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, FriendActivityEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(friendActivityConsumerFactory());
 
-        // Concurrency settings - number of consumer threads
         factory.setConcurrency(1);
 
-        // Batch processing settings
         factory.setBatchListener(false);
 
-        // Container properties - use MANUAL for explicit acknowledgment
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.getContainerProperties().setPollTimeout(3000);
 

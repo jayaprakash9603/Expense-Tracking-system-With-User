@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface ExpenseService {
 
     @GetMapping("/api/user/profile")
-    public UserDto getuserProfile(@RequestHeader("Authorization") String jwt);  // Fixed the typo here
+    public UserDto getuserProfile(@RequestHeader("Authorization") String jwt);
 }

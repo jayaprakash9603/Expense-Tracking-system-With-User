@@ -24,8 +24,8 @@ public class GroupResponseDTO {
     private List<GroupMemberDTO> members;
     private Integer totalMembers;
     private Map<String, Integer> roleCount;
-    private GroupRole currentUserRole; // Role of the requesting user
-    private Map<String, Boolean> currentUserPermissions; // Permissions of the requesting user
-    private String avatar; // Avatar image URL or base64
+    private GroupRole currentUserRole;
+    private Map<String, Boolean> currentUserPermissions;
+    private String avatar;
     private Integer totalExpenses=0;
 }

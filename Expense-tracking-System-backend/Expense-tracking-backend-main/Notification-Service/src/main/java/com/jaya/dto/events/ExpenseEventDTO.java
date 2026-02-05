@@ -12,10 +12,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
-/**
- * Event DTO for Expense-related events from social-media-app service
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,7 +21,7 @@ public class ExpenseEventDTO implements Serializable {
 
     private Integer expenseId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, APPROVE, REJECT
+    private String action;
     private Double amount;
     private String description;
     private String category;
@@ -36,5 +32,5 @@ public class ExpenseEventDTO implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
-    private String metadata; // JSON string for additional data
+    private String metadata;
 }

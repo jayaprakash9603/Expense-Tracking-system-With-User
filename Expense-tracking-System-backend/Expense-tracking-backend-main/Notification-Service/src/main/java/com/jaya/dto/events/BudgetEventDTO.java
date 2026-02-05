@@ -20,10 +20,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
-
-/**
- * Event DTO for Budget-related events from Budget-Service
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,18 +30,18 @@ public class BudgetEventDTO implements Serializable {
 
     private Integer budgetId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, EXCEEDED, WARNING, LIMIT_APPROACHING
+    private String action;
     private String budgetName;
     private Double amount;
     
-    @JsonAlias("spent") // Handle old field name for backward compatibility
+    @JsonAlias("spent")
     private BigDecimal spentAmount;
     
-    @JsonAlias("remaining") // Handle old field name for backward compatibility
+    @JsonAlias("remaining")
     private BigDecimal remainingAmount;
     
     private String category;
-    private String period; // MONTHLY, WEEKLY, YEARLY
+    private String period;
     private Set<Integer> expenseIds;
     private Double percentageUsed;
 

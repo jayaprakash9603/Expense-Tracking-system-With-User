@@ -9,12 +9,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-
-/**
- * Processor for Friend events
- * Follows Single Responsibility Principle - only handles friend/friendship
- * notifications
- */
 @Component
 @Slf4j
 public class FriendEventProcessor extends AbstractNotificationEventProcessor<FriendEventDTO> {
@@ -28,7 +22,6 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
     @Override
     public String getNotificationType(FriendEventDTO event) {
         switch (event.getAction()) {
-            // Old format actions (backward compatibility)
             case "REQUEST_SENT":
                 return "friendRequestSent";
             case "REQUEST_RECEIVED":
@@ -40,7 +33,6 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
             case "FRIEND_REMOVED":
                 return "friendRemoved";
 
-            // New format actions
             case "FRIEND_REQUEST_SENT":
                 return "friendRequestSent";
             case "FRIEND_REQUEST_RECEIVED":
@@ -79,11 +71,9 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
         String message;
         String priority;
 
-        // Use the new helper method for backward compatibility
         String friendName = event.getActorOrFriendName() != null ? event.getActorOrFriendName() : "A user";
 
         switch (event.getAction()) {
-            // Old format actions (backward compatibility)
             case "REQUEST_SENT":
                 title = "📤 Friend Request Sent";
                 message = String.format("Friend request sent to %s", friendName);
@@ -184,7 +174,6 @@ public class FriendEventProcessor extends AbstractNotificationEventProcessor<Fri
         notification.setRelatedEntityId(event.getFriendshipId());
         notification.setRelatedEntityType("FRIENDSHIP");
 
-        // For DATA_SHARED events, include shareUrl in metadata for navigation
         if ("DATA_SHARED".equals(event.getAction())) {
             Map<String, Object> eventMeta = event.getMetadataAsMap();
             if (eventMeta != null) {

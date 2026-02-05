@@ -9,11 +9,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-/**
- * Global filter applying rate limits per user (X-User-ID header) or IP
- * fallback.
- */
 @Component
 public class RateLimitingFilter implements GlobalFilter, Ordered {
 
@@ -31,11 +26,10 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String userId = request.getHeaders().getFirst("X-User-ID");
         if (userId == null || userId.isBlank()) {
-            // Fallback: remote IP
             userId = request.getRemoteAddress() != null ? request.getRemoteAddress().getAddress().getHostAddress()
                     : "unknown";
         }
-        String key = userId + ":" + request.getPath().value(); // per-user per-path
+        String key = userId + ":" + request.getPath().value();
         if (!rateLimiter.tryConsume(key)) {
             int remaining = rateLimiter.remaining(key);
             log.warn("Rate limit exceeded user={} path={} remaining={}", userId, request.getPath().value(), remaining);
@@ -46,6 +40,6 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return 0; // run after correlation (-1) but early before routing
+        return 0;
     }
 }

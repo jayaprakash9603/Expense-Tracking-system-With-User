@@ -31,11 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.jaya.dto.ExpenseDTO;
-
-/**
- * Service for managing shared resources with QR code access.
- * Handles creation, validation, revocation, and data retrieval.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -58,20 +53,11 @@ public class SharedResourceService {
     @Value("${app.share.base-url:http://localhost:3000}")
     private String shareBaseUrl;
 
-    /**
-     * Create a new share and generate QR code.
-     */
     @Transactional
     public ShareResponse createShare(CreateShareRequest request, Integer userId) {
         log.info("Creating share for user {} with {} resources", userId, request.getResourceRefs().size());
-
-        // Rate limiting checks
         enforceRateLimits(userId);
-
-        // Generate unique token
         String token = generateUniqueToken();
-
-        // Convert DTOs to entity refs
         List<ResourceRef> resourceRefs = request.getResourceRefs().stream()
                 .map(dto -> ResourceRef.builder()
                         .type(dto.getType())
@@ -81,7 +67,6 @@ public class SharedResourceService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Parse visibility (default to LINK_ONLY for backward compatibility)
         ShareVisibility visibility = ShareVisibility.LINK_ONLY;
         if (request.getVisibility() != null && !request.getVisibility().isEmpty()) {
             try {
@@ -91,10 +76,7 @@ public class SharedResourceService {
             }
         }
 
-        // Determine isPublic from visibility for backward compatibility
         boolean isPublic = visibility == ShareVisibility.PUBLIC;
-
-        // Build entity
         SharedResource share = SharedResource.builder()
                 .shareToken(token)
                 .ownerUserId(userId)
@@ -110,11 +92,8 @@ public class SharedResourceService {
                 .allowedUserIds(request.getAllowedUserIds())
                 .build();
 
-        // Save
         share = sharedResourceRepository.save(share);
         log.info("Created share {} for user {} with visibility {}", share.getId(), userId, visibility);
-
-        // Generate QR code
         String qrCodeDataUri = qrCodeService.generateQrCodeDataUri(token);
         String shareUrl = qrCodeService.buildShareUrl(token);
 
@@ -136,9 +115,6 @@ public class SharedResourceService {
                 .build();
     }
 
-    /**
-     * Validate a share token and return the shared data.
-     */
     @Transactional
     public SharedDataResponse accessShare(String token, Integer accessingUserId) {
         log.debug("Accessing share with token: {}", token.substring(0, 8) + "...");
@@ -146,33 +122,20 @@ public class SharedResourceService {
         SharedResource share = sharedResourceRepository.findByShareToken(token)
                 .orElseThrow(() -> new ShareNotFoundException("Share not found"));
 
-        // Check if active
         if (!Boolean.TRUE.equals(share.getIsActive())) {
             return buildInvalidResponse("This share has been revoked");
         }
-
-        // Check expiry
         if (share.getExpiresAt() != null && LocalDateTime.now().isAfter(share.getExpiresAt())) {
             return buildInvalidResponse("This share has expired");
         }
-
-        // Check visibility-based access
         String accessDeniedReason = checkVisibilityAccess(share, accessingUserId);
         if (accessDeniedReason != null) {
             return buildInvalidResponse(accessDeniedReason);
         }
-
-        // Record access on the share itself
         share.recordAccess();
         sharedResourceRepository.save(share);
-
-        // Record user access for "Shared With Me" tracking
         recordUserAccess(token, accessingUserId);
-
-        // Fetch owner info
         SharedDataResponse.OwnerInfo ownerInfo = fetchOwnerInfo(share.getOwnerUserId());
-
-        // Fetch actual shared data
         List<SharedDataResponse.SharedItem> items = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
         int foundCount = 0;
@@ -218,19 +181,6 @@ public class SharedResourceService {
                 .build();
     }
 
-    /**
-     * Access shared data with pagination support.
-     * Returns paginated items for a specific resource type.
-     *
-     * @param token           The share token
-     * @param accessingUserId The user accessing the share (can be null for
-     *                        unauthenticated access)
-     * @param resourceType    The type of resource to fetch (EXPENSE, CATEGORY,
-     *                        BUDGET, BILL, PAYMENT_METHOD)
-     * @param page            Page number (0-indexed)
-     * @param size            Page size
-     * @return Paginated shared data response
-     */
     @Transactional
     public SharedDataPageResponse accessSharePaginated(String token, Integer accessingUserId,
             String resourceType, int page, int size, String search) {
@@ -241,26 +191,18 @@ public class SharedResourceService {
         SharedResource share = sharedResourceRepository.findByShareToken(token)
                 .orElseThrow(() -> new ShareNotFoundException("Share not found"));
 
-        // Check if active
         if (!Boolean.TRUE.equals(share.getIsActive())) {
             return buildInvalidPageResponse("This share has been revoked");
         }
-
-        // Check expiry
         if (share.getExpiresAt() != null && LocalDateTime.now().isAfter(share.getExpiresAt())) {
             return buildInvalidPageResponse("This share has expired");
         }
-
-        // Record access (only on first page to avoid inflating counts)
         if (page == 0) {
             share.recordAccess();
             sharedResourceRepository.save(share);
         }
 
-        // Fetch owner info
         SharedDataResponse.OwnerInfo ownerInfo = fetchOwnerInfo(share.getOwnerUserId());
-
-        // Group resources by type and count
         Map<String, List<ResourceRef>> refsByType = share.getResourceRefs().stream()
                 .collect(Collectors.groupingBy(ref -> ref.getType().toUpperCase()));
 
@@ -269,10 +211,8 @@ public class SharedResourceService {
             countsByType.put(entry.getKey(), entry.getValue().size());
         }
 
-        // If no specific type requested, default to first available or EXPENSE
         String normalizedType = resourceType != null ? resourceType.toUpperCase() : null;
         if (normalizedType == null || normalizedType.isEmpty() || normalizedType.equals("ALL")) {
-            // Return overview with counts only
             return SharedDataPageResponse.builder()
                     .isValid(true)
                     .permission(share.getPermission())
@@ -287,23 +227,16 @@ public class SharedResourceService {
                     .build();
         }
 
-        // Get refs for the requested type
         List<ResourceRef> typeRefs = refsByType.getOrDefault(normalizedType, new ArrayList<>());
-
-        // Normalize search query
         String searchQuery = (search != null && !search.trim().isEmpty())
                 ? search.trim().toLowerCase()
                 : null;
-
-        // Batch fetch data based on type to avoid N+1 query problem
         List<SharedDataResponse.SharedItem> allItems = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
 
         if ("EXPENSE".equals(normalizedType)) {
-            // Batch fetch all expenses in a single query
             allItems = fetchExpensesBatch(typeRefs, share.getOwnerUserId(), searchQuery, warnings);
         } else {
-            // For other types, use individual fetch (can be optimized later)
             for (ResourceRef ref : typeRefs) {
                 try {
                     Object data = fetchResourceData(ref, share.getOwnerUserId());
@@ -314,13 +247,10 @@ public class SharedResourceService {
                                 .data(data)
                                 .found(true)
                                 .build();
-
-                        // If search is provided, filter items
                         if (searchQuery == null || matchesSearch(item, searchQuery)) {
                             allItems.add(item);
                         }
                     } else if (searchQuery == null) {
-                        // Only add not-found items when not searching
                         allItems.add(SharedDataResponse.SharedItem.builder()
                                 .type(ref.getType())
                                 .externalRef(ref.getExternalRef())
@@ -338,8 +268,6 @@ public class SharedResourceService {
                 }
             }
         }
-
-        // Now paginate the filtered results
         int totalItems = allItems.size();
         int totalPages = (int) Math.ceil((double) totalItems / size);
 
@@ -380,10 +308,6 @@ public class SharedResourceService {
                 .invalidReason(reason)
                 .build();
     }
-
-    /**
-     * Revoke a share (owner only).
-     */
     @Transactional
     public void revokeShare(String token, Integer userId) {
         log.info("Revoking share for user {}", userId);
@@ -397,10 +321,6 @@ public class SharedResourceService {
 
         log.info("Revoked share {} for user {}", share.getId(), userId);
     }
-
-    /**
-     * Get all shares for a user.
-     */
     @Transactional(readOnly = true)
     public List<ShareListItem> getUserShares(Integer userId) {
         List<SharedResource> shares = sharedResourceRepository.findByOwnerUserId(userId);
@@ -409,10 +329,6 @@ public class SharedResourceService {
                 .map(this::mapToListItem)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Get active shares for a user.
-     */
     @Transactional(readOnly = true)
     public List<ShareListItem> getActiveUserShares(Integer userId) {
         List<SharedResource> shares = sharedResourceRepository.findActiveByOwnerUserId(userId);
@@ -421,10 +337,6 @@ public class SharedResourceService {
                 .map(this::mapToListItem)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Get share statistics for a user.
-     */
     @Transactional(readOnly = true)
     public ShareStats getShareStats(Integer userId) {
         List<SharedResource> allShares = sharedResourceRepository.findByOwnerUserId(userId);
@@ -443,11 +355,6 @@ public class SharedResourceService {
                 .totalAccessCount(totalAccess)
                 .build();
     }
-
-    /**
-     * Scheduled job to deactivate expired shares.
-     * Runs every hour.
-     */
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void deactivateExpiredShares() {
@@ -458,17 +365,12 @@ public class SharedResourceService {
         }
     }
 
-    // ========== Private Helper Methods ==========
-
     private void enforceRateLimits(Integer userId) {
-        // Check hourly limit
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         long recentShares = sharedResourceRepository.countSharesCreatedSince(userId, oneHourAgo);
         if (recentShares >= maxSharesPerHour) {
             throw new ShareRateLimitException("Rate limit exceeded. Maximum " + maxSharesPerHour + " shares per hour.");
         }
-
-        // Check active share limit
         long activeShares = sharedResourceRepository.countActiveSharesByOwner(userId);
         if (activeShares >= maxActiveShares) {
             throw new ShareRateLimitException(
@@ -495,22 +397,11 @@ public class SharedResourceService {
                 .invalidReason(reason)
                 .build();
     }
-
-    /**
-     * Check if the accessing user is allowed based on share visibility.
-     * 
-     * @param share           The shared resource
-     * @param accessingUserId The ID of the user trying to access (can be null for
-     *                        anonymous)
-     * @return Error message if access denied, null if access allowed
-     */
     private String checkVisibilityAccess(SharedResource share, Integer accessingUserId) {
         ShareVisibility visibility = share.getVisibility();
         if (visibility == null) {
-            visibility = ShareVisibility.LINK_ONLY; // Default for backward compatibility
+            visibility = ShareVisibility.LINK_ONLY;
         }
-
-        // Owner always has access
         if (accessingUserId != null && accessingUserId.equals(share.getOwnerUserId())) {
             return null;
         }
@@ -518,11 +409,9 @@ public class SharedResourceService {
         switch (visibility) {
             case PUBLIC:
             case LINK_ONLY:
-                // Anyone with the link can access
                 return null;
 
             case FRIENDS_ONLY:
-                // Must be logged in and be a friend of the owner
                 if (accessingUserId == null) {
                     return "This share is only accessible to friends. Please log in.";
                 }
@@ -532,7 +421,6 @@ public class SharedResourceService {
                 return null;
 
             case SPECIFIC_USERS:
-                // Must be logged in and be in the allowed users list
                 if (accessingUserId == null) {
                     return "This share is private. Please log in to check your access.";
                 }
@@ -546,17 +434,8 @@ public class SharedResourceService {
                 return null;
         }
     }
-
-    /**
-     * Check if two users are friends.
-     * 
-     * @param ownerId The owner user ID
-     * @param userId  The user ID to check
-     * @return true if they are friends, false otherwise
-     */
     private boolean isFriendOf(Integer ownerId, Integer userId) {
         try {
-            // Call the FriendshipService to check friendship status
             return friendshipService.areFriends(ownerId, userId);
         } catch (Exception e) {
             log.warn("Failed to check friendship between {} and {}: {}", ownerId, userId, e.getMessage());
@@ -566,10 +445,9 @@ public class SharedResourceService {
 
     private SharedDataResponse.OwnerInfo fetchOwnerInfo(Integer userId) {
         try {
-            // This would call the user service
             return SharedDataResponse.OwnerInfo.builder()
                     .id(userId)
-                    .name("User " + userId) // Placeholder - replace with actual user lookup
+                    .name("User " + userId)
                     .build();
         } catch (Exception e) {
             log.warn("Failed to fetch owner info for user {}", userId);
@@ -578,17 +456,6 @@ public class SharedResourceService {
                     .build();
         }
     }
-
-    /**
-     * Batch fetch expenses to avoid N+1 query problem.
-     * Fetches all expenses in a single query and maps them to SharedItem objects.
-     *
-     * @param typeRefs    List of resource references for expenses
-     * @param ownerUserId Owner user ID for the expenses
-     * @param searchQuery Optional search query to filter results
-     * @param warnings    List to collect any warnings about missing data
-     * @return List of SharedItem objects containing expense data
-     */
     private List<SharedDataResponse.SharedItem> fetchExpensesBatch(
             List<ResourceRef> typeRefs,
             Integer ownerUserId,
@@ -601,7 +468,6 @@ public class SharedResourceService {
             return items;
         }
 
-        // Collect all expense IDs from refs
         Map<Integer, ResourceRef> idToRefMap = new HashMap<>();
         Set<Integer> expenseIds = new HashSet<>();
 
@@ -627,17 +493,13 @@ public class SharedResourceService {
         }
 
         try {
-            // Batch fetch all expenses in a single query
             log.debug("Batch fetching {} expenses for user {}", expenseIds.size(), ownerUserId);
             List<ExpenseDTO> expenses = expenseService.getExpensesByIds(ownerUserId, expenseIds);
-
-            // Create a map for quick lookup
             Map<Integer, ExpenseDTO> expenseMap = new HashMap<>();
             for (ExpenseDTO expense : expenses) {
                 expenseMap.put(expense.getId(), expense);
             }
 
-            // Build SharedItem list preserving original order
             for (ResourceRef ref : typeRefs) {
                 Integer expenseId = ref.getInternalId();
                 if (expenseId == null) {
@@ -645,7 +507,7 @@ public class SharedResourceService {
                 }
 
                 if (expenseId == null) {
-                    continue; // Already handled above
+                    continue;
                 }
 
                 ExpenseDTO expense = expenseMap.get(expenseId);
@@ -657,12 +519,10 @@ public class SharedResourceService {
                             .found(true)
                             .build();
 
-                    // If search is provided, filter items
                     if (searchQuery == null || matchesSearch(item, searchQuery)) {
                         items.add(item);
                     }
                 } else if (searchQuery == null) {
-                    // Expense not found - add as not found item
                     items.add(SharedDataResponse.SharedItem.builder()
                             .type(ref.getType())
                             .externalRef(ref.getExternalRef())
@@ -678,7 +538,6 @@ public class SharedResourceService {
 
         } catch (Exception e) {
             log.error("Failed to batch fetch expenses: {}", e.getMessage(), e);
-            // Fallback: return empty list with warning
             warnings.add("Failed to fetch expenses: " + e.getMessage());
         }
 
@@ -686,9 +545,7 @@ public class SharedResourceService {
     }
 
     private Object fetchResourceData(ResourceRef ref, Integer ownerUserId) {
-        // Fetch data based on resource type using internal IDs
         try {
-            // Try to get internalId, or parse it from externalRef as fallback
             Integer resourceId = ref.getInternalId();
             if (resourceId == null) {
                 resourceId = parseIdFromExternalRef(ref.getExternalRef());
@@ -703,11 +560,9 @@ public class SharedResourceService {
                 case "EXPENSE":
                     return expenseService.getExpenseById(resourceId, ownerUserId);
                 case "CATEGORY":
-                    // TODO: Add category service call when available
                     log.info("Category data fetch not yet implemented for ref: {}", ref.getExternalRef());
                     return null;
                 case "BUDGET":
-                    // TODO: Add budget service call when available
                     log.info("Budget data fetch not yet implemented for ref: {}", ref.getExternalRef());
                     return null;
                 default:
@@ -720,17 +575,12 @@ public class SharedResourceService {
         }
     }
 
-    /**
-     * Parse the resource ID from an external reference.
-     * Supports formats: EXP-123, EXP_123_date, CAT-123, BUD-123, etc.
-     */
     private Integer parseIdFromExternalRef(String externalRef) {
         if (externalRef == null || externalRef.isEmpty()) {
             return null;
         }
 
         try {
-            // Try format: TYPE-ID (e.g., EXP-259402)
             if (externalRef.contains("-")) {
                 String[] parts = externalRef.split("-");
                 if (parts.length >= 2) {
@@ -738,7 +588,6 @@ public class SharedResourceService {
                 }
             }
 
-            // Try format: TYPE_ID_... (e.g., EXP_123_2026-01-29)
             if (externalRef.contains("_")) {
                 String[] parts = externalRef.split("_");
                 if (parts.length >= 2) {
@@ -746,7 +595,6 @@ public class SharedResourceService {
                 }
             }
 
-            // Try parsing as plain number
             return Integer.parseInt(externalRef);
         } catch (NumberFormatException e) {
             log.debug("Could not parse ID from externalRef: {}", externalRef);
@@ -781,35 +629,26 @@ public class SharedResourceService {
                 .build();
     }
 
-    /**
-     * Check if a SharedItem matches the search query.
-     * Searches across various fields based on the item type.
-     */
     private boolean matchesSearch(SharedDataResponse.SharedItem item, String searchQuery) {
         if (item.getData() == null) {
             return false;
         }
 
-        // Convert data to string representation and search
         String dataStr = item.getData().toString().toLowerCase();
         if (dataStr.contains(searchQuery)) {
             return true;
         }
 
-        // Also check externalRef
         if (item.getExternalRef() != null &&
                 item.getExternalRef().toLowerCase().contains(searchQuery)) {
             return true;
         }
-
-        // Type-specific field extraction using reflection or map access
         try {
             Object data = item.getData();
             if (data instanceof java.util.Map) {
                 @SuppressWarnings("unchecked")
                 java.util.Map<String, Object> dataMap = (java.util.Map<String, Object>) data;
 
-                // Check common fields
                 for (String key : new String[] { "title", "name", "description", "category",
                         "merchant", "notes", "categoryName", "budgetName", "billName" }) {
                     Object value = dataMap.get(key);
@@ -818,7 +657,6 @@ public class SharedResourceService {
                     }
                 }
 
-                // Check nested expense object if present
                 Object expense = dataMap.get("expense");
                 if (expense instanceof java.util.Map) {
                     @SuppressWarnings("unchecked")
@@ -837,26 +675,17 @@ public class SharedResourceService {
 
         return false;
     }
-
-    // ==========================================================================
-    // SHARED WITH ME - Track and retrieve shares accessed by users
-    // ==========================================================================
-
-    /**
-     * Record that a user has accessed a share.
-     * Creates or updates the access log.
-     */
     @Transactional
     public void recordUserAccess(String token, Integer accessingUserId) {
         if (accessingUserId == null) {
-            return; // Anonymous access, don't track
+            return;
         }
 
         SharedResource share = sharedResourceRepository.findByShareToken(token)
                 .orElse(null);
 
         if (share == null || share.getOwnerUserId().equals(accessingUserId)) {
-            return; // Share not found or user is accessing their own share
+            return;
         }
 
         Optional<ShareAccessLog> existingLog = shareAccessLogRepository
@@ -876,9 +705,6 @@ public class SharedResourceService {
         }
     }
 
-    /**
-     * Get all shares that have been shared with the user (accessed by them).
-     */
     @Transactional(readOnly = true)
     public List<SharedWithMeItem> getSharesSharedWithMe(Integer userId) {
         List<ShareAccessLog> accessLogs = shareAccessLogRepository.findByAccessingUserId(userId);
@@ -888,10 +714,6 @@ public class SharedResourceService {
                 .filter(item -> item != null)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Get saved shares for a user.
-     */
     @Transactional(readOnly = true)
     public List<SharedWithMeItem> getSavedShares(Integer userId) {
         List<ShareAccessLog> accessLogs = shareAccessLogRepository.findSavedByAccessingUserId(userId);
@@ -901,10 +723,6 @@ public class SharedResourceService {
                 .filter(item -> item != null)
                 .collect(Collectors.toList());
     }
-
-    /**
-     * Toggle save status for a share.
-     */
     @Transactional
     public boolean toggleSaveShare(String token, Integer userId) {
         SharedResource share = sharedResourceRepository.findByShareToken(token)
@@ -919,7 +737,6 @@ public class SharedResourceService {
             shareAccessLogRepository.save(log);
             return log.getIsSaved();
         } else {
-            // Create new log with saved status
             ShareAccessLog newLog = ShareAccessLog.builder()
                     .accessingUserId(userId)
                     .sharedResource(share)
@@ -979,20 +796,8 @@ public class SharedResourceService {
                 .lastName("#" + ownerId)
                 .build();
     }
-
-    // ==========================================================================
-    // PUBLIC SHARES - Get publicly discoverable shares
-    // ==========================================================================
-
-    /**
-     * Get all public shares (including all users' shares).
-     * Uses visibility = PUBLIC to determine public shares.
-     * Public shares are visible to everyone by design.
-     */
     @Transactional(readOnly = true)
     public List<PublicShareItem> getPublicShares(Integer requestingUserId) {
-        // Public shares are visible to everyone, including the owner
-        // This allows users to verify their public shares appear correctly
         List<SharedResource> publicShares = sharedResourceRepository.findAllPublicShares(
                 LocalDateTime.now(), ShareVisibility.PUBLIC);
 
@@ -1001,10 +806,6 @@ public class SharedResourceService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Make a share public or private.
-     * Updates both visibility and isPublic fields for backward compatibility.
-     */
     @Transactional
     public void setSharePublic(String token, Integer userId, boolean isPublic) {
         SharedResource share = sharedResourceRepository.findByTokenAndOwner(token, userId)
@@ -1012,7 +813,6 @@ public class SharedResourceService {
                         "Share not found or you don't have permission to modify it"));
 
         share.setIsPublic(isPublic);
-        // Also update visibility for consistency
         share.setVisibility(isPublic ? ShareVisibility.PUBLIC : ShareVisibility.LINK_ONLY);
         sharedResourceRepository.save(share);
 
@@ -1021,8 +821,6 @@ public class SharedResourceService {
 
     private PublicShareItem mapToPublicShareItem(SharedResource share, Integer requestingUserId) {
         PublicShareItem.OwnerInfo ownerInfo = fetchPublicOwnerInfo(share.getOwnerUserId());
-
-        // Determine if this share belongs to the requesting user
         boolean isOwnShare = requestingUserId != null && requestingUserId.equals(share.getOwnerUserId());
 
         return PublicShareItem.builder()

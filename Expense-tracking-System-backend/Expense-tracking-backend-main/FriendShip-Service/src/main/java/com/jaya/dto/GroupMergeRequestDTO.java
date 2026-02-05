@@ -11,5 +11,5 @@ public class GroupMergeRequestDTO {
     private String mergedGroupName;
     private String mergedGroupDescription;
     private Boolean deleteSourceGroup;
-    private String conflictResolution; // "keep_target", "keep_source", "merge"
+    private String conflictResolution;
 }

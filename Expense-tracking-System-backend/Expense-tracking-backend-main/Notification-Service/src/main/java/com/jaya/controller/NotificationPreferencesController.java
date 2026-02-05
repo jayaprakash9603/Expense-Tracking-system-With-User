@@ -11,12 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-/**
- * NotificationPreferencesController
- * REST controller for managing user notification preferences
- * Provides endpoints for CRUD operations on notification settings
- */
 @RestController
 @RequestMapping("/api/notification-preferences")
 @RequiredArgsConstructor
@@ -29,13 +23,6 @@ public class NotificationPreferencesController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Get notification preferences for the current user
-     * Creates default preferences if none exist
-     * 
-     * @param jwt JWT token from Authorization header
-     * @return Notification preferences for the user
-     */
     @GetMapping
     public ResponseEntity<NotificationPreferencesResponseDTO> getPreferences(
             @RequestHeader("Authorization") String jwt) {
@@ -51,14 +38,6 @@ public class NotificationPreferencesController {
         }
     }
 
-    /**
-     * Update notification preferences for the current user
-     * Supports partial updates - only provided fields are updated
-     * 
-     * @param jwt     JWT token from Authorization header
-     * @param request Update request with new preference values
-     * @return Updated notification preferences
-     */
     @PutMapping
     public ResponseEntity<NotificationPreferencesResponseDTO> updatePreferences(
             @RequestHeader("Authorization") String jwt,
@@ -75,12 +54,6 @@ public class NotificationPreferencesController {
         }
     }
 
-    /**
-     * Reset notification preferences to default values
-     * 
-     * @param jwt JWT token from Authorization header
-     * @return Default notification preferences
-     */
     @PostMapping("/reset")
     public ResponseEntity<NotificationPreferencesResponseDTO> resetToDefaults(
             @RequestHeader("Authorization") String jwt) {
@@ -96,12 +69,6 @@ public class NotificationPreferencesController {
         }
     }
 
-    /**
-     * Delete notification preferences for the current user
-     * 
-     * @param jwt JWT token from Authorization header
-     * @return No content
-     */
     @DeleteMapping
     public ResponseEntity<Void> deletePreferences(
             @RequestHeader("Authorization") String jwt) {
@@ -117,12 +84,6 @@ public class NotificationPreferencesController {
         }
     }
 
-    /**
-     * Check if notification preferences exist for the current user
-     * 
-     * @param jwt JWT token from Authorization header
-     * @return True if preferences exist, false otherwise
-     */
     @GetMapping("/exists")
     public ResponseEntity<Boolean> preferencesExist(
             @RequestHeader("Authorization") String jwt) {
@@ -138,13 +99,6 @@ public class NotificationPreferencesController {
         }
     }
 
-    /**
-     * Create default notification preferences for the current user
-     * Returns existing preferences if already created
-     * 
-     * @param jwt JWT token from Authorization header
-     * @return Created default preferences
-     */
     @PostMapping("/default")
     public ResponseEntity<NotificationPreferencesResponseDTO> createDefaults(
             @RequestHeader("Authorization") String jwt) {

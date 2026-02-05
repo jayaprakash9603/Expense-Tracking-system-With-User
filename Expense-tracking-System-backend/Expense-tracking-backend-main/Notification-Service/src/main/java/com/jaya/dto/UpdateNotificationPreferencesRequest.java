@@ -4,26 +4,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-/**
- * UpdateNotificationPreferencesRequest
- * DTO for updating notification preferences
- * Supports partial updates - all fields are optional
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UpdateNotificationPreferencesRequest {
 
-    // Global Settings
     private Boolean masterEnabled;
     private Boolean doNotDisturb;
     private Boolean notificationSound;
     private Boolean browserNotifications;
     private Boolean floatingNotifications;
 
-    // Service Level Toggles
     private Boolean expenseServiceEnabled;
     private Boolean budgetServiceEnabled;
     private Boolean billServiceEnabled;
@@ -34,13 +26,11 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean analyticsServiceEnabled;
     private Boolean systemNotificationsEnabled;
 
-    // Expense Service Notifications
     private Boolean expenseAddedEnabled;
     private Boolean expenseUpdatedEnabled;
     private Boolean expenseDeletedEnabled;
     private Boolean largeExpenseAlertEnabled;
 
-    // Budget Service Notifications
     private Boolean budgetExceededEnabled;
     private Boolean budgetWarningEnabled;
     private Boolean budgetLimitApproachingEnabled;
@@ -48,7 +38,6 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean budgetUpdatedEnabled;
     private Boolean budgetDeletedEnabled;
 
-    // Bill Service Notifications
     private Boolean billAddedEnabled;
     private Boolean billUpdatedEnabled;
     private Boolean billDeletedEnabled;
@@ -56,18 +45,15 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean billOverdueEnabled;
     private Boolean billPaidEnabled;
 
-    // Payment Method Service Notifications
     private Boolean paymentMethodAddedEnabled;
     private Boolean paymentMethodUpdatedEnabled;
     private Boolean paymentMethodRemovedEnabled;
 
-    // Category Service Notifications
     private Boolean categoryCreatedEnabled;
     private Boolean categoryUpdatedEnabled;
     private Boolean categoryDeletedEnabled;
     private Boolean categoryBudgetExceededEnabled;
 
-    // Friend Service Notifications
     private Boolean friendRequestReceivedEnabled;
     private Boolean friendRequestAcceptedEnabled;
     private Boolean friendRequestRejectedEnabled;
@@ -78,7 +64,6 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean userBlockedEnabled;
     private Boolean userUnblockedEnabled;
 
-    // Friend Activity Service Notifications
     private Boolean friendExpenseCreatedEnabled;
     private Boolean friendExpenseUpdatedEnabled;
     private Boolean friendExpenseDeletedEnabled;
@@ -95,20 +80,16 @@ public class UpdateNotificationPreferencesRequest {
     private Boolean friendPaymentMethodUpdatedEnabled;
     private Boolean friendPaymentMethodDeletedEnabled;
 
-    // Analytics Service Notifications
     private Boolean weeklySummaryEnabled;
     private Boolean monthlyReportEnabled;
     private Boolean spendingTrendAlertEnabled;
 
-    // System Notifications
     private Boolean securityAlertEnabled;
     private Boolean appUpdateEnabled;
     private Boolean maintenanceNoticeEnabled;
 
-    // JSON Configuration
     private String notificationPreferencesJson;
 
-    // Legacy fields
     private Boolean budgetAlertsEnabled;
     private Boolean dailyRemindersEnabled;
     private Boolean weeklyReportsEnabled;

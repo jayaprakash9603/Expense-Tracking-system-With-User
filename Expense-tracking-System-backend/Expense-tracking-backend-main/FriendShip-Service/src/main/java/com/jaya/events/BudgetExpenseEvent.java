@@ -1,6 +1,5 @@
 package com.jaya.events;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,5 +13,5 @@ public class BudgetExpenseEvent {
     private Integer userId;
     private Integer expenseId;
     private Set<Integer> budgetIds;
-    private String action; // "ADD", "UPDATE", "REMOVE"
+    private String action;
 }

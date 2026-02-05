@@ -7,11 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-
-/**
- * Event DTO for Payment Method-related events from Payment-Method-Service
- * This matches the PaymentMethodEvent structure from Payment-method-Service
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,12 +18,12 @@ public class PaymentMethodEventDTO implements Serializable {
     private Integer userId;
     private Integer expenseId;
     private String paymentMethodName;
-    private String paymentType; // income, expense
+    private String paymentType;
     private String description;
     private String icon;
     private String color;
-    private String eventType; // CREATE, UPDATE, DELETE
+    private String eventType;
 
     @Builder.Default
-    private Boolean notifyUser = false; // Flag to indicate if notification should be sent to user
+    private Boolean notifyUser = false;
 }

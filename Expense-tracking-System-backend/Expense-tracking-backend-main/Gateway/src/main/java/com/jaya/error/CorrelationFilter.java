@@ -10,11 +10,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
-
-/**
- * Injects a correlation ID (X-Request-ID) if missing and logs request
- * lifecycle.
- */
 @Component
 public class CorrelationFilter implements GlobalFilter, Ordered {
 
@@ -44,6 +39,6 @@ public class CorrelationFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return -1; // run early
+        return -1;
     }
 }

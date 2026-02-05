@@ -1,4 +1,4 @@
-   
+
 package com.jaya.controller;
 
 import com.jaya.dto.*;
@@ -60,8 +60,8 @@ public class GroupController {
 
     @GetMapping("/get-group-by-id")
     public Optional<GroupResponseDTO> getGroupByIdwithService(
-            @RequestParam Integer id,@RequestParam Integer userId) throws Exception {
-           return groupService.getGroupById(id,userId);
+            @RequestParam Integer id, @RequestParam Integer userId) throws Exception {
+        return groupService.getGroupById(id, userId);
 
     }
 
@@ -227,8 +227,7 @@ public class GroupController {
                     "canDeleteExpenses", groupService.hasPermissionInGroup(groupId, user.getId(), "delete_expenses"),
                     "canViewExpenses", groupService.hasPermissionInGroup(groupId, user.getId(), "view_expenses"),
                     "canPromoteMembers", groupService.hasPermissionInGroup(groupId, user.getId(), "promote_members"),
-                    "canDemoteMembers", groupService.hasPermissionInGroup(groupId, user.getId(), "demote_members")
-            );
+                    "canDemoteMembers", groupService.hasPermissionInGroup(groupId, user.getId(), "demote_members"));
             return ResponseEntity.ok(permissions);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -275,7 +274,6 @@ public class GroupController {
         }
     }
 
-    // Bulk operations
     @PostMapping("/{groupId}/members/bulk-add")
     public ResponseEntity<?> bulkAddMembers(
             @RequestHeader("Authorization") String jwt,
@@ -289,12 +287,10 @@ public class GroupController {
                     groupService.addMemberToGroupWithRole(
                             groupId, request.getUserId(), request.getNewRole(), user.getId());
                 } catch (Exception e) {
-                    // Log error but continue with other members
                     System.err.println("Failed to add member " + request.getUserId() + ": " + e.getMessage());
                 }
             }
 
-            // Return updated group
             Optional<GroupResponseDTO> updatedGroup = groupService.getGroupById(groupId, user.getId());
             return ResponseEntity.ok(updatedGroup.orElse(null));
         } catch (Exception e) {
@@ -314,12 +310,10 @@ public class GroupController {
                 try {
                     groupService.removeMemberFromGroup(groupId, userId, user.getId());
                 } catch (Exception e) {
-                    // Log error but continue with other members
                     System.err.println("Failed to remove member " + userId + ": " + e.getMessage());
                 }
             }
 
-            // Return updated group
             Optional<GroupResponseDTO> updatedGroup = groupService.getGroupById(groupId, user.getId());
             return ResponseEntity.ok(updatedGroup.orElse(null));
         } catch (Exception e) {
@@ -327,7 +321,6 @@ public class GroupController {
         }
     }
 
-    // Role management endpoints
     @GetMapping("/roles")
     public ResponseEntity<?> getAvailableRoles() {
         try {
@@ -340,9 +333,7 @@ public class GroupController {
                                     "canEditGroupSettings", GroupRole.ADMIN.canEditGroupSettings(),
                                     "canManageMembers", GroupRole.ADMIN.canManageMembers(),
                                     "canManageExpenses", GroupRole.ADMIN.canManageExpenses(),
-                                    "canPromoteMembers", GroupRole.ADMIN.canPromoteMembers()
-                            )
-                    ),
+                                    "canPromoteMembers", GroupRole.ADMIN.canPromoteMembers())),
                     "MODERATOR", Map.of(
                             "name", GroupRole.MODERATOR.getDisplayName(),
                             "description", GroupRole.MODERATOR.getDescription(),
@@ -351,9 +342,7 @@ public class GroupController {
                                     "canEditGroupSettings", GroupRole.MODERATOR.canEditGroupSettings(),
                                     "canManageMembers", GroupRole.MODERATOR.canManageMembers(),
                                     "canManageExpenses", GroupRole.MODERATOR.canManageExpenses(),
-                                    "canPromoteMembers", GroupRole.MODERATOR.canPromoteMembers()
-                            )
-                    ),
+                                    "canPromoteMembers", GroupRole.MODERATOR.canPromoteMembers())),
                     "MEMBER", Map.of(
                             "name", GroupRole.MEMBER.getDisplayName(),
                             "description", GroupRole.MEMBER.getDescription(),
@@ -362,9 +351,7 @@ public class GroupController {
                                     "canEditGroupSettings", GroupRole.MEMBER.canEditGroupSettings(),
                                     "canManageMembers", GroupRole.MEMBER.canManageMembers(),
                                     "canManageExpenses", GroupRole.MEMBER.canManageExpenses(),
-                                    "canPromoteMembers", GroupRole.MEMBER.canPromoteMembers()
-                            )
-                    ),
+                                    "canPromoteMembers", GroupRole.MEMBER.canPromoteMembers())),
                     "VIEWER", Map.of(
                             "name", GroupRole.VIEWER.getDisplayName(),
                             "description", GroupRole.VIEWER.getDescription(),
@@ -373,19 +360,13 @@ public class GroupController {
                                     "canEditGroupSettings", GroupRole.VIEWER.canEditGroupSettings(),
                                     "canManageMembers", GroupRole.VIEWER.canManageMembers(),
                                     "canManageExpenses", GroupRole.VIEWER.canManageExpenses(),
-                                    "canPromoteMembers", GroupRole.VIEWER.canPromoteMembers()
-                            )
-                    )
-            );
+                                    "canPromoteMembers", GroupRole.VIEWER.canPromoteMembers())));
             return ResponseEntity.ok(roles);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-
-
-    // Group Statistics and Analytics
     @GetMapping("/{groupId}/stats")
     public ResponseEntity<?> getGroupStatistics(
             @RequestHeader("Authorization") String jwt,
@@ -399,7 +380,6 @@ public class GroupController {
         }
     }
 
-    // Group Activity Log
     @GetMapping("/{groupId}/activity")
     public ResponseEntity<?> getGroupActivity(
             @RequestHeader("Authorization") String jwt,
@@ -415,7 +395,6 @@ public class GroupController {
         }
     }
 
-    // Search Groups
     @GetMapping("/search")
     public ResponseEntity<?> searchGroups(
             @RequestHeader("Authorization") String jwt,
@@ -431,7 +410,6 @@ public class GroupController {
         }
     }
 
-    // Group Invitations
     @PostMapping("/{groupId}/invite")
     public ResponseEntity<?> inviteUserToGroup(
             @RequestHeader("Authorization") String jwt,
@@ -442,8 +420,7 @@ public class GroupController {
                 groupId,
                 inviteRequest.getUserId(),
                 inviteRequest.getRole(),
-                user.getId()
-        );
+                user.getId());
         return ResponseEntity.ok(result);
     }
 
@@ -454,6 +431,7 @@ public class GroupController {
         List<Map<String, Object>> invitations = groupService.getPendingInvitations(user.getId());
         return ResponseEntity.ok(invitations);
     }
+
     @GetMapping("/invitations/sent")
     public ResponseEntity<List<Map<String, Object>>> getSentInvitations(
             @RequestHeader("Authorization") String jwt) throws Exception {
@@ -472,7 +450,6 @@ public class GroupController {
         return ResponseEntity.ok(result);
     }
 
-    // Member Management Advanced
     @GetMapping("/{groupId}/members/by-role/{role}")
     public ResponseEntity<?> getMembersByRole(
             @RequestHeader("Authorization") String jwt,
@@ -523,7 +500,6 @@ public class GroupController {
         return ResponseEntity.ok(result);
     }
 
-    // Group Settings and Configuration
     @PutMapping("/{groupId}/settings")
     public ResponseEntity<?> updateGroupSettings(
             @RequestHeader("Authorization") String jwt,
@@ -551,7 +527,6 @@ public class GroupController {
         }
     }
 
-    // Group Templates and Duplication
     @PostMapping("/{groupId}/duplicate")
     public ResponseEntity<?> duplicateGroup(
             @RequestHeader("Authorization") String jwt,
@@ -566,7 +541,6 @@ public class GroupController {
         }
     }
 
-    // Group Archive/Restore
     @PutMapping("/{groupId}/archive")
     public ResponseEntity<?> archiveGroup(
             @RequestHeader("Authorization") String jwt,
@@ -605,7 +579,6 @@ public class GroupController {
         }
     }
 
-    // Group Export/Import
     @GetMapping("/{groupId}/export")
     public ResponseEntity<?> exportGroupData(
             @RequestHeader("Authorization") String jwt,
@@ -620,7 +593,6 @@ public class GroupController {
         }
     }
 
-    // Group Recommendations
     @GetMapping("/recommendations")
     public ResponseEntity<?> getGroupRecommendations(
             @RequestHeader("Authorization") String jwt,
@@ -634,7 +606,6 @@ public class GroupController {
         }
     }
 
-    // Group Merge
     @PostMapping("/{sourceGroupId}/merge/{targetGroupId}")
     public ResponseEntity<?> mergeGroups(
             @RequestHeader("Authorization") String jwt,
@@ -643,36 +614,28 @@ public class GroupController {
             @RequestBody GroupMergeRequestDTO mergeRequest) {
         try {
             UserDto user = userService.getuserProfile(jwt);
-            Map<String, Object> result = groupService.mergeGroups(sourceGroupId, targetGroupId, mergeRequest, user.getId());
+            Map<String, Object> result = groupService.mergeGroups(sourceGroupId, targetGroupId, mergeRequest,
+                    user.getId());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
-
-
-
     @GetMapping("/{groupId}/friends-not-in-group")
-public ResponseEntity<?> getFriendsNotInGroup(
-        @RequestHeader("Authorization") String jwt,
-        @PathVariable Integer groupId) {
-    try {
-        UserDto user = userService.getuserProfile(jwt);
-        List<UserDto> friendsNotInGroup = groupService.getFriendsNotInGroup(user.getId(), groupId);
-        return ResponseEntity.ok(friendsNotInGroup);
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    public ResponseEntity<?> getFriendsNotInGroup(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer groupId) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            List<UserDto> friendsNotInGroup = groupService.getFriendsNotInGroup(user.getId(), groupId);
+            return ResponseEntity.ok(friendsNotInGroup);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
-}
 
-
-
-
-
-
-
- @GetMapping("/{groupId}/invitations/sent")
+    @GetMapping("/{groupId}/invitations/sent")
     public ResponseEntity<List<Map<String, Object>>> getSentInvitationsByGroupId(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) throws Exception {
@@ -681,19 +644,13 @@ public ResponseEntity<?> getFriendsNotInGroup(
         return ResponseEntity.ok(invitations);
     }
 
-
-
-
-
     @PutMapping("/invitations/{invitationId}/cancel")
-public ResponseEntity<?> cancelInvitationStatusOnly(
-        @RequestHeader("Authorization") String jwt,
-        @PathVariable Integer invitationId) throws Exception {
-    UserDto user = userService.getuserProfile(jwt);
-    groupService.updateInvitationStatusToCancelled(invitationId);
-    return ResponseEntity.ok(Map.of("message", "Invitation status updated to CANCELLED"));
-}
-
-
+    public ResponseEntity<?> cancelInvitationStatusOnly(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer invitationId) throws Exception {
+        UserDto user = userService.getuserProfile(jwt);
+        groupService.updateInvitationStatusToCancelled(invitationId);
+        return ResponseEntity.ok(Map.of("message", "Invitation status updated to CANCELLED"));
+    }
 
 }

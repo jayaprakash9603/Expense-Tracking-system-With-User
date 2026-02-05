@@ -8,12 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
-/**
- * DTO for representing a share that has been shared with a user (accessed by
- * them).
- * Used in the "Shared With Me" list.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,14 +28,7 @@ public class SharedWithMeItem {
     private Integer myAccessCount;
     private Boolean isSaved;
 
-    /**
-     * Owner information.
-     */
     private OwnerInfo owner;
-
-    /**
-     * Status derived from isActive and expiresAt.
-     */
     public String getStatus() {
         if (!Boolean.TRUE.equals(isActive)) {
             return "REVOKED";

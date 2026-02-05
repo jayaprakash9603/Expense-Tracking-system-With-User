@@ -8,23 +8,6 @@ import org.springframework.kafka.support.SendResult;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Abstract Base Class for Notification Event Producers
- * Implements Template Method Pattern and follows SOLID principles
- * 
- * SOLID Principles Applied:
- * - Single Responsibility: Only handles Kafka message production
- * - Open/Closed: Open for extension (subclasses), closed for modification
- * - Liskov Substitution: Subclasses can be used interchangeably
- * - Interface Segregation: Focused interface for event production
- * - Dependency Inversion: Depends on KafkaTemplate abstraction
- * 
- * DRY Principle:
- * - Reuses common Kafka production logic across all event types
- * - Eliminates code duplication in concrete producers
- * 
- * @param <T> Event type that extends Serializable
- */
 @Slf4j
 public abstract class NotificationEventProducer<T> {
 
@@ -37,33 +20,20 @@ public abstract class NotificationEventProducer<T> {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Template Method - defines the algorithm skeleton
-     * Sends event asynchronously to Kafka
-     * 
-     * @param event Event to send
-     */
     public void sendEvent(T event) {
         try {
-            // Hook method - allow subclasses to validate
             validateEvent(event);
 
-            // Hook method - get topic name from subclass
             String topic = getTopicName();
 
-            // Hook method - generate partition key
             String key = generatePartitionKey(event);
 
-            // Hook method - before send
             beforeSend(event);
 
-            // Log event details
             logEventDetails(event);
 
-            // Send to Kafka
             CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
 
-            // Handle success/failure asynchronously
             future.whenComplete((result, ex) -> {
                 if (ex == null) {
                     afterSendSuccess(event, result);
@@ -82,13 +52,6 @@ public abstract class NotificationEventProducer<T> {
         }
     }
 
-    /**
-     * Send event synchronously (blocks until result)
-     * Use sparingly - prefer async sendEvent()
-     * 
-     * @param event Event to send
-     * @return SendResult
-     */
     public SendResult<String, Object> sendEventSync(T event) {
         try {
             validateEvent(event);
@@ -107,87 +70,29 @@ public abstract class NotificationEventProducer<T> {
         }
     }
 
-    // ========== Abstract Methods (must be implemented by subclasses) ==========
-
-    /**
-     * Get the Kafka topic name for this event type
-     * 
-     * @return Topic name
-     */
     protected abstract String getTopicName();
 
-    /**
-     * Get the event type name for logging
-     * 
-     * @return Event type name (e.g., "Friendship", "Bill", "Budget")
-     */
     protected abstract String getEventTypeName();
 
-    // ========== Hook Methods (optional overrides) ==========
-
-    /**
-     * Validate event before sending
-     * Override to add custom validation
-     * 
-     * @param event Event to validate
-     */
     protected void validateEvent(T event) {
         if (event == null) {
             throw new IllegalArgumentException("Event cannot be null");
         }
     }
 
-    /**
-     * Generate partition key for Kafka
-     * Default: null (round-robin)
-     * Override to implement custom partitioning
-     * 
-     * @param event Event
-     * @return Partition key
-     */
     protected String generatePartitionKey(T event) {
-        return null; // Default: round-robin
+        return null;
     }
 
-    /**
-     * Hook called before sending event
-     * Override to add pre-send logic
-     * 
-     * @param event Event
-     */
     protected void beforeSend(T event) {
-        // Default: no-op
     }
 
-    /**
-     * Hook called after successful send
-     * Override to add post-send logic
-     * 
-     * @param event  Event
-     * @param result Send result
-     */
     protected void afterSendSuccess(T event, SendResult<String, Object> result) {
-        // Default: no-op
     }
 
-    /**
-     * Hook called after failed send
-     * Override to add error handling
-     * 
-     * @param event     Event
-     * @param exception Exception
-     */
     protected void afterSendFailure(T event, Throwable exception) {
-        // Default: no-op
     }
 
-    // ========== Helper Methods ==========
-
-    /**
-     * Log event details for debugging
-     * 
-     * @param event Event to log
-     */
     private void logEventDetails(T event) {
         try {
             String json = objectMapper.writeValueAsString(event);

@@ -15,22 +15,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * FriendshipNotificationService
- * Service layer for sending friendship-related notifications
- * 
- * SOLID Principles:
- * - Single Responsibility: Only handles friendship notification business logic
- * - Dependency Inversion: Depends on FriendshipNotificationProducer abstraction
- * 
- * DRY Principle:
- * - Common event building logic extracted to helper methods
- * - Reuses producer infrastructure
- * 
- * All methods are @Async to avoid blocking the main business logic
- * 
- * @author Friendship Service Team
- */
 @Slf4j
 @Service
 public class FriendshipNotificationService {
@@ -42,13 +26,6 @@ public class FriendshipNotificationService {
         this.producer = producer;
     }
 
-    /**
-     * Send notification when a friend request is sent
-     * Notifies the RECIPIENT that they received a friend request
-     * 
-     * @param friendship The friendship entity
-     * @param requester  The user who sent the request
-     */
     @Async
     public void sendFriendRequestSentNotification(Friendship friendship, UserDto requester) {
         try {
@@ -57,8 +34,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRecipientId()) // Recipient receives notification
-                    .actorId(friendship.getRequesterId()) // Requester is the actor
+                    .userId(friendship.getRecipientId())
+                    .actorId(friendship.getRequesterId())
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_RECEIVED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -78,13 +55,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a friend request is accepted
-     * Notifies the REQUESTER that their friend request was accepted
-     * 
-     * @param friendship The friendship entity
-     * @param acceptor   The user who accepted the request (recipient)
-     */
     @Async
     public void sendFriendRequestAcceptedNotification(Friendship friendship, UserDto acceptor) {
         try {
@@ -93,8 +63,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRequesterId()) // Requester receives notification
-                    .actorId(friendship.getRecipientId()) // Recipient (acceptor) is the actor
+                    .userId(friendship.getRequesterId())
+                    .actorId(friendship.getRecipientId())
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_ACCEPTED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -116,13 +86,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a friend request is rejected
-     * Notifies the REQUESTER that their friend request was rejected
-     * 
-     * @param friendship The friendship entity
-     * @param rejector   The user who rejected the request (recipient)
-     */
     @Async
     public void sendFriendRequestRejectedNotification(Friendship friendship, UserDto rejector) {
         try {
@@ -131,8 +94,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRequesterId()) // Requester receives notification
-                    .actorId(friendship.getRecipientId()) // Recipient (rejector) is the actor
+                    .userId(friendship.getRequesterId())
+                    .actorId(friendship.getRecipientId())
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_REJECTED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -152,13 +115,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a friend request is cancelled
-     * Notifies the RECIPIENT that the requester cancelled their friend request
-     * 
-     * @param friendship The friendship entity
-     * @param canceller  The user who cancelled the request (requester)
-     */
     @Async
     public void sendFriendRequestCancelledNotification(Friendship friendship, UserDto canceller) {
         try {
@@ -167,8 +123,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(friendship.getRecipientId()) // Recipient receives notification
-                    .actorId(friendship.getRequesterId()) // Requester (canceller) is the actor
+                    .userId(friendship.getRecipientId())
+                    .actorId(friendship.getRequesterId())
                     .action(FriendshipNotificationEvent.FRIEND_REQUEST_CANCELLED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -188,14 +144,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a friendship is removed
-     * Notifies the OTHER user that the friendship was terminated
-     * 
-     * @param friendship The friendship entity
-     * @param remover    The user who removed the friendship
-     * @param otherId    The other user's ID (who receives notification)
-     */
     @Async
     public void sendFriendshipRemovedNotification(Friendship friendship, UserDto remover, Integer otherId) {
         try {
@@ -203,8 +151,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(otherId) // Other user receives notification
-                    .actorId(remover.getId()) // Remover is the actor
+                    .userId(otherId)
+                    .actorId(remover.getId())
                     .action(FriendshipNotificationEvent.FRIENDSHIP_REMOVED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -224,16 +172,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when access level is changed
-     * Notifies the OTHER user that their access level was modified
-     * 
-     * @param friendship The friendship entity
-     * @param changer    The user who changed the access level
-     * @param otherId    The other user's ID (who receives notification)
-     * @param oldAccess  Previous access level
-     * @param newAccess  New access level
-     */
     @Async
     public void sendAccessLevelChangedNotification(Friendship friendship, UserDto changer,
             Integer otherId, AccessLevel oldAccess,
@@ -243,8 +181,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendship.getId())
-                    .userId(otherId) // Other user receives notification
-                    .actorId(changer.getId()) // Changer is the actor
+                    .userId(otherId)
+                    .actorId(changer.getId())
                     .action(FriendshipNotificationEvent.ACCESS_LEVEL_CHANGED)
                     .requesterId(friendship.getRequesterId())
                     .recipientId(friendship.getRecipientId())
@@ -268,27 +206,15 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a user is blocked
-     * Note: Typically, we might NOT notify the blocked user for privacy reasons
-     * This method is here for completeness but may not be used
-     * 
-     * @param friendshipId The friendship ID (if exists)
-     * @param blocker      The user who blocked
-     * @param blockedId    The blocked user's ID
-     */
     @Async
     public void sendUserBlockedNotification(Integer friendshipId, UserDto blocker, Integer blockedId) {
         try {
             log.debug("User {} blocked user {}", blocker.getId(), blockedId);
 
-            // Typically we don't notify blocked users for privacy/security
-            // This method exists for system logging or admin purposes
-
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendshipId)
-                    .userId(blockedId) // Blocked user (may not receive)
-                    .actorId(blocker.getId()) // Blocker is the actor
+                    .userId(blockedId)
+                    .actorId(blocker.getId())
                     .action(FriendshipNotificationEvent.USER_BLOCKED)
                     .friendshipStatus("BLOCKED")
                     .actorName(getFullName(blocker))
@@ -297,8 +223,6 @@ public class FriendshipNotificationService {
                     .metadata(buildBlockedMetadata(blocker, blockedId))
                     .build();
 
-            // Note: May want to skip sending this to the user
-            // producer.sendEvent(event);
             log.info("User {} blocked user {} (notification not sent)", blocker.getId(), blockedId);
 
         } catch (Exception e) {
@@ -306,13 +230,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Send notification when a user is unblocked
-     * 
-     * @param friendshipId The friendship ID (if exists)
-     * @param unblocker    The user who unblocked
-     * @param unblockedId  The unblocked user's ID
-     */
     @Async
     public void sendUserUnblockedNotification(Integer friendshipId, UserDto unblocker, Integer unblockedId) {
         try {
@@ -320,8 +237,8 @@ public class FriendshipNotificationService {
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
                     .friendshipId(friendshipId)
-                    .userId(unblockedId) // Unblocked user receives notification
-                    .actorId(unblocker.getId()) // Unblocker is the actor
+                    .userId(unblockedId)
+                    .actorId(unblocker.getId())
                     .action(FriendshipNotificationEvent.USER_UNBLOCKED)
                     .friendshipStatus("UNBLOCKED")
                     .actorName(getFullName(unblocker))
@@ -339,11 +256,6 @@ public class FriendshipNotificationService {
         }
     }
 
-    // ========== Helper Methods ==========
-
-    /**
-     * Build metadata for friend request
-     */
     private Map<String, Object> buildFriendRequestMetadata(Friendship friendship, UserDto requester) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request");
@@ -355,9 +267,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for accepted friend request
-     */
     private Map<String, Object> buildAcceptedMetadata(Friendship friendship, UserDto acceptor) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_accepted");
@@ -369,9 +278,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for rejected friend request
-     */
     private Map<String, Object> buildRejectedMetadata(Friendship friendship, UserDto rejector) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_rejected");
@@ -381,9 +287,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for cancelled friend request
-     */
     private Map<String, Object> buildCancelledMetadata(Friendship friendship, UserDto canceller) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_cancelled");
@@ -393,9 +296,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for removed friendship
-     */
     private Map<String, Object> buildRemovedMetadata(Friendship friendship, UserDto remover) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friendship_removed");
@@ -405,9 +305,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for access level change
-     */
     private Map<String, Object> buildAccessChangedMetadata(Friendship friendship, UserDto changer,
             AccessLevel oldAccess, AccessLevel newAccess) {
         Map<String, Object> metadata = new HashMap<>();
@@ -421,9 +318,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for blocked user
-     */
     private Map<String, Object> buildBlockedMetadata(UserDto blocker, Integer blockedId) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "user_blocked");
@@ -434,9 +328,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Build metadata for unblocked user
-     */
     private Map<String, Object> buildUnblockedMetadata(UserDto unblocker, Integer unblockedId) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "user_unblocked");
@@ -447,17 +338,6 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    /**
-     * Send notification when a user shares data with a friend
-     * Notifies the FRIEND that they received shared data
-     * 
-     * @param sharer        The user who is sharing data
-     * @param friendId      The friend who will receive the notification
-     * @param shareUrl      The URL to access the shared data
-     * @param shareName     The name/description of the share
-     * @param resourceCount Number of resources being shared
-     * @param message       Optional personal message from the sharer
-     */
     @Async
     public void sendDataSharedNotification(UserDto sharer, Integer friendId, String shareUrl,
             String shareName, int resourceCount, String message) {
@@ -476,9 +356,9 @@ public class FriendshipNotificationService {
             }
 
             FriendshipNotificationEvent event = FriendshipNotificationEvent.builder()
-                    .friendshipId(null) // No friendship ID for data sharing
-                    .userId(friendId) // Friend receives notification
-                    .actorId(sharer.getId()) // Sharer is the actor
+                    .friendshipId(null)
+                    .userId(friendId)
+                    .actorId(sharer.getId())
                     .action(FriendshipNotificationEvent.DATA_SHARED)
                     .requesterId(sharer.getId())
                     .recipientId(friendId)
@@ -497,17 +377,10 @@ public class FriendshipNotificationService {
         }
     }
 
-    /**
-     * Safely convert AccessLevel to String
-     */
     private String getAccessLevelString(AccessLevel accessLevel) {
         return accessLevel != null ? accessLevel.name() : "NONE";
     }
 
-    /**
-     * Get full name from UserDto
-     * Combines firstName and lastName, fallback to username
-     */
     private String getFullName(UserDto user) {
         if (user == null) {
             return "Unknown User";
@@ -521,7 +394,6 @@ public class FriendshipNotificationService {
             fullName = fullName.isEmpty() ? user.getLastName() : fullName + " " + user.getLastName();
         }
 
-        // Fallback to username if no name is set
         if (fullName.trim().isEmpty() && user.getUsername() != null) {
             fullName = user.getUsername();
         }

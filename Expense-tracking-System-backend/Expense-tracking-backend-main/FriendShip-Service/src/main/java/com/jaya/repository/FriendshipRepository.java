@@ -20,10 +20,6 @@ import java.util.Set;
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, Integer> {
 
-        // ==================== OPTIMIZED: Single bidirectional lookup
-        // ====================
-        // This replaces calling findByRequesterIdAndRecipientId twice for both
-        // directions
         @Query("SELECT f FROM Friendship f WHERE " +
                         "(f.requesterId = :user1 AND f.recipientId = :user2) OR " +
                         "(f.requesterId = :user2 AND f.recipientId = :user1)")
@@ -33,8 +29,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         })
         Optional<Friendship> findBidirectional(@Param("user1") Integer user1, @Param("user2") Integer user2);
 
-        // ==================== OPTIMIZED: Bidirectional with status
-        // ====================
         @Query("SELECT f FROM Friendship f WHERE " +
                         "((f.requesterId = :user1 AND f.recipientId = :user2) OR " +
                         "(f.requesterId = :user2 AND f.recipientId = :user1)) " +
@@ -48,8 +42,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("user2") Integer user2,
                         @Param("status") FriendshipStatus status);
 
-        // ==================== OPTIMIZED: Batch check for multiple user pairs
-        // ====================
         @Query("SELECT f FROM Friendship f WHERE " +
                         "(f.requesterId = :userId AND f.recipientId IN :otherUserIds) OR " +
                         "(f.recipientId = :userId AND f.requesterId IN :otherUserIds)")
@@ -61,7 +53,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("userId") Integer userId,
                         @Param("otherUserIds") Set<Integer> otherUserIds);
 
-        // Single friendship lookup (bi-directional handled in service)
         @Query("SELECT f FROM Friendship f WHERE f.requesterId = :requester AND f.recipientId = :recipient")
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "50"),
@@ -70,7 +61,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         Optional<Friendship> findByRequesterIdAndRecipientId(@Param("requester") Integer requester,
                         @Param("recipient") Integer recipient);
 
-        // All friendships where user participates (any status)
         @Query("SELECT f FROM Friendship f WHERE f.requesterId = :user OR f.recipientId = :user")
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "200"),
@@ -78,8 +68,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         })
         List<Friendship> findByRequesterIdOrRecipientId(@Param("user") Integer user);
 
-        // Incoming requests by status (String overload retained for backward
-        // compatibility)
         @Query("SELECT f FROM Friendship f WHERE f.recipientId = :recipient AND f.status = :status")
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "100"),
@@ -135,7 +123,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         int countByRequesterIdAndStatus(@Param("requester") Integer requester,
                         @Param("status") FriendshipStatus status);
 
-        // Unified user+status filter (accepted/pending/etc.)
         @Query("SELECT f FROM Friendship f WHERE (f.requesterId = :userId OR f.recipientId = :userId) AND f.status = :status")
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "250"),
@@ -144,7 +131,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         List<Friendship> findByUserIdAndStatus(@Param("userId") Integer userId,
                         @Param("status") FriendshipStatus status);
 
-        // Bulk friend-of-friend fetch for suggestions
         @Query("SELECT f FROM Friendship f WHERE f.requesterId IN :userIds OR f.recipientId IN :userIds")
         @QueryHints({
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "500"),
@@ -152,7 +138,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
         })
         List<Friendship> findAllByRequesterIdInOrRecipientIdIn(@Param("userIds") Set<Integer> userIds);
 
-        // Report queries with date range filtering
         @Query("SELECT f FROM Friendship f WHERE (f.requesterId = :userId OR f.recipientId = :userId) " +
                         "AND (:status IS NULL OR f.status = :status) " +
                         "AND (:fromDate IS NULL OR f.createdAt >= :fromDate) " +
@@ -164,7 +149,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("toDate") LocalDateTime toDate,
                         Pageable pageable);
 
-        // Count friendships by status for report
         @Query("SELECT COUNT(f) FROM Friendship f WHERE (f.requesterId = :userId OR f.recipientId = :userId) " +
                         "AND f.status = :status " +
                         "AND (:fromDate IS NULL OR f.createdAt >= :fromDate) " +
@@ -175,7 +159,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("fromDate") LocalDateTime fromDate,
                         @Param("toDate") LocalDateTime toDate);
 
-        // Get friendships by access level for current user
         @Query("SELECT f FROM Friendship f WHERE " +
                         "((f.requesterId = :userId AND f.recipientAccess = :accessLevel) OR " +
                         "(f.recipientId = :userId AND f.requesterAccess = :accessLevel)) " +
@@ -184,7 +167,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("userId") Integer userId,
                         @Param("accessLevel") AccessLevel accessLevel);
 
-        // Count new friendships per month for activity chart
         @Query("SELECT FUNCTION('MONTH', f.createdAt) as month, COUNT(f) as count " +
                         "FROM Friendship f " +
                         "WHERE (f.requesterId = :userId OR f.recipientId = :userId) " +
@@ -195,7 +177,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("userId") Integer userId,
                         @Param("startDate") LocalDateTime startDate);
 
-        // Count requests sent per month
         @Query("SELECT FUNCTION('MONTH', f.createdAt) as month, COUNT(f) as count " +
                         "FROM Friendship f " +
                         "WHERE f.requesterId = :userId " +
@@ -205,7 +186,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Integer>
                         @Param("userId") Integer userId,
                         @Param("startDate") LocalDateTime startDate);
 
-        // Count requests received per month
         @Query("SELECT FUNCTION('MONTH', f.createdAt) as month, COUNT(f) as count " +
                         "FROM Friendship f " +
                         "WHERE f.recipientId = :userId " +

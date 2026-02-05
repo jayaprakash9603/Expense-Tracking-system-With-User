@@ -6,10 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
-/**
- * Response DTO for share-with-friend operation.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

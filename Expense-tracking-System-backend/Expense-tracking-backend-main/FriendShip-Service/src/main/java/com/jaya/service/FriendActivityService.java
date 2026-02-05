@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Service for managing friend activities.
- * Provides business logic for retrieving and managing friend activity records.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,9 +27,6 @@ public class FriendActivityService {
     private final FriendActivityRepository friendActivityRepository;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Get all activities for a user.
-     */
     @Transactional(readOnly = true)
     public List<FriendActivityDTO> getActivitiesForUser(Integer userId) {
         log.debug("Fetching activities for user: {}", userId);
@@ -43,9 +36,6 @@ public class FriendActivityService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get activities for a user with pagination.
-     */
     @Transactional(readOnly = true)
     public Page<FriendActivityDTO> getActivitiesForUser(Integer userId, int page, int size) {
         log.debug("Fetching activities for user: {}, page: {}, size: {}", userId, page, size);
@@ -55,9 +45,6 @@ public class FriendActivityService {
         return activities.map(this::mapToDTO);
     }
 
-    /**
-     * Get unread activities for a user.
-     */
     @Transactional(readOnly = true)
     public List<FriendActivityDTO> getUnreadActivitiesForUser(Integer userId) {
         log.debug("Fetching unread activities for user: {}", userId);
@@ -68,9 +55,6 @@ public class FriendActivityService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get activities by source service.
-     */
     @Transactional(readOnly = true)
     public List<FriendActivityDTO> getActivitiesByService(Integer userId, String service) {
         log.debug("Fetching activities for user: {} from service: {}", userId, service);
@@ -82,9 +66,6 @@ public class FriendActivityService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get activities by a specific friend.
-     */
     @Transactional(readOnly = true)
     public List<FriendActivityDTO> getActivitiesByFriend(Integer userId, Integer friendId) {
         log.debug("Fetching activities for user: {} by friend: {}", userId, friendId);
@@ -95,9 +76,6 @@ public class FriendActivityService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get recent activities (last N days).
-     */
     @Transactional(readOnly = true)
     public List<FriendActivityDTO> getRecentActivities(Integer userId, int days) {
         log.debug("Fetching activities for user: {} from last {} days", userId, days);
@@ -108,35 +86,23 @@ public class FriendActivityService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get unread activity count.
-     */
     @Transactional(readOnly = true)
     public long getUnreadCount(Integer userId) {
         return friendActivityRepository.countByTargetUserIdAndIsReadFalse(userId);
     }
 
-    /**
-     * Mark a specific activity as read.
-     */
     @Transactional
     public void markAsRead(Long activityId) {
         log.debug("Marking activity as read: {}", activityId);
         friendActivityRepository.markAsRead(activityId);
     }
 
-    /**
-     * Mark all activities as read for a user.
-     */
     @Transactional
     public int markAllAsRead(Integer userId) {
         log.debug("Marking all activities as read for user: {}", userId);
         return friendActivityRepository.markAllAsReadForUser(userId);
     }
 
-    /**
-     * Delete old activities (maintenance method).
-     */
     @Transactional
     public int deleteOldActivities(int daysOld) {
         log.info("Deleting activities older than {} days", daysOld);
@@ -144,9 +110,6 @@ public class FriendActivityService {
         return friendActivityRepository.deleteActivitiesOlderThan(cutoffDate);
     }
 
-    /**
-     * Map entity to DTO.
-     */
     private FriendActivityDTO mapToDTO(FriendActivity activity) {
         return FriendActivityDTO.builder()
                 .id(activity.getId())
@@ -165,7 +128,6 @@ public class FriendActivityService {
                 .createdAt(activity.getCreatedAt())
                 .actionText(buildActionText(activity))
                 .icon(getIconForAction(activity))
-                // New fields
                 .actorUser(parseUserInfo(activity.getActorUserJson()))
                 .targetUser(parseUserInfo(activity.getTargetUserJson()))
                 .entityPayload(parseJsonMap(activity.getEntityPayloadJson()))
@@ -175,9 +137,6 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Parse JSON string to UserInfoDTO.
-     */
     private FriendActivityDTO.UserInfoDTO parseUserInfo(String json) {
         if (json == null || json.isEmpty()) {
             return null;
@@ -190,9 +149,6 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Parse JSON string to Map.
-     */
     private Map<String, Object> parseJsonMap(String json) {
         if (json == null || json.isEmpty()) {
             return null;
@@ -206,9 +162,6 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Build user-friendly action text.
-     */
     private String buildActionText(FriendActivity activity) {
         String actorName = activity.getActorUserName() != null ? activity.getActorUserName() : "A friend";
         String action = activity.getAction() != null ? activity.getAction().name().toLowerCase()
@@ -232,9 +185,6 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Get icon suggestion based on action and entity type.
-     */
     private String getIconForAction(FriendActivity activity) {
         if (activity.getEntityType() == null) {
             return "activity";

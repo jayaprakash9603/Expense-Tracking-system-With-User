@@ -7,11 +7,6 @@ import com.jaya.service.NotificationPreferencesChecker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-/**
- * Processor for Budget events
- * Follows Single Responsibility Principle - only handles budget notifications
- */
 @Component
 @Slf4j
 public class BudgetEventProcessor extends AbstractNotificationEventProcessor<BudgetEventDTO> {

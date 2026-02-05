@@ -8,24 +8,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-/**
- * FriendshipNotificationProducer
- * Concrete implementation for sending friendship notification events to Kafka
- * Extends NotificationEventProducer following Template Method Pattern
- * 
- * SOLID Principles:
- * - Single Responsibility: Only handles friendship notification production
- * - Open/Closed: Extends base producer without modifying it
- * - Liskov Substitution: Can replace
- * NotificationEventProducer<FriendshipNotificationEvent>
- * - Dependency Inversion: Depends on KafkaTemplate abstraction
- * 
- * DRY Principle:
- * - Reuses all common Kafka logic from NotificationEventProducer
- * - Only implements friendship-specific behavior
- * 
- * @author Friendship Service Team
- */
 @Slf4j
 @Component
 public class FriendshipNotificationProducer extends NotificationEventProducer<FriendshipNotificationEvent> {
@@ -49,27 +31,17 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
         return "Friendship";
     }
 
-    /**
-     * Partition by userId to maintain event ordering per user
-     * This ensures all notifications for a specific user are processed in order
-     */
     @Override
     protected String generatePartitionKey(FriendshipNotificationEvent event) {
         return event.getUserId() != null ? event.getUserId().toString() : null;
     }
 
-    /**
-     * Custom validation for friendship events
-     */
     @Override
     protected void validateEvent(FriendshipNotificationEvent event) {
         super.validateEvent(event);
-        event.validate(); // Use event's own validation
+        event.validate();
     }
 
-    /**
-     * Log before sending with detailed context
-     */
     @Override
     protected void beforeSend(FriendshipNotificationEvent event) {
         log.debug("Preparing to send friendship {} notification: User {} <- Actor {} (Friendship ID: {})",
@@ -79,9 +51,6 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
                 event.getFriendshipId());
     }
 
-    /**
-     * Log success with details
-     */
     @Override
     protected void afterSendSuccess(FriendshipNotificationEvent event, SendResult<String, Object> result) {
         log.info(
@@ -93,9 +62,6 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
                 result.getRecordMetadata().partition());
     }
 
-    /**
-     * Log failure with details for troubleshooting
-     */
     @Override
     protected void afterSendFailure(FriendshipNotificationEvent event, Throwable exception) {
         log.error("Failed to send friendship {} notification for user {} (Friendship ID: {}, Actor: {}): {}",

@@ -29,7 +29,6 @@ public class NotificationDTOMapper {
         dto.setReadAt(notification.getReadAt());
         dto.setChannel(notification.getChannel());
 
-        // Parse metadata JSON string to Map
         if (notification.getMetadata() != null) {
             try {
                 Map<String, Object> metadata = objectMapper.readValue(
@@ -58,7 +57,6 @@ public class NotificationDTOMapper {
         notification.setReadAt(dto.getReadAt());
         notification.setChannel(dto.getChannel());
 
-        // Convert metadata Map to JSON string
         if (dto.getMetadata() != null) {
             try {
                 String metadataJson = objectMapper.writeValueAsString(dto.getMetadata());

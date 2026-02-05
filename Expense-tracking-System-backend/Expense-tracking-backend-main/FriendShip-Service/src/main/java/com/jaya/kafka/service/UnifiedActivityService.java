@@ -15,11 +15,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * UnifiedActivityService for FriendShip-Service
- * Replaces FriendshipNotificationService and FriendRequestEventPublisher
- * Sends all events to unified-activity-events topic
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -28,12 +23,6 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer producer;
     private final ObjectMapper objectMapper;
 
-    // ==================== Friend Request Events ====================
-
-    /**
-     * Send notification when a friend request is sent
-     * Notifies the RECIPIENT that they received a friend request
-     */
     @Async("friendActivityExecutor")
     public void sendFriendRequestSentEvent(Friendship friendship, UserDto requester, UserDto recipient) {
         try {
@@ -69,10 +58,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend request is accepted
-     * Notifies the REQUESTER that their friend request was accepted
-     */
     @Async("friendActivityExecutor")
     public void sendFriendRequestAcceptedEvent(Friendship friendship, UserDto requester, UserDto acceptor) {
         try {
@@ -108,10 +93,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend request is rejected
-     * Notifies the REQUESTER that their friend request was rejected
-     */
     @Async("friendActivityExecutor")
     public void sendFriendRequestRejectedEvent(Friendship friendship, UserDto requester, UserDto rejector) {
         try {
@@ -147,10 +128,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend request is cancelled
-     * Notifies the RECIPIENT that the friend request was cancelled
-     */
     @Async("friendActivityExecutor")
     public void sendFriendRequestCancelledEvent(Friendship friendship, UserDto canceller, UserDto recipient) {
         try {
@@ -187,12 +164,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // ==================== Friendship Events ====================
-
-    /**
-     * Send notification when a friendship is removed
-     * Notifies the OTHER user that the friendship was removed
-     */
     @Async("friendActivityExecutor")
     public void sendFriendRemovedEvent(Friendship friendship, UserDto remover, UserDto removedUser) {
         try {
@@ -228,12 +199,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // ==================== Access Level Events ====================
-
-    /**
-     * Send notification when access level is changed
-     * Notifies the OTHER user about their new access level
-     */
     @Async("friendActivityExecutor")
     public void sendAccessLevelChangedEvent(Friendship friendship, UserDto changer, UserDto targetUser,
             AccessLevel oldAccess, AccessLevel newAccess) {
@@ -273,12 +238,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // ==================== Block Events ====================
-
-    /**
-     * Send notification when a user is blocked
-     * This is primarily for audit purposes
-     */
     @Async("friendActivityExecutor")
     public void sendUserBlockedEvent(UserDto blocker, UserDto blockedUser) {
         try {
@@ -302,7 +261,7 @@ public class UnifiedActivityService {
                     .isOwnAction(false)
                     .isFriendActivity(false)
                     .requiresAudit(true)
-                    .requiresNotification(false) // Don't notify the blocked user
+                    .requiresNotification(false)
                     .build();
 
             producer.sendEvent(event);
@@ -313,10 +272,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send notification when a user is unblocked
-     * This is primarily for audit purposes
-     */
     @Async("friendActivityExecutor")
     public void sendUserUnblockedEvent(UserDto unblocker, UserDto unblockedUser) {
         try {
@@ -341,7 +296,7 @@ public class UnifiedActivityService {
                     .isOwnAction(false)
                     .isFriendActivity(false)
                     .requiresAudit(true)
-                    .requiresNotification(false) // Don't notify the unblocked user
+                    .requiresNotification(false)
                     .build();
 
             producer.sendEvent(event);
@@ -351,8 +306,6 @@ public class UnifiedActivityService {
             log.error("Failed to send user unblocked event: {}", e.getMessage(), e);
         }
     }
-
-    // ==================== Helper Methods ====================
 
     private UnifiedActivityEvent.UserInfo buildUserInfo(UserDto user) {
         if (user == null)

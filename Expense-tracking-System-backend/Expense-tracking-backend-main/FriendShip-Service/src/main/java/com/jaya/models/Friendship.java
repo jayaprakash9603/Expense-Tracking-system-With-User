@@ -1,4 +1,3 @@
-// File: com.jaya.models.Friendship.java
 package com.jaya.models;
 
 import jakarta.persistence.*;
@@ -19,21 +18,21 @@ public class Friendship {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    private Integer requesterId; // User who sent the request
+    private Integer requesterId;
 
-    private Integer recipientId; // User who receives the request
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private FriendshipStatus status; // PENDING, ACCEPTED, REJECTED
+    private Integer recipientId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private AccessLevel requesterAccess; // Access given by recipient to requester
+    private FriendshipStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private AccessLevel recipientAccess; // Access given by requester to recipient
+    private AccessLevel requesterAccess;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private AccessLevel recipientAccess;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -17,32 +17,24 @@ import java.util.Map;
 @AllArgsConstructor
 public class FriendshipReportDTO {
 
-    // Summary stats
     private int totalFriends;
     private int pendingRequests;
     private int blockedUsers;
     private int iSharedWithCount;
     private int sharedWithMeCount;
 
-    // Access level breakdown
     private Map<String, Integer> accessLevelDistribution;
 
-    // Monthly activity data for charts
     private List<MonthlyActivityDTO> monthlyActivity;
 
-    // Sharing status data
     private List<SharingStatusDTO> sharingStatus;
 
-    // Top active friends
     private List<TopFriendDTO> topFriends;
 
-    // Detailed friendship list (filterable)
     private List<FriendshipDetailDTO> friendships;
 
-    // Filter information applied
     private FilterInfo appliedFilters;
 
-    // Pagination info
     private int totalElements;
     private int totalPages;
     private int currentPage;
@@ -77,7 +69,7 @@ public class FriendshipReportDTO {
         private String name;
         private String email;
         private int interactionScore;
-        private String fill; // Color for chart
+        private String fill;
     }
 
     @Data

@@ -7,39 +7,16 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.Set;
-
-/**
- * DTO for tracking user-added shared items.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserAddedItemsDTO {
 
-    /**
-     * User ID who added the items.
-     */
     private Integer userId;
-
-    /**
-     * Share token.
-     */
     private String shareToken;
-
-    /**
-     * Set of external references that have been added.
-     */
     private Set<String> addedExternalRefs;
-
-    /**
-     * Total count of added items from this share.
-     */
     private Integer addedCount;
-
-    /**
-     * Request to track an added item.
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -51,9 +28,6 @@ public class UserAddedItemsDTO {
         private Integer newItemId;
     }
 
-    /**
-     * Response after adding an item.
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -65,9 +39,6 @@ public class UserAddedItemsDTO {
         private LocalDateTime addedAt;
     }
 
-    /**
-     * Bulk add request.
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -76,9 +47,6 @@ public class UserAddedItemsDTO {
         private java.util.List<AddItemRequest> items;
     }
 
-    /**
-     * Bulk add response.
-     */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

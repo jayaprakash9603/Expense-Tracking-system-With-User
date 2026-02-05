@@ -24,6 +24,6 @@ public class SpendingSummaryDTO {
     private String mostUsedPaymentMethod;
     private int totalTransactions;
     private double averageTransactionAmount;
-    private String spendingTrend; // INCREASING, DECREASING, STABLE
+    private String spendingTrend;
     private String comparisonWithPreviousPeriod;
 }
