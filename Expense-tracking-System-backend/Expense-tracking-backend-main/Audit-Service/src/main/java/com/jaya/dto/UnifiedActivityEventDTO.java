@@ -17,11 +17,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Unified Activity Event DTO for receiving events from all services.
- * This single DTO enables the Audit Service to process audit logs from all
- * services.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,7 +26,6 @@ import java.util.UUID;
 public class UnifiedActivityEventDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    // Core identification
     @Builder.Default
     private String eventId = UUID.randomUUID().toString();
 
@@ -41,40 +35,33 @@ public class UnifiedActivityEventDTO implements Serializable {
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // Actor information
     private Integer actorUserId;
     private String actorUserName;
     private String actorEmail;
     private String actorRole;
     private UserInfo actorUser;
 
-    // Target information
     private Integer targetUserId;
     private String targetUserName;
     private UserInfo targetUser;
 
-    // Entity information
     private String entityType;
     private Long entityId;
     private String entityName;
 
-    // Action information
     private String action;
     private String description;
     private Double amount;
 
-    // Data payloads
     private Map<String, Object> oldValues;
     private Map<String, Object> newValues;
     private Map<String, Object> entityPayload;
     private String metadata;
 
-    // Source service information
     private String sourceService;
     private String serviceVersion;
     private String environment;
 
-    // Request context
     private String ipAddress;
     private String userAgent;
     private String sessionId;
@@ -84,13 +71,11 @@ public class UnifiedActivityEventDTO implements Serializable {
     private String endpoint;
     private Long executionTimeMs;
 
-    // Status
     @Builder.Default
     private String status = "SUCCESS";
     private String errorMessage;
     private Integer responseCode;
 
-    // Routing flags
     @Builder.Default
     private Boolean isOwnAction = true;
     @Builder.Default

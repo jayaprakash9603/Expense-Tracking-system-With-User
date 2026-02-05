@@ -15,9 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Random;
 
-/**
- * Service for managing admin reports.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,25 +23,16 @@ public class AdminReportService {
     private final AdminReportRepository reportRepository;
     private final Random random = new Random();
 
-    /**
-     * Get all reports with pagination.
-     */
     public Page<AdminReportDTO> getAllReports(Pageable pageable) {
         return reportRepository.findAllByOrderByCreatedAtDesc(pageable)
                 .map(this::mapToDTO);
     }
 
-    /**
-     * Get reports by type.
-     */
     public Page<AdminReportDTO> getReportsByType(String type, Pageable pageable) {
         return reportRepository.findByTypeOrderByCreatedAtDesc(type, pageable)
                 .map(this::mapToDTO);
     }
 
-    /**
-     * Generate a new report.
-     */
     @Transactional
     public AdminReportDTO generateReport(GenerateReportRequest request, Long userId, String username) {
         log.info("Generating report: type={}, format={}, dateRange={}, user={}",
@@ -64,23 +52,17 @@ public class AdminReportService {
 
         AdminReport savedReport = reportRepository.save(report);
 
-        // Simulate async report generation
         generateReportAsync(savedReport.getId());
 
         return mapToDTO(savedReport);
     }
 
-    /**
-     * Async report generation simulation.
-     */
     @Async
     public void generateReportAsync(Long reportId) {
         try {
-            // Simulate report generation time (2-5 seconds)
             Thread.sleep(2000 + random.nextInt(3000));
 
             reportRepository.findById(reportId).ifPresent(report -> {
-                // Simulate successful report generation
                 report.setStatus("COMPLETED");
                 report.setCompletedAt(LocalDateTime.now());
                 report.setSize(String.format("%.1f MB", 0.5 + random.nextDouble() * 5));
@@ -105,9 +87,6 @@ public class AdminReportService {
         }
     }
 
-    /**
-     * Delete a report.
-     */
     @Transactional
     public void deleteReport(Long reportId) {
         log.info("Deleting report: {}", reportId);
@@ -117,32 +96,20 @@ public class AdminReportService {
         reportRepository.deleteById(reportId);
     }
 
-    /**
-     * Get report by ID.
-     */
     public AdminReportDTO getReportById(Long reportId) {
         return reportRepository.findById(reportId)
                 .map(this::mapToDTO)
                 .orElseThrow(() -> new RuntimeException("Report not found: " + reportId));
     }
 
-    /**
-     * Get total report count.
-     */
     public long getTotalReportCount() {
         return reportRepository.count();
     }
 
-    /**
-     * Get reports count since a date.
-     */
     public long getReportsCountSince(LocalDateTime since) {
         return reportRepository.countReportsSince(since);
     }
 
-    /**
-     * Generate default report name based on type.
-     */
     private String generateDefaultName(String type) {
         String typeName = switch (type) {
             case "user-activity" -> "User Activity Report";
@@ -155,9 +122,6 @@ public class AdminReportService {
         return typeName + " - " + LocalDateTime.now().toLocalDate();
     }
 
-    /**
-     * Map entity to DTO.
-     */
     private AdminReportDTO mapToDTO(AdminReport report) {
         return AdminReportDTO.builder()
                 .id(report.getId())

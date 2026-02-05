@@ -16,10 +16,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Admin endpoints for report management.
- * These endpoints are intended for admin dashboard access.
- */
 @RestController
 @RequestMapping("/api/admin/reports")
 @RequiredArgsConstructor
@@ -29,14 +25,6 @@ public class AdminReportsController {
 
     private final AdminReportService reportService;
 
-    /**
-     * Get all reports with pagination.
-     *
-     * @param page Page number (0-indexed)
-     * @param size Page size
-     * @param type Optional filter by report type
-     * @return Paginated reports
-     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllReports(
             @RequestParam(defaultValue = "0") int page,
@@ -53,7 +41,6 @@ public class AdminReportsController {
                 reportPage = reportService.getAllReports(pageable);
             }
 
-            // Get stats
             long totalCount = reportService.getTotalReportCount();
             long reportsThisMonth = reportService.getReportsCountSince(
                     LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0));
@@ -81,12 +68,6 @@ public class AdminReportsController {
         }
     }
 
-    /**
-     * Generate a new report.
-     *
-     * @param request Report configuration
-     * @return Generated report DTO
-     */
     @PostMapping("/generate")
     public ResponseEntity<Map<String, Object>> generateReport(
             @RequestBody GenerateReportRequest request,
@@ -97,7 +78,6 @@ public class AdminReportsController {
             log.info("Generate report request: type={}, format={}, dateRange={}",
                     request.getType(), request.getFormat(), request.getDateRange());
 
-            // Default values if headers not present
             Long effectiveUserId = userId != null ? userId : 1L;
             String effectiveUsername = username != null ? username : "admin";
 
@@ -118,12 +98,6 @@ public class AdminReportsController {
         }
     }
 
-    /**
-     * Get a specific report by ID.
-     *
-     * @param reportId Report ID
-     * @return Report details
-     */
     @GetMapping("/{reportId}")
     public ResponseEntity<Map<String, Object>> getReportById(@PathVariable Long reportId) {
         try {
@@ -149,12 +123,6 @@ public class AdminReportsController {
         }
     }
 
-    /**
-     * Delete a report.
-     *
-     * @param reportId Report ID
-     * @return Success message
-     */
     @DeleteMapping("/{reportId}")
     public ResponseEntity<Map<String, Object>> deleteReport(@PathVariable Long reportId) {
         try {
@@ -182,14 +150,6 @@ public class AdminReportsController {
         }
     }
 
-    /**
-     * Download a report file.
-     * This is a placeholder - actual file download implementation depends on
-     * storage solution.
-     *
-     * @param reportId Report ID
-     * @return Report file or redirect
-     */
     @GetMapping("/{reportId}/download")
     public ResponseEntity<Map<String, Object>> downloadReport(@PathVariable Long reportId) {
         try {
@@ -202,8 +162,6 @@ public class AdminReportsController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
             }
 
-            // In a real implementation, this would return the actual file
-            // For now, return metadata about the download
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Download initiated");
             response.put("reportId", reportId);

@@ -33,7 +33,6 @@ public class AuditExpense {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User Information
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
@@ -43,17 +42,15 @@ public class AuditExpense {
     @Column(name = "user_role", length = 50)
     private String userRole;
 
-    // Entity Information
     @Column(name = "entity_id", length = 100, nullable = false)
     private String entityId;
 
     @Column(name = "entity_type", length = 50, nullable = false)
-    private String entityType; // EXPENSE, BUDGET, USER, CATEGORY, etc.
+    private String entityType;
 
     @Column(name = "action_type", length = 50, nullable = false)
-    private String actionType; // CREATE, UPDATE, DELETE, VIEW, LOGIN, LOGOUT
+    private String actionType;
 
-    // Audit Details
     @Column(name = "details", columnDefinition = "TEXT")
     private String details;
 
@@ -61,12 +58,11 @@ public class AuditExpense {
     private String description;
 
     @Column(name = "old_values", columnDefinition = "JSON")
-    private String oldValues; // JSON string of previous state
+    private String oldValues;
 
     @Column(name = "new_values", columnDefinition = "JSON")
-    private String newValues; // JSON string of new state
+    private String newValues;
 
-    // Timing Information
     @Column(name = "timestamp", nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
@@ -81,15 +77,13 @@ public class AuditExpense {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    // Audit Trail
     @Column(name = "created_by", length = 100)
     private String createdBy;
 
     @Column(name = "last_updated_by", length = 100)
     private String lastUpdatedBy;
 
-    // Request Information
-    @Column(name = "ip_address", length = 45) // IPv6 support
+    @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
     @Column(name = "user_agent", length = 500)
@@ -104,7 +98,6 @@ public class AuditExpense {
     @Column(name = "request_id", length = 100)
     private String requestId;
 
-    // Service Information
     @Column(name = "service_name", length = 100)
     private String serviceName;
 
@@ -112,11 +105,10 @@ public class AuditExpense {
     private String serviceVersion;
 
     @Column(name = "environment", length = 20)
-    private String environment; // DEV, STAGING, PROD
+    private String environment;
 
-    // Status and Result
     @Column(name = "status", length = 20)
-    private String status; // SUCCESS, FAILURE, PENDING
+    private String status;
 
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
@@ -124,12 +116,11 @@ public class AuditExpense {
     @Column(name = "response_code")
     private Integer responseCode;
 
-    // Additional Metadata
     @Column(name = "source", length = 20)
-    private String source; // WEB, MOBILE, API
+    private String source;
 
     @Column(name = "method", length = 10)
-    private String method; // HTTP method
+    private String method;
 
     @Column(name = "endpoint", length = 500)
     private String endpoint;
@@ -137,17 +128,15 @@ public class AuditExpense {
     @Column(name = "execution_time_ms")
     private Long executionTimeMs;
 
-    // Legacy fields for backward compatibility
     @Column(name = "expense_id")
-    private Integer expenseId; // Deprecated: use entityId instead
+    private Integer expenseId;
 
     @Column(name = "user_audit_index")
-    private Integer userAuditIndex; // Per-user serial number
+    private Integer userAuditIndex;
 
     @Column(name = "expense_audit_index")
-    private Integer expenseAuditIndex; // Per-expense serial number
+    private Integer expenseAuditIndex;
 
-    // Utility methods
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
@@ -163,25 +152,21 @@ public class AuditExpense {
         updatedAt = LocalDateTime.now();
     }
 
-    // Helper method to check if this is an expense-related audit
     @JsonIgnore
     public boolean isExpenseAudit() {
         return "EXPENSE".equalsIgnoreCase(entityType) || expenseId != null;
     }
 
-    // Helper method to check if this is a budget-related audit
     @JsonIgnore
     public boolean isBudgetAudit() {
         return "BUDGET".equalsIgnoreCase(entityType);
     }
 
-    // Helper method to check if this is a user-related audit
     @JsonIgnore
     public boolean isUserAudit() {
         return "USER".equalsIgnoreCase(entityType);
     }
 
-    // Helper method to get entity identifier
     @JsonIgnore
     public String getEntityIdentifier() {
         if (entityId != null) {

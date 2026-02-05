@@ -11,9 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Repository for admin reports.
- */
 @Repository
 public interface AdminReportRepository extends JpaRepository<AdminReport, Long> {
 

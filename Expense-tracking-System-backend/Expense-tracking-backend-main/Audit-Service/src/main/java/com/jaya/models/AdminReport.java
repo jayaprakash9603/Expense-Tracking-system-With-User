@@ -8,9 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * Entity for storing admin reports metadata.
- */
 @Entity
 @Table(name = "admin_reports")
 @Data
@@ -27,22 +24,21 @@ public class AdminReport {
     private String name;
 
     @Column(nullable = false)
-    private String type; // user-activity, expense-summary, budget-analysis, audit-trail,
-                         // category-breakdown
+    private String type;
 
     @Column(name = "date_range")
-    private String dateRange; // 7d, 30d, 90d, 1y, custom
+    private String dateRange;
 
     @Column(nullable = false)
-    private String format; // pdf, excel, csv
+    private String format;
 
     @Column(nullable = false)
-    private String status; // PENDING, GENERATING, COMPLETED, FAILED
+    private String status;
 
-    private String size; // File size e.g., "2.5 MB"
+    private String size;
 
     @Column(name = "file_path")
-    private String filePath; // Internal file storage path
+    private String filePath;
 
     @Column(name = "download_url")
     private String downloadUrl;

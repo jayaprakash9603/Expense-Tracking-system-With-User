@@ -15,10 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Admin endpoints for audit log management.
- * These endpoints are intended for admin dashboard access.
- */
 @RestController
 @RequestMapping("/api/admin/audit-logs")
 @RequiredArgsConstructor
@@ -28,17 +24,6 @@ public class AdminAuditController {
 
     private final AuditExpenseService auditExpenseService;
 
-    /**
-     * Get all audit logs with pagination and optional filters.
-     *
-     * @param page       Page number (0-indexed)
-     * @param size       Page size
-     * @param search     Search query for username, action, or details
-     * @param actionType Filter by action type (USER_MANAGEMENT, ROLE_MANAGEMENT,
-     *                   etc.)
-     * @param timeRange  Time range filter (24h, 7d, 30d, 90d)
-     * @return Paginated audit logs
-     */
     @GetMapping
     public ResponseEntity<Map<String, Object>> getAllAuditLogs(
             @RequestParam(defaultValue = "0") int page,
@@ -53,7 +38,6 @@ public class AdminAuditController {
 
             LocalDateTime since = calculateTimeSince(timeRange);
 
-            // Apply filters based on parameters
             if (search != null && !search.isEmpty()) {
                 if (actionType != null && !actionType.equals("all")) {
                     auditPage = auditExpenseService.searchAuditLogsByType(search, actionType, pageable);
@@ -90,12 +74,6 @@ public class AdminAuditController {
         }
     }
 
-    /**
-     * Get audit log statistics for the admin dashboard.
-     *
-     * @param timeRange Time range for statistics (24h, 7d, 30d, 90d)
-     * @return Statistics including counts by action type
-     */
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getAuditLogStats(
             @RequestParam(defaultValue = "7d") String timeRange) {
@@ -106,10 +84,8 @@ public class AdminAuditController {
                 since = LocalDateTime.now().minusDays(7);
             }
 
-            // Get total count
             Long totalLogs = auditExpenseService.countAuditLogsSince(since);
 
-            // Get statistics by action type
             List<Object[]> actionStats = auditExpenseService.getActionTypeStatistics(since);
 
             Map<String, Long> statsByType = new HashMap<>();
@@ -119,14 +95,12 @@ public class AdminAuditController {
                 statsByType.put(type, count);
             }
 
-            // Build response
             Map<String, Object> response = new HashMap<>();
             response.put("totalLogs", totalLogs);
             response.put("statsByType", statsByType);
             response.put("timeRange", timeRange);
             response.put("since", since.toString());
 
-            // Add specific counts for common types
             response.put("userManagement", statsByType.getOrDefault("USER_MANAGEMENT", 0L));
             response.put("roleManagement", statsByType.getOrDefault("ROLE_MANAGEMENT", 0L));
             response.put("dataModification", statsByType.getOrDefault("DATA_MODIFICATION", 0L));
@@ -145,14 +119,6 @@ public class AdminAuditController {
         }
     }
 
-    /**
-     * Get audit logs for a specific user.
-     *
-     * @param userId User ID
-     * @param page   Page number
-     * @param size   Page size
-     * @return Paginated audit logs for the user
-     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<Map<String, Object>> getAuditLogsForUser(
             @PathVariable Integer userId,
@@ -182,13 +148,6 @@ public class AdminAuditController {
         }
     }
 
-    /**
-     * Get audit logs for a specific entity (expense, budget, etc.).
-     *
-     * @param entityType Entity type (EXPENSE, BUDGET, USER, etc.)
-     * @param entityId   Entity ID
-     * @return List of audit logs for the entity
-     */
     @GetMapping("/entity")
     public ResponseEntity<?> getAuditLogsForEntity(
             @RequestParam String entityType,
@@ -214,9 +173,6 @@ public class AdminAuditController {
         }
     }
 
-    /**
-     * Calculate the timestamp for 'since' based on time range string.
-     */
     private LocalDateTime calculateTimeSince(String timeRange) {
         if (timeRange == null) {
             return null;
@@ -235,7 +191,7 @@ public class AdminAuditController {
             case "all":
                 return null;
             default:
-                return now.minusDays(7); // Default to 7 days
+                return now.minusDays(7);
         }
     }
 }

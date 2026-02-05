@@ -16,12 +16,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Event Consumer for Audit Service
- * 
- * Consumes unified events from the single topic and converts them to AuditEvent
- * for storage and processing.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,9 +24,6 @@ public class UnifiedActivityEventConsumer {
     private final AuditExpenseService auditService;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Consumes unified activity events and converts to audit events
-     */
     @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${audit.kafka.consumer.group-id:audit-service-unified-group}", containerFactory = "auditKafkaListenerContainerFactory")
     public void consumeUnifiedEvent(
             Object payload,
@@ -49,7 +40,6 @@ public class UnifiedActivityEventConsumer {
                 return;
             }
 
-            // Check if audit is required
             if (!Boolean.TRUE.equals(unifiedEvent.getRequiresAudit())) {
                 log.debug("Audit not required for event: {}", unifiedEvent.getEventId());
                 acknowledgment.acknowledge();
@@ -59,13 +49,10 @@ public class UnifiedActivityEventConsumer {
             log.info("Received unified activity event from topic: {}, offset: {}, eventId: {}",
                     topic, offset, unifiedEvent.getEventId());
 
-            // Convert to AuditEvent
             AuditEvent auditEvent = convertToAuditEvent(unifiedEvent);
 
-            // Process the audit event
             auditService.processAuditEvent(auditEvent);
 
-            // Acknowledge the message
             acknowledgment.acknowledge();
 
             log.debug("Successfully processed unified activity event as audit: {}",
@@ -74,13 +61,9 @@ public class UnifiedActivityEventConsumer {
         } catch (Exception e) {
             log.error("Error processing unified activity event from topic: {}, offset: {}",
                     topic, offset, e);
-            // Don't acknowledge on error - message will be retried
         }
     }
 
-    /**
-     * Batch consumer for unified events (optional - for high throughput)
-     */
     @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${audit.kafka.consumer.batch-group-id:audit-service-unified-batch-group}", containerFactory = "auditBatchKafkaListenerContainerFactory")
     public void consumeUnifiedEventsBatch(
             List<Object> payloads,
@@ -107,13 +90,11 @@ public class UnifiedActivityEventConsumer {
                     continue;
                 }
 
-                // Check if audit is required
                 if (!Boolean.TRUE.equals(unifiedEvent.getRequiresAudit())) {
                     skipCount++;
                     continue;
                 }
 
-                // Convert and process
                 AuditEvent auditEvent = convertToAuditEvent(unifiedEvent);
                 auditService.processAuditEvent(auditEvent);
                 successCount++;
@@ -123,7 +104,6 @@ public class UnifiedActivityEventConsumer {
             }
         }
 
-        // Acknowledge the batch
         acknowledgment.acknowledge();
 
         long duration = System.currentTimeMillis() - startTime;
@@ -131,32 +111,24 @@ public class UnifiedActivityEventConsumer {
                 successCount, payloads.size(), duration, skipCount);
     }
 
-    /**
-     * Convert UnifiedActivityEventDTO to AuditEvent
-     */
     private AuditEvent convertToAuditEvent(UnifiedActivityEventDTO unifiedEvent) {
         return AuditEvent.builder()
-                // User Information
                 .userId(unifiedEvent.getActorUserId())
                 .username(unifiedEvent.getActorUserName())
                 .userRole(unifiedEvent.getActorRole())
 
-                // Entity Information
                 .entityId(unifiedEvent.getEntityId() != null ? unifiedEvent.getEntityId().toString() : null)
                 .entityType(unifiedEvent.getEntityType())
                 .actionType(unifiedEvent.getAction())
 
-                // Audit Details
                 .description(unifiedEvent.getDescription())
                 .details(buildDetails(unifiedEvent))
                 .oldValues(unifiedEvent.getOldValues())
                 .newValues(unifiedEvent.getNewValues())
 
-                // Timing
                 .timestamp(unifiedEvent.getTimestamp() != null ? unifiedEvent.getTimestamp() : LocalDateTime.now())
                 .createdAt(LocalDateTime.now())
 
-                // Request Information
                 .ipAddress(unifiedEvent.getIpAddress())
                 .userAgent(unifiedEvent.getUserAgent())
                 .sessionId(unifiedEvent.getSessionId())
@@ -164,17 +136,14 @@ public class UnifiedActivityEventConsumer {
                         : unifiedEvent.getEventId())
                 .requestId(unifiedEvent.getRequestId())
 
-                // Service Information
                 .serviceName(unifiedEvent.getSourceService())
                 .serviceVersion(unifiedEvent.getServiceVersion())
                 .environment(unifiedEvent.getEnvironment())
 
-                // Status
                 .status(unifiedEvent.getStatus())
                 .errorMessage(unifiedEvent.getErrorMessage())
                 .responseCode(unifiedEvent.getResponseCode())
 
-                // Additional
                 .method(unifiedEvent.getHttpMethod())
                 .endpoint(unifiedEvent.getEndpoint())
                 .executionTimeMs(unifiedEvent.getExecutionTimeMs())
@@ -183,9 +152,6 @@ public class UnifiedActivityEventConsumer {
                 .build();
     }
 
-    /**
-     * Build details string from unified event
-     */
     private String buildDetails(UnifiedActivityEventDTO event) {
         StringBuilder details = new StringBuilder();
         details.append("Entity: ").append(event.getEntityType());
@@ -204,9 +170,6 @@ public class UnifiedActivityEventConsumer {
         return details.toString();
     }
 
-    /**
-     * Converts payload to DTO
-     */
     private <T> T convertToDto(Object payload, Class<T> dtoClass) {
         try {
             if (payload instanceof Map) {
@@ -215,7 +178,6 @@ public class UnifiedActivityEventConsumer {
             if (dtoClass.isInstance(payload)) {
                 return dtoClass.cast(payload);
             }
-            // Try parsing as string
             if (payload instanceof String) {
                 return objectMapper.readValue((String) payload, dtoClass);
             }

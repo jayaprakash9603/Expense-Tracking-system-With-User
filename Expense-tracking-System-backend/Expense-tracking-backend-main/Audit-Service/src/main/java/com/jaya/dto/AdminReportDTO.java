@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO for admin reports.
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,8 +17,8 @@ public class AdminReportDTO {
     private String type;
     private String dateRange;
     private String format;
-    private String status; // PENDING, GENERATING, COMPLETED, FAILED
-    private String size; // e.g., "2.5 MB"
+    private String status;
+    private String size;
     private String downloadUrl;
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;

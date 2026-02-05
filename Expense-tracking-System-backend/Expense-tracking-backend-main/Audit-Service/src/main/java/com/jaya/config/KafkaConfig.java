@@ -26,7 +26,6 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
-    // String Producer Factory
     @Bean
     @Primary
     public ProducerFactory<String, String> stringProducerFactory() {
@@ -40,7 +39,6 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    // Object Producer Factory
     @Bean
     public ProducerFactory<String, Object> objectProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -54,20 +52,17 @@ public class KafkaConfig {
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
-    // String KafkaTemplate (Primary)
     @Bean
     @Primary
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(stringProducerFactory());
     }
 
-    // Object KafkaTemplate
     @Bean("objectKafkaTemplate")
     public KafkaTemplate<String, Object> objectKafkaTemplate() {
         return new KafkaTemplate<>(objectProducerFactory());
     }
 
-    // Consumer Factory
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
@@ -85,7 +80,6 @@ public class KafkaConfig {
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
-    // Default Kafka Listener Container Factory
     @Bean
     @Primary
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
@@ -95,7 +89,6 @@ public class KafkaConfig {
         return factory;
     }
 
-    // Audit-specific Kafka Listener Container Factory
     @Bean("auditKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> auditKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -105,13 +98,12 @@ public class KafkaConfig {
         return factory;
     }
 
-    // Batch Kafka Listener Container Factory for Audit Service
     @Bean("auditBatchKafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, Object> auditBatchKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-        factory.setBatchListener(true); // Enable batch processing
+        factory.setBatchListener(true);
         factory.setCommonErrorHandler(new org.springframework.kafka.listener.DefaultErrorHandler());
         return factory;
     }

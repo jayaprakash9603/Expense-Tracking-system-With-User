@@ -49,7 +49,6 @@ public class AuditMapper {
                 .executionTimeMs(auditEvent.getExecutionTimeMs())
                 .build();
 
-        // Convert maps to JSON strings
         if (auditEvent.getOldValues() != null) {
             try {
                 auditExpense.setOldValues(objectMapper.writeValueAsString(auditEvent.getOldValues()));
@@ -66,7 +65,6 @@ public class AuditMapper {
             }
         }
 
-        // Handle legacy expense ID for backward compatibility
         if ("EXPENSE".equalsIgnoreCase(auditEvent.getEntityType()) && auditEvent.getEntityId() != null) {
             try {
                 auditExpense.setExpenseId(Integer.valueOf(auditEvent.getEntityId()));
@@ -109,11 +107,11 @@ public class AuditMapper {
                 .endpoint(auditExpense.getEndpoint())
                 .executionTimeMs(auditExpense.getExecutionTimeMs());
 
-        // Convert JSON strings back to maps
         if (auditExpense.getOldValues() != null) {
             try {
                 builder.oldValues(objectMapper.readValue(auditExpense.getOldValues(),
-                        objectMapper.getTypeFactory().constructMapType(java.util.Map.class, String.class, Object.class)));
+                        objectMapper.getTypeFactory().constructMapType(java.util.Map.class, String.class,
+                                Object.class)));
             } catch (JsonProcessingException e) {
                 log.warn("Failed to deserialize old values for audit expense: {}", auditExpense.getId(), e);
             }
@@ -122,7 +120,8 @@ public class AuditMapper {
         if (auditExpense.getNewValues() != null) {
             try {
                 builder.newValues(objectMapper.readValue(auditExpense.getNewValues(),
-                        objectMapper.getTypeFactory().constructMapType(java.util.Map.class, String.class, Object.class)));
+                        objectMapper.getTypeFactory().constructMapType(java.util.Map.class, String.class,
+                                Object.class)));
             } catch (JsonProcessingException e) {
                 log.warn("Failed to deserialize new values for audit expense: {}", auditExpense.getId(), e);
             }

@@ -26,18 +26,14 @@ public class AuditExpenseService {
     @Transactional
     public AuditExpense processAuditEvent(AuditEvent auditEvent) {
         try {
-            // Convert AuditEvent to AuditExpense entity
             AuditExpense auditExpense = auditMapper.toAuditExpense(auditEvent);
 
-            // Set processing timestamp if not already set
             if (auditExpense.getUpdatedAt() == null) {
                 auditExpense.setUpdatedAt(LocalDateTime.now());
             }
 
-            // Save to database
             AuditExpense savedAudit = auditExpenseRepository.save(auditExpense);
 
-            // Additional processing if needed
             processAdditionalAuditLogic(savedAudit);
 
             log.debug("Successfully processed and saved audit event: {}", auditEvent.getCorrelationId());
@@ -54,13 +50,11 @@ public class AuditExpenseService {
     }
 
     private void processAdditionalAuditLogic(AuditExpense auditExpense) {
-        // Check for suspicious activities
         if ("FAILURE".equals(auditExpense.getStatus()) &&
                 "LOGIN".equals(auditExpense.getActionType())) {
             handleFailedLogin(auditExpense);
         }
 
-        // Check for high-value transactions
         if ("EXPENSE".equals(auditExpense.getEntityType()) &&
                 "CREATE".equals(auditExpense.getActionType())) {
             validateExpenseCreation(auditExpense);
@@ -77,7 +71,6 @@ public class AuditExpenseService {
                 auditExpense.getUsername(), auditExpense.getEntityId());
     }
 
-    // Query methods
     public List<AuditExpense> getAuditTrailForEntity(String entityType, String entityId) {
         return auditExpenseRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(entityType, entityId);
     }
@@ -102,7 +95,6 @@ public class AuditExpenseService {
         return auditExpenseRepository.findByStatusAndTimestampAfterOrderByTimestampDesc("FAILURE", since);
     }
 
-    // Admin methods for audit log management
     public Page<AuditExpense> getAllAuditLogsPaginated(Pageable pageable) {
         return auditExpenseRepository.findAllOrderByTimestampDesc(pageable);
     }

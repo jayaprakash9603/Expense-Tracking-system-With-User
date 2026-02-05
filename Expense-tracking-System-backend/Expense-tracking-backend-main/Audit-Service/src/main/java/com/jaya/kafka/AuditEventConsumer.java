@@ -27,15 +27,12 @@ public class AuditEventConsumer {
         Object payload = record.value();
 
         try {
-            // Convert payload to AuditEvent - handles AuditEvent, LinkedHashMap, and other
-            // types
             AuditEvent auditEvent;
             if (payload instanceof AuditEvent) {
                 auditEvent = (AuditEvent) payload;
             } else if (payload instanceof Map) {
                 auditEvent = objectMapper.convertValue(payload, AuditEvent.class);
             } else if (payload instanceof String) {
-                // If payload is a JSON string, parse it
                 auditEvent = objectMapper.readValue((String) payload, AuditEvent.class);
             } else {
                 log.error("Unknown payload type: {} - value: {}", payload.getClass().getName(), payload);
@@ -46,17 +43,14 @@ public class AuditEventConsumer {
             log.info("Received audit event from topic: {}, offset: {}, correlationId: {}",
                     topic, offset, auditEvent.getCorrelationId());
 
-            // Process the audit event
             auditService.processAuditEvent(auditEvent);
 
-            // Acknowledge the message
             acknowledgment.acknowledge();
 
             log.debug("Successfully processed audit event: {}", auditEvent.getCorrelationId());
 
         } catch (Exception e) {
             log.error("Error processing audit event at offset {}: {}", offset, e.getMessage(), e);
-            // Acknowledge to avoid infinite retry loop - log for manual investigation
             acknowledgment.acknowledge();
         }
     }

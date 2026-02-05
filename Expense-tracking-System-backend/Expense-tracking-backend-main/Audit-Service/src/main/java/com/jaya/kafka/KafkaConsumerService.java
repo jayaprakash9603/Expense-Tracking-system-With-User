@@ -23,10 +23,8 @@ public class KafkaConsumerService {
     @KafkaListener(topics = "audit-topic", groupId = "audit-group")
     public void consumeAuditEvent(String auditEventJson) {
         try {
-            // Deserialize the JSON message to AuditEvent
             AuditEvent auditEvent = objectMapper.readValue(auditEventJson, AuditEvent.class);
 
-            // Map AuditEvent to AuditExpense and save to the database
             AuditExpense auditExpense = new AuditExpense();
             auditExpense.setUserId(auditEvent.getUserId());
             auditExpense.setUsername(auditEvent.getUsername());
