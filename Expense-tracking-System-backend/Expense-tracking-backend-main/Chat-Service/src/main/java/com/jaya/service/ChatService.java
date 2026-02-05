@@ -34,6 +34,13 @@ public interface ChatService {
     int markChatsAsReadBatch(List<Integer> chatIds, Integer userId);
 
     /**
+     * Get a mapping of sender IDs to their message IDs from a list of chat IDs.
+     * Used for sending targeted read receipts to original senders.
+     * @return Map where key is senderId and value is list of messageIds from that sender
+     */
+    Map<Integer, List<Integer>> getSenderToMessageMapping(List<Integer> chatIds);
+
+    /**
      * Mark all unread messages from a specific sender as read.
      * @return number of messages marked as read
      */

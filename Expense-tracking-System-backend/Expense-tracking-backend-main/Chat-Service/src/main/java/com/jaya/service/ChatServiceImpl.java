@@ -243,6 +243,27 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Map<Integer, List<Integer>> getSenderToMessageMapping(List<Integer> chatIds) {
+        if (chatIds == null || chatIds.isEmpty()) {
+            return java.util.Collections.emptyMap();
+        }
+        
+        // Single query to get sender-message pairs
+        List<Object[]> pairs = chatRepository.findSenderIdAndChatIdPairs(chatIds);
+        
+        // Group message IDs by sender ID
+        Map<Integer, List<Integer>> senderToMessages = new java.util.HashMap<>();
+        for (Object[] pair : pairs) {
+            Integer senderId = (Integer) pair[0];
+            Integer messageId = (Integer) pair[1];
+            senderToMessages.computeIfAbsent(senderId, k -> new java.util.ArrayList<>()).add(messageId);
+        }
+        
+        return senderToMessages;
+    }
+
+    @Override
     @org.springframework.transaction.annotation.Transactional
     public int markConversationAsRead(Integer senderId, Integer recipientId) {
         validateUsers(List.of(senderId, recipientId));

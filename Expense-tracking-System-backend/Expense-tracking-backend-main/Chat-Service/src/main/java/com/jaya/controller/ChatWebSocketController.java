@@ -158,21 +158,38 @@ public class ChatWebSocketController {
 
         if (chatIds.isEmpty()) return;
 
+        // Get sender-to-message mappings BEFORE marking as read (single query)
+        Map<Integer, java.util.List<Integer>> senderToMessages = chatService.getSenderToMessageMapping(chatIds);
+        
         // Use batch update - single DB query instead of N queries
         int updatedCount = chatService.markChatsAsReadBatch(chatIds, userId);
         
         if (updatedCount > 0) {
-            // Send single batch read receipt to senders (grouped by sender)
-            Map<String, Object> readReceipt = new HashMap<>();
-            readReceipt.put("messageIds", chatIds);
-            readReceipt.put("readBy", userId);
-            readReceipt.put("isRead", true);
-            readReceipt.put("isDelivered", true);
-            readReceipt.put("readAt", java.time.LocalDateTime.now().toString());
-            readReceipt.put("updatedCount", updatedCount);
+            String readAtTime = java.time.LocalDateTime.now().toString();
             
-            // Broadcast to topic for any interested senders
-            messagingTemplate.convertAndSend("/topic/read-receipts-batch", readReceipt);
+            // Send individual read receipts to each sender via their user queue
+            // This ensures live updates work correctly
+            senderToMessages.forEach((senderId, messageIds) -> {
+                // Don't send read receipt to self
+                if (!senderId.equals(userId)) {
+                    for (Integer messageId : messageIds) {
+                        Map<String, Object> readReceipt = new HashMap<>();
+                        readReceipt.put("messageId", messageId);
+                        readReceipt.put("conversationId", userId); // Reader's ID is conversation for sender
+                        readReceipt.put("readBy", userId);
+                        readReceipt.put("isRead", true);
+                        readReceipt.put("isDelivered", true);
+                        readReceipt.put("readAt", readAtTime);
+                        readReceipt.put("status", "READ");
+                        
+                        messagingTemplate.convertAndSendToUser(
+                            senderId.toString(),
+                            "/queue/read-receipts",
+                            readReceipt
+                        );
+                    }
+                }
+            });
         }
     }
 

@@ -20,6 +20,7 @@ function ChatArea({
   onCancelReply,
   onForward,
   onDelete,
+  isOneToOneChat = true, // Default to true for backward compatibility
 }) {
   const { mode, colors } = useTheme();
   const messagesEndRef = useRef(null);
@@ -180,6 +181,7 @@ function ChatArea({
                     onReaction={onReaction}
                     onForward={onForward}
                     onDelete={onDelete}
+                    isOneToOneChat={isOneToOneChat}
                   />
                 );
               })}

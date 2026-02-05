@@ -394,4 +394,18 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
         @Query("SELECT c.id FROM Chat c WHERE c.groupId = :groupId AND c.senderId != :userId " +
                "AND (:userId NOT MEMBER OF c.readByUsers OR c.readByUsers IS EMPTY)")
         List<Integer> findUnreadGroupChatIdsForUser(@Param("groupId") Integer groupId, @Param("userId") Integer userId);
+
+        /**
+         * Get distinct sender IDs for a list of chat IDs.
+         * Used for sending read receipts back to the original senders efficiently.
+         */
+        @Query("SELECT DISTINCT c.senderId FROM Chat c WHERE c.id IN :chatIds")
+        List<Integer> findDistinctSenderIdsByChatIds(@Param("chatIds") List<Integer> chatIds);
+
+        /**
+         * Get sender ID and message ID pairs for a list of chat IDs.
+         * Used for sending targeted read receipts.
+         */
+        @Query("SELECT c.senderId, c.id FROM Chat c WHERE c.id IN :chatIds")
+        List<Object[]> findSenderIdAndChatIdPairs(@Param("chatIds") List<Integer> chatIds);
 }

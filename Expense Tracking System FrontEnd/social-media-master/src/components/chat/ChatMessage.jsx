@@ -38,6 +38,7 @@ function ChatMessage({
   onReaction,
   onForward,
   onDelete,
+  isOneToOneChat = true, // Default to true since most chats are one-to-one
 }) {
   const { mode, colors } = useTheme();
   const [hovered, setHovered] = useState(false);
@@ -125,7 +126,8 @@ function ChatMessage({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {!isOwn && showAvatar && (
+      {/* Only show avatar in group chats, not in one-to-one chats */}
+      {!isOneToOneChat && !isOwn && showAvatar && (
         <Avatar
           src={senderImage}
           sx={{
@@ -141,7 +143,8 @@ function ChatMessage({
         </Avatar>
       )}
 
-      {!isOwn && !showAvatar && <Box sx={{ width: 36 }} />}
+      {/* Spacer for consistent alignment in group chats */}
+      {!isOneToOneChat && !isOwn && !showAvatar && <Box sx={{ width: 36 }} />}
 
       <Box sx={{ maxWidth: "65%", position: "relative" }}>
         {replyTo && (
