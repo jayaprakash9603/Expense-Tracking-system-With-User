@@ -36,7 +36,7 @@ public class AuditExpenseController {
 
             UserDto targetUser;
             try {
-                targetUser=reqUser;
+                targetUser = reqUser;
             } catch (RuntimeException e) {
                 if (e.getMessage().contains("not found")) {
                     return ResponseEntity.status(404)
@@ -63,6 +63,7 @@ public class AuditExpenseController {
             return ResponseEntity.status(500)
                     .body("Error retrieving audit logs: " + e.getMessage());
         }
+    }
 
     @GetMapping("/audit-logs/audit-types")
     public ResponseEntity<List<String>> getLogTypes() {
