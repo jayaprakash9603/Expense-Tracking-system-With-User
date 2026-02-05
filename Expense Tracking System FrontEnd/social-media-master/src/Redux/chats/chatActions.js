@@ -31,6 +31,9 @@ import {
   SEND_ONE_TO_ONE_MESSAGE_SUCCESS,
   SEND_ONE_TO_ONE_MESSAGE_FAILURE,
   RECEIVE_ONE_TO_ONE_MESSAGE,
+  RECEIVE_MESSAGES_BATCH,
+  ADD_OPTIMISTIC_MESSAGE,
+  CONFIRM_OPTIMISTIC_MESSAGE,
   SET_ACTIVE_CONVERSATION,
   CLEAR_ACTIVE_CONVERSATION,
   UPDATE_TYPING_STATUS,
@@ -44,6 +47,7 @@ import {
   REMOVE_REACTION_SUCCESS,
   REMOVE_REACTION_FAILURE,
   UPDATE_MESSAGE_REACTION,
+  UPDATE_MESSAGE_STATUS,
   MARK_MESSAGES_READ,
   MARK_MESSAGES_READ_SUCCESS,
   UPDATE_READ_RECEIPT,
@@ -228,6 +232,28 @@ export const receiveOneToOneMessage = (message) => ({
   payload: message,
 });
 
+// Batch receive messages for better performance during rapid messaging
+export const receiveMessagesBatch = (messages) => ({
+  type: RECEIVE_MESSAGES_BATCH,
+  payload: messages,
+});
+
+// Add optimistic message for instant UI feedback
+export const addOptimisticMessage = (message, conversationId) => ({
+  type: ADD_OPTIMISTIC_MESSAGE,
+  payload: { message, conversationId },
+});
+
+// Confirm optimistic message after server response
+export const confirmOptimisticMessage = (
+  tempId,
+  confirmedMessage,
+  conversationId,
+) => ({
+  type: CONFIRM_OPTIMISTIC_MESSAGE,
+  payload: { tempId, confirmedMessage, conversationId },
+});
+
 export const setActiveConversation = (conversation) => ({
   type: SET_ACTIVE_CONVERSATION,
   payload: conversation,
@@ -319,6 +345,12 @@ export const markMessagesRead =
 export const updateReadReceipt = (messageId, readBy) => ({
   type: UPDATE_READ_RECEIPT,
   payload: { messageId, readBy },
+});
+
+// Update message status (sent/delivered/read) - for tick indicators
+export const updateMessageStatus = (messageId, conversationId, status) => ({
+  type: UPDATE_MESSAGE_STATUS,
+  payload: { messageId, conversationId, status },
 });
 
 export const fetchFriendsPresence = (friendIds) => async (dispatch) => {

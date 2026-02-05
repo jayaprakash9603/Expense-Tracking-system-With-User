@@ -6,6 +6,7 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import MicIcon from "@mui/icons-material/Mic";
 import CloseIcon from "@mui/icons-material/Close";
 import { debounce } from "../../utils/chatUtils";
+import { useTheme } from "../../hooks/useTheme";
 
 function ChatInput({
   onSendMessage,
@@ -15,6 +16,7 @@ function ChatInput({
   onCancelReply,
   disabled,
 }) {
+  const { colors } = useTheme();
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef(null);
@@ -84,28 +86,32 @@ function ChatInput({
   };
 
   return (
-    <Box sx={{ backgroundColor: "#202c33", padding: "10px 16px" }}>
+    <Box sx={{ backgroundColor: colors.primary_bg, padding: "10px 16px" }}>
       {replyTo && (
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            backgroundColor: "#1f2c33",
+            backgroundColor: colors.secondary_bg,
             borderRadius: "8px 8px 0 0",
             padding: "8px 12px",
             marginBottom: "-4px",
-            borderLeft: "4px solid #00a884",
+            borderLeft: `4px solid ${colors.primary_accent}`,
           }}
         >
           <Box sx={{ flex: 1, overflow: "hidden" }}>
             <Typography
-              sx={{ color: "#00a884", fontSize: "13px", fontWeight: 500 }}
+              sx={{
+                color: colors.primary_accent,
+                fontSize: "13px",
+                fontWeight: 500,
+              }}
             >
               {replyTo.senderName || "Reply to message"}
             </Typography>
             <Typography
               sx={{
-                color: "#8696a0",
+                color: colors.secondary_text,
                 fontSize: "13px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -118,7 +124,7 @@ function ChatInput({
           <IconButton
             size="small"
             onClick={onCancelReply}
-            sx={{ color: "#8696a0" }}
+            sx={{ color: colors.secondary_text }}
           >
             <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
@@ -126,11 +132,11 @@ function ChatInput({
       )}
 
       <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1 }}>
-        <IconButton sx={{ color: "#8696a0", padding: "10px" }}>
+        <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
           <EmojiEmotionsOutlinedIcon />
         </IconButton>
 
-        <IconButton sx={{ color: "#8696a0", padding: "10px" }}>
+        <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
           <AttachFileIcon sx={{ transform: "rotate(45deg)" }} />
         </IconButton>
 
@@ -146,14 +152,17 @@ function ChatInput({
           disabled={disabled}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: "#2a3942",
+              backgroundColor: colors.input_bg,
               borderRadius: "8px",
               "& fieldset": { border: "none" },
               "& textarea": {
-                color: "#e9edef",
+                color: colors.primary_text,
                 padding: "9px 12px",
                 fontSize: "15px",
-                "&::placeholder": { color: "#8696a0", opacity: 1 },
+                "&::placeholder": {
+                  color: colors.placeholder_text,
+                  opacity: 1,
+                },
               },
             },
           }}
@@ -164,15 +173,15 @@ function ChatInput({
             onClick={handleSend}
             disabled={disabled}
             sx={{
-              color: "#00a884",
+              color: colors.primary_accent,
               padding: "10px",
-              "&:hover": { backgroundColor: "rgba(0,168,132,0.1)" },
+              "&:hover": { backgroundColor: `${colors.primary_accent}1A` },
             }}
           >
             <SendIcon />
           </IconButton>
         ) : (
-          <IconButton sx={{ color: "#8696a0", padding: "10px" }}>
+          <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
             <MicIcon />
           </IconButton>
         )}

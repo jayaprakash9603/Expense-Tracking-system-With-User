@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @EnableAsync
@@ -48,6 +50,9 @@ public class ChatServiceImpl implements ChatService {
     @Autowired
     private AsyncChatSaver asyncChatSaver;
 
+    @Autowired
+    private UserCacheService userCacheService;
+
     @Override
     public ChatResponse sendOneToOneChat(ChatRequest request, Integer userId) {
         validateUsers(List.of(userId, request.getRecipientId()));
@@ -56,6 +61,11 @@ public class ChatServiceImpl implements ChatService {
         Chat chat = toEntity(request, userId);
         Chat savedChat = chatRepository.save(chat);
         ChatResponse response = toResponse(savedChat, userId);
+        
+        // Pass through tempId for optimistic update matching on frontend
+        if (request.getTempId() != null) {
+            response.setTempId(request.getTempId());
+        }
 
         messagingTemplate.convertAndSendToUser(
                 request.getRecipientId().toString(), "/queue/chats", response);
@@ -87,8 +97,15 @@ public class ChatServiceImpl implements ChatService {
     @Override
     public List<ChatResponse> getChatsForGroup(Integer groupId, Integer userId) {
         validateGroup(groupId, userId);
-        return chatRepository.findByGroupIdNotDeletedByUser(groupId, userId).stream()
-                .map(chat -> toResponse(chat, userId))
+        
+        // Use optimized query with fetch joins to avoid N+1 on collections
+        List<Chat> chats = chatRepository.findByGroupIdOptimized(groupId, userId);
+        
+        // Preload all sender info to avoid N+1 HTTP calls
+        userCacheService.preloadUsers(userCacheService.extractSenderIds(chats));
+        
+        return chats.stream()
+                .map(chat -> toResponseCached(chat, userId))
                 .toList();
     }
 
@@ -105,8 +122,14 @@ public class ChatServiceImpl implements ChatService {
         validateUsers(List.of(userId1, userId2));
         validateFriendship(userId1, userId2);
 
-        return chatRepository.findConversationBetweenUsers(userId1, userId2).stream()
-                .map(chat -> toResponse(chat, userId1))
+        // Use optimized query with fetch joins to avoid N+1 on collections
+        List<Chat> chats = chatRepository.findConversationBetweenUsersOptimized(userId1, userId2);
+        
+        // Preload all sender info to avoid N+1 HTTP calls
+        userCacheService.preloadUsers(userCacheService.extractSenderIds(chats));
+
+        return chats.stream()
+                .map(chat -> toResponseCached(chat, userId1))
                 .filter(response -> response.getContent() != null)
                 .toList();
     }
@@ -198,6 +221,90 @@ public class ChatServiceImpl implements ChatService {
         } else {
             return chat.isRead() ? 1 : 0;
         }
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public int markChatsAsReadBatch(List<Integer> chatIds, Integer userId) {
+        if (chatIds == null || chatIds.isEmpty()) {
+            return 0;
+        }
+        validateUsers(List.of(userId));
+        
+        // Use batch update - single query instead of N queries
+        int updatedCount = chatRepository.batchMarkAsRead(chatIds);
+        
+        // If any messages were updated, send a single notification
+        if (updatedCount > 0) {
+            logger.debug("Batch marked {} messages as read for user {}", updatedCount, userId);
+        }
+        
+        return updatedCount;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public int markConversationAsRead(Integer senderId, Integer recipientId) {
+        validateUsers(List.of(senderId, recipientId));
+        
+        // Find all unread message IDs in one query
+        List<Integer> unreadChatIds = chatRepository.findUnreadChatIdsBySenderAndRecipient(senderId, recipientId);
+        
+        if (unreadChatIds.isEmpty()) {
+            return 0;
+        }
+        
+        // Batch update in single query
+        int updatedCount = chatRepository.batchMarkAsRead(unreadChatIds);
+        
+        logger.debug("Marked {} messages from user {} to user {} as read", updatedCount, senderId, recipientId);
+        
+        return updatedCount;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public int markChatsAsDeliveredBatch(List<Integer> chatIds, Integer userId) {
+        if (chatIds == null || chatIds.isEmpty()) {
+            return 0;
+        }
+        validateUsers(List.of(userId));
+        
+        // Use batch update - single query
+        int updatedCount = chatRepository.batchMarkAsDelivered(chatIds, java.time.LocalDateTime.now());
+        
+        logger.debug("Batch marked {} messages as delivered for user {}", updatedCount, userId);
+        
+        return updatedCount;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public int markGroupChatsAsReadBatch(Integer groupId, Integer userId) {
+        if (groupId == null || userId == null) {
+            return 0;
+        }
+        
+        // Find unread group chat IDs for this user
+        List<Integer> unreadChatIds = chatRepository.findUnreadGroupChatIdsForUser(groupId, userId);
+        
+        if (unreadChatIds == null || unreadChatIds.isEmpty()) {
+            return 0;
+        }
+        
+        // Batch load all chats at once to add user to readByUsers
+        List<Chat> chats = chatRepository.findByIdInOptimized(unreadChatIds);
+        for (Chat chat : chats) {
+            if (chat.getReadByUsers() == null) {
+                chat.setReadByUsers(new java.util.HashSet<>());
+            }
+            chat.getReadByUsers().add(userId);
+        }
+        chatRepository.saveAll(chats);
+        
+        logger.debug("Batch marked {} group messages as read for user {} in group {}", chats.size(), userId, groupId);
+        
+        return chats.size();
     }
 
     @Override
@@ -463,26 +570,57 @@ public class ChatServiceImpl implements ChatService {
         List<Map<String, Object>> conversations = new java.util.ArrayList<>();
 
         List<Object[]> recentOneToOneChats = chatRepository.findRecentOneToOneConversations(userId);
+        List<Object[]> recentGroupChats = chatRepository.findRecentGroupConversations(userId);
+        
+        // Collect all chat IDs and friend IDs for batch fetching
+        Set<Integer> chatIds = new HashSet<>();
+        Set<Integer> friendIds = new HashSet<>();
+        
+        for (Object[] row : recentOneToOneChats) {
+            friendIds.add((Integer) row[0]);
+            chatIds.add((Integer) row[1]);
+        }
+        for (Object[] row : recentGroupChats) {
+            chatIds.add((Integer) row[1]);
+        }
+        
+        // Batch fetch all chats with their collections
+        Map<Integer, Chat> chatMap = new HashMap<>();
+        if (!chatIds.isEmpty()) {
+            List<Chat> chats = chatRepository.findByIdInOptimized(new java.util.ArrayList<>(chatIds));
+            for (Chat chat : chats) {
+                chatMap.put(chat.getId(), chat);
+                if (chat.getSenderId() != null) {
+                    friendIds.add(chat.getSenderId());
+                }
+            }
+        }
+        
+        // Preload all users to avoid N+1 HTTP calls
+        userCacheService.preloadUsers(friendIds);
+        
+        // Process one-to-one conversations
         for (Object[] row : recentOneToOneChats) {
             Integer friendId = (Integer) row[0];
             Integer chatId = (Integer) row[1];
             Long unreadCount = ((Number) row[2]).longValue();
-            Chat lastChat = chatRepository.findById(chatId).orElse(null);
+            Chat lastChat = chatMap.get(chatId);
             if (lastChat == null) continue;
 
             Map<String, Object> conversation = new java.util.HashMap<>();
             conversation.put("type", "ONE_TO_ONE");
             conversation.put("friendId", friendId);
-            conversation.put("lastMessage", toResponse(lastChat, userId));
+            conversation.put("lastMessage", toResponseCached(lastChat, userId));
             conversation.put("unreadCount", unreadCount);
             conversation.put("timestamp", lastChat.getTimestamp());
 
-            try {
-                com.jaya.dto.UserDto friendInfo = helper.validateUser(friendId);
+            // Use cached user info
+            com.jaya.dto.UserDto friendInfo = userCacheService.getUser(friendId);
+            if (friendInfo != null) {
                 conversation.put("friendName", friendInfo.getFirstName() + " " + friendInfo.getLastName());
                 conversation.put("friendEmail", friendInfo.getEmail());
                 conversation.put("friendImage", friendInfo.getImage());
-            } catch (Exception e) {
+            } else {
                 conversation.put("friendName", "Unknown User");
                 conversation.put("friendImage", null);
             }
@@ -490,18 +628,18 @@ public class ChatServiceImpl implements ChatService {
             conversations.add(conversation);
         }
 
-        List<Object[]> recentGroupChats = chatRepository.findRecentGroupConversations(userId);
+        // Process group conversations
         for (Object[] row : recentGroupChats) {
             Integer groupId = (Integer) row[0];
             Integer chatId = (Integer) row[1];
             Long unreadCount = ((Number) row[2]).longValue();
-            Chat lastChat = chatRepository.findById(chatId).orElse(null);
+            Chat lastChat = chatMap.get(chatId);
             if (lastChat == null) continue;
 
             Map<String, Object> conversation = new java.util.HashMap<>();
             conversation.put("type", "GROUP");
             conversation.put("groupId", groupId);
-            conversation.put("lastMessage", toResponse(lastChat, userId));
+            conversation.put("lastMessage", toResponseCached(lastChat, userId));
             conversation.put("unreadCount", unreadCount);
             conversation.put("timestamp", lastChat.getTimestamp());
 
@@ -1401,13 +1539,22 @@ public class ChatServiceImpl implements ChatService {
             response.setIsDelivered(chat.getIsDelivered() != null ? chat.getIsDelivered() : false);
             response.setDeliveredAt(chat.getDeliveredAt());
         } else if (chat.isGroupChat()) {
-            response.setReadByUsers(chat.getReadByUsers());
-            response.setReadCount(chat.getReadCount());
-            response.setDeliveredToUsers(chat.getDeliveredToUsers());
-            if (currentUserId != null) {
-                response.setIsReadByCurrentUser(chat.isReadByUser(currentUserId));
-                response.setIsDeliveredByCurrentUser(chat.isDeliveredByUser(currentUserId));
-            } else {
+            // Safely copy collections to avoid LazyInitializationException
+            try {
+                response.setReadByUsers(chat.getReadByUsers() != null ? new HashSet<>(chat.getReadByUsers()) : new HashSet<>());
+                response.setDeliveredToUsers(chat.getDeliveredToUsers() != null ? new HashSet<>(chat.getDeliveredToUsers()) : new HashSet<>());
+                response.setReadCount(chat.getReadCount());
+                if (currentUserId != null) {
+                    response.setIsReadByCurrentUser(chat.isReadByUser(currentUserId));
+                    response.setIsDeliveredByCurrentUser(chat.isDeliveredByUser(currentUserId));
+                } else {
+                    response.setIsReadByCurrentUser(false);
+                    response.setIsDeliveredByCurrentUser(false);
+                }
+            } catch (Exception e) {
+                response.setReadByUsers(new HashSet<>());
+                response.setDeliveredToUsers(new HashSet<>());
+                response.setReadCount(0);
                 response.setIsReadByCurrentUser(false);
                 response.setIsDeliveredByCurrentUser(false);
             }
@@ -1418,5 +1565,82 @@ public class ChatServiceImpl implements ChatService {
 
     private ChatResponse toResponse(Chat chat) {
         return toResponse(chat, null);
+    }
+
+    /**
+     * Convert Chat entity to ChatResponse using cached user data.
+     * This method should be used when processing batch operations to avoid N+1 HTTP calls.
+     * Call userCacheService.preloadUsers() before using this method.
+     */
+    private ChatResponse toResponseCached(Chat chat, Integer currentUserId) {
+        ChatResponse response = new ChatResponse();
+        response.setId(chat.getId());
+        response.setSenderId(chat.getSenderId());
+        response.setRecipientId(chat.getRecipientId());
+        response.setGroupId(chat.getGroupId());
+        response.setTimestamp(chat.getTimestamp());
+
+        // Use cached user data instead of making HTTP call
+        if (chat.getSenderId() != null) {
+            var sender = userCacheService.getUser(chat.getSenderId());
+            if (sender != null) {
+                response.setEmail(sender.getEmail());
+                response.setUsername(sender.getUsername());
+                response.setFirstName(sender.getFirstName());
+                response.setLastName(sender.getLastName());
+            }
+        }
+
+        String displayContent;
+        if (currentUserId != null) {
+            displayContent = chat.getDisplayContent(currentUserId);
+            response.setIsDeletedByCurrentUser(chat.isDeletedByUser(currentUserId));
+        } else {
+            displayContent = chat.getContent();
+            response.setIsDeletedByCurrentUser(false);
+        }
+
+        response.setContent(displayContent);
+        response.setWasDeleted(displayContent != null && displayContent.contains("🚫 This message was deleted"));
+        response.setIsDeletedBySender(chat.getDeletedBySender() != null ? chat.getDeletedBySender() : false);
+
+        response.setIsEdited(chat.getIsEdited() != null ? chat.getIsEdited() : false);
+        response.setEditedAt(chat.getEditedAt());
+
+        response.setReplyToMessageId(chat.getReplyToMessageId());
+
+        response.setIsForwarded(chat.getIsForwarded() != null ? chat.getIsForwarded() : false);
+        response.setForwardedFromMessageId(chat.getForwardedFromMessageId());
+
+        response.setIsMediaMessage(chat.getIsMediaMessage() != null ? chat.getIsMediaMessage() : false);
+        response.setMediaUrl(chat.getMediaUrl());
+        response.setMediaType(chat.getMediaType());
+
+        response.setIsPinned(chat.getIsPinned() != null ? chat.getIsPinned() : false);
+        response.setPinnedBy(chat.getPinnedBy());
+        response.setPinnedAt(chat.getPinnedAt());
+
+        // Collections are already fetched with fetch joins, safe to access
+        Map<String, List<Integer>> reactions = chat.getReactions();
+        response.setReactions(reactions != null ? new HashMap<>(reactions) : new HashMap<>());
+
+        if (chat.isOneToOneChat()) {
+            response.setIsRead(chat.isRead());
+            response.setIsDelivered(chat.getIsDelivered() != null ? chat.getIsDelivered() : false);
+            response.setDeliveredAt(chat.getDeliveredAt());
+        } else if (chat.isGroupChat()) {
+            response.setReadByUsers(chat.getReadByUsers() != null ? new HashSet<>(chat.getReadByUsers()) : new HashSet<>());
+            response.setDeliveredToUsers(chat.getDeliveredToUsers() != null ? new HashSet<>(chat.getDeliveredToUsers()) : new HashSet<>());
+            response.setReadCount(chat.getReadCount());
+            if (currentUserId != null) {
+                response.setIsReadByCurrentUser(chat.isReadByUser(currentUserId));
+                response.setIsDeliveredByCurrentUser(chat.isDeliveredByUser(currentUserId));
+            } else {
+                response.setIsReadByCurrentUser(false);
+                response.setIsDeliveredByCurrentUser(false);
+            }
+        }
+
+        return response;
     }
 }

@@ -272,4 +272,126 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
                         "GROUP BY c3.group_id) " +
                         "ORDER BY c.timestamp DESC", nativeQuery = true)
         List<Object[]> findRecentGroupConversations(@Param("userId") Integer userId);
+
+        // =====================================================
+        // OPTIMIZED FETCH JOIN QUERIES TO AVOID N+1 PROBLEMS
+        // =====================================================
+
+        /**
+         * Fetch conversation between users with all collections pre-loaded.
+         * Avoids N+1 queries for reactions, readByUsers, etc.
+         */
+        @Query("SELECT DISTINCT c FROM Chat c " +
+                        "LEFT JOIN FETCH c.reactions " +
+                        "LEFT JOIN FETCH c.readByUsers " +
+                        "LEFT JOIN FETCH c.deliveredToUsers " +
+                        "LEFT JOIN FETCH c.deletedByUsers " +
+                        "WHERE ((c.senderId = :userId1 AND c.recipientId = :userId2 AND (c.deletedBySender = false OR c.deletedBySender IS NULL)) OR " +
+                        "(c.senderId = :userId2 AND c.recipientId = :userId1 AND (c.deletedByRecipient = false OR c.deletedByRecipient IS NULL))) " +
+                        "ORDER BY c.timestamp")
+        List<Chat> findConversationBetweenUsersOptimized(@Param("userId1") Integer userId1, @Param("userId2") Integer userId2);
+
+        /**
+         * Fetch chats by IDs with all collections pre-loaded.
+         * Use this when you need to load multiple chats efficiently.
+         */
+        @Query("SELECT DISTINCT c FROM Chat c " +
+                        "LEFT JOIN FETCH c.reactions " +
+                        "LEFT JOIN FETCH c.readByUsers " +
+                        "LEFT JOIN FETCH c.deliveredToUsers " +
+                        "LEFT JOIN FETCH c.deletedByUsers " +
+                        "WHERE c.id IN :chatIds " +
+                        "ORDER BY c.timestamp DESC")
+        List<Chat> findByIdInOptimized(@Param("chatIds") List<Integer> chatIds);
+
+        /**
+         * Fetch single chat by ID with all collections pre-loaded.
+         */
+        @Query("SELECT c FROM Chat c " +
+                        "LEFT JOIN FETCH c.reactions " +
+                        "LEFT JOIN FETCH c.readByUsers " +
+                        "LEFT JOIN FETCH c.deliveredToUsers " +
+                        "LEFT JOIN FETCH c.deletedByUsers " +
+                        "WHERE c.id = :chatId")
+        java.util.Optional<Chat> findByIdOptimized(@Param("chatId") Integer chatId);
+
+        /**
+         * Fetch group chats with all collections pre-loaded.
+         */
+        @Query("SELECT DISTINCT c FROM Chat c " +
+                        "LEFT JOIN FETCH c.reactions " +
+                        "LEFT JOIN FETCH c.readByUsers " +
+                        "LEFT JOIN FETCH c.deliveredToUsers " +
+                        "LEFT JOIN FETCH c.deletedByUsers " +
+                        "WHERE c.groupId = :groupId " +
+                        "AND (:userId NOT MEMBER OF c.deletedByUsers OR c.deletedByUsers IS EMPTY) " +
+                        "ORDER BY c.timestamp")
+        List<Chat> findByGroupIdOptimized(@Param("groupId") Integer groupId, @Param("userId") Integer userId);
+
+        /**
+         * Fetch unread messages for user with collections pre-loaded.
+         */
+        @Query("SELECT DISTINCT c FROM Chat c " +
+                        "LEFT JOIN FETCH c.reactions " +
+                        "WHERE c.recipientId = :recipientId AND c.isRead = false AND " +
+                        "(c.deletedByRecipient = false OR c.deletedByRecipient IS NULL)")
+        List<Chat> findUnreadMessagesForUserOptimized(@Param("recipientId") Integer recipientId);
+
+        /**
+         * Fetch distinct sender IDs from conversations with a user.
+         * Useful for batch loading user info.
+         */
+        @Query("SELECT DISTINCT c.senderId FROM Chat c WHERE c.recipientId = :userId OR c.senderId = :userId")
+        List<Integer> findDistinctParticipantIds(@Param("userId") Integer userId);
+
+        /**
+         * Fetch distinct sender IDs from a group.
+         * Useful for batch loading user info.
+         */
+        @Query("SELECT DISTINCT c.senderId FROM Chat c WHERE c.groupId = :groupId")
+        List<Integer> findDistinctSenderIdsByGroupId(@Param("groupId") Integer groupId);
+
+        // =====================================================
+        // BATCH UPDATE QUERIES TO AVOID N+1 UPDATE PROBLEMS
+        // =====================================================
+
+        /**
+         * Batch mark one-to-one messages as read.
+         * Returns the number of updated rows.
+         */
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE Chat c SET c.isRead = true WHERE c.id IN :chatIds AND c.isRead = false")
+        int batchMarkAsRead(@Param("chatIds") List<Integer> chatIds);
+
+        /**
+         * Batch mark messages as delivered.
+         */
+        @org.springframework.data.jpa.repository.Modifying
+        @Query("UPDATE Chat c SET c.isDelivered = true, c.deliveredAt = :deliveredAt WHERE c.id IN :chatIds AND (c.isDelivered = false OR c.isDelivered IS NULL)")
+        int batchMarkAsDelivered(@Param("chatIds") List<Integer> chatIds, @Param("deliveredAt") LocalDateTime deliveredAt);
+
+        /**
+         * Find unread message IDs for recipient from a specific sender.
+         */
+        @Query("SELECT c.id FROM Chat c WHERE c.senderId = :senderId AND c.recipientId = :recipientId AND c.isRead = false")
+        List<Integer> findUnreadChatIdsBySenderAndRecipient(@Param("senderId") Integer senderId, @Param("recipientId") Integer recipientId);
+
+        /**
+         * Find all unread message IDs for a user (as recipient).
+         */
+        @Query("SELECT c.id FROM Chat c WHERE c.recipientId = :userId AND c.isRead = false")
+        List<Integer> findAllUnreadChatIdsForUser(@Param("userId") Integer userId);
+
+        /**
+         * Find all undelivered message IDs for a user.
+         */
+        @Query("SELECT c.id FROM Chat c WHERE c.recipientId = :userId AND (c.isDelivered = false OR c.isDelivered IS NULL)")
+        List<Integer> findAllUndeliveredChatIdsForUser(@Param("userId") Integer userId);
+
+        /**
+         * Find unread group message IDs for a user (messages not sent by the user and not read by the user).
+         */
+        @Query("SELECT c.id FROM Chat c WHERE c.groupId = :groupId AND c.senderId != :userId " +
+               "AND (:userId NOT MEMBER OF c.readByUsers OR c.readByUsers IS EMPTY)")
+        List<Integer> findUnreadGroupChatIdsForUser(@Param("groupId") Integer groupId, @Param("userId") Integer userId);
 }

@@ -10,6 +10,7 @@ import {
   getInitials,
   getAvatarColor,
 } from "../../utils/chatUtils";
+import { useTheme } from "../../hooks/useTheme";
 
 function ChatHeader({
   conversation,
@@ -19,6 +20,8 @@ function ChatHeader({
   onBack,
   onMenuClick,
 }) {
+  const { colors } = useTheme();
+
   if (!conversation) return null;
 
   const { friendId, friendName, friendImage } = conversation;
@@ -36,15 +39,15 @@ function ChatHeader({
         display: "flex",
         alignItems: "center",
         padding: "10px 16px",
-        backgroundColor: "#202c33",
+        backgroundColor: colors.primary_bg,
         height: 59,
-        borderBottom: "1px solid #222d34",
+        borderBottom: `1px solid ${colors.border_color}`,
       }}
     >
       <IconButton
         onClick={onBack}
         sx={{
-          color: "#aebac1",
+          color: colors.secondary_text,
           marginRight: 1,
           display: { xs: "flex", md: "none" },
         }}
@@ -62,7 +65,7 @@ function ChatHeader({
             width: 10,
             height: 10,
             borderRadius: "50%",
-            border: isOnline ? "2px solid #202c33" : "none",
+            border: isOnline ? `2px solid ${colors.primary_bg}` : "none",
           },
         }}
       >
@@ -82,7 +85,7 @@ function ChatHeader({
       <Box sx={{ flex: 1, marginLeft: "15px", overflow: "hidden" }}>
         <Typography
           sx={{
-            color: "#e9edef",
+            color: colors.primary_text,
             fontSize: "16px",
             fontWeight: 500,
             overflow: "hidden",
@@ -94,7 +97,7 @@ function ChatHeader({
         </Typography>
         <Typography
           sx={{
-            color: isTyping ? "#00a884" : "#8696a0",
+            color: isTyping ? colors.primary_accent : colors.secondary_text,
             fontSize: "13px",
             fontStyle: isTyping ? "italic" : "normal",
           }}
@@ -104,16 +107,16 @@ function ChatHeader({
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton sx={{ color: "#aebac1" }}>
+        <IconButton sx={{ color: colors.secondary_text }}>
           <VideocamIcon />
         </IconButton>
-        <IconButton sx={{ color: "#aebac1" }}>
+        <IconButton sx={{ color: colors.secondary_text }}>
           <CallIcon />
         </IconButton>
-        <IconButton sx={{ color: "#aebac1" }}>
+        <IconButton sx={{ color: colors.secondary_text }}>
           <SearchIcon />
         </IconButton>
-        <IconButton onClick={onMenuClick} sx={{ color: "#aebac1" }}>
+        <IconButton onClick={onMenuClick} sx={{ color: colors.secondary_text }}>
           <MoreVertIcon />
         </IconButton>
       </Box>

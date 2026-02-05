@@ -14,6 +14,7 @@ export const THEME_COLORS = {
     secondary_bg: "#121212", // Darker background for contrast
     tertiary_bg: "#0b0b0b", // Even darker for headers
     card_bg: "#1b1b1b", // Card/panel background (same as primary)
+    input_bg: "#2a2a2a", // Input field background
 
     // Active/Hover states
     active_bg: "#29282b", // Active menu item background
@@ -66,6 +67,7 @@ export const THEME_COLORS = {
     secondary_bg: "#f5f5f5", // Light gray for contrast
     tertiary_bg: "#e8e8e8", // Lighter gray for headers
     card_bg: "#ffffff", // Card/panel background (white)
+    input_bg: "#e8e8e8", // Input field background
 
     // Active/Hover states
     active_bg: "#e0f7f5", // Light teal background for active items

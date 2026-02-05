@@ -15,6 +15,9 @@ public class ChatResponse {
     private Integer recipientId;
     private Integer groupId;
     private String content;
+    
+    // Client-generated ID for optimistic update matching
+    private String tempId;
 
     private String email;
     private String username;
@@ -113,6 +116,14 @@ public class ChatResponse {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getTempId() {
+        return tempId;
+    }
+
+    public void setTempId(String tempId) {
+        this.tempId = tempId;
     }
 
     public Integer getSenderId() {

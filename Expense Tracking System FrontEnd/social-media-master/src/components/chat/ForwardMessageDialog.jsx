@@ -21,6 +21,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ForwardIcon from "@mui/icons-material/Forward";
 import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import { useTheme } from "../../hooks/useTheme";
 
 function ForwardMessageDialog({
   open,
@@ -29,6 +30,7 @@ function ForwardMessageDialog({
   friends = [],
   message,
 }) {
+  const { colors } = useTheme();
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -75,8 +77,8 @@ function ForwardMessageDialog({
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: "#202c33",
-          color: "#e9edef",
+          backgroundColor: colors.primary_bg,
+          color: colors.primary_text,
           borderRadius: "12px",
         },
       }}
@@ -86,15 +88,15 @@ function ForwardMessageDialog({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid #374045",
+          borderBottom: `1px solid ${colors.border_color}`,
           pb: 2,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <ForwardIcon sx={{ color: "#00a884" }} />
+          <ForwardIcon sx={{ color: colors.primary_accent }} />
           <Typography variant="h6">Forward Message</Typography>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: "#8696a0" }}>
+        <IconButton onClick={handleClose} sx={{ color: colors.secondary_text }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -103,8 +105,8 @@ function ForwardMessageDialog({
         {message && (
           <Box
             sx={{
-              backgroundColor: "#1f2c33",
-              borderLeft: "4px solid #00a884",
+              backgroundColor: colors.secondary_bg,
+              borderLeft: `4px solid ${colors.primary_accent}`,
               p: 2,
               m: 2,
               borderRadius: "4px",
@@ -112,7 +114,7 @@ function ForwardMessageDialog({
           >
             <Typography
               sx={{
-                color: "#8696a0",
+                color: colors.secondary_text,
                 fontSize: "12px",
                 mb: 0.5,
               }}
@@ -121,7 +123,7 @@ function ForwardMessageDialog({
             </Typography>
             <Typography
               sx={{
-                color: "#e9edef",
+                color: colors.primary_text,
                 fontSize: "14px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -145,13 +147,13 @@ function ForwardMessageDialog({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "#8696a0" }} />
+                  <SearchIcon sx={{ color: colors.secondary_text }} />
                 </InputAdornment>
               ),
               sx: {
-                backgroundColor: "#2a3942",
+                backgroundColor: colors.input_bg,
                 borderRadius: "8px",
-                color: "#e9edef",
+                color: colors.primary_text,
                 "& .MuiOutlinedInput-notchedOutline": {
                   border: "none",
                 },
@@ -169,7 +171,7 @@ function ForwardMessageDialog({
         <List sx={{ maxHeight: 300, overflow: "auto", px: 1 }}>
           {filteredFriends.length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
-              <Typography sx={{ color: "#8696a0" }}>
+              <Typography sx={{ color: colors.secondary_text }}>
                 {searchQuery ? "No friends found" : "No friends available"}
               </Typography>
             </Box>
@@ -192,19 +194,19 @@ function ForwardMessageDialog({
                     borderRadius: "8px",
                     mb: 0.5,
                     "&:hover": {
-                      backgroundColor: "#2a3942",
+                      backgroundColor: colors.hover_bg,
                     },
                     backgroundColor: isSelected
-                      ? "rgba(0, 168, 132, 0.1)"
+                      ? `${colors.primary_accent}1A`
                       : "transparent",
                   }}
                 >
                   <Checkbox
                     checked={isSelected}
                     sx={{
-                      color: "#8696a0",
+                      color: colors.secondary_text,
                       "&.Mui-checked": {
-                        color: "#00a884",
+                        color: colors.primary_accent,
                       },
                     }}
                   />
@@ -223,7 +225,7 @@ function ForwardMessageDialog({
                   <ListItemText
                     primary={friendName}
                     primaryTypographyProps={{
-                      sx: { color: "#e9edef", fontWeight: 500 },
+                      sx: { color: colors.primary_text, fontWeight: 500 },
                     }}
                   />
                 </ListItem>
@@ -235,22 +237,22 @@ function ForwardMessageDialog({
 
       <DialogActions
         sx={{
-          borderTop: "1px solid #374045",
+          borderTop: `1px solid ${colors.border_color}`,
           p: 2,
           justifyContent: "space-between",
         }}
       >
-        <Typography sx={{ color: "#8696a0", fontSize: "14px" }}>
+        <Typography sx={{ color: colors.secondary_text, fontSize: "14px" }}>
           {selectedFriends.length} selected
         </Typography>
         <Box>
           <Button
             onClick={handleClose}
             sx={{
-              color: "#8696a0",
+              color: colors.secondary_text,
               mr: 1,
               "&:hover": {
-                backgroundColor: "rgba(255,255,255,0.05)",
+                backgroundColor: colors.hover_bg,
               },
             }}
           >
@@ -261,13 +263,14 @@ function ForwardMessageDialog({
             disabled={selectedFriends.length === 0}
             variant="contained"
             sx={{
-              backgroundColor: "#00a884",
+              backgroundColor: colors.primary_accent,
               "&:hover": {
-                backgroundColor: "#008c6f",
+                backgroundColor: colors.primary_accent,
+                filter: "brightness(0.9)",
               },
               "&.Mui-disabled": {
-                backgroundColor: "#374045",
-                color: "#8696a0",
+                backgroundColor: colors.border_color,
+                color: colors.secondary_text,
               },
             }}
           >

@@ -162,7 +162,7 @@ class ChatWebSocketService {
     }
   }
 
-  sendMessage(receiverId, content, replyToId = null) {
+  sendMessage(receiverId, content, replyToId = null, tempId = null) {
     if (!this.client || !this.connected) return;
 
     const payload = {
@@ -173,6 +173,11 @@ class ChatWebSocketService {
 
     if (replyToId) {
       payload.replyToMessageId = replyToId;
+    }
+
+    // Include tempId so backend can return it for optimistic update matching
+    if (tempId) {
+      payload.tempId = tempId;
     }
 
     this.client.publish({
@@ -240,14 +245,16 @@ class ChatWebSocketService {
     if (!this.client || !this.connected) return;
 
     const ids = Array.isArray(messageIds) ? messageIds : [messageIds];
-    ids.forEach((messageId) => {
-      if (!messageId) return;
-      this.client.publish({
-        destination: "/app/mark-read",
-        body: JSON.stringify({
-          chatId: messageId,
-        }),
-      });
+    const validIds = ids.filter((id) => id != null);
+
+    if (validIds.length === 0) return;
+
+    // Send all message IDs in a single batch request to avoid N+1 queries
+    this.client.publish({
+      destination: "/app/mark-read-batch",
+      body: JSON.stringify({
+        chatIds: validIds,
+      }),
     });
   }
 

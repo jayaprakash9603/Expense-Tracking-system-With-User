@@ -20,6 +20,7 @@ import {
   getAvatarColor,
 } from "../../utils/chatUtils";
 import { fetchFriends } from "../../Redux/Friends/friendsActions";
+import { useTheme } from "../../hooks/useTheme";
 
 function ChatSidebar({
   conversations,
@@ -31,6 +32,7 @@ function ChatSidebar({
   onBack,
   currentUser,
 }) {
+  const { colors } = useTheme();
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -93,8 +95,8 @@ function ChatSidebar({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#111b21",
-        borderRight: "1px solid #222d34",
+        backgroundColor: colors.secondary_bg,
+        borderRight: `1px solid ${colors.border_color}`,
       }}
     >
       <Box
@@ -102,21 +104,24 @@ function ChatSidebar({
           display: "flex",
           alignItems: "center",
           padding: "10px 16px",
-          backgroundColor: "#202c33",
+          backgroundColor: colors.primary_bg,
           height: 59,
         }}
       >
-        <IconButton onClick={onBack} sx={{ color: "#aebac1", marginRight: 2 }}>
+        <IconButton
+          onClick={onBack}
+          sx={{ color: colors.secondary_text, marginRight: 2 }}
+        >
           <ArrowBackIcon />
         </IconButton>
         <Typography
-          sx={{ color: "#e9edef", fontSize: "19px", fontWeight: 500 }}
+          sx={{ color: colors.primary_text, fontSize: "19px", fontWeight: 500 }}
         >
           Chats
         </Typography>
       </Box>
 
-      <Box sx={{ padding: "8px 12px", backgroundColor: "#111b21" }}>
+      <Box sx={{ padding: "8px 12px", backgroundColor: colors.secondary_bg }}>
         <TextField
           placeholder="Search or start new chat"
           value={searchQuery}
@@ -126,27 +131,49 @@ function ChatSidebar({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: "#8696a0" }} />
+                <SearchIcon sx={{ color: colors.secondary_text }} />
               </InputAdornment>
             ),
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: "#202c33",
+              backgroundColor: colors.primary_bg,
               borderRadius: "8px",
               "& fieldset": { border: "none" },
               "& input": {
-                color: "#e9edef",
+                color: colors.primary_text,
                 padding: "9px 12px",
                 fontSize: "15px",
-                "&::placeholder": { color: "#8696a0", opacity: 1 },
+                "&::placeholder": {
+                  color: colors.placeholder_text,
+                  opacity: 1,
+                },
               },
             },
           }}
         />
       </Box>
 
-      <Box sx={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: colors.border_color,
+            borderRadius: "3px",
+            "&:hover": {
+              backgroundColor: colors.secondary_text,
+            },
+          },
+        }}
+      >
         {loading || loadingFriends ? (
           <Box
             sx={{
@@ -156,16 +183,21 @@ function ChatSidebar({
               height: "100%",
             }}
           >
-            <CircularProgress sx={{ color: "#00a884" }} />
+            <CircularProgress sx={{ color: colors.primary_accent }} />
           </Box>
         ) : (
           <>
             {searchQuery.trim() && filteredFriends.length > 0 && (
               <>
-                <Box sx={{ padding: "8px 16px", backgroundColor: "#111b21" }}>
+                <Box
+                  sx={{
+                    padding: "8px 16px",
+                    backgroundColor: colors.secondary_bg,
+                  }}
+                >
                   <Typography
                     sx={{
-                      color: "#00a884",
+                      color: colors.primary_accent,
                       fontSize: "13px",
                       fontWeight: 500,
                       display: "flex",
@@ -194,8 +226,8 @@ function ChatSidebar({
                         padding: "12px 16px",
                         cursor: "pointer",
                         backgroundColor: "transparent",
-                        "&:hover": { backgroundColor: "#202c33" },
-                        borderBottom: "1px solid #222d34",
+                        "&:hover": { backgroundColor: colors.primary_bg },
+                        borderBottom: `1px solid ${colors.border_color}`,
                       }}
                     >
                       <Avatar
@@ -210,10 +242,17 @@ function ChatSidebar({
                         {getInitials(friendName)}
                       </Avatar>
                       <Box sx={{ flex: 1, marginLeft: "15px" }}>
-                        <Typography sx={{ color: "#e9edef", fontSize: "17px" }}>
+                        <Typography
+                          sx={{ color: colors.primary_text, fontSize: "17px" }}
+                        >
                           {friendName}
                         </Typography>
-                        <Typography sx={{ color: "#8696a0", fontSize: "13px" }}>
+                        <Typography
+                          sx={{
+                            color: colors.secondary_text,
+                            fontSize: "13px",
+                          }}
+                        >
                           Click to start chatting
                         </Typography>
                       </Box>
@@ -224,13 +263,13 @@ function ChatSidebar({
                   <Box
                     sx={{
                       padding: "8px 16px",
-                      backgroundColor: "#111b21",
+                      backgroundColor: colors.secondary_bg,
                       marginTop: "8px",
                     }}
                   >
                     <Typography
                       sx={{
-                        color: "#8696a0",
+                        color: colors.secondary_text,
                         fontSize: "13px",
                         fontWeight: 500,
                       }}
@@ -255,7 +294,7 @@ function ChatSidebar({
               >
                 <Typography
                   sx={{
-                    color: "#8696a0",
+                    color: colors.secondary_text,
                     fontSize: "14px",
                     textAlign: "center",
                   }}

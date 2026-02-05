@@ -21,4 +21,7 @@ public class ChatRequest {
     private Integer forwardedFromMessageId;
     
     private List<Integer> forwardToUserIds;
+    
+    // Client-generated ID for optimistic update matching
+    private String tempId;
 }

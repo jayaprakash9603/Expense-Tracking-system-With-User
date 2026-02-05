@@ -26,6 +26,31 @@ public interface ChatService {
 
     ChatResponse markChatAsRead(Integer chatId, Integer userId) throws Exception;
 
+    /**
+     * Batch mark multiple chats as read in a single database operation.
+     * Much more efficient than calling markChatAsRead individually.
+     * @return number of messages marked as read
+     */
+    int markChatsAsReadBatch(List<Integer> chatIds, Integer userId);
+
+    /**
+     * Mark all unread messages from a specific sender as read.
+     * @return number of messages marked as read
+     */
+    int markConversationAsRead(Integer senderId, Integer recipientId);
+
+    /**
+     * Mark all unread messages in a group as read for a user.
+     * @return number of messages marked as read
+     */
+    int markGroupChatsAsReadBatch(Integer groupId, Integer userId);
+
+    /**
+     * Batch mark multiple chats as delivered.
+     * @return number of messages marked as delivered
+     */
+    int markChatsAsDeliveredBatch(List<Integer> chatIds, Integer userId);
+
     List<ChatResponse> getUnreadChatsForUser(Integer userId);
 
     List<ChatResponse> getUnreadChatsForGroup(Integer groupId, Integer userId);

@@ -6,6 +6,7 @@ import {
   getAvatarColor,
   truncateMessage,
 } from "../../utils/chatUtils";
+import { useTheme } from "../../hooks/useTheme";
 
 function ConversationItem({
   conversation,
@@ -14,6 +15,7 @@ function ConversationItem({
   isTyping,
   onClick,
 }) {
+  const { colors } = useTheme();
   const {
     friendId,
     friendName,
@@ -31,11 +33,11 @@ function ConversationItem({
         alignItems: "center",
         padding: "12px 16px",
         cursor: "pointer",
-        backgroundColor: isActive ? "#2a3942" : "transparent",
+        backgroundColor: isActive ? colors.hover_bg : "transparent",
         "&:hover": {
-          backgroundColor: isActive ? "#2a3942" : "#202c33",
+          backgroundColor: isActive ? colors.hover_bg : colors.primary_bg,
         },
-        borderBottom: "1px solid #222d34",
+        borderBottom: `1px solid ${colors.border_color}`,
       }}
     >
       <Badge
@@ -44,11 +46,11 @@ function ConversationItem({
         variant="dot"
         sx={{
           "& .MuiBadge-badge": {
-            backgroundColor: isOnline ? "#31a24c" : "#8696a0",
+            backgroundColor: isOnline ? "#31a24c" : colors.secondary_text,
             width: 12,
             height: 12,
             borderRadius: "50%",
-            border: "2px solid #111b21",
+            border: `2px solid ${colors.secondary_bg}`,
           },
         }}
       >
@@ -75,7 +77,7 @@ function ConversationItem({
         >
           <Typography
             sx={{
-              color: "#e9edef",
+              color: colors.primary_text,
               fontSize: "17px",
               fontWeight: unreadCount > 0 ? 600 : 400,
               overflow: "hidden",
@@ -87,7 +89,8 @@ function ConversationItem({
           </Typography>
           <Typography
             sx={{
-              color: unreadCount > 0 ? "#00a884" : "#8696a0",
+              color:
+                unreadCount > 0 ? colors.primary_accent : colors.secondary_text,
               fontSize: "12px",
               flexShrink: 0,
               marginLeft: "6px",
@@ -107,7 +110,7 @@ function ConversationItem({
         >
           <Typography
             sx={{
-              color: isTyping ? "#00a884" : "#8696a0",
+              color: isTyping ? colors.primary_accent : colors.secondary_text,
               fontSize: "14px",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -121,7 +124,7 @@ function ConversationItem({
           {unreadCount > 0 && (
             <Box
               sx={{
-                backgroundColor: "#00a884",
+                backgroundColor: colors.primary_accent,
                 borderRadius: "50%",
                 minWidth: 20,
                 height: 20,
@@ -133,7 +136,11 @@ function ConversationItem({
               }}
             >
               <Typography
-                sx={{ color: "#111b21", fontSize: "12px", fontWeight: 600 }}
+                sx={{
+                  color: colors.secondary_bg,
+                  fontSize: "12px",
+                  fontWeight: 600,
+                }}
               >
                 {unreadCount > 99 ? "99+" : unreadCount}
               </Typography>

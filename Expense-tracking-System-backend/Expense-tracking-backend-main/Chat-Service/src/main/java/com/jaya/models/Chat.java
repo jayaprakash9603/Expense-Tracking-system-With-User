@@ -10,7 +10,27 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
-@Table(name = "chats")
+@Table(name = "chats", indexes = {
+    // Single column indexes for common lookups
+    @Index(name = "idx_chat_sender_id", columnList = "sender_id"),
+    @Index(name = "idx_chat_recipient_id", columnList = "recipient_id"),
+    @Index(name = "idx_chat_group_id", columnList = "group_id"),
+    @Index(name = "idx_chat_timestamp", columnList = "timestamp"),
+    @Index(name = "idx_chat_is_read", columnList = "is_read"),
+    
+    // Composite indexes for conversation queries (most common access patterns)
+    @Index(name = "idx_chat_sender_recipient_time", columnList = "sender_id, recipient_id, timestamp"),
+    @Index(name = "idx_chat_recipient_sender_time", columnList = "recipient_id, sender_id, timestamp"),
+    @Index(name = "idx_chat_group_time", columnList = "group_id, timestamp"),
+    
+    // Composite indexes for unread message queries
+    @Index(name = "idx_chat_recipient_unread", columnList = "recipient_id, is_read"),
+    @Index(name = "idx_chat_group_sender", columnList = "group_id, sender_id"),
+    
+    // Index for media and pinned message queries
+    @Index(name = "idx_chat_media", columnList = "is_media_message"),
+    @Index(name = "idx_chat_pinned", columnList = "is_pinned")
+})
 public class Chat {
 
     @Id

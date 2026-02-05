@@ -41,17 +41,41 @@ public class ChatWebSocketController {
 
         ChatResponse response = chatService.sendOneToOneChat(request, userId);
         
+        // Check if recipient is online - if so, mark as delivered immediately
+        boolean recipientOnline = presenceService.isUserOnline(request.getRecipientId());
+        if (recipientOnline) {
+            response.setIsDelivered(true);
+            response.setDeliveredAt(java.time.LocalDateTime.now());
+        }
+        
+        // Send to recipient
         messagingTemplate.convertAndSendToUser(
             request.getRecipientId().toString(),
             "/queue/chats",
             response
         );
         
+        // Send to sender (with delivery status)
         messagingTemplate.convertAndSendToUser(
             userId.toString(),
             "/queue/chats",
             response
         );
+        
+        // If recipient is online, also send delivery receipt to sender
+        if (recipientOnline && response.getId() != null) {
+            Map<String, Object> deliveryReceipt = new HashMap<>();
+            deliveryReceipt.put("messageId", response.getId());
+            deliveryReceipt.put("conversationId", request.getRecipientId());
+            deliveryReceipt.put("isDelivered", true);
+            deliveryReceipt.put("deliveredAt", java.time.LocalDateTime.now().toString());
+            
+            messagingTemplate.convertAndSendToUser(
+                userId.toString(),
+                "/queue/read-receipts",
+                deliveryReceipt
+            );
+        }
     }
 
     @MessageMapping("/send/group")
@@ -104,8 +128,13 @@ public class ChatWebSocketController {
 
         if (response.getSenderId() != null) {
             Map<String, Object> readReceipt = new HashMap<>();
+            readReceipt.put("messageId", chatId);
             readReceipt.put("chatId", chatId);
+            readReceipt.put("conversationId", userId); // The reader's ID is the conversation ID for sender
             readReceipt.put("readBy", userId);
+            readReceipt.put("isRead", true);
+            readReceipt.put("isDelivered", true);
+            readReceipt.put("readAt", java.time.LocalDateTime.now().toString());
             readReceipt.put("timestamp", System.currentTimeMillis());
 
             messagingTemplate.convertAndSendToUser(
@@ -113,6 +142,37 @@ public class ChatWebSocketController {
                 "/queue/read-receipts",
                 readReceipt
             );
+        }
+    }
+
+    @MessageMapping("/mark-read-batch")
+    public void markChatsAsReadBatch(@Payload Map<String, Object> payload, SimpMessageHeaderAccessor headerAccessor) {
+        Integer userId = extractUserId(headerAccessor);
+        if (userId == null) return;
+
+        @SuppressWarnings("unchecked")
+        java.util.List<Integer> chatIds = ((java.util.List<?>) payload.get("chatIds"))
+            .stream()
+            .map(id -> Integer.parseInt(id.toString()))
+            .toList();
+
+        if (chatIds.isEmpty()) return;
+
+        // Use batch update - single DB query instead of N queries
+        int updatedCount = chatService.markChatsAsReadBatch(chatIds, userId);
+        
+        if (updatedCount > 0) {
+            // Send single batch read receipt to senders (grouped by sender)
+            Map<String, Object> readReceipt = new HashMap<>();
+            readReceipt.put("messageIds", chatIds);
+            readReceipt.put("readBy", userId);
+            readReceipt.put("isRead", true);
+            readReceipt.put("isDelivered", true);
+            readReceipt.put("readAt", java.time.LocalDateTime.now().toString());
+            readReceipt.put("updatedCount", updatedCount);
+            
+            // Broadcast to topic for any interested senders
+            messagingTemplate.convertAndSend("/topic/read-receipts-batch", readReceipt);
         }
     }
 

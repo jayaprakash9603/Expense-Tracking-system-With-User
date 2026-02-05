@@ -7,10 +7,14 @@ import {
   setActiveConversation,
   clearActiveConversation,
   receiveOneToOneMessage,
+  receiveMessagesBatch,
+  addOptimisticMessage,
+  confirmOptimisticMessage,
   updateTypingStatus,
   clearTypingStatus,
   updateOnlineStatus,
   updateMessageReaction,
+  updateMessageStatus,
   updateConversationLastMessage,
   incrementUnreadCount,
   resetUnreadCount,
@@ -36,6 +40,59 @@ export function useChat() {
   } = useSelector((state) => state.chats);
 
   const typingTimeoutRef = useRef({});
+  const messageBufferRef = useRef([]);
+  const batchTimeoutRef = useRef(null);
+  const BATCH_DELAY = 50; // ms to wait before dispatching batched messages
+
+  // Flush message buffer and dispatch in batch
+  const flushMessageBuffer = useCallback(() => {
+    if (messageBufferRef.current.length === 0) return;
+
+    const messages = [...messageBufferRef.current];
+    messageBufferRef.current = [];
+
+    if (messages.length === 1) {
+      dispatch(receiveOneToOneMessage(messages[0].normalized));
+    } else {
+      dispatch(receiveMessagesBatch(messages.map((m) => m.normalized)));
+    }
+
+    // Update conversations and unread counts
+    const conversationUpdates = {};
+    const unreadUpdates = [];
+
+    messages.forEach(({ normalized, senderId, otherUserId }) => {
+      // Keep only the latest message per conversation
+      conversationUpdates[otherUserId] = normalized;
+
+      if (
+        senderId !== user?.id &&
+        activeConversation?.friendId !== otherUserId
+      ) {
+        unreadUpdates.push(otherUserId);
+      }
+    });
+
+    // Dispatch conversation updates
+    Object.entries(conversationUpdates).forEach(([friendId, msg]) => {
+      dispatch(updateConversationLastMessage(parseInt(friendId), msg));
+    });
+
+    // Increment unread counts (deduplicated)
+    [...new Set(unreadUpdates)].forEach((friendId) => {
+      dispatch(incrementUnreadCount(friendId));
+    });
+
+    // Mark as read if active conversation
+    const activeMessages = messages.filter(
+      (m) =>
+        m.senderId !== user?.id &&
+        activeConversation?.friendId === m.otherUserId,
+    );
+    if (activeMessages.length > 0) {
+      chatWebSocket.markAsRead(activeMessages.map((m) => m.normalized.id));
+    }
+  }, [dispatch, user?.id, activeConversation]);
 
   useEffect(() => {
     if (user?.id && !wsConnected) {
@@ -68,16 +125,22 @@ export function useChat() {
           conversationId: otherUserId,
         };
 
-        dispatch(receiveOneToOneMessage(normalizedMessage));
-        dispatch(updateConversationLastMessage(otherUserId, normalizedMessage));
+        // Add to buffer for batching
+        messageBufferRef.current.push({
+          normalized: normalizedMessage,
+          senderId,
+          otherUserId,
+        });
 
-        if (senderId !== user?.id) {
-          if (activeConversation?.friendId !== otherUserId) {
-            dispatch(incrementUnreadCount(otherUserId));
-          } else {
-            chatWebSocket.markAsRead([message.id]);
-          }
+        // Clear existing timeout and set new one
+        if (batchTimeoutRef.current) {
+          clearTimeout(batchTimeoutRef.current);
         }
+
+        // Flush after short delay (batches rapid messages)
+        batchTimeoutRef.current = setTimeout(() => {
+          flushMessageBuffer();
+        }, BATCH_DELAY);
       },
     );
 
@@ -116,15 +179,48 @@ export function useChat() {
       dispatch(updateMessageReaction(messageId, reactions));
     });
 
+    // Subscribe to read receipts for tick/double-tick/blue-tick updates
+    const unsubscribeReadReceipt = chatWebSocket.onReadReceipt(
+      "chatHook",
+      (data) => {
+        const {
+          messageId,
+          conversationId,
+          isDelivered,
+          isRead,
+          deliveredAt,
+          readAt,
+        } = data;
+        if (messageId && conversationId) {
+          dispatch(
+            updateMessageStatus(messageId, conversationId, {
+              isDelivered,
+              isRead,
+              deliveredAt,
+              readAt,
+              status: isRead ? "READ" : isDelivered ? "DELIVERED" : "SENT",
+            }),
+          );
+        }
+      },
+    );
+
     return () => {
       unsubscribeMessage();
       unsubscribeTyping();
       unsubscribePresence();
       unsubscribeReaction();
+      unsubscribeReadReceipt();
+
+      // Clear batch timeout and flush any remaining messages
+      if (batchTimeoutRef.current) {
+        clearTimeout(batchTimeoutRef.current);
+        flushMessageBuffer();
+      }
 
       Object.values(typingTimeoutRef.current).forEach(clearTimeout);
     };
-  }, [wsConnected, activeConversation, dispatch]);
+  }, [wsConnected, activeConversation, dispatch, flushMessageBuffer]);
 
   useEffect(() => {
     if (user?.id) {
@@ -166,13 +262,40 @@ export function useChat() {
     (content, replyToId = null) => {
       if (!activeConversation) return;
 
+      // Generate temp ID for optimistic update
+      const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // Create optimistic message
+      const optimisticMessage = {
+        tempId,
+        content,
+        senderId: user?.id,
+        recipientId: activeConversation.friendId,
+        conversationId: activeConversation.friendId,
+        timestamp: new Date().toISOString(),
+        replyToMessageId: replyToId,
+        pending: true,
+        sender: {
+          id: user?.id,
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+        },
+      };
+
+      // Add optimistic message immediately
+      dispatch(
+        addOptimisticMessage(optimisticMessage, activeConversation.friendId),
+      );
+
+      // Send via WebSocket with tempId for confirmation matching
       chatWebSocket.sendMessage(
         activeConversation.friendId,
         content,
         replyToId,
+        tempId,
       );
     },
-    [activeConversation],
+    [activeConversation, user, dispatch],
   );
 
   const startTyping = useCallback(() => {

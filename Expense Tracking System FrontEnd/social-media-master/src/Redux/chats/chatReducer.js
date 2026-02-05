@@ -33,6 +33,9 @@ import {
   SEND_ONE_TO_ONE_MESSAGE_SUCCESS,
   SEND_ONE_TO_ONE_MESSAGE_FAILURE,
   RECEIVE_ONE_TO_ONE_MESSAGE,
+  RECEIVE_MESSAGES_BATCH,
+  ADD_OPTIMISTIC_MESSAGE,
+  CONFIRM_OPTIMISTIC_MESSAGE,
   SET_ACTIVE_CONVERSATION,
   CLEAR_ACTIVE_CONVERSATION,
   UPDATE_TYPING_STATUS,
@@ -46,6 +49,7 @@ import {
   REMOVE_REACTION_SUCCESS,
   REMOVE_REACTION_FAILURE,
   UPDATE_MESSAGE_REACTION,
+  UPDATE_MESSAGE_STATUS,
   MARK_MESSAGES_READ,
   MARK_MESSAGES_READ_SUCCESS,
   UPDATE_READ_RECEIPT,
@@ -195,15 +199,175 @@ const chatReducer = (state = initialState, action) => {
       const conversationId =
         message.conversationId || message.sender?.id || message.senderId;
       const existingMessages = state.oneToOneMessages[conversationId] || [];
-      const messageExists = existingMessages.some((m) => m.id === message.id);
-      if (messageExists) {
-        return state;
+
+      // Check by id first (for status updates on existing messages)
+      const existingById = existingMessages.find((m) => m.id === message.id);
+      if (existingById) {
+        // Update existing message with new status (delivered/read)
+        return {
+          ...state,
+          oneToOneMessages: {
+            ...state.oneToOneMessages,
+            [conversationId]: existingMessages.map((m) =>
+              m.id === message.id ? { ...m, ...message, pending: false } : m,
+            ),
+          },
+        };
       }
+
+      // Check for optimistic message by tempId
+      if (message.tempId) {
+        const existingByTempId = existingMessages.find(
+          (m) => m.tempId === message.tempId,
+        );
+        if (existingByTempId) {
+          return {
+            ...state,
+            oneToOneMessages: {
+              ...state.oneToOneMessages,
+              [conversationId]: existingMessages.map((m) =>
+                m.tempId === message.tempId
+                  ? { ...message, confirmed: true, pending: false }
+                  : m,
+              ),
+            },
+          };
+        }
+      }
+
+      // Match optimistic message by content+timestamp (sender confirmation)
+      // This handles when server returns message without tempId
+      const pendingMatch = existingMessages.find((m) => {
+        if (!m.pending && !m.tempId) return false;
+        // Match by content and approximate timestamp (within 10 seconds)
+        const sameContent = m.content === message.content;
+        const timeDiff = Math.abs(
+          new Date(m.timestamp).getTime() -
+            new Date(message.timestamp).getTime(),
+        );
+        return sameContent && timeDiff < 10000;
+      });
+
+      if (pendingMatch) {
+        // Replace pending/optimistic message with confirmed one
+        return {
+          ...state,
+          oneToOneMessages: {
+            ...state.oneToOneMessages,
+            [conversationId]: existingMessages.map((m) =>
+              (m.tempId && m.tempId === pendingMatch.tempId) ||
+              (m.pending && m.content === pendingMatch.content)
+                ? { ...message, confirmed: true, pending: false }
+                : m,
+            ),
+          },
+        };
+      }
+
+      // New message from other user - add it
       return {
         ...state,
         oneToOneMessages: {
           ...state.oneToOneMessages,
           [conversationId]: [...existingMessages, message],
+        },
+      };
+    }
+
+    // Batch receive multiple messages in one update (optimized for rapid messaging)
+    case RECEIVE_MESSAGES_BATCH: {
+      const messages = action.payload;
+      const newMessages = { ...state.oneToOneMessages };
+
+      messages.forEach((message) => {
+        const conversationId =
+          message.conversationId || message.sender?.id || message.senderId;
+        const existing = newMessages[conversationId] || [];
+
+        // Check by ID first (status update on existing message)
+        const existingById = existing.find((m) => m.id === message.id);
+        if (existingById) {
+          newMessages[conversationId] = existing.map((m) =>
+            m.id === message.id ? { ...m, ...message, pending: false } : m,
+          );
+          return;
+        }
+
+        // Check by tempId (optimistic confirmation)
+        if (message.tempId) {
+          const existingByTempId = existing.find(
+            (m) => m.tempId === message.tempId,
+          );
+          if (existingByTempId) {
+            newMessages[conversationId] = existing.map((m) =>
+              m.tempId === message.tempId
+                ? { ...message, confirmed: true, pending: false }
+                : m,
+            );
+            return;
+          }
+        }
+
+        // Match by content+timestamp for sender confirmation
+        const pendingMatch = existing.find((m) => {
+          if (!m.pending && !m.tempId) return false;
+          const sameContent = m.content === message.content;
+          const timeDiff = Math.abs(
+            new Date(m.timestamp).getTime() -
+              new Date(message.timestamp).getTime(),
+          );
+          return sameContent && timeDiff < 10000;
+        });
+
+        if (pendingMatch) {
+          newMessages[conversationId] = existing.map((m) =>
+            (m.tempId && m.tempId === pendingMatch.tempId) ||
+            (m.pending && m.content === pendingMatch.content)
+              ? { ...message, confirmed: true, pending: false }
+              : m,
+          );
+          return;
+        }
+
+        // New message - add it
+        newMessages[conversationId] = [...existing, message];
+      });
+
+      return {
+        ...state,
+        oneToOneMessages: newMessages,
+      };
+    }
+
+    // Add optimistic message immediately before server confirmation
+    case ADD_OPTIMISTIC_MESSAGE: {
+      const { message, conversationId } = action.payload;
+      const existingMessages = state.oneToOneMessages[conversationId] || [];
+      return {
+        ...state,
+        oneToOneMessages: {
+          ...state.oneToOneMessages,
+          [conversationId]: [
+            ...existingMessages,
+            { ...message, pending: true },
+          ],
+        },
+      };
+    }
+
+    // Confirm optimistic message after server response
+    case CONFIRM_OPTIMISTIC_MESSAGE: {
+      const { tempId, confirmedMessage, conversationId } = action.payload;
+      const existingMessages = state.oneToOneMessages[conversationId] || [];
+      return {
+        ...state,
+        oneToOneMessages: {
+          ...state.oneToOneMessages,
+          [conversationId]: existingMessages.map((m) =>
+            m.tempId === tempId
+              ? { ...confirmedMessage, confirmed: true, pending: false }
+              : m,
+          ),
         },
       };
     }
@@ -272,6 +436,32 @@ const chatReducer = (state = initialState, action) => {
         ].map((msg) => (msg.id === messageId ? { ...msg, reactions } : msg));
       });
       return { ...state, oneToOneMessages: updatedOneToOneMessages };
+    }
+
+    // Update message delivery/read status (tick -> double tick -> blue tick)
+    case UPDATE_MESSAGE_STATUS: {
+      const { messageId, conversationId, status } = action.payload;
+      const messages = state.oneToOneMessages[conversationId];
+      if (!messages) return state;
+
+      return {
+        ...state,
+        oneToOneMessages: {
+          ...state.oneToOneMessages,
+          [conversationId]: messages.map((msg) =>
+            msg.id === messageId
+              ? {
+                  ...msg,
+                  isDelivered: status.isDelivered ?? msg.isDelivered,
+                  isRead: status.isRead ?? msg.isRead,
+                  deliveredAt: status.deliveredAt ?? msg.deliveredAt,
+                  readAt: status.readAt ?? msg.readAt,
+                  status: status.status ?? msg.status,
+                }
+              : msg,
+          ),
+        },
+      };
     }
 
     case MARK_MESSAGES_READ:

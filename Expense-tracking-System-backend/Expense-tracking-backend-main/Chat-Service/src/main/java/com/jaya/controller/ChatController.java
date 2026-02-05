@@ -112,20 +112,23 @@ public class ChatController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
 
+            // Handle batch marking by messageIds - single batch update instead of N queries
             Object messageIdsObj = request.get("messageIds");
             if (messageIdsObj instanceof List<?> messageIds) {
-                int markedCount = 0;
-                for (Object messageId : messageIds) {
-                    if (messageId == null) {
-                        continue;
-                    }
-                    Integer chatId = Integer.parseInt(messageId.toString());
-                    chatService.markChatAsRead(chatId, user.getId());
-                    markedCount++;
+                List<Integer> chatIdList = messageIds.stream()
+                        .filter(id -> id != null)
+                        .map(id -> Integer.parseInt(id.toString()))
+                        .toList();
+                
+                if (chatIdList.isEmpty()) {
+                    return ResponseEntity.ok(Map.of("markedCount", 0));
                 }
+                
+                int markedCount = chatService.markChatsAsReadBatch(chatIdList, user.getId());
                 return ResponseEntity.ok(Map.of("markedCount", markedCount));
             }
 
+            // Handle marking by conversationId - uses batch update
             Object conversationIdObj = request.get("conversationId");
             String conversationType = request.getOrDefault("conversationType", "user").toString();
             if (conversationIdObj == null) {
@@ -133,23 +136,14 @@ public class ChatController {
             }
 
             Integer conversationId = Integer.parseInt(conversationIdObj.toString());
-            List<ChatResponse> chats = "group".equalsIgnoreCase(conversationType)
-                    ? chatService.getChatsForGroup(conversationId, user.getId())
-                    : chatService.getChatsBetweenUsers(user.getId(), conversationId);
-
-            int markedCount = 0;
-            for (ChatResponse chat : chats) {
-                if (chat.getId() == null) {
-                    continue;
-                }
-                if (Boolean.TRUE.equals(chat.getIsReadByCurrentUser())) {
-                    continue;
-                }
-                if (chat.getSenderId() != null && chat.getSenderId().equals(user.getId())) {
-                    continue;
-                }
-                chatService.markChatAsRead(chat.getId(), user.getId());
-                markedCount++;
+            int markedCount;
+            
+            if ("group".equalsIgnoreCase(conversationType)) {
+                // For groups, mark all unread messages from other users
+                markedCount = chatService.markGroupChatsAsReadBatch(conversationId, user.getId());
+            } else {
+                // For direct messages, mark all unread from the other user
+                markedCount = chatService.markConversationAsRead(conversationId, user.getId());
             }
 
             return ResponseEntity.ok(Map.of("markedCount", markedCount));

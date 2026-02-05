@@ -4,6 +4,7 @@ import ChatMessage from "./ChatMessage";
 import TypingIndicator from "./TypingIndicator";
 import ChatInput from "./ChatInput";
 import { groupMessagesByDate, formatChatDate } from "../../utils/chatUtils";
+import { useTheme } from "../../hooks/useTheme";
 
 function ChatArea({
   messages,
@@ -20,6 +21,7 @@ function ChatArea({
   onForward,
   onDelete,
 }) {
+  const { mode, colors } = useTheme();
   const messagesEndRef = useRef(null);
   const containerRef = useRef(null);
 
@@ -46,6 +48,10 @@ function ChatArea({
     return prevSenderId !== currentSenderId;
   };
 
+  // Dynamic background pattern based on theme
+  const patternColor = mode === "dark" ? "%23091620" : "%23e0e0e0";
+  const patternOpacity = mode === "dark" ? "0.4" : "0.3";
+
   return (
     <Box
       sx={{
@@ -53,8 +59,8 @@ function ChatArea({
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        backgroundColor: "#0b141a",
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23091620' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        backgroundColor: colors.secondary_bg,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${patternColor}' fill-opacity='${patternOpacity}'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
       }}
     >
       <Box
@@ -64,6 +70,19 @@ function ChatArea({
           overflowY: "auto",
           overflowX: "hidden",
           padding: "20px 0",
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-track": {
+            backgroundColor: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: colors.border_color,
+            borderRadius: "3px",
+            "&:hover": {
+              backgroundColor: colors.secondary_text,
+            },
+          },
         }}
       >
         {loading ? (
@@ -75,7 +94,7 @@ function ChatArea({
               height: "100%",
             }}
           >
-            <CircularProgress sx={{ color: "#00a884" }} />
+            <CircularProgress sx={{ color: colors.primary_accent }} />
           </Box>
         ) : messages.length === 0 ? (
           <Box
@@ -90,7 +109,7 @@ function ChatArea({
           >
             <Box
               sx={{
-                backgroundColor: "#182229",
+                backgroundColor: colors.primary_bg,
                 borderRadius: "8px",
                 padding: "16px 24px",
                 textAlign: "center",
@@ -98,14 +117,16 @@ function ChatArea({
             >
               <Typography
                 sx={{
-                  color: "#e9edef",
+                  color: colors.primary_text,
                   fontSize: "14.5px",
                   marginBottom: "4px",
                 }}
               >
                 No messages yet
               </Typography>
-              <Typography sx={{ color: "#8696a0", fontSize: "12.5px" }}>
+              <Typography
+                sx={{ color: colors.secondary_text, fontSize: "12.5px" }}
+              >
                 Send a message to start the conversation
               </Typography>
             </Box>
@@ -122,14 +143,14 @@ function ChatArea({
               >
                 <Box
                   sx={{
-                    backgroundColor: "#182229",
+                    backgroundColor: colors.primary_bg,
                     borderRadius: "8px",
                     padding: "5px 12px",
                   }}
                 >
                   <Typography
                     sx={{
-                      color: "#8696a0",
+                      color: colors.secondary_text,
                       fontSize: "12.5px",
                       textTransform: "uppercase",
                     }}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, keyframes } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
 
 const bounce = keyframes`
   0%, 60%, 100% {
@@ -11,13 +12,15 @@ const bounce = keyframes`
 `;
 
 function TypingIndicator() {
+  const { colors } = useTheme();
+
   return (
     <Box
       sx={{
         display: "flex",
         alignItems: "center",
         padding: "8px 12px",
-        backgroundColor: "#202c33",
+        backgroundColor: colors.primary_bg,
         borderRadius: "7.5px",
         borderTopLeftRadius: 0,
         width: "fit-content",
@@ -40,7 +43,7 @@ function TypingIndicator() {
               width: 8,
               height: 8,
               borderRadius: "50%",
-              backgroundColor: "#8696a0",
+              backgroundColor: colors.secondary_text,
               animation: `${bounce} 1.4s ease-in-out infinite`,
               animationDelay: `${index * 0.2}s`,
             }}
