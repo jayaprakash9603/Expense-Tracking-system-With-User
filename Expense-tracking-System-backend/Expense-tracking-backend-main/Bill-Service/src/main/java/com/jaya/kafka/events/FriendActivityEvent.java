@@ -14,10 +14,6 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * Event DTO for tracking friend activities in Bill Service.
- * Used when a friend performs bill actions on behalf of another user.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

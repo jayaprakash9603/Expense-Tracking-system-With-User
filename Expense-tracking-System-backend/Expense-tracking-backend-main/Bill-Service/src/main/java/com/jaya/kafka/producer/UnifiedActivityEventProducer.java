@@ -12,11 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Unified Activity Event Producer for Bill Service
- * Sends all activity events to a single topic for consumption by
- * Notification-Service, Audit-Service, and Friend Activity handlers.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor

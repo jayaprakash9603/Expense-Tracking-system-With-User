@@ -14,7 +14,8 @@ import java.util.stream.Collectors;
 public class BillMapper {
 
     public static Bill toEntity(BillRequestDTO dto, Integer defaultUserId) {
-        if (dto == null) return null;
+        if (dto == null)
+            return null;
         Bill bill = new Bill();
         bill.setId(dto.getId());
         bill.setName(dto.getName());
@@ -51,16 +52,16 @@ public class BillMapper {
     }
 
     public static BillResponseDTO toDto(Bill bill) {
-        if (bill == null) return null;
+        if (bill == null)
+            return null;
         List<DetailedExpensesDTO> details = Collections.emptyList();
         if (bill.getExpenses() != null) {
             details = bill.getExpenses().stream()
-                    .map(e -> new DetailedExpensesDTO(e.getItemName(), e.getQuantity(), e.getUnitPrice(), e.getTotalPrice(), e.getComments()))
+                    .map(e -> new DetailedExpensesDTO(e.getItemName(), e.getQuantity(), e.getUnitPrice(),
+                            e.getTotalPrice(), e.getComments()))
                     .collect(Collectors.toList());
         }
 
-        // Order must match BillResponseDTO fields: id, name, description, amount, paymentMethod, type,
-        // creditDue, date, netAmount, userId, category, expenses, includeInBudget, budgetIds, categoryId, expenseId
         return new BillResponseDTO(
                 bill.getId(),
                 bill.getName(),
@@ -77,7 +78,6 @@ public class BillMapper {
                 bill.isIncludeInBudget(),
                 bill.getBudgetIds(),
                 bill.getCategoryId(),
-                bill.getExpenseId()
-        );
+                bill.getExpenseId());
     }
 }

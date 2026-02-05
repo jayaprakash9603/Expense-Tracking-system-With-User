@@ -20,11 +20,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-/**
- * Tesseract-based OCR provider implementation.
- * Uses tess4j library which includes native Tesseract binaries.
- * Requires tessdata folder with language training data.
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -40,31 +35,24 @@ public class TesseractOcrProvider implements OcrProvider {
         try {
             tesseract = new Tesseract();
 
-            // Configure tessdata path - tess4j includes native binaries
             String dataPath = resolveTessdataPath();
             if (dataPath != null) {
                 tesseract.setDatapath(dataPath);
                 log.info("Tesseract data path set to: {}", dataPath);
             } else {
-                // Try to extract tessdata from jar or use default
                 log.info("Using tess4j bundled tessdata");
             }
 
-            // Set language
             tesseract.setLanguage(config.getTesseract().getLanguage());
 
-            // Set page segmentation mode (PSM) - 3 is fully automatic page segmentation
             tesseract.setPageSegMode(config.getTesseract().getPageSegMode());
 
-            // Set OCR Engine Mode (OEM) - 3 is default based on available data
             tesseract.setOcrEngineMode(config.getTesseract().getOemMode());
 
-            // Additional configurations for better accuracy on receipts
             tesseract.setVariable("tessedit_char_whitelist",
                     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,/$₹@#%&*()-+=:;'\" ");
             tesseract.setVariable("preserve_interword_spaces", "1");
 
-            // Test if Tesseract actually works
             if (!testTesseractWorks()) {
                 unavailableReason = "Tesseract OCR initialization failed. " +
                         "Please ensure tessdata folder exists with language files (eng.traineddata). " +
@@ -88,28 +76,23 @@ public class TesseractOcrProvider implements OcrProvider {
         }
     }
 
-    /**
-     * Tests if Tesseract can actually process an image.
-     */
     private boolean testTesseractWorks() {
         try {
-            // Create a simple 50x50 white image for testing
             BufferedImage testImage = new BufferedImage(50, 50, BufferedImage.TYPE_INT_RGB);
             for (int x = 0; x < 50; x++) {
                 for (int y = 0; y < 50; y++) {
-                    testImage.setRGB(x, y, 0xFFFFFF); // White
+                    testImage.setRGB(x, y, 0xFFFFFF);
                 }
             }
 
-            // This should return empty string but not throw an error
             tesseract.doOCR(testImage);
             return true;
         } catch (TesseractException e) {
             log.debug("Tesseract test failed with TesseractException: {}", e.getMessage());
-            return true; // TesseractException is expected, means native libs work
+            return true;
         } catch (Error e) {
             log.error("Tesseract test failed with Error: {}", e.getMessage());
-            return false; // Error like "Invalid memory access" means native libs don't work
+            return false;
         } catch (Exception e) {
             log.error("Tesseract test failed: {}", e.getMessage());
             return false;
@@ -133,9 +116,6 @@ public class TesseractOcrProvider implements OcrProvider {
             String extractedText = tesseract.doOCR(image);
             long processingTime = System.currentTimeMillis() - startTime;
 
-            // Calculate confidence (Tesseract doesn't provide per-character confidence
-            // easily,
-            // so we estimate based on text quality)
             double confidence = estimateConfidence(extractedText);
 
             log.debug("OCR completed in {}ms, confidence: {}", processingTime, confidence);
@@ -168,24 +148,16 @@ public class TesseractOcrProvider implements OcrProvider {
         return available;
     }
 
-    /**
-     * Returns the reason why Tesseract is unavailable.
-     */
     public String getUnavailableReason() {
         return unavailableReason;
     }
 
-    /**
-     * Resolves the tessdata path, checking multiple locations.
-     */
     private String resolveTessdataPath() {
         String configuredPath = config.getTesseract().getDataPath();
 
-        // 1. Check if configured path exists
         if (configuredPath != null && !configuredPath.isEmpty()) {
             Path configPath = Paths.get(configuredPath);
             if (Files.exists(configPath) && Files.isDirectory(configPath)) {
-                // Check if it contains traineddata file
                 if (Files.exists(configPath.resolve("eng.traineddata"))) {
                     log.info("Using configured tessdata path: {}", configPath.toAbsolutePath());
                     return configPath.toAbsolutePath().toString();
@@ -193,26 +165,22 @@ public class TesseractOcrProvider implements OcrProvider {
             }
         }
 
-        // 2. Check working directory's target/classes/tessdata (for development)
         Path targetTessdata = Paths.get("target/classes/tessdata");
         if (Files.exists(targetTessdata) && Files.exists(targetTessdata.resolve("eng.traineddata"))) {
             log.info("Using target/classes tessdata: {}", targetTessdata.toAbsolutePath());
             return targetTessdata.toAbsolutePath().toString();
         }
 
-        // 3. Check src/main/resources/tessdata (for IDE development)
         Path srcTessdata = Paths.get("src/main/resources/tessdata");
         if (Files.exists(srcTessdata) && Files.exists(srcTessdata.resolve("eng.traineddata"))) {
             log.info("Using src/main/resources tessdata: {}", srcTessdata.toAbsolutePath());
             return srcTessdata.toAbsolutePath().toString();
         }
 
-        // 4. Check classpath resources
         try {
             URL resourceUrl = getClass().getClassLoader().getResource("tessdata/eng.traineddata");
             if (resourceUrl != null) {
                 String resourcePath = resourceUrl.getPath();
-                // Extract parent directory (tessdata folder)
                 File tessDataFile = new File(resourcePath).getParentFile();
                 if (tessDataFile != null && tessDataFile.exists()) {
                     log.info("Using classpath tessdata: {}", tessDataFile.getAbsolutePath());
@@ -223,7 +191,6 @@ public class TesseractOcrProvider implements OcrProvider {
             log.debug("Could not resolve classpath tessdata: {}", e.getMessage());
         }
 
-        // 5. Check common system locations (including user AppData)
         String userHome = System.getProperty("user.home");
         String[] commonPaths = {
                 userHome + "\\AppData\\Local\\Programs\\Tesseract-OCR\\tessdata",
@@ -246,36 +213,30 @@ public class TesseractOcrProvider implements OcrProvider {
             }
         }
 
-        // 6. Return null to let tess4j use its defaults
         log.warn("Could not find tessdata directory with eng.traineddata. Tess4j will use defaults.");
         return null;
     }
 
-    /**
-     * Estimates OCR confidence based on text quality indicators.
-     */
     private double estimateConfidence(String text) {
         if (text == null || text.trim().isEmpty()) {
             return 0.0;
         }
 
-        double confidence = 50.0; // Base confidence
+        double confidence = 50.0;
 
-        // Positive indicators
         if (text.contains("$") || text.contains("€") || text.contains("£")) {
-            confidence += 10; // Currency symbols suggest receipt
+            confidence += 10;
         }
         if (text.matches(".*\\d+\\.\\d{2}.*")) {
-            confidence += 10; // Decimal numbers suggest prices
+            confidence += 10;
         }
         if (text.toLowerCase().contains("total") || text.toLowerCase().contains("subtotal")) {
-            confidence += 10; // Receipt keywords
+            confidence += 10;
         }
         if (text.matches(".*\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}.*")) {
-            confidence += 5; // Date pattern found
+            confidence += 5;
         }
 
-        // Negative indicators
         int garbleCount = 0;
         for (char c : text.toCharArray()) {
             if (!Character.isLetterOrDigit(c) && !Character.isWhitespace(c)
@@ -285,10 +246,9 @@ public class TesseractOcrProvider implements OcrProvider {
         }
         double garbleRatio = (double) garbleCount / text.length();
         if (garbleRatio > 0.1) {
-            confidence -= 20; // Too many unusual characters
+            confidence -= 20;
         }
 
-        // Ensure confidence is within bounds
         return Math.max(0, Math.min(100, confidence));
     }
 }

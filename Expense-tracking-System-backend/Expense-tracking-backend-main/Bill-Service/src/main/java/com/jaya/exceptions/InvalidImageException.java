@@ -1,8 +1,5 @@
 package com.jaya.exceptions;
 
-/**
- * Exception thrown when an invalid image is uploaded for OCR processing.
- */
 public class InvalidImageException extends RuntimeException {
 
     public InvalidImageException(String message) {

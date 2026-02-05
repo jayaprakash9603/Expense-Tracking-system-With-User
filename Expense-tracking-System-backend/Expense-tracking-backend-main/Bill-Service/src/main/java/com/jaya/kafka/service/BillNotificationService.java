@@ -13,16 +13,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Service for creating and sending bill notification events
- * Follows Single Responsibility Principle - only responsible for event creation
- * and dispatch
- * 
- * This service acts as a facade between the BillController/BillService and the
- * Kafka infrastructure
- * It transforms Bill entities into BillNotificationEvent DTOs and sends them to
- * Kafka
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -31,11 +21,6 @@ public class BillNotificationService {
     private final BillNotificationProducer billNotificationProducer;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Send notification when bill is created
-     * 
-     * @param bill The created bill
-     */
     public void sendBillCreatedNotification(Bill bill) {
         try {
             BillNotificationEvent event = buildBillEvent(
@@ -48,15 +33,9 @@ public class BillNotificationService {
         } catch (Exception e) {
             log.error("Failed to send bill created notification for billId: {}",
                     bill.getId(), e);
-            // Don't throw - notification failure shouldn't break main flow
         }
     }
 
-    /**
-     * Send notification when bill is updated
-     * 
-     * @param bill The updated bill
-     */
     public void sendBillUpdatedNotification(Bill bill) {
         try {
             BillNotificationEvent event = buildBillEvent(
@@ -72,13 +51,6 @@ public class BillNotificationService {
         }
     }
 
-    /**
-     * Send notification when bill is deleted
-     * 
-     * @param billId   ID of deleted bill
-     * @param userId   User ID who owns the bill
-     * @param billName Name of the deleted bill
-     */
     public void sendBillDeletedNotification(Integer billId, Integer userId, String billName) {
         try {
             BillNotificationEvent event = BillNotificationEvent.builder()
@@ -98,11 +70,6 @@ public class BillNotificationService {
         }
     }
 
-    /**
-     * Send notification when bill is paid
-     * 
-     * @param bill The paid bill
-     */
     public void sendBillPaidNotification(Bill bill) {
         try {
             BillNotificationEvent event = buildBillEvent(
@@ -118,11 +85,6 @@ public class BillNotificationService {
         }
     }
 
-    /**
-     * Send reminder notification for upcoming bill
-     * 
-     * @param bill The bill for reminder
-     */
     public void sendBillReminderNotification(Bill bill) {
         try {
             BillNotificationEvent event = buildBillEvent(
@@ -138,11 +100,6 @@ public class BillNotificationService {
         }
     }
 
-    /**
-     * Send overdue notification for bill
-     * 
-     * @param bill The overdue bill
-     */
     public void sendBillOverdueNotification(Bill bill) {
         try {
             BillNotificationEvent event = buildBillEvent(
@@ -158,13 +115,6 @@ public class BillNotificationService {
         }
     }
 
-    /**
-     * Build bill notification event from Bill entity
-     * 
-     * @param bill   Bill entity
-     * @param action Action type
-     * @return BillNotificationEvent
-     */
     private BillNotificationEvent buildBillEvent(Bill bill, String action) {
         BillNotificationEvent.BillNotificationEventBuilder builder = BillNotificationEvent.builder()
                 .billId(bill.getId())
@@ -175,15 +125,13 @@ public class BillNotificationService {
                 .amount(bill.getAmount())
                 .paymentMethod(bill.getPaymentMethod())
                 .type(bill.getType())
-                .dueDate(bill.getDate()) // Using 'date' field as dueDate
+                .dueDate(bill.getDate())
                 .timestamp(LocalDateTime.now());
 
-        // Add category if available
         if (bill.getCategory() != null && !bill.getCategory().isEmpty()) {
             builder.category(bill.getCategory());
         }
 
-        // Build metadata JSON with additional info
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("billDate", bill.getDate());
@@ -194,7 +142,6 @@ public class BillNotificationService {
             metadata.put("expenseId", bill.getExpenseId());
             metadata.put("budgetIds", bill.getBudgetIds());
 
-            // Add number of detailed expenses
             if (bill.getExpenses() != null) {
                 metadata.put("expenseCount", bill.getExpenses().size());
             }

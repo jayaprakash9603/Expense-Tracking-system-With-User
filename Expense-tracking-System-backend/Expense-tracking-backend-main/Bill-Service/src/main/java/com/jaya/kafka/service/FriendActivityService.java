@@ -14,11 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Service for sending friend activity notifications for bill operations.
- * All methods are async to ensure event production doesn't block main request
- * threads.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,18 +21,11 @@ public class FriendActivityService {
 
     private final FriendActivityProducer friendActivityProducer;
 
-    /**
-     * Send notification when a friend creates a bill on behalf of another user.
-     */
     @Async("friendActivityExecutor")
     public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
         sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates a bill on behalf of another user with
-     * target user details.
-     */
     @Async("friendActivityExecutor")
     public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
         sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, targetUser);
@@ -81,18 +69,11 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend creates multiple bills.
-     */
     @Async("friendActivityExecutor")
     public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser) {
         sendBulkBillsCreatedByFriendInternal(bills, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend creates multiple bills with target user
-     * details.
-     */
     @Async("friendActivityExecutor")
     public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
@@ -109,7 +90,6 @@ public class FriendActivityService {
             String actorName = getActorDisplayName(actorUser);
             double totalAmount = bills.stream().mapToDouble(Bill::getAmount).sum();
 
-            // Build bulk payload with all bills
             Map<String, Object> bulkPayload = new HashMap<>();
             bulkPayload.put("billCount", bills.size());
             bulkPayload.put("totalAmount", totalAmount);
@@ -140,18 +120,11 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend updates a bill.
-     */
     @Async("friendActivityExecutor")
     public void sendBillUpdatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
         sendBillUpdatedByFriendInternal(bill, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend updates a bill with previous state and target
-     * user details.
-     */
     @Async("friendActivityExecutor")
     public void sendBillUpdatedByFriend(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
             UserDto targetUser) {
@@ -192,18 +165,12 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes a bill.
-     */
     @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount,
             Integer targetUserId, UserDto actorUser) {
         sendBillDeletedByFriendInternal(billId, billName, amount, null, targetUserId, actorUser, null);
     }
 
-    /**
-     * Send notification when a friend deletes a bill with deleted entity details.
-     */
     @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount, Bill deletedBill,
             Integer targetUserId, UserDto actorUser, UserDto targetUser) {
@@ -244,18 +211,11 @@ public class FriendActivityService {
         }
     }
 
-    /**
-     * Send notification when a friend deletes all bills.
-     */
     @Async("friendActivityExecutor")
     public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
         sendAllBillsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
-    /**
-     * Send notification when a friend deletes all bills with deleted entities
-     * details.
-     */
     @Async("friendActivityExecutor")
     public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
             List<Bill> deletedBills) {
@@ -271,7 +231,6 @@ public class FriendActivityService {
 
             String actorName = getActorDisplayName(actorUser);
 
-            // Build payload with deleted bills info
             Map<String, Object> payload = new HashMap<>();
             payload.put("deletedCount", count);
             if (deletedBills != null && !deletedBills.isEmpty()) {
@@ -313,9 +272,6 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    /**
-     * Build UserInfo from UserDto for enhanced event data.
-     */
     private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
         if (user == null)
             return null;
@@ -334,9 +290,6 @@ public class FriendActivityService {
                 .build();
     }
 
-    /**
-     * Build complete bill payload as a Map for entity data.
-     */
     private Map<String, Object> buildBillPayload(Bill bill) {
         if (bill == null)
             return null;

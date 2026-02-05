@@ -16,16 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Unified Activity Service for Bill Service.
- * Replaces separate FriendActivityService and BillNotificationService.
- * 
- * All events are sent to the single unified-activity-events topic.
- * The routing flags determine how the event is processed by consumers:
- * - isOwnAction=true -> Regular notification
- * - isFriendActivity=true -> Friend activity notification
- * - requiresAudit=true -> Audit logging
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,13 +24,6 @@ public class UnifiedActivityService {
     private final UnifiedActivityEventProducer eventProducer;
     private final ObjectMapper objectMapper;
 
-    // =============================================
-    // BILL CREATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a bill is created (own action or friend action)
-     */
     @Async("friendActivityExecutor")
     public void sendBillCreatedEvent(Bill bill, UserDto actorUser, UserDto targetUser) {
         try {
@@ -87,9 +70,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when multiple bills are created
-     */
     @Async("friendActivityExecutor")
     public void sendBulkBillsCreatedEvent(List<Bill> bills, UserDto actorUser, UserDto targetUser) {
         try {
@@ -133,13 +113,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // BILL UPDATED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a bill is updated
-     */
     @Async("friendActivityExecutor")
     public void sendBillUpdatedEvent(Bill bill, Bill oldBill, UserDto actorUser, UserDto targetUser) {
         try {
@@ -184,13 +157,6 @@ public class UnifiedActivityService {
         }
     }
 
-    // =============================================
-    // BILL DELETED EVENTS
-    // =============================================
-
-    /**
-     * Send event when a bill is deleted
-     */
     @Async("friendActivityExecutor")
     public void sendBillDeletedEvent(Integer billId, String billName, Double amount, UserDto actorUser,
             UserDto targetUser) {
@@ -240,9 +206,6 @@ public class UnifiedActivityService {
         }
     }
 
-    /**
-     * Send event when all bills are deleted
-     */
     @Async("friendActivityExecutor")
     public void sendAllBillsDeletedEvent(int count, UserDto actorUser, UserDto targetUser) {
         try {
@@ -282,10 +245,6 @@ public class UnifiedActivityService {
             log.error("Failed to send all bills deleted event: {}", e.getMessage(), e);
         }
     }
-
-    // =============================================
-    // HELPER METHODS
-    // =============================================
 
     private UserInfo buildUserInfo(UserDto user) {
         if (user == null)

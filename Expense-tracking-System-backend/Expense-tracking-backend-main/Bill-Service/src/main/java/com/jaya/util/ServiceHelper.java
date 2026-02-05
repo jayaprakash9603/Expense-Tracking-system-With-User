@@ -1,6 +1,5 @@
 package com.jaya.util;
 
-
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
@@ -19,10 +18,8 @@ import java.util.List;
 @Component
 public class ServiceHelper {
 
-
     @Autowired
     private UserService userService;
-
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
@@ -37,8 +34,6 @@ public class ServiceHelper {
         return reqUser;
     }
 
-
-    // Bill validation methods
     public void validateBillData(Bill bill) {
         if (bill == null) {
             throw new IllegalArgumentException("Bill cannot be null");
@@ -63,7 +58,6 @@ public class ServiceHelper {
         }
     }
 
-    // Expense validation methods
     public void validateExpenseData(ExpenseDTO expense) {
         if (expense == null) {
             throw new IllegalArgumentException("Expense cannot be null");
@@ -94,7 +88,6 @@ public class ServiceHelper {
         }
     }
 
-    // Generic ID validation methods
     public void validateId(Integer id, String fieldName) {
         if (id == null) {
             throw new IllegalArgumentException(fieldName + " cannot be null");
@@ -113,7 +106,6 @@ public class ServiceHelper {
         }
     }
 
-    // String validation methods
     public void validateString(String value, String fieldName) {
         if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException(fieldName + " cannot be null or empty");
@@ -126,7 +118,6 @@ public class ServiceHelper {
         }
     }
 
-    // Amount validation methods
     public void validateAmount(Double amount, String fieldName) {
         if (amount == null) {
             throw new IllegalArgumentException(fieldName + " cannot be null");
@@ -143,7 +134,6 @@ public class ServiceHelper {
         }
     }
 
-    // Date validation methods
     public void validateDate(LocalDate date, String fieldName) {
         if (date == null) {
             throw new IllegalArgumentException(fieldName + " cannot be null");
@@ -158,7 +148,6 @@ public class ServiceHelper {
         }
     }
 
-    // Month and year validation
     public void validateMonthAndYear(int month, int year) {
         if (month < 1 || month > 12) {
             throw new IllegalArgumentException("Month must be between 1 and 12");
@@ -168,7 +157,6 @@ public class ServiceHelper {
         }
     }
 
-    // Collection validation methods
     public void validateList(List<?> list, String fieldName) {
         if (list == null) {
             throw new IllegalArgumentException(fieldName + " cannot be null");
@@ -182,7 +170,6 @@ public class ServiceHelper {
         }
     }
 
-    // Email validation
     public void validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email cannot be null or empty");
@@ -192,7 +179,6 @@ public class ServiceHelper {
         }
     }
 
-    // Pagination validation
     public void validatePagination(int page, int size) {
         if (page < 0) {
             throw new IllegalArgumentException("Page number cannot be negative");
@@ -205,7 +191,6 @@ public class ServiceHelper {
         }
     }
 
-    // Budget validation
     public void validateBudgetId(Integer budgetId) {
         validateId(budgetId, "Budget ID");
     }
@@ -214,20 +199,16 @@ public class ServiceHelper {
         validateId(categoryId, "Category ID");
     }
 
-    // Payment method validation
     public void validatePaymentMethod(String paymentMethod) {
         validateString(paymentMethod, "Payment method");
-        // Add specific payment method validation if needed
     }
 
-    // Type validation (for expense/bill types)
     public void validateType(String type) {
         validateString(type, "Type");
         if (!type.equalsIgnoreCase("gain") && !type.equalsIgnoreCase("loss")) {
             throw new IllegalArgumentException("Type must be either 'gain' or 'loss'");
         }
     }
-
 
     public ExpenseDTO createExpenseFromBill(Bill bill, UserDto user) {
         ExpenseDTO expense = new ExpenseDTO();

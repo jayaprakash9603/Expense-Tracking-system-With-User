@@ -23,9 +23,6 @@ public class ExpenseDetailsDTO {
     private String comments;
     private double creditDue;
 
-    // Note: We don't include the 'expense' field in the DTO to avoid circular references
-    // and because DTOs should be flat structures for data transfer
-
     @Override
     public String toString() {
         return "ExpenseDetailsDTO{" +

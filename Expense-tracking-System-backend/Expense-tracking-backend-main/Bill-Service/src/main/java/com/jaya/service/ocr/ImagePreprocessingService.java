@@ -14,11 +14,6 @@ import java.awt.image.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-/**
- * Service for preprocessing images before OCR.
- * Uses pure Java AWT for image processing - no external dependencies required.
- * Applies grayscale conversion, contrast enhancement, and resizing.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,12 +21,6 @@ public class ImagePreprocessingService {
 
     private final OcrConfigProperties config;
 
-    /**
-     * Preprocesses the image for optimal OCR results.
-     * 
-     * @param file The uploaded image file
-     * @return Preprocessed image as BufferedImage
-     */
     public BufferedImage preprocessImage(MultipartFile file) {
         try {
             validateImage(file);
@@ -61,9 +50,6 @@ public class ImagePreprocessingService {
         }
     }
 
-    /**
-     * Validates the uploaded image file.
-     */
     public void validateImage(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new InvalidImageException("No image file provided");
@@ -88,7 +74,6 @@ public class ImagePreprocessingService {
             throw new InvalidImageException("Invalid file type. Allowed: " + config.getUpload().getAllowedExtensions());
         }
 
-        // Check file size (parse maxFileSize like "10MB")
         long maxSize = parseFileSize(config.getUpload().getMaxFileSize());
         if (file.getSize() > maxSize) {
             throw new InvalidImageException(
@@ -96,22 +81,15 @@ public class ImagePreprocessingService {
         }
     }
 
-    /**
-     * Processes image using Java AWT for better OCR results.
-     */
     private BufferedImage processImage(BufferedImage original) {
         log.debug("Processing image: {}x{}", original.getWidth(), original.getHeight());
 
-        // 1. Resize if too large
         BufferedImage resized = resizeIfNeeded(original);
 
-        // 2. Convert to grayscale
         BufferedImage grayscale = convertToGrayscale(resized);
 
-        // 3. Enhance contrast
         BufferedImage enhanced = enhanceContrast(grayscale);
 
-        // 4. Apply sharpening for better text edges
         BufferedImage sharpened = sharpenImage(enhanced);
 
         log.debug("Image preprocessing complete: {}x{}", sharpened.getWidth(), sharpened.getHeight());
@@ -119,9 +97,6 @@ public class ImagePreprocessingService {
         return sharpened;
     }
 
-    /**
-     * Resizes image if it exceeds maximum dimensions.
-     */
     private BufferedImage resizeIfNeeded(BufferedImage image) {
         int maxWidth = config.getPreprocessing().getMaxWidth();
         int maxHeight = config.getPreprocessing().getMaxHeight();
@@ -151,9 +126,6 @@ public class ImagePreprocessingService {
         return resized;
     }
 
-    /**
-     * Converts image to grayscale.
-     */
     private BufferedImage convertToGrayscale(BufferedImage image) {
         ColorConvertOp op = new ColorConvertOp(
                 ColorSpace.getInstance(ColorSpace.CS_GRAY), null);
@@ -163,11 +135,7 @@ public class ImagePreprocessingService {
         return grayscale;
     }
 
-    /**
-     * Enhances contrast using histogram stretching.
-     */
     private BufferedImage enhanceContrast(BufferedImage image) {
-        // Find min and max pixel values
         int min = 255;
         int max = 0;
 
@@ -179,9 +147,7 @@ public class ImagePreprocessingService {
             }
         }
 
-        // Apply contrast stretching
         if (max - min < 50) {
-            // Image already has low contrast range, apply more aggressive stretching
             min = Math.max(0, min - 20);
             max = Math.min(255, max + 20);
         }
@@ -203,11 +169,7 @@ public class ImagePreprocessingService {
         return enhanced;
     }
 
-    /**
-     * Applies sharpening filter to enhance text edges.
-     */
     private BufferedImage sharpenImage(BufferedImage image) {
-        // Sharpening kernel
         float[] sharpenKernel = {
                 0, -1, 0,
                 -1, 5, -1,
@@ -224,9 +186,6 @@ public class ImagePreprocessingService {
         return sharpened;
     }
 
-    /**
-     * Extracts file extension from filename.
-     */
     private String getFileExtension(String filename) {
         int lastDotIndex = filename.lastIndexOf('.');
         if (lastDotIndex > 0 && lastDotIndex < filename.length() - 1) {
@@ -235,9 +194,6 @@ public class ImagePreprocessingService {
         return "";
     }
 
-    /**
-     * Parses file size string (e.g., "10MB") to bytes.
-     */
     private long parseFileSize(String sizeStr) {
         sizeStr = sizeStr.toUpperCase().trim();
         long multiplier = 1;
@@ -256,11 +212,6 @@ public class ImagePreprocessingService {
         return Long.parseLong(sizeStr.trim()) * multiplier;
     }
 
-    /**
-     * Assesses image quality for OCR.
-     * 
-     * @return Quality assessment string (GOOD, FAIR, POOR)
-     */
     public String assessImageQuality(BufferedImage image) {
         if (image == null) {
             return "POOR";
@@ -269,7 +220,6 @@ public class ImagePreprocessingService {
         int width = image.getWidth();
         int height = image.getHeight();
 
-        // Check resolution
         if (width < 200 || height < 200) {
             return "POOR";
         }

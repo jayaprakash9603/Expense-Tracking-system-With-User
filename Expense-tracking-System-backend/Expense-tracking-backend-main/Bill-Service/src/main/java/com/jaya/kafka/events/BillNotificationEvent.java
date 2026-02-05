@@ -16,11 +16,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Bill Notification Event DTO
- * Used for Kafka messaging to Notification Service
- * Follows Data Transfer Object pattern
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,9 +23,6 @@ import java.time.LocalDateTime;
 public class BillNotificationEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Action constants for bill events
-     */
     public static class Action {
         public static final String CREATE = "CREATE";
         public static final String UPDATE = "UPDATE";
@@ -42,7 +34,7 @@ public class BillNotificationEvent implements Serializable {
 
     private Integer billId;
     private Integer userId;
-    private String action; // CREATE, UPDATE, DELETE, PAID, REMINDER, OVERDUE
+    private String action;
     private String name;
     private String description;
     private Double amount;
@@ -60,5 +52,5 @@ public class BillNotificationEvent implements Serializable {
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime timestamp;
 
-    private String metadata; // JSON string for additional data
+    private String metadata;
 }

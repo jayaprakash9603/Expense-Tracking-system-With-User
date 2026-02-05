@@ -21,17 +21,17 @@ public interface ExpenseService {
     @GetMapping("/api/expenses/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
 
-
     @PostMapping("/api/expenses/add-expense-with-bill-service")
-    public ExpenseDTO addExpense(@RequestBody ExpenseDTO expense,@RequestParam Integer userId) throws Exception;
-
+    public ExpenseDTO addExpense(@RequestBody ExpenseDTO expense, @RequestParam Integer userId) throws Exception;
 
     @PostMapping("/api/expenses/update-expense-with-bill-service")
-    public ExpenseDTO updateExpenseWithBillService(@RequestParam Integer expenseId,@RequestBody ExpenseDTO expense,@RequestParam Integer userId) throws Exception;
+    public ExpenseDTO updateExpenseWithBillService(@RequestParam Integer expenseId, @RequestBody ExpenseDTO expense,
+            @RequestParam Integer userId) throws Exception;
 
     @DeleteMapping("/api/expenses/delete-expenses-with-bill-service")
-    public void deleteExpensesByIdsWithBillService(@RequestParam List<Integer> expenseIds,@RequestParam Integer userId) throws Exception;
-    // Fix the date serialization issue by using @DateTimeFormat
+    public void deleteExpensesByIdsWithBillService(@RequestParam List<Integer> expenseIds, @RequestParam Integer userId)
+            throws Exception;
+
     @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

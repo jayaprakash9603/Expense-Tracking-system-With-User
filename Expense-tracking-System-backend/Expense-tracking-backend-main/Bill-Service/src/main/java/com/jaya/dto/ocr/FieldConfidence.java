@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Represents confidence information for a single extracted field.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Internal DTO for OCR processing result before parsing.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +17,6 @@ public class OcrProcessingResult {
     private String errorMessage;
     private long processingTimeMs;
 
-    // Image quality metrics
     private int imageWidth;
     private int imageHeight;
     private String qualityAssessment;

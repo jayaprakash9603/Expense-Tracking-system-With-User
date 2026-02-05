@@ -1,9 +1,5 @@
 package com.jaya.dto.ocr;
 
-/**
- * Represents confidence levels for OCR field extraction.
- * Used to indicate how reliable the extracted data is.
- */
 public enum ConfidenceLevel {
     HIGH("high", 80.0),
     MEDIUM("medium", 50.0),
@@ -25,9 +21,6 @@ public enum ConfidenceLevel {
         return minScore;
     }
 
-    /**
-     * Determines confidence level based on numeric score.
-     */
     public static ConfidenceLevel fromScore(double score) {
         if (score >= HIGH.minScore)
             return HIGH;

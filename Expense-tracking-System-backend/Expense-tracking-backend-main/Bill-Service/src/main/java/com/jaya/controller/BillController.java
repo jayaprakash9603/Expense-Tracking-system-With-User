@@ -50,7 +50,6 @@ public class BillController {
     private final UnifiedActivityService unifiedActivityService;
     private final ReceiptOcrService receiptOcrService;
 
-    // Helper requiring MODIFY (write) permission
     private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
         if (targetId == null)
             return reqUser;
@@ -63,7 +62,6 @@ public class BillController {
         return targetUser;
     }
 
-    // New helper requiring only READ (view) permission
     private UserDto getTargetUserWithReadAccess(Integer targetId, UserDto reqUser) throws Exception {
         if (targetId == null)
             return reqUser;
@@ -85,14 +83,12 @@ public class BillController {
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         Bill createdBill = billService.createBill(bill, targetUser.getId());
 
-        // Send unified event (handles both own action and friend activity)
         unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
         return ResponseEntity.ok(resp);
     }
 
-    // Bulk create bills (immediate, no tracking)
     @PostMapping("/add-multiple")
     public ResponseEntity<List<BillResponseDTO>> addMultipleBills(@RequestHeader("Authorization") String jwt,
             @RequestBody List<BillRequestDTO> bills,
@@ -103,14 +99,12 @@ public class BillController {
                 .toList();
         List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
 
-        // Send unified event for bulk bills creation
         unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
 
         List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
     }
 
-    // Start a tracked bulk import and return a jobId
     @PostMapping("/add-multiple/tracked")
     public ResponseEntity<Map<String, String>> addMultipleBillsTracked(@RequestHeader("Authorization") String jwt,
             @RequestBody List<BillRequestDTO> bills,
@@ -139,11 +133,10 @@ public class BillController {
         return ResponseEntity.accepted().body(response);
     }
 
-    // Poll progress by jobId
     @GetMapping("/add-multiple/progress/{jobId}")
     public ResponseEntity<ProgressStatus> getAddMultipleBillsProgress(@PathVariable String jobId,
             @RequestHeader("Authorization") String jwt) throws Exception {
-        userService.getuserProfile(jwt); // auth check
+        userService.getuserProfile(jwt);
         ProgressStatus status = progressTracker.get(jobId);
         if (status == null)
             return ResponseEntity.notFound().build();
@@ -155,7 +148,7 @@ public class BillController {
             @RequestParam(required = false) Integer targetId) {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             Bill bill = billService.getByBillId(id, targetUser.getId());
             return ResponseEntity.ok(bill);
         } catch (Exception e) {
@@ -171,14 +164,12 @@ public class BillController {
         UserDto reqUser = userService.getuserProfile(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
-        // Get old bill for audit tracking
         Bill oldBill = billService.getByBillId(id, targetUser.getId());
 
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         bill.setId(id);
         Bill updatedBill = billService.updateBill(bill, targetUser.getId());
 
-        // Send unified event (handles both own action and friend activity)
         unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
@@ -192,7 +183,6 @@ public class BillController {
             UserDto reqUser = userService.getuserProfile(jwt);
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
-            // Get bill details before deletion for notification
             Bill bill = billService.getByBillId(id, targetUser.getId());
             String billName = "Bill";
             Double billAmount = null;
@@ -203,7 +193,6 @@ public class BillController {
 
             billService.deleteBill(id, targetUser.getId());
 
-            // Send unified event (handles both own action and friend activity)
             unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
 
             return ResponseEntity.noContent().build();
@@ -219,13 +208,11 @@ public class BillController {
         UserDto reqUser = userService.getuserProfile(jwt);
         UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
-        // Get count before deletion for notification
         List<Bill> bills = billService.getAllBillsForUser(targetUser.getId());
         int count = bills != null ? bills.size() : 0;
 
         String message = billService.deleteAllBillsForUser(targetUser.getId());
 
-        // Send unified event for bulk deletion
         unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
 
         return new ResponseEntity<>(message, HttpStatus.NO_CONTENT);
@@ -237,7 +224,7 @@ public class BillController {
             @PathVariable Integer expenseId, @RequestParam(required = false) Integer targetId) {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             Bill bill = billService.getBillIdByExpenseId(targetUser.getId(), expenseId);
             return new ResponseEntity<>(bill, HttpStatus.OK);
         } catch (Exception e) {
@@ -262,7 +249,7 @@ public class BillController {
             throws Exception {
         try {
             UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // listing -> read access
+            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             List<Bill> bills;
 
             if (range != null && offset != null) {
@@ -304,13 +291,11 @@ public class BillController {
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser); // read access only
+        UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
         List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
         return ResponseEntity.ok(resp);
 
     }
-
-    // Add this method to your existing BillController class
 
     @GetMapping("/export/excel")
     public ResponseEntity<String> exportUserBillsToExcel(
@@ -319,15 +304,12 @@ public class BillController {
 
         UserDto user = userService.getuserProfile(jwt);
         try {
-            // Get all bills for the user
             List<Bill> userBills = billService.getAllBillsForUser(user.getId());
 
-            // Generate filename with timestamp
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
             String fileName = "User_" + user.getEmail() + "_Bills_" + timestamp + ".xlsx";
             String fullPath = filePath + fileName;
 
-            // Generate Excel file
             excelExportService.generateBillExcel(userBills, fullPath);
 
             return ResponseEntity.ok("Excel file generated successfully at: " + fullPath);
@@ -341,8 +323,6 @@ public class BillController {
         }
     }
 
-    // Add this method to your existing BillController class
-
     @PostMapping("/import/excel")
     public ResponseEntity<?> importBillsFromExcel(
             @RequestParam("file") MultipartFile file,
@@ -350,24 +330,20 @@ public class BillController {
             @RequestParam(required = false) Integer targetId) {
 
         try {
-            // Validate file
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body("Please select a file to upload");
             }
 
-            // Check file extension
             String fileName = file.getOriginalFilename();
             if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
                 return ResponseEntity.badRequest()
                         .body("Please upload a valid Excel file (.xlsx or .xls)");
             }
 
-            // Validate user permissions
             UserDto reqUser = userService.getuserProfile(jwt);
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
-            // Import bills from Excel
             List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
 
             if (importedBills.isEmpty()) {
@@ -375,10 +351,8 @@ public class BillController {
                         .body("No valid bill data found in the Excel file");
             }
 
-            // Set the target user ID for all bills
             importedBills.forEach(bill -> bill.setUserId(targetUser.getId()));
 
-            // Return the imported bills as JSON
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Bills imported successfully from Excel file");
             response.put("totalBills", importedBills.size());
@@ -398,8 +372,6 @@ public class BillController {
         }
     }
 
-    // Add this method to your existing BillController class
-
     @PostMapping("/import/excel/save")
     public ResponseEntity<?> importAndSaveBillsFromExcel(
             @RequestParam("file") MultipartFile file,
@@ -408,24 +380,20 @@ public class BillController {
             @RequestParam(required = false, defaultValue = "false") boolean skipDuplicates) {
 
         try {
-            // Validate file
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body("Please select a file to upload");
             }
 
-            // Check file extension
             String fileName = file.getOriginalFilename();
             if (fileName == null || (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls"))) {
                 return ResponseEntity.badRequest()
                         .body("Please upload a valid Excel file (.xlsx or .xls)");
             }
 
-            // Validate user permissions
             UserDto reqUser = userService.getuserProfile(jwt);
             UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
-            // Import bills from Excel
             List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
 
             if (importedBills.isEmpty()) {
@@ -433,14 +401,12 @@ public class BillController {
                         .body("No valid bill data found in the Excel file");
             }
 
-            // Convert to entities and save
             List<Bill> billsToSave = importedBills.stream()
                     .map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
                     .toList();
 
             List<Bill> savedBills = billService.addMultipleBills(billsToSave, targetUser.getId());
 
-            // Convert back to DTOs for response
             List<BillResponseDTO> savedBillDTOs = savedBills.stream()
                     .map(com.jaya.mapper.BillMapper::toDto)
                     .toList();
@@ -465,27 +431,15 @@ public class BillController {
         }
     }
 
-    // ==================== OCR RECEIPT SCANNING ====================
-
-    /**
-     * Scans a receipt image using OCR and extracts expense data.
-     * Returns structured data with confidence scores for each field.
-     *
-     * @param file Receipt image (jpg, png, etc.)
-     * @param jwt  Authorization token
-     * @return Extracted receipt data with confidence scores
-     */
     @PostMapping("/scan-receipt")
     public ResponseEntity<?> scanReceipt(
             @RequestParam("file") MultipartFile file,
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            // Validate user authentication
             UserDto user = userService.getuserProfile(jwt);
             log.info("Receipt scan requested by user: {}", user.getEmail());
 
-            // Check if OCR service is available
             if (!receiptOcrService.isServiceAvailable()) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "OCR service is not available");
@@ -493,7 +447,6 @@ public class BillController {
                 return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
             }
 
-            // Process the receipt
             OcrReceiptResponseDTO result = receiptOcrService.processReceipt(file);
 
             log.info("Receipt scanned successfully for user: {}. Provider: {}, Confidence: {}%",
@@ -524,26 +477,15 @@ public class BillController {
         }
     }
 
-    /**
-     * Scans multiple receipt images (pages of a single receipt) using OCR.
-     * Merges the extracted data from all pages into a single response.
-     * Useful for multi-page receipts like Star Bazaar/Trent Hypermarket bills.
-     *
-     * @param files Array of receipt images
-     * @param jwt   Authorization token
-     * @return Merged extracted receipt data from all pages
-     */
     @PostMapping("/scan-receipt/multiple")
     public ResponseEntity<?> scanMultipleReceipts(
             @RequestParam("files") MultipartFile[] files,
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            // Validate user authentication
             UserDto user = userService.getuserProfile(jwt);
             log.info("Multiple receipt scan requested by user: {}. Files: {}", user.getEmail(), files.length);
 
-            // Check if OCR service is available
             if (!receiptOcrService.isServiceAvailable()) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "OCR service is not available");
@@ -563,7 +505,6 @@ public class BillController {
                         "message", "Maximum 10 images can be processed at once"));
             }
 
-            // Process all receipts and merge results
             OcrReceiptResponseDTO mergedResult = receiptOcrService.processMultipleReceipts(files);
 
             log.info("Multiple receipts scanned successfully for user: {}. Files: {}, Confidence: {}%",
@@ -591,16 +532,10 @@ public class BillController {
         }
     }
 
-    /**
-     * Gets the status of the OCR service.
-     *
-     * @param jwt Authorization token
-     * @return OCR service status information
-     */
     @GetMapping("/ocr/status")
     public ResponseEntity<?> getOcrStatus(@RequestHeader("Authorization") String jwt) {
         try {
-            userService.getuserProfile(jwt); // Validate user
+            userService.getuserProfile(jwt);
 
             boolean isAvailable = receiptOcrService.isServiceAvailable();
             String provider = receiptOcrService.getActiveProvider();
@@ -626,11 +561,6 @@ public class BillController {
         }
     }
 
-    /**
-     * Fuzzy search bills by name, description, or biller.
-     * Supports partial text matching for typeahead/search functionality.
-     * Optimized query - avoids N+1 problem by returning DTOs.
-     */
     @GetMapping("/search")
     public ResponseEntity<?> searchBills(
             @RequestParam String query,

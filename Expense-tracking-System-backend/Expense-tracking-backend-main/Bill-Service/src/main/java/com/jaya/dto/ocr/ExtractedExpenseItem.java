@@ -5,9 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Represents a single line item extracted from a receipt.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

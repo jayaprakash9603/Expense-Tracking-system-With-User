@@ -16,16 +16,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Unified Activity Event - Single event DTO that carries all information needed
- * by:
- * 1. Audit Service - For audit logging
- * 2. Notification Service - For user notifications
- * 3. Friend Activity Service - For friend activity tracking
- * 
- * This eliminates the need for multiple separate event producers and reduces
- * duplicate Kafka messages across the system.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,7 +24,6 @@ import java.util.UUID;
 public class UnifiedActivityEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    // Core identification
     @Builder.Default
     private String eventId = UUID.randomUUID().toString();
 
@@ -44,40 +33,33 @@ public class UnifiedActivityEvent implements Serializable {
     @Builder.Default
     private LocalDateTime timestamp = LocalDateTime.now();
 
-    // Actor information (who performed the action)
     private Integer actorUserId;
     private String actorUserName;
     private String actorEmail;
     private String actorRole;
     private UserInfo actorUser;
 
-    // Target information (whose data was affected)
     private Integer targetUserId;
     private String targetUserName;
     private UserInfo targetUser;
 
-    // Entity information
     private String entityType;
     private Long entityId;
     private String entityName;
 
-    // Action information
     private String action;
     private String description;
     private Double amount;
 
-    // Data payloads
     private Map<String, Object> oldValues;
     private Map<String, Object> newValues;
     private Map<String, Object> entityPayload;
     private String metadata;
 
-    // Source service information
     private String sourceService;
     private String serviceVersion;
     private String environment;
 
-    // Request context
     private String ipAddress;
     private String userAgent;
     private String sessionId;
@@ -87,13 +69,11 @@ public class UnifiedActivityEvent implements Serializable {
     private String endpoint;
     private Long executionTimeMs;
 
-    // Status
     @Builder.Default
     private String status = "SUCCESS";
     private String errorMessage;
     private Integer responseCode;
 
-    // Routing flags
     @Builder.Default
     private Boolean isOwnAction = true;
     @Builder.Default

@@ -39,20 +39,9 @@ public interface BillService {
 
     List<String> getUserAndBackupItems(Integer userId) throws Exception;
 
-    // Bulk APIs
     List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception;
 
     List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception;
 
-    /**
-     * Fuzzy search bills by name, description, or biller.
-     * Supports partial text matching for typeahead/search functionality.
-     * Optimized query - avoids N+1 problem.
-     * 
-     * @param userId the user whose bills to search
-     * @param query  the search query (partial match supported)
-     * @param limit  maximum number of results to return
-     * @return List of BillSearchDTO matching the search criteria
-     */
     List<BillSearchDTO> searchBills(Integer userId, String query, int limit);
 }

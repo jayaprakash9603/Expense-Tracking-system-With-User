@@ -33,7 +33,6 @@ public class BillServiceImpl implements BillService {
 
     private final BulkProgressTracker progressTracker;
 
-    // lazy-loaded backup items
     private static volatile List<String> cachedBackupItems = null;
 
     @Override
@@ -75,13 +74,11 @@ public class BillServiceImpl implements BillService {
 
             Bill existingBill = getByBillId(bill.getId(), userId);
 
-            // Get the existing expense
             ExpenseDTO expense = expenseService.getExpenseById(existingBill.getExpenseId(), userId);
             if (expense == null) {
                 throw new Exception("Associated expense not found for bill ID: " + bill.getId());
             }
 
-            // Update expense properties
             expense.setDate(bill.getDate());
 
             expense.setUserId(userId);
@@ -89,14 +86,12 @@ public class BillServiceImpl implements BillService {
             expense.setBill(true);
             expense.setIncludeInBudget(bill.isIncludeInBudget());
 
-            // Handle budget IDs
             if (bill.getBudgetIds() != null) {
                 expense.setBudgetIds(bill.getBudgetIds());
             } else if (expense.getBudgetIds() == null) {
                 expense.setBudgetIds(new HashSet<>());
             }
 
-            // Update expense details
             ExpenseDetailsDTO expenseDetails = expense.getExpense();
             if (expenseDetails == null) {
                 expenseDetails = new ExpenseDetailsDTO();
@@ -111,11 +106,9 @@ public class BillServiceImpl implements BillService {
             expenseDetails.setNetAmount(bill.getNetAmount());
             expenseDetails.setCreditDue(bill.getCreditDue());
 
-            // Update the expense using the bill service method
             ExpenseDTO savedExpense = expenseService.updateExpenseWithBillService(existingBill.getExpenseId(), expense,
                     user.getId());
 
-            // Update the bill with the saved expense data
             existingBill.setUserId(userId);
             existingBill.setDate(savedExpense.getDate());
             existingBill.setCategoryId(savedExpense.getCategoryId());
@@ -129,10 +122,8 @@ public class BillServiceImpl implements BillService {
             existingBill.setBudgetIds(savedExpense.getBudgetIds());
             existingBill.setIncludeInBudget(bill.isIncludeInBudget());
             existingBill.setCategory(savedExpense.getCategoryName());
-            // Keep the same expense ID - don't change it
             existingBill.setExpenseId(savedExpense.getId());
 
-            // Only update expenses list if provided
             if (bill.getExpenses() != null) {
                 existingBill.setExpenses(bill.getExpenses());
             }
@@ -261,24 +252,19 @@ public class BillServiceImpl implements BillService {
         helper.validateUser(userId);
         List<Bill> getAllUserBills = billRepository.findByUserId(userId);
 
-        // Extract expense IDs before deleting bills, filtering out nulls
         List<Integer> expenseIds = getAllUserBills.stream()
                 .map(Bill::getExpenseId)
                 .filter(id -> id != null)
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Delete all bills first
         getAllUserBills.forEach(bill -> billRepository.deleteById(bill.getId()));
 
-        // Only try to delete expenses if there are valid expense IDs
         if (!expenseIds.isEmpty()) {
             try {
                 expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
             } catch (Exception e) {
-                // Log the error but don't fail the entire operation
                 System.err.println("Warning: Failed to delete some expenses: " + e.getMessage());
-                // Bills are already deleted, so we can continue
             }
         }
 
@@ -361,7 +347,6 @@ public class BillServiceImpl implements BillService {
     public List<String> getAllUniqueItemNames(Integer userId) throws Exception {
         try {
             helper.validateUser(userId);
-            // Return only DB-derived unique item names (no fallback here)
             return billRepository.findByUserId(userId).stream()
                     .filter(bill -> bill.getExpenses() != null)
                     .flatMap(bill -> bill.getExpenses().stream())
@@ -382,7 +367,6 @@ public class BillServiceImpl implements BillService {
 
             List<String> userItems = getAllUniqueItemNames(userId);
 
-            // load backup items lazily and cache
             if (cachedBackupItems == null) {
                 synchronized (BillServiceImpl.class) {
                     if (cachedBackupItems == null) {
@@ -400,14 +384,12 @@ public class BillServiceImpl implements BillService {
                                 }
                             }
                         } catch (Exception ex) {
-                            // ignore, leave backup empty
                         }
                         cachedBackupItems = backup;
                     }
                 }
             }
 
-            // merge userItems (first) and backupItems, deduplicated while preserving order
             java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
             if (userItems != null)
                 merged.addAll(userItems);
@@ -438,7 +420,6 @@ public class BillServiceImpl implements BillService {
         for (Bill bill : bills) {
             helper.validateBillData(bill);
 
-            // Create and save corresponding expense first
             ExpenseDTO expenseDto = helper.createExpenseFromBill(bill, user);
             ExpenseDTO savedExpense = expenseService.addExpense(expenseDto, userId);
 
@@ -447,9 +428,6 @@ public class BillServiceImpl implements BillService {
             savedBills.add(toSave);
 
             if (++count % batchSize == 0) {
-                // Use repository flush via JPA if available
-                // entityManager is not injected here; repository flush is fine for batch
-                // boundaries
             }
         }
         return savedBills;
@@ -497,17 +475,11 @@ public class BillServiceImpl implements BillService {
         if (query == null || query.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        // Convert query to subsequence pattern: "jce" -> "%j%c%e%" for matching "juice"
         String subsequencePattern = convertToSubsequencePattern(query.trim());
         List<BillSearchDTO> results = billRepository.searchBillsFuzzyWithLimit(userId, subsequencePattern);
-        // Apply limit in memory since JPQL constructor expressions don't support LIMIT
         return results.stream().limit(limit).collect(Collectors.toList());
     }
 
-    /**
-     * Converts a search query to a subsequence pattern for SQL LIKE.
-     * Example: "jce" -> "%j%c%e%" to match "juice", "injection", etc.
-     */
     private String convertToSubsequencePattern(String query) {
         if (query == null || query.isEmpty()) {
             return "%";

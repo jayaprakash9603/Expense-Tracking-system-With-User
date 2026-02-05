@@ -8,16 +8,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Concrete Kafka Producer for Bill Notification Events
- * Extends NotificationEventProducer to handle bill-specific events
- * 
- * Responsibilities:
- * - Configure topic name for bill events
- * - Implement custom validation for bill events
- * - Implement partitioning strategy (by userId)
- * - Add bill-specific logging
- */
 @Component
 @Slf4j
 public class BillNotificationProducer extends NotificationEventProducer<BillNotificationEvent> {
@@ -59,7 +49,6 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
 
     @Override
     protected String generatePartitionKey(BillNotificationEvent event) {
-        // Partition by userId to maintain event ordering per user
         return event.getUserId().toString();
     }
 

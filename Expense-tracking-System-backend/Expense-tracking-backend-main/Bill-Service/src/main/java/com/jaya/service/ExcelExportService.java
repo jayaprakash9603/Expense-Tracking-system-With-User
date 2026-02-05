@@ -24,15 +24,12 @@ public class ExcelExportService {
     public void generateBillExcel(List<Bill> bills, String filePath) throws IOException {
         Workbook workbook = new XSSFWorkbook();
 
-        // Create Bills Summary Sheet
         Sheet billsSheet = workbook.createSheet("Bills Summary");
         createBillsSheet(billsSheet, bills, workbook);
 
-        // Create Detailed Expenses Sheet
         Sheet expensesSheet = workbook.createSheet("Detailed Expenses");
         createExpensesSheet(expensesSheet, bills, workbook);
 
-        // Write to file
         try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
         }
@@ -41,11 +38,9 @@ public class ExcelExportService {
     }
 
     private void createBillsSheet(Sheet sheet, List<Bill> bills, Workbook workbook) {
-        // Create header style
         CellStyle headerStyle = createHeaderStyle(workbook);
         CellStyle dataStyle = createDataStyle(workbook);
 
-        // Create header row
         Row headerRow = sheet.createRow(0);
         String[] headers = { "Bill ID", "Name", "Description", "Amount", "Payment Method",
                 "Type", "Credit Due", "Date", "Net Amount", "Category", "Category Id", "Include in Budget" };
@@ -56,7 +51,6 @@ public class ExcelExportService {
             cell.setCellStyle(headerStyle);
         }
 
-        // Create data rows
         int rowNum = 1;
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -77,7 +71,6 @@ public class ExcelExportService {
             createCell(row, 11, bill.isIncludeInBudget() ? "Yes" : "No", dataStyle);
         }
 
-        // Auto-size columns
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
@@ -87,7 +80,6 @@ public class ExcelExportService {
         CellStyle headerStyle = createHeaderStyle(workbook);
         CellStyle dataStyle = createDataStyle(workbook);
 
-        // Create header row
         Row headerRow = sheet.createRow(0);
         String[] headers = { "Bill ID", "Bill Name", "Item Name", "Quantity", "Unit Price", "Total Price", "Comments" };
 
@@ -97,7 +89,6 @@ public class ExcelExportService {
             cell.setCellStyle(headerStyle);
         }
 
-        // Create data rows
         int rowNum = 1;
 
         for (Bill bill : bills) {
@@ -117,7 +108,6 @@ public class ExcelExportService {
             }
         }
 
-        // Auto-size columns
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
@@ -163,13 +153,11 @@ public class ExcelExportService {
         List<BillRequestDTO> bills = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-            // Read Bills Summary Sheet
             Sheet billsSheet = workbook.getSheet("Bills Summary");
             if (billsSheet == null) {
                 throw new IllegalArgumentException("Bills Summary sheet not found in the Excel file");
             }
 
-            // Read Detailed Expenses Sheet
             Sheet expensesSheet = workbook.getSheet("Detailed Expenses");
             Map<Integer, List<DetailedExpensesDTO>> expensesMap = new HashMap<>();
 
@@ -177,7 +165,6 @@ public class ExcelExportService {
                 expensesMap = readExpensesSheet(expensesSheet);
             }
 
-            // Read bills from Bills Summary sheet
             bills = readBillsSheet(billsSheet, expensesMap);
         }
 
@@ -188,7 +175,6 @@ public class ExcelExportService {
         List<BillRequestDTO> bills = new ArrayList<>();
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        // Skip header row (row 0)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null)
@@ -197,7 +183,6 @@ public class ExcelExportService {
             try {
                 BillRequestDTO bill = new BillRequestDTO();
 
-                // Read bill data from columns
                 String billIdStr = getCellValueAsString(row.getCell(0));
                 Integer billId = billIdStr.isEmpty() ? null : Integer.parseInt(billIdStr);
                 bill.setId(billId);
@@ -210,13 +195,11 @@ public class ExcelExportService {
                 bill.setCreditDue(getCellValueAsDouble(row.getCell(6)));
                 bill.setCategoryId((int) getCellValueAsDouble(row.getCell(10)));
 
-                // Parse date
                 String dateStr = getCellValueAsString(row.getCell(7));
                 if (!dateStr.isEmpty()) {
                     try {
                         bill.setDate(LocalDate.parse(dateStr, dateFormatter));
                     } catch (Exception e) {
-                        // Try alternative date formats
                         try {
                             bill.setDate(LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")));
                         } catch (Exception ex) {
@@ -232,7 +215,6 @@ public class ExcelExportService {
                 bill.setIncludeInBudget(
                         "Yes".equalsIgnoreCase(includeInBudgetStr) || "true".equalsIgnoreCase(includeInBudgetStr));
 
-                // Add expenses if available
                 if (billId != null && expensesMap.containsKey(billId)) {
                     bill.setExpenses(expensesMap.get(billId));
                 }
@@ -241,7 +223,6 @@ public class ExcelExportService {
 
             } catch (Exception e) {
                 System.err.println("Error reading row " + i + ": " + e.getMessage());
-                // Continue with next row
             }
         }
 
@@ -251,7 +232,6 @@ public class ExcelExportService {
     private Map<Integer, List<DetailedExpensesDTO>> readExpensesSheet(Sheet sheet) {
         Map<Integer, List<DetailedExpensesDTO>> expensesMap = new HashMap<>();
 
-        // Skip header row (row 0)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null)
@@ -278,7 +258,6 @@ public class ExcelExportService {
 
             } catch (Exception e) {
                 System.err.println("Error reading expense row " + i + ": " + e.getMessage());
-                // Continue with next row
             }
         }
 
@@ -297,7 +276,6 @@ public class ExcelExportService {
                     return cell.getLocalDateTimeCellValue().toLocalDate()
                             .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
                 } else {
-                    // Check if it's a whole number
                     double numValue = cell.getNumericCellValue();
                     if (numValue == Math.floor(numValue)) {
                         return String.valueOf((long) numValue);

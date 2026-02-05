@@ -6,10 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-/**
- * Lightweight DTO for bill search results.
- * Avoids lazy loading issues by containing only essential fields.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
