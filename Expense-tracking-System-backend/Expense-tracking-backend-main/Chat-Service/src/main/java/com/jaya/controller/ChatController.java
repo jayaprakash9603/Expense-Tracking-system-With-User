@@ -6,6 +6,7 @@ import com.jaya.dto.ChatResponse;
 import com.jaya.dto.UserDto;
 import com.jaya.exception.ChatServiceException;
 import com.jaya.service.ChatService;
+import com.jaya.service.PresenceService;
 import com.jaya.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,9 @@ public class ChatController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PresenceService presenceService;
 
     @PostMapping("/one-to-one")
     public ChatResponse sendOneToOneChat(@Valid @RequestBody ChatRequest request,
@@ -61,10 +66,19 @@ public class ChatController {
     }
 
     @GetMapping("/between")
-    public List<ChatResponse> getChatsBetweenUsers(
-            @RequestHeader("Authorization") String jwt, @RequestParam Integer userId2) {
+    public ResponseEntity<?> getChatsBetweenUsers(
+            @RequestHeader("Authorization") String jwt, @RequestParam String userId2) {
         UserDto user = userService.getuserProfile(jwt);
-        return chatService.getChatsBetweenUsers(user.getId(), userId2);
+        if (userId2 == null || userId2.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("userId2 is required");
+        }
+
+        try {
+            Integer parsedUserId = Integer.parseInt(userId2);
+            return ResponseEntity.ok(chatService.getChatsBetweenUsers(user.getId(), parsedUserId));
+        } catch (NumberFormatException ex) {
+            return ResponseEntity.badRequest().body("userId2 must be a valid integer");
+        }
     }
 
     @GetMapping("/user/search")
@@ -86,6 +100,65 @@ public class ChatController {
             throws Exception {
         UserDto user = userService.getuserProfile(jwt);
         return chatService.markChatAsRead(chatId, user.getId());
+    }
+
+    @PostMapping("/mark-read")
+    public ResponseEntity<?> markConversationAsRead(
+            @RequestBody Map<String, Object> request,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+
+            Object messageIdsObj = request.get("messageIds");
+            if (messageIdsObj instanceof List<?> messageIds) {
+                int markedCount = 0;
+                for (Object messageId : messageIds) {
+                    if (messageId == null) {
+                        continue;
+                    }
+                    Integer chatId = Integer.parseInt(messageId.toString());
+                    chatService.markChatAsRead(chatId, user.getId());
+                    markedCount++;
+                }
+                return ResponseEntity.ok(Map.of("markedCount", markedCount));
+            }
+
+            Object conversationIdObj = request.get("conversationId");
+            String conversationType = request.getOrDefault("conversationType", "user").toString();
+            if (conversationIdObj == null) {
+                return ResponseEntity.badRequest().body("conversationId is required");
+            }
+
+            Integer conversationId = Integer.parseInt(conversationIdObj.toString());
+            List<ChatResponse> chats = "group".equalsIgnoreCase(conversationType)
+                    ? chatService.getChatsForGroup(conversationId, user.getId())
+                    : chatService.getChatsBetweenUsers(user.getId(), conversationId);
+
+            int markedCount = 0;
+            for (ChatResponse chat : chats) {
+                if (chat.getId() == null) {
+                    continue;
+                }
+                if (Boolean.TRUE.equals(chat.getIsReadByCurrentUser())) {
+                    continue;
+                }
+                if (chat.getSenderId() != null && chat.getSenderId().equals(user.getId())) {
+                    continue;
+                }
+                chatService.markChatAsRead(chat.getId(), user.getId());
+                markedCount++;
+            }
+
+            return ResponseEntity.ok(Map.of("markedCount", markedCount));
+        } catch (ChatServiceException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error marking messages read: " + e.getMessage());
+        }
     }
 
     @GetMapping("/user/unread")
@@ -389,6 +462,69 @@ public class ChatController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error stopping typing: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/conversations")
+    public ResponseEntity<?> getConversationsList(@RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+
+            List<Map<String, Object>> conversations = chatService.getConversationsList(user.getId());
+            return ResponseEntity.ok(conversations);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error getting conversations: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/presence/batch")
+    public ResponseEntity<?> getPresenceBatch(
+            @RequestBody Map<String, Object> request,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            UserDto user = userService.getuserProfile(jwt);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            }
+
+            Object userIdsObj = request.get("userIds");
+            if (!(userIdsObj instanceof List<?> userIds)) {
+                return ResponseEntity.badRequest().body("userIds must be a list");
+            }
+
+            List<Integer> ids = userIds.stream()
+                    .filter(id -> id != null)
+                    .map(id -> Integer.parseInt(id.toString()))
+                    .toList();
+
+            Map<Integer, Object> presenceInfo = presenceService.getPresenceInfoForUsers(ids);
+            Map<Integer, Boolean> onlineStatus = new HashMap<>();
+            Map<Integer, String> lastSeenMap = new HashMap<>();
+
+            for (Map.Entry<Integer, Object> entry : presenceInfo.entrySet()) {
+                Integer userId = entry.getKey();
+                Object infoObj = entry.getValue();
+                if (infoObj instanceof Map<?, ?> info) {
+                    Object onlineObj = info.get("online");
+                    onlineStatus.put(userId, Boolean.TRUE.equals(onlineObj));
+
+                    Object lastSeenObj = info.get("lastSeen");
+                    if (lastSeenObj != null) {
+                        lastSeenMap.put(userId, lastSeenObj.toString());
+                    }
+                }
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "onlineStatus", onlineStatus,
+                    "lastSeenMap", lastSeenMap));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error getting presence: " + e.getMessage());
         }
     }
 }

@@ -104,6 +104,19 @@ public class FriendshipController {
         }
     }
 
+    @GetMapping("/friend-ids")
+    public ResponseEntity<List<Integer>> getFriendIds(@RequestParam Integer userId) {
+        try {
+            List<Friendship> friendships = friendshipService.getUserFriendships(userId);
+            List<Integer> friendIds = friendships.stream()
+                    .map(f -> f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId())
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(friendIds);
+        } catch (Exception e) {
+            return ResponseEntity.ok(List.of());
+        }
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<List<FriendshipResponseDTO>> getPendingRequests(
             @RequestHeader("Authorization") String jwt) throws Exception {

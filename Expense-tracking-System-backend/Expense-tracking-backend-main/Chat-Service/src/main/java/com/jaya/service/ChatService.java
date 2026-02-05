@@ -47,6 +47,8 @@ public interface ChatService {
     ChatResponse forwardMessage(Integer messageId, Integer targetUserId, Integer targetGroupId, Integer userId)
             throws Exception;
 
+    ChatResponse forwardMessage(Integer messageId, Integer targetUserId, Integer userId) throws Exception;
+
     void pinMessage(Integer messageId, Integer userId) throws Exception;
 
     void unpinMessage(Integer messageId, Integer userId) throws Exception;
@@ -71,7 +73,13 @@ public interface ChatService {
 
     void removeReaction(Integer messageId, String reaction, Integer userId) throws Exception;
 
+    ChatResponse addReaction(Integer messageId, String reaction, Integer userId, boolean returnResponse) throws Exception;
+
+    ChatResponse removeReaction(Integer messageId, Integer userId) throws Exception;
+
     Map<String, List<Integer>> getMessageReactions(Integer messageId, Integer userId) throws Exception;
+
+    List<Map<String, Object>> getConversationsList(Integer userId) throws Exception;
 
     void startTyping(Integer chatId, String chatType, Integer userId) throws Exception;
 

@@ -72,6 +72,7 @@ import MySharesPage from "../pages/Landingpage/MySharesPage";
 import CreateSharePage from "../pages/Landingpage/CreateSharePage";
 import PublicSharesPage from "../pages/Landingpage/PublicSharesPage";
 import SharedWithMePage from "../pages/Landingpage/SharedWithMePage";
+import FriendChat from "../pages/Landingpage/FriendChat";
 
 /**
  * Authentication Routes - Returns Route element directly
@@ -291,6 +292,9 @@ export const getAppRoutes = () => (
         <Route path="stories/edit/:id" element={<EditStory />} />
       </Route>
     </Route>
+
+    {/* Full-screen Chat Route - Outside Home layout for 100vw/100vh */}
+    <Route path="/friend-chat" element={<FriendChat />} />
 
     {/* 404 Not Found - Catch all undefined routes (outside Home layout) */}
     <Route path="*" element={<NotFound />} />

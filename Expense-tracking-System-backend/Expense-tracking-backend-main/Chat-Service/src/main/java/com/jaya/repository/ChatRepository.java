@@ -251,4 +251,25 @@ public interface ChatRepository extends JpaRepository<Chat, Integer> {
 
         @Query("SELECT c FROM Chat c WHERE c.id IN :chatIds ORDER BY c.timestamp DESC")
         List<Chat> findByIdIn(@Param("chatIds") List<Integer> chatIds);
+
+        @Query(value = "SELECT CASE WHEN c.sender_id = :userId THEN c.recipient_id ELSE c.sender_id END as friend_id, " +
+                        "c.id as chat_id, " +
+                        "(SELECT COUNT(*) FROM chats c2 WHERE " +
+                        "((c2.sender_id = CASE WHEN c.sender_id = :userId THEN c.recipient_id ELSE c.sender_id END AND c2.recipient_id = :userId) " +
+                        "OR (c2.sender_id = :userId AND c2.recipient_id = CASE WHEN c.sender_id = :userId THEN c.recipient_id ELSE c.sender_id END)) " +
+                        "AND c2.is_read = false AND c2.recipient_id = :userId) as unread_count " +
+                        "FROM chats c WHERE c.id IN " +
+                        "(SELECT MAX(c3.id) FROM chats c3 WHERE c3.group_id IS NULL AND (c3.sender_id = :userId OR c3.recipient_id = :userId) " +
+                        "GROUP BY CASE WHEN c3.sender_id = :userId THEN c3.recipient_id ELSE c3.sender_id END) " +
+                        "ORDER BY c.timestamp DESC", nativeQuery = true)
+        List<Object[]> findRecentOneToOneConversations(@Param("userId") Integer userId);
+
+        @Query(value = "SELECT c.group_id, c.id as chat_id, " +
+                        "(SELECT COUNT(*) FROM chats c2 WHERE c2.group_id = c.group_id AND c2.is_read = false AND c2.sender_id != :userId) as unread_count " +
+                        "FROM chats c WHERE c.id IN " +
+                        "(SELECT MAX(c3.id) FROM chats c3 WHERE c3.group_id IS NOT NULL AND c3.group_id IN " +
+                        "(SELECT DISTINCT c4.group_id FROM chats c4 WHERE c4.sender_id = :userId OR c4.recipient_id = :userId) " +
+                        "GROUP BY c3.group_id) " +
+                        "ORDER BY c.timestamp DESC", nativeQuery = true)
+        List<Object[]> findRecentGroupConversations(@Param("userId") Integer userId);
 }

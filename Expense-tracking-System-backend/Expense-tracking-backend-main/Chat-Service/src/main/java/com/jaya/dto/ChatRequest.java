@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class ChatRequest {
 
@@ -13,4 +15,10 @@ public class ChatRequest {
 
     @NotBlank(message = "Content cannot be empty")
     private String content;
+    
+    private Integer replyToMessageId;
+    
+    private Integer forwardedFromMessageId;
+    
+    private List<Integer> forwardToUserIds;
 }

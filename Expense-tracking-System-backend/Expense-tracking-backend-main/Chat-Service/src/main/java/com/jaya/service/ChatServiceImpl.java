@@ -335,6 +335,11 @@ public class ChatServiceImpl implements ChatService {
     }
 
     @Override
+    public ChatResponse forwardMessage(Integer messageId, Integer targetUserId, Integer userId) throws Exception {
+        return forwardMessage(messageId, targetUserId, null, userId);
+    }
+
+    @Override
     public Page<ChatResponse> getChatHistory(Integer userId1, Integer userId2, int page, int size) throws Exception {
         validateUsers(List.of(userId1, userId2));
         validateFriendship(userId1, userId2);
@@ -414,6 +419,109 @@ public class ChatServiceImpl implements ChatService {
         chatRepository.save(chat);
 
         notifyMessageReaction(chat, userId, reaction, "REMOVE");
+    }
+
+    @Override
+    public ChatResponse addReaction(Integer messageId, String reaction, Integer userId, boolean returnResponse) throws Exception {
+        Chat chat = chatRepository.findById(messageId)
+                .orElseThrow(() -> new ChatServiceException("Message not found: " + messageId));
+
+        validateMessageAccess(chat, userId);
+
+        chat.addReaction(userId, reaction);
+        Chat savedChat = chatRepository.save(chat);
+
+        notifyMessageReaction(chat, userId, reaction, "ADD");
+
+        return toResponse(savedChat, userId);
+    }
+
+    @Override
+    public ChatResponse removeReaction(Integer messageId, Integer userId) throws Exception {
+        Chat chat = chatRepository.findById(messageId)
+                .orElseThrow(() -> new ChatServiceException("Message not found: " + messageId));
+
+        validateMessageAccess(chat, userId);
+
+        Map<String, List<Integer>> reactions = chat.getReactions();
+        if (reactions != null) {
+            for (String reactionType : reactions.keySet()) {
+                chat.removeReaction(userId, reactionType);
+            }
+        }
+        Chat savedChat = chatRepository.save(chat);
+
+        notifyMessageReaction(chat, userId, null, "REMOVE");
+
+        return toResponse(savedChat, userId);
+    }
+
+    @Override
+    public List<Map<String, Object>> getConversationsList(Integer userId) throws Exception {
+        validateUsers(List.of(userId));
+
+        List<Map<String, Object>> conversations = new java.util.ArrayList<>();
+
+        List<Object[]> recentOneToOneChats = chatRepository.findRecentOneToOneConversations(userId);
+        for (Object[] row : recentOneToOneChats) {
+            Integer friendId = (Integer) row[0];
+            Integer chatId = (Integer) row[1];
+            Long unreadCount = ((Number) row[2]).longValue();
+            Chat lastChat = chatRepository.findById(chatId).orElse(null);
+            if (lastChat == null) continue;
+
+            Map<String, Object> conversation = new java.util.HashMap<>();
+            conversation.put("type", "ONE_TO_ONE");
+            conversation.put("friendId", friendId);
+            conversation.put("lastMessage", toResponse(lastChat, userId));
+            conversation.put("unreadCount", unreadCount);
+            conversation.put("timestamp", lastChat.getTimestamp());
+
+            try {
+                com.jaya.dto.UserDto friendInfo = helper.validateUser(friendId);
+                conversation.put("friendName", friendInfo.getFirstName() + " " + friendInfo.getLastName());
+                conversation.put("friendEmail", friendInfo.getEmail());
+                conversation.put("friendImage", friendInfo.getImage());
+            } catch (Exception e) {
+                conversation.put("friendName", "Unknown User");
+                conversation.put("friendImage", null);
+            }
+
+            conversations.add(conversation);
+        }
+
+        List<Object[]> recentGroupChats = chatRepository.findRecentGroupConversations(userId);
+        for (Object[] row : recentGroupChats) {
+            Integer groupId = (Integer) row[0];
+            Integer chatId = (Integer) row[1];
+            Long unreadCount = ((Number) row[2]).longValue();
+            Chat lastChat = chatRepository.findById(chatId).orElse(null);
+            if (lastChat == null) continue;
+
+            Map<String, Object> conversation = new java.util.HashMap<>();
+            conversation.put("type", "GROUP");
+            conversation.put("groupId", groupId);
+            conversation.put("lastMessage", toResponse(lastChat, userId));
+            conversation.put("unreadCount", unreadCount);
+            conversation.put("timestamp", lastChat.getTimestamp());
+
+            try {
+                java.util.Optional<com.jaya.dto.GroupResponseDTO> groupInfo = groupService.getGroupByIdwithService(groupId, userId);
+                conversation.put("groupName", groupInfo.map(g -> g.getName()).orElse("Unknown Group"));
+            } catch (Exception e) {
+                conversation.put("groupName", "Unknown Group");
+            }
+
+            conversations.add(conversation);
+        }
+
+        conversations.sort((a, b) -> {
+            java.time.LocalDateTime timeA = (java.time.LocalDateTime) a.get("timestamp");
+            java.time.LocalDateTime timeB = (java.time.LocalDateTime) b.get("timestamp");
+            return timeB.compareTo(timeA);
+        });
+
+        return conversations;
     }
 
     @Override
@@ -1276,7 +1384,17 @@ public class ChatServiceImpl implements ChatService {
         response.setPinnedBy(chat.getPinnedBy());
         response.setPinnedAt(chat.getPinnedAt());
 
-        response.setReactions(chat.getReactions());
+        // Safely copy reactions to avoid LazyInitializationException
+        try {
+            Map<String, List<Integer>> reactions = chat.getReactions();
+            if (reactions != null && !reactions.isEmpty()) {
+                response.setReactions(new HashMap<>(reactions));
+            } else {
+                response.setReactions(new HashMap<>());
+            }
+        } catch (Exception e) {
+            response.setReactions(new HashMap<>());
+        }
 
         if (chat.isOneToOneChat()) {
             response.setIsRead(chat.isRead());
