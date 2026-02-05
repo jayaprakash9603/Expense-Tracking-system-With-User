@@ -7,6 +7,7 @@ import com.jaya.service.QrCodeService;
 import com.jaya.service.SharedResourceService;
 import com.jaya.service.UserAddedItemsService;
 import com.jaya.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +36,75 @@ public class ShareController {
     @PostMapping
     public ResponseEntity<ShareResponse> createShare(
             @RequestHeader("Authorization") String jwt,
-            @Valid @RequestBody CreateShareRequest request) throws Exception {
+            @Valid @RequestBody CreateShareRequest request,
+            HttpServletRequest httpRequest) throws Exception {
 
         UserDto user = userService.getuserProfile(jwt);
         log.info("User {} creating share for {} resources", user.getId(), request.getResourceRefs().size());
 
-        ShareResponse response = sharedResourceService.createShare(request, user.getId());
+        String shareBaseUrlOverride = resolveShareBaseUrl(httpRequest);
+        ShareResponse response = sharedResourceService.createShare(request, user.getId(), shareBaseUrlOverride);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    private String resolveShareBaseUrl(HttpServletRequest request) {
+        String explicitHeader = getHeaderValue(request, "X-Share-Base-Url");
+        if (explicitHeader != null) {
+            return explicitHeader;
+        }
+
+        String origin = getHeaderValue(request, "Origin");
+        if (origin != null) {
+            return origin;
+        }
+
+        String forwardedProto = getHeaderValue(request, "X-Forwarded-Proto");
+        String forwardedHost = getHeaderValue(request, "X-Forwarded-Host");
+        String forwardedPort = getHeaderValue(request, "X-Forwarded-Port");
+        if (forwardedProto != null && forwardedHost != null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(forwardedProto).append("://").append(forwardedHost);
+            if (forwardedPort != null && !forwardedPort.isBlank() && !forwardedHost.contains(":")
+                    && !isDefaultPort(forwardedProto, forwardedPort)) {
+                builder.append(":").append(forwardedPort);
+            }
+            return builder.toString();
+        }
+
+        String referer = getHeaderValue(request, "Referer");
+        if (referer != null) {
+            try {
+                URI uri = new URI(referer);
+                if (uri.getScheme() != null && uri.getHost() != null) {
+                    int port = uri.getPort();
+                    String portPart = port > 0 && !isDefaultPort(uri.getScheme(), String.valueOf(port))
+                            ? ":" + port
+                            : "";
+                    return uri.getScheme() + "://" + uri.getHost() + portPart;
+                }
+            } catch (URISyntaxException e) {
+                log.debug("Invalid referer header while resolving share base URL: {}", referer);
+            }
+        }
+
+        return null;
+    }
+
+    private String getHeaderValue(HttpServletRequest request, String name) {
+        String value = request.getHeader(name);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private boolean isDefaultPort(String scheme, String port) {
+        if (scheme == null || port == null) {
+            return false;
+        }
+        return ("http".equalsIgnoreCase(scheme) && "80".equals(port))
+                || ("https".equalsIgnoreCase(scheme) && "443".equals(port));
     }
 
     @GetMapping("/{token}")
@@ -238,7 +302,8 @@ public class ShareController {
     public ResponseEntity<Map<String, String>> regenerateQr(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String token,
-            @RequestParam(defaultValue = "300") int size) throws Exception {
+            @RequestParam(defaultValue = "300") int size,
+            HttpServletRequest httpRequest) throws Exception {
 
         UserDto user = userService.getuserProfile(jwt);
         log.debug("Regenerating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
@@ -251,8 +316,9 @@ public class ShareController {
                     .body(Map.of("error", "You don't have permission to regenerate this QR code"));
         }
 
-        String qrCode = qrCodeService.generateQrCodeWithSize(token, size);
-        String shareUrl = qrCodeService.buildShareUrl(token);
+        String shareBaseUrlOverride = resolveShareBaseUrl(httpRequest);
+        String qrCode = qrCodeService.generateQrCodeWithSize(token, size, shareBaseUrlOverride);
+        String shareUrl = qrCodeService.buildShareUrl(token, shareBaseUrlOverride);
 
         return ResponseEntity.ok(Map.of(
                 "qrCodeDataUri", qrCode,
@@ -262,7 +328,8 @@ public class ShareController {
     @GetMapping("/{token}/qr")
     public ResponseEntity<Map<String, String>> getShareQr(
             @PathVariable String token,
-            @RequestParam(defaultValue = "300") int size) {
+            @RequestParam(defaultValue = "300") int size,
+            HttpServletRequest httpRequest) {
 
         log.debug("Generating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
 
@@ -277,8 +344,9 @@ public class ShareController {
                     .body(Map.of("error", "Share not found"));
         }
 
-        String qrCode = qrCodeService.generateQrCodeWithSize(token, size);
-        String shareUrl = qrCodeService.buildShareUrl(token);
+        String shareBaseUrlOverride = resolveShareBaseUrl(httpRequest);
+        String qrCode = qrCodeService.generateQrCodeWithSize(token, size, shareBaseUrlOverride);
+        String shareUrl = qrCodeService.buildShareUrl(token, shareBaseUrlOverride);
 
         return ResponseEntity.ok(Map.of(
                 "qrCodeDataUri", qrCode,
@@ -289,7 +357,8 @@ public class ShareController {
     public ResponseEntity<ShareWithFriendResponse> shareWithFriend(
             @RequestHeader("Authorization") String jwt,
             @PathVariable String token,
-            @Valid @RequestBody ShareWithFriendRequest request) throws Exception {
+            @Valid @RequestBody ShareWithFriendRequest request,
+            HttpServletRequest httpRequest) throws Exception {
 
         UserDto user = userService.getuserProfile(jwt);
         log.info("User {} sharing token {}... with friend {}",
@@ -317,7 +386,8 @@ public class ShareController {
                             .build());
         }
 
-        String shareUrl = qrCodeService.buildShareUrl(token);
+        String shareBaseUrlOverride = resolveShareBaseUrl(httpRequest);
+        String shareUrl = qrCodeService.buildShareUrl(token, shareBaseUrlOverride);
 
         notificationService.sendDataSharedNotification(
                 user,

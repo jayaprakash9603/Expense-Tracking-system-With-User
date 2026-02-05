@@ -55,7 +55,7 @@ public class SharedResourceService {
     private String shareBaseUrl;
 
     @Transactional
-    public ShareResponse createShare(CreateShareRequest request, Integer userId) {
+    public ShareResponse createShare(CreateShareRequest request, Integer userId, String shareBaseUrlOverride) {
         log.info("Creating share for user {} with {} resources", userId, request.getResourceRefs().size());
         enforceRateLimits(userId);
         String token = generateUniqueToken();
@@ -95,8 +95,8 @@ public class SharedResourceService {
 
         share = sharedResourceRepository.save(share);
         log.info("Created share {} for user {} with visibility {}", share.getId(), userId, visibility);
-        String qrCodeDataUri = qrCodeService.generateQrCodeDataUri(token);
-        String shareUrl = qrCodeService.buildShareUrl(token);
+        String qrCodeDataUri = qrCodeService.generateQrCodeDataUri(token, shareBaseUrlOverride);
+        String shareUrl = qrCodeService.buildShareUrl(token, shareBaseUrlOverride);
 
         return ShareResponse.builder()
                 .id(share.getId())
@@ -114,6 +114,11 @@ public class SharedResourceService {
                 .visibility(share.getVisibility() != null ? share.getVisibility().name() : "LINK_ONLY")
                 .allowedUserIds(share.getAllowedUserIds())
                 .build();
+    }
+
+    @Transactional
+    public ShareResponse createShare(CreateShareRequest request, Integer userId) {
+        return createShare(request, userId, null);
     }
 
     @Transactional

@@ -1,6 +1,13 @@
 import { api } from "../../config/api";
 import { SHARES_ACTION_TYPES } from "./shares.actionTypes";
 
+const getShareBaseUrlHeaders = () => {
+  if (typeof window === "undefined") return {};
+  const origin = window.location?.origin;
+  if (!origin) return {};
+  return { "X-Share-Base-Url": origin };
+};
+
 /**
  * Create a new share with QR code generation.
  * @param {Object} shareData - { resourceType, resourceRefs, permission, expiryDays, customExpiry, shareName }
@@ -9,7 +16,9 @@ export const createShare = (shareData) => async (dispatch) => {
   dispatch({ type: SHARES_ACTION_TYPES.CREATE_SHARE_REQUEST });
 
   try {
-    const response = await api.post("/api/shares", shareData);
+    const response = await api.post("/api/shares", shareData, {
+      headers: getShareBaseUrlHeaders(),
+    });
 
     dispatch({
       type: SHARES_ACTION_TYPES.CREATE_SHARE_SUCCESS,
@@ -210,6 +219,10 @@ export const regenerateQr =
     try {
       const response = await api.post(
         `/api/shares/${token}/regenerate-qr?size=${size}`,
+        null,
+        {
+          headers: getShareBaseUrlHeaders(),
+        },
       );
 
       dispatch({
@@ -245,7 +258,9 @@ export const getShareQr =
     dispatch({ type: SHARES_ACTION_TYPES.REGENERATE_QR_REQUEST });
 
     try {
-      const response = await api.get(`/api/shares/${token}/qr?size=${size}`);
+      const response = await api.get(`/api/shares/${token}/qr?size=${size}`, {
+        headers: getShareBaseUrlHeaders(),
+      });
 
       dispatch({
         type: SHARES_ACTION_TYPES.REGENERATE_QR_SUCCESS,
@@ -307,6 +322,9 @@ export const shareWithFriend =
         {
           friendId,
           message,
+        },
+        {
+          headers: getShareBaseUrlHeaders(),
         },
       );
 

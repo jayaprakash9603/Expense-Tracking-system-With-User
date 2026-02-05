@@ -37,6 +37,11 @@ public class QrCodeService {
         return generateQrCodeForUrl(shareUrl);
     }
 
+    public String generateQrCodeDataUri(String shareToken, String baseUrlOverride) {
+        String shareUrl = buildShareUrl(shareToken, baseUrlOverride);
+        return generateQrCodeForUrl(shareUrl);
+    }
+
     public String generateQrCodeForUrl(String url) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
@@ -63,11 +68,20 @@ public class QrCodeService {
     }
 
     public String buildShareUrl(String shareToken) {
-        return shareBaseUrl + "/share/" + shareToken;
+        return buildShareUrl(shareToken, null);
+    }
+
+    public String buildShareUrl(String shareToken, String baseUrlOverride) {
+        String baseUrl = normalizeBaseUrl(baseUrlOverride);
+        return baseUrl + "/share/" + shareToken;
     }
 
     public String generateQrCodeWithSize(String shareToken, int size) {
-        String shareUrl = buildShareUrl(shareToken);
+        return generateQrCodeWithSize(shareToken, size, null);
+    }
+
+    public String generateQrCodeWithSize(String shareToken, int size, String baseUrlOverride) {
+        String shareUrl = buildShareUrl(shareToken, baseUrlOverride);
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             Map<EncodeHintType, Object> hints = new EnumMap<>(EncodeHintType.class);
@@ -89,5 +103,16 @@ public class QrCodeService {
             log.error("Failed to generate QR code", e);
             throw new RuntimeException("QR code generation failed", e);
         }
+    }
+
+    private String normalizeBaseUrl(String baseUrlOverride) {
+        String baseUrl = baseUrlOverride != null ? baseUrlOverride.trim() : "";
+        if (baseUrl.isEmpty()) {
+            baseUrl = shareBaseUrl != null ? shareBaseUrl.trim() : "";
+        }
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+        return baseUrl;
     }
 }
