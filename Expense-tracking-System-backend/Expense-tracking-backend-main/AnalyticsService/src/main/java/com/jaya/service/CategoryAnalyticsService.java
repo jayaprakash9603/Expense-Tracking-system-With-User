@@ -81,7 +81,15 @@ public class CategoryAnalyticsService {
             Map<String, Object> categoryData = extractCategoryData(allCategoryData, categoryId);
 
             // 3. Build category metadata from the response
-            CategoryMetadata metadata = buildCategoryMetadataFromData(categoryData, categoryId);
+            // If category has no expenses, fetch metadata directly from Category Service
+            CategoryMetadata metadata;
+            if (categoryData.isEmpty()) {
+                log.info("Category {} has no expenses in date range, fetching metadata from Category Service",
+                        categoryId);
+                metadata = fetchCategoryMetadata(jwt, categoryId, targetId);
+            } else {
+                metadata = buildCategoryMetadataFromData(categoryData, categoryId);
+            }
 
             // 4. Extract expenses list from category data
             List<Map<String, Object>> expenses = extractExpensesFromCategoryData(categoryData);
@@ -186,6 +194,8 @@ public class CategoryAnalyticsService {
     private Map<String, Object> extractCategoryData(Map<String, Object> allData, Integer categoryId) {
         // The response has category data keyed by category name
         // We need to find the category with matching ID
+        log.debug("Searching for categoryId={} in response with {} entries", categoryId, allData.size());
+
         for (Map.Entry<String, Object> entry : allData.entrySet()) {
             if ("summary".equals(entry.getKey()))
                 continue;
@@ -193,12 +203,15 @@ public class CategoryAnalyticsService {
             if (entry.getValue() instanceof Map) {
                 Map<String, Object> catData = (Map<String, Object>) entry.getValue();
                 Integer catId = extractInt(catData, "id");
+                log.debug("Checking category entry '{}' with id={}", entry.getKey(), catId);
                 if (categoryId.equals(catId)) {
+                    log.debug("Found matching category data for id={}", categoryId);
                     return catData;
                 }
             }
         }
-        log.warn("Category with id={} not found in response", categoryId);
+        log.info("Category with id={} not found in expense response - category may have no expenses in the date range",
+                categoryId);
         return Collections.emptyMap();
     }
 

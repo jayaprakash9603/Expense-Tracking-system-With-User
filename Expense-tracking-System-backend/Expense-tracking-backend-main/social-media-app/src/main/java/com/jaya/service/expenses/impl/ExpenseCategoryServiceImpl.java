@@ -71,13 +71,13 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
         for (Expense expense : userExpenses) {
             for (Category category : userCategories) {
-
+                // Check if this expense is associated with this category FOR THIS USER ONLY
+                // Important: For global categories, expenseIds contains entries for ALL users,
+                // so we must only check the current user's expense IDs
                 if (category.getExpenseIds() != null) {
-                    for (Map.Entry<Integer, Set<Integer>> entry : category.getExpenseIds().entrySet()) {
-                        if (entry.getValue().contains(expense.getId())) {
-                            categoryExpensesMap.get(category).add(expense);
-                            break;
-                        }
+                    Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
+                    if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
+                        categoryExpensesMap.get(category).add(expense);
                     }
                 }
             }
