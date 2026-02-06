@@ -101,8 +101,7 @@ const NavigationActions = ({
               style={{
                 width: isMobile ? 16 : 18,
                 height: isMobile ? 16 : 18,
-                filter:
-                  "invert(61%) sepia(55%) saturate(654%) hue-rotate(130deg) brightness(91%) contrast(90%)", // Primary color #14b8a6
+                filter: getIconFilter(true), // Use active icon filter from theme
                 transition: "filter 0.2s ease",
               }}
             />
@@ -141,8 +140,7 @@ const NavigationActions = ({
             style={{
               width: isMobile ? 14 : 16,
               height: isMobile ? 14 : 16,
-              filter:
-                "invert(61%) sepia(55%) saturate(654%) hue-rotate(130deg) brightness(91%) contrast(90%)", // Primary color #14b8a6
+              filter: getIconFilter(true), // Use active icon filter from theme
               transition: "filter 0.2s ease",
             }}
           />
