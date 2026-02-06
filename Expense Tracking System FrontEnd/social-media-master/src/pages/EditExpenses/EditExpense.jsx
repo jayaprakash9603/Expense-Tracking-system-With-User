@@ -9,7 +9,11 @@ import {
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
 import { getSuggestions } from "../../components/Suggestions/fetchSuggestions";
-import { convertToNewFormat, convertToOldFormat } from "../../components/conversions/formatUtils";
+import {
+  convertToNewFormat,
+  convertToOldFormat,
+} from "../../components/conversions/formatUtils";
+import ToastNotification from "../Landingpage/ToastNotification";
 
 function EditExpense() {
   const dispatch = useDispatch();
@@ -22,9 +26,14 @@ function EditExpense() {
   const suggestionsContainerRef = useRef(null);
   const [newFormatData, setNewFormatData] = useState({});
   const token = localStorage.getItem("jwt");
-  const fetchSuggestions = ()=>{
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+  const fetchSuggestions = () => {
     getSuggestions(token, setSuggestions);
-  }
+  };
 
   const [expenses, setExpenses] = useState({
     expenseName: "",
@@ -38,8 +47,8 @@ function EditExpense() {
 
   useEffect(() => {
     if (id) {
-     const fetchedData= dispatch(getExpenseAction(id));
-    //  console.log("get expense data",fetchedData)
+      const fetchedData = dispatch(getExpenseAction(id));
+      //  console.log("get expense data",fetchedData)
     }
   }, [dispatch, id]);
   const { expense } = useSelector((state) => state.expenses);
@@ -48,7 +57,7 @@ function EditExpense() {
     if (expense) {
       // Convert to new format
       const fetchedData = [expense]; // Wrapping data in an array
-      
+
       const convertedData = convertToNewFormat(fetchedData);
 
       setNewFormatData(convertedData);
@@ -65,9 +74,8 @@ function EditExpense() {
       });
     }
   }, [expense]);
-  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Determine netAmount based on type
@@ -98,19 +106,32 @@ function EditExpense() {
       },
     ];
 
-    
-    console.log("convert",convertToOldFormat(convertToNewFormat(updatedData))[0])
-    dispatch(
+    console.log(
+      "convert",
+      convertToOldFormat(convertToNewFormat(updatedData))[0],
+    );
+    const result = await dispatch(
       editExpenseAction(
         id,
-        convertToOldFormat(convertToNewFormat(updatedData))[0]
+        convertToOldFormat(convertToNewFormat(updatedData))[0],
       ),
-     
     );
 
-    dispatch(fetchPreviousExpenses(expenses.expenseName,expenses.date))
-    // dispatch(getExpensesAction());
-    navigate("/");
+    if (result?.success) {
+      setToast({
+        open: true,
+        message: "Expense updated successfully!",
+        severity: "success",
+      });
+      dispatch(fetchPreviousExpenses(expenses.expenseName, expenses.date));
+      setTimeout(() => navigate("/"), 1500);
+    } else {
+      setToast({
+        open: true,
+        message: result?.message || "Failed to update expense",
+        severity: "error",
+      });
+    }
   };
 
   // Update state and filter suggestions on change
@@ -123,7 +144,7 @@ function EditExpense() {
 
     if (value.length > 0) {
       const filtered = suggestions.filter((item) =>
-        item.toLowerCase().includes(value.toLowerCase())
+        item.toLowerCase().includes(value.toLowerCase()),
       );
       setFilteredSuggestions(filtered);
     } else {
@@ -137,7 +158,7 @@ function EditExpense() {
     setIsInputClicked(true);
     if (expenses.expenseName.length > 0) {
       const nearestMatch = suggestions.find((item) =>
-        item.toLowerCase().includes(expenses.expenseName.toLowerCase())
+        item.toLowerCase().includes(expenses.expenseName.toLowerCase()),
       );
       setFilteredSuggestions(nearestMatch ? [nearestMatch] : []);
     }
@@ -166,7 +187,7 @@ function EditExpense() {
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((prevIndex) =>
-        Math.min(filteredSuggestions.length - 1, prevIndex + 1)
+        Math.min(filteredSuggestions.length - 1, prevIndex + 1),
       );
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -339,6 +360,13 @@ function EditExpense() {
           </div>
         </form>
       </div>
+      <ToastNotification
+        open={toast.open}
+        message={toast.message}
+        severity={toast.severity}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setToast({ ...toast, open: false })}
+      />
     </div>
   );
 }

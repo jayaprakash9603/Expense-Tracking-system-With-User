@@ -290,6 +290,92 @@ export function GenericAccordionGroup({
 
   const formatAmount = (v) => fmt(v, { currencySymbol: displayCurrency });
 
+  // Calculate total items count across all groups for Select All functionality
+  const totalItemsCount = useMemo(() => {
+    return filteredSortedGroups.reduce((total, { group }) => {
+      const items = Array.isArray(group.items || group.expenses)
+        ? group.items || group.expenses
+        : [];
+      return total + items.length;
+    }, 0);
+  }, [filteredSortedGroups]);
+
+  // Check if all items across all groups are selected
+  const isGlobalAllSelected = useMemo(() => {
+    if (!enableSelection || totalItemsCount === 0) return false;
+    return filteredSortedGroups.every(({ group, key: groupKey }) => {
+      const items = Array.isArray(group.items || group.expenses)
+        ? group.items || group.expenses
+        : [];
+      const selectedForGroup = selectedRowsByGroup[groupKey] || {};
+      return items.every((row, i) => {
+        const rowKey = resolveRowKey(row, groupKey, i);
+        return !!selectedForGroup[rowKey];
+      });
+    });
+  }, [
+    enableSelection,
+    totalItemsCount,
+    filteredSortedGroups,
+    selectedRowsByGroup,
+    resolveRowKey,
+  ]);
+
+  // Check if some (but not all) items are selected
+  const isGlobalSomeSelected = useMemo(() => {
+    if (!enableSelection || totalItemsCount === 0 || isGlobalAllSelected)
+      return false;
+    return selectedCount > 0;
+  }, [enableSelection, totalItemsCount, isGlobalAllSelected, selectedCount]);
+
+  // Select/deselect all items across all groups
+  const handleSelectAll = useCallback(
+    (checked) => {
+      if (!enableSelection) return;
+
+      setSelectedRowsByGroup((prev) => {
+        if (!checked) {
+          // Deselect all
+          if (onSelectionChange) {
+            onSelectionChange({ selectedRowsByGroup: {}, selectedCount: 0 });
+          }
+          return {};
+        }
+
+        // Select all items across all groups
+        const next = {};
+        filteredSortedGroups.forEach(({ group, key: groupKey }) => {
+          const items = Array.isArray(group.items || group.expenses)
+            ? group.items || group.expenses
+            : [];
+          const bucket = {};
+          items.forEach((row, i) => {
+            const rowKey = resolveRowKey(row, groupKey, i);
+            bucket[rowKey] = true;
+          });
+          if (Object.keys(bucket).length > 0) {
+            next[groupKey] = bucket;
+          }
+        });
+
+        const newSelectedCount = Object.values(next).reduce(
+          (acc, m) => acc + Object.keys(m).length,
+          0,
+        );
+
+        if (onSelectionChange) {
+          onSelectionChange({
+            selectedRowsByGroup: next,
+            selectedCount: newSelectedCount,
+          });
+        }
+
+        return next;
+      });
+    },
+    [enableSelection, filteredSortedGroups, resolveRowKey, onSelectionChange],
+  );
+
   // Theme-aware styles
   const themeStyles = {
     accordionGroup: {
@@ -321,6 +407,12 @@ export function GenericAccordionGroup({
         onGroupSortChange={(nextSort) => setGroupSort(nextSort)}
         showClearSelection={showClearButton}
         onClearSelection={clearSelectionAndFilters}
+        showSelectAll={enableSelection}
+        isAllSelected={isGlobalAllSelected}
+        isSomeSelected={isGlobalSomeSelected}
+        onSelectAll={handleSelectAll}
+        totalItemsCount={totalItemsCount}
+        selectedCount={selectedCount}
       />
 
       <div

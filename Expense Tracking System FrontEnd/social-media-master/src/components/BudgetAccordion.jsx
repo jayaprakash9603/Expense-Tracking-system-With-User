@@ -28,7 +28,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
         navigate(`/expenses/view/${expenseId}`);
       }
     },
-    [navigate]
+    [navigate],
   );
 
   // Get full URL for expense view page (for tooltip)
@@ -346,6 +346,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
         enableGroupSort
         enableRowSearch
         enableRowSortControls
+        enableSelection
         defaultPageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         groupPaginationThreshold={5}
@@ -370,7 +371,7 @@ BudgetAccordionGroup.propTypes = {
       startDate: PropTypes.string,
       endDate: PropTypes.string,
       expenses: PropTypes.arrayOf(PropTypes.object),
-    })
+    }),
   ).isRequired,
 };
 

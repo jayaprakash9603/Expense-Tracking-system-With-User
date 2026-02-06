@@ -294,28 +294,30 @@ const Login = () => {
               />
 
               {/* Links */}
-              <div className="flex flex-col items-center gap-2 pt-1">
+              <div className="flex flex-col items-center gap-3 pt-1">
                 <p
-                  className="cursor-pointer"
+                  className="cursor-pointer text-sm"
                   onClick={handleForgotPasswordClick}
                   style={{ color: "#14b8a6", textTransform: "none" }}
                 >
                   Forgot Password?
                 </p>
-                <Button
-                  onClick={() => navigate("/register")}
-                  style={{
-                    backgroundColor: "#14b8a6",
-                    color: "#ffffff",
-                    padding: "10px 50px",
-                    border: "none",
-                    borderRadius: "4px",
-                    textTransform: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Register
-                </Button>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-gray-400 text-sm m-0">
+                    Don't have an account?
+                  </p>
+                  <Button
+                    onClick={() => navigate("/register")}
+                    style={{
+                      color: "#14b8a6",
+                      textTransform: "none",
+                      padding: 0,
+                      minWidth: "auto",
+                    }}
+                  >
+                    Register
+                  </Button>
+                </div>
               </div>
             </Form>
           );

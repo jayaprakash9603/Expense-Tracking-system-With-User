@@ -247,24 +247,24 @@ const GoogleLoginButton = ({
         )
       }
       sx={{
-        backgroundColor: "#ffffff",
-        color: "#3c4043",
-        borderColor: "#dadce0",
-        padding: "10px 16px",
+        backgroundColor: "rgb(56, 56, 56)",
+        color: "#d8fffb",
+        borderColor: "rgba(20, 184, 166, 0.5)",
+        padding: "12px 16px",
         borderRadius: "8px",
         textTransform: "none",
         fontWeight: 500,
         fontSize: "14px",
         fontFamily: "'Roboto', 'Arial', sans-serif",
         "&:hover": {
-          backgroundColor: "#f8f9fa",
-          borderColor: "#dadce0",
-          boxShadow:
-            "0 1px 2px 0 rgba(60,64,67,.30), 0 1px 3px 1px rgba(60,64,67,.15)",
+          backgroundColor: "rgb(70, 70, 70)",
+          borderColor: "#14b8a6",
+          boxShadow: "0 2px 4px rgba(20, 184, 166, 0.2)",
         },
         "&:disabled": {
-          backgroundColor: "#f5f5f5",
-          color: "#9e9e9e",
+          backgroundColor: "rgb(45, 45, 45)",
+          color: "rgba(216, 255, 251, 0.5)",
+          borderColor: "rgba(20, 184, 166, 0.2)",
         },
       }}
     >

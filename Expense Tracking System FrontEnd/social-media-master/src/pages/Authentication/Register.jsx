@@ -415,7 +415,12 @@ const Register = () => {
                 </p>
                 <Button
                   onClick={() => navigate("/login")}
-                  style={{ color: "#14b8a6", textTransform: "none" }}
+                  style={{
+                    color: "#14b8a6",
+                    textTransform: "none",
+                    padding: 0,
+                    minWidth: "auto",
+                  }}
                 >
                   Login
                 </Button>

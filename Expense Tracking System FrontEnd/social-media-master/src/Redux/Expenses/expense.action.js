@@ -309,9 +309,11 @@ export const editExpenseAction =
       ); // Adjust the API endpoint
       dispatch({ type: EDIT_EXPENSE_SUCCESS, payload: response.data });
       console.log("Expense edited successfully:", response.data);
+      return { success: true, data: response.data };
     } catch (error) {
       dispatch({ type: EDIT_EXPENSE_FAILURE, payload: error.message });
       console.error("Error editing expense:", error);
+      return { success: false, message: error.message };
     }
   };
 

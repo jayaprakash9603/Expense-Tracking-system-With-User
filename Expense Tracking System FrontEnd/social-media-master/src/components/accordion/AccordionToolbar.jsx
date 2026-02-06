@@ -1,5 +1,6 @@
 import React from "react";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
 import ReusableAutocomplete from "../ReusableAutocomplete";
 
 export default function AccordionToolbar({
@@ -12,12 +13,67 @@ export default function AccordionToolbar({
   onGroupSortChange,
   showClearSelection,
   onClearSelection,
+  // New props for Select All functionality
+  showSelectAll = false,
+  isAllSelected = false,
+  isSomeSelected = false,
+  onSelectAll,
+  totalItemsCount = 0,
+  selectedCount = 0,
 }) {
-  if (!showGroupSearch && !showGroupSort && !showClearSelection) return null;
+  if (
+    !showGroupSearch &&
+    !showGroupSort &&
+    !showClearSelection &&
+    !showSelectAll
+  )
+    return null;
 
   return (
     <div className="pm-accordion-toolbar">
       <div className="pm-toolbar-left">
+        {showSelectAll ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginRight: "16px",
+              padding: "4px 8px",
+              borderRadius: "8px",
+              background: "var(--pm-bg-secondary, rgba(255,255,255,0.05))",
+            }}
+          >
+            <Checkbox
+              checked={isAllSelected}
+              indeterminate={isSomeSelected && !isAllSelected}
+              onChange={(e) => onSelectAll?.(e.target.checked)}
+              size="small"
+              sx={{
+                padding: "4px",
+                color: "var(--pm-text-secondary, #888)",
+                "&.Mui-checked": {
+                  color: "var(--pm-accent-color, #14b8a6)",
+                },
+                "&.MuiCheckbox-indeterminate": {
+                  color: "var(--pm-accent-color, #14b8a6)",
+                },
+              }}
+            />
+            <span
+              style={{
+                fontSize: "13px",
+                fontWeight: 500,
+                color: "var(--pm-text-primary, #fff)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {selectedCount > 0
+                ? `${selectedCount} of ${totalItemsCount}`
+                : "Select All"}
+            </span>
+          </div>
+        ) : null}
         {showGroupSearch ? (
           <ReusableAutocomplete
             options={
