@@ -19,6 +19,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import PageHeader from "../../components/PageHeader";
+import CategoryEditSkeleton from "../../components/Loaders/CategoryEditSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
@@ -311,26 +312,7 @@ const EditPaymentMethod = ({ onClose, onPaymentMethodCreated }) => {
     ICON_CATEGORIES[iconCategoryNames[currentIconTab]] || [];
 
   // Show loading state
-  if (loading) {
-    return (
-      <div style={{ backgroundColor: colors.secondary_bg }}>
-        <div className="w-full sm:w-[calc(100vw-350px)] h-[50px]"></div>
-        <div
-          className="flex lg:w-[calc(100vw-370px)] flex-col justify-center items-center sm:w-full"
-          style={{
-            height: "calc(100vh - 100px)",
-            backgroundColor: colors.secondary_bg,
-            borderRadius: "8px",
-            border: `1px solid ${colors.border_color}`,
-          }}
-        >
-          <Typography sx={{ color: colors.primary_text, fontSize: "1.2rem" }}>
-            Loading payment method details...
-          </Typography>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <CategoryEditSkeleton />;
 
   // Show error state if there's a loading error
   if (errors.submit && isEditMode && !paymentMethodData.name) {
