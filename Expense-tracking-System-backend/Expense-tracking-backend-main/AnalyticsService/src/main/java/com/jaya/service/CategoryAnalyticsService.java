@@ -320,9 +320,17 @@ public class CategoryAnalyticsService {
                 .collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unchecked")
     private CategoryMetadata fetchCategoryMetadata(String jwt, Integer categoryId, Integer targetId) {
         try {
-            Map<String, Object> category = categoryAnalyticsClient.getCategoryById(jwt, categoryId, targetId);
+            Map<String, Object> response = categoryAnalyticsClient.getCategoryById(jwt, categoryId, targetId);
+            
+            // Unwrap ApiResponse - the actual category data is inside "data" field
+            Map<String, Object> category = response;
+            if (response.containsKey("data") && response.get("data") instanceof Map) {
+                category = (Map<String, Object>) response.get("data");
+            }
+            
             return CategoryMetadata.builder()
                     .categoryId(extractInt(category, "id"))
                     .categoryName(extractString(category, "name"))
@@ -340,14 +348,20 @@ public class CategoryAnalyticsService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private List<Map<String, Object>> fetchCategoryExpenses(
             String jwt, Integer categoryId, LocalDate startDate, LocalDate endDate, Integer targetId) {
         try {
             String start = startDate != null ? startDate.format(DATE_FORMATTER) : null;
             String end = endDate != null ? endDate.format(DATE_FORMATTER) : null;
-            List<Map<String, Object>> expenses = categoryAnalyticsClient.getCategoryExpenses(jwt, categoryId, start,
+            Map<String, Object> response = categoryAnalyticsClient.getCategoryExpenses(jwt, categoryId, start,
                     end, targetId);
-            return expenses != null ? expenses : Collections.emptyList();
+            
+            // Unwrap ApiResponse - the actual expenses list is inside "data" field
+            if (response != null && response.containsKey("data") && response.get("data") instanceof List) {
+                return (List<Map<String, Object>>) response.get("data");
+            }
+            return Collections.emptyList();
         } catch (Exception e) {
             log.warn("Failed to fetch category expenses: {}", e.getMessage());
             return Collections.emptyList();

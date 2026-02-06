@@ -26,8 +26,12 @@ public interface CategoryAnalyticsClient {
             @RequestParam(value = "endDate", required = false) String endDate,
             @RequestParam(value = "targetId", required = false) Integer targetId);
 
+    /**
+     * Get expenses by category.
+     * Returns ApiResponse wrapper: {"success": true, "data": [...expenses]}
+     */
     @GetMapping("/api/categories/{categoryId}/expenses")
-    List<Map<String, Object>> getCategoryExpenses(
+    Map<String, Object> getCategoryExpenses(
             @RequestHeader("Authorization") String jwt,
             @PathVariable("categoryId") Integer categoryId,
             @RequestParam(value = "startDate", required = false) String startDate,
