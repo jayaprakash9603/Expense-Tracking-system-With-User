@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
 import { Tabs, Tab, Box } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
@@ -7,7 +6,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import HistoryIcon from "@mui/icons-material/History";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { getThemeColors } from "../../../config/themeConfig";
+import { useTheme } from "../../../hooks/useTheme";
 import SystemAnalytics from "./SystemAnalytics";
 import UserManagement from "./UserManagement";
 import RoleManagement from "./RoleManagement";
@@ -16,8 +15,7 @@ import Reports from "./Reports";
 import AdminSettings from "./AdminSettings";
 
 const AdminDashboard = () => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState(0);
 
   const handleTabChange = (event, newValue) => {
@@ -36,7 +34,7 @@ const AdminDashboard = () => {
   return (
     <div
       style={{
-        backgroundColor: themeColors.primary_bg,
+        backgroundColor: colors.primary_bg,
         minHeight: "100vh",
       }}
     >
@@ -44,8 +42,8 @@ const AdminDashboard = () => {
       <Box
         sx={{
           borderBottom: 1,
-          borderColor: themeColors.border,
-          backgroundColor: themeColors.card_bg,
+          borderColor: colors.border,
+          backgroundColor: colors.card_bg,
           position: "sticky",
           top: 0,
           zIndex: 100,
@@ -58,17 +56,17 @@ const AdminDashboard = () => {
           scrollButtons="auto"
           sx={{
             "& .MuiTab-root": {
-              color: themeColors.secondary_text,
+              color: colors.secondary_text,
               textTransform: "none",
               fontSize: "1rem",
               fontWeight: 500,
               minHeight: 64,
             },
             "& .Mui-selected": {
-              color: themeColors.accent,
+              color: colors.accent,
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: themeColors.accent,
+              backgroundColor: colors.accent,
             },
           }}
         >

@@ -1,6 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { getThemeColors } from "../../../../config/themeConfig";
+import { useTheme } from "../../../../hooks/useTheme";
 
 /**
  * Reusable Stat Card Component for Admin Dashboards
@@ -14,8 +13,7 @@ import { getThemeColors } from "../../../../config/themeConfig";
  * @param {React.ReactNode} props.icon - Optional icon component
  */
 const StatCard = ({ label, value, growth = null, color = null, icon = null }) => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  const { colors } = useTheme();
 
   const isPositiveGrowth = growth && growth.startsWith("+");
   const isNegativeGrowth = growth && growth.startsWith("-");
@@ -23,20 +21,20 @@ const StatCard = ({ label, value, growth = null, color = null, icon = null }) =>
   return (
     <div
       className="p-4 rounded-lg"
-      style={{ backgroundColor: themeColors.card_bg }}
+      style={{ backgroundColor: colors.card_bg }}
     >
       <div className="flex justify-between items-start mb-2">
         <p
           className="text-sm"
-          style={{ color: themeColors.secondary_text }}
+          style={{ color: colors.secondary_text }}
         >
           {label}
         </p>
-        {icon && <div style={{ color: themeColors.accent }}>{icon}</div>}
+        {icon && <div style={{ color: colors.accent }}>{icon}</div>}
       </div>
       <p
         className="text-2xl font-bold"
-        style={{ color: color || themeColors.primary_text }}
+        style={{ color: color || colors.primary_text }}
       >
         {value}
       </p>
@@ -48,7 +46,7 @@ const StatCard = ({ label, value, growth = null, color = null, icon = null }) =>
               ? "#4caf50"
               : isNegativeGrowth
               ? "#f44336"
-              : themeColors.secondary_text,
+              : colors.secondary_text,
           }}
         >
           {growth}

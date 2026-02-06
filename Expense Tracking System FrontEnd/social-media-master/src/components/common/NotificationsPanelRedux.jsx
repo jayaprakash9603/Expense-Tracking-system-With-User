@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   addNotification,
 } from "../../Redux/Notifications/notification.action";
 import useNotifications from "../../hooks/useNotifications";
+import { useTheme } from "../../hooks/useTheme";
 import {
   getNotificationIcon,
   getNotificationColor,
@@ -47,7 +48,7 @@ const NotificationsPanel = ({
   );
 
   const { user } = useSelector((state) => state.auth);
-  const { mode } = useSelector((state) => state.theme);
+  const { mode, colors: themeColorsPalette } = useTheme();
   const isDark = mode === "dark";
 
   // Local state - use prop if provided, otherwise manage internally

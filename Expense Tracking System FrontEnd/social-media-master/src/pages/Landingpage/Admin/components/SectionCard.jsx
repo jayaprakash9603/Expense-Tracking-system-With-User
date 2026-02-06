@@ -1,6 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { getThemeColors } from "../../../../config/themeConfig";
+import { useTheme } from "../../../../hooks/useTheme";
 
 /**
  * Reusable Section Card Component
@@ -13,19 +12,18 @@ import { getThemeColors } from "../../../../config/themeConfig";
  * @param {string} props.className - Additional CSS classes
  */
 const SectionCard = ({ title, children, actions = null, className = "" }) => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  const { colors } = useTheme();
 
   return (
     <div
       className={`p-6 rounded-lg mb-6 ${className}`}
-      style={{ backgroundColor: themeColors.card_bg }}
+      style={{ backgroundColor: colors.card_bg }}
     >
       {title && (
         <div className="flex justify-between items-center mb-4">
           <h3
             className="text-xl font-semibold"
-            style={{ color: themeColors.primary_text }}
+            style={{ color: colors.primary_text }}
           >
             {title}
           </h3>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Avatar, Badge } from "@mui/material";
 import MenuItem from "./MenuItem";
 import { useSelector, useDispatch } from "react-redux";
@@ -6,10 +6,8 @@ import { useNavigate } from "react-router-dom";
 import { logoutAction } from "../../Redux/Auth/auth.action";
 import Modal from "./Modal";
 import { useTranslation } from "../../hooks/useTranslation";
-import {
-  getThemeColors,
-  BRAND_GRADIENT_COLORS,
-} from "../../config/themeConfig";
+import { useTheme } from "../../hooks/useTheme";
+import { BRAND_GRADIENT_COLORS } from "../../config/themeConfig";
 import {
   fetchStories,
   openStoryViewer,
@@ -41,14 +39,13 @@ import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 const Left = () => {
   const { user } = useSelector((state) => state.auth || {});
   const { currentMode } = useSelector((state) => state.auth || {});
-  const { mode } = useSelector((state) => state.theme || {});
+  const { colors, mode } = useTheme();
   const { stories, unseenCount, needsRefresh } = useSelector(
     (state) =>
       state.story || { stories: [], unseenCount: 0, needsRefresh: false },
   );
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const themeColors = getThemeColors(mode);
   const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
@@ -116,8 +113,8 @@ const Left = () => {
           onClick={toggleSidebar}
           className="p-2 rounded-md focus:outline-none"
           style={{
-            backgroundColor: themeColors.active_bg,
-            color: themeColors.primary_text,
+            backgroundColor: colors.active_bg,
+            color: colors.primary_text,
           }}
         >
           <svg
@@ -145,7 +142,7 @@ const Left = () => {
       {isSidebarOpen && (
         <div
           className="fixed inset-0 z-30 md:hidden"
-          style={{ backgroundColor: themeColors.modal_overlay }}
+          style={{ backgroundColor: colors.modal_overlay }}
           onClick={toggleSidebar}
         />
       )}
@@ -156,8 +153,8 @@ const Left = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:w-[400px] md:static md:translate-x-0 lg:w-[450px]`}
         style={{
-          backgroundColor: themeColors.primary_bg,
-          color: themeColors.primary_text,
+          backgroundColor: colors.primary_bg,
+          color: colors.primary_text,
         }}
       >
         {/* Top Section */}
@@ -174,7 +171,7 @@ const Left = () => {
                   stories.length > 0
                     ? unseenCount > 0
                       ? `linear-gradient(45deg, ${BRAND_GRADIENT_COLORS.story_ring_start}, ${BRAND_GRADIENT_COLORS.story_ring_end})`
-                      : themeColors.border
+                      : colors.border
                     : "transparent",
               }}
               title={
@@ -193,7 +190,7 @@ const Left = () => {
                     fontSize: "0.65rem",
                     minWidth: "18px",
                     height: "18px",
-                    border: `2px solid ${themeColors.primary_bg}`,
+                    border: `2px solid ${colors.primary_bg}`,
                   },
                 }}
               >
@@ -201,11 +198,11 @@ const Left = () => {
                   sx={{
                     width: "100%",
                     height: "100%",
-                    bgcolor: themeColors.avatar_bg,
-                    color: themeColors.avatar_text,
+                    bgcolor: colors.avatar_bg,
+                    color: colors.avatar_text,
                     border:
                       stories.length > 0
-                        ? `2px solid ${themeColors.primary_bg}`
+                        ? `2px solid ${colors.primary_bg}`
                         : "none",
                   }}
                   src={avatarSrc}
@@ -216,7 +213,7 @@ const Left = () => {
             </div>
             <p
               className="text-base font-semibold text-center"
-              style={{ color: themeColors.primary_text }}
+              style={{ color: colors.primary_text }}
             >
               {user?.firstName?.charAt(0).toUpperCase() +
                 user?.firstName?.slice(1)}{" "}
@@ -234,7 +231,7 @@ const Left = () => {
                 <div className="w-full px-4 py-1">
                   <p
                     className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
-                    style={{ color: themeColors.secondary_text }}
+                    style={{ color: colors.secondary_text }}
                   >
                     <svg
                       className="w-4 h-4"
@@ -459,3 +456,4 @@ const Left = () => {
 };
 
 export default Left;
+

@@ -1,6 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { getThemeColors } from "../../../../config/themeConfig";
+import { useTheme } from "../../../../hooks/useTheme";
 import "../AdminPanel.css";
 
 /**
@@ -13,16 +12,15 @@ import "../AdminPanel.css";
  * @param {Object} props.style - Additional inline styles
  */
 const AdminPanelContainer = ({ children, className = "", style = {} }) => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  const { colors } = useTheme();
 
   return (
     <div
       className={`admin-panel-container ${className}`}
       style={{
-        backgroundColor: themeColors.secondary_bg,
-        color: themeColors.primary_text,
-        border: `1px solid ${themeColors.border}`,
+        backgroundColor: colors.secondary_bg,
+        color: colors.primary_text,
+        border: `1px solid ${colors.border}`,
         ...style,
       }}
     >

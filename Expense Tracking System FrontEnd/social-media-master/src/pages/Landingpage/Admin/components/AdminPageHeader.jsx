@@ -1,6 +1,5 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import { getThemeColors } from "../../../../config/themeConfig";
+import { useTheme } from "../../../../hooks/useTheme";
 
 /**
  * Reusable Admin Page Header Component
@@ -12,20 +11,19 @@ import { getThemeColors } from "../../../../config/themeConfig";
  * @param {React.ReactNode} props.actions - Optional action buttons (e.g., Create, Export)
  */
 const AdminPageHeader = ({ title, description, actions = null }) => {
-  const { mode } = useSelector((state) => state.theme || {});
-  const themeColors = getThemeColors(mode);
+  const { colors } = useTheme();
 
   return (
     <div className="mb-6 flex justify-between items-center">
       <div>
         <h1
           className="text-3xl font-bold mb-2"
-          style={{ color: themeColors.primary_text }}
+          style={{ color: colors.primary_text }}
         >
           {title}
         </h1>
         {description && (
-          <p style={{ color: themeColors.secondary_text }}>
+          <p style={{ color: colors.secondary_text }}>
             {description}
           </p>
         )}
