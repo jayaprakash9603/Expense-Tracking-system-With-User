@@ -42,8 +42,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/chat")
-                .setAllowedOrigins("http://localhost:3000")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
                 .setHandshakeHandler(new CustomHandshakeHandler())
                 .addInterceptors(new UserIdHandshakeInterceptor())
                 .withSockJS();
@@ -52,7 +52,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                "https://127.0.0.1:*",
+                "https://jayaprakash.netlify.app"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);

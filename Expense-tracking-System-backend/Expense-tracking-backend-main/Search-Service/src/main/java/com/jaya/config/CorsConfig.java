@@ -11,10 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Arrays;
 import java.util.Collections;
 
-
-
-
-
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
@@ -25,8 +21,8 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://localhost:*",
                         "https://localhost:*",
                         "http://127.0.0.1:*",
-                        "https://127.0.0.1:*"
-                )
+                        "https://127.0.0.1:*",
+                        "https://jayaprakash.netlify.app")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization")
@@ -34,40 +30,30 @@ public class CorsConfig implements WebMvcConfigurer {
                 .maxAge(3600);
     }
 
-    
-
-
-
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        
-        
+
         config.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*",
                 "https://localhost:*",
                 "http://127.0.0.1:*",
-                "https://127.0.0.1:*"
-        ));
-        
-        
+                "https://127.0.0.1:*",
+                "https://jayaprakash.netlify.app"));
+
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
-        
-        
+
         config.setAllowedHeaders(Collections.singletonList("*"));
-        
-        
+
         config.setExposedHeaders(Arrays.asList("Authorization"));
-        
-        
+
         config.setAllowCredentials(true);
-        
-        
+
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        
+
         return new CorsFilter(source);
     }
 }

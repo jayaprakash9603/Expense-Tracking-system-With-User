@@ -1,20 +1,31 @@
 import { createTheme } from "@mui/material/styles";
 import { keyframes } from "@mui/system";
+import { getExpandedPalette, COLOR_PALETTES } from "../../config/colorPalettes";
+import { alpha as alphaUtil } from "../../utils/colorUtils";
 
 const shimmerKeyframes = keyframes({
   "0%": { backgroundPosition: "1000px 0" },
   "100%": { backgroundPosition: "0 0" },
 });
 
-// Function to create theme based on mode
-const createAppTheme = (mode = "dark") => {
+// Function to create theme based on mode and color palette
+const createAppTheme = (mode = "dark", paletteId = "teal") => {
   const isDark = mode === "dark";
+  
+  // Get expanded palette colors based on palette ID
+  const palette = getExpandedPalette(paletteId);
+  const accentColor = palette.primary[500]; // Main accent color (e.g., #00dac6 for teal)
+  const accentLight = palette.primary[400];
+  const accentDark = palette.primary[600];
+  const accentHover = alphaUtil(accentColor, 0.1); // For hover backgrounds
 
   return createTheme({
     palette: {
       mode: mode,
       primary: {
-        main: "#00dac6", // Teal for buttons, checkboxes, headers
+        main: accentColor, // Dynamic accent for buttons, checkboxes, headers
+        light: accentLight,
+        dark: accentDark,
       },
       secondary: {
         main: isDark ? "#ffffff" : "#1a1a1a", // White for dark mode, dark for light mode
@@ -25,7 +36,7 @@ const createAppTheme = (mode = "dark") => {
       },
       text: {
         primary: isDark ? "#ffffff" : "#1a1a1a", // Primary text
-        secondary: "#00dac6", // Secondary text (headers, accents)
+        secondary: accentColor, // Secondary text (headers, accents)
         disabled: isDark ? "#666666" : "#9e9e9e", // Disabled text
       },
       error: {
@@ -97,7 +108,7 @@ const createAppTheme = (mode = "dark") => {
           },
           columnHeaders: {
             backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
-            color: "#00dac6",
+            color: accentColor,
             fontWeight: "bold",
           },
           cell: {
@@ -114,47 +125,47 @@ const createAppTheme = (mode = "dark") => {
               fill: isDark ? "#666666" : "#9e9e9e",
             },
             "&.Mui-checked .MuiSvgIcon-root": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
           footerContainer: {
             backgroundColor: isDark ? "#1b1b1b" : "#f5f5f5",
-            color: "#00dac6",
+            color: accentColor,
           },
           footerContainerTypography: {
             "& .MuiTypography-root": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
           paginationItem: {
             "& .MuiPaginationItem-root": {
-              color: "#00dac6",
+              color: accentColor,
               "&:hover": {
-                backgroundColor: "rgba(0, 218, 198, 0.1)",
-                color: "#00dac6",
+                backgroundColor: accentHover,
+                color: accentColor,
               },
             },
           },
           iconButton: {
             "& .MuiIconButton-root": {
-              color: "#00dac6",
+              color: accentColor,
               "&:hover": {
-                backgroundColor: "rgba(0, 218, 198, 0.1)",
-                color: "#00dac6",
+                backgroundColor: accentHover,
+                color: accentColor,
               },
             },
           },
           select: {
             "& .MuiSelect-select": {
-              color: "#00dac6",
+              color: accentColor,
             },
             "& .MuiSvgIcon-root": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
           sortIcon: {
             "& .MuiDataGrid-sortIcon": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -174,7 +185,7 @@ const createAppTheme = (mode = "dark") => {
           },
           head: {
             backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
-            color: "#00dac6",
+            color: accentColor,
             fontWeight: "bold",
           },
         },
@@ -198,7 +209,7 @@ const createAppTheme = (mode = "dark") => {
       MuiAvatar: {
         styleOverrides: {
           root: {
-            backgroundColor: "#00dac6",
+            backgroundColor: accentColor,
             color: isDark ? "#1b1b1b" : "#ffffff",
           },
         },
@@ -254,9 +265,9 @@ const createAppTheme = (mode = "dark") => {
       MuiIconButton: {
         styleOverrides: {
           root: {
-            color: "#00dac6",
+            color: accentColor,
             "&:hover": {
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
+              backgroundColor: accentHover,
             },
           },
         },
@@ -275,12 +286,12 @@ const createAppTheme = (mode = "dark") => {
               borderStyle: "solid",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#00dac6",
+              borderColor: accentColor,
               borderWidth: "1px",
               borderStyle: "solid",
             },
             "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#00dac6",
+              borderColor: accentColor,
               borderWidth: "2px",
               borderStyle: "solid",
             },
@@ -293,7 +304,7 @@ const createAppTheme = (mode = "dark") => {
               color: isDark ? "#666666" : "#737373",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -304,12 +315,12 @@ const createAppTheme = (mode = "dark") => {
             backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
             color: isDark ? "#ffffff" : "#1a1a1a",
             "& .MuiSvgIcon-root": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
           outlined: {
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#00dac6",
+              borderColor: accentColor,
             },
           },
         },
@@ -335,10 +346,10 @@ const createAppTheme = (mode = "dark") => {
               borderStyle: "solid",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#00dac6",
+              borderColor: accentColor,
             },
             "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#00dac6",
+              borderColor: accentColor,
               borderWidth: "2px",
             },
             "& .MuiInputLabel-root": {
@@ -347,7 +358,7 @@ const createAppTheme = (mode = "dark") => {
               top: "-6px",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "#00dac6",
+              color: accentColor,
             },
             "& .MuiAutocomplete-endAdornment": {
               display: "flex",
@@ -372,7 +383,7 @@ const createAppTheme = (mode = "dark") => {
             maxHeight: "200px",
             overflowY: "auto",
             scrollbarWidth: "thin",
-            scrollbarColor: isDark ? "#00dac6 #1b1b1b" : "#00dac6 #ffffff",
+            scrollbarColor: isDark ? `${accentColor} #1b1b1b` : `${accentColor} #ffffff`,
             "&::-webkit-scrollbar": {
               width: "8px",
             },
@@ -380,11 +391,11 @@ const createAppTheme = (mode = "dark") => {
               background: isDark ? "#1b1b1b" : "#ffffff",
             },
             "&::-webkit-scrollbar-thumb": {
-              background: "#00dac6",
+              background: accentColor,
               borderRadius: "4px",
             },
             "&::-webkit-scrollbar-thumb:hover": {
-              background: "#00b8a9",
+              background: accentDark,
             },
           },
           option: {
@@ -423,16 +434,16 @@ const createAppTheme = (mode = "dark") => {
             color: isDark ? "#666666" : "#9e9e9e",
             padding: "4px",
             "&:hover": {
-              color: "#00dac6",
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
+              color: accentColor,
+              backgroundColor: accentHover,
             },
           },
           popupIndicator: {
             color: isDark ? "#666666" : "#9e9e9e",
             padding: "4px",
             "&:hover": {
-              color: "#00dac6",
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
+              color: accentColor,
+              backgroundColor: accentHover,
             },
           },
           loading: {
@@ -463,7 +474,7 @@ const createAppTheme = (mode = "dark") => {
           root: {
             color: isDark ? "#666666" : "#9e9e9e",
             "&.Mui-checked": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -473,7 +484,7 @@ const createAppTheme = (mode = "dark") => {
           root: {
             color: isDark ? "#666666" : "#9e9e9e",
             "&.Mui-checked": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -488,7 +499,7 @@ const createAppTheme = (mode = "dark") => {
               backgroundColor: "#ffffff",
             },
             "&.Mui-checked .MuiSwitch-track": {
-              backgroundColor: "#00dac6",
+              backgroundColor: accentColor,
             },
             "&.Mui-checked .MuiSwitch-thumb": {
               backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
@@ -499,12 +510,12 @@ const createAppTheme = (mode = "dark") => {
       MuiSlider: {
         styleOverrides: {
           root: {
-            color: "#00dac6",
+            color: accentColor,
             "& .MuiSlider-rail": {
               backgroundColor: isDark ? "#666666" : "#9e9e9e",
             },
             "& .MuiSlider-track": {
-              backgroundColor: "#00dac6",
+              backgroundColor: accentColor,
             },
             "& .MuiSlider-thumb": {
               backgroundColor: "#ffffff",
@@ -545,7 +556,7 @@ const createAppTheme = (mode = "dark") => {
             backgroundColor: isDark ? "#1b1b1b" : "#f5f5f5",
           },
           indicator: {
-            backgroundColor: "#00dac6",
+            backgroundColor: accentColor,
           },
         },
       },
@@ -554,7 +565,7 @@ const createAppTheme = (mode = "dark") => {
           root: {
             color: isDark ? "#666666" : "#737373",
             "&.Mui-selected": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -569,7 +580,7 @@ const createAppTheme = (mode = "dark") => {
               color: isDark ? "#ffffff" : "#1a1a1a",
             },
             "&:hover .MuiTypography-root": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -591,7 +602,7 @@ const createAppTheme = (mode = "dark") => {
         styleOverrides: {
           root: {
             backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
-            color: "#00dac6",
+            color: accentColor,
           },
         },
       },
@@ -626,7 +637,7 @@ const createAppTheme = (mode = "dark") => {
         styleOverrides: {
           root: {
             backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
-            color: "#00dac6",
+            color: accentColor,
           },
         },
       },
@@ -653,7 +664,7 @@ const createAppTheme = (mode = "dark") => {
         styleOverrides: {
           root: {
             backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
-            color: "#00dac6",
+            color: accentColor,
           },
         },
       },
@@ -713,7 +724,7 @@ const createAppTheme = (mode = "dark") => {
       MuiCircularProgress: {
         styleOverrides: {
           root: {
-            color: "#00dac6",
+            color: accentColor,
           },
         },
       },
@@ -722,7 +733,7 @@ const createAppTheme = (mode = "dark") => {
           root: {
             backgroundColor: "#666666",
             "& .MuiLinearProgress-bar": {
-              backgroundColor: "#00dac6",
+              backgroundColor: accentColor,
             },
           },
         },
@@ -833,7 +844,7 @@ const createAppTheme = (mode = "dark") => {
           label: {
             color: isDark ? "#666666" : "#737373",
             "&.Mui-active": {
-              color: "#00dac6",
+              color: accentColor,
             },
             "&.Mui-completed": {
               color: isDark ? "#ffffff" : "#1a1a1a",
@@ -846,10 +857,10 @@ const createAppTheme = (mode = "dark") => {
           root: {
             color: isDark ? "#666666" : "#9e9e9e",
             "&.Mui-active": {
-              color: "#00dac6",
+              color: accentColor,
             },
             "&.Mui-completed": {
-              color: "#00dac6",
+              color: accentColor,
             },
           },
         },
@@ -858,12 +869,12 @@ const createAppTheme = (mode = "dark") => {
         styleOverrides: {
           root: {
             "& .MuiPaginationItem-root": {
-              color: "#00dac6",
+              color: accentColor,
               "&:hover": {
-                backgroundColor: "rgba(0, 218, 198, 0.1)",
+                backgroundColor: accentHover,
               },
               "&.Mui-selected": {
-                backgroundColor: "#00dac6",
+                backgroundColor: accentColor,
                 color: isDark ? "#1b1b1b" : "#ffffff",
               },
             },
@@ -873,7 +884,7 @@ const createAppTheme = (mode = "dark") => {
       MuiRating: {
         styleOverrides: {
           root: {
-            color: "#00dac6",
+            color: accentColor,
           },
         },
       },
@@ -883,11 +894,11 @@ const createAppTheme = (mode = "dark") => {
             color: isDark ? "#666666" : "#737373",
             borderColor: isDark ? "#666666" : "#e0e0e0",
             "&.Mui-selected": {
-              backgroundColor: "#00dac6",
+              backgroundColor: accentColor,
               color: isDark ? "#1b1b1b" : "#ffffff",
             },
             "&:hover": {
-              backgroundColor: "rgba(0, 218, 198, 0.1)",
+              backgroundColor: accentHover,
             },
           },
         },

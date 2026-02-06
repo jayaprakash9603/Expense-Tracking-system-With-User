@@ -18,6 +18,7 @@ import SettingItem from "./Settings/components/SettingItem";
 import AppInfoSection from "./Settings/components/AppInfoSection";
 import DeleteAccountDialog from "./Settings/components/DeleteAccountDialog";
 import ChangePasswordDialog from "./Settings/components/ChangePasswordDialog";
+import ThemePicker from "../../components/ThemePicker";
 
 // Import custom hooks
 import { useSnackbar } from "./Settings/hooks/useSnackbar";

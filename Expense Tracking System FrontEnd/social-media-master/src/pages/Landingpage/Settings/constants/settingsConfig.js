@@ -235,6 +235,15 @@ export const SETTINGS_SECTIONS = {
         settingsKey: "themeMode",
       },
       {
+        id: "accentColor",
+        icon: PaletteIcon,
+        title: "Accent Color",
+        titleKey: "settings.accentColor",
+        description: "Choose your preferred color palette",
+        descriptionKey: "settings.accentColorDescription",
+        type: "themePicker", // New component type for color palette selection
+      },
+      {
         id: "fontSize",
         icon: TextFieldsIcon,
         title: "Font Size",

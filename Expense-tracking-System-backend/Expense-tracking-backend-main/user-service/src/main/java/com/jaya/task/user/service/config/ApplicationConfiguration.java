@@ -21,7 +21,7 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) 
+@EnableMethodSecurity(prePostEnabled = true)
 public class ApplicationConfiguration {
 
     @Bean
@@ -29,19 +29,16 @@ public class ApplicationConfiguration {
         http
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        
+
                         .requestMatchers("/auth/**").permitAll()
 
-                        
                         .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        
                         .requestMatchers("/api/user/profile").authenticated()
                         .requestMatchers("/api/user/debug").authenticated()
                         .requestMatchers("/api/**").authenticated()
 
-                        
                         .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(csrf -> csrf.disable())
@@ -57,22 +54,15 @@ public class ApplicationConfiguration {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                 CorsConfiguration cfg = new CorsConfiguration();
-                String origin = request.getHeader("Origin");
 
-                if (origin != null) {
-                    
-                    
-                    cfg.setAllowedOriginPatterns(Arrays.asList(origin));
-                } else {
-                    
-                    cfg.setAllowedOriginPatterns(Arrays.asList(
-                            "http://localhost:*",
-                            "https://localhost:*",
-                            "http://127.0.0.1:*",
-                            "https://127.0.0.1:*"));
-                }
+                // Allow localhost with any port and jayaprakash.netlify.app only
+                cfg.setAllowedOriginPatterns(Arrays.asList(
+                        "http://localhost:*",
+                        "https://localhost:*",
+                        "http://127.0.0.1:*",
+                        "https://127.0.0.1:*",
+                        "https://jayaprakash.netlify.app"));
 
-                
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));
                 cfg.setExposedHeaders(Arrays.asList("Authorization"));

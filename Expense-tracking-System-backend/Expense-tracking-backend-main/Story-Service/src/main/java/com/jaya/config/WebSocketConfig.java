@@ -13,10 +13,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 import java.util.Arrays;
 
-
-
-
-
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -24,48 +20,39 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}")
     private String allowedOrigins;
 
-    
-
-
-
-
-
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        
+
         config.enableSimpleBroker("/topic", "/queue");
 
-        
         config.setApplicationDestinationPrefixes("/app");
 
-        
         config.setUserDestinationPrefix("/user");
     }
 
-    
-
-
-
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        
+
         registry.addEndpoint("/ws-stories")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
                 .withSockJS();
 
-        
         registry.addEndpoint("/stories-ws")
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
                 .withSockJS();
     }
-
-    
-
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "https://localhost:*",
+                "http://127.0.0.1:*",
+                "https://127.0.0.1:*",
+                "https://jayaprakash.netlify.app"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
