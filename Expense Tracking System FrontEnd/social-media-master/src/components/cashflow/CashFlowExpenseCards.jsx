@@ -989,7 +989,7 @@ function CashFlowExpenseCards({
     (row) => {
       const expenseId = row.id || row.expenseId;
       const isBill = row.bill === true;
-      
+
       if (isBill) {
         // Navigate to bill edit by expense ID - EditBill will fetch the data
         navigate(

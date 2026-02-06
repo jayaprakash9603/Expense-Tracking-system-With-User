@@ -170,7 +170,10 @@ export const getAppRoutes = () => (
         <Route path="edit/:id" element={<EditBill />} />
         <Route path="edit/:id/friend/:friendId" element={<EditBill />} />
         <Route path="edit-by-expense/:expenseId" element={<EditBill />} />
-        <Route path="edit-by-expense/:expenseId/friend/:friendId" element={<EditBill />} />
+        <Route
+          path="edit-by-expense/:expenseId/friend/:friendId"
+          element={<EditBill />}
+        />
         <Route path="calendar" element={<BillCalendarView />} />
         <Route path="calendar/:friendId" element={<BillCalendarView />} />
       </Route>

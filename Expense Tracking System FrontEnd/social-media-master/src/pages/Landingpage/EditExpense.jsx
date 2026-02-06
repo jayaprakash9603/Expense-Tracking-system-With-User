@@ -5,8 +5,7 @@ import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
-import { Snackbar } from "@mui/material";
-import MuiAlert from "@mui/material/Alert";
+import ToastNotification from "./ToastNotification";
 import {
   editExpenseAction,
   getExpenseAction,
@@ -1350,19 +1349,13 @@ const EditExpense = ({}) => {
     }
         `}
         </style>
-        <Snackbar
+        <ToastNotification
           open={openToast}
-          autoHideDuration={3000}
+          message={toastMessage}
+          severity={toastSeverity}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
           onClose={() => setOpenToast(false)}
-        >
-          <MuiAlert
-            onClose={() => setOpenToast(false)}
-            severity={toastSeverity}
-            sx={{ width: "100%" }}
-          >
-            {toastMessage}
-          </MuiAlert>
-        </Snackbar>
+        />
       </div>
     </>
   );

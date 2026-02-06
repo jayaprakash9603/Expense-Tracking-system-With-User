@@ -228,29 +228,31 @@ export const fetchBillsForCalendar =
     }
   };
 
-export const getBillByExpenseId = (expenseId, friendId = "") => async (dispatch) => {
-  {
-    dispatch({ type: GET_BILL_BY_EXPENSE_ID_REQUEST });
-    try {
-      const { data } = await api.get(`/api/bills/expenses/${expenseId}`, {
-        params: {
-          targetId: friendId || "",
-        },
-      });
+export const getBillByExpenseId =
+  (expenseId, friendId = "") =>
+  async (dispatch) => {
+    {
+      dispatch({ type: GET_BILL_BY_EXPENSE_ID_REQUEST });
+      try {
+        const { data } = await api.get(`/api/bills/expenses/${expenseId}`, {
+          params: {
+            targetId: friendId || "",
+          },
+        });
 
-      dispatch({
-        type: GET_BILL_BY_EXPENSE_ID_SUCCESS,
-        payload: data,
-      });
-      return data;
-    } catch (error) {
-      dispatch({
-        type: GET_BILL_BY_EXPENSE_ID_FAILURE,
-        payload: error.response?.data?.message || error.message,
-      });
+        dispatch({
+          type: GET_BILL_BY_EXPENSE_ID_SUCCESS,
+          payload: data,
+        });
+        return data;
+      } catch (error) {
+        dispatch({
+          type: GET_BILL_BY_EXPENSE_ID_FAILURE,
+          payload: error.response?.data?.message || error.message,
+        });
+      }
     }
-  }
-};
+  };
 
 export const getBillsByParticularDate =
   (expenseDate, friendId = "") =>

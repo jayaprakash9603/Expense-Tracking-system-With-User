@@ -28,7 +28,11 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { updateBill, getBillById, getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import {
+  updateBill,
+  getBillById,
+  getBillByExpenseId,
+} from "../../Redux/Bill/bill.action";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -114,7 +118,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         setLoadError(null);
 
         let billResponse;
-        
+
         // If accessed via expense ID route, fetch bill by expense ID
         if (expenseId && !currentBillId) {
           billResponse = await dispatch(
