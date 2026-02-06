@@ -16,7 +16,7 @@ import { useSelector } from "react-redux";
  */
 const useUserSettings = () => {
   const { settings, loading, error } = useSelector(
-    (state) => state.userSettings || {}
+    (state) => state.userSettings || {},
   );
 
   // Default values if settings not loaded

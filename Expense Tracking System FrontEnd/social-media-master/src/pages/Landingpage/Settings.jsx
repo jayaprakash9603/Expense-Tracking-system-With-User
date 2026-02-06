@@ -380,6 +380,13 @@ const Settings = () => {
       case "slider":
         component = renderSliderSetting(item);
         break;
+      case "themePicker":
+        component = (
+          <Box key={item.id} sx={{ py: 2 }}>
+            <ThemePicker showModeToggle={false} compact={true} />
+          </Box>
+        );
+        break;
       default:
         return null;
     }

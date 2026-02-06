@@ -11,12 +11,12 @@ const shimmerKeyframes = keyframes({
 // Function to create theme based on mode and color palette
 const createAppTheme = (mode = "dark", paletteId = "teal") => {
   const isDark = mode === "dark";
-  
+
   // Get expanded palette colors based on palette ID
   const palette = getExpandedPalette(paletteId);
-  const accentColor = palette.primary[500]; // Main accent color (e.g., #00dac6 for teal)
-  const accentLight = palette.primary[400];
-  const accentDark = palette.primary[600];
+  const accentColor = palette.primaryShades[500] || palette.primary; // Main accent color (e.g., #00dac6 for teal)
+  const accentLight = palette.primaryShades[400] || palette.primary;
+  const accentDark = palette.primaryShades[600] || palette.primary;
   const accentHover = alphaUtil(accentColor, 0.1); // For hover backgrounds
 
   return createTheme({
@@ -383,7 +383,9 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             maxHeight: "200px",
             overflowY: "auto",
             scrollbarWidth: "thin",
-            scrollbarColor: isDark ? `${accentColor} #1b1b1b` : `${accentColor} #ffffff`,
+            scrollbarColor: isDark
+              ? `${accentColor} #1b1b1b`
+              : `${accentColor} #ffffff`,
             "&::-webkit-scrollbar": {
               width: "8px",
             },
