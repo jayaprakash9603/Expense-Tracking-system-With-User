@@ -483,7 +483,7 @@ const EditExpense = ({}) => {
                 height: 32,
                 fontSize: 18,
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
+              ".MuiSvgIcon-root": { color: colors.primary_accent },
               width: 300,
               height: 56,
               minHeight: 56,
@@ -606,8 +606,8 @@ const EditExpense = ({}) => {
             const checked = e.target.checked;
             setCheckboxStates(Array(budgets.length).fill(checked));
           }}
-          className="h-5 w-5 border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
+          className="h-5 w-5 border-gray-700 rounded"
+          style={{ accentColor: colors.primary_accent, marginLeft: 2, marginRight: 2 }}
           aria-label={tableHeaders.inBudget}
         />
       ),
@@ -621,8 +621,8 @@ const EditExpense = ({}) => {
           type="checkbox"
           checked={checkboxStates[params.row.index]}
           onChange={() => handleCheckboxChange(params.row.index)}
-          className="h-5 w-5 border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0" }}
+          className="h-5 w-5 border-gray-700 rounded"
+          style={{ accentColor: colors.primary_accent }}
         />
       ),
     },
@@ -698,7 +698,8 @@ const EditExpense = ({}) => {
             type="checkbox"
             checked={checkboxStates[row.index] || false}
             onChange={() => handleCheckboxChange(row.index)}
-            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+            className="h-5 w-5 border-gray-700 rounded"
+            style={{ accentColor: colors.primary_accent }}
           />
         ),
       },
@@ -865,7 +866,7 @@ const EditExpense = ({}) => {
                       borderStyle: "solid",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: errors.amount ? "#ff4d4f" : "#00dac6",
+                      borderColor: errors.amount ? "#ff4d4f" : colors.primary_accent,
                       borderWidth: errors.amount ? "2px" : "2px",
                       borderStyle: "solid",
                     },
@@ -941,7 +942,7 @@ const EditExpense = ({}) => {
                     "&.Mui-focused fieldset": {
                       borderColor: errors.transactionType
                         ? "#ff4d4f"
-                        : "#00dac6",
+                        : colors.primary_accent,
                       borderWidth: errors.transactionType ? "2px" : "2px",
                       borderStyle: "solid",
                     },
@@ -1053,7 +1054,7 @@ const EditExpense = ({}) => {
                       borderStyle: "solid",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: "#00dac6",
+                      borderColor: colors.primary_accent,
                       borderWidth: "2px",
                       borderStyle: "solid",
                     },
@@ -1067,8 +1068,14 @@ const EditExpense = ({}) => {
         <div className="mt-6 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
-            style={{ whiteSpace: "nowrap" }}
+            className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
+            style={{ 
+              backgroundColor: colors.button_bg, 
+              color: colors.button_text, 
+              whiteSpace: "nowrap" 
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
+            onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
           >
             {linkBudgetsLabel}
           </button>
@@ -1140,7 +1147,8 @@ const EditExpense = ({}) => {
                           type="checkbox"
                           checked={checkboxStates[index]}
                           onChange={() => handleCheckboxChange(index)}
-                          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+                          className="h-5 w-5 border-gray-700 rounded"
+                          style={{ accentColor: colors.primary_accent }}
                         />
                       </div>
                     </div>
@@ -1216,7 +1224,7 @@ const EditExpense = ({}) => {
                       background: colors.tertiary_bg,
                     },
                     "& .MuiDataGrid-row": { background: colors.active_bg },
-                    "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                    "& .MuiCheckbox-root": { color: `${colors.primary_accent} !important` },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1235,8 +1243,14 @@ const EditExpense = ({}) => {
           {hasWriteAccess && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
-              style={{ whiteSpace: "nowrap" }}
+              className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
+              style={{ 
+                backgroundColor: colors.button_bg, 
+                color: colors.button_text, 
+                whiteSpace: "nowrap" 
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
+              onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
             >
               {submitLabel}
             </button>

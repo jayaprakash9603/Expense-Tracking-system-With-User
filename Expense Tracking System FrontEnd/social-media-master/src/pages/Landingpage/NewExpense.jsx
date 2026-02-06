@@ -46,7 +46,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const closeLabel = t("common.close");
 
   // Dynamic styles based on theme
-  const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
+  const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2`;
   const inputWrapper = {
     width: "150px",
     minWidth: "150px",
@@ -477,14 +477,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 className="absolute top-[-20px] left-[300px]"
                 style={{
                   background:
-                    "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
-                  color: "#fff",
+                    `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+                  color: colors.button_text,
                   fontSize: "0.65rem",
                   padding: "2px 6px",
                   borderRadius: "4px",
                   fontWeight: "600",
                   whiteSpace: "nowrap",
-                  boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                  boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
                   zIndex: 10,
                 }}
               >
@@ -648,7 +648,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 borderStyle: "solid",
               },
               "&.Mui-focused fieldset": {
-                borderColor: errors.amount ? "#ff4d4f" : "#00dac6",
+                borderColor: errors.amount ? "#ff4d4f" : colors.primary_accent,
                 borderStyle: "solid",
               },
               "& .MuiOutlinedInput-notchedOutline": {
@@ -699,7 +699,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 height: 32,
                 fontSize: 18,
               },
-              ".MuiSvgIcon-root": { color: "#00dac6" },
+              ".MuiSvgIcon-root": { color: colors.primary_accent },
               width: 300,
               height: 56,
               minHeight: 56,
@@ -813,14 +813,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
             <div
               className="absolute top-0 right-[-8px] transform translate-x-full"
               style={{
-                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
-                color: "#fff",
+                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+                color: colors.button_text,
                 fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: "4px",
                 fontWeight: "600",
                 whiteSpace: "nowrap",
-                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
               }}
             >
               {autoFilledLabel}
@@ -874,14 +874,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
             <div
               className="absolute top-0 right-[-8px] transform translate-x-full"
               style={{
-                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
-                color: "#fff",
+                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+                color: colors.button_text,
                 fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: "4px",
                 fontWeight: "600",
                 whiteSpace: "nowrap",
-                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
               }}
             >
               {autoFilledLabel}
@@ -973,7 +973,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   borderStyle: "solid",
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: errors.transactionType ? "#ff4d4f" : "#00dac6",
+                  borderColor: errors.transactionType ? "#ff4d4f" : colors.primary_accent,
                   borderWidth: errors.transactionType ? "2px" : "2px",
                   borderStyle: "solid",
                 },
@@ -1028,14 +1028,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
             <div
               className="absolute top-0 right-[-8px] transform translate-x-full"
               style={{
-                background: "linear-gradient(135deg, #00dac6 0%, #00b8a0 100%)",
-                color: "#fff",
+                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+                color: colors.button_text,
                 fontSize: "0.65rem",
                 padding: "2px 6px",
                 borderRadius: "4px",
                 fontWeight: "600",
                 whiteSpace: "nowrap",
-                boxShadow: "0 2px 4px rgba(0,218,198,0.3)",
+                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
               }}
             >
               {autoFilledLabel}
@@ -1062,7 +1062,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
             type="checkbox"
             checked={checkboxStates[row.index]}
             onChange={() => handleCheckboxChange(row.index)}
-            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
+            className="h-5 w-5 border-gray-700 rounded"
+            style={{ accentColor: colors.primary_accent }}
           />
         ),
       },
@@ -1224,10 +1225,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   showType: true,
                 }}
                 colorScheme={{
-                  primary: "#00dac6",
-                  secondary: "#00b8a0",
-                  text: "#ffffff",
-                  subtext: "#9ca3af",
+                  primary: colors.primary_accent,
+                  secondary: colors.tertiary_accent,
+                  text: colors.primary_text,
+                  subtext: colors.placeholder_text,
                 }}
               />
             )
@@ -1253,8 +1254,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
         <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
-            className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
-            style={{ whiteSpace: "nowrap" }}
+            className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
+            style={{ 
+              backgroundColor: colors.button_bg, 
+              color: colors.button_text, 
+              whiteSpace: "nowrap" 
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
+            onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
           >
             {linkBudgetsLabel}
           </button>
@@ -1320,7 +1327,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
                           type="checkbox"
                           checked={checkboxStates[index]}
                           onChange={() => handleCheckboxChange(index)}
-                          className="h-5 w-5 text-[#00dac6] rounded focus:ring-[#00dac6]"
+                          className="h-5 w-5 rounded"
+                          style={{ accentColor: colors.primary_accent }}
                         />
                       </div>
                     </div>
@@ -1397,7 +1405,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                       background: colors.hover_bg,
                     },
                     "& .MuiDataGrid-row": { background: colors.active_bg },
-                    "& .MuiCheckbox-root": { color: "#00dac6 !important" },
+                    "& .MuiCheckbox-root": { color: `${colors.primary_accent} !important` },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1423,8 +1431,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {hasWriteAccess && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 bg-[#00DAC6] text-black font-semibold rounded hover:bg-[#00b8a0] w-full sm:w-auto"
-              style={{ whiteSpace: "nowrap" }}
+              className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
+              style={{ 
+                backgroundColor: colors.button_bg, 
+                color: colors.button_text, 
+                whiteSpace: "nowrap" 
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
+              onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
             >
               {submitLabel}
             </button>
