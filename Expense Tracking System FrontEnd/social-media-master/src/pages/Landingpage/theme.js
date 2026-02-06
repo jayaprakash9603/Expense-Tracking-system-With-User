@@ -96,7 +96,7 @@ const createAppTheme = (mode = "dark") => {
             border: 0,
           },
           columnHeaders: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e8e8e8",
+            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
             color: "#00dac6",
             fontWeight: "bold",
           },
@@ -173,7 +173,7 @@ const createAppTheme = (mode = "dark") => {
             borderBottom: isDark ? "1px solid #28282a" : "1px solid #e0e0e0",
           },
           head: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e8e8e8",
+            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
             color: "#00dac6",
             fontWeight: "bold",
           },
@@ -590,7 +590,7 @@ const createAppTheme = (mode = "dark") => {
       MuiCardHeader: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e8e8e8",
+            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
             color: "#00dac6",
           },
         },
@@ -625,7 +625,7 @@ const createAppTheme = (mode = "dark") => {
       MuiAccordionSummary: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e8e8e8",
+            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
             color: "#00dac6",
           },
         },
@@ -652,7 +652,7 @@ const createAppTheme = (mode = "dark") => {
       MuiDialogTitle: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e8e8e8",
+            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
             color: "#00dac6",
           },
         },

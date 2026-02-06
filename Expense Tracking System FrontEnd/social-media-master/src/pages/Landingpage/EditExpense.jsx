@@ -65,7 +65,7 @@ const EditExpense = ({}) => {
       paymentMethod: t("editExpense.fields.paymentMethod"),
       comments: t("editExpense.fields.comments"),
     }),
-    [t]
+    [t],
   );
 
   const fieldPlaceholders = useMemo(
@@ -79,7 +79,7 @@ const EditExpense = ({}) => {
       comments: t("editExpense.placeholders.comments"),
       generic: t("editExpense.placeholders.generic"),
     }),
-    [t]
+    [t],
   );
 
   const validationMessages = useMemo(
@@ -89,7 +89,7 @@ const EditExpense = ({}) => {
       date: t("editExpense.validation.date"),
       transactionType: t("editExpense.validation.transactionType"),
     }),
-    [t]
+    [t],
   );
 
   const tableHeaders = useMemo(
@@ -102,7 +102,7 @@ const EditExpense = ({}) => {
       remainingAmount: t("editExpense.table.headers.remainingAmount"),
       amount: t("editExpense.table.headers.amount"),
     }),
-    [t]
+    [t],
   );
 
   const transactionTypeLabels = useMemo(
@@ -110,7 +110,7 @@ const EditExpense = ({}) => {
       gain: t("editExpense.transactionTypes.gain"),
       loss: t("editExpense.transactionTypes.loss"),
     }),
-    [t]
+    [t],
   );
 
   const typeOptions = ["gain", "loss"];
@@ -167,7 +167,7 @@ const EditExpense = ({}) => {
   });
   const { expense } = useSelector((state) => state.expenses || {});
   const { budgets, error: budgetError } = useSelector(
-    (state) => state.budgets || {}
+    (state) => state.budgets || {},
   );
   const dispatch = useDispatch();
 
@@ -202,14 +202,14 @@ const EditExpense = ({}) => {
       "Initial fetch budgets with expenseId:",
       id,
       "date:",
-      fetchDate
+      fetchDate,
     );
     dispatch(
       getListOfBudgetsByExpenseId({
         id,
         date: fetchDate,
         targetId: friendId || "",
-      })
+      }),
     );
     dispatch(getExpenseAction(id || "", friendId || ""));
   }, [dispatch]);
@@ -229,7 +229,7 @@ const EditExpense = ({}) => {
         amount: expense.expense.amount || "",
         netAmount: expense.expense.netAmount || "",
         paymentMethod: normalizePaymentMethod(
-          expense.expense.paymentMethod || "cash"
+          expense.expense.paymentMethod || "cash",
         ),
         transactionType: expense.expense.type || "loss",
         comments: expense.expense.comments || "",
@@ -254,7 +254,7 @@ const EditExpense = ({}) => {
     const lastDayOfMonth = new Date(
       newDate.getFullYear(),
       newDate.getMonth() + 1,
-      0
+      0,
     );
 
     let salaryDate = new Date(lastDayOfMonth);
@@ -274,7 +274,11 @@ const EditExpense = ({}) => {
 
     console.log("Fetching budgets for expenseId:", id, "date:", value);
     dispatch(
-      getListOfBudgetsByExpenseId({ id, date: value, targetId: friendId || "" })
+      getListOfBudgetsByExpenseId({
+        id,
+        date: value,
+        targetId: friendId || "",
+      }),
     );
   };
 
@@ -319,8 +323,8 @@ const EditExpense = ({}) => {
               creditDue: derivedCreditDue,
             },
           },
-          friendId || ""
-        )
+          friendId || "",
+        ),
       );
       setToastMessage(successMessage);
       setToastSeverity("success");
@@ -367,7 +371,7 @@ const EditExpense = ({}) => {
           >
             {labelText}
             {["expenseName", "amount", "date", "transactionType"].includes(
-              id
+              id,
             ) && <span className="text-red-500"> *</span>}
           </label>
           {isTextarea ? (
@@ -673,7 +677,7 @@ const EditExpense = ({}) => {
   const handleDataGridSelection = (newSelection) => {
     // Map DataGrid selection to checkboxStates
     const newCheckboxStates = dataGridRows.map((row, idx) =>
-      newSelection.includes(row.id)
+      newSelection.includes(row.id),
     );
     setCheckboxStates(newCheckboxStates);
   };
@@ -724,7 +728,7 @@ const EditExpense = ({}) => {
         size: 100,
       },
     ],
-    [checkboxStates, tableHeaders]
+    [checkboxStates, tableHeaders],
   );
 
   const table = useReactTable({

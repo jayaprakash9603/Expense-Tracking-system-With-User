@@ -65,7 +65,7 @@ export const THEME_COLORS = {
     // Main backgrounds
     primary_bg: "#ffffff", // Main sidebar/container background (white)
     secondary_bg: "#f5f5f5", // Light gray for contrast
-    tertiary_bg: "#e8e8e8", // Lighter gray for headers
+    tertiary_bg: "#e6e6e6", // Lighter gray for headers
     card_bg: "#ffffff", // Card/panel background (white)
     input_bg: "#e8e8e8", // Input field background
 
