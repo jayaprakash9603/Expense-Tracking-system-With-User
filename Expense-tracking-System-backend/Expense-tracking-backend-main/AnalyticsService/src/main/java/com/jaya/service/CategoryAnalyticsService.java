@@ -25,9 +25,12 @@ public class CategoryAnalyticsService {
 
     private static final Logger log = LoggerFactory.getLogger(CategoryAnalyticsService.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String DEFAULT_FLOW_TYPE = "outflow";
 
     private final CategoryAnalyticsClient categoryAnalyticsClient;
     private final BudgetAnalyticsClient budgetAnalyticsClient;
+    private final PaymentMethodAnalyticsClient paymentMethodAnalyticsClient;
+    private final BillAnalyticsClient billAnalyticsClient;
     private final ExpenseService expenseService;
     private final BudgetService budgetService;
 
@@ -77,70 +80,195 @@ public class CategoryAnalyticsService {
 
             log.info("Found {} expenses for categoryId={}", expenses.size(), categoryId);
 
-            Set<Integer> categoryBudgetIds = extractBudgetIdsFromExpenses(expenses);
-            List<Map<String, Object>> categoryBudgets = filterBudgetsForCategory(allBudgets, categoryBudgetIds);
-
             Map<String, Object> summaryData = extractSummary(allCategoryData);
 
-            CompletableFuture<SummaryStatistics> summaryFuture = CompletableFuture.supplyAsync(
-                    () -> calculateSummaryStatistics(expenses, startDate, endDate, summaryData, categoryData),
-                    asyncExecutor);
-
-            CompletableFuture<TrendAnalytics> trendFuture = CompletableFuture.supplyAsync(
-                    () -> calculateTrendAnalytics(expenses, startDate, endDate, trendType),
-                    asyncExecutor);
-
-            CompletableFuture<List<PaymentMethodDistribution>> paymentFuture = CompletableFuture.supplyAsync(
-                    () -> calculatePaymentMethodDistribution(expenses),
-                    asyncExecutor);
-
-            CompletableFuture<BudgetAnalytics> budgetAnalyticsFuture = CompletableFuture.supplyAsync(
-                    () -> calculateBudgetAnalyticsFromBudgets(categoryBudgets, expenses),
-                    asyncExecutor);
-
-            CompletableFuture<ExpenseHighlights> highlightsFuture = CompletableFuture.supplyAsync(
-                    () -> calculateExpenseHighlights(expenses),
-                    asyncExecutor);
-
-            CompletableFuture<TransactionData> transactionFuture = CompletableFuture.supplyAsync(
-                    () -> buildTransactionData(expenses),
-                    asyncExecutor);
-
-            CompletableFuture<List<BudgetCategoryReport>> budgetReportsFuture = CompletableFuture.supplyAsync(
-                    () -> buildBudgetReportsFromBudgets(categoryBudgets),
-                    asyncExecutor);
-
-            CompletableFuture.allOf(
-                    summaryFuture, trendFuture, paymentFuture, budgetAnalyticsFuture,
-                    highlightsFuture, transactionFuture, budgetReportsFuture).join();
-
-            SummaryStatistics summaryStats = summaryFuture.get();
-            TrendAnalytics trendAnalytics = trendFuture.get();
-            List<PaymentMethodDistribution> paymentDistribution = paymentFuture.get();
-            BudgetAnalytics budgetAnalytics = budgetAnalyticsFuture.get();
-            ExpenseHighlights highlights = highlightsFuture.get();
-            TransactionData transactionData = transactionFuture.get();
-            List<BudgetCategoryReport> budgetReports = budgetReportsFuture.get();
-
-            List<InsightItem> insights = generateInsights(summaryStats, trendAnalytics, budgetAnalytics,
-                    paymentDistribution);
-
-            return CategoryAnalyticsDTO.builder()
-                    .categoryMetadata(metadata)
-                    .summaryStatistics(summaryStats)
-                    .trendAnalytics(trendAnalytics)
-                    .paymentMethodDistribution(paymentDistribution)
-                    .budgetAnalytics(budgetAnalytics)
-                    .expenseHighlights(highlights)
-                    .transactionData(transactionData)
-                    .budgetReports(budgetReports)
-                    .insights(insights)
-                    .build();
+            return buildAnalyticsFromExpenses(
+                    expenses,
+                    summaryData,
+                    categoryData,
+                    allBudgets,
+                    startDate,
+                    endDate,
+                    trendType,
+                    metadata);
 
         } catch (Exception e) {
             log.error("Error building category analytics for categoryId={}", categoryId, e);
             throw new RuntimeException("Failed to build category analytics: " + e.getMessage(), e);
         }
+    }
+
+    public CategoryAnalyticsDTO getPaymentMethodAnalytics(
+            String jwt,
+            Integer paymentMethodId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String trendType,
+            Integer targetId) {
+
+        log.info("Building payment method analytics for paymentMethodId={}, dateRange={} to {}, trendType={}",
+                paymentMethodId, startDate, endDate, trendType);
+
+        try {
+            CompletableFuture<Map<String, Object>> paymentDataFuture = CompletableFuture.supplyAsync(
+                    () -> fetchAllPaymentMethodDataDetailed(jwt, startDate, endDate, targetId),
+                    asyncExecutor);
+
+            CompletableFuture<List<Map<String, Object>>> budgetsFuture = CompletableFuture.supplyAsync(
+                    () -> fetchAllBudgets(jwt, targetId),
+                    asyncExecutor);
+
+            CompletableFuture.allOf(paymentDataFuture, budgetsFuture).join();
+
+            Map<String, Object> allPaymentData = paymentDataFuture.get();
+            List<Map<String, Object>> allBudgets = budgetsFuture.get();
+
+            Map<String, Object> paymentMethodData = extractCategoryData(allPaymentData, paymentMethodId);
+            CategoryMetadata metadata = paymentMethodData.isEmpty()
+                    ? fetchPaymentMethodMetadata(jwt, paymentMethodId, targetId)
+                    : buildPaymentMethodMetadataFromData(paymentMethodData, paymentMethodId);
+
+            if (paymentMethodData.isEmpty()) {
+                paymentMethodData = buildEntityDataFromMetadata(paymentMethodId, metadata);
+            }
+
+            List<Map<String, Object>> expenses = extractExpensesFromCategoryData(paymentMethodData);
+
+            Map<String, Object> summaryData = extractSummary(allPaymentData);
+
+            return buildAnalyticsFromExpenses(
+                    expenses,
+                    summaryData,
+                    paymentMethodData,
+                    allBudgets,
+                    startDate,
+                    endDate,
+                    trendType,
+                    metadata);
+
+        } catch (Exception e) {
+            log.error("Error building payment method analytics for paymentMethodId={}", paymentMethodId, e);
+            throw new RuntimeException("Failed to build payment method analytics: " + e.getMessage(), e);
+        }
+    }
+
+    public CategoryAnalyticsDTO getBillAnalytics(
+            String jwt,
+            Integer billId,
+            LocalDate startDate,
+            LocalDate endDate,
+            String trendType,
+            Integer targetId) {
+
+        log.info("Building bill analytics for billId={}, dateRange={} to {}, trendType={}",
+                billId, startDate, endDate, trendType);
+
+        try {
+            CompletableFuture<Map<String, Object>> billFuture = CompletableFuture.supplyAsync(
+                    () -> billAnalyticsClient.getBillById(jwt, billId, targetId),
+                    asyncExecutor);
+
+            CompletableFuture<List<Map<String, Object>>> budgetsFuture = CompletableFuture.supplyAsync(
+                    () -> fetchAllBudgets(jwt, targetId),
+                    asyncExecutor);
+
+            CompletableFuture<Map<String, Object>> summaryFuture = CompletableFuture.supplyAsync(
+                    () -> fetchAllCategoryDataDetailed(jwt, startDate, endDate, targetId),
+                    asyncExecutor);
+
+            CompletableFuture.allOf(billFuture, budgetsFuture, summaryFuture).join();
+
+            Map<String, Object> billData = billFuture.get();
+            List<Map<String, Object>> allBudgets = budgetsFuture.get();
+            Map<String, Object> summaryData = extractSummary(summaryFuture.get());
+
+            CategoryMetadata metadata = buildBillMetadataFromData(billData, billId);
+            List<Map<String, Object>> expenses = buildBillExpenses(billData);
+            Map<String, Object> billEntityData = buildBillEntityData(billData, billId, expenses);
+
+            return buildAnalyticsFromExpenses(
+                    expenses,
+                    summaryData,
+                    billEntityData,
+                    allBudgets,
+                    startDate,
+                    endDate,
+                    trendType,
+                    metadata);
+
+        } catch (Exception e) {
+            log.error("Error building bill analytics for billId={}", billId, e);
+            throw new RuntimeException("Failed to build bill analytics: " + e.getMessage(), e);
+        }
+    }
+
+    private CategoryAnalyticsDTO buildAnalyticsFromExpenses(
+            List<Map<String, Object>> expenses,
+            Map<String, Object> summaryData,
+            Map<String, Object> entityData,
+            List<Map<String, Object>> allBudgets,
+            LocalDate startDate,
+            LocalDate endDate,
+            String trendType,
+            CategoryMetadata metadata) throws ExecutionException, InterruptedException {
+
+        Set<Integer> entityBudgetIds = extractBudgetIdsFromExpenses(expenses);
+        List<Map<String, Object>> entityBudgets = filterBudgetsForCategory(allBudgets, entityBudgetIds);
+
+        CompletableFuture<SummaryStatistics> summaryFuture = CompletableFuture.supplyAsync(
+                () -> calculateSummaryStatistics(expenses, startDate, endDate, summaryData, entityData),
+                asyncExecutor);
+
+        CompletableFuture<TrendAnalytics> trendFuture = CompletableFuture.supplyAsync(
+                () -> calculateTrendAnalytics(expenses, startDate, endDate, trendType),
+                asyncExecutor);
+
+        CompletableFuture<List<PaymentMethodDistribution>> paymentFuture = CompletableFuture.supplyAsync(
+                () -> calculatePaymentMethodDistribution(expenses),
+                asyncExecutor);
+
+        CompletableFuture<BudgetAnalytics> budgetAnalyticsFuture = CompletableFuture.supplyAsync(
+                () -> calculateBudgetAnalyticsFromBudgets(entityBudgets, expenses),
+                asyncExecutor);
+
+        CompletableFuture<ExpenseHighlights> highlightsFuture = CompletableFuture.supplyAsync(
+                () -> calculateExpenseHighlights(expenses),
+                asyncExecutor);
+
+        CompletableFuture<TransactionData> transactionFuture = CompletableFuture.supplyAsync(
+                () -> buildTransactionData(expenses),
+                asyncExecutor);
+
+        CompletableFuture<List<BudgetCategoryReport>> budgetReportsFuture = CompletableFuture.supplyAsync(
+                () -> buildBudgetReportsFromBudgets(entityBudgets),
+                asyncExecutor);
+
+        CompletableFuture.allOf(
+                summaryFuture, trendFuture, paymentFuture, budgetAnalyticsFuture,
+                highlightsFuture, transactionFuture, budgetReportsFuture).join();
+
+        SummaryStatistics summaryStats = summaryFuture.get();
+        TrendAnalytics trendAnalytics = trendFuture.get();
+        List<PaymentMethodDistribution> paymentDistribution = paymentFuture.get();
+        BudgetAnalytics budgetAnalytics = budgetAnalyticsFuture.get();
+        ExpenseHighlights highlights = highlightsFuture.get();
+        TransactionData transactionData = transactionFuture.get();
+        List<BudgetCategoryReport> budgetReports = budgetReportsFuture.get();
+
+        List<InsightItem> insights = generateInsights(summaryStats, trendAnalytics, budgetAnalytics,
+                paymentDistribution);
+
+        return CategoryAnalyticsDTO.builder()
+                .categoryMetadata(metadata)
+                .summaryStatistics(summaryStats)
+                .trendAnalytics(trendAnalytics)
+                .paymentMethodDistribution(paymentDistribution)
+                .budgetAnalytics(budgetAnalytics)
+                .expenseHighlights(highlights)
+                .transactionData(transactionData)
+                .budgetReports(budgetReports)
+                .insights(insights)
+                .build();
     }
 
     private Map<String, Object> fetchAllCategoryDataDetailed(String jwt, LocalDate startDate, LocalDate endDate,
@@ -155,6 +283,140 @@ public class CategoryAnalyticsService {
             log.warn("Failed to fetch category data: {}", e.getMessage());
             return Collections.emptyMap();
         }
+    }
+
+    private Map<String, Object> fetchAllPaymentMethodDataDetailed(String jwt, LocalDate startDate, LocalDate endDate,
+            Integer targetId) {
+        try {
+            String start = startDate != null ? startDate.format(DATE_FORMATTER) : null;
+            String end = endDate != null ? endDate.format(DATE_FORMATTER) : null;
+            Map<String, Object> data = expenseService.getAllExpensesByPaymentMethodDetailed(jwt, start, end,
+                    DEFAULT_FLOW_TYPE, targetId);
+            return data != null ? data : Collections.emptyMap();
+        } catch (Exception e) {
+            log.warn("Failed to fetch payment method data: {}", e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
+    private CategoryMetadata buildPaymentMethodMetadataFromData(Map<String, Object> paymentMethodData,
+            Integer paymentMethodId) {
+        if (paymentMethodData == null || paymentMethodData.isEmpty()) {
+            return CategoryMetadata.builder()
+                    .categoryId(paymentMethodId)
+                    .categoryName("Unknown Payment Method")
+                    .type("PAYMENT_METHOD")
+                    .build();
+        }
+        return CategoryMetadata.builder()
+                .categoryId(extractInt(paymentMethodData, "id"))
+                .categoryName(extractString(paymentMethodData, "name"))
+                .icon(extractString(paymentMethodData, "icon"))
+                .color(extractString(paymentMethodData, "color"))
+                .description(extractString(paymentMethodData, "description"))
+                .type(extractString(paymentMethodData, "type"))
+                .build();
+    }
+
+    private CategoryMetadata fetchPaymentMethodMetadata(String jwt, Integer paymentMethodId, Integer targetId) {
+        try {
+            Map<String, Object> paymentMethod = paymentMethodAnalyticsClient.getPaymentMethodById(jwt,
+                    paymentMethodId, targetId);
+            return buildPaymentMethodMetadataFromData(paymentMethod, paymentMethodId);
+        } catch (Exception e) {
+            log.warn("Failed to fetch payment method metadata for id={}: {}", paymentMethodId, e.getMessage());
+            return CategoryMetadata.builder()
+                    .categoryId(paymentMethodId)
+                    .categoryName("Unknown Payment Method")
+                    .type("PAYMENT_METHOD")
+                    .build();
+        }
+    }
+
+    private CategoryMetadata buildBillMetadataFromData(Map<String, Object> billData, Integer billId) {
+        if (billData == null || billData.isEmpty()) {
+            return CategoryMetadata.builder()
+                    .categoryId(billId)
+                    .categoryName("Unknown Bill")
+                    .type("BILL")
+                    .build();
+        }
+        return CategoryMetadata.builder()
+                .categoryId(extractInt(billData, "id"))
+                .categoryName(extractString(billData, "name"))
+                .description(extractString(billData, "description"))
+                .type(extractString(billData, "type"))
+                .build();
+    }
+
+    private Map<String, Object> buildEntityDataFromMetadata(Integer entityId, CategoryMetadata metadata) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", entityId);
+        data.put("name", metadata != null ? metadata.getCategoryName() : "Unknown");
+        data.put("icon", metadata != null ? metadata.getIcon() : null);
+        data.put("color", metadata != null ? metadata.getColor() : null);
+        data.put("description", metadata != null ? metadata.getDescription() : null);
+        data.put("type", metadata != null ? metadata.getType() : null);
+        data.put("totalAmount", 0.0);
+        data.put("expenseCount", 0);
+        data.put("expenses", Collections.emptyList());
+        return data;
+    }
+
+    private Map<String, Object> buildBillEntityData(Map<String, Object> billData, Integer billId,
+            List<Map<String, Object>> expenses) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", billId);
+        data.put("name", extractString(billData, "name"));
+        data.put("description", extractString(billData, "description"));
+        data.put("type", extractString(billData, "type"));
+        data.put("totalAmount", extractDouble(billData, "amount"));
+        data.put("expenseCount", expenses != null ? expenses.size() : 0);
+        data.put("expenses", expenses != null ? expenses : Collections.emptyList());
+        return data;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> buildBillExpenses(Map<String, Object> billData) {
+        if (billData == null || billData.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<String, Object> expense = new HashMap<>();
+        Integer billId = extractInt(billData, "id");
+        String name = extractString(billData, "name");
+        String description = extractString(billData, "description");
+        String paymentMethod = extractString(billData, "paymentMethod");
+        String type = extractString(billData, "type");
+        String date = extractString(billData, "date");
+        Double amount = extractDouble(billData, "amount");
+
+        expense.put("id", billId);
+        expense.put("expenseName", name);
+        expense.put("comments", description);
+        expense.put("paymentMethod", paymentMethod);
+        expense.put("type", type != null && !type.isBlank() ? type : "bill");
+        expense.put("date", date);
+        expense.put("amount", amount);
+
+        Map<String, Object> wrapper = new HashMap<>();
+        wrapper.put("expense", expense);
+        wrapper.put("date", date);
+        wrapper.put("amount", amount);
+        wrapper.put("paymentMethod", paymentMethod);
+
+        Object budgetIdsObj = billData.get("budgetIds");
+        List<Integer> budgetIds = new ArrayList<>();
+        if (budgetIdsObj instanceof Collection) {
+            for (Object id : (Collection<?>) budgetIdsObj) {
+                if (id instanceof Number) {
+                    budgetIds.add(((Number) id).intValue());
+                }
+            }
+        }
+        wrapper.put("budgetIds", budgetIds);
+
+        return Collections.singletonList(wrapper);
     }
 
     @SuppressWarnings("unchecked")
@@ -324,13 +586,13 @@ public class CategoryAnalyticsService {
     private CategoryMetadata fetchCategoryMetadata(String jwt, Integer categoryId, Integer targetId) {
         try {
             Map<String, Object> response = categoryAnalyticsClient.getCategoryById(jwt, categoryId, targetId);
-            
+
             // Unwrap ApiResponse - the actual category data is inside "data" field
             Map<String, Object> category = response;
             if (response.containsKey("data") && response.get("data") instanceof Map) {
                 category = (Map<String, Object>) response.get("data");
             }
-            
+
             return CategoryMetadata.builder()
                     .categoryId(extractInt(category, "id"))
                     .categoryName(extractString(category, "name"))
@@ -356,7 +618,7 @@ public class CategoryAnalyticsService {
             String end = endDate != null ? endDate.format(DATE_FORMATTER) : null;
             Map<String, Object> response = categoryAnalyticsClient.getCategoryExpenses(jwt, categoryId, start,
                     end, targetId);
-            
+
             // Unwrap ApiResponse - the actual expenses list is inside "data" field
             if (response != null && response.containsKey("data") && response.get("data") instanceof List) {
                 return (List<Map<String, Object>>) response.get("data");

@@ -20,12 +20,19 @@ import {
   GET_ALL_PAYMENT_METHOD_REQUEST,
   GET_ALL_PAYMENT_METHOD_SUCCESS,
   GET_ALL_PAYMENT_METHOD_FAILURE,
+  FETCH_PAYMENT_METHOD_ANALYTICS_REQUEST,
+  FETCH_PAYMENT_METHOD_ANALYTICS_SUCCESS,
+  FETCH_PAYMENT_METHOD_ANALYTICS_FAILURE,
+  CLEAR_PAYMENT_METHOD_ANALYTICS,
 } from "./paymentMethod.actionType";
 
 const initialState = {
   paymentMethodExpenses: null,
   paymentMethod: {},
   paymentMethods: [],
+  paymentMethodAnalytics: null,
+  paymentMethodAnalyticsLoading: false,
+  paymentMethodAnalyticsError: null,
   loading: false,
   error: null,
   paymentMethodFlowCache: {},
@@ -55,6 +62,13 @@ export const paymentMethodReducer = (state = initialState, action) => {
         error: null,
       };
 
+    case FETCH_PAYMENT_METHOD_ANALYTICS_REQUEST:
+      return {
+        ...state,
+        paymentMethodAnalyticsLoading: true,
+        paymentMethodAnalyticsError: null,
+      };
+
     case FETCH_PAYMENT_METHODS_WITH_EXPENSES_SUCCESS: {
       const signature = action.meta?.requestSignature ?? null;
       const payloadOwnerId = action.meta?.requestDescriptor?.ownerId ?? null;
@@ -79,6 +93,14 @@ export const paymentMethodReducer = (state = initialState, action) => {
         loading: false,
         paymentMethods: action.payload,
         error: null,
+      };
+
+    case FETCH_PAYMENT_METHOD_ANALYTICS_SUCCESS:
+      return {
+        ...state,
+        paymentMethodAnalytics: action.payload,
+        paymentMethodAnalyticsLoading: false,
+        paymentMethodAnalyticsError: null,
       };
 
     case DELETE_PAYMENT_METHOD_SUCCESS:
@@ -123,6 +145,21 @@ export const paymentMethodReducer = (state = initialState, action) => {
         ...state,
         loading: false,
         error: action.payload,
+      };
+
+    case FETCH_PAYMENT_METHOD_ANALYTICS_FAILURE:
+      return {
+        ...state,
+        paymentMethodAnalyticsLoading: false,
+        paymentMethodAnalyticsError: action.payload,
+      };
+
+    case CLEAR_PAYMENT_METHOD_ANALYTICS:
+      return {
+        ...state,
+        paymentMethodAnalytics: null,
+        paymentMethodAnalyticsLoading: false,
+        paymentMethodAnalyticsError: null,
       };
 
     default:

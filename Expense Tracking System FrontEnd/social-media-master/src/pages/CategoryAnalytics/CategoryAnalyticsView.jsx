@@ -131,11 +131,28 @@ const DATE_RANGE_PRESETS = [
   { value: "custom", label: "Custom Range" },
 ];
 
-const CategoryAnalyticsView = () => {
+const DEFAULT_ANALYTICS_KEYS = {
+  data: "categoryAnalytics",
+  loading: "categoryAnalyticsLoading",
+  error: "categoryAnalyticsError",
+};
+
+const CategoryAnalyticsView = ({
+  entityType = "category",
+  entityIdParam = "categoryId",
+  entityLabel = "Category",
+  fetchAnalytics = fetchCategoryAnalytics,
+  clearAnalytics = clearCategoryAnalytics,
+  analyticsSelector = (state) => state.categories || {},
+  analyticsKeys = DEFAULT_ANALYTICS_KEYS,
+  editRouteBase = "/category-flow/edit",
+}) => {
   const { colors } = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { categoryId, friendId } = useParams();
+  const params = useParams();
+  const { friendId } = params;
+  const categoryId = params[entityIdParam] || params.categoryId;
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Refs to prevent duplicate API calls
@@ -152,11 +169,10 @@ const CategoryAnalyticsView = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   // Redux state
-  const {
-    categoryAnalytics,
-    categoryAnalyticsLoading,
-    categoryAnalyticsError,
-  } = useSelector((state) => state.categories || {});
+  const analyticsState = useSelector(analyticsSelector);
+  const categoryAnalytics = analyticsState?.[analyticsKeys.data];
+  const categoryAnalyticsLoading = analyticsState?.[analyticsKeys.loading];
+  const categoryAnalyticsError = analyticsState?.[analyticsKeys.error];
 
   const { dateFormat } = useSelector((state) => state.userSettings || {});
   const displayDateFormat = dateFormat || "DD/MM/YYYY";
@@ -215,7 +231,7 @@ const CategoryAnalyticsView = () => {
       currentRequestRef.current = requestKey;
 
       dispatch(
-        fetchCategoryAnalytics(categoryId, {
+        fetchAnalytics(categoryId, {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           trendType,
@@ -228,7 +244,7 @@ const CategoryAnalyticsView = () => {
     return () => {
       hasFetchedRef.current = false;
       currentRequestRef.current = null;
-      dispatch(clearCategoryAnalytics());
+      dispatch(clearAnalytics());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId, friendId]);
@@ -238,7 +254,7 @@ const CategoryAnalyticsView = () => {
     setTrendType(newTrendType);
     if (categoryId) {
       dispatch(
-        fetchCategoryAnalytics(categoryId, {
+        fetchAnalytics(categoryId, {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           trendType: newTrendType,
@@ -275,7 +291,7 @@ const CategoryAnalyticsView = () => {
           startDate = now.subtract(6, "month");
       }
       dispatch(
-        fetchCategoryAnalytics(categoryId, {
+        fetchAnalytics(categoryId, {
           startDate: startDate.format("YYYY-MM-DD"),
           endDate: endDate.format("YYYY-MM-DD"),
           trendType,
@@ -288,7 +304,7 @@ const CategoryAnalyticsView = () => {
   const handleCustomDateApply = () => {
     if (categoryId && customStartDate && customEndDate) {
       dispatch(
-        fetchCategoryAnalytics(categoryId, {
+        fetchAnalytics(categoryId, {
           startDate: customStartDate,
           endDate: customEndDate,
           trendType,
@@ -302,7 +318,7 @@ const CategoryAnalyticsView = () => {
   const handleRefresh = () => {
     if (categoryId) {
       dispatch(
-        fetchCategoryAnalytics(categoryId, {
+        fetchAnalytics(categoryId, {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           trendType,
@@ -727,15 +743,15 @@ const CategoryAnalyticsView = () => {
             </FormControl>
 
             {/* Edit Button */}
-            <Tooltip title="Edit Category">
+            <Tooltip title={`Edit ${entityLabel}`}>
               <IconButton
                 onClick={() => {
                   if (friendId) {
                     navigate(
-                      `/category-flow/edit/${categoryId}/friend/${friendId}`,
+                      `${editRouteBase}/${categoryId}/friend/${friendId}`,
                     );
                   } else {
-                    navigate(`/category-flow/edit/${categoryId}`);
+                    navigate(`${editRouteBase}/${categoryId}`);
                   }
                 }}
                 sx={{
@@ -751,7 +767,7 @@ const CategoryAnalyticsView = () => {
             </Tooltip>
 
             {/* Delete Button */}
-            <Tooltip title="Delete Category">
+            <Tooltip title={`Delete ${entityLabel}`}>
               <IconButton
                 onClick={() => {
                   if (

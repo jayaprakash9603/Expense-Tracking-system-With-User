@@ -1,10 +1,12 @@
 package com.jaya.controller;
 
 import com.jaya.dto.ApplicationOverviewDTO;
+import com.jaya.dto.AnalyticsEntityType;
+import com.jaya.dto.AnalyticsRequestDTO;
 import com.jaya.dto.CategoryAnalyticsDTO;
 import com.jaya.dto.report.VisualReportRequest;
 import com.jaya.service.AnalyticsOverviewService;
-import com.jaya.service.CategoryAnalyticsService;
+import com.jaya.service.AnalyticsEntityService;
 import com.jaya.service.VisualReportService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -32,7 +34,7 @@ public class AnalyticsController {
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final AnalyticsOverviewService analyticsOverviewService;
-    private final CategoryAnalyticsService categoryAnalyticsService;
+    private final AnalyticsEntityService analyticsEntityService;
     private final VisualReportService visualReportService;
 
     @GetMapping("/overview")
@@ -44,27 +46,29 @@ public class AnalyticsController {
         return ResponseEntity.ok(overview);
     }
 
-    @GetMapping("/categories/{categoryId}")
-    public ResponseEntity<CategoryAnalyticsDTO> getCategoryAnalytics(
+    @PostMapping("/entity")
+    public ResponseEntity<CategoryAnalyticsDTO> getEntityAnalytics(
             @RequestHeader("Authorization") String jwt,
-            @PathVariable("categoryId") Integer categoryId,
-            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestParam(value = "trendType", required = false, defaultValue = "MONTHLY") String trendType,
-            @RequestParam(value = "targetId", required = false) Integer targetId) {
+            @RequestBody AnalyticsRequestDTO request) {
 
-        log.info("Fetching category analytics: categoryId={}, startDate={}, endDate={}, trendType={}, targetId={}",
-                categoryId, startDate, endDate, trendType, targetId);
-        if (endDate == null) {
-            endDate = LocalDate.now();
-        }
-        if (startDate == null) {
-            startDate = endDate.minusMonths(6);
-        }
+        // Apply default dates if not provided
+        LocalDate endDate = request.getEndDate() != null ? request.getEndDate() : LocalDate.now();
+        LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : endDate.minusMonths(6);
+        String trendType = request.getTrendType() != null ? request.getTrendType() : "MONTHLY";
 
-        CategoryAnalyticsDTO analytics = categoryAnalyticsService.getCategoryAnalytics(
-                jwt, categoryId, startDate, endDate, trendType, targetId);
+        log.info("Fetching {} analytics: entityId={}, startDate={}, endDate={}, trendType={}, targetId={}",
+                request.getEntityType(), request.getEntityId(), startDate, endDate, trendType, request.getTargetId());
 
+        AnalyticsRequestDTO normalizedRequest = AnalyticsRequestDTO.builder()
+                .entityType(request.getEntityType())
+                .entityId(request.getEntityId())
+                .startDate(startDate)
+                .endDate(endDate)
+                .trendType(trendType)
+                .targetId(request.getTargetId())
+                .build();
+
+        CategoryAnalyticsDTO analytics = analyticsEntityService.getAnalytics(jwt, normalizedRequest);
         return ResponseEntity.ok(analytics);
     }
 

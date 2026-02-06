@@ -23,4 +23,12 @@ public interface ExpenseService {
                         @RequestParam(value = "toDate", required = false) String toDate,
                         @RequestParam(value = "flowType", required = false) String flowType,
                         @RequestParam(value = "targetId", required = false) Integer targetId);
+
+        @GetMapping("/api/expenses/all-by-payment-method/detailed/filtered")
+        Map<String, Object> getAllExpensesByPaymentMethodDetailed(
+                        @RequestHeader("Authorization") String jwt,
+                        @RequestParam(value = "fromDate", required = false) String fromDate,
+                        @RequestParam(value = "toDate", required = false) String toDate,
+                        @RequestParam(value = "flowType", required = false) String flowType,
+                        @RequestParam(value = "targetId", required = false) Integer targetId);
 }

@@ -37,6 +37,7 @@ import CreateCategory from "../pages/Landingpage/CreateCategory";
 import CategoryReport from "../pages/Landingpage/Category Report/CategoryReport";
 import EditCategory from "../pages/Landingpage/EditCategory";
 import CategoryAnalyticsView from "../pages/CategoryAnalytics";
+import PaymentMethodAnalyticsView from "../pages/PaymentMethodAnalytics";
 import TransactionsContent from "../pages/Landingpage/TransactionsContent";
 import CreditDueContent from "../pages/Landingpage/CreditDueContent";
 import Reports from "../pages/Landingpage/Reports";
@@ -154,6 +155,14 @@ export const getAppRoutes = () => (
         <Route
           path="edit/:id/friend/:friendId"
           element={<EditPaymentMethod />}
+        />
+        <Route
+          path="view/:paymentMethodId"
+          element={<PaymentMethodAnalyticsView />}
+        />
+        <Route
+          path="view/:paymentMethodId/friend/:friendId"
+          element={<PaymentMethodAnalyticsView />}
         />
       </Route>
 

@@ -241,19 +241,16 @@ export const fetchCategoryAnalytics =
     dispatch({ type: FETCH_CATEGORY_ANALYTICS_REQUEST });
 
     try {
-      const params = {
+      const payload = {
+        entityType: "CATEGORY",
+        entityId: categoryId,
         ...(startDate && { startDate }),
         ...(endDate && { endDate }),
         trendType,
         ...(targetId && { targetId }),
       };
 
-      const { data } = await api.get(
-        `/api/analytics/categories/${categoryId}`,
-        {
-          params,
-        },
-      );
+      const { data } = await api.post("/api/analytics/entity", payload);
 
       // Extract data from ApiResponse wrapper
       const analytics = data?.data || data;

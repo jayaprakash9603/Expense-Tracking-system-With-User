@@ -22,6 +22,10 @@ import {
   GET_ALL_PAYMENT_METHOD_REQUEST,
   GET_ALL_PAYMENT_METHOD_SUCCESS,
   GET_ALL_PAYMENT_METHOD_FAILURE,
+  FETCH_PAYMENT_METHOD_ANALYTICS_REQUEST,
+  FETCH_PAYMENT_METHOD_ANALYTICS_SUCCESS,
+  FETCH_PAYMENT_METHOD_ANALYTICS_FAILURE,
+  CLEAR_PAYMENT_METHOD_ANALYTICS,
 } from "./paymentMethod.actionType";
 
 export const fetchPaymentMethodsWithExpenses =
@@ -62,7 +66,7 @@ export const fetchPaymentMethodsWithExpenses =
           params: {
             targetId: normalizedParams.targetId || "",
           },
-        }
+        },
       );
 
       dispatch({
@@ -118,6 +122,58 @@ export const deletePaymentMethod =
     }
   };
 
+/**
+ * Fetch payment method analytics
+ * @param {number} paymentMethodId
+ * @param {Object} options
+ */
+export const fetchPaymentMethodAnalytics =
+  (
+    paymentMethodId,
+    { startDate, endDate, trendType = "MONTHLY", targetId } = {},
+  ) =>
+  async (dispatch) => {
+    dispatch({ type: FETCH_PAYMENT_METHOD_ANALYTICS_REQUEST });
+
+    try {
+      const payload = {
+        entityType: "PAYMENT_METHOD",
+        entityId: paymentMethodId,
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate }),
+        trendType,
+        ...(targetId && { targetId }),
+      };
+
+      const { data } = await api.post("/api/analytics/entity", payload);
+
+      const analytics = data?.data || data;
+      dispatch({
+        type: FETCH_PAYMENT_METHOD_ANALYTICS_SUCCESS,
+        payload: analytics,
+      });
+
+      return analytics;
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Failed to fetch payment method analytics";
+
+      dispatch({
+        type: FETCH_PAYMENT_METHOD_ANALYTICS_FAILURE,
+        payload: errorMessage,
+      });
+
+      throw new Error(errorMessage);
+    }
+  };
+
+export const clearPaymentMethodAnalytics = () => ({
+  type: CLEAR_PAYMENT_METHOD_ANALYTICS,
+});
+
 export const createPaymentMethod =
   (paymentMethodData, friendId) => async (dispatch) => {
     dispatch({ type: CREATE_PAYMENT_METHOD_REQUEST });
@@ -150,7 +206,7 @@ export const fetchPaymentMethodByTargetId =
 
     try {
       const response = await api.get(
-        `api/payment-methods/${paymentMethodId}?targetId=${targetId}`
+        `api/payment-methods/${paymentMethodId}?targetId=${targetId}`,
       );
 
       console.log("Payment Method By Target ID Response:", response.data);
