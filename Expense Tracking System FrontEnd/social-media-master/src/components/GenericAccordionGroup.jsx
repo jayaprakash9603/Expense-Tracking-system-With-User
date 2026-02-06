@@ -385,9 +385,9 @@ export function GenericAccordionGroup({
       "--pm-border-color": colors.border_color,
       "--pm-text-primary": colors.primary_text,
       "--pm-text-secondary": colors.secondary_text,
-      "--pm-text-tertiary": colors.tertiary_text,
-      "--pm-accent-color": colors.accent_color,
-      "--pm-scrollbar-thumb": colors.accent_color,
+      "--pm-text-tertiary": colors.icon_muted,
+      "--pm-accent-color": colors.primary_accent,
+      "--pm-scrollbar-thumb": colors.primary_accent,
       "--pm-scrollbar-track": colors.secondary_bg,
     },
   };
