@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Badge } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useMasking } from "../../hooks/useMasking";
+import { useTheme } from "../../hooks/useTheme";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { updateUserSettings } from "../../Redux/UserSettings/userSettings.action";
 import NotificationsPanelRedux from "./NotificationsPanelRedux";
@@ -20,7 +21,7 @@ import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
  */
 const HeaderBar = () => {
   const dispatch = useDispatch();
-  const { mode } = useSelector((state) => state.theme || {});
+  const { mode, colors } = useTheme();
   const { isMasking, toggleMasking } = useMasking();
   const maskingEnabled = isMasking();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -45,9 +46,10 @@ const HeaderBar = () => {
       <UniversalSearchModal />
 
       <div
-        className={`h-[50px] flex items-center justify-between px-4 sm:px-6  transition-colors ${
-          isDark ? "bg-[#1b1b1b] " : "bg-white "
-        }`}
+        className="h-[50px] flex items-center justify-between px-4 sm:px-6 transition-colors"
+        style={{
+          backgroundColor: colors.primary_bg,
+        }}
       >
         {/* Left Section: Empty or logo */}
         <div className="flex items-center gap-3">
@@ -70,26 +72,23 @@ const HeaderBar = () => {
           <button
             onClick={toggleMasking}
             data-shortcut="masking"
-            className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-              isDark
-                ? "bg-gray-800 hover:bg-gray-700"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
+            className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+            style={{
+              backgroundColor: colors.button_inactive,
+            }}
             title={
               maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
             }
           >
             {maskingEnabled ? (
               <VisibilityOffIcon
-                className={`w-5 h-5 ${
-                  isDark ? "text-gray-300" : "text-gray-700"
-                }`}
+                className="w-5 h-5"
+                style={{ color: colors.icon_default }}
               />
             ) : (
               <VisibilityIcon
-                className={`w-5 h-5 ${
-                  isDark ? "text-gray-300" : "text-gray-700"
-                }`}
+                className="w-5 h-5"
+                style={{ color: colors.icon_default }}
               />
             )}
           </button>
@@ -98,11 +97,10 @@ const HeaderBar = () => {
           <button
             onClick={handleThemeToggle}
             data-shortcut="theme"
-            className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-              isDark
-                ? "bg-gray-800 hover:bg-gray-700"
-                : "bg-gray-100 hover:bg-gray-200"
-            }`}
+            className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+            style={{
+              backgroundColor: colors.button_inactive,
+            }}
             title={
               isDark ? t("header.switchToLight") : t("header.switchToDark")
             }
@@ -110,7 +108,8 @@ const HeaderBar = () => {
             {isDark ? (
               // Sun Icon (Light Mode)
               <svg
-                className="w-5 h-5 text-yellow-400"
+                className="w-5 h-5"
+                style={{ color: "#facc15" }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +123,8 @@ const HeaderBar = () => {
             ) : (
               // Moon Icon (Dark Mode)
               <svg
-                className="w-5 h-5 text-gray-700"
+                className="w-5 h-5"
+                style={{ color: colors.icon_default }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -141,11 +141,10 @@ const HeaderBar = () => {
             <button
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               data-shortcut="notifications"
-              className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ${
-                isDark
-                  ? "bg-gray-800 hover:bg-gray-700"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
+              className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+              style={{
+                backgroundColor: colors.button_inactive,
+              }}
               title={t("header.notifications")}
             >
               <Badge
@@ -162,9 +161,8 @@ const HeaderBar = () => {
                 }}
               >
                 <svg
-                  className={`w-5 h-5 ${
-                    isDark ? "text-gray-300" : "text-gray-700"
-                  }`}
+                  className="w-5 h-5"
+                  style={{ color: colors.icon_default }}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
