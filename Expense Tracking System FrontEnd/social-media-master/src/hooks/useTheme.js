@@ -1,9 +1,8 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useMemo, useCallback, useEffect } from "react";
 import { generateThemeTokens } from "../config/themeTokens";
-import { COLOR_PALETTES, getPaletteOptions } from "../config/colorPalettes";
+import { COLOR_PALETTES, getPaletteOptions, getIconFilterForPalette } from "../config/colorPalettes";
 import { 
-  getIconFilter, 
   BRAND_GRADIENT_COLORS 
 } from "../config/themeConfig";
 import { 
@@ -127,7 +126,7 @@ export const useTheme = () => {
     availablePalettes,
     
     // Utilities (backward compatible)
-    getIconFilter: (isActive = false) => getIconFilter(currentMode, isActive),
+    getIconFilter: (isActive = false) => getIconFilterForPalette(currentPalette, currentMode, isActive),
     brandColors: BRAND_GRADIENT_COLORS,
     
     // Actions
