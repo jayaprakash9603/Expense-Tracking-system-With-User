@@ -228,11 +228,15 @@ export const fetchBillsForCalendar =
     }
   };
 
-export const getBillByExpenseId = (expenseId) => async (dispatch) => {
+export const getBillByExpenseId = (expenseId, friendId = "") => async (dispatch) => {
   {
     dispatch({ type: GET_BILL_BY_EXPENSE_ID_REQUEST });
     try {
-      const { data } = await api.get(`/api/bills/expenses/${expenseId}`);
+      const { data } = await api.get(`/api/bills/expenses/${expenseId}`, {
+        params: {
+          targetId: friendId || "",
+        },
+      });
 
       dispatch({
         type: GET_BILL_BY_EXPENSE_ID_SUCCESS,

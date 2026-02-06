@@ -28,7 +28,7 @@ import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess"; // retains gating
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { updateBill, getBillById } from "../../Redux/Bill/bill.action";
+import { updateBill, getBillById, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -52,7 +52,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const location = useLocation();
   const { navigateWithState } = usePreserveNavigationState();
   const dispatch = useDispatch();
-  const { id, friendId } = useParams();
+  const { id, friendId, expenseId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
   useRedirectIfReadOnly(friendId, {
     buildFriendPath: (fid) => `/bill/${fid}`,
@@ -102,7 +102,8 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   // Load bill data on component mount
   useEffect(() => {
     const loadBillData = async () => {
-      if (!currentBillId) {
+      // If neither bill ID nor expense ID is provided, show error
+      if (!currentBillId && !expenseId) {
         setLoadError(t("editBill.messages.noBillId"));
         setIsLoading(false);
         return;
@@ -112,9 +113,19 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         setIsLoading(true);
         setLoadError(null);
 
-        const billResponse = await dispatch(
-          getBillById(currentBillId, friendId || ""),
-        );
+        let billResponse;
+        
+        // If accessed via expense ID route, fetch bill by expense ID
+        if (expenseId && !currentBillId) {
+          billResponse = await dispatch(
+            getBillByExpenseId(expenseId, friendId || ""),
+          );
+        } else {
+          // Fetch bill by bill ID
+          billResponse = await dispatch(
+            getBillById(currentBillId, friendId || ""),
+          );
+        }
         let bill = billResponse?.payload || billResponse?.data || billResponse;
 
         if (!bill || !bill.id) {
@@ -164,7 +175,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     };
 
     loadBillData();
-  }, [currentBillId, dispatch, id, friendId, t]);
+  }, [currentBillId, dispatch, id, friendId, expenseId, t]);
 
   const isCurrentRowComplete = (expense) => {
     if (!expense) return false;

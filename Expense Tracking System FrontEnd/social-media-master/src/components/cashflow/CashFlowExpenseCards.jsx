@@ -986,43 +986,27 @@ function CashFlowExpenseCards({
 
   // Memoized edit handler to prevent re-renders - MUST be before early returns
   const handleEdit = useCallback(
-    async (row) => {
-      dispatch(
-        getListOfBudgetsByExpenseId({
-          id: row.id || row.expenseId,
-          date: dayjs().format("YYYY-MM-DD"),
-          friendId: friendId || null,
-        }),
-      );
-      const expensedata = await dispatch(
-        getExpenseAction(row.id, friendId || ""),
-      );
-      const bill = expensedata.bill
-        ? await dispatch(getBillByExpenseId(row.id, friendId || ""))
-        : false;
-      if (expensedata.bill) {
+    (row) => {
+      const expenseId = row.id || row.expenseId;
+      const isBill = row.bill === true;
+      
+      if (isBill) {
+        // Navigate to bill edit by expense ID - EditBill will fetch the data
         navigate(
           isFriendView
-            ? `/bill/edit/${bill.id}/friend/${friendId}`
-            : `/bill/edit/${bill.id}`,
+            ? `/bill/edit-by-expense/${expenseId}/friend/${friendId}`
+            : `/bill/edit-by-expense/${expenseId}`,
         );
       } else {
+        // Navigate to expense edit - EditExpense will fetch the data
         navigate(
           isFriendView
-            ? `/expenses/edit/${row.id}/friend/${friendId}`
-            : `/expenses/edit/${row.id}`,
+            ? `/expenses/edit/${expenseId}/friend/${friendId}`
+            : `/expenses/edit/${expenseId}`,
         );
       }
     },
-    [
-      dispatch,
-      friendId,
-      isFriendView,
-      navigate,
-      getListOfBudgetsByExpenseId,
-      getExpenseAction,
-      getBillByExpenseId,
-    ],
+    [friendId, isFriendView, navigate],
   );
 
   // Memoized card click handler wrapper - MUST be before early returns
