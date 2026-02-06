@@ -19,10 +19,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-
-
-
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -54,9 +50,6 @@ public class UniversalSearchService {
     @Value("${search.default-limit:20}")
     private int defaultLimit;
 
-    
-
-
     public UniversalSearchResponse search(SearchRequestDTO request, String authToken) {
         long startTime = System.currentTimeMillis();
 
@@ -65,53 +58,43 @@ public class UniversalSearchService {
 
         log.info("Starting universal search for query: '{}', limit: {}", query, limit);
 
-        
         Set<String> sectionsToSearch = parseSections(request.getSections());
 
-        
         UniversalSearchResponse.UniversalSearchResponseBuilder responseBuilder = UniversalSearchResponse.builder()
                 .query(query);
 
-        
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        
         if (sectionsToSearch.contains("expenses") || sectionsToSearch.isEmpty()) {
             futures.add(searchExpenses(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.expenses(results)));
         }
 
-        
         if (sectionsToSearch.contains("budgets") || sectionsToSearch.isEmpty()) {
             futures.add(searchBudgets(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.budgets(results)));
         }
 
-        
         if (sectionsToSearch.contains("categories") || sectionsToSearch.isEmpty()) {
             futures.add(searchCategories(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.categories(results)));
         }
 
-        
         if (sectionsToSearch.contains("bills") || sectionsToSearch.isEmpty()) {
             futures.add(searchBills(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.bills(results)));
         }
 
-        
         if (sectionsToSearch.contains("payment_methods") || sectionsToSearch.isEmpty()) {
             futures.add(searchPaymentMethods(query, limit, authToken, request.getTargetId())
                     .thenAccept(results -> responseBuilder.paymentMethods(results)));
         }
 
-        
         if (sectionsToSearch.contains("friends") || sectionsToSearch.isEmpty()) {
             futures.add(searchFriends(query, limit, authToken)
                     .thenAccept(results -> responseBuilder.friends(results)));
         }
 
-        
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
                     .get(searchTimeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
@@ -129,14 +112,9 @@ public class UniversalSearchService {
         return response;
     }
 
-    
-
-
-
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(
             String query, int limit, String authToken, Integer targetId) {
 
-        
         Mono<Map<Integer, Map<String, Object>>> categoriesMono = webClient.get()
                 .uri(categoryServiceUrl + "/api/categories", uriBuilder -> {
                     if (targetId != null) {
@@ -146,10 +124,12 @@ public class UniversalSearchService {
                 })
                 .header(HttpHeaders.AUTHORIZATION, authToken)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(categories -> {
+                .map(response -> {
+                    // Extract data from ApiResponse wrapper
+                    List<Map<String, Object>> categories = extractListFromApiResponse(response);
                     Map<Integer, Map<String, Object>> categoryMap = new HashMap<>();
                     for (Map<String, Object> cat : categories) {
                         Object idObj = cat.get("id");
@@ -166,7 +146,6 @@ public class UniversalSearchService {
                     return Mono.just(new HashMap<>());
                 });
 
-        
         Mono<List<Map<String, Object>>> expensesMono = webClient.get()
                 .uri(expenseServiceUrl + "/api/expenses/search/fuzzy", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
@@ -186,7 +165,6 @@ public class UniversalSearchService {
                     return Mono.just(Collections.emptyList());
                 });
 
-        
         return Mono.zip(expensesMono, categoriesMono)
                 .map(tuple -> {
                     List<Map<String, Object>> expenses = tuple.getT1();
@@ -195,9 +173,6 @@ public class UniversalSearchService {
                 })
                 .toFuture();
     }
-
-    
-
 
     private CompletableFuture<List<SearchResultDTO>> searchBudgets(
             String query, int limit, String authToken, Integer targetId) {
@@ -224,9 +199,6 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    
-
-
     private CompletableFuture<List<SearchResultDTO>> searchCategories(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -241,19 +213,20 @@ public class UniversalSearchService {
                 })
                 .header(HttpHeaders.AUTHORIZATION, authToken)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
                 })
                 .timeout(Duration.ofMillis(searchTimeoutMs))
-                .map(categories -> mapCategoryResults(categories, limit))
+                .map(response -> {
+                    // Extract data from ApiResponse wrapper
+                    List<Map<String, Object>> categories = extractListFromApiResponse(response);
+                    return mapCategoryResults(categories, limit);
+                })
                 .onErrorResume(e -> {
                     log.error("Error searching categories: {}", e.getMessage());
                     return Mono.just(Collections.emptyList());
                 })
                 .toFuture();
     }
-
-    
-
 
     private CompletableFuture<List<SearchResultDTO>> searchBills(
             String query, int limit, String authToken, Integer targetId) {
@@ -280,9 +253,6 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    
-
-
     private CompletableFuture<List<SearchResultDTO>> searchPaymentMethods(
             String query, int limit, String authToken, Integer targetId) {
 
@@ -308,9 +278,6 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    
-
-
     private CompletableFuture<List<SearchResultDTO>> searchFriends(
             String query, int limit, String authToken) {
 
@@ -330,11 +297,6 @@ public class UniversalSearchService {
                 .toFuture();
     }
 
-    
-
-    
-
-
     private List<SearchResultDTO> mapExpenseResultsWithCategories(
             List<Map<String, Object>> expenses,
             Map<Integer, Map<String, Object>> categoryMap,
@@ -342,11 +304,9 @@ public class UniversalSearchService {
         return expenses.stream()
                 .limit(limit)
                 .map(exp -> {
-                    
+
                     Map<String, Object> expenseDetails = (Map<String, Object>) exp.get("expense");
 
-                    
-                    
                     String name = (String) exp.get("expenseName");
                     if (name == null && expenseDetails != null) {
                         name = (String) expenseDetails.get("expenseName");
@@ -358,14 +318,11 @@ public class UniversalSearchService {
                         name = (String) exp.get("name");
                     }
 
-                    
                     Object amount = exp.get("amount");
                     if (amount == null && expenseDetails != null) {
                         amount = expenseDetails.get("amount");
                     }
 
-                    
-                    
                     String type = (String) exp.get("type");
                     String paymentMethod = (String) exp.get("paymentMethod");
                     String comments = (String) exp.get("comments");
@@ -385,7 +342,6 @@ public class UniversalSearchService {
                             creditDue = expenseDetails.get("creditDue");
                     }
 
-                    
                     String categoryName = (String) exp.getOrDefault("categoryName", "Uncategorized");
                     String categoryIcon = null;
                     String categoryColor = null;
@@ -396,7 +352,6 @@ public class UniversalSearchService {
                         categoryId = catIdObj instanceof Number ? ((Number) catIdObj).intValue()
                                 : Integer.parseInt(catIdObj.toString());
 
-                        
                         Map<String, Object> category = categoryMap.get(categoryId);
                         if (category != null) {
                             categoryIcon = (String) category.get("icon");
@@ -407,7 +362,6 @@ public class UniversalSearchService {
                         }
                     }
 
-                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", amount != null ? amount : 0);
                     metadata.put("date", exp.getOrDefault("date", ""));
@@ -430,10 +384,8 @@ public class UniversalSearchService {
                     metadata.put("includeInBudget", exp.getOrDefault("includeInBudget", false));
                     metadata.put("isBill", exp.getOrDefault("isBill", false));
 
-                    
                     String dateStr = formatDate(exp.get("date"));
 
-                    
                     String subtitle = (comments != null && !comments.isEmpty())
                             ? comments
                             : categoryName;
@@ -456,7 +408,7 @@ public class UniversalSearchService {
         return budgets.stream()
                 .limit(limit)
                 .map(budget -> {
-                    
+
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", budget.getOrDefault("amount", 0));
                     metadata.put("spent", budget.getOrDefault("spent", 0));
@@ -489,7 +441,7 @@ public class UniversalSearchService {
         return categories.stream()
                 .limit(limit)
                 .map(cat -> {
-                    
+
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("description", cat.get("description"));
                     metadata.put("type", cat.getOrDefault("type", "expense"));
@@ -514,7 +466,7 @@ public class UniversalSearchService {
         return bills.stream()
                 .limit(limit)
                 .map(bill -> {
-                    
+
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("amount", bill.getOrDefault("amount", 0));
                     metadata.put("dueDate", bill.get("dueDate"));
@@ -527,7 +479,6 @@ public class UniversalSearchService {
                     metadata.put("reminder", bill.get("reminder"));
                     metadata.put("paymentMethod", bill.get("paymentMethod"));
 
-                    
                     String description = (String) bill.get("description");
                     String frequency = (String) bill.getOrDefault("frequency", "One-time");
                     String subtitle = (description != null && !description.isEmpty())
@@ -552,7 +503,7 @@ public class UniversalSearchService {
         return paymentMethods.stream()
                 .limit(limit)
                 .map(pm -> {
-                    
+
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("type", pm.getOrDefault("type", "Other"));
                     metadata.put("accountNumber", pm.get("accountNumber"));
@@ -587,7 +538,6 @@ public class UniversalSearchService {
                         fullName = email.isEmpty() ? "Friend" : email;
                     }
 
-                    
                     Map<String, Object> metadata = new HashMap<>();
                     metadata.put("email", email);
                     metadata.put("firstName", firstName);
@@ -608,8 +558,6 @@ public class UniversalSearchService {
                 })
                 .collect(Collectors.toList());
     }
-
-    
 
     private Set<String> parseSections(String sections) {
         if (sections == null || sections.trim().isEmpty()) {
@@ -634,16 +582,41 @@ public class UniversalSearchService {
         if (date == null)
             return "N/A";
         String dateStr = date.toString();
-        
+
         try {
-            
+
             if (dateStr.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
                 java.time.LocalDate localDate = java.time.LocalDate.parse(dateStr.substring(0, 10));
                 return localDate.format(java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy"));
             }
         } catch (Exception e) {
-            
+
         }
         return dateStr;
+    }
+
+    /**
+     * Extracts the list from an ApiResponse wrapper.
+     * ApiResponse format: { "success": true, "data": [...], ... }
+     * Falls back to empty list if extraction fails.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> extractListFromApiResponse(Map<String, Object> response) {
+        if (response == null) {
+            return Collections.emptyList();
+        }
+
+        // Try to extract the 'data' field from ApiResponse wrapper
+        Object data = response.get("data");
+        if (data instanceof List) {
+            return (List<Map<String, Object>>) data;
+        }
+
+        // If no 'data' field or not a list, check if response itself is a list
+        // structure
+        // (this handles non-wrapped responses gracefully)
+        log.warn("Could not extract list from ApiResponse, data field was: {}",
+                data != null ? data.getClass().getSimpleName() : "null");
+        return Collections.emptyList();
     }
 }

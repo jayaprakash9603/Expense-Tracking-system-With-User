@@ -340,4 +340,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id IN :expenseIds")
         List<Expense> findAllByUserIdAndIdIn(@Param("userId") Integer userId,
                         @Param("expenseIds") Set<Integer> expenseIds);
+
+        /**
+         * Batch fetch expenses by IDs with JOIN FETCH to avoid N+1 queries.
+         * Used for bulk operations like updateMultipleExpenses and deleteAllExpenses.
+         */
+        @QueryHints({
+                        @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "100")
+        })
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.id IN :ids")
+        List<Expense> findByIdInWithDetails(@Param("ids") List<Integer> ids);
 }

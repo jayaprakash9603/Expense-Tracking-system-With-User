@@ -123,7 +123,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         User user = helper.validateUser(userId);
 
-        
         Expense expense = expenseMapper.toEntity(expenseDTO);
         expense.setId(null);
         if (expense.getExpense() != null) {
@@ -149,7 +148,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         details.setComments(details.getComments() != null ? details.getComments() : "");
         details.setCreditDue(details.getPaymentMethod().equals(CREDIT_NEED_TO_PAID) ? details.getAmount() : 0);
 
-        
         details.setExpense(expense);
         expense.setExpense(details);
 
@@ -169,11 +167,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         publishExpenseAuditEvent("CREATE", savedExpense, user, null, expenseToMap(savedExpense), "Expense created",
                 "SUCCESS");
 
-        
         com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(userId);
         Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
 
-        
         return expenseMapper.toDTO(savedExpense, maskSensitiveData);
     }
 
@@ -185,7 +181,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             throw new RuntimeException("Expense not found with ID: " + expenseId);
         }
 
-        
         Expense copy = new Expense();
         copy.setDate(original.getDate());
         copy.setUserId(userId);
@@ -201,11 +196,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             details.setNetAmount(original.getExpense().getNetAmount());
             details.setComments(original.getExpense().getComments());
             details.setCreditDue(original.getExpense().getCreditDue());
-            details.setExpense(copy); 
+            details.setExpense(copy);
             copy.setExpense(details);
         }
 
-        
         ExpenseDTO savedDTO = addExpense(expenseMapper.toDTO(copy), userId);
         return expenseMapper.toEntity(savedDTO);
 
@@ -333,32 +327,25 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         }
 
-        
-        
-
-        
         Cache cache = cacheManager.getCache("expenses");
         if (cache != null) {
-            
+
             cache.evict(id);
 
-            
             List<Expense> cachedExpenses = cache.get(userId, List.class);
             if (cachedExpenses != null) {
-                
+
                 cachedExpenses.removeIf(exp -> exp.getId().equals(id));
 
-                
                 cache.put(userId, cachedExpenses);
                 logger.info("Removed deleted expense ID {} from cache for user: {}", id, userId);
             } else {
-                
+
                 cache.evict(userId);
                 logger.info("Evicted cache for user: {} due to missing cached list", userId);
             }
         }
 
-        
         Cache budgetCache = cacheManager.getCache("budgets");
         if (budgetCache != null) {
             budgetCache.evict(userId);
@@ -407,21 +394,28 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         List<Expense> expensesToDelete = new ArrayList<>();
         List<Integer> expenseIdsToDelete = new ArrayList<>();
 
+        // Collect all expense IDs for batch fetch (fixes N+1 query problem)
+        List<Integer> allExpenseIds = expenses.stream()
+                .map(Expense::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Batch fetch all expenses in one query with JOIN FETCH for ExpenseDetails
+        Map<Integer, Expense> existingExpensesMap = expenseRepository.findByIdInWithDetails(allExpenseIds)
+                .stream()
+                .collect(Collectors.toMap(Expense::getId, e -> e));
+
         for (Expense expense : expenses) {
             if (expense.getId() == null) {
                 errorMessages.add("Expense ID cannot be null.");
                 continue;
             }
 
-            Expense existing = expenseRepository.findById(expense.getId()).orElse(null);
+            Expense existing = existingExpensesMap.get(expense.getId());
             if (existing == null) {
                 errorMessages.add("Expense not found with ID: " + expense.getId());
                 continue;
             }
-
-            
-            
-            
 
             if (existing.getUserId() == null || !existing.getUserId().equals(userId)) {
                 errorMessages.add("User not authorized to delete Expense ID: " + expense.getId() +
@@ -436,7 +430,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         if (!expensesToDelete.isEmpty()) {
-            
+
             performOptimizedBatchDelete(expenseIdsToDelete, userId, expensesToDelete);
         }
 
@@ -447,27 +441,23 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Transactional
     private void performOptimizedBatchDelete(List<Integer> expenseIds, Integer userId, List<Expense> expensesToDelete) {
-        final int BATCH_SIZE = 1000; 
+        final int BATCH_SIZE = 1000;
 
-        
         List<Expense> expensesForAsync = createExpenseCopiesForAsync(expensesToDelete);
 
-        
         for (int i = 0; i < expenseIds.size(); i += BATCH_SIZE) {
             int endIndex = Math.min(i + BATCH_SIZE, expenseIds.size());
             List<Integer> batchIds = expenseIds.subList(i, endIndex);
 
             try {
-                
+
                 expenseRepository.deleteExpenseDetailsByExpenseIds(batchIds);
 
-                
                 int deletedCount = expenseRepository.deleteByIdsAndUserId(batchIds, userId);
 
                 logger.info("Batch deleted {} expenses (expected: {}) for user: {}",
                         deletedCount, batchIds.size(), userId);
 
-                
                 entityManager.flush();
                 entityManager.clear();
 
@@ -477,7 +467,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         }
 
-        
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
@@ -552,27 +541,23 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     public List<Expense> addMultipleExpensesWithProgress(List<Expense> expenses, Integer userId, String jobId)
             throws Exception {
         User user = helper.validateUser(userId);
-        
+
         entityManager.setFlushMode(FlushModeType.COMMIT);
-        
-        
+
         final int STATELESS_THRESHOLD = 20_000;
         if (expenses.size() >= STATELESS_THRESHOLD) {
             return addMultipleExpensesWithProgressStateless(expenses, userId, jobId, user);
         }
-        
+
         final int batchSize = 1000;
         int count = 0;
         List<Expense> savedExpenses = new ArrayList<>(Math.min(expenses.size(), 10_000));
 
-        
         Map<Integer, Budget> budgetCache = new HashMap<>();
-        
-        
+
         Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
         Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
 
-        
         Category othersCategory = null;
         try {
             List<Category> others = categoryService.getByName(OTHERS, user.getId());
@@ -589,8 +574,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         }
 
-        
-        final int progressStep = 250; 
+        final int progressStep = 250;
         int progressSinceLastUpdate = 0;
 
         try {
@@ -603,16 +587,15 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 }
                 if (expense.getBudgetIds() == null)
                     expense.setBudgetIds(new HashSet<>());
-                
+
                 Set<Integer> validBudgetIds = validateAndExtractBudgetIdsCached(expense, user, budgetCache);
                 expense.setBudgetIds(validBudgetIds);
-                
+
                 handleCategoryFast(expense, user, categoryIdCache, categoryNameCache, othersCategory);
 
                 entityManager.persist(expense);
                 savedExpenses.add(expense);
 
-                
                 if (++progressSinceLastUpdate >= progressStep) {
                     progressTracker.increment(jobId, progressSinceLastUpdate);
                     progressSinceLastUpdate = 0;
@@ -626,7 +609,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             entityManager.flush();
             entityManager.clear();
 
-            
             if (progressSinceLastUpdate > 0) {
                 progressTracker.increment(jobId, progressSinceLastUpdate);
             }
@@ -634,25 +616,21 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
             return savedExpenses;
         } catch (Exception ex) {
-            
+
             progressTracker.fail(jobId, ex.getMessage());
             throw ex;
         }
     }
 
-    
-    
     private List<Expense> addMultipleExpensesWithProgressStateless(List<Expense> expenses, Integer userId, String jobId,
             User user) throws Exception {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         List<Expense> savedExpenses = new ArrayList<>(expenses.size());
 
-        
         Map<Integer, Budget> budgetCache = new HashMap<>();
         Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
         Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
 
-        
         Category othersCategory = null;
         try {
             List<Category> others = categoryService.getByName(OTHERS, user.getId());
@@ -667,14 +645,14 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         }
 
-        final int progressStep = 1000; 
+        final int progressStep = 1000;
         int progressSinceLastUpdate = 0;
 
         try (StatelessSession session = sessionFactory.openStatelessSession()) {
             Transaction tx = session.beginTransaction();
             try {
                 for (Expense expense : expenses) {
-                    
+
                     expense.setId(null);
                     expense.setUserId(userId);
 
@@ -691,10 +669,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                     handleCategoryFast(expense, user, categoryIdCache, categoryNameCache, othersCategory);
 
-                    
                     session.insert(expense);
 
-                    
                     if (details != null) {
                         session.insert(details);
                     }
@@ -717,13 +693,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         }
 
-        
         asyncExpensePostProcessor.publishEvent(new ArrayList<>(savedExpenses), userId, user, jobId);
         return savedExpenses;
     }
 
-    
-    
     private Set<Integer> validateAndExtractBudgetIdsCached(Expense expense, User user,
             Map<Integer, Budget> budgetCache) {
         Set<Integer> validBudgetIds = new HashSet<>();
@@ -742,7 +715,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         budgetCache.put(budgetId, budget);
                     }
                 } catch (Exception ignore) {
-                    
+
                 }
             }
             if (budget != null && !expenseDate.isBefore(budget.getStartDate())
@@ -753,14 +726,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         return validBudgetIds;
     }
 
-    
-    
     private void handleCategoryFast(Expense expense, User user,
             Map<Integer, Optional<Category>> categoryIdCache,
             Map<String, Optional<Category>> categoryNameCache,
             Category othersCategory) {
         try {
-            
+
             String categoryName = expense.getCategoryName();
             if (categoryName != null && !categoryName.trim().isEmpty()) {
                 String key = categoryName.trim().toLowerCase(Locale.ROOT);
@@ -770,7 +741,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     try {
                         List<Category> matches = categoryService.getByName(categoryName.trim(), user.getId());
                         if (matches != null && !matches.isEmpty()) {
-                            
+
                             found = matches.stream()
                                     .filter(c -> c.getName() != null
                                             && c.getName().equalsIgnoreCase(categoryName.trim()))
@@ -793,12 +764,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 }
             }
 
-            
             Integer categoryId = expense.getCategoryId();
             if (categoryId != null && categoryId > 0) {
                 Optional<Category> cachedById = categoryIdCache.get(categoryId);
                 if (cachedById == null) {
-                    
+
                     Category found = null;
                     try {
                         found = categoryService.getById(categoryId, user.getId());
@@ -819,18 +789,16 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 }
             }
 
-            
-            
             if (othersCategory != null) {
                 expense.setCategoryId(othersCategory.getId());
                 expense.setCategoryName(othersCategory.getName());
             } else {
-                
+
                 handleCategory(expense, user);
             }
         } catch (Exception e) {
             logger.warn("Category handling fallback triggered: {}", e.getMessage());
-            
+
             if (othersCategory != null) {
                 expense.setCategoryId(othersCategory.getId());
                 expense.setCategoryName(othersCategory.getName());
@@ -849,6 +817,17 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         List<String> errorMessages = new ArrayList<>();
         List<Expense> updatedExpenses = new ArrayList<>();
 
+        // Collect all expense IDs for batch fetch (fixes N+1 query problem)
+        List<Integer> batchExpenseIds = expenses.stream()
+                .map(Expense::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // Batch fetch all expenses in one query with JOIN FETCH for ExpenseDetails
+        Map<Integer, Expense> existingExpensesMap = expenseRepository.findByIdInWithDetails(batchExpenseIds)
+                .stream()
+                .collect(Collectors.toMap(Expense::getId, e -> e));
+
         for (Expense expense : expenses) {
             Integer id = expense.getId();
             if (id == null) {
@@ -860,13 +839,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                 continue;
             }
-            Optional<Expense> existingOpt = expenseRepository.findById(id);
-            if (existingOpt.isEmpty()) {
+            Expense existingExpense = existingExpensesMap.get(id);
+            if (existingExpense == null) {
                 errorMessages.add("Expense not found with ID: " + id);
                 continue;
             }
-
-            Expense existingExpense = existingOpt.get();
 
             if (existingExpense.getUserId() == null || !existingExpense.getUserId().equals(userId)) {
                 errorMessages.add("User not authorized to update Expense ID: " + id);
@@ -874,11 +851,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             try {
-                
+
                 Integer oldCategoryId = existingExpense.getCategoryId();
                 Integer newCategoryId = expense.getCategoryId();
                 if (!Objects.equals(oldCategoryId, newCategoryId)) {
-                    
+
                     if (oldCategoryId != null) {
                         try {
                             Category oldCategory = categoryService.getById(oldCategoryId, userId);
@@ -897,7 +874,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                             System.out.println("Error removing expense from old category: " + e.getMessage());
                         }
                     }
-                    
+
                     if (newCategoryId != null) {
                         try {
                             Category newCategory = categoryService.getById(newCategoryId, userId);
@@ -961,7 +938,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     String newPaymentType = newDetails.getType() != null
                             && newDetails.getType().equalsIgnoreCase("loss") ? "expense" : "income";
 
-                    
                     if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()
                             && (newPaymentMethodName == null
                                     || !oldPaymentMethodName.trim().equalsIgnoreCase(newPaymentMethodName)
@@ -1044,7 +1020,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 existingExpense.setBudgetIds(validBudgetIds);
                 Expense savedExpense = expenseRepository.save(existingExpense);
 
-                
                 for (Integer budgetId : validBudgetIds) {
                     Budget budget = budgetService.getBudgetById(budgetId, userId);
                     if (budget != null) {
@@ -1055,10 +1030,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         budgetService.save(budget);
                     }
                 }
-
-                
-                
-                
 
                 updatedExpenses.add(savedExpense);
 
@@ -1224,10 +1195,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     }
                 }
 
-                
-                
-                
-
             } catch (Exception e) {
                 errorMessages.add("Failed to save expense for date " + dto.getDate() + ": " + e.getMessage());
             }
@@ -1257,22 +1224,20 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Override
     public List<Expense> getAllExpenses(Integer userId, String sortOrder) {
-        
+
         Sort sort = "asc".equalsIgnoreCase(sortOrder) ? Sort.by(Sort.Order.asc("date"))
                 : Sort.by(Sort.Order.desc("date"));
-        
+
         return expenseRepository.findByUserIdWithSort(userId, sort);
     }
 
     @Override
     public List<Expense> getExpensesByIds(Integer userId, Set<Integer> expenseIds) throws UserException {
 
-        
         if (expenseIds == null || expenseIds.isEmpty()) {
             return Collections.emptyList();
         }
 
-        
         Set<Integer> validExpenseIds = expenseIds.stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -1282,13 +1247,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         try {
-            
+
             helper.validateUser(userId);
 
-            
             List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, validExpenseIds);
 
-            
             if (!expenses.isEmpty()) {
                 System.out.println("Retrieved " + expenses.size() + " expenses for user " + userId);
             }
@@ -1308,19 +1271,16 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     @Override
     public List<Expense> getExpensesByUserAndSort(Integer userId, String sort) throws UserException {
 
-        
         List<Expense> expenses = getCachedExpenses(userId);
 
         if (expenses == null) {
-            
+
             logger.info("Cache miss - fetching from database for user: {}", userId);
             expenses = expenseRepository.findByUserId(userId);
 
-            
             cacheExpenses(userId, expenses);
         }
 
-        
         if (expenses != null) {
             if (sort.equalsIgnoreCase("asc")) {
                 expenses.sort(Comparator.comparing(Expense::getDate));
@@ -1404,7 +1364,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
     }
 
-    
     private List<Expense> getCachedExpenses(Integer userId) {
         Cache cache = cacheManager.getCache("expenses");
         if (cache != null) {
@@ -1463,10 +1422,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         if (!expensesToDelete.isEmpty()) {
-            
+
             expenseRepository.deleteAll(expensesToDelete);
 
-            
             List<Expense> expensesForAsync = new ArrayList<>();
             for (Expense expense : expensesToDelete) {
                 Expense copy = new Expense();
@@ -1487,12 +1445,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 expensesForAsync.add(copy);
             }
 
-            
-            
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    
+
                     asyncExpensePostProcessor.publishDeletionEvents(expensesForAsync, userId);
                 }
             });
@@ -1533,7 +1489,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         String paymentMethodName = details.getPaymentMethod().trim();
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
 
-        
         PaymentMethodEvent event = new PaymentMethodEvent(user.getId(), savedExpense.getId(), paymentMethodName,
                 paymentType, "Automatically created for expense: " + details.getPaymentMethod(), CASH,
                 getThemeAppropriateColor("salary"), "CREATE");
@@ -1548,7 +1503,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (savedExpense.getCategoryId() != null) {
             logger.info("Entered inside if statement: {}", savedExpense.getCategoryId());
 
-            
             CategoryExpenseEvent event = new CategoryExpenseEvent(userId, savedExpense.getId(),
                     savedExpense.getCategoryId(), savedExpense.getCategoryName(), "ADD");
 
@@ -1630,7 +1584,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             cachedExpenses = new ArrayList<>();
         }
 
-        
         cachedExpenses.addAll(savedExpenses);
         cache.put(userId, cachedExpenses);
 
@@ -1768,7 +1721,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     ? "expense"
                     : "income";
 
-            
             if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
                 try {
                     List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
@@ -1781,7 +1733,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         Set<Integer> userExpenseSet = expenseIds.getOrDefault(userId, new HashSet<>());
                         userExpenseSet.remove(existingExpense.getId());
 
-                        
                         if (userExpenseSet.isEmpty()) {
                             expenseIds.remove(userId);
                         } else {
@@ -1798,7 +1749,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 }
             }
 
-            
             try {
                 List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
                 PaymentMethod newPaymentMethod = allMethods.stream()
@@ -1841,14 +1791,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         User user = helper.validateUser(userId);
 
         if (!Objects.equals(oldCategoryId, newCategoryId)) {
-            
+
             if (oldCategoryId != null) {
                 CategoryExpenseEvent removeEvent = new CategoryExpenseEvent(userId, existingExpense.getId(),
                         oldCategoryId, existingExpense.getCategoryName(), "REMOVE");
                 categoryExpenseKafkaProducer.sendCategoryExpenseEvent(removeEvent);
             }
 
-            
             try {
                 Category newCategory = categoryService.getById(newCategoryId, userId);
                 if (newCategory != null) {
@@ -1857,10 +1806,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     return;
                 }
             } catch (Exception e) {
-                
+
             }
 
-            
             try {
                 Category others = categoryService.getByName(OTHERS, user.getId()).get(0);
                 existingExpense.setCategoryId(others.getId());
@@ -1882,21 +1830,21 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     private String getThemeAppropriateColor(String categoryName) {
         Map<String, String> colorMap = new HashMap<>();
-        colorMap.put("food", "#5b7fff"); 
-        colorMap.put("groceries", "#00dac6"); 
-        colorMap.put("shopping", "#bb86fc"); 
-        colorMap.put("entertainment", "#ff7597"); 
-        colorMap.put("utilities", "#ffb74d"); 
-        colorMap.put("rent", "#ff5252"); 
-        colorMap.put("transportation", "#69f0ae"); 
-        colorMap.put("health", "#ff4081"); 
-        colorMap.put("education", "#64b5f6"); 
-        colorMap.put("travel", "#ffd54f"); 
-        colorMap.put("others", "#b0bec5"); 
-        colorMap.put("salary", "#69f0ae"); 
-        colorMap.put("investment", "#00e676"); 
-        colorMap.put("gift", "#e040fb"); 
-        colorMap.put("refund", "#ffab40"); 
+        colorMap.put("food", "#5b7fff");
+        colorMap.put("groceries", "#00dac6");
+        colorMap.put("shopping", "#bb86fc");
+        colorMap.put("entertainment", "#ff7597");
+        colorMap.put("utilities", "#ffb74d");
+        colorMap.put("rent", "#ff5252");
+        colorMap.put("transportation", "#69f0ae");
+        colorMap.put("health", "#ff4081");
+        colorMap.put("education", "#64b5f6");
+        colorMap.put("travel", "#ffd54f");
+        colorMap.put("others", "#b0bec5");
+        colorMap.put("salary", "#69f0ae");
+        colorMap.put("investment", "#00e676");
+        colorMap.put("gift", "#e040fb");
+        colorMap.put("refund", "#ffab40");
 
         String lowerCaseName = categoryName.toLowerCase();
         for (Map.Entry<String, String> entry : colorMap.entrySet()) {
@@ -1911,7 +1859,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         return colorArray[index];
     }
 
-    
     private Map<String, Object> expenseToMap(Expense e) {
         if (e == null)
             return Collections.emptyMap();
@@ -1947,7 +1894,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (expense == null || user == null)
             return;
         try {
-            
+
             String ip = null;
             String userAgent = null;
             String method = null;
@@ -1975,7 +1922,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             AuditEvent event = AuditEvent.builder()
                     .userId(user.getId())
                     .username(user.getFirstName())
-                    .userRole(user.getRoles().toString()) 
+                    .userRole(user.getRoles().toString())
                     .entityId(String.valueOf(expense.getId()))
                     .entityType("EXPENSE")
                     .actionType(actionType)
@@ -2041,8 +1988,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
     }
 
-    
-    
     private HttpServletRequest getCurrentHttpRequest() {
         try {
             RequestAttributes attrs = org.springframework.web.context.request.RequestContextHolder
