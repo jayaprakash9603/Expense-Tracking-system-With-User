@@ -3,6 +3,7 @@ import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import useExpenseNameSuggestions from "../hooks/useExpenseNameSuggestions";
 import HighlightedText from "./common/HighlightedText";
 import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
+import { useTheme } from "../hooks/useTheme";
 
 /**
  * Generic NameAutocomplete component
@@ -26,6 +27,7 @@ const NameAutocomplete = ({
   sx = {},
   size = "medium",
 }) => {
+  const { colors } = useTheme();
   const { suggestions, loading, setInputValue, inputValue, fetchIfNeeded } =
     useExpenseNameSuggestions({ autoFetch });
 
@@ -73,25 +75,25 @@ const NameAutocomplete = ({
           }}
           sx={{
             "& .MuiInputBase-root": {
-              backgroundColor: "#29282b",
-              color: "#fff",
+              backgroundColor: colors.primary_bg,
+              color: colors.primary_text,
               height: size === "small" ? 40 : 56,
               fontSize: size === "small" ? 14 : 16,
             },
             "& .MuiInputBase-input": {
-              color: "#fff",
-              "&::placeholder": { color: "#9ca3af", opacity: 1 },
+              color: colors.primary_text,
+              "&::placeholder": { color: colors.placeholder_text, opacity: 1 },
             },
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
-                borderColor: error ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderColor: error ? "#ff4d4f" : colors.border_color,
                 borderWidth: "1px",
               },
               "&:hover fieldset": {
-                borderColor: error ? "#ff4d4f" : "rgb(75, 85, 99)",
+                borderColor: error ? "#ff4d4f" : colors.border_color,
               },
               "&.Mui-focused fieldset": {
-                borderColor: error ? "#ff4d4f" : "#00dac6",
+                borderColor: error ? "#ff4d4f" : colors.primary_accent,
                 borderWidth: "2px",
               },
             },

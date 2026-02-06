@@ -101,7 +101,7 @@ const ReusableAutocomplete = ({
   const effectiveBorderColor =
     borderColor === "rgb(75, 85, 99)" ? colors.border_color : borderColor;
   const effectiveFocusBorderColor =
-    focusBorderColor === "#00dac6" ? "#00dac6" : focusBorderColor;
+    focusBorderColor === "#00dac6" ? colors.primary_accent : focusBorderColor;
   const effectivePlaceholderColor =
     placeholderColor === "#9ca3af" ? colors.placeholder_text : placeholderColor;
 

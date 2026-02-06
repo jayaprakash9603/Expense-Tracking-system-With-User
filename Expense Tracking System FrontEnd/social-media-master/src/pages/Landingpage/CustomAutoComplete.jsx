@@ -1,5 +1,6 @@
 import React from "react";
 import { Autocomplete, TextField } from "@mui/material";
+import { useTheme } from "../../hooks/useTheme";
 
 const CustomAutocomplete = ({
   options = [],
@@ -23,18 +24,20 @@ const CustomAutocomplete = ({
   isOptionEqualToValue,
   ...otherProps
 }) => {
+  const { colors } = useTheme();
+
   const defaultSx = {
     "& .MuiInputBase-root": {
-      backgroundColor: "#29282b",
-      color: "#fff",
+      backgroundColor: colors.primary_bg,
+      color: colors.primary_text,
       fontSize: "14px",
       height: size === "small" ? "40px" : "56px",
     },
     "& .MuiInputBase-input": {
-      color: "#fff",
+      color: colors.primary_text,
       padding: size === "small" ? "8px 12px" : "16px 14px",
       "&::placeholder": {
-        color: "#9ca3af",
+        color: colors.placeholder_text,
         opacity: 1,
       },
     },
@@ -44,23 +47,23 @@ const CustomAutocomplete = ({
         borderWidth: "1px",
       },
       "&:hover fieldset": {
-        borderColor: error ? "#ff4d4f" : "#00dac6",
+        borderColor: error ? "#ff4d4f" : colors.primary_accent,
       },
       "&.Mui-focused fieldset": {
-        borderColor: error ? "#ff4d4f" : "#00dac6",
+        borderColor: error ? "#ff4d4f" : colors.primary_accent,
         borderWidth: "2px",
       },
     },
     "& .MuiAutocomplete-endAdornment": {
       "& .MuiSvgIcon-root": {
-        color: "#9ca3af",
+        color: colors.placeholder_text,
         fontSize: "18px",
       },
     },
     "& .MuiAutocomplete-clearIndicator": {
-      color: "#9ca3af",
+      color: colors.placeholder_text,
       "&:hover": {
-        backgroundColor: "#444",
+        backgroundColor: colors.hover_bg,
       },
     },
     ...sx,
@@ -70,14 +73,11 @@ const CustomAutocomplete = ({
     <li
       {...props}
       style={{
-        backgroundColor: "#29282b",
-        color: "#fff",
+        backgroundColor: colors.primary_bg,
+        color: colors.primary_text,
         fontSize: "14px",
         padding: "8px 12px",
-        borderBottom: "1px solid #444",
-        "&:hover": {
-          backgroundColor: "#333",
-        },
+        borderBottom: `1px solid ${colors.border_color}`,
       }}
     >
       {typeof option === "string"
@@ -124,8 +124,8 @@ const CustomAutocomplete = ({
       renderOption={renderOption || defaultRenderOption}
       ListboxProps={{
         style: {
-          backgroundColor: "#29282b",
-          border: "1px solid #444",
+          backgroundColor: colors.primary_bg,
+          border: `1px solid ${colors.border_color}`,
           borderRadius: "4px",
           maxHeight: "200px",
         },
@@ -134,8 +134,8 @@ const CustomAutocomplete = ({
         <div
           {...other}
           style={{
-            backgroundColor: "#29282b",
-            border: "1px solid #444",
+            backgroundColor: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
             borderRadius: "4px",
           }}
         >
@@ -143,12 +143,12 @@ const CustomAutocomplete = ({
         </div>
       )}
       noOptionsText={
-        <div style={{ color: "#9ca3af", padding: "8px 12px" }}>
+        <div style={{ color: colors.placeholder_text, padding: "8px 12px" }}>
           {noOptionsText}
         </div>
       }
       loadingText={
-        <div style={{ color: "#9ca3af", padding: "8px 12px" }}>
+        <div style={{ color: colors.placeholder_text, padding: "8px 12px" }}>
           {loadingText}
         </div>
       }
