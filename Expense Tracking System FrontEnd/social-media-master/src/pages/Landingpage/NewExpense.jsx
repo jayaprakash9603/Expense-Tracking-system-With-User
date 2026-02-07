@@ -2,10 +2,12 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createExpenseAction } from "../../Redux/Expenses/expense.action";
 import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
-import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
+import {
+  CategoryAutocomplete,
+  PaymentMethodAutocomplete,
+  ExpenseNameAutocomplete,
+} from "../../components/ui";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
-import CategoryAutocomplete from "../../components/CategoryAutocomplete";
-import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import PageHeader from "../../components/PageHeader";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import {
@@ -47,6 +49,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   // Dynamic styles based on theme
   const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2`;
+  const fieldHeight = "48px"; // Consistent height for all form fields
   const inputWrapper = {
     width: "150px",
     minWidth: "150px",
@@ -476,8 +479,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               <div
                 className="absolute top-[-20px] left-[300px]"
                 style={{
-                  background:
-                    `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+                  background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
                   color: colors.button_text,
                   fontSize: "0.65rem",
                   padding: "2px 6px",
@@ -574,6 +576,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
               color: colors.primary_text,
               borderColor: colors.border_color,
               borderWidth: "1px",
+              height: fieldHeight,
             }}
           >
             {options.map((opt) => (
@@ -626,7 +629,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           InputProps={{
             className: fieldStyles,
             style: {
-              height: "52px",
+              height: fieldHeight,
               backgroundColor: colors.primary_bg,
               color: colors.primary_text,
               borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
@@ -696,14 +699,14 @@ const NewExpense = ({ onClose, onSuccess }) => {
               color: colors.primary_text,
               ".MuiInputBase-input": {
                 color: colors.primary_text,
-                height: 32,
-                fontSize: 18,
+                height: 20,
+                fontSize: 15,
               },
               ".MuiSvgIcon-root": { color: colors.primary_accent },
               width: 300,
-              height: 56,
-              minHeight: 56,
-              maxHeight: 56,
+              height: 48,
+              minHeight: 48,
+              maxHeight: 48,
             }}
             slotProps={{
               textField: {
@@ -712,19 +715,19 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 placeholder: fieldPlaceholders.date,
                 sx: {
                   color: colors.primary_text,
-                  height: 56,
-                  minHeight: 56,
-                  maxHeight: 56,
+                  height: 48,
+                  minHeight: 48,
+                  maxHeight: 48,
                   width: 300,
-                  fontSize: 18,
+                  fontSize: 15,
                   "& .MuiInputBase-root": {
-                    height: 56,
-                    minHeight: 56,
-                    maxHeight: 56,
+                    height: 48,
+                    minHeight: 48,
+                    maxHeight: 48,
                   },
                   "& input": {
-                    height: 32,
-                    fontSize: 18,
+                    height: 20,
+                    fontSize: 15,
                     color: colors.primary_text,
                   },
                 },
@@ -747,14 +750,25 @@ const NewExpense = ({ onClose, onSuccess }) => {
                       color: colors.button_text,
                     },
                   },
-                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersCalendarHeader-label": {
+                    color: colors.primary_text,
+                  },
+                  "& .MuiPickersCalendarHeader-switchViewButton": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiPickersArrowSwitcher-button": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiDayCalendar-weekDayLabel": {
+                    color: colors.icon_muted,
+                  },
                   "& .MuiPickersYear-yearButton": {
                     color: colors.primary_text,
                     "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
                   },
                 },
               },
@@ -999,7 +1013,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   borderStyle: "solid",
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: errors.transactionType ? "#ff4d4f" : colors.primary_accent,
+                  borderColor: errors.transactionType
+                    ? "#ff4d4f"
+                    : colors.primary_accent,
                   borderWidth: errors.transactionType ? "2px" : "2px",
                   borderStyle: "solid",
                 },
@@ -1281,13 +1297,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
           <button
             onClick={handleLinkBudgets}
             className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
-            style={{ 
-              backgroundColor: colors.button_bg, 
-              color: colors.button_text, 
-              whiteSpace: "nowrap" 
+            style={{
+              backgroundColor: colors.button_bg,
+              color: colors.button_text,
+              whiteSpace: "nowrap",
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
-            onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
+            onMouseEnter={(e) =>
+              (e.target.style.backgroundColor = colors.button_hover)
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = colors.button_bg)
+            }
           >
             {linkBudgetsLabel}
           </button>
@@ -1436,7 +1456,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
                       background: colors.hover_bg,
                     },
                     "& .MuiDataGrid-row": { background: colors.active_bg },
-                    "& .MuiCheckbox-root": { color: `${colors.primary_accent} !important` },
+                    "& .MuiCheckbox-root": {
+                      color: `${colors.primary_accent} !important`,
+                    },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1463,13 +1485,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
             <button
               onClick={handleSubmit}
               className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
-              style={{ 
-                backgroundColor: colors.button_bg, 
-                color: colors.button_text, 
-                whiteSpace: "nowrap" 
+              style={{
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+                whiteSpace: "nowrap",
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
-              onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.button_hover)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.button_bg)
+              }
             >
               {submitLabel}
             </button>

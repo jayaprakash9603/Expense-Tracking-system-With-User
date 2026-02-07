@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ItemNameAutocomplete from "./ItemNameAutocomplete";
-import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
-import CategoryAutocomplete from "../../components/CategoryAutocomplete";
-import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import {
+  CategoryAutocomplete,
+  PaymentMethodAutocomplete,
+  ExpenseNameAutocomplete,
+} from "../../components/ui";
 import PageHeader from "../../components/PageHeader";
 import {
   Autocomplete,
@@ -791,14 +793,25 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                       color: colors.button_text,
                     },
                   },
-                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersCalendarHeader-label": {
+                    color: colors.primary_text,
+                  },
+                  "& .MuiPickersCalendarHeader-switchViewButton": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiPickersArrowSwitcher-button": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiDayCalendar-weekDayLabel": {
+                    color: colors.icon_muted,
+                  },
                   "& .MuiPickersYear-yearButton": {
                     color: colors.primary_text,
                     "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
                   },
                 },
               },

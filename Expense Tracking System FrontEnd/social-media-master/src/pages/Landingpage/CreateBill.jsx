@@ -23,10 +23,12 @@ import {
   CameraAlt as CameraIcon,
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
-import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
+import {
+  CategoryAutocomplete,
+  PaymentMethodAutocomplete,
+  ExpenseNameAutocomplete,
+} from "../../components/ui";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
-import CategoryAutocomplete from "../../components/CategoryAutocomplete";
-import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
 import PageHeader from "../../components/PageHeader";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -931,14 +933,25 @@ const CreateBill = ({ onClose, onSuccess }) => {
                       color: colors.button_text,
                     },
                   },
-                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersCalendarHeader-label": {
+                    color: colors.primary_text,
+                  },
+                  "& .MuiPickersCalendarHeader-switchViewButton": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiPickersArrowSwitcher-button": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiDayCalendar-weekDayLabel": {
+                    color: colors.icon_muted,
+                  },
                   "& .MuiPickersYear-yearButton": {
                     color: colors.primary_text,
                     "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
                   },
                 },
               },

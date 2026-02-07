@@ -23,7 +23,7 @@ import CategoryIcon from "@mui/icons-material/Category";
 import PaymentIcon from "@mui/icons-material/Payment";
 import { api, API_BASE_URL } from "../../config/api";
 import { expensesTypesEmail } from "../Input Fields/InputFields";
-import ReusableAutocomplete from "../../components/ReusableAutocomplete";
+import { AppAutocomplete } from "../../components/ui";
 import ReusableFilterField from "../../components/ReusableFilterField";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -516,7 +516,7 @@ const ExpenseEmail = () => {
               >
                 Report Period
               </Typography>
-              <ReusableAutocomplete
+              <AppAutocomplete
                 options={logTypes}
                 value={searchTerm}
                 onChange={(event, newValue) => setSearchTerm(newValue || "")}
@@ -530,11 +530,6 @@ const ExpenseEmail = () => {
                 autoHighlight
                 getOptionLabel={(option) => option || ""}
                 isOptionEqualToValue={(option, value) => option === value}
-                backgroundColor={colors.primary_bg}
-                textColor={colors.primary_text}
-                borderColor={colors.border_color}
-                focusBorderColor="#00dac6"
-                placeholderColor={colors.placeholder_text}
                 startAdornment={
                   <InputAdornment position="start">
                     <CalendarTodayIcon

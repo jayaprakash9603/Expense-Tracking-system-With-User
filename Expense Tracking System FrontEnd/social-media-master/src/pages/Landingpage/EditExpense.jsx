@@ -22,9 +22,11 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
-import ExpenseNameAutocomplete from "../../components/ExpenseNameAutocomplete";
-import CategoryAutocomplete from "../../components/CategoryAutocomplete";
-import PaymentMethodAutocomplete from "../../components/PaymentMethodAutocomplete";
+import {
+  CategoryAutocomplete,
+  PaymentMethodAutocomplete,
+  ExpenseNameAutocomplete,
+} from "../../components/ui";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import TextField from "@mui/material/TextField";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -530,14 +532,25 @@ const EditExpense = ({}) => {
                       color: colors.button_text,
                     },
                   },
-                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersCalendarHeader-label": {
+                    color: colors.primary_text,
+                  },
+                  "& .MuiPickersCalendarHeader-switchViewButton": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiPickersArrowSwitcher-button": {
+                    color: colors.primary_accent,
+                  },
+                  "& .MuiDayCalendar-weekDayLabel": {
+                    color: colors.icon_muted,
+                  },
                   "& .MuiPickersYear-yearButton": {
                     color: colors.primary_text,
                     "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
                   },
                 },
               },
@@ -633,7 +646,11 @@ const EditExpense = ({}) => {
             setCheckboxStates(Array(budgets.length).fill(checked));
           }}
           className="h-5 w-5 border-gray-700 rounded"
-          style={{ accentColor: colors.primary_accent, marginLeft: 2, marginRight: 2 }}
+          style={{
+            accentColor: colors.primary_accent,
+            marginLeft: 2,
+            marginRight: 2,
+          }}
           aria-label={tableHeaders.inBudget}
         />
       ),
@@ -892,7 +909,9 @@ const EditExpense = ({}) => {
                       borderStyle: "solid",
                     },
                     "&.Mui-focused fieldset": {
-                      borderColor: errors.amount ? "#ff4d4f" : colors.primary_accent,
+                      borderColor: errors.amount
+                        ? "#ff4d4f"
+                        : colors.primary_accent,
                       borderWidth: errors.amount ? "2px" : "2px",
                       borderStyle: "solid",
                     },
@@ -1095,13 +1114,17 @@ const EditExpense = ({}) => {
           <button
             onClick={handleLinkBudgets}
             className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
-            style={{ 
-              backgroundColor: colors.button_bg, 
-              color: colors.button_text, 
-              whiteSpace: "nowrap" 
+            style={{
+              backgroundColor: colors.button_bg,
+              color: colors.button_text,
+              whiteSpace: "nowrap",
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
-            onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
+            onMouseEnter={(e) =>
+              (e.target.style.backgroundColor = colors.button_hover)
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = colors.button_bg)
+            }
           >
             {linkBudgetsLabel}
           </button>
@@ -1250,7 +1273,9 @@ const EditExpense = ({}) => {
                       background: colors.tertiary_bg,
                     },
                     "& .MuiDataGrid-row": { background: colors.active_bg },
-                    "& .MuiCheckbox-root": { color: `${colors.primary_accent} !important` },
+                    "& .MuiCheckbox-root": {
+                      color: `${colors.primary_accent} !important`,
+                    },
                     fontSize: "0.92rem",
                   }}
                 />
@@ -1270,13 +1295,17 @@ const EditExpense = ({}) => {
             <button
               onClick={handleSubmit}
               className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
-              style={{ 
-                backgroundColor: colors.button_bg, 
-                color: colors.button_text, 
-                whiteSpace: "nowrap" 
+              style={{
+                backgroundColor: colors.button_bg,
+                color: colors.button_text,
+                whiteSpace: "nowrap",
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = colors.button_hover}
-              onMouseLeave={(e) => e.target.style.backgroundColor = colors.button_bg}
+              onMouseEnter={(e) =>
+                (e.target.style.backgroundColor = colors.button_hover)
+              }
+              onMouseLeave={(e) =>
+                (e.target.style.backgroundColor = colors.button_bg)
+              }
             >
               {submitLabel}
             </button>

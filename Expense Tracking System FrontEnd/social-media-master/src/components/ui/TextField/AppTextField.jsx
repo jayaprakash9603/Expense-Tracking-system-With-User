@@ -79,7 +79,7 @@ const AppTextField = React.forwardRef(
       width: fullWidth ? "100%" : "auto",
       maxWidth: maxWidth,
       "& .MuiInputBase-root": {
-        backgroundColor: bgColor,
+        backgroundColor: "transparent",
         color: textColor,
         height: !multiline ? currentSize.height : "auto",
         fontSize: currentSize.fontSize,
@@ -87,6 +87,7 @@ const AppTextField = React.forwardRef(
       },
       "& .MuiInputBase-input": {
         color: textColor,
+        backgroundColor: "transparent",
         "&::placeholder": {
           color: placeholderColor,
           opacity: 1,

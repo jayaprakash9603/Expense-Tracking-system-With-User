@@ -60,6 +60,10 @@ export { CategoryChip } from "./Chip"; // Category tags
 export { AppSelect } from "./Select";
 // Autocomplete with search/filter
 export { AppAutocomplete } from "./Select";
+// Domain-specific autocomplete components
+export { CategoryAutocomplete } from "./Select";
+export { PaymentMethodAutocomplete } from "./Select";
+export { ExpenseNameAutocomplete } from "./Select";
 
 // ============================================================================
 // CARD COMPONENTS

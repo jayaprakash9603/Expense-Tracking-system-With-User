@@ -29,7 +29,7 @@ const PageHeader = ({
               style={{ 
                 backgroundColor: colors.button_inactive, 
                 color: colors.primary_accent,
-                border: `1px solid ${colors.border_color}`,
+ border: `1px solid ${colors.border_color}`,
               }}
               aria-label="Close"
             >

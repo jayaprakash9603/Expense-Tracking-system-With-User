@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import itemService from "../../services/itemService";
 import { useTheme } from "../../hooks/useTheme";
-import ReusableAutocomplete from "../../components/ReusableAutocomplete";
+import { AppAutocomplete } from "../../components/ui";
 import HighlightedText from "../../components/common/HighlightedText";
 
 const ItemNameAutocomplete = ({
@@ -107,7 +107,7 @@ const ItemNameAutocomplete = ({
   };
 
   return (
-    <ReusableAutocomplete
+    <AppAutocomplete
       options={options}
       value={value}
       onChange={handleChange}
@@ -125,11 +125,6 @@ const ItemNameAutocomplete = ({
       clearOnBlur={false}
       freeSolo={true}
       renderOption={renderOption}
-      backgroundColor={colors.primary_bg}
-      textColor={colors.primary_text}
-      borderColor={colors.border_color}
-      focusBorderColor={colors.secondary_accent}
-      placeholderColor={colors.icon_muted}
       sx={{
         width: "100%",
         maxWidth: "300px",

@@ -95,9 +95,17 @@ const AppAutocomplete = React.forwardRef(
       },
       "& .MuiAutocomplete-noOptions": {
         color: colors.secondary_text || placeholderColor,
+        backgroundColor: bgColor,
       },
       "& .MuiAutocomplete-loading": {
         color: colors.secondary_text || placeholderColor,
+        backgroundColor: bgColor,
+      },
+      "& .MuiInputBase-root": {
+        backgroundColor: "transparent",
+      },
+      "& .MuiInputBase-input": {
+        backgroundColor: "transparent",
       },
       ...sx,
     };

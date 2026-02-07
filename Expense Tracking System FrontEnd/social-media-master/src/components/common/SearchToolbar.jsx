@@ -3,7 +3,7 @@ import { IconButton } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
 import { useTheme } from "../../hooks/useTheme";
-import ReusableAutocomplete from "../ReusableAutocomplete";
+import { AppAutocomplete } from "../ui";
 
 /**
  * VS Code-like fuzzy sequence matching
@@ -223,7 +223,7 @@ const SearchToolbar = ({
         maxWidth: isMobile ? "220px" : isTablet ? "280px" : "320px",
       }}
     >
-      <ReusableAutocomplete
+      <AppAutocomplete
         open={open && hasMatchingOptions}
         onOpen={handleOpen}
         onClose={handleClose}
@@ -295,10 +295,6 @@ const SearchToolbar = ({
             display: "none",
           },
         }}
-        backgroundColor={colors.primary_bg}
-        textColor={colors.primary_text}
-        borderColor={colors.active_text}
-        focusBorderColor={colors.primary_accent}
       />
       <IconButton
         sx={{ color: colors.active_text, flexShrink: 0, p: isMobile ? 0.5 : 1 }}

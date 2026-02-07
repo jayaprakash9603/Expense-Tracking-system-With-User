@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import ReusableAutocomplete from "../ReusableAutocomplete";
+import { AppAutocomplete } from "../ui";
 
 export default function AccordionToolbar({
   showGroupSearch,
@@ -75,7 +75,7 @@ export default function AccordionToolbar({
           </div>
         ) : null}
         {showGroupSearch ? (
-          <ReusableAutocomplete
+          <AppAutocomplete
             options={
               Array.isArray(groupSearchOptions) ? groupSearchOptions : []
             }
