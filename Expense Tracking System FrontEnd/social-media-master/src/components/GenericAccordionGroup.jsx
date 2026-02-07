@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
+import dayjs from 'dayjs';
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FilterPopover from "./ui/FilterPopover";
+import GroupedDataTable from "./common/GroupedDataTable/GroupedDataTable";
 import "./PaymentMethodAccordion.css";
 import { formatAmount as fmt } from "../utils/formatAmount";
 import useUserSettings from "../hooks/useUserSettings";
@@ -182,6 +184,23 @@ export function GenericAccordionGroup({
       0,
     );
   }, [selectedRowsByGroup]);
+
+  const detectColumnType = (col) => {
+    if (!col) return "text";
+    if (col.type) return col.type;
+    if (col.sortType) return col.sortType;
+    
+    const k = (col.key || col.field || "").toLowerCase();
+    const l = (col.label || "").toLowerCase();
+    
+    if (k.includes("amount") || k.includes("price") || k.includes("cost") || k.includes("credit") || k.includes("debit") || k.includes("balance") || k.includes("net") || l.includes("amount")) {
+      return "number";
+    }
+    if (k.includes("date") || k.includes("time") || k.includes("created") || k.includes("updated") || l.includes("date")) {
+      return "date";
+    }
+    return "text";
+  };
 
   const hasActiveFilters = useMemo(() => {
     const hasGroupSearch =
@@ -517,7 +536,8 @@ export function GenericAccordionGroup({
           // Apply column filters
           const columnFiltered = appliedFiltered.filter((row) => {
             return Object.entries(columnFilters).every(([key, filter]) => {
-              if (!filter?.value) return true;
+              if (filter.value === "" || filter.value === null || filter.value === undefined) return true;
+              
               const colDef = columns?.find((c) => c.key === key);
               if (!colDef) return true;
 
@@ -525,24 +545,57 @@ export function GenericAccordionGroup({
                 ? colDef.value(row)
                 : row.details?.[colDef.key] ?? row[colDef.key];
 
-              if (filter.operator === "gt" || filter.operator === "lt") {
-                const numVal = Number(cellVal ?? 0);
-                const filterNum = Number(filter.value);
-                if (filter.operator === "gt") return numVal > filterNum;
-                if (filter.operator === "lt") return numVal < filterNum;
+              // Determine type
+              const type = detectColumnType(colDef);
+
+              let a = cellVal;
+              let b = filter.value;
+
+              if (type === 'number') {
+                a = Number(a);
+                b = Number(b);
+                if (isNaN(a)) a = 0;
+              } else if (type === 'date') {
+                 // For dates, compare timestamps if possible or ISO strings
+                 if (filter.operator === 'range') {
+                     // b is already { from, to } object
+                     a = dayjs(a);
+                     const from = b.from ? dayjs(b.from).startOf('day') : null;
+                     const to = b.to ? dayjs(b.to).endOf('day') : null;
+                     if (!a.isValid()) return false;
+                     if (from && a.isBefore(from)) return false;
+                     if (to && a.isAfter(to)) return false;
+                     return true;
+                 }
+                 if (filter.operator === 'oneOf') {
+                     // b is array of strings
+                     a = dayjs(a).format('YYYY-MM-DD');
+                     return Array.isArray(b) && b.includes(a);
+                 }
+
+                 a = new Date(a).getTime(); // Standard single value comparison
+                 b = new Date(b).getTime();
+                 if (isNaN(a)) a = 0;
+              } else {
+                 a = String(a || "").toLowerCase();
+                 b = String(b || "").toLowerCase();
               }
 
-              const valStr = String(cellVal ?? "").toLowerCase();
-              const filterVal = String(filter.value).toLowerCase();
-
-              if (filter.operator === "equals") return valStr === filterVal;
-              if (filter.operator === "startsWith")
-                return valStr.startsWith(filterVal);
-              if (filter.operator === "endsWith")
-                return valStr.endsWith(filterVal);
-              if (filter.operator === "neq") return valStr !== filterVal;
-
-              return valStr.includes(filterVal);
+              switch (filter.operator) {
+                // ... handled above for range/oneOf special cases
+                case 'contains': return a.includes(b);
+                case 'equals': return a === b;
+                case 'startsWith': return a.startsWith(b);
+                case 'endsWith': return a.endsWith(b);
+                case 'gt': return a > b;
+                case 'lt': return a < b;
+                case 'gte': return a >= b;
+                case 'lte': return a <= b;
+                case 'neq': return a !== b;
+                case 'before': return a < b;
+                case 'after': return a > b;
+                default: return true;
+              }
             });
           });
 
@@ -563,116 +616,67 @@ export function GenericAccordionGroup({
                   if (parts.length === 0) parts.push(JSON.stringify(row || {}));
                   return parts.join(" ").toLowerCase().includes(rowSearch);
                 })
-              : appliedFiltered;
+              : columnFiltered;
 
-          // Row sorting (existing header-click sorting)
-          const sortCfg = sortByGroupKey[groupKey];
-          let working = searched;
-          if (sortCfg && sortCfg.key && columns) {
-            const colDef = columns.find((c) => c.key === sortCfg.key);
-            if (colDef) {
-              const dir = sortCfg.direction === "desc" ? -1 : 1;
-              working = [...searched].sort((a, b) => {
-                const getVal = (row) => {
-                  if (colDef.sortValue) return colDef.sortValue(row);
-                  if (colDef.value) return colDef.value(row);
-                  return row[colDef.key];
-                };
-                const va = getVal(a);
-                const vb = getVal(b);
-                if (va == null && vb == null) return 0;
-                if (va == null) return -1 * dir;
-                if (vb == null) return 1 * dir;
-                if (va < vb) return -1 * dir;
-                if (va > vb) return 1 * dir;
-                return 0;
-              });
-            }
-          }
+          // Row sorting (managed by GroupedDataTable or via props)
+          // We pass 'searched' (unsorted) data to GroupedDataTable, which handles sorting.
+          const working = searched; 
 
+          // Pagination stats (Group level)
           const totalFiltered = working.length;
-          const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
-          const safePage = Math.min(currentPage, totalPages);
-          const start = (safePage - 1) * pageSize;
-          const pageSlice = working.slice(start, start + pageSize);
-
-          const BASE_VISIBLE_ROWS = 5;
-          const ROW_HEIGHT = 48;
-          const headerHeight = 48;
-          const useScroll = pageSize > BASE_VISIBLE_ROWS;
-          const effectiveRows =
-            pageSlice.length + (pageSlice.length === 0 ? 1 : 0);
-          const fillerRowsCount =
-            !useScroll && effectiveRows < pageSize
-              ? pageSize - effectiveRows
-              : 0;
-          const showPagination = totalFiltered > 5;
-
+          
+          // Selection helpers
           const selectedForGroup = selectedRowsByGroup[groupKey] || {};
           const isRowSelected = (row, rowIndex) => {
-            const rowKey = resolveRowKey(row, groupKey, rowIndex);
-            return !!selectedForGroup[rowKey];
+            // Note: index passed here might be original index or sorted, depending on caller
+            // In GroupedDataTable, we pass actual sorted index. 
+            // Here we just accept what comes.
+             const rowKey = resolveRowKey(row, groupKey, rowIndex);
+             return !!selectedForGroup[rowKey];
           };
-          const toggleRow = (row, rowIndex, checked) => {
-            const rowKey = resolveRowKey(row, groupKey, rowIndex);
-            setSelectedRowsByGroup((prev) => {
-              const next = { ...prev };
-              const bucket = { ...(next[groupKey] || {}) };
-              if (checked) bucket[rowKey] = true;
-              else delete bucket[rowKey];
-              if (Object.keys(bucket).length === 0) delete next[groupKey];
-              else next[groupKey] = bucket;
-              const selectedCount = Object.values(next).reduce(
-                (acc, m) => acc + Object.keys(m).length,
-                0,
-              );
-              if (onSelectionChange) {
-                onSelectionChange({
-                  selectedRowsByGroup: next,
-                  selectedCount,
-                });
-              }
-              return next;
-            });
+          
+          const toggleRow = (row, checked, rowIndex) => {
+             const rowKey = resolveRowKey(row, groupKey, rowIndex);
+             setSelectedRowsByGroup((prev) => {
+               const next = { ...prev };
+               const bucket = { ...(next[groupKey] || {}) };
+               if (checked) bucket[rowKey] = true;
+               else delete bucket[rowKey];
+               if (Object.keys(bucket).length === 0) delete next[groupKey];
+               else next[groupKey] = bucket;
+               
+               const selectedCount = Object.values(next).reduce((acc, m) => acc + Object.keys(m).length, 0);
+               if (onSelectionChange) {
+                 onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+               }
+               return next;
+             });
           };
+
           const selectMany = (rows, checked) => {
             setSelectedRowsByGroup((prev) => {
               const next = { ...prev };
               const bucket = { ...(next[groupKey] || {}) };
               rows.forEach((row, i) => {
-                const rowKey = resolveRowKey(row, groupKey, i);
+                const rowKey = resolveRowKey(row, groupKey, i); // fallback index issue? 
+                // GroupedDataTable should pass row with stable identity or we use row.id
                 if (checked) bucket[rowKey] = true;
                 else delete bucket[rowKey];
               });
               if (Object.keys(bucket).length === 0) delete next[groupKey];
               else next[groupKey] = bucket;
-              const selectedCount = Object.values(next).reduce(
-                (acc, m) => acc + Object.keys(m).length,
-                0,
-              );
+              
+              const selectedCount = Object.values(next).reduce((acc, m) => acc + Object.keys(m).length, 0);
               if (onSelectionChange) {
-                onSelectionChange({ selectedRowsByGroup: next, selectedCount });
-              }
+                 onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+               }
               return next;
             });
           };
 
-          const groupAllSelected =
-            enableSelection &&
-            totalFiltered > 0 &&
-            working.every((row, i) => isRowSelected(row, i));
-          const groupSomeSelected =
-            enableSelection &&
-            !groupAllSelected &&
-            working.some((row, i) => isRowSelected(row, i));
-          const pageAllSelected =
-            enableSelection &&
-            pageSlice.length > 0 &&
-            pageSlice.every((row, i) => isRowSelected(row, start + i));
-          const pageSomeSelected =
-            enableSelection &&
-            !pageAllSelected &&
-            pageSlice.some((row, i) => isRowSelected(row, start + i));
+          // Group level selection status (for the header checkbox)
+          const groupAllSelected = enableSelection && totalFiltered > 0 && working.every((row, i) => isRowSelected(row, i));
+          const groupSomeSelected = enableSelection && !groupAllSelected && working.some((row, i) => isRowSelected(row, i));
 
           return (
             <div
@@ -916,341 +920,36 @@ export function GenericAccordionGroup({
                       </button>
                     ))}
                   </div>
-                  <div
-                    className="pm-expense-table-wrapper"
-                    style={
-                      useScroll
-                        ? {
-                            maxHeight:
-                              headerHeight + BASE_VISIBLE_ROWS * ROW_HEIGHT,
-                            overflowY: "auto",
-                          }
-                        : {
-                            maxHeight: headerHeight + pageSize * ROW_HEIGHT,
-                            overflow: "hidden",
-                          }
-                    }
-                  >
-                    <table
-                      className={`pm-expense-table pm-fixed ${
-                        pageSlice.length === 0 ? "pm-empty-state" : ""
-                      }`}
-                    >
-                      {columns && (
-                        <colgroup>
-                          {enableSelection && !rowRender ? (
-                            <col style={{ width: "36px" }} />
-                          ) : null}
-                          {columns.map((col) => (
-                            <col
-                              key={col.key}
-                              style={
-                                col.width ? { width: col.width } : undefined
-                              }
-                            />
-                          ))}
-                        </colgroup>
-                      )}
-                      <thead>
-                        <tr>
-                          {enableSelection && !rowRender ? (
-                            <th className="pm-select-col">
-                              <input
-                                type="checkbox"
-                                className="pm-select-checkbox"
-                                checked={!!pageAllSelected}
-                                ref={(el) => {
-                                  if (el) el.indeterminate = !!pageSomeSelected;
-                                }}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  selectMany(pageSlice, checked);
-                                }}
-                                aria-label="Select rows on this page"
-                              />
-                            </th>
-                          ) : null}
-                          {(columns || []).map((col) => {
-                            const active =
-                              sortByGroupKey[groupKey]?.key === col.key;
-                            const direction = active
-                              ? sortByGroupKey[groupKey].direction
-                              : "none";
-                            const nextDirection = () => {
-                              if (!active) return "asc";
-                              if (direction === "asc") return "desc";
-                              if (direction === "desc") return "none";
-                              return "asc";
-                            };
-                            const icon =
-                              direction === "asc"
-                                ? "▲"
-                                : direction === "desc"
-                                  ? "▼"
-                                  : "↕";
-                            return (
-                              <th
-                                key={col.key}
-                                className={`pm-sortable ${
-                                  active ? "active" : ""
-                                }`}
-                                aria-sort={
-                                  direction === "none"
-                                    ? "none"
-                                    : direction === "asc"
-                                      ? "ascending"
-                                      : "descending"
-                                }
-                              >
-                                <div
-                                  className="pm-th-content"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "space-between",
-                                    width: "100%",
-                                  }}
-                                >
-                                  <button
-                                    type="button"
-                                    className="pm-sort-button"
-                                    style={{
-                                      flex: 1,
-                                      justifyContent: "flex-start",
-                                    }}
-                                    onClick={() => {
-                                      const nd = nextDirection();
-                                      setSortByGroupKey((prev) => {
-                                        const copy = { ...prev };
-                                        if (nd === "none")
-                                          delete copy[groupKey];
-                                        else
-                                          copy[groupKey] = {
-                                            key: col.key,
-                                            direction: nd,
-                                          };
-                                        return copy;
-                                      });
-                                      setPageByGroupKey((prev) => ({
-                                        ...prev,
-                                        [groupKey]: 1,
-                                      }));
-                                    }}
-                                    aria-label={`Sort by ${col.label}`}
-                                  >
-                                    <span className="pm-sort-label">
-                                      {col.label}
-                                      <span
-                                        className={`pm-sort-icon ${direction}`}
-                                      >
-                                        {icon}
-                                      </span>
-                                    </span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => handleFilterClick(e, col)}
-                                    className={`pm-filter-trigger ${
-                                      columnFilters[col.key] ? "active" : ""
-                                    }`}
-                                    style={{
-                                      background: "none",
-                                      border: "none",
-                                      cursor: "pointer",
-                                      padding: "4px",
-                                      color: columnFilters[col.key]
-                                        ? "var(--pm-accent-color)"
-                                        : "var(--pm-text-secondary)",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      opacity: 0.7,
-                                      transition: "all 0.2s",
-                                    }}
-                                    onMouseEnter={(e) =>
-                                      (e.currentTarget.style.opacity = 1)
-                                    }
-                                    onMouseLeave={(e) =>
-                                      (e.currentTarget.style.opacity = 0.7)
-                                    }
-                                    aria-label={`Filter by ${col.label}`}
-                                  >
-                                    <FilterListIcon sx={{ fontSize: 16 }} />
-                                  </button>
-                                </div>
-                              </th>
-                            );
-                          })}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {pageSlice.length === 0 && (
-                          <tr className="pm-empty-row">
-                            <td
-                              colSpan={
-                                (columns || []).length +
-                                (enableSelection && !rowRender ? 1 : 0)
-                              }
-                              className="pm-empty-centered"
-                            >
-                              <div className="pm-empty-message">
-                                <div className="pm-empty-icon">🗂️</div>
-                                <div className="pm-empty-title">
-                                  {activeTab === "all"
-                                    ? "No Records"
-                                    : `No ${
-                                        tabs.find((t) => t.key === activeTab)
-                                          ?.label || "Filtered"
-                                      } Records`}
-                                </div>
-                                <div className="pm-empty-sub">
-                                  Nothing matches the current selection.
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                        {pageSlice.map((row, rowIdx) =>
-                          rowRender ? (
-                            rowRender(row, group, activeTab)
-                          ) : (
-                            <tr
-                              key={resolveRowKey(row, groupKey, start + rowIdx)}
-                            >
-                              {enableSelection ? (
-                                <td className="pm-select-cell">
-                                  <input
-                                    type="checkbox"
-                                    className="pm-select-checkbox"
-                                    checked={isRowSelected(row, start + rowIdx)}
-                                    onChange={(e) =>
-                                      toggleRow(
-                                        row,
-                                        start + rowIdx,
-                                        e.target.checked,
-                                      )
-                                    }
-                                    aria-label="Select row"
-                                  />
-                                </td>
-                              ) : null}
-                              {columns.map((col) => {
-                                const val = col.value
-                                  ? col.value(row)
-                                  : (row.details?.[col.key] ?? row[col.key]);
-                                const cls =
-                                  typeof col.className === "function"
-                                    ? col.className(row)
-                                    : col.className;
-                                // Support custom render function for the cell
-                                const cellContent = col.render
-                                  ? col.render(val, row)
-                                  : val != null
-                                    ? val
-                                    : "-";
-                                return (
-                                  <td
-                                    key={col.key}
-                                    className={cls}
-                                    title={
-                                      col.render ? undefined : String(val ?? "")
-                                    }
-                                  >
-                                    {cellContent}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          ),
-                        )}
-                        {fillerRowsCount > 0 &&
-                          Array.from({ length: fillerRowsCount }).map(
-                            (_, i) => (
-                              <tr
-                                key={`filler-${i}`}
-                                className="pm-filler-row"
-                                aria-hidden="true"
-                              >
-                                <td
-                                  colSpan={
-                                    (columns || []).length +
-                                    (enableSelection && !rowRender ? 1 : 0)
-                                  }
-                                >
-                                  &nbsp;
-                                </td>
-                              </tr>
-                            ),
-                          )}
-                      </tbody>
-                    </table>
-                  </div>
-                  {showPagination && (
-                    <div className="pm-pagination-bar bottom">
-                      <div className="pm-page-controls pm-centered">
-                        <button
-                          type="button"
-                          className="pm-page-btn"
-                          disabled={safePage <= 1}
-                          onClick={() =>
-                            setPageByGroupKey((prev) => ({
-                              ...prev,
-                              [groupKey]: safePage - 1,
-                            }))
-                          }
-                          aria-label="Previous page"
-                        >
-                          ‹
-                        </button>
-                        <span className="pm-page-indicator">
-                          {start + 1}-
-                          {Math.min(start + pageSize, totalFiltered)} of{" "}
-                          {totalFiltered}
-                        </span>
-                        <button
-                          type="button"
-                          className="pm-page-btn"
-                          disabled={safePage >= totalPages}
-                          onClick={() =>
-                            setPageByGroupKey((prev) => ({
-                              ...prev,
-                              [groupKey]: safePage + 1,
-                            }))
-                          }
-                          aria-label="Next page"
-                        >
-                          ›
-                        </button>
-                      </div>
-                      <div className="pm-page-size pm-right">
-                        <label>
-                          <span className="pm-page-size-label">
-                            Rows per page:
-                          </span>
-                          <select
-                            value={pageSize}
-                            onChange={(e) => {
-                              const val =
-                                Number(e.target.value) || defaultPageSize;
-                              setPageSizeByGroupKey((prev) => ({
-                                ...prev,
-                                [groupKey]: val,
-                              }));
-                              setPageByGroupKey((prev) => ({
-                                ...prev,
-                                [groupKey]: 1,
-                              }));
-                            }}
-                          >
-                            {pageSizeOptions.map((ps) => (
-                              <option key={ps} value={ps}>
-                                {ps}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                    </div>
-                  )}
+                  <GroupedDataTable
+                    rows={working}
+                    columns={columns}
+                    currencySymbol={displayCurrency}
+                    activeTab={activeTab}
+                    group={group}
+                    
+                    // Controlled Sort via Header
+                    sort={sortByGroupKey[groupKey]}
+                    onSortChange={(newSort) => {
+                      setSortByGroupKey(prev => ({ ...prev, [groupKey]: newSort }));
+                      // Note: We don't reset 'currentPage' here as GroupedDataTable manages it internally.
+                    }}
+
+                    // Filtering
+                    columnFilters={columnFilters}
+                    onFilterClick={(e, col) => handleFilterClick(e, col)}
+
+                    // Selection
+                    enableSelection={enableSelection}
+                    selectedRows={selectedForGroup}
+                    onRowSelect={(row, checked, idx) => toggleRow(row, checked, idx)}
+                    onSelectAll={(rows, checked) => selectMany(rows, checked)}
+                    resolveRowKey={(row, i) => resolveRowKey(row, groupKey, i)}
+                    rowRender={rowRender}
+                    
+                    // Pagination config
+                    defaultPageSize={defaultPageSize}
+                    pageSizeOptions={pageSizeOptions}
+                  />
                 </div>
               )}
             </div>
@@ -1331,6 +1030,7 @@ export function GenericAccordionGroup({
           open={filterPopover.open}
           anchorEl={filterPopover.anchorEl}
           column={filterPopover.column}
+          type={detectColumnType(filterPopover.column)}
           initialOperator={columnFilters[filterPopover.column?.key]?.operator}
           initialValue={columnFilters[filterPopover.column?.key]?.value}
           onClose={handleFilterClose}

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
+import dayjs from "dayjs";
 import {
   TextField,
   InputAdornment,
@@ -16,6 +17,8 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import FilterPopover from "../../ui/FilterPopover";
 import { useTheme } from "../../../hooks/useTheme";
 
 /**
@@ -66,6 +69,73 @@ const CustomDataTable = ({
   });
   const [page, setPage] = useState(0);
 
+  const detectColumnType = (col) => {
+    if (!col) return "text";
+    if (col.type) return col.type;
+    if (col.sortType) return col.sortType;
+
+    // Auto-detect based on field name or label
+    const f = (col.field || "").toLowerCase();
+    const l = (col.label || "").toLowerCase();
+
+    if (
+      f.includes("amount") ||
+      f.includes("price") ||
+      f.includes("cost") ||
+      f.includes("credit") ||
+      f.includes("debit") ||
+      f.includes("balance") ||
+      f.includes("net") ||
+      l.includes("amount")
+    ) {
+      return "number";
+    }
+    if (
+      f.includes("date") ||
+      f.includes("time") ||
+      f.includes("created") ||
+      f.includes("updated") ||
+      l.includes("date")
+    ) {
+      return "date";
+    }
+    return "text";
+  };
+
+  // Column Filters State
+  const [columnFilters, setColumnFilters] = useState({});
+  const [activeFilterColumn, setActiveFilterColumn] = useState(null);
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+
+  const handleFilterClick = useCallback((event, column) => {
+    event.stopPropagation();
+    setFilterAnchorEl(event.currentTarget);
+    setActiveFilterColumn(column);
+  }, []);
+
+  const handleFilterClose = useCallback(() => {
+    setFilterAnchorEl(null);
+    setActiveFilterColumn(null);
+  }, []);
+
+  const handleFilterApply = useCallback(
+    ({ operator, value }) => {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [activeFilterColumn.field]: { operator, value },
+      }));
+    },
+    [activeFilterColumn],
+  );
+
+  const handleFilterClear = useCallback(() => {
+    setColumnFilters((prev) => {
+      const next = { ...prev };
+      delete next[activeFilterColumn.field];
+      return next;
+    });
+  }, [activeFilterColumn]);
+
   // Handle sort
   const handleSort = useCallback((field) => {
     setSort((prev) => ({
@@ -115,6 +185,86 @@ const CustomDataTable = ({
       );
     }
 
+    // Apply column filters
+    if (Object.keys(columnFilters).length > 0) {
+      filtered = filtered.filter((item) => {
+        return Object.entries(columnFilters).every(
+          ([field, { operator, value }]) => {
+            if (value === "" || value === null || value === undefined)
+              return true;
+
+            const itemValue = item[field];
+            const colDef = columns.find((c) => c.field === field);
+            // Use type from detection
+            const type = detectColumnType(colDef);
+
+            let a = itemValue;
+            let b = value;
+
+            if (type === "number") {
+              a = Number(a);
+              b = Number(b);
+              if (isNaN(a)) a = 0; // Handle bad data
+            } else if (type === "date") {
+              // For dates, compare timestamps
+              if (operator === "range") {
+                // b is already { from, to } object
+                a = dayjs(a);
+                const from = b.from ? dayjs(b.from).startOf("day") : null;
+                const to = b.to ? dayjs(b.to).endOf("day") : null;
+
+                if (!a.isValid()) return false;
+                // Inclusive range check
+                if (from && a.isBefore(from)) return false;
+                if (to && a.isAfter(to)) return false;
+                return true;
+              }
+              if (operator === "oneOf") {
+                // b is array of strings
+                a = dayjs(a).format("YYYY-MM-DD");
+                return Array.isArray(b) && b.includes(a);
+              }
+
+              a = new Date(a).getTime();
+              b = new Date(b).getTime();
+              if (isNaN(a)) a = 0;
+            } else {
+              a = String(a || "").toLowerCase();
+              b = String(b || "").toLowerCase();
+            }
+
+            switch (operator) {
+              // ... handled above for range/oneOf special cases
+              case "contains":
+                return a.includes(b);
+              case "equals":
+                return a === b;
+              case "startsWith":
+                return a.startsWith(b);
+              case "endsWith":
+                return a.endsWith(b);
+              case "gt":
+                return a > b;
+              case "lt":
+                return a < b;
+              case "gte":
+                return a >= b;
+              case "lte":
+                return a <= b;
+              case "neq":
+                return a !== b;
+              case "before":
+                return a < b;
+              case "after":
+                return a > b;
+              default:
+                return true;
+            }
+          },
+        );
+      });
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       const col = columns.find((c) => c.field === sort.field);
@@ -139,7 +289,16 @@ const CustomDataTable = ({
     });
 
     return filtered;
-  }, [data, search, searchFields, filterConfig, filterValue, sort, columns]);
+  }, [
+    data,
+    search,
+    searchFields,
+    filterConfig,
+    filterValue,
+    sort,
+    columns,
+    columnFilters,
+  ]);
 
   // Paginated data
   const paginatedData = useMemo(() => {
@@ -473,6 +632,21 @@ const CustomDataTable = ({
                   >
                     <span>{col.label}</span>
                     {col.sortable && getSortIcon(col.field)}
+                    <IconButton
+                      size="small"
+                      onClick={(e) => handleFilterClick(e, col)}
+                      sx={{
+                        padding: "2px",
+                        ml: 0.5,
+                        color: columnFilters[col.field]
+                          ? accentColor
+                          : colors.icon_muted,
+                        opacity: columnFilters[col.field] ? 1 : 0.3,
+                        "&:hover": { opacity: 1, color: accentColor },
+                      }}
+                    >
+                      <FilterAltIcon fontSize="inherit" sx={{ fontSize: 14 }} />
+                    </IconButton>
                   </div>
                 </th>
               ))}
@@ -607,6 +781,20 @@ const CustomDataTable = ({
           </div>
         </div>
       )}
+
+      {/* Column Filter Popover */}
+      <FilterPopover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        column={activeFilterColumn}
+        // Use smart detection
+        type={detectColumnType(activeFilterColumn)}
+        initialOperator={columnFilters[activeFilterColumn?.field]?.operator}
+        initialValue={columnFilters[activeFilterColumn?.field]?.value}
+        onClose={handleFilterClose}
+        onApply={handleFilterApply}
+        onClear={handleFilterClear}
+      />
     </div>
   );
 };
