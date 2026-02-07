@@ -448,20 +448,20 @@ const DailyTrendChart = ({
           {timeframe === "all" || timeframe === "year"
             ? trendCursor.getFullYear()
             : timeframe === "last_year"
-            ? trendCursor.getFullYear() - 1
-            : timeframe === "month"
-            ? trendCursor.toLocaleString("default", {
-                month: "long",
-                year: "numeric",
-              })
-            : timeframe === "week"
-            ? (() => {
-                const start = new Date(trendCursor);
-                const end = new Date(trendCursor);
-                end.setDate(end.getDate() + 6);
-                return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
-              })()
-            : ""}
+              ? trendCursor.getFullYear() - 1
+              : timeframe === "month"
+                ? trendCursor.toLocaleString("default", {
+                    month: "long",
+                    year: "numeric",
+                  })
+                : timeframe === "week"
+                  ? (() => {
+                      const start = new Date(trendCursor);
+                      const end = new Date(trendCursor);
+                      end.setDate(end.getDate() + 6);
+                      return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+                    })()
+                  : ""}
         </div>
         <button className="page-btn" onClick={onNext}>
           Next
@@ -620,8 +620,8 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => (
                   {bill.paymentMethod === "creditNeedToPaid"
                     ? "Credit Due"
                     : bill.paymentMethod === "creditPaid"
-                    ? "Credit Paid"
-                    : bill.paymentMethod.toUpperCase()}
+                      ? "Credit Paid"
+                      : bill.paymentMethod.toUpperCase()}
                 </span>
               </td>
               <td>
@@ -842,7 +842,7 @@ const ExpenseReport = () => {
             const monthAgo = new Date(
               now.getFullYear(),
               now.getMonth() - 1,
-              now.getDate()
+              now.getDate(),
             );
             return billDateTime >= monthAgo;
           }
@@ -871,7 +871,7 @@ const ExpenseReport = () => {
   // pagination logic for recent bills
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredBills.length / itemsPerPage)
+    Math.ceil(filteredBills.length / itemsPerPage),
   );
   useEffect(() => {
     // reset to first page when filters change
@@ -888,7 +888,7 @@ const ExpenseReport = () => {
   const analytics = useMemo(() => {
     const totalExpenses = filteredBills.reduce(
       (sum, bill) => sum + Math.abs(bill.amount),
-      0
+      0,
     );
     const totalBills = filteredBills.length;
     const averageExpense = totalBills > 0 ? totalExpenses / totalBills : 0;
@@ -948,11 +948,11 @@ const ExpenseReport = () => {
       name: category,
       amount: data.total,
       count: data.count,
-    })
+    }),
   );
 
   const paymentMethodChartData = Object.entries(
-    analytics.paymentMethodBreakdown
+    analytics.paymentMethodBreakdown,
   ).map(([method, amount]) => ({
     name: method.toUpperCase(),
     value: amount,
@@ -1252,7 +1252,7 @@ const ExpenseReport = () => {
                         onClick={() => setCurrentPage(n)}
                       >
                         {n}
-                      </button>
+                      </button>,
                     );
 
                   push(1);
@@ -1260,14 +1260,14 @@ const ExpenseReport = () => {
                   const left = Math.max(2, currentPage - maxWindow);
                   const right = Math.min(
                     totalPages - 1,
-                    currentPage + maxWindow
+                    currentPage + maxWindow,
                   );
 
                   if (left > 2)
                     elems.push(
                       <span key="l-ell" className="page-ellipsis">
                         ...
-                      </span>
+                      </span>,
                     );
 
                   for (let p = left; p <= right; p++) push(p);
@@ -1276,7 +1276,7 @@ const ExpenseReport = () => {
                     elems.push(
                       <span key="r-ell" className="page-ellipsis">
                         ...
-                      </span>
+                      </span>,
                     );
 
                   if (totalPages > 1) push(totalPages);
