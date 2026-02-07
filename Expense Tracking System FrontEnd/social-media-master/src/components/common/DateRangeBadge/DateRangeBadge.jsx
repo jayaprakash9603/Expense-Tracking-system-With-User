@@ -48,13 +48,39 @@ const SHORTCUTS = [
 ];
 
 function CustomDay(props) {
-  const { day, selectedDate, hoveredDate, onHover, range, ...other } = props;
+  const {
+    day,
+    selectedDate,
+    hoveredDate,
+    onHover,
+    range,
+    outsideCurrentMonth,
+    ...other
+  } = props;
   const { colors } = useTheme();
+
+  // If day is outside the current month, hide it but keep layout space
+  // This prevents the flex row from collapsing/shifting for partial weeks
+  if (outsideCurrentMonth) {
+    return (
+      <PickersDay
+        {...other}
+        day={day}
+        outsideCurrentMonth={outsideCurrentMonth}
+        sx={{
+          margin: 0,
+          width: 36,
+          height: 36,
+          opacity: 0,
+          pointerEvents: "none",
+          flex: "0 0 36px", // Enforce width
+        }}
+      />
+    );
+  }
 
   const isSelectedStart = range.from && day.isSame(range.from, "day");
   const isSelectedEnd = range.to && day.isSame(range.to, "day");
-
-  // Highlight the potential end date when selecting range
   const isHoveredEnd =
     range.from && !range.to && hoveredDate && day.isSame(hoveredDate, "day");
 
@@ -64,89 +90,103 @@ function CustomDay(props) {
     range.from &&
     !range.to &&
     hoveredDate &&
-    day.isAfter(range.from) &&
-    day.isBefore(hoveredDate.add(1, "day"), "day");
+    day.isAfter(range.from, "day") &&
+    day.isBefore(hoveredDate, "day");
 
   const isWithinRange =
     range.from &&
     range.to &&
-    day.isAfter(range.from) &&
+    day.isAfter(range.from, "day") &&
     day.isBefore(range.to, "day");
+
+  const isStartOfWeek = day.day() === 0;
+  const isEndOfWeek = day.day() === 6;
+  // Ensure intermediate excludes start/end to prevent style conflicts
+  const isIntermediate = !isSelected && (isWithinRange || isWithinHover);
 
   const styles = {
     margin: 0,
     width: 36,
     height: 36,
-    // Range middle days
-    ...(isWithinRange && {
-      backgroundColor: `${colors.primary_accent}15`,
+    borderRadius: "50%", // Default to circle for hover/selection base
+
+    // Case 1: Intermediate Range Days (Base Layer)
+    ...(isIntermediate && {
+      borderRadius: 0, // Reset to rectangle/custom shape
       color: colors.primary_text,
-      borderRadius: 0,
+      backgroundColor: `${colors.primary_accent}15`,
+
+      // Determine shape based on week position
+      ...(isStartOfWeek && { borderRadius: "50% 0 0 50%" }),
+      ...(isEndOfWeek && { borderRadius: "0 50% 50% 0" }),
+
+      // Optional dashed border for hover preview
+      ...(isWithinHover && {
+        borderTop: `1px dashed ${colors.primary_accent}`,
+        borderBottom: `1px dashed ${colors.primary_accent}`,
+        // Fix borders for curved ends
+        ...(isStartOfWeek && {
+          borderLeft: `1px dashed ${colors.primary_accent}`,
+        }),
+        ...(isEndOfWeek && {
+          borderRight: `1px dashed ${colors.primary_accent}`,
+        }),
+      }),
     }),
 
-    // Hover preview range middle days
-    ...(isWithinHover && {
-      backgroundColor: `${colors.primary_accent}15`,
-      color: colors.primary_text,
-      borderRadius: 0,
-      borderTop: `1px dashed ${colors.primary_accent}`,
-      borderBottom: `1px dashed ${colors.primary_accent}`,
-    }),
-
-    // Start of range (either finalized or hover)
+    // Case 2: Start of Range (Selected or Hover-End acting as start in reverse? No, assuming forward selection)
     ...(isSelectedStart && {
       backgroundColor: colors.primary_accent,
       color: "#fff",
-      borderRadius: "50% 0 0 50%", // Semi-circle left side for range connector
+      fontWeight: "bold", // Highlight text
+      borderRadius: "50%",
+      "&:hover": { backgroundColor: colors.primary_accent },
       position: "relative",
       zIndex: 1,
-      // Create the full circle look while keeping range connector
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        borderRadius: "50%",
-        backgroundColor: colors.primary_accent,
-        zIndex: -1,
-      },
-      "&:hover": { backgroundColor: colors.primary_accent },
+      // Add strip to the right if not end of week and not single day selection
+      ...(!isEndOfWeek &&
+        !(isSelectedEnd || isHoveredEnd) && {
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            right: 0,
+            left: "50%",
+            backgroundColor: `${colors.primary_accent}15`,
+            zIndex: -1,
+          },
+        }),
     }),
 
-    // End of range (either finalized or hover)
+    // Case 3: End of Range (Selected Final or Hover Preview)
     ...((isSelectedEnd || isHoveredEnd) && {
       backgroundColor: colors.primary_accent,
       color: "#fff",
-      borderRadius: "0 50% 50% 0", // Semi-circle right side for range connector
+      fontWeight: "bold", // Highlight text
+      borderRadius: "50%",
+      "&:hover": { backgroundColor: colors.primary_accent },
       position: "relative",
       zIndex: 1,
-      // Create the full circle look while keeping range connector
-      "&::after": {
-        content: '""',
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        borderRadius: "50%",
-        backgroundColor: colors.primary_accent,
-        zIndex: -1,
-      },
-      "&:hover": { backgroundColor: colors.primary_accent },
+      // Add strip to the left if not start of week and not single day selection
+      ...(!isStartOfWeek &&
+        !isSelectedStart && {
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            right: "50%",
+            backgroundColor: `${colors.primary_accent}15`,
+            zIndex: -1,
+          },
+        }),
     }),
 
-    // Single day selected (start == end)
-    ...(isSelectedStart &&
-      (isSelectedEnd || isHoveredEnd) && {
-        borderRadius: "50%",
-      }),
-
-    // Hover effect for unselected days to show border as requested
+    // Case 4: Hover on empty day
     ...(!isSelected &&
-      !isWithinRange &&
-      !isWithinHover && {
+      !isIntermediate && {
         "&:hover": {
           border: `1px solid ${colors.primary_accent}`,
           backgroundColor: "transparent",
@@ -182,14 +222,22 @@ const DateRangeBadge = ({
   const [range, setRange] = useState({ from: null, to: null });
   const [hoveredDate, setHoveredDate] = useState(null);
 
-  // Base month for the left calendar. Right calendar is base + 1 month.
-  const [baseMonth, setBaseMonth] = useState(dayjs());
+  // Independent months for left and right calendars
+  const [leftMonth, setLeftMonth] = useState(dayjs());
+  const [rightMonth, setRightMonth] = useState(dayjs().add(1, "month"));
 
   useEffect(() => {
     const start = fromDate ? dayjs(fromDate) : null;
     const end = toDate ? dayjs(toDate) : null;
     setRange({ from: start, to: end });
-    if (start) setBaseMonth(start);
+    if (start) {
+      setLeftMonth(start);
+      if (end && !end.isSame(start, "month")) {
+        setRightMonth(end);
+      } else {
+        setRightMonth(start.add(1, "month"));
+      }
+    }
   }, [fromDate, toDate]);
 
   const handleOpen = (event) => setAnchorEl(event.currentTarget);
@@ -212,7 +260,12 @@ const DateRangeBadge = ({
   const handleShortcut = (shortcut) => {
     const [start, end] = shortcut.getValue();
     setRange({ from: start, to: end });
-    setBaseMonth(start); // Show the range starting from From date
+    setLeftMonth(start);
+    if (end && !end.isSame(start, "month")) {
+      setRightMonth(end);
+    } else {
+      setRightMonth(start.add(1, "month"));
+    }
   };
 
   const formattedFrom = range.from ? range.from.format(dateFormat) : "--";
@@ -281,9 +334,9 @@ const DateRangeBadge = ({
             {/* Calendars Section */}
             <Box sx={{ display: "flex", p: 2, gap: 2 }}>
               <DateCalendar
-                value={null} // Controlled by custom rendering
-                referenceDate={baseMonth}
-                onMonthChange={(newMonth) => setBaseMonth(newMonth)}
+                value={range.from} // Bind to range start
+                referenceDate={leftMonth}
+                onMonthChange={(newMonth) => setLeftMonth(newMonth)}
                 onChange={handleDayClick}
                 slots={{ day: CustomDay }}
                 slotProps={{
@@ -295,13 +348,19 @@ const DateRangeBadge = ({
                 }}
                 views={["day"]}
                 disableHighlightToday
-                showDaysOutsideCurrentMonth={false}
+                showDaysOutsideCurrentMonth={true} // Enabled to maintain grid structure
                 sx={{
                   width: 300,
                   m: 0,
                   "& .MuiPickersCalendarHeader-root": {
                     pl: 2,
                     pr: 2,
+                  },
+                  // Ensure standard week row height
+                  "& .MuiDayCalendar-weekContainer": {
+                    margin: 0,
+                    minHeight: 36, // Ensure consistent height
+                    justifyContent: "center", // Center the grid (layout maintained by hidden days)
                   },
                 }}
               />
@@ -313,11 +372,9 @@ const DateRangeBadge = ({
                 }}
               />
               <DateCalendar
-                value={null}
-                referenceDate={baseMonth.add(1, "month")}
-                onMonthChange={(newMonth) =>
-                  setBaseMonth(newMonth.subtract(1, "month"))
-                }
+                value={range.to} // Bind to range end
+                referenceDate={rightMonth}
+                onMonthChange={(newMonth) => setRightMonth(newMonth)}
                 onChange={handleDayClick}
                 slots={{ day: CustomDay }}
                 slotProps={{
@@ -329,13 +386,19 @@ const DateRangeBadge = ({
                 }}
                 views={["day"]}
                 disableHighlightToday
-                showDaysOutsideCurrentMonth={false}
+                showDaysOutsideCurrentMonth={true} // Enabled to maintain grid structure
                 sx={{
                   width: 300,
                   m: 0,
                   "& .MuiPickersCalendarHeader-root": {
                     pl: 2,
                     pr: 2,
+                  },
+                  // Ensure standard week row height
+                  "& .MuiDayCalendar-weekContainer": {
+                    margin: 0,
+                    minHeight: 36,
+                    justifyContent: "center", // Center the grid
                   },
                 }}
               />
