@@ -4,6 +4,20 @@ import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
 
 /**
+ * @deprecated Use `AppTextField` from `components/ui` instead.
+ * This component is kept for backward compatibility.
+ *
+ * Migration:
+ * ```jsx
+ * // Old
+ * import ReusableTextField from './ReusableTextField';
+ *
+ * // New
+ * import { AppTextField } from './ui';
+ * ```
+ */
+
+/**
  * ReusableTextField - A robust, reusable TextField component
  *
  * Features:

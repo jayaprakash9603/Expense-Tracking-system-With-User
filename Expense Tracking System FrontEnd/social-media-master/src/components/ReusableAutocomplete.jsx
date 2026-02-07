@@ -10,6 +10,20 @@ import HighlightedText from "./common/HighlightedText";
 import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
 
 /**
+ * @deprecated Use `AppAutocomplete` from `components/ui` instead.
+ * This component is kept for backward compatibility.
+ *
+ * Migration:
+ * ```jsx
+ * // Old
+ * import ReusableAutocomplete from './ReusableAutocomplete';
+ *
+ * // New
+ * import { AppAutocomplete } from './ui';
+ * ```
+ */
+
+/**
  * ReusableAutocomplete - A robust, reusable Autocomplete component
  *
  * Features:
