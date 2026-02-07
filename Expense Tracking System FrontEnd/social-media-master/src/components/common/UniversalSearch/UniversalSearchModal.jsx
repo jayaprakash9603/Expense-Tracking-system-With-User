@@ -172,11 +172,11 @@ const UniversalSearchModal = () => {
             maxWidth: "640px",
             maxHeight: "70vh",
             margin: "0 16px",
-            backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+            backgroundColor: colors.card_bg,
             borderRadius: "16px",
             boxShadow: isDark
-              ? "0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)"
-              : "0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+              ? `0 25px 50px -12px ${colors.shadow_color}, 0 0 0 1px ${colors.border_light}`
+              : `0 25px 50px -12px ${colors.shadow_color}, 0 0 0 1px ${colors.border_color}`,
             overflow: "hidden",
             display: "flex",
             flexDirection: "column",
@@ -189,13 +189,13 @@ const UniversalSearchModal = () => {
               display: "flex",
               alignItems: "center",
               padding: "16px 20px",
-              borderBottom: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
+              borderBottom: `1px solid ${colors.border_color}`,
               gap: "12px",
             }}
           >
             <SearchIcon
               sx={{
-                color: isDark ? "#888" : "#666",
+                color: colors.icon_muted,
                 fontSize: "24px",
               }}
             />
@@ -215,7 +215,7 @@ const UniversalSearchModal = () => {
                 outline: "none",
                 backgroundColor: "transparent",
                 fontSize: "16px",
-                color: isDark ? "#fff" : "#1a1a1a",
+                color: colors.primary_text,
                 fontFamily: "inherit",
               }}
               autoComplete="off"
@@ -246,9 +246,9 @@ const UniversalSearchModal = () => {
                 <CloseIcon
                   sx={{
                     fontSize: "18px",
-                    color: isDark ? "#888" : "#666",
+                    color: colors.icon_muted,
                     "&:hover": {
-                      color: isDark ? "#fff" : "#333",
+                      color: colors.primary_text,
                     },
                   }}
                 />
@@ -270,7 +270,7 @@ const UniversalSearchModal = () => {
                 backgroundColor: "transparent",
               },
               "&::-webkit-scrollbar-thumb": {
-                backgroundColor: isDark ? "#444" : "#ccc",
+                backgroundColor: colors.scrollbar_thumb,
                 borderRadius: "4px",
               },
             }}
@@ -295,7 +295,7 @@ const UniversalSearchModal = () => {
                         width: "40px",
                         height: "40px",
                         borderRadius: "8px",
-                        backgroundColor: isDark ? "#333" : "#e5e5e5",
+                        backgroundColor: colors.skeleton_base,
                         animation: "pulse 1.5s infinite",
                         "@keyframes pulse": {
                           "0%, 100%": { opacity: 1 },
@@ -309,7 +309,7 @@ const UniversalSearchModal = () => {
                           width: "60%",
                           height: "16px",
                           borderRadius: "4px",
-                          backgroundColor: isDark ? "#333" : "#e5e5e5",
+                          backgroundColor: colors.skeleton_base,
                           marginBottom: "8px",
                           animation: "pulse 1.5s infinite",
                         }}
@@ -319,7 +319,7 @@ const UniversalSearchModal = () => {
                           width: "40%",
                           height: "12px",
                           borderRadius: "4px",
-                          backgroundColor: isDark ? "#333" : "#e5e5e5",
+                          backgroundColor: colors.skeleton_base,
                           animation: "pulse 1.5s infinite",
                         }}
                       />
@@ -340,13 +340,13 @@ const UniversalSearchModal = () => {
                 <SearchIcon
                   sx={{
                     fontSize: "48px",
-                    color: isDark ? "#555" : "#ccc",
+                    color: colors.icon_muted,
                     marginBottom: "16px",
                   }}
                 />
                 <Typography
                   sx={{
-                    color: isDark ? "#888" : "#666",
+                    color: colors.placeholder_text,
                     fontSize: "14px",
                   }}
                 >
@@ -354,7 +354,7 @@ const UniversalSearchModal = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: isDark ? "#666" : "#999",
+                    color: colors.icon_muted,
                     fontSize: "12px",
                     marginTop: "8px",
                   }}
@@ -373,7 +373,7 @@ const UniversalSearchModal = () => {
                     padding: "8px 20px 4px",
                     position: "sticky",
                     top: 0,
-                    backgroundColor: isDark ? "#1e1e1e" : "#ffffff",
+                    backgroundColor: colors.card_bg,
                     zIndex: 1,
                   }}
                 >
@@ -383,7 +383,7 @@ const UniversalSearchModal = () => {
                       fontWeight: 600,
                       textTransform: "uppercase",
                       letterSpacing: "0.5px",
-                      color: isDark ? "#888" : "#666",
+                      color: colors.placeholder_text,
                     }}
                   >
                     {getSectionLabel(section)}
@@ -406,6 +406,7 @@ const UniversalSearchModal = () => {
                         onClick={() => selectResult(result)}
                         onMouseEnter={() => setSelectedIndex(flatIndex)}
                         isDark={isDark}
+                        colors={colors}
                         query={query}
                         dataIndex={flatIndex}
                         formattedAmount={formattedAmount}
@@ -427,7 +428,7 @@ const UniversalSearchModal = () => {
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
-                    color: isDark ? "#888" : "#666",
+                    color: colors.placeholder_text,
                     marginBottom: "8px",
                   }}
                 >
@@ -435,7 +436,7 @@ const UniversalSearchModal = () => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: isDark ? "#666" : "#999",
+                    color: colors.icon_muted,
                     fontSize: "13px",
                   }}
                 >
@@ -452,8 +453,8 @@ const UniversalSearchModal = () => {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "12px 20px",
-              borderTop: `1px solid ${isDark ? "#333" : "#e5e5e5"}`,
-              backgroundColor: isDark ? "#171717" : "#f9f9f9",
+              borderTop: `1px solid ${colors.border_color}`,
+              backgroundColor: colors.secondary_bg,
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -464,14 +465,14 @@ const UniversalSearchModal = () => {
                   sx={{
                     height: "20px",
                     fontSize: "10px",
-                    backgroundColor: isDark ? "#333" : "#e5e5e5",
-                    color: isDark ? "#aaa" : "#666",
+                    backgroundColor: colors.button_inactive,
+                    color: colors.placeholder_text,
                   }}
                 />
                 <Typography
                   sx={{
                     fontSize: "11px",
-                    color: isDark ? "#666" : "#999",
+                    color: colors.icon_muted,
                   }}
                 >
                   {t("search.navigate") || "Navigate"}
@@ -484,14 +485,14 @@ const UniversalSearchModal = () => {
                   sx={{
                     height: "20px",
                     fontSize: "10px",
-                    backgroundColor: isDark ? "#333" : "#e5e5e5",
-                    color: isDark ? "#aaa" : "#666",
+                    backgroundColor: colors.button_inactive,
+                    color: colors.placeholder_text,
                   }}
                 />
                 <Typography
                   sx={{
                     fontSize: "11px",
-                    color: isDark ? "#666" : "#999",
+                    color: colors.icon_muted,
                   }}
                 >
                   {t("search.select") || "Select"}
@@ -504,14 +505,14 @@ const UniversalSearchModal = () => {
                   sx={{
                     height: "20px",
                     fontSize: "10px",
-                    backgroundColor: isDark ? "#333" : "#e5e5e5",
-                    color: isDark ? "#aaa" : "#666",
+                    backgroundColor: colors.button_inactive,
+                    color: colors.placeholder_text,
                   }}
                 />
                 <Typography
                   sx={{
                     fontSize: "11px",
-                    color: isDark ? "#666" : "#999",
+                    color: colors.icon_muted,
                   }}
                 >
                   {t("search.close") || "Close"}

@@ -6,7 +6,7 @@ import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
  * Highlight ALL matching text occurrences in search results
  * Supports fuzzy matching by highlighting each character match
  */
-const HighlightedText = memo(({ text, query, isDark }) => {
+const HighlightedText = memo(({ text, query, isDark, highlightColor }) => {
   if (!query || !text) {
     return <span>{text}</span>;
   }
@@ -35,7 +35,7 @@ const HighlightedText = memo(({ text, query, isDark }) => {
         <span
           key={`match-${searchIndex}`}
           style={{
-            color: isDark ? "#5eead4" : "#0d9488",
+            color: highlightColor,
             fontWeight: 600,
           }}
         >
@@ -88,7 +88,7 @@ const HighlightedText = memo(({ text, query, isDark }) => {
         <span
           key={`m-${start}`}
           style={{
-            color: isDark ? "#5eead4" : "#0d9488",
+            color: highlightColor,
             fontWeight: 600,
           }}
         >
@@ -174,6 +174,7 @@ const SearchResultItem = memo(
     onClick,
     onMouseEnter,
     isDark,
+    colors,
     query,
     dataIndex,
     formattedAmount, // Pre-formatted by parent
@@ -194,17 +195,13 @@ const SearchResultItem = memo(
     // Determine amount color for expenses: green for gain, red for loss
     const amountColor = useMemo(() => {
       if (result?.type !== SEARCH_TYPES.EXPENSE) {
-        return isDark ? "#fff" : "#1a1a1a"; // Default color for non-expenses
+        return colors?.primary_text || (isDark ? "#fff" : "#1a1a1a"); // Default color for non-expenses
       }
       // Green for gain, red for loss
       return isGain
-        ? isDark
-          ? "#4ade80"
-          : "#16a34a" // Green colors
-        : isDark
-          ? "#f87171"
-          : "#dc2626"; // Red colors
-    }, [result?.type, isGain, isDark]);
+        ? colors?.success || (isDark ? "#4ade80" : "#16a34a") // Green colors
+        : colors?.error || (isDark ? "#f87171" : "#dc2626"); // Red colors
+    }, [result?.type, isGain, isDark, colors]);
 
     return (
       <Box
@@ -219,22 +216,16 @@ const SearchResultItem = memo(
           borderRadius: "8px",
           cursor: "pointer",
           backgroundColor: isSelected
-            ? isDark
-              ? "rgba(20, 184, 166, 0.15)"
-              : "rgba(20, 184, 166, 0.1)"
+            ? colors?.active_bg || (isDark ? "rgba(20, 184, 166, 0.15)" : "rgba(20, 184, 166, 0.1)")
             : "transparent",
           border: isSelected
-            ? `1px solid ${isDark ? "rgba(20, 184, 166, 0.3)" : "rgba(20, 184, 166, 0.2)"}`
+            ? `1px solid ${colors?.primary_accent || (isDark ? "rgba(20, 184, 166, 0.3)" : "rgba(20, 184, 166, 0.2)")}33`
             : "1px solid transparent",
           transition: "all 0.15s ease",
           "&:hover": {
             backgroundColor: isSelected
-              ? isDark
-                ? "rgba(20, 184, 166, 0.15)"
-                : "rgba(20, 184, 166, 0.1)"
-              : isDark
-                ? "rgba(255, 255, 255, 0.08)"
-                : "rgba(0, 0, 0, 0.04)",
+              ? colors?.active_bg || (isDark ? "rgba(20, 184, 166, 0.15)" : "rgba(20, 184, 166, 0.1)")
+              : colors?.hover_bg || (isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)"),
           },
         }}
       >
@@ -261,7 +252,7 @@ const SearchResultItem = memo(
             sx={{
               fontSize: "14px",
               fontWeight: 500,
-              color: isDark ? "#fff" : "#1a1a1a",
+              color: colors?.primary_text || (isDark ? "#fff" : "#1a1a1a"),
               lineHeight: 1.3,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -272,13 +263,14 @@ const SearchResultItem = memo(
               text={result.title}
               query={query}
               isDark={isDark}
+              highlightColor={colors?.primary_accent || (isDark ? "#5eead4" : "#0d9488")}
             />
           </Typography>
           {result.subtitle && (
             <Typography
               sx={{
                 fontSize: "12px",
-                color: isDark ? "rgba(255, 255, 255, 0.6)" : "#666",
+                color: colors?.placeholder_text || (isDark ? "rgba(255, 255, 255, 0.6)" : "#666"),
                 lineHeight: 1.3,
                 marginTop: "2px",
                 overflow: "hidden",
@@ -290,6 +282,7 @@ const SearchResultItem = memo(
                 text={result.subtitle}
                 query={query}
                 isDark={isDark}
+                highlightColor={colors?.primary_accent || (isDark ? "#5eead4" : "#0d9488")}
               />
             </Typography>
           )}
@@ -322,7 +315,7 @@ const SearchResultItem = memo(
               <Typography
                 sx={{
                   fontSize: "11px",
-                  color: isDark ? "rgba(255, 255, 255, 0.5)" : "#888",
+                  color: colors?.icon_muted || (isDark ? "rgba(255, 255, 255, 0.5)" : "#888"),
                   lineHeight: 1.3,
                 }}
               >
@@ -338,9 +331,9 @@ const SearchResultItem = memo(
             sx={{
               padding: "2px 8px",
               borderRadius: "4px",
-              backgroundColor: isDark
+              backgroundColor: colors?.active_bg || (isDark
                 ? "rgba(0, 218, 198, 0.15)" // Teal tint for dark mode
-                : "rgba(0, 0, 0, 0.05)",
+                : "rgba(0, 0, 0, 0.05)"),
               flexShrink: 0,
             }}
           >
@@ -350,7 +343,7 @@ const SearchResultItem = memo(
                 fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "0.3px",
-                color: isDark ? "#00dac6" : "#0d9488", // Theme accent color
+                color: colors?.primary_accent || (isDark ? "#00dac6" : "#0d9488"), // Theme accent color
               }}
             >
               {result.type?.toLowerCase().replace("_", " ")}
@@ -362,7 +355,7 @@ const SearchResultItem = memo(
         {isSelected && (
           <Box
             sx={{
-              color: isDark ? "#14b8a6" : "#0d9488",
+              color: colors?.primary_accent || (isDark ? "#14b8a6" : "#0d9488"),
               fontSize: "16px",
               flexShrink: 0,
             }}
