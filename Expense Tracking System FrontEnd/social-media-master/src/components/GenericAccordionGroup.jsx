@@ -116,19 +116,21 @@ export function GenericAccordionGroup({
   const [rowSortUiByGroup, setRowSortUiByGroup] = useState({});
 
   // Column filtering state
-  const [columnFilters, setColumnFilters] = useState({});
+  const [columnFiltersByGroup, setColumnFiltersByGroup] = useState({});
   const [filterPopover, setFilterPopover] = useState({
     open: false,
     anchorEl: null,
     column: null,
+    groupKey: null,
   });
 
-  const handleFilterClick = (e, col) => {
+  const handleFilterClick = (e, col, groupKey) => {
     e.stopPropagation();
     setFilterPopover({
       open: true,
       anchorEl: e.currentTarget,
       column: col,
+      groupKey: groupKey,
     });
   };
 
@@ -138,20 +140,31 @@ export function GenericAccordionGroup({
 
   const handleFilterApply = ({ operator, value }) => {
     const colKey = filterPopover.column?.key;
-    if (colKey) {
-      setColumnFilters((prev) => ({
+    const gKey = filterPopover.groupKey;
+    if (colKey && gKey) {
+      setColumnFiltersByGroup((prev) => ({
         ...prev,
-        [colKey]: { operator, value },
+        [gKey]: {
+          ...(prev[gKey] || {}),
+          [colKey]: { operator, value },
+        },
       }));
     }
   };
 
   const handleFilterClear = () => {
     const colKey = filterPopover.column?.key;
-    if (colKey) {
-      setColumnFilters((prev) => {
+    const gKey = filterPopover.groupKey;
+    if (colKey && gKey) {
+      setColumnFiltersByGroup((prev) => {
+        const groupFilters = { ...(prev[gKey] || {}) };
+        delete groupFilters[colKey];
         const next = { ...prev };
-        delete next[colKey];
+        if (Object.keys(groupFilters).length === 0) {
+          delete next[gKey];
+        } else {
+          next[gKey] = groupFilters;
+        }
         return next;
       });
     }
@@ -242,6 +255,7 @@ export function GenericAccordionGroup({
     setRowSortUiByGroup({});
     setSortByGroupKey({});
     setPageByGroupKey({});
+    setColumnFiltersByGroup({});
     setGroupsPage(1);
     if (onSelectionChange) {
       onSelectionChange({ selectedRowsByGroup: {}, selectedCount: 0 });
@@ -534,6 +548,7 @@ export function GenericAccordionGroup({
           });
 
           // Apply column filters
+          const columnFilters = columnFiltersByGroup[groupKey] || {};
           const columnFiltered = appliedFiltered.filter((row) => {
             return Object.entries(columnFilters).every(([key, filter]) => {
               if (filter.value === "" || filter.value === null || filter.value === undefined) return true;
@@ -936,7 +951,7 @@ export function GenericAccordionGroup({
 
                     // Filtering
                     columnFilters={columnFilters}
-                    onFilterClick={(e, col) => handleFilterClick(e, col)}
+                    onFilterClick={(e, col) => handleFilterClick(e, col, groupKey)}
 
                     // Selection
                     enableSelection={enableSelection}
@@ -983,23 +998,29 @@ export function GenericAccordionGroup({
               type="button"
               className="pm-page-btn"
               disabled={safeGroupsPage <= 1}
-              onClick={() => setGroupsPage((p) => Math.max(1, p - 1))}
+              onClick={(e) => {
+                e.stopPropagation();
+                setGroupsPage((p) => Math.max(1, p - 1));
+              }}
               aria-label="Previous groups page"
+              style={{ cursor: safeGroupsPage <= 1 ? "not-allowed" : "pointer", zIndex: 10 }}
             >
               ‹
             </button>
             <span className="pm-page-indicator">
-              Groups {startGroup + 1}-{Math.min(endGroup, groups.length)} of{" "}
+              Groups {startGroup + 1}-{Math.min(endGroup, filteredSortedGroups.length)} of{" "}
               {filteredSortedGroups.length}
             </span>
             <button
               type="button"
               className="pm-page-btn"
               disabled={safeGroupsPage >= totalGroupPages}
-              onClick={() =>
-                setGroupsPage((p) => Math.min(totalGroupPages, p + 1))
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                setGroupsPage((p) => Math.min(totalGroupPages, p + 1));
+              }}
               aria-label="Next groups page"
+              style={{ cursor: safeGroupsPage >= totalGroupPages ? "not-allowed" : "pointer", zIndex: 10 }}
             >
               ›
             </button>
@@ -1010,10 +1031,12 @@ export function GenericAccordionGroup({
               <select
                 value={groupsPerPage}
                 onChange={(e) => {
+                  e.stopPropagation(); // Also prevent propagation on select
                   const val = Number(e.target.value) || defaultGroupsPerPage;
                   setGroupsPerPage(val);
                   setGroupsPage(1);
                 }}
+                onClick={(e) => e.stopPropagation()} // Prevent click propagation
               >
                 {groupPageSizeOptions.map((opt) => (
                   <option key={opt} value={opt}>
@@ -1031,8 +1054,16 @@ export function GenericAccordionGroup({
           anchorEl={filterPopover.anchorEl}
           column={filterPopover.column}
           type={detectColumnType(filterPopover.column)}
-          initialOperator={columnFilters[filterPopover.column?.key]?.operator}
-          initialValue={columnFilters[filterPopover.column?.key]?.value}
+          initialOperator={
+            filterPopover.groupKey && columnFiltersByGroup[filterPopover.groupKey]
+              ? columnFiltersByGroup[filterPopover.groupKey][filterPopover.column?.key]?.operator
+              : undefined
+          }
+          initialValue={
+            filterPopover.groupKey && columnFiltersByGroup[filterPopover.groupKey]
+              ? columnFiltersByGroup[filterPopover.groupKey][filterPopover.column?.key]?.value
+              : undefined
+          }
           onClose={handleFilterClose}
           onApply={handleFilterApply}
           onClear={handleFilterClear}

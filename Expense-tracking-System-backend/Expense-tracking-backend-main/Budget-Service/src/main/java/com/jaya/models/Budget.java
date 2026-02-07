@@ -25,7 +25,10 @@ public class Budget {
     private Integer id;
 
     private String name;
+
+    @Column(columnDefinition = "LONGTEXT")
     private String description;
+
     private double amount;
     @JsonFormat(pattern = "yyyy-MM-dd")
     @JsonSerialize(using = LocalDateSerializer.class)

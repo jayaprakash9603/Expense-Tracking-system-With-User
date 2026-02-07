@@ -126,3 +126,8 @@ export { AppDrawer } from "./Drawer";
 export { FilterDrawer, FilterSection } from "./Drawer";
 // Right-side detail/drilldown panel
 export { DetailDrawer, DetailSection, DetailItem } from "./Drawer";
+
+// ============================================================================
+// POPOVER COMPONENTS
+// ============================================================================
+export { default as FilterPopover } from "./FilterPopover";

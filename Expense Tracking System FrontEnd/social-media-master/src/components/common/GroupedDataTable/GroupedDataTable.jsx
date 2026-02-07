@@ -3,20 +3,25 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import { formatAmount as fmt } from "../../../utils/formatAmount";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
+// Define stable default objects outside component
+const DEFAULT_SORT = { key: "default", direction: "desc" };
+const DEFAULT_FILTERS = {};
+const DEFAULT_SELECTED_ROWS = {};
+
 const GroupedDataTable = ({
   rows = [],
   columns = [],
   // Sorting (Controlled)
-  sort = { key: "default", direction: "desc" },
+  sort = DEFAULT_SORT,
   onSortChange,
   // Selection (Controlled)
   enableSelection = false,
-  selectedRows = {}, // { [rowKey]: true }
+  selectedRows = DEFAULT_SELECTED_ROWS, // { [rowKey]: true }
   onRowSelect, // (row, checked) => void
   onSelectAll, // (displayedRows, checked) => void
   resolveRowKey, // (row, index) => string
   // Filtering (UI triggers only)
-  columnFilters = {},
+  columnFilters = DEFAULT_FILTERS,
   onFilterClick, // (event, column) => void
   // Appearance
   activeTab = "all",
@@ -99,19 +104,20 @@ const GroupedDataTable = ({
   const pageSlice = sortedRows.slice(start, start + pageSize);
 
   // Derived Selection State
-  const pageAllSelected =
+  // Check selection against ALL sorted/filtered rows, not just the current page
+  const allRowsSelected =
     enableSelection &&
-    pageSlice.length > 0 &&
-    pageSlice.every((row, i) => {
-      const key = resolveRowKey ? resolveRowKey(row, start + i) : row.id || i;
+    sortedRows.length > 0 &&
+    sortedRows.every((row, i) => {
+      const key = resolveRowKey ? resolveRowKey(row, i) : row.id || i;
       return selectedRows[key];
     });
 
-  const pageSomeSelected =
+  const anyRowsSelected =
     enableSelection &&
-    !pageAllSelected &&
-    pageSlice.some((row, i) => {
-      const key = resolveRowKey ? resolveRowKey(row, start + i) : row.id || i;
+    !allRowsSelected &&
+    sortedRows.some((row, i) => {
+      const key = resolveRowKey ? resolveRowKey(row, i) : row.id || i;
       return selectedRows[key];
     });
 
@@ -195,14 +201,15 @@ const GroupedDataTable = ({
                   <input
                     type="checkbox"
                     className="pm-select-checkbox"
-                    checked={!!pageAllSelected}
+                    checked={!!allRowsSelected}
                     ref={(el) => {
-                      if (el) el.indeterminate = !!pageSomeSelected;
+                      if (el) el.indeterminate = !!anyRowsSelected;
                     }}
                     onChange={(e) => {
-                      if (onSelectAll) onSelectAll(pageSlice, e.target.checked);
+                      if (onSelectAll)
+                        onSelectAll(sortedRows, e.target.checked);
                     }}
-                    aria-label="Select rows on this page"
+                    aria-label="Select all rows"
                   />
                 </th>
               ) : null}
@@ -381,7 +388,16 @@ const GroupedDataTable = ({
               type="button"
               className="pm-page-btn"
               disabled={safePage <= 1}
-              onClick={() => handlePageChange(safePage - 1)}
+              onClick={(e) => {
+                e.preventDefault(); // Prevent default action
+                e.stopPropagation();
+                handlePageChange(safePage - 1);
+              }}
+              style={{
+                cursor: safePage <= 1 ? "not-allowed" : "pointer",
+                zIndex: 10,
+                position: "relative",
+              }}
             >
               ‹
             </button>
@@ -393,7 +409,16 @@ const GroupedDataTable = ({
               type="button"
               className="pm-page-btn"
               disabled={safePage >= totalPages}
-              onClick={() => handlePageChange(safePage + 1)}
+              onClick={(e) => {
+                e.preventDefault(); // Prevent default action
+                e.stopPropagation();
+                handlePageChange(safePage + 1);
+              }}
+              style={{
+                cursor: safePage >= totalPages ? "not-allowed" : "pointer",
+                zIndex: 10,
+                position: "relative",
+              }}
             >
               ›
             </button>

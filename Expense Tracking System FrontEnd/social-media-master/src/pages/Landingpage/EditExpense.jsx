@@ -14,13 +14,16 @@ import {
   getListOfBudgetsByExpenseId,
   getListOfBudgetsById,
 } from "../../Redux/Budget/budget.action";
-import { Box } from "@mui/material";
+import { Box, InputAdornment, CircularProgress } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import Autocomplete from "@mui/material/Autocomplete";
 import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
+  FilterPopover,
 } from "../../components/ui";
+import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import TextField from "@mui/material/TextField";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -301,9 +304,7 @@ const EditExpense = ({}) => {
     const budgetIds = Object.keys(selectedBudgetIds)
       .filter((id) => selectedBudgetIds[id])
       .map((id) => {
-        const budget = budgets.find(
-          (b) => String(b.id) === String(id),
-        );
+        const budget = budgets.find((b) => String(b.id) === String(id));
         return budget ? budget.id : id;
       });
 
@@ -370,7 +371,6 @@ const EditExpense = ({}) => {
     });
     setSelectedBudgetIds(newSelection);
   };
-
 
   // Render input fields with consistent style and required asterisk
   const renderInput = (id, type = "text", isTextarea = false) => {
@@ -641,21 +641,50 @@ const EditExpense = ({}) => {
     </div>
   );
 
-  const budgetColumns = useMemo(
-    () => [
-      { key: "name", label: tableHeaders.name, width: "20%" },
-      { key: "description", label: tableHeaders.description, width: "25%" },
-      { key: "startDate", label: tableHeaders.startDate, width: "15%" },
-      { key: "endDate", label: tableHeaders.endDate, width: "15%" },
-      {
-        key: "remainingAmount",
-        label: tableHeaders.remainingAmount,
-        width: "15%",
-      },
-      { key: "amount", label: tableHeaders.amount, width: "10%" },
-    ],
-    [tableHeaders],
-  );
+  // Budget Table Configuration
+  const {
+    columns: budgetColumns,
+    filteredRows,
+    sort,
+    setSort,
+    search,
+    setSearch,
+    columnFilters,
+    setColumnFilters,
+  } = useBudgetTableConfig(budgets, t);
+
+  // Filter Popover State
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+
+  const handleFilterClick = (e, column) => {
+    setFilterAnchorEl(e.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+    setFilterColumn(null);
+  };
+
+  const handleFilterApply = (filterData) => {
+    if (filterColumn) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [filterColumn.key]: filterData,
+      }));
+    }
+  };
+
+  const handleFilterClear = () => {
+    if (filterColumn) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterColumn.key];
+        return next;
+      });
+    }
+  };
 
   const handleOnClose = () => {
     navigate(-1);
@@ -1023,23 +1052,31 @@ const EditExpense = ({}) => {
               "--pm-scrollbar-track": colors.secondary_bg,
             }}
           >
-            <div className="block sm:hidden flex justify-end mb-2">
-              <button
-                onClick={handleCloseTable}
-                aria-label={closeLabel}
-                className="px-2 py-1 border rounded hover:bg-[#3a3a3a]"
-                style={{
-                  backgroundColor: colors.active_bg,
-                  borderColor: colors.border_color,
-                  color: colors.primary_text,
-                }}
-              >
-                X
-              </button>
+            {/* Mobile Close Button (Search removed) */}
+            <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
+              <div className="block sm:hidden self-end">
+                <button
+                  onClick={handleCloseTable}
+                  aria-label={closeLabel}
+                  className="px-2 py-1 border rounded hover:bg-[#3a3a3a]"
+                  style={{
+                    backgroundColor: colors.active_bg,
+                    borderColor: colors.border_color,
+                    color: colors.primary_text,
+                  }}
+                >
+                  X
+                </button>
+              </div>
             </div>
+
             <GroupedDataTable
-              rows={budgets}
+              rows={filteredRows}
               columns={budgetColumns}
+              sort={sort}
+              onSortChange={setSort}
+              columnFilters={columnFilters}
+              onFilterClick={handleFilterClick}
               enableSelection={true}
               selectedRows={selectedBudgetIds}
               onRowSelect={handleRowSelect}
@@ -1078,6 +1115,26 @@ const EditExpense = ({}) => {
             </button>
           )}
         </div>
+
+        <FilterPopover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          column={filterColumn}
+          type={filterColumn?.filterType || "text"}
+          initialOperator={
+            filterColumn && columnFilters[filterColumn.key]
+              ? columnFilters[filterColumn.key].operator
+              : undefined
+          }
+          initialValue={
+            filterColumn && columnFilters[filterColumn.key]
+              ? columnFilters[filterColumn.key].value
+              : undefined
+          }
+          onClose={handleFilterClose}
+          onApply={handleFilterApply}
+          onClear={handleFilterClear}
+        />
 
         <style>
           {`

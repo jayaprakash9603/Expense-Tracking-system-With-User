@@ -1,11 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createExpenseAction } from "../../Redux/Expenses/expense.action";
-import { Autocomplete, TextField, CircularProgress } from "@mui/material";
+import {
+  Autocomplete,
+  TextField,
+  CircularProgress,
+  InputAdornment,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
+  FilterPopover,
 } from "../../components/ui";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import PageHeader from "../../components/PageHeader";
@@ -15,6 +22,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
+import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -406,9 +414,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
       // Ensure we're passing numbers if IDs are numbers, or strings if strings
       .map((id) => {
         // find original budget to get type of ID
-        const budget = budgets.find(
-          (b) => String(b.id) === String(id),
-        );
+        const budget = budgets.find((b) => String(b.id) === String(id));
         return budget ? budget.id : id;
       });
 
@@ -1106,21 +1112,50 @@ const NewExpense = ({ onClose, onSuccess }) => {
     </div>
   );
 
-  const budgetColumns = useMemo(
-    () => [
-      { key: "name", label: tableHeaders.name, width: "20%" },
-      { key: "description", label: tableHeaders.description, width: "25%" },
-      { key: "startDate", label: tableHeaders.startDate, width: "15%" },
-      { key: "endDate", label: tableHeaders.endDate, width: "15%" },
-      {
-        key: "remainingAmount",
-        label: tableHeaders.remainingAmount,
-        width: "15%",
-      },
-      { key: "amount", label: tableHeaders.amount, width: "10%" },
-    ],
-    [tableHeaders],
-  );
+  // Budget Table Configuration
+  const {
+    columns: budgetColumns,
+    filteredRows,
+    sort,
+    setSort,
+    search,
+    setSearch,
+    columnFilters,
+    setColumnFilters,
+  } = useBudgetTableConfig(budgets, t);
+
+  // Filter Popover State
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+
+  const handleFilterClick = (e, column) => {
+    setFilterAnchorEl(e.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+    setFilterColumn(null);
+  };
+
+  const handleFilterApply = (filterData) => {
+    if (filterColumn) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [filterColumn.key]: filterData,
+      }));
+    }
+  };
+
+  const handleFilterClear = () => {
+    if (filterColumn) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterColumn.key];
+        return next;
+      });
+    }
+  };
 
   // (Manual redirect effect removed in favor of generic hook)
 
@@ -1193,7 +1228,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           </div>
         </div>
 
-        <div className="mt-4 sm:mt-[50px] w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="mt-4 sm:mt-6 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
             className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
@@ -1242,23 +1277,31 @@ const NewExpense = ({ onClose, onSuccess }) => {
               "--pm-scrollbar-track": colors.secondary_bg,
             }}
           >
-            <div className="block sm:hidden flex justify-end mb-2">
-              <button
-                onClick={handleCloseTable}
-                aria-label={closeLabel}
-                className="px-2 py-1 rounded"
-                style={{
-                  backgroundColor: colors.active_bg,
-                  color: colors.primary_text,
-                  border: `1px solid ${colors.border_color}`,
-                }}
-              >
-                X
-              </button>
+            {/* Mobile Close Button (Search removed) */}
+            <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
+              <div className="block sm:hidden self-end">
+                <button
+                  onClick={handleCloseTable}
+                  aria-label={closeLabel}
+                  className="px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: colors.active_bg,
+                    color: colors.primary_text,
+                    border: `1px solid ${colors.border_color}`,
+                  }}
+                >
+                  X
+                </button>
+              </div>
             </div>
+
             <GroupedDataTable
-              rows={budgets}
+              rows={filteredRows}
               columns={budgetColumns}
+              sort={sort}
+              onSortChange={setSort}
+              columnFilters={columnFilters}
+              onFilterClick={handleFilterClick}
               enableSelection={true}
               selectedRows={selectedBudgetIds}
               onRowSelect={handleRowSelect}
@@ -1304,6 +1347,26 @@ const NewExpense = ({ onClose, onSuccess }) => {
             </button>
           )}
         </div>
+
+        <FilterPopover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          column={filterColumn}
+          type={filterColumn?.filterType || "text"}
+          initialOperator={
+            filterColumn && columnFilters[filterColumn.key]
+              ? columnFilters[filterColumn.key].operator
+              : undefined
+          }
+          initialValue={
+            filterColumn && columnFilters[filterColumn.key]
+              ? columnFilters[filterColumn.key].value
+              : undefined
+          }
+          onClose={handleFilterClose}
+          onApply={handleFilterApply}
+          onClear={handleFilterClear}
+        />
 
         <style>
           {`
