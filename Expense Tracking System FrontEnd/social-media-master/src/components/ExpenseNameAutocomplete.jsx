@@ -3,4 +3,3 @@
  * @example import { ExpenseNameAutocomplete } from "../../components/ui";
  */
 export { ExpenseNameAutocomplete as default } from "./ui";
-x
