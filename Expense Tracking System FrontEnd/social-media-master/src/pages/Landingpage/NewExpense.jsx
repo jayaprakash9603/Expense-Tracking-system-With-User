@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createExpenseAction } from "../../Redux/Expenses/expense.action";
-import { Autocomplete, TextField, CircularProgress, Box } from "@mui/material";
+import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
@@ -10,17 +10,11 @@ import {
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import PageHeader from "../../components/PageHeader";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
 import { getListOfBudgetsById } from "../../Redux/Budget/budget.action";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
-import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -29,6 +23,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import HighlightedText from "../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
+import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -176,9 +171,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   });
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
-  const [checkboxStates, setCheckboxStates] = useState([]);
+  const [selectedBudgetIds, setSelectedBudgetIds] = useState({});
   const { friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
 
@@ -328,9 +321,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
   }, [dispatch, today, friendId]);
 
-  // Update checkbox states when budgets change
+  // Update selection states when budgets change
   useEffect(() => {
-    setCheckboxStates(budgets.map((budget) => budget.includeInBudget || false));
+    if (budgets && Array.isArray(budgets)) {
+      const initialSelection = {};
+      budgets.forEach((budget) => {
+        if (budget.includeInBudget) {
+          initialSelection[budget.id] = true;
+        }
+      });
+      setSelectedBudgetIds(initialSelection);
+    }
   }, [budgets]);
 
   // Set initial type based on salary date logic if dateFromQuery is present
@@ -400,9 +401,16 @@ const NewExpense = ({ onClose, onSuccess }) => {
     const amt = parseFloat(expenseData.amount) || 0;
     const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
 
-    const budgetIds = budgets
-      .filter((budget, index) => checkboxStates[index])
-      .map((budget) => budget.id);
+    const budgetIds = Object.keys(selectedBudgetIds)
+      .filter((id) => selectedBudgetIds[id])
+      // Ensure we're passing numbers if IDs are numbers, or strings if strings
+      .map((id) => {
+        // find original budget to get type of ID
+        const budget = budgets.find(
+          (b) => String(b.id) === String(id),
+        );
+        return budget ? budget.id : id;
+      });
 
     dispatch(
       createExpenseAction(
@@ -444,11 +452,21 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setShowTable(false);
   };
 
-  const handleCheckboxChange = (index) => {
-    setCheckboxStates((prev) =>
-      prev.map((state, i) => (i === index ? !state : state)),
-    );
+  const handleRowSelect = (row, checked) => {
+    setSelectedBudgetIds((prev) => ({
+      ...prev,
+      [row.id]: checked,
+    }));
   };
+
+  const handleSelectAll = (displayedRows, checked) => {
+    const newSelection = { ...selectedBudgetIds };
+    displayedRows.forEach((row) => {
+      newSelection[row.id] = checked;
+    });
+    setSelectedBudgetIds(newSelection);
+  };
+
   const renderInput = (id, type = "text", isTextarea = false) => {
     const labelText = getFieldLabel(id);
     const placeholderText = getPlaceholderForField(id, labelText);
@@ -1088,139 +1106,21 @@ const NewExpense = ({ onClose, onSuccess }) => {
     </div>
   );
 
-  const columns = useMemo(
+  const budgetColumns = useMemo(
     () => [
+      { key: "name", label: tableHeaders.name, width: "20%" },
+      { key: "description", label: tableHeaders.description, width: "25%" },
+      { key: "startDate", label: tableHeaders.startDate, width: "15%" },
+      { key: "endDate", label: tableHeaders.endDate, width: "15%" },
       {
-        header: tableHeaders.name,
-        accessorKey: "name",
-        size: 150,
+        key: "remainingAmount",
+        label: tableHeaders.remainingAmount,
+        width: "15%",
       },
-      {
-        header: tableHeaders.inBudget,
-        accessorKey: "includeInBudget",
-        size: 80,
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            checked={checkboxStates[row.index]}
-            onChange={() => handleCheckboxChange(row.index)}
-            className="h-5 w-5 border-gray-700 rounded"
-            style={{ accentColor: colors.primary_accent }}
-          />
-        ),
-      },
-      {
-        header: tableHeaders.description,
-        accessorKey: "description",
-        size: 200,
-      },
-      {
-        header: tableHeaders.startDate,
-        accessorKey: "startDate",
-        size: 120,
-      },
-      {
-        header: tableHeaders.endDate,
-        accessorKey: "endDate",
-        size: 120,
-      },
-      {
-        header: tableHeaders.remainingAmount,
-        accessorKey: "remainingAmount",
-        size: 120,
-      },
-      {
-        header: tableHeaders.amount,
-        accessorKey: "amount",
-        size: 100,
-      },
-    ],
-    [checkboxStates, tableHeaders],
-  );
-
-  // DataGrid columns for budgets
-  const dataGridColumns = useMemo(
-    () => [
-      { field: "name", headerName: tableHeaders.name, flex: 1, minWidth: 120 },
-      {
-        field: "description",
-        headerName: tableHeaders.description,
-        flex: 1,
-        minWidth: 120,
-      },
-      {
-        field: "startDate",
-        headerName: tableHeaders.startDate,
-        flex: 1,
-        minWidth: 100,
-      },
-      {
-        field: "endDate",
-        headerName: tableHeaders.endDate,
-        flex: 1,
-        minWidth: 100,
-      },
-      {
-        field: "remainingAmount",
-        headerName: tableHeaders.remainingAmount,
-        flex: 1,
-        minWidth: 120,
-      },
-      {
-        field: "amount",
-        headerName: tableHeaders.amount,
-        flex: 1,
-        minWidth: 100,
-      },
+      { key: "amount", label: tableHeaders.amount, width: "10%" },
     ],
     [tableHeaders],
   );
-
-  // DataGrid rows for budgets
-  const dataGridRows = Array.isArray(budgets)
-    ? budgets.map((item, index) => ({
-        ...item,
-        id: item.id ?? `temp-${index}-${Date.now()}`,
-      }))
-    : [];
-
-  // Map checkboxStates to DataGrid selection model
-  const selectedIds = dataGridRows
-    .filter((_, idx) => checkboxStates[idx])
-    .map((row) => row.id);
-
-  const handleDataGridSelection = (newSelection) => {
-    // Map DataGrid selection to checkboxStates
-    const newCheckboxStates = dataGridRows.map((row, idx) =>
-      newSelection.includes(row.id),
-    );
-    setCheckboxStates(newCheckboxStates);
-  };
-
-  const table = useReactTable({
-    data: budgets,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    pageCount: Math.ceil(budgets.length / pageSize),
-    state: {
-      pagination: { pageIndex, pageSize },
-    },
-    onPaginationChange: (updater) => {
-      const newState =
-        typeof updater === "function"
-          ? updater({ pageIndex, pageSize })
-          : updater;
-      setPageIndex(newState.pageIndex);
-      setPageSize(newState.pageSize);
-    },
-  });
-
-  const handlePageSizeChange = (e) => {
-    const newSize = Number(e.target.value);
-    setPageSize(newSize);
-    setPageIndex(0);
-  };
 
   // (Manual redirect effect removed in favor of generic hook)
 
@@ -1327,143 +1227,46 @@ const NewExpense = ({ onClose, onSuccess }) => {
           )}
         </div>
         {showTable && (
-          <div className="mt-4 sm:mt-6 w-full relative">
-            <div className="block sm:hidden space-y-4">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={handleCloseTable}
-                  aria-label={closeLabel}
-                  className="px-2 py-1 rounded"
-                  style={{
-                    backgroundColor: colors.active_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
-                  }}
-                >
-                  X
-                </button>
-              </div>
-              {budgets.length === 0 ? (
-                <div
-                  className="text-center py-8"
-                  style={{ color: colors.secondary_text }}
-                >
-                  {tableNoRowsText}
-                </div>
-              ) : (
-                budgets.map((row, index) => (
-                  <div
-                    key={row.id}
-                    className="rounded-lg p-4"
-                    style={{
-                      backgroundColor: colors.active_bg,
-                      border: `1px solid ${colors.border_color}`,
-                    }}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <span
-                        style={{ color: colors.primary_text }}
-                        className="font-semibold"
-                      >
-                        {row.name}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span
-                          style={{ color: colors.secondary_text }}
-                          className="text-sm"
-                        >
-                          {tableHeaders.inBudget}
-                        </span>
-                        <input
-                          type="checkbox"
-                          checked={checkboxStates[index]}
-                          onChange={() => handleCheckboxChange(index)}
-                          className="h-5 w-5 rounded"
-                          style={{ accentColor: colors.primary_accent }}
-                        />
-                      </div>
-                    </div>
-                    <div
-                      className="text-sm space-y-1"
-                      style={{ color: colors.secondary_text }}
-                    >
-                      <p>
-                        <span className="font-medium">
-                          {tableHeaders.description}:
-                        </span>{" "}
-                        {row.description}
-                      </p>
-                      <p>
-                        <span className="font-medium">
-                          {tableHeaders.startDate}:
-                        </span>{" "}
-                        {row.startDate}
-                      </p>
-                      <p>
-                        <span className="font-medium">
-                          {tableHeaders.endDate}:
-                        </span>{" "}
-                        {row.endDate}
-                      </p>
-                      <p>
-                        <span className="font-medium">
-                          {tableHeaders.remainingAmount}:
-                        </span>{" "}
-                        {row.remainingAmount}
-                      </p>
-                      <p>
-                        <span className="font-medium">
-                          {tableHeaders.amount}:
-                        </span>{" "}
-                        {row.amount}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="hidden sm:block">
-              <Box
-                sx={{
-                  height: 320,
-                  width: "100%",
-                  background: colors.active_bg,
-                  borderRadius: 2,
+          <div
+            className="mt-4 sm:mt-6 w-full relative"
+            style={{
+              "--pm-text-primary": colors.primary_text,
+              "--pm-text-secondary": colors.secondary_text,
+              "--pm-text-tertiary": colors.secondary_text,
+              "--pm-bg-primary": colors.active_bg,
+              "--pm-bg-secondary": colors.secondary_bg,
+              "--pm-border-color": colors.border_color,
+              "--pm-accent-color": colors.primary_accent,
+              "--pm-hover-bg": colors.hover_bg,
+              "--pm-scrollbar-thumb": colors.primary_accent,
+              "--pm-scrollbar-track": colors.secondary_bg,
+            }}
+          >
+            <div className="block sm:hidden flex justify-end mb-2">
+              <button
+                onClick={handleCloseTable}
+                aria-label={closeLabel}
+                className="px-2 py-1 rounded"
+                style={{
+                  backgroundColor: colors.active_bg,
+                  color: colors.primary_text,
                   border: `1px solid ${colors.border_color}`,
                 }}
               >
-                <DataGrid
-                  rows={dataGridRows}
-                  columns={dataGridColumns}
-                  getRowId={(row) => row.id}
-                  checkboxSelection
-                  disableRowSelectionOnClick
-                  selectionModel={selectedIds}
-                  onRowSelectionModelChange={handleDataGridSelection}
-                  pageSizeOptions={[5, 10, 20]}
-                  localeText={{ noRowsLabel: tableNoRowsText }}
-                  initialState={{
-                    pagination: {
-                      paginationModel: { page: 0, pageSize: pageSize },
-                    },
-                  }}
-                  rowHeight={41}
-                  headerHeight={32}
-                  sx={{
-                    color: colors.primary_text,
-                    border: 0,
-                    "& .MuiDataGrid-columnHeaders": {
-                      background: colors.hover_bg,
-                    },
-                    "& .MuiDataGrid-row": { background: colors.active_bg },
-                    "& .MuiCheckbox-root": {
-                      color: `${colors.primary_accent} !important`,
-                    },
-                    fontSize: "0.92rem",
-                  }}
-                />
-              </Box>
+                X
+              </button>
             </div>
+            <GroupedDataTable
+              rows={budgets}
+              columns={budgetColumns}
+              enableSelection={true}
+              selectedRows={selectedBudgetIds}
+              onRowSelect={handleRowSelect}
+              onSelectAll={handleSelectAll}
+              resolveRowKey={(row) => row.id}
+              className="w-full"
+              defaultPageSize={5}
+            />
           </div>
         )}
 

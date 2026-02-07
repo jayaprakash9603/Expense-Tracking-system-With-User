@@ -122,10 +122,12 @@
 }
 
 /* Table selection column */
-.pm-select-col,
-.pm-select-cell {
+.pm-expense-table th.pm-select-col,
+.pm-expense-table td.pm-select-cell {
   width: 36px;
   text-align: center;
+  padding: 0 4px; /* Reduced padding to fit checkbox */
+  text-overflow: clip; /* Prevent ellipsis dots */
 }
 .pm-select-checkbox {
   width: 16px;
