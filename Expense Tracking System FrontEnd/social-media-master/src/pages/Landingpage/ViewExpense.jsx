@@ -25,7 +25,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
-import CustomDataTable from "../../components/common/CustomDataTable";
+import CustomDataTable from "../../components/common/CustomDataTable/CustomDataTable";
 import ViewExpenseSkeleton from "../../components/skeletons/ViewExpenseSkeleton";
 import {
   getExpenseDetailedView,
