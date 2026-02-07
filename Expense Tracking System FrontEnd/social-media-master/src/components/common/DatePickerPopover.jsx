@@ -81,7 +81,7 @@ const DatePickerPopover = ({
               color: colors.primary_text,
               "&.Mui-selected": {
                 background: colors.primary_accent,
-                color: "#fff",
+                color: colors.button_text,
                 "&:hover": {
                   background: colors.primary_accent,
                 },

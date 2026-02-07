@@ -732,6 +732,32 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   max: dayjs().format("YYYY-MM-DD"),
                 },
               },
+              popper: {
+                sx: {
+                  "& .MuiPaper-root": {
+                    backgroundColor: colors.card_bg,
+                    color: colors.primary_text,
+                    border: `1px solid ${colors.border_color}`,
+                  },
+                  "& .MuiPickersDay-root": {
+                    color: colors.primary_text,
+                    "&:hover": { backgroundColor: colors.hover_bg },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
+                  },
+                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
+                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersYear-yearButton": {
+                    color: colors.primary_text,
+                    "&:hover": { backgroundColor: colors.hover_bg },
+                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                  },
+                },
+              },
             }}
             disableFuture
             format={dateFormat}
@@ -1269,7 +1295,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
             <button
               onClick={handleCloseTable}
               aria-label={closeLabel}
-              className="px-2 py-1 bg-[#29282b] text-white border border-gray-700 rounded hover:bg-[#3a3a3a] mt-2 sm:mt-0 hidden sm:block"
+              className="px-2 py-1 rounded mt-2 sm:mt-0 hidden sm:block"
+              style={{
+                backgroundColor: colors.active_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
+              }}
             >
               X
             </button>

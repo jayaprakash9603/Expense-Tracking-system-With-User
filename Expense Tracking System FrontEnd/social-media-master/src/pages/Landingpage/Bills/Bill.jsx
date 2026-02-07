@@ -268,8 +268,8 @@ const Bill = () => {
             severity={snackbar.severity}
             sx={{
               backgroundColor:
-                snackbar.severity === "success" ? "#14b8a6" : "#f44336",
-              color: "#fff",
+                snackbar.severity === "success" ? colors.success : colors.error,
+              color: colors.button_text,
             }}
           >
             {snackbar.message}

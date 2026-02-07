@@ -184,7 +184,7 @@ const MonthNavigator = ({
       gap: isSmallScreen ? 1 : 2,
     }}
   >
-    <IconButton onClick={onPrevMonth} sx={{ color: "#14b8a6" }}>
+    <IconButton onClick={onPrevMonth} sx={{ color: colors.primary_accent }}>
       <ArrowBackIcon />
     </IconButton>
 
@@ -198,7 +198,7 @@ const MonthNavigator = ({
           borderRadius: 2,
           color: colors.primary_text,
           ".MuiInputBase-input": { color: colors.primary_text },
-          ".MuiSvgIcon-root": { color: "#14b8a6" },
+          ".MuiSvgIcon-root": { color: colors.primary_accent },
           width: isSmallScreen ? "100%" : 140,
         }}
         slotProps={{
@@ -207,11 +207,33 @@ const MonthNavigator = ({
             variant: "outlined",
             sx: { color: colors.primary_text },
           },
+          popper: {
+            sx: {
+              "& .MuiPaper-root": {
+                backgroundColor: colors.card_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
+              },
+              "& .MuiPickersMonth-monthButton": {
+                color: colors.primary_text,
+                "&:hover": { backgroundColor: colors.hover_bg },
+                "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+              },
+              "& .MuiPickersYear-yearButton": {
+                color: colors.primary_text,
+                "&:hover": { backgroundColor: colors.hover_bg },
+                "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+              },
+              "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+              "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
+              "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+            },
+          },
         }}
       />
     </LocalizationProvider>
 
-    <IconButton onClick={onNextMonth} sx={{ color: "#14b8a6" }}>
+    <IconButton onClick={onNextMonth} sx={{ color: colors.primary_accent }}>
       <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
     </IconButton>
   </Box>

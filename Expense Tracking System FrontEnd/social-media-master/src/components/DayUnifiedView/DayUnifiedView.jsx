@@ -510,6 +510,32 @@ const DayUnifiedView = ({
                     variant: "outlined",
                     sx: { color: colors.primary_text },
                   },
+                  popper: {
+                    sx: {
+                      "& .MuiPaper-root": {
+                        backgroundColor: colors.card_bg,
+                        color: colors.primary_text,
+                        border: `1px solid ${colors.border_color}`,
+                      },
+                      "& .MuiPickersDay-root": {
+                        color: colors.primary_text,
+                        "&:hover": { backgroundColor: colors.hover_bg },
+                        "&.Mui-selected": {
+                          backgroundColor: colors.primary_accent,
+                          color: colors.button_text,
+                        },
+                      },
+                      "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+                      "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
+                      "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+                      "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                      "& .MuiPickersYear-yearButton": {
+                        color: colors.primary_text,
+                        "&:hover": { backgroundColor: colors.hover_bg },
+                        "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                      },
+                    },
+                  },
                 }}
                 disableFuture
                 format={dateFormat}

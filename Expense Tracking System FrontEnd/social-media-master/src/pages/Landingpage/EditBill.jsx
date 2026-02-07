@@ -761,7 +761,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 variant: "outlined",
                 error: errors.date,
                 sx: {
-                  color: "#fff",
+                  color: colors.primary_text,
                   height: 56,
                   minHeight: 56,
                   maxHeight: 56,
@@ -775,6 +775,32 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                   "& input": { height: 32, fontSize: 16 },
                 },
                 inputProps: { max: dayjs().format("YYYY-MM-DD") },
+              },
+              popper: {
+                sx: {
+                  "& .MuiPaper-root": {
+                    backgroundColor: colors.card_bg,
+                    color: colors.primary_text,
+                    border: `1px solid ${colors.border_color}`,
+                  },
+                  "& .MuiPickersDay-root": {
+                    color: colors.primary_text,
+                    "&:hover": { backgroundColor: colors.hover_bg },
+                    "&.Mui-selected": {
+                      backgroundColor: colors.primary_accent,
+                      color: colors.button_text,
+                    },
+                  },
+                  "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+                  "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
+                  "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+                  "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                  "& .MuiPickersYear-yearButton": {
+                    color: colors.primary_text,
+                    "&:hover": { backgroundColor: colors.hover_bg },
+                    "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                  },
+                },
               },
             }}
             disableFuture

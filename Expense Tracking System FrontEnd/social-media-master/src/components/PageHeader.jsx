@@ -25,8 +25,12 @@ const PageHeader = ({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="flex items-center justify-center w-9 h-9 text-[24px] font-bold rounded"
-              style={{ backgroundColor: colors.active_bg, color: "#00dac6" }}
+              className="flex items-center justify-center w-9 h-9 text-[24px] font-bold rounded transition-colors"
+              style={{ 
+                backgroundColor: colors.button_inactive, 
+                color: colors.primary_accent,
+                border: `1px solid ${colors.border_color}`,
+              }}
               aria-label="Close"
             >
               ×
