@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { Typography, Chip, IconButton, Tooltip } from "@mui/material";
@@ -25,7 +25,10 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
-import CustomDataTable from "../../components/common/CustomDataTable/CustomDataTable";
+import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
+import FilterPopover from "../../components/ui/FilterPopover";
+import { TextField, InputAdornment } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import ViewExpenseSkeleton from "../../components/skeletons/ViewExpenseSkeleton";
 import {
   getExpenseDetailedView,
@@ -66,6 +69,51 @@ const ViewExpense = () => {
 
   const { dateFormat } = useSelector((state) => state.userSettings || {});
   const displayDateFormat = dateFormat || "DD/MM/YYYY";
+
+  // --- Filtering State ---
+  const [search, setSearch] = useState("");
+  const [columnFilters, setColumnFilters] = useState({});
+  const [filterPopover, setFilterPopover] = useState(null);
+
+  const handleSearchChange = (e) => setSearch(e.target.value);
+
+  const handleFilterClick = (event, column) => {
+    setFilterPopover({
+      anchorEl: event.currentTarget,
+      column,
+    });
+  };
+
+  const handleFilterClose = () => setFilterPopover(null);
+
+  const handleFilterApply = (columnKey, value) => {
+    setColumnFilters((prev) => ({
+      ...prev,
+      [columnKey]: value,
+    }));
+    handleFilterClose();
+  };
+
+  const handleFilterClear = (columnKey) => {
+    setColumnFilters((prev) => {
+      const next = { ...prev };
+      delete next[columnKey];
+      return next;
+    });
+    handleFilterClose();
+  };
+
+  const detectColumnType = (column, rows) => {
+    if (column.filterType) return column.filterType;
+    if (column.key?.toLowerCase().includes("date")) return "date";
+    if (
+      column.key === "amount" ||
+      column.key === "usedAmount" ||
+      column.key === "percentageUsed"
+    )
+      return "number";
+    return "text";
+  };
 
   useEffect(() => {
     if (id) {
@@ -166,86 +214,119 @@ const ViewExpense = () => {
     return "#52c41a";
   };
 
-  // Budget table column definitions for CustomDataTable
+  // Budget table column definitions for GroupedDataTable
   const budgetTableColumns = useMemo(
     () => [
       {
-        field: "name",
+        key: "name",
         label: "Budget",
         sortable: true,
+        filterable: true,
         width: "18%",
-        tooltip: true,
-        bold: true,
+        render: (val) => (
+          <span style={{ fontWeight: "bold" }} title={val}>
+            {val}
+          </span>
+        ),
       },
       {
-        field: "description",
+        key: "description",
         label: "Description",
         sortable: true,
+        filterable: true,
         width: "22%",
-        tooltip: true,
-        getColor: () => colors?.secondary_text || "#888888",
+        render: (val) => (
+          <span
+            style={{ color: colors?.secondary_text || "#888888" }}
+            title={val}
+          >
+            {val}
+          </span>
+        ),
       },
       {
-        field: "startDate",
+        key: "startDate",
         label: "Start",
         sortable: true,
-        width: "12%",
+        filterable: true,
         sortType: "date",
-        render: (row) => formatDate(row.startDate),
+        width: "12%",
+        render: (val) => formatDate(val),
       },
       {
-        field: "endDate",
+        key: "endDate",
         label: "End",
         sortable: true,
-        width: "12%",
+        filterable: true,
         sortType: "date",
-        render: (row) => formatDate(row.endDate),
+        width: "12%",
+        render: (val) => formatDate(val),
       },
       {
-        field: "amount",
+        key: "amount",
         label: "Total",
         sortable: true,
+        filterable: true,
         width: "12%",
-        sortType: "number",
-        bold: true,
-        render: (row) => formatCurrency(row.amount),
+        render: (val) => (
+          <span style={{ fontWeight: "bold" }}>{formatCurrency(val)}</span>
+        ),
       },
       {
-        field: "usedAmount",
+        key: "usedAmount",
         label: "Used",
         sortable: true,
+        filterable: true,
         width: "12%",
-        sortType: "number",
-        bold: true,
-        getColor: (row) => getPercentageColor(row.percentageUsed || 0),
-        render: (row) => formatCurrency(row.usedAmount),
+        render: (val, row) => (
+          <span
+            style={{
+              fontWeight: "bold",
+              color: getPercentageColor(row.percentageUsed || 0),
+            }}
+          >
+            {formatCurrency(val)}
+          </span>
+        ),
       },
       {
-        field: "percentageUsed",
+        key: "percentageUsed",
         label: "%",
         sortable: true,
+        filterable: true,
         width: "6%",
-        sortType: "number",
-        bold: true,
-        getColor: (row) => getPercentageColor(row.percentageUsed || 0),
-        render: (row) => `${(row.percentageUsed || 0).toFixed(0)}%`,
+        render: (val) => (
+          <span
+            style={{ fontWeight: "bold", color: getPercentageColor(val || 0) }}
+          >
+            {(val || 0).toFixed(0)}%
+          </span>
+        ),
       },
       {
-        field: "status",
+        key: "status",
         label: "Status",
         sortable: true,
+        filterable: true,
         width: "10%",
-        render: (row, themeColors, fontSizes) => {
-          const statusStyle = getStatusStyle(row.status);
+        filterType: "select",
+        filterOptions: [
+          { value: "ACTIVE", label: "Active" },
+          { value: "WARNING", label: "Warning" },
+          { value: "EXCEEDED", label: "Exceeded" },
+          { value: "EXPIRED", label: "Expired" },
+        ],
+        render: (val, row) => {
+          const statusStyle = getStatusStyle(val);
           return (
             <Chip
-              label={row.status || "ACTIVE"}
+              label={val || "ACTIVE"}
               size="small"
               sx={{
                 backgroundColor: statusStyle.bg,
                 color: statusStyle.text,
                 fontWeight: "bold",
-                fontSize: fontSizes?.chip || "0.65rem",
+                fontSize: "0.65rem",
                 height: "20px",
                 "& .MuiChip-label": { padding: "0 8px" },
               }}
@@ -253,23 +334,65 @@ const ViewExpense = () => {
           );
         },
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [colors, displayDateFormat, formatDate, formatCurrency],
   );
 
-  // Budget filter configuration
-  const budgetFilterConfig = {
-    field: "status",
-    options: [
-      { value: "all", label: "All Status" },
-      { value: "ACTIVE", label: "Active" },
-      { value: "WARNING", label: "Warning" },
-      { value: "EXCEEDED", label: "Exceeded" },
-      { value: "EXPIRED", label: "Expired" },
-      { value: "CRITICAL", label: "Critical" },
-    ],
-  };
+  const filteredRows = useMemo(() => {
+    let rows = expenseDetailedView?.linkedBudgets || [];
+    rows = rows.map((b, i) => ({ ...b, id: b.id || `budget-${i}` }));
+
+    if (search) {
+      const lowerSearch = search.toLowerCase();
+      rows = rows.filter(
+        (row) =>
+          (row.name && row.name.toLowerCase().includes(lowerSearch)) ||
+          (row.description &&
+            row.description.toLowerCase().includes(lowerSearch)),
+      );
+    }
+
+    if (Object.keys(columnFilters).length > 0) {
+      rows = rows.filter((row) => {
+        return Object.entries(columnFilters).every(([key, filterVal]) => {
+          if (!filterVal && filterVal !== 0 && filterVal !== false) return true;
+          const colDef = budgetTableColumns.find((c) => c.key === key);
+          const val = colDef?.value ? colDef.value(row) : row[key];
+
+          if (val == null) return false;
+
+          if (filterVal.start || filterVal.end) {
+            const dateVal = dayjs(val);
+            if (!dateVal.isValid()) return false;
+            if (
+              filterVal.start &&
+              dateVal.isBefore(dayjs(filterVal.start), "day")
+            )
+              return false;
+            if (filterVal.end && dateVal.isAfter(dayjs(filterVal.end), "day"))
+              return false;
+            return true;
+          }
+
+          if (Array.isArray(filterVal)) {
+            if (filterVal.length === 0) return true;
+            return filterVal.includes(val);
+          }
+
+          return String(val)
+            .toLowerCase()
+            .includes(String(filterVal).toLowerCase());
+        });
+      });
+    }
+    return rows;
+  }, [
+    expenseDetailedView?.linkedBudgets,
+    search,
+    columnFilters,
+    budgetTableColumns,
+  ]);
 
   // Loading state with Skeleton
   if (expenseDetailedViewLoading) {
@@ -1268,6 +1391,16 @@ const ViewExpense = () => {
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
+              // CSS Variables for GroupedDataTable themes
+              "--pm-text-primary": colors.primary_text,
+              "--pm-text-secondary": colors.secondary_text,
+              "--pm-text-tertiary": colors.secondary_text,
+              "--pm-bg-primary": colors.primary_bg,
+              "--pm-bg-secondary": colors.secondary_bg,
+              "--pm-border-color": colors.border_color,
+              "--pm-accent-color": "#00dac6",
+              "--pm-scrollbar-thumb": "#00dac6",
+              "--pm-scrollbar-track": colors.secondary_bg,
             }}
           >
             {/* Header with title and badge */}
@@ -1300,22 +1433,54 @@ const ViewExpense = () => {
               )}
             </div>
 
-            {/* CustomDataTable for Linked Budgets */}
-            <CustomDataTable
-              data={linkedBudgets?.map((b, i) => ({
-                ...b,
-                id: b.id || `budget-${i}`,
-              }))}
+            {/* Toolbar for GroupedDataTable */}
+            <div className="flex items-center justify-between mb-3 px-1">
+              <TextField
+                placeholder="Search budgets..."
+                size="small"
+                value={search}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon
+                        fontSize="small"
+                        sx={{ color: colors.secondary_text }}
+                      />
+                    </InputAdornment>
+                  ),
+                  sx: {
+                    borderRadius: "8px",
+                    backgroundColor: colors.secondary_bg,
+                    fontSize: "0.85rem",
+                    height: "36px",
+                    "& fieldset": { borderColor: colors.border_color },
+                  },
+                }}
+                sx={{ width: 220 }}
+              />
+            </div>
+
+            {/* GroupedDataTable for Linked Budgets */}
+            <GroupedDataTable
+              rows={filteredRows}
               columns={budgetTableColumns}
-              searchPlaceholder="Search budgets..."
-              searchFields={["name", "description"]}
-              filterConfig={budgetFilterConfig}
-              rowsPerPage={5}
-              emptyMessage="Not linked to any budget"
-              noMatchMessage="No budgets match your filters"
-              accentColor="#00dac6"
-              fontSize="medium"
-              padding="compact"
+              defaultPageSize={5}
+              pageSizeOptions={[5, 10, 20]}
+              onFilterClick={handleFilterClick}
+              columnFilters={columnFilters}
+              className="pm-table-container"
+            />
+
+            {/* Filter Popover Helper */}
+            <FilterPopover
+              open={Boolean(filterPopover)}
+              anchorEl={filterPopover?.anchorEl}
+              onClose={handleFilterClose}
+              column={filterPopover?.column}
+              onApply={handleFilterApply}
+              onClear={handleFilterClear}
+              currentValue={columnFilters[filterPopover?.column?.key]}
             />
           </div>
         </div>
