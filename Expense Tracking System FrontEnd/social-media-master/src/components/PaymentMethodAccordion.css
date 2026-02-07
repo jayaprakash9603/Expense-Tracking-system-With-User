@@ -596,7 +596,7 @@
 }
 .pm-expense-table tbody tr.pm-filler-row td {
   background: transparent;
-  border-bottom: 1px solid var(--pm-border-color);
+  border-bottom: none;
 }
 .pm-expense-table th {
   background: var(--pm-bg-secondary);
