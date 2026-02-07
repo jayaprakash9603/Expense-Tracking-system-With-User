@@ -11,6 +11,7 @@ const DEFAULT_SELECTED_ROWS = {};
 const GroupedDataTable = ({
   rows = [],
   columns = [],
+  showPagination = true,
   // Sorting (Controlled)
   sort = DEFAULT_SORT,
   onSortChange,
@@ -160,7 +161,7 @@ const GroupedDataTable = ({
   const effectiveRows = pageSlice.length + (pageSlice.length === 0 ? 1 : 0);
   const fillerRowsCount =
     !useScroll && effectiveRows < pageSize ? pageSize - effectiveRows : 0;
-  const showPagination = totalFiltered > 5; // configurable?
+  const selectedCount = Object.values(selectedRows).filter(Boolean).length;
 
   return (
     <div className={`pm-table-container ${className}`}>
@@ -382,8 +383,21 @@ const GroupedDataTable = ({
       </div>
 
       {showPagination && (
-        <div className="pm-pagination-bar bottom">
-          <div className="pm-page-controls pm-centered">
+        <div className="pm-pagination-bar bottom" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {enableSelection && selectedCount > 0 && (
+            <div
+              className="pm-selection-count"
+              style={{
+                fontSize: "14px",
+                color: "var(--pm-primary-accent, #00dac6)",
+                fontWeight: "500",
+                marginLeft: "16px",
+              }}
+            >
+              {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
+            </div>
+          )}
+          <div className="pm-page-controls pm-centered" style={{ flex: 1, display: 'flex', justifySelf: 'center' }}>
             <button
               type="button"
               className="pm-page-btn"

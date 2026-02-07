@@ -1,10 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
-import {
   editMultipleExpenseAction,
   fetchExpenses,
   getExpensesByBudget,
@@ -16,7 +11,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
-import { DataGrid } from "@mui/x-data-grid";
 import { Box, TextField } from "@mui/material";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -25,6 +19,9 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import PageHeader from "../../components/PageHeader";
 import { useTranslation } from "../../hooks/useTranslation";
+import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
+import { useExpenseTableConfig } from "../../hooks/useExpenseTableConfig";
+import { FilterPopover } from "../../components/ui";
 
 const EditBudget = () => {
   const { colors } = useTheme();
@@ -52,6 +49,8 @@ const EditBudget = () => {
   const [showTable, setShowTable] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const { budget, error: budgetError } = useSelector((state) => state.budgets);
+  const { error: expenseError } = useSelector((state) => state.expenses);
   const rawExpenses = useSelector((state) => state.expenses.expenses);
   // Defensive: some responses may return an object keyed by date or null; normalize to flat array
   const expenses = useMemo(() => {
@@ -63,11 +62,48 @@ const EditBudget = () => {
     }
     return [];
   }, [rawExpenses]);
-  const expenseError = useSelector((state) => state.expenses.error);
-  const { budget, error: budgetError } = useSelector((state) => state.budgets);
-  const [checkboxStates, setCheckboxStates] = useState([]);
+  const [selectedExpenseIds, setSelectedExpenseIds] = useState({});
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (id) {
+      dispatch(getBudgetById(id));
+    }
+  }, [id, dispatch]);
+
+  // GroupedDataTable Configuration
+  const {
+    columns: expenseColumns,
+    filteredRows,
+    sort,
+    setSort,
+    columnFilters,
+    setColumnFilters,
+  } = useExpenseTableConfig(expenses, t);
+
+  // Filter Popover State
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+
+  const handleFilterClick = (e, column) => {
+    setFilterAnchorEl(e.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+    setFilterColumn(null);
+  };
+
+  const handleFilterApply = (filterData) => {
+    if (filterColumn) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [filterColumn.key]: filterData,
+      }));
+    }
+  };
 
   const inputWrapper = {
     width: "150px",
@@ -87,7 +123,7 @@ const EditBudget = () => {
       endDate: t("editBudget.fields.endDate"),
       amount: t("editBudget.fields.amount"),
     }),
-    [t]
+    [t],
   );
 
   const fieldPlaceholders = useMemo(
@@ -98,7 +134,7 @@ const EditBudget = () => {
       endDate: t("editBudget.placeholders.endDate"),
       amount: t("editBudget.placeholders.amount"),
     }),
-    [t]
+    [t],
   );
 
   const validationMessages = useMemo(
@@ -109,20 +145,7 @@ const EditBudget = () => {
       endDate: t("editBudget.validation.endDate"),
       amount: t("editBudget.validation.amount"),
     }),
-    [t]
-  );
-
-  const tableHeaders = useMemo(
-    () => ({
-      date: t("editBudget.table.headers.date"),
-      expenseName: t("editBudget.table.headers.expenseName"),
-      amount: t("editBudget.table.headers.amount"),
-      paymentMethod: t("editBudget.table.headers.paymentMethod"),
-      type: t("editBudget.table.headers.type"),
-      comments: t("editBudget.table.headers.comments"),
-      inBudget: t("editBudget.table.headers.inBudget"),
-    }),
-    [t]
+    [t],
   );
 
   const requiredFields = [
@@ -143,7 +166,7 @@ const EditBudget = () => {
 
   const getFieldLabel = useCallback(
     (fieldId) => fieldLabels[fieldId] || formatLabelFromId(fieldId),
-    [fieldLabels, formatLabelFromId]
+    [fieldLabels, formatLabelFromId],
   );
 
   const getPlaceholderForField = useCallback(
@@ -152,7 +175,7 @@ const EditBudget = () => {
       t("editBudget.placeholders.generic", {
         field: fallbackLabel || formatLabelFromId(fieldId),
       }),
-    [fieldPlaceholders, formatLabelFromId, t]
+    [fieldPlaceholders, formatLabelFromId, t],
   );
 
   const tableNoRowsLabel = t("editBudget.table.noRows");
@@ -195,24 +218,30 @@ const EditBudget = () => {
         "start date: ",
         budget.startDate,
         "end date: ",
-        budget.endDate
+        budget.endDate,
       );
       dispatch(
         getExpensesByBudget(
           id,
           budget.startDate,
           budget.endDate,
-          friendId || ""
-        )
+          friendId || "",
+        ),
       );
     }
   }, [budget, id, dispatch, today]);
 
-  // Checkbox state for 'In Budget' column
+  // Checkbox state initialization for 'In Budget' column
   useEffect(() => {
-    setCheckboxStates(
-      expenses.map((expense) => expense.includeInBudget || false)
-    );
+    if (expenses && expenses.length > 0) {
+      const initialSelection = {};
+      expenses.forEach((expense) => {
+        if (expense.includeInBudget) {
+          initialSelection[expense.id] = true;
+        }
+      });
+      setSelectedExpenseIds(initialSelection);
+    }
   }, [expenses]);
 
   const handleInputChange = (e) => {
@@ -225,8 +254,8 @@ const EditBudget = () => {
             id,
             updatedFormData.startDate,
             updatedFormData.endDate,
-            friendId || ""
-          )
+            friendId || "",
+          ),
         );
       }
       return updatedFormData;
@@ -255,9 +284,9 @@ const EditBudget = () => {
     setIsSubmitting(true);
     try {
       // Collect expense IDs where includeInBudget is checked
-      const expenseIds = expenses
-        .filter((expense, index) => checkboxStates[index])
-        .map((expense) => expense.id);
+      const expenseIds = Object.keys(selectedExpenseIds)
+        .filter((id) => selectedExpenseIds[id])
+        .map((id) => Number(id));
 
       const budgetData = {
         id,
@@ -269,14 +298,9 @@ const EditBudget = () => {
         expenseIds: expenseIds,
       };
 
-      const updatedExpenses = expenses.map((expense, index) => ({
-        ...expense,
-        includeInBudget: checkboxStates[index],
-      }));
-
       console.log("Submitting budget data:", budgetData);
       await dispatch(
-        editBudgetAction(budgetData.id, budgetData, friendId || "")
+        editBudgetAction(budgetData.id, budgetData, friendId || ""),
       );
       // if (updatedExpenses.length > 0) {
       //   await dispatch(editMultipleExpenseAction(updatedExpenses));
@@ -298,8 +322,8 @@ const EditBudget = () => {
         id,
         formData.startDate,
         formData.endDate,
-        friendId || ""
-      )
+        friendId || "",
+      ),
     );
   };
 
@@ -311,165 +335,24 @@ const EditBudget = () => {
     navigate(-1);
   };
 
-  const handleCheckboxChange = (index) => {
-    setCheckboxStates((prev) =>
-      prev.map((state, i) => (i === index ? !state : state))
-    );
+  const handleRowSelect = (id) => {
+    setSelectedExpenseIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
-  // DataGrid columns for desktop
-  const dataGridColumns = [
-    {
-      field: "includeInBudget",
-      headerName: (
-        <input
-          type="checkbox"
-          checked={checkboxStates.length > 0 && checkboxStates.every(Boolean)}
-          ref={(el) => {
-            if (el) {
-              el.indeterminate =
-                checkboxStates.some(Boolean) && !checkboxStates.every(Boolean);
-            }
-          }}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setCheckboxStates(Array(expenses.length).fill(checked));
-          }}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
-        />
-      ),
-      flex: 0.25,
-      minWidth: 40,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: (params) => (
-        <input
-          type="checkbox"
-          checked={checkboxStates[params.row.index]}
-          onChange={() => handleCheckboxChange(params.row.index)}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0" }}
-        />
-      ),
-    },
-    { field: "date", headerName: tableHeaders.date, flex: 0.5, minWidth: 60 },
-    {
-      field: "expenseName",
-      headerName: tableHeaders.expenseName,
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      field: "amount",
-      headerName: tableHeaders.amount,
-      flex: 0.4,
-      minWidth: 50,
-    },
-    {
-      field: "paymentMethod",
-      headerName: tableHeaders.paymentMethod,
-      flex: 0.7,
-      minWidth: 80,
-    },
-    { field: "type", headerName: tableHeaders.type, flex: 0.4, minWidth: 50 },
-    {
-      field: "comments",
-      headerName: tableHeaders.comments,
-      flex: 2,
-      minWidth: 200,
-    },
-  ];
-
-  // DataGrid rows
-  const dataGridRows = Array.isArray(expenses)
-    ? expenses.map((item, index) => ({
-        ...item,
-        index,
-        id: item.id ?? `temp-${index}-${Date.now()}`,
-        expenseName: item.expense?.expenseName || "",
-        amount: item.expense?.amount || "",
-        paymentMethod: item.expense?.paymentMethod || "",
-        type: item.expense?.type || "",
-        comments: item.expense?.comments || "",
-        includeInBudget: checkboxStates[index],
-      }))
-    : [];
-
-  // Table columns for mobile view
-  const columns = useMemo(
-    () => [
-      {
-        header: tableHeaders.date,
-        accessorKey: "date",
-        size: 120,
-      },
-      {
-        header: tableHeaders.inBudget,
-        accessorKey: "includeInBudget",
-        size: 80,
-        cell: ({ row }) => (
-          <input
-            type="checkbox"
-            checked={checkboxStates[row.index]}
-            onChange={() => handleCheckboxChange(row.index)}
-            className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
-          />
-        ),
-      },
-      {
-        header: tableHeaders.expenseName,
-        accessorKey: "expense.expenseName",
-        size: 150,
-      },
-      {
-        header: tableHeaders.amount,
-        accessorKey: "expense.amount",
-        size: 80,
-      },
-      {
-        header: tableHeaders.paymentMethod,
-        accessorKey: "expense.paymentMethod",
-        size: 120,
-      },
-      {
-        header: tableHeaders.type,
-        accessorKey: "expense.type",
-        size: 80,
-      },
-      {
-        header: tableHeaders.comments,
-        accessorKey: "expense.comments",
-        size: 200,
-      },
-    ],
-    [checkboxStates, tableHeaders]
-  );
-
-  const table = useReactTable({
-    data: expenses,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    pageCount: Math.ceil(expenses.length / pageSize),
-    state: {
-      pagination: { pageIndex, pageSize },
-    },
-    onPaginationChange: (updater) => {
-      const newState =
-        typeof updater === "function"
-          ? updater({ pageIndex, pageSize })
-          : updater;
-      setPageIndex(newState.pageIndex);
-      setPageSize(newState.pageSize);
-    },
-  });
-
-  const handlePageSizeChange = (e) => {
-    const newSize = Number(e.target.value);
-    setPageSize(newSize);
-    setPageIndex(0);
+  const handleSelectAll = (e) => {
+    const checked = e.target.checked;
+    if (checked) {
+      const allIds = {};
+      expenses.forEach((expense) => {
+        allIds[expense.id] = true;
+      });
+      setSelectedExpenseIds(allIds);
+    } else {
+      setSelectedExpenseIds({});
+    }
   };
 
   // Render input function with MUI TextField
@@ -577,8 +460,8 @@ const EditBudget = () => {
                           id === "endDate"
                             ? formatted
                             : updatedFormData.endDate,
-                          friendId || ""
-                        )
+                          friendId || "",
+                        ),
                       );
                     }
                     return updatedFormData;
@@ -639,14 +522,25 @@ const EditBudget = () => {
                         color: colors.button_text,
                       },
                     },
-                    "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                    "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                    "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                    "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
+                    "& .MuiPickersCalendarHeader-label": {
+                      color: colors.primary_text,
+                    },
+                    "& .MuiPickersCalendarHeader-switchViewButton": {
+                      color: colors.primary_accent,
+                    },
+                    "& .MuiPickersArrowSwitcher-button": {
+                      color: colors.primary_accent,
+                    },
+                    "& .MuiDayCalendar-weekDayLabel": {
+                      color: colors.icon_muted,
+                    },
                     "& .MuiPickersYear-yearButton": {
                       color: colors.primary_text,
                       "&:hover": { backgroundColor: colors.hover_bg },
-                      "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
+                      "&.Mui-selected": {
+                        backgroundColor: colors.primary_accent,
+                        color: colors.button_text,
+                      },
                     },
                   },
                 },
@@ -832,168 +726,49 @@ const EditBudget = () => {
           </div>
           {showTable && (
             <div className="mt-4 sm:mt-6 w-full relative">
-              <div className="block sm:hidden space-y-4">
-                <div className="flex justify-end mb-2">
-                  <button
-                    onClick={handleCloseTable}
-                    className="px-2 py-1 border rounded"
-                    style={{
-                      backgroundColor: colors.active_bg,
-                      color: colors.primary_text,
-                      borderColor: colors.border_color,
-                      whiteSpace: "nowrap",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = colors.hover_bg)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = colors.active_bg)
-                    }
-                  >
-                    {closeLabel}
-                  </button>
-                </div>
-                {!Array.isArray(expenses) || expenses.length === 0 ? (
-                  <div
-                    className="text-center py-8"
-                    style={{ color: colors.icon_muted }}
-                  >
-                    {tableNoRowsLabel}
-                  </div>
-                ) : (
-                  table.getRowModel().rows.map((row) => (
-                    <div
-                      key={row.id}
-                      className="border rounded-lg p-4"
-                      style={{
-                        backgroundColor: colors.active_bg,
-                        borderColor: colors.border_color,
-                      }}
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <span
-                          className="font-semibold"
-                          style={{ color: colors.primary_text }}
-                        >
-                          {row.original.expense.expenseName}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="text-sm"
-                            style={{ color: colors.secondary_text }}
-                          >
-                            {tableHeaders.inBudget}
-                          </span>
-                          <input
-                            type="checkbox"
-                            checked={checkboxStates[row.index]}
-                            onChange={() => handleCheckboxChange(row.index)}
-                            className="h-5 w-5 rounded focus:ring-[#00dac6]"
-                            style={{
-                              accentColor: colors.primary_accent,
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div
-                        className="text-sm space-y-1"
-                        style={{ color: colors.secondary_text }}
-                      >
-                        <p>
-                          <span className="font-medium">
-                            {tableHeaders.date}:
-                          </span>{" "}
-                          {row.original.date}
-                        </p>
-                        <p>
-                          <span className="font-medium">
-                            {tableHeaders.amount}:
-                          </span>{" "}
-                          {row.original.expense.amount}
-                        </p>
-                        <p>
-                          <span className="font-medium">
-                            {tableHeaders.paymentMethod}:
-                          </span>{" "}
-                          {row.original.expense.paymentMethod}
-                        </p>
-                        <p>
-                          <span className="font-medium">
-                            {tableHeaders.type}:
-                          </span>{" "}
-                          {row.original.expense.type}
-                        </p>
-                        <p>
-                          <span className="font-medium">
-                            {tableHeaders.comments}:
-                          </span>{" "}
-                          {row.original.expense.comments || notAvailableLabel}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-              <div className="hidden sm:block">
-                <Box
-                  sx={{
-                    height: 340,
-                    width: "100%",
-                    background: colors.active_bg,
-                    borderRadius: 2,
-                    border: `1px solid ${colors.border_color}`,
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={handleCloseTable}
+                  className="px-2 py-1 border rounded"
+                  style={{
+                    backgroundColor: colors.active_bg,
+                    color: colors.primary_text,
+                    borderColor: colors.border_color,
+                    whiteSpace: "nowrap",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
+                  onMouseEnter={(e) =>
+                    (e.target.style.backgroundColor = colors.hover_bg)
+                  }
+                  onMouseLeave={(e) =>
+                    (e.target.style.backgroundColor = colors.active_bg)
+                  }
                 >
-                  <DataGrid
-                    rows={dataGridRows}
-                    columns={dataGridColumns}
-                    getRowId={(row) => row.id}
-                    disableRowSelectionOnClick
-                    pageSizeOptions={[5, 10, 20]}
-                    initialState={{
-                      pagination: {
-                        paginationModel: { page: 0, pageSize: pageSize },
-                      },
-                    }}
-                    rowHeight={45}
-                    headerHeight={32}
-                    localeText={{
-                      noRowsLabel: tableNoRowsLabel,
-                    }}
-                    sx={{
-                      color: colors.primary_text,
-                      border: 0,
-                      "& .MuiDataGrid-columnHeaders": {
-                        background: colors.hover_bg,
-                        color: colors.primary_text,
-                      },
-                      "& .MuiDataGrid-row": {
-                        background: colors.active_bg,
-                        "&:hover": {
-                          backgroundColor: colors.hover_bg,
-                        },
-                      },
-                      "& .MuiDataGrid-cell": {
-                        borderColor: colors.border_color,
-                      },
-                      "& .MuiCheckbox-root": {
-                        color: `${colors.primary_accent} !important`,
-                      },
-                      "& .MuiDataGrid-footerContainer": {
-                        backgroundColor: colors.secondary_bg,
-                        borderColor: colors.border_color,
-                      },
-                      "& .MuiTablePagination-root": {
-                        color: colors.primary_text,
-                      },
-                      fontSize: "0.92rem",
-                    }}
-                  />
-                </Box>
+                  {closeLabel}
+                </button>
               </div>
+              <GroupedDataTable
+                rows={filteredRows}
+                columns={expenseColumns}
+                sort={sort}
+                onSortChange={setSort}
+                enableSelection={true}
+                selectedRows={selectedExpenseIds}
+                onRowSelect={handleRowSelect}
+                onSelectAll={handleSelectAll}
+                columnFilters={columnFilters}
+                onFilterClick={handleFilterClick}
+                activeTab="all"
+              />
+              <FilterPopover
+                anchorEl={filterAnchorEl}
+                open={Boolean(filterAnchorEl)}
+                onClose={handleFilterClose}
+                onApply={handleFilterApply}
+                columnKey={filterColumn?.key}
+              />
             </div>
           )}
         </div>
