@@ -1,4 +1,6 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import FilterPopover from "./ui/FilterPopover";
 import "./PaymentMethodAccordion.css";
 import { formatAmount as fmt } from "../utils/formatAmount";
 import useUserSettings from "../hooks/useUserSettings";
@@ -110,6 +112,48 @@ export function GenericAccordionGroup({
   });
   const [rowSearchByGroup, setRowSearchByGroup] = useState({});
   const [rowSortUiByGroup, setRowSortUiByGroup] = useState({});
+
+  // Column filtering state
+  const [columnFilters, setColumnFilters] = useState({});
+  const [filterPopover, setFilterPopover] = useState({
+    open: false,
+    anchorEl: null,
+    column: null,
+  });
+
+  const handleFilterClick = (e, col) => {
+    e.stopPropagation();
+    setFilterPopover({
+      open: true,
+      anchorEl: e.currentTarget,
+      column: col,
+    });
+  };
+
+  const handleFilterClose = () => {
+    setFilterPopover((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleFilterApply = ({ operator, value }) => {
+    const colKey = filterPopover.column?.key;
+    if (colKey) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [colKey]: { operator, value },
+      }));
+    }
+  };
+
+  const handleFilterClear = () => {
+    const colKey = filterPopover.column?.key;
+    if (colKey) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[colKey];
+        return next;
+      });
+    }
+  };
 
   const groupSearchOptions = useMemo(() => {
     if (!enableGroupSearch) return [];
@@ -470,12 +514,44 @@ export function GenericAccordionGroup({
             return false;
           });
 
+          // Apply column filters
+          const columnFiltered = appliedFiltered.filter((row) => {
+            return Object.entries(columnFilters).every(([key, filter]) => {
+              if (!filter?.value) return true;
+              const colDef = columns?.find((c) => c.key === key);
+              if (!colDef) return true;
+
+              const cellVal = colDef.value
+                ? colDef.value(row)
+                : row.details?.[colDef.key] ?? row[colDef.key];
+
+              if (filter.operator === "gt" || filter.operator === "lt") {
+                const numVal = Number(cellVal ?? 0);
+                const filterNum = Number(filter.value);
+                if (filter.operator === "gt") return numVal > filterNum;
+                if (filter.operator === "lt") return numVal < filterNum;
+              }
+
+              const valStr = String(cellVal ?? "").toLowerCase();
+              const filterVal = String(filter.value).toLowerCase();
+
+              if (filter.operator === "equals") return valStr === filterVal;
+              if (filter.operator === "startsWith")
+                return valStr.startsWith(filterVal);
+              if (filter.operator === "endsWith")
+                return valStr.endsWith(filterVal);
+              if (filter.operator === "neq") return valStr !== filterVal;
+
+              return valStr.includes(filterVal);
+            });
+          });
+
           const rowSearch = String(rowSearchByGroup[groupKey] || "")
             .trim()
             .toLowerCase();
           const searched =
             enableRowSearch && rowSearch
-              ? appliedFiltered.filter((row) => {
+              ? columnFiltered.filter((row) => {
                   // Use columns as primary search surface; fallback to stringified row
                   const parts = [];
                   (columns || []).forEach((col) => {
@@ -926,37 +1002,81 @@ export function GenericAccordionGroup({
                                       : "descending"
                                 }
                               >
-                                <button
-                                  type="button"
-                                  className="pm-sort-button"
-                                  onClick={() => {
-                                    const nd = nextDirection();
-                                    setSortByGroupKey((prev) => {
-                                      const copy = { ...prev };
-                                      if (nd === "none") delete copy[groupKey];
-                                      else
-                                        copy[groupKey] = {
-                                          key: col.key,
-                                          direction: nd,
-                                        };
-                                      return copy;
-                                    });
-                                    setPageByGroupKey((prev) => ({
-                                      ...prev,
-                                      [groupKey]: 1,
-                                    }));
+                                <div
+                                  className="pm-th-content"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    width: "100%",
                                   }}
-                                  aria-label={`Sort by ${col.label}`}
                                 >
-                                  <span className="pm-sort-label">
-                                    {col.label}
-                                    <span
-                                      className={`pm-sort-icon ${direction}`}
-                                    >
-                                      {icon}
+                                  <button
+                                    type="button"
+                                    className="pm-sort-button"
+                                    style={{
+                                      flex: 1,
+                                      justifyContent: "flex-start",
+                                    }}
+                                    onClick={() => {
+                                      const nd = nextDirection();
+                                      setSortByGroupKey((prev) => {
+                                        const copy = { ...prev };
+                                        if (nd === "none")
+                                          delete copy[groupKey];
+                                        else
+                                          copy[groupKey] = {
+                                            key: col.key,
+                                            direction: nd,
+                                          };
+                                        return copy;
+                                      });
+                                      setPageByGroupKey((prev) => ({
+                                        ...prev,
+                                        [groupKey]: 1,
+                                      }));
+                                    }}
+                                    aria-label={`Sort by ${col.label}`}
+                                  >
+                                    <span className="pm-sort-label">
+                                      {col.label}
+                                      <span
+                                        className={`pm-sort-icon ${direction}`}
+                                      >
+                                        {icon}
+                                      </span>
                                     </span>
-                                  </span>
-                                </button>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleFilterClick(e, col)}
+                                    className={`pm-filter-trigger ${
+                                      columnFilters[col.key] ? "active" : ""
+                                    }`}
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      padding: "4px",
+                                      color: columnFilters[col.key]
+                                        ? "var(--pm-accent-color)"
+                                        : "var(--pm-text-secondary)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      opacity: 0.7,
+                                      transition: "all 0.2s",
+                                    }}
+                                    onMouseEnter={(e) =>
+                                      (e.currentTarget.style.opacity = 1)
+                                    }
+                                    onMouseLeave={(e) =>
+                                      (e.currentTarget.style.opacity = 0.7)
+                                    }
+                                    aria-label={`Filter by ${col.label}`}
+                                  >
+                                    <FilterListIcon sx={{ fontSize: 16 }} />
+                                  </button>
+                                </div>
                               </th>
                             );
                           })}
@@ -1205,6 +1325,18 @@ export function GenericAccordionGroup({
             </label>
           </div>
         </div>
+      )}
+      {filterPopover.open && (
+        <FilterPopover
+          open={filterPopover.open}
+          anchorEl={filterPopover.anchorEl}
+          column={filterPopover.column}
+          initialOperator={columnFilters[filterPopover.column?.key]?.operator}
+          initialValue={columnFilters[filterPopover.column?.key]?.value}
+          onClose={handleFilterClose}
+          onApply={handleFilterApply}
+          onClear={handleFilterClear}
+        />
       )}
     </div>
   );
