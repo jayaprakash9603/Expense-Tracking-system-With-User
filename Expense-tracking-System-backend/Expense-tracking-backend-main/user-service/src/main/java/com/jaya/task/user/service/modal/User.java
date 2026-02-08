@@ -39,20 +39,16 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    
     @Column(name = "auth_provider")
     private String authProvider = "LOCAL";
 
-    
     @Column(name = "provider_id")
     private String providerId;
 
-    
     @Column(name = "oauth_profile_image")
     private String oauthProfileImage;
 
@@ -96,40 +92,22 @@ public class User {
 
     @Pattern(regexp = "^(USER|ADMIN)$", message = "Current mode must be USER or ADMIN")
     @Column(name = "current_mode")
-    private String currentMode = "USER"; 
+    private String currentMode = "USER";
+
+    @Column(name = "is_tour_completed")
+    private Boolean isTourCompleted = false;
 
     @Column(name = "two_factor_enabled", nullable = false)
     private boolean twoFactorEnabled = false;
 
-    
-    
-    
-
-    
-
-
-
     @Column(name = "mfa_enabled", nullable = false)
     private boolean mfaEnabled = false;
-
-    
-
-
-
 
     @Column(name = "mfa_secret", length = 512)
     private String mfaSecret;
 
-    
-
-
-
-
     @Column(name = "mfa_backup_codes", columnDefinition = "TEXT")
     private String mfaBackupCodes;
-
-    
-
 
     @Column(name = "mfa_enabled_at")
     private LocalDateTime mfaEnabledAt;
@@ -151,7 +129,6 @@ public class User {
             roles = new HashSet<>();
         }
 
-        
         if (currentMode == null || currentMode.trim().isEmpty()) {
             currentMode = "USER";
         }
@@ -161,8 +138,6 @@ public class User {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-
-    
 
     public void addRole(String roleName) {
         if (roleName != null) {
@@ -183,12 +158,10 @@ public class User {
 
         String temp = roleName.toUpperCase().trim();
 
-        
         if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(temp))) {
             return true;
         }
 
-        
         if (!temp.startsWith("ROLE_")) {
             String withPrefix = "ROLE_" + temp;
             if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(withPrefix))) {
@@ -196,7 +169,6 @@ public class User {
             }
         }
 
-        
         if (temp.startsWith("ROLE_")) {
             String withoutPrefix = temp.substring(5);
             if (roles.stream().anyMatch(r -> r.equalsIgnoreCase(withoutPrefix))) {

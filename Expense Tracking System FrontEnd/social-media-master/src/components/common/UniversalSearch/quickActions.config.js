@@ -79,6 +79,28 @@ export const SECTION_LABELS = {
  * These are hardcoded and don't require backend search
  */
 export const QUICK_ACTIONS = [
+  // Tour Guide
+  {
+    id: "restart-tour",
+    type: SEARCH_TYPES.ACTION,
+    section: "actions",
+    title: "Restart Tour",
+    titleKey: "search.actions.restartTour",
+    subtitle: "View the application walkthrough again",
+    subtitleKey: "search.actions.restartTourDesc",
+    route: "#action:restartTour",
+    icon: "🚶",
+    keywords: [
+      "restart",
+      "tour",
+      "guide",
+      "walkthrough",
+      "help",
+      "tutorial",
+      "onboarding",
+    ],
+    priority: 10,
+  },
   // Expense Actions
   {
     id: "create-expense",

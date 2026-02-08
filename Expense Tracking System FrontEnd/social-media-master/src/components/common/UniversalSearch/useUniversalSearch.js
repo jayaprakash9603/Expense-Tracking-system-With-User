@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { updateProfileAction } from "../../../Redux/Auth/auth.action";
 import { api } from "../../../config/api";
 import {
   searchQuickActions,
@@ -621,16 +622,32 @@ export const useUniversalSearch = () => {
    * Navigate to selected result
    */
   const selectResult = useCallback(
-    (result) => {
+    async (result) => {
       if (!result) return;
 
       const route = result.route;
+
+      // Handle special actions
+      if (route === "#action:restartTour") {
+        closeSearch();
+        try {
+          // Reset tour status in backend
+          await dispatch(updateProfileAction({ isTourCompleted: false }));
+          // Navigate to dashboard where tour usually starts
+          navigate("/dashboard");
+          // Optionally reload or ensure state updates trigger the tour
+        } catch (error) {
+          console.error("Failed to restart tour:", error);
+        }
+        return;
+      }
+
       if (route) {
         closeSearch();
         navigate(route);
       }
     },
-    [navigate, closeSearch],
+    [navigate, closeSearch, dispatch],
   );
 
   /**

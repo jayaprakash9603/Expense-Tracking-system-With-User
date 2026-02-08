@@ -17,7 +17,6 @@ public class UserUpdateRequest {
     @Size(max = 255, message = "Email must not exceed 255 characters")
     private String email;
 
-    
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;
 
@@ -59,7 +58,8 @@ public class UserUpdateRequest {
     @Pattern(regexp = "^(MALE|FEMALE|OTHER)$", message = "Gender must be MALE, FEMALE, or OTHER")
     private String gender;
 
-    
+    private Boolean isTourCompleted;
+
     @Size(max = 10, message = "User cannot have more than 10 roles")
     private List<String> roleNames;
 }

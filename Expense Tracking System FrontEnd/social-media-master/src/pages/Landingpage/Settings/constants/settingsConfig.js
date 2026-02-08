@@ -44,6 +44,7 @@ import {
   Category as CategoryIcon,
   VisibilityOff as VisibilityOffIcon,
   PhonelinkLock as PhonelinkLockIcon,
+  Tour as TourIcon,
 } from "@mui/icons-material";
 
 /**
@@ -715,6 +716,18 @@ export const SETTINGS_SECTIONS = {
     titleKey: "settings.helpSupport",
     icon: HelpIcon,
     items: [
+      {
+        id: "restartTour",
+        icon: TourIcon,
+        title: "Restart Tour",
+        titleKey: "settings.restartTour",
+        description: "View the application walkthrough again",
+        descriptionKey: "settings.restartTourDescription",
+        type: "button",
+        buttonText: "Start",
+        buttonTextKey: "settings.start",
+        action: "restartTour",
+      },
       {
         id: "helpCenter",
         icon: HelpIcon,

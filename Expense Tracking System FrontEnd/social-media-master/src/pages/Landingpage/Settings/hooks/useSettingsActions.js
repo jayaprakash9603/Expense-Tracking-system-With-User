@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { toggleTheme } from "../../../../Redux/Theme/theme.actions";
 import { updateUserSettings } from "../../../../Redux/UserSettings/userSettings.action";
+import { updateProfileAction } from "../../../../Redux/Auth/auth.action";
 import { useTranslation } from "../../../../hooks/useTranslation";
 
 /**
@@ -99,6 +100,18 @@ export const useSettingsActions = (
     viewShortcuts: () => {
       showSnackbar("Opening keyboard shortcuts guide...", "info");
       // Open shortcuts modal or navigate to shortcuts page
+    },
+
+    // Tour
+    restartTour: async () => {
+      showSnackbar("Restarting tour...", "info");
+      try {
+        await dispatch(updateProfileAction({ isTourCompleted: false }));
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Failed to restart tour:", error);
+        showSnackbar("Failed to restart tour", "error");
+      }
     },
 
     // Notifications

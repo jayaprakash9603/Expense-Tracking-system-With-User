@@ -33,13 +33,11 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
         User user = userRepository.findByEmail(email);
 
-        
         System.out.println("=== GET USER PROFILE DEBUG ===");
         System.out.println("Roles from user T: " + (user != null ? user.getRoles() : null));
         System.out.println("User found: " + (user != null));
@@ -49,9 +47,8 @@ public class UserServiceImplementation implements UserService {
                 System.out.println("User role: " + roleName);
             }
 
-            
             if (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty()) {
-                
+
                 user.setCurrentMode("USER");
                 user.setUpdatedAt(LocalDateTime.now());
                 user = userRepository.save(user);
@@ -79,11 +76,9 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User not found");
         }
 
-        
-        
         User userToUpdate;
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty()) {
-            
+
             if (!canUpdateProfile(reqUser, updateRequest.getEmail())) {
                 throw new RuntimeException("You can only update your own profile");
             }
@@ -92,72 +87,57 @@ public class UserServiceImplementation implements UserService {
                 throw new RuntimeException("User not found");
             }
         } else {
-            
+
             userToUpdate = reqUser;
         }
 
-        
         updateUserFields(userToUpdate, updateRequest, reqUser);
 
-        
         return userRepository.save(userToUpdate);
     }
 
     private void updateUserFields(User userToUpdate, UserUpdateRequest updateRequest, User requestingUser) {
-        
+
         applyIfHasText(updateRequest.getFullName(), v -> userToUpdate.setFullName(trim(v)));
 
-        
         applyIfHasText(updateRequest.getEmail(), v -> userToUpdate.setEmail(trimToLower(v)));
 
-        
         applyIfHasText(updateRequest.getPassword(), v -> userToUpdate.setPassword(passwordEncoder.encode(v)));
 
-        
         applyIfPresent(updateRequest.getPhoneNumber(), v -> userToUpdate.setPhoneNumber(trim(v)));
 
-        
         applyIfPresent(updateRequest.getUsername(), v -> userToUpdate.setUsername(trim(v)));
 
-        
         applyIfPresent(updateRequest.getWebsite(), v -> userToUpdate.setWebsite(trim(v)));
 
-        
         applyIfPresent(updateRequest.getLocation(), v -> userToUpdate.setLocation(trim(v)));
 
-        
         applyIfPresent(updateRequest.getBio(), v -> userToUpdate.setBio(trim(v)));
 
-        
         applyIfPresent(updateRequest.getProfileImage(), v -> userToUpdate.setProfileImage(trim(v)));
 
-        
         applyIfPresent(updateRequest.getCoverImage(), v -> userToUpdate.setCoverImage(trim(v)));
 
-        
         applyIfPresent(updateRequest.getMobile(), v -> userToUpdate.setMobile(trim(v)));
 
-        
         applyIfPresent(updateRequest.getOccupation(), v -> userToUpdate.setOccupation(trim(v)));
 
-        
         applyIfPresent(updateRequest.getDateOfBirth(), v -> userToUpdate.setDateOfBirth(trim(v)));
 
-        
         applyIfHasText(updateRequest.getFirstName(), v -> userToUpdate.setFirstName(trim(v)));
 
-        
         applyIfHasText(updateRequest.getLastName(), v -> userToUpdate.setLastName(trim(v)));
 
-        
         applyIfHasText(updateRequest.getGender(), v -> userToUpdate.setGender(upperTrim(v)));
 
-        
+        if (updateRequest.getIsTourCompleted() != null) {
+            userToUpdate.setIsTourCompleted(updateRequest.getIsTourCompleted());
+        }
+
         if (updateRequest.getRoleNames() != null && requestingUser.hasRole("ADMIN")) {
             updateUserRoles(userToUpdate, updateRequest.getRoleNames());
         }
 
-        
         touchUpdatedAt(userToUpdate);
     }
 
@@ -169,7 +149,7 @@ public class UserServiceImplementation implements UserService {
             if (roleRepository.findByName(role).isPresent()) {
                 newRoles.add(role);
             } else {
-                
+
                 String originalName = role.startsWith("ROLE_") ? role.substring(5) : role;
                 throw new RuntimeException("Role not found: " + originalName);
             }
@@ -236,7 +216,6 @@ public class UserServiceImplementation implements UserService {
         newUser.setFullName((firstName + " " + lastName).trim());
         newUser.setPassword(passwordEncoder.encode(password));
 
-        
         Set<String> userRoles = new HashSet<>();
         Set<Role> rolesToUpdate = new HashSet<>();
 
@@ -272,7 +251,6 @@ public class UserServiceImplementation implements UserService {
 
         User savedUser = userRepository.save(newUser);
 
-        
         for (Role role : rolesToUpdate) {
             if (role.getUsers() == null) {
                 role.setUsers(new java.util.HashSet<>());
@@ -292,46 +270,36 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User not found");
         }
 
-        
         if (!newMode.equals("USER") && !newMode.equals("ADMIN")) {
             throw new IllegalArgumentException("Invalid mode. Must be USER or ADMIN");
         }
 
-        
         if (newMode.equals("ADMIN") && !user.hasRole("ADMIN")) {
             throw new RuntimeException("User does not have ADMIN role");
         }
 
-        
         user.setCurrentMode(newMode);
         user.setUpdatedAt(LocalDateTime.now());
 
         return userRepository.save(user);
     }
 
-    
-
-    
     private static boolean hasText(String s) {
         return s != null && !s.trim().isEmpty();
     }
 
-    
     private static String trim(String s) {
         return s == null ? null : s.trim();
     }
 
-    
     private static String trimToLower(String s) {
         return s == null ? null : s.toLowerCase().trim();
     }
 
-    
     private static String upperTrim(String s) {
         return s == null ? null : s.toUpperCase().trim();
     }
 
-    
     private static Set<String> normalizeRoleNames(List<String> roleNames) {
         Set<String> result = new HashSet<>();
         if (roleNames == null)
@@ -348,7 +316,6 @@ public class UserServiceImplementation implements UserService {
         return result;
     }
 
-    
     private static boolean canUpdateProfile(User requestingUser, String targetEmail) {
         if (requestingUser == null || !hasText(targetEmail))
             return false;
@@ -356,19 +323,16 @@ public class UserServiceImplementation implements UserService {
         return (reqEmail != null && reqEmail.equals(targetEmail)) || requestingUser.hasRole("ADMIN");
     }
 
-    
     private static void applyIfPresent(String value, Consumer<String> setter) {
         if (value != null)
             setter.accept(value);
     }
 
-    
     private static void applyIfHasText(String value, Consumer<String> setter) {
         if (hasText(value))
             setter.accept(value);
     }
 
-    
     private static void touchUpdatedAt(User user) {
         user.setUpdatedAt(LocalDateTime.now());
     }
