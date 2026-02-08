@@ -459,9 +459,34 @@ public class BudgetServiceImpl implements BudgetService {
     public List<Budget> getBudgetsByDate(LocalDate date, Integer userId) {
         List<Budget> budgets = budgetRepository.findBudgetsByDate(date, userId);
 
+        if (budgets.isEmpty()) {
+            return budgets;
+        }
+
+        Set<Integer> allExpenseIds = new HashSet<>();
+        for (Budget budget : budgets) {
+            if (budget.getExpenseIds() != null) {
+                allExpenseIds.addAll(budget.getExpenseIds());
+            }
+        }
+
+        Map<Integer, ExpenseDTO> expenseMap = new HashMap<>();
+        if (!allExpenseIds.isEmpty()) {
+            try {
+                List<ExpenseDTO> expenses = expenseService.getExpensesByIds(userId, allExpenseIds);
+                if (expenses != null) {
+                    for (ExpenseDTO expense : expenses) {
+                        expenseMap.put(expense.getId(), expense);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error batch fetching expenses for budgets", e);
+            }
+        }
+
         for (Budget budget : budgets) {
             try {
-                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+                BigDecimal spent = calculateTotalExpenseAmount(budget, expenseMap);
                 double remainingAmount = budget.getAmount() - spent.doubleValue();
                 budget.setRemainingAmount(remainingAmount);
             } catch (Exception e) {
@@ -481,11 +506,32 @@ public class BudgetServiceImpl implements BudgetService {
 
         Set<Integer> linkedBudgetIds = expense.getBudgetIds() != null ? expense.getBudgetIds() : new HashSet<>();
 
+        Set<Integer> allExpenseIds = new HashSet<>();
+        for (Budget budget : budgets) {
+            if (budget.getExpenseIds() != null) {
+                allExpenseIds.addAll(budget.getExpenseIds());
+            }
+        }
+
+        Map<Integer, ExpenseDTO> expenseMap = new HashMap<>();
+        if (!allExpenseIds.isEmpty()) {
+            try {
+                List<ExpenseDTO> expenses = expenseService.getExpensesByIds(userId, allExpenseIds);
+                if (expenses != null) {
+                    for (ExpenseDTO exp : expenses) {
+                        expenseMap.put(exp.getId(), exp);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error batch fetching expenses for budgets", e);
+            }
+        }
+
         for (Budget budget : budgets) {
             budget.setIncludeInBudget(linkedBudgetIds.contains(budget.getId()));
 
             try {
-                BigDecimal spent = calculateTotalExpenseAmount(budget, userId);
+                BigDecimal spent = calculateTotalExpenseAmount(budget, expenseMap);
                 double remainingAmount = budget.getAmount() - spent.doubleValue();
                 budget.setRemainingAmount(remainingAmount);
             } catch (Exception e) {
@@ -495,6 +541,29 @@ public class BudgetServiceImpl implements BudgetService {
         }
 
         return budgets;
+    }
+
+    private BigDecimal calculateTotalExpenseAmount(Budget budget, Map<Integer, ExpenseDTO> expenseMap) {
+        if (budget.getExpenseIds() == null || budget.getExpenseIds().isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        double total = 0.0;
+        for (Integer expenseId : budget.getExpenseIds()) {
+            ExpenseDTO expense = expenseMap.get(expenseId);
+            if (expense != null && expense.getExpense() != null) {
+                String type = expense.getExpense().getType();
+                String paymentMethod = expense.getExpense().getPaymentMethod();
+
+                if ("loss".equalsIgnoreCase(type) &&
+                        ("cash".equalsIgnoreCase(paymentMethod)
+                                || "creditNeedToPaid".equalsIgnoreCase(paymentMethod))) {
+                    total += expense.getExpense().getAmount();
+                }
+            }
+        }
+
+        return BigDecimal.valueOf(total);
     }
 
     private BigDecimal calculateTotalExpenseAmount(Budget budget, Integer userId) {
