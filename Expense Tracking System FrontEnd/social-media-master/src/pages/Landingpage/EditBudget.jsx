@@ -785,6 +785,7 @@ const EditBudget = () => {
                 onApply={handleFilterApply}
                 onClear={handleFilterClear}
                 columnKey={filterColumn?.key}
+                type={filterColumn?.filterType || "text"}
               />
             </div>
           )}

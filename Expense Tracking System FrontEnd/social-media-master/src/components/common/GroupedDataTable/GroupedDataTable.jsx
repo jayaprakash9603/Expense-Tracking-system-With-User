@@ -383,16 +383,16 @@ const GroupedDataTable = ({
       </div>
 
       {showPagination && (
-        <div 
-          className="pm-pagination-bar bottom" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between', 
-            position: 'relative',
-            borderTop: '1px solid var(--pm-border-color, #e5e7eb)',
-            padding: '16px 20px',
-            backgroundColor: 'var(--pm-bg-secondary, transparent)' // Ensure background matches/is consistent
+        <div
+          className="pm-pagination-bar bottom"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "relative",
+            borderTop: "1px solid var(--pm-border-color, #e5e7eb)",
+            padding: "16px 20px",
+            backgroundColor: "var(--pm-bg-secondary, transparent)", // Ensure background matches/is consistent
           }}
         >
           {enableSelection && selectedCount > 0 && (
@@ -408,8 +408,19 @@ const GroupedDataTable = ({
               {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
             </div>
           )}
-          {(!enableSelection || selectedCount === 0) && <div style={{ width: '1px' }}></div>}
-          <div className="pm-page-controls pm-centered" style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center' }}>
+          {(!enableSelection || selectedCount === 0) && (
+            <div style={{ width: "1px" }}></div>
+          )}
+          <div
+            className="pm-page-controls pm-centered"
+            style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <button
               type="button"
               className="pm-page-btn"

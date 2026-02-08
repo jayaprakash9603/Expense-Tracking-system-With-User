@@ -149,13 +149,36 @@ export const useExpenseTableConfig = (data = [], t) => {
           key === "comments"
         ) {
           const strVal = String(cellValue || "").toLowerCase();
-          const filterStr = String(value || "").toLowerCase();
 
-          if (operator === "contains") return strVal.includes(filterStr);
-          if (operator === "equals") return strVal === filterStr;
-          if (operator === "startsWith") return strVal.startsWith(filterStr);
-          if (operator === "endsWith") return strVal.endsWith(filterStr);
-          if (operator === "neq") return strVal !== filterStr;
+          // Handle multiple values for all text operators
+          const filterValues = Array.isArray(value)
+            ? value.map((v) => String(v).toLowerCase()).filter(Boolean)
+            : [String(value || "").toLowerCase()].filter(Boolean);
+
+          if (filterValues.length === 0) return true;
+
+          // OR logic for positive matches (matched if ANY filter value matches)
+          // AND logic for negative matches (matched if NONE of the filter values match)
+
+          if (operator === "contains") {
+            return filterValues.some((v) => strVal.includes(v));
+          }
+          if (operator === "notContains") {
+            return filterValues.every((v) => !strVal.includes(v));
+          }
+          if (operator === "equals") {
+            return filterValues.some((v) => strVal === v);
+          }
+          if (operator === "startsWith") {
+            return filterValues.some((v) => strVal.startsWith(v));
+          }
+          if (operator === "endsWith") {
+            return filterValues.some((v) => strVal.endsWith(v));
+          }
+          if (operator === "neq") {
+            return filterValues.every((v) => strVal !== v);
+          }
+
           return true;
         }
 

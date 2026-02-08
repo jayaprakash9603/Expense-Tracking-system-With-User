@@ -127,6 +127,7 @@ function CustomMultiDay(props) {
 const OPERATORS_BY_TYPE = {
   text: [
     { value: "contains", label: "Contains" },
+    { value: "notContains", label: "Not Contains" },
     { value: "equals", label: "Equals" },
     { value: "startsWith", label: "Starts with" },
     { value: "endsWith", label: "Ends with" },
@@ -181,6 +182,8 @@ export default function FilterPopover({
 
   // Multiple Date State
   const [selectedDates, setSelectedDates] = useState([]);
+  // Multiple String State
+  const [selectedStrings, setSelectedStrings] = useState([]);
 
   const currentOperators = OPERATORS_BY_TYPE[type] || OPERATORS_BY_TYPE.text;
 
@@ -208,6 +211,17 @@ export default function FilterPopover({
           setRange({ from: null, to: null });
           setSelectedDates([]);
         }
+      } else if (type === "text") {
+        if (Array.isArray(initialValue)) {
+          setSelectedStrings(initialValue);
+          setValue("");
+        } else if (initialValue) {
+          setSelectedStrings([initialValue]);
+          setValue("");
+        } else {
+          setSelectedStrings([]);
+          setValue("");
+        }
       } else {
         setValue(initialValue || "");
       }
@@ -225,6 +239,15 @@ export default function FilterPopover({
       } else if (operator === "oneOf") {
         finalValue = selectedDates.map((d) => d.format("YYYY-MM-DD"));
       }
+    } else if (type === "text") {
+      const currentInput = value.trim();
+      if (currentInput && !selectedStrings.includes(currentInput)) {
+        finalValue = [...selectedStrings, currentInput];
+      } else {
+        // If no input buffer, use existing collection.
+        // If collection is empty, finalValue is empty array (or whatever selectedStrings is).
+        finalValue = selectedStrings;
+      }
     }
 
     onApply({ operator, value: finalValue });
@@ -235,6 +258,7 @@ export default function FilterPopover({
     setValue("");
     setRange({ from: null, to: null });
     setSelectedDates([]);
+    setSelectedStrings([]);
     setOperator(getDefaultOperator(type));
     onClear();
     onClose();
@@ -263,6 +287,21 @@ export default function FilterPopover({
     } else {
       setSelectedDates((prev) => [...prev, day]);
     }
+  };
+
+  // Multiple String Handler
+  const handleStringAdd = (e) => {
+    if (e.key === "Enter" && value.trim()) {
+      e.preventDefault();
+      if (!selectedStrings.includes(value.trim())) {
+        setSelectedStrings((prev) => [...prev, value.trim()]);
+      }
+      setValue("");
+    }
+  };
+
+  const handleStringDelete = (str) => {
+    setSelectedStrings((prev) => prev.filter((s) => s !== str));
   };
 
   const isWide =
@@ -425,17 +464,57 @@ export default function FilterPopover({
             />
           </LocalizationProvider>
         </Box>
+      ) : type === "text" ? (
+        <Box sx={{ mb: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 0.5,
+              mb: 1,
+              maxHeight: 60,
+              overflowY: "auto",
+            }}
+          >
+            {selectedStrings.map((str) => (
+              <Chip
+                key={str}
+                label={str}
+                size="small"
+                onDelete={() => handleStringDelete(str)}
+              />
+            ))}
+          </Box>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Type and press Enter..."
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={handleStringAdd}
+            sx={{
+              mb: 1,
+              input: { color: colors.primary_text },
+              ".MuiOutlinedInput-notchedOutline": {
+                borderColor: colors.border_color,
+              },
+              "&:hover .MuiOutlinedInput-notchedOutline": {
+                borderColor: colors.primary_accent,
+              },
+            }}
+          />
+          <Typography variant="caption" color={colors.secondary_text}>
+            Press Enter to add multiple values
+          </Typography>
+        </Box>
       ) : (
         <TextField
           fullWidth
           size="small"
           placeholder="Filter value..."
           value={value}
-          type={
-            type === "date" ? "date" : type === "number" ? "number" : "text"
-          }
+          type={type === "number" ? "number" : "text"}
           onChange={(e) => setValue(e.target.value)}
-          InputLabelProps={type === "date" ? { shrink: true } : {}}
           sx={{
             mb: 2,
             input: { color: colors.primary_text },
