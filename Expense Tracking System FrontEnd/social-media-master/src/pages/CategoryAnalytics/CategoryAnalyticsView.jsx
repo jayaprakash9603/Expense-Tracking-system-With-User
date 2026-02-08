@@ -18,6 +18,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { ExpenseListTable } from "../../components/common/ExpenseListTable/ExpenseListTable";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
@@ -1053,92 +1054,11 @@ const CategoryAnalyticsView = ({
               📋 Recent Transactions
             </Typography>
             <Box sx={{ flex: 1, overflow: "auto" }}>
-              {transactionData?.recentTransactions?.slice(0, 5).map((tx, i) => {
-                const expenseId = tx.id || tx.expenseId;
-                const viewPath = friendId
-                  ? `/expenses/view/${expenseId}/friend/${friendId}`
-                  : `/expenses/view/${expenseId}`;
-                const viewUrl = `${window.location.origin}${viewPath}`;
-
-                return (
-                  <Box
-                    key={i}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "6px 8px",
-                      marginBottom: "4px",
-                      backgroundColor: `${colors.secondary_bg}80`,
-                      borderRadius: "6px",
-                      borderLeft: `3px solid ${tx.type === "loss" ? "#ef4444" : "#22c55e"}`,
-                    }}
-                  >
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Tooltip
-                        title={expenseId ? viewUrl : ""}
-                        arrow
-                        placement="top"
-                      >
-                        <Typography
-                          onClick={(e) => {
-                            if (expenseId) {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              navigate(viewPath);
-                            }
-                          }}
-                          sx={{
-                            fontSize: "0.7rem",
-                            fontWeight: 600,
-                            color: colors.primary_text,
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            cursor: expenseId ? "pointer" : "default",
-                            "&:hover": expenseId
-                              ? { textDecoration: "underline" }
-                              : {},
-                          }}
-                        >
-                          {tx.expenseName}
-                        </Typography>
-                      </Tooltip>
-                      <Typography
-                        sx={{
-                          fontSize: "0.55rem",
-                          color: colors.secondary_text,
-                        }}
-                      >
-                        {formatDate(tx.date)}
-                      </Typography>
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                        color: tx.type === "loss" ? "#ef4444" : "#22c55e",
-                        marginLeft: 1,
-                      }}
-                    >
-                      {tx.type === "loss" ? "-" : "+"}
-                      {formatCurrency(tx.amount)}
-                    </Typography>
-                  </Box>
-                );
-              })}
-              {(!transactionData?.recentTransactions ||
-                transactionData.recentTransactions.length === 0) && (
-                <Typography
-                  sx={{
-                    fontSize: "0.7rem",
-                    color: colors.secondary_text,
-                    textAlign: "center",
-                  }}
-                >
-                  No recent transactions
-                </Typography>
-              )}
+              <ExpenseListTable
+                rows={transactionData?.recentTransactions || []}
+                loading={categoryAnalyticsLoading}
+                showPagination={false}
+              />
             </Box>
           </Box>
         </Box>

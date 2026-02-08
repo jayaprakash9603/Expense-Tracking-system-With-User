@@ -29,6 +29,8 @@ import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import PageHeader from "../../components/PageHeader";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
+import { ExpenseListTable } from "../../components/common/ExpenseListTable/ExpenseListTable";
+import { useStandardExpenseColumns } from "../../hooks/useStandardExpenseColumns";
 import {
   DEFAULT_CATEGORY_COLOR,
   CATEGORY_COLORS,
@@ -207,34 +209,39 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
     setCurrentIconTab(newValue);
   };
 
-  const columns = [
-    { field: "date", headerName: "Date", flex: 1, minWidth: 80 },
-    {
-      field: "expenseName",
-      headerName: "Expense Name",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 80 },
-    { field: "type", headerName: "Type", flex: 1, minWidth: 80 },
-    {
-      field: "paymentMethod",
-      headerName: "Payment Method",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "comments", headerName: "Comments", flex: 1, minWidth: 120 },
-  ];
+  const standardColumns = useStandardExpenseColumns(null, navigate, {
+    includeActions: false,
+  });
 
-  const rows = uncategorizedExpenses?.map((expense, index) => ({
-    id: index,
-    date: expense.date,
-    expenseName: expense.expense.expenseName,
-    amount: expense.expense.amount,
-    type: expense.expense.type,
-    paymentMethod: expense.expense.paymentMethod,
-    comments: expense.expense.comments,
-  }));
+  const columns = React.useMemo(() => {
+    const baseColumns = standardColumns.filter((c) => c.key !== "categoryName");
+
+    const typeCol = {
+      key: "type",
+      label: "Type",
+      width: "100px",
+      value: (row) => row.expense?.type || row.type || "-",
+      render: (v) => v,
+    };
+
+    const paymentCol = {
+      key: "paymentMethod",
+      label: "Payment Method",
+      width: "140px",
+      value: (row) => row.expense?.paymentMethod || row.paymentMethod || "-",
+      render: (v) => v,
+    };
+
+    const newColumns = [...baseColumns];
+    // Try to insert before comments
+    const commentsIdx = newColumns.findIndex((c) => c.key === "comments");
+    if (commentsIdx >= 0) {
+      newColumns.splice(commentsIdx, 0, typeCol, paymentCol);
+    } else {
+      newColumns.push(typeCol, paymentCol);
+    }
+    return newColumns;
+  }, [standardColumns]);
 
   // Get the icon category names for tabs
   const iconCategoryNames = Object.keys(ICON_CATEGORIES);
@@ -257,6 +264,16 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
           opacity: 1,
           marginRight: "20px",
           padding: "16px",
+          "--pm-text-primary": colors.primary_text,
+          "--pm-text-secondary": colors.secondary_text,
+          "--pm-text-tertiary": colors.secondary_text,
+          "--pm-bg-primary": colors.active_bg,
+          "--pm-bg-secondary": colors.secondary_bg,
+          "--pm-border-color": colors.border_color,
+          "--pm-accent-color": categoryData.color || colors.primary_accent,
+          "--pm-hover-bg": colors.hover_bg,
+          "--pm-scrollbar-thumb": categoryData.color || colors.primary_accent,
+          "--pm-scrollbar-track": colors.secondary_bg,
         }}
       >
         <div>
@@ -697,54 +714,20 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
               </Grid>
 
               {showExpenses && (
-                <Grid item xs={12} sx={{ mt: 0 }}>
-                  <Box
-                    sx={{
-                      height: 320,
-                      width: "100%",
-                      "& .MuiDataGrid-root": {
-                        backgroundColor: colors.secondary_bg,
-                        color: colors.primary_text,
-                        border: `1px solid ${colors.border_color}`,
-                      },
-                      "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: colors.tertiary_bg,
-                        color: colors.primary_text,
-                      },
-                      "& .MuiDataGrid-cell": {
-                        borderColor: colors.border_color,
-                      },
-                      "& .MuiCheckbox-root": {
-                        color: `${colors.primary_accent} !important`,
-                      },
-                      "& .MuiDataGrid-row": {
-                        "&:hover": {
-                          backgroundColor: colors.hover_bg,
-                        },
-                      },
-                    }}
-                  >
-                    <DataGrid
-                      rows={rows || []}
+                <Grid item xs={12} sx={{ mt: 2 }}>
+                  <Box sx={{ width: "100%", overflow: "hidden" }}>
+                    <ExpenseListTable
+                      rows={uncategorizedExpenses || []}
                       columns={columns}
-                      initialState={{
-                        pagination: {
-                          paginationModel: { pageSize: 5, page: 0 },
-                        },
-                      }}
-                      pageSizeOptions={[5, 10, 20]}
-                      checkboxSelection
-                      onRowSelectionModelChange={(newSelectionModel) => {
-                        const selectedIds = newSelectionModel
-                          .map((id) => uncategorizedExpenses[id]?.id)
-                          .filter(Boolean);
-
+                      enableSelection={true}
+                      selectedRows={categoryData.selectedExpenses || []}
+                      onSelectionChange={(newIds) => {
                         setCategoryData((prev) => ({
                           ...prev,
-                          selectedExpenses: selectedIds,
+                          selectedExpenses: newIds,
                         }));
                       }}
-                      rowHeight={42}
+                      showPagination={true}
                     />
                   </Box>
                 </Grid>

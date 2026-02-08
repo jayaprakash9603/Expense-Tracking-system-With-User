@@ -28,6 +28,8 @@ import PageHeader from "../../components/PageHeader";
 import CategoryEditSkeleton from "../../components/Loaders/CategoryEditSkeleton";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
+import { ExpenseListTable } from "../../components/common/ExpenseListTable/ExpenseListTable";
+import { useStandardExpenseColumns } from "../../hooks/useStandardExpenseColumns";
 import { useTheme } from "../../hooks/useTheme";
 import {
   DEFAULT_CATEGORY_COLOR,
@@ -258,46 +260,38 @@ const EditCategory = () => {
   const handleIconTabChange = (event, newValue) => {
     setCurrentIconTab(newValue);
   };
-  const handleIncludeInBudgetChange = (id, checked) => {
-    setLocalExpenses((prevExpenses) =>
-      prevExpenses.map((expense) =>
-        expense.id === id ? { ...expense, includeInBudget: checked } : expense,
-      ),
-    );
-  };
-  // Prepare data for the DataGrid
-  const columns = [
-    {
-      field: "includeInBudget",
-      headerName: "Include in Budget",
-      flex: 1,
-      minWidth: 120,
-      renderCell: (params) => (
-        <Checkbox
-          checked={params.row.includeInBudget || false}
-          onChange={(event) =>
-            handleIncludeInBudgetChange(params.row.id, event.target.checked)
-          }
-        />
-      ),
-    },
-    { field: "date", headerName: "Date", flex: 1, minWidth: 80 },
-    {
-      field: "expenseName",
-      headerName: "Expense Name",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "amount", headerName: "Amount", flex: 1, minWidth: 80 },
-    { field: "type", headerName: "Type", flex: 1, minWidth: 80 },
-    {
-      field: "paymentMethod",
-      headerName: "Payment Method",
-      flex: 1,
-      minWidth: 120,
-    },
-    { field: "comments", headerName: "Comments", flex: 1, minWidth: 120 },
-  ];
+  const standardColumns = useStandardExpenseColumns(null, navigate, {
+    includeActions: false,
+  });
+
+  const columns = React.useMemo(() => {
+    const baseColumns = standardColumns.filter((c) => c.key !== "categoryName");
+
+    const typeCol = {
+      key: "type",
+      label: "Type",
+      width: "100px",
+      value: (row) => row.type || row.expense?.type || "-",
+      render: (v) => v,
+    };
+
+    const paymentCol = {
+      key: "paymentMethod",
+      label: "Payment Method",
+      width: "140px",
+      value: (row) => row.paymentMethod || row.expense?.paymentMethod || "-",
+      render: (v) => v,
+    };
+
+    const newColumns = [...baseColumns];
+    const commentsIdx = newColumns.findIndex((c) => c.key === "comments");
+    if (commentsIdx >= 0) {
+      newColumns.splice(commentsIdx, 0, typeCol, paymentCol);
+    } else {
+      newColumns.push(typeCol, paymentCol);
+    }
+    return newColumns;
+  }, [standardColumns]);
 
   const rows =
     localExpenses?.map((expense, index) => ({
@@ -773,46 +767,43 @@ const EditCategory = () => {
               </Grid>
 
               {showExpenses && (
-                <Grid item xs={12} sx={{ mt: 0 }}>
+                <Grid item xs={12} sx={{ mt: 2 }}>
                   <Box
                     sx={{
-                      height: 320,
                       width: "100%",
-                      "& .MuiDataGrid-root": {
-                        backgroundColor: colors.secondary_bg,
-                        color: colors.primary_text,
-                        border: `1px solid ${colors.border_color}`,
-                      },
-                      "& .MuiDataGrid-columnHeaders": {
-                        backgroundColor: colors.tertiary_bg,
-                        color: colors.primary_text,
-                      },
-                      "& .MuiDataGrid-cell": {
-                        borderColor: colors.border_color,
-                      },
-                      "& .MuiCheckbox-root": {
-                        color: `${colors.primary_accent} !important`,
-                      },
-                      "& .MuiDataGrid-row": {
-                        "&:hover": {
-                          backgroundColor: colors.hover_bg,
-                        },
-                      },
+                      overflow: "hidden",
+                      "--pm-text-primary": colors.primary_text,
+                      "--pm-text-secondary": colors.secondary_text,
+                      "--pm-text-tertiary": colors.secondary_text,
+                      "--pm-bg-primary": colors.active_bg,
+                      "--pm-bg-secondary": colors.secondary_bg,
+                      "--pm-border-color": colors.border_color,
+                      "--pm-accent-color": categoryData.color,
+                      "--pm-hover-bg": colors.hover_bg,
+                      "--pm-scrollbar-thumb": categoryData.color,
+                      "--pm-scrollbar-track": colors.secondary_bg,
                     }}
                   >
-                    <DataGrid
-                      rows={rows || []}
+                    <ExpenseListTable
+                      rows={localExpenses || []}
                       columns={columns}
-                      initialState={{
-                        pagination: {
-                          paginationModel: { pageSize: 5, page: 0 },
-                        },
+                      enableSelection={true}
+                      selectedRows={localExpenses
+                        .filter((e) => e.includeInBudget)
+                        .map((e) => e.id || rows.find((r) => r === e)?.id)}
+                      onSelectionChange={(newIds) => {
+                        const newIdSet = new Set(newIds);
+                        setLocalExpenses((prev) =>
+                          prev.map((e, index) => ({
+                            ...e,
+                            includeInBudget: newIdSet.has(e.id || index),
+                          })),
+                        );
                       }}
-                      pageSizeOptions={[5, 10, 20]}
-                      rowHeight={42}
-                      disableSelectionOnClick
+                      showPagination={true}
                     />
                   </Box>
+                  {/* CSS variables applied to container above */}
                 </Grid>
               )}
             </Grid>
