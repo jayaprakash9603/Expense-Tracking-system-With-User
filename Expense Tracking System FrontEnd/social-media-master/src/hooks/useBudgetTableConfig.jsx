@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-
-dayjs.extend(isBetween);
+import { applyColumnFilter } from "../utils/filterLogic";
 
 /**
  * Shared hook for Budget Table configuration (Columns, Sorting, Filtering)
@@ -100,73 +98,19 @@ export const useBudgetTableConfig = (data = [], t) => {
       const filter = columnFilters[key];
       if (!filter) return;
 
-      const { operator, value } = filter;
-      if (value === "" || value === null || value === undefined) {
-        if (operator !== "empty" && operator !== "notEmpty") return;
-      }
-
       rows = rows.filter((row) => {
-        const cellValue = row[key];
+        let cellValue = row[key];
 
-        // Text Logic
-        if (key === "name" || key === "description") {
-          const strVal = String(cellValue || "").toLowerCase();
-          const filterStr = String(value || "").toLowerCase();
-
-          if (operator === "contains") return strVal.includes(filterStr);
-          if (operator === "equals") return strVal === filterStr;
-          if (operator === "startsWith") return strVal.startsWith(filterStr);
-          if (operator === "endsWith") return strVal.endsWith(filterStr);
-          if (operator === "neq") return strVal !== filterStr;
-          return true;
+        // Special mapping for remainingAmount derived field
+        if (key === "remainingAmount") {
+          cellValue = (row.amount || 0) - (row.spentAmount || 0);
         }
 
-        // Number Logic
-        if (
-          key === "amount" ||
-          key === "spentAmount" ||
-          key === "remainingAmount"
-        ) {
-          let cellValue = row[key];
-          if (key === "remainingAmount") {
-            cellValue = (row.amount || 0) - (row.spentAmount || 0);
-          }
-          const numVal = parseFloat(cellValue || 0);
-          const filterVal = parseFloat(value || 0);
+        // Determine filter type from columns definition
+        const column = columns.find((c) => c.key === key);
+        const filterType = column?.filterType || "text";
 
-          if (operator === "equals") return numVal === filterVal;
-          if (operator === "gt") return numVal > filterVal;
-          if (operator === "lt") return numVal < filterVal;
-          if (operator === "gte") return numVal >= filterVal;
-          if (operator === "lte") return numVal <= filterVal;
-          if (operator === "neq") return numVal !== filterVal;
-          return true;
-        }
-
-        // Date Logic
-        if (key === "startDate" || key === "endDate") {
-          const dateVal = dayjs(cellValue);
-          if (!dateVal.isValid()) return false;
-
-          // Range
-          if (operator === "range") {
-            const { from, to } = value || {};
-            if (!from && !to) return true;
-            // Inclusive range
-            if (from && to) return dateVal.isBetween(from, to, "day", "[]");
-            if (from) return dateVal.isSameOrAfter(from, "day");
-            if (to) return dateVal.isSameOrBefore(to, "day");
-            return true;
-          }
-
-          // Single Date Logic
-          if (operator === "equals") return dateVal.isSame(value, "day");
-          if (operator === "before") return dateVal.isBefore(value, "day");
-          if (operator === "after") return dateVal.isAfter(value, "day");
-          return true;
-        }
-
-        return true;
+        return applyColumnFilter(cellValue, filter, filterType);
       });
     });
 

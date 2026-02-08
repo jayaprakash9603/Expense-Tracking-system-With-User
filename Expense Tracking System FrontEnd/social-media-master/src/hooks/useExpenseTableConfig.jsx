@@ -1,12 +1,6 @@
 import { useState, useMemo } from "react";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
-import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
-
-dayjs.extend(isBetween);
-dayjs.extend(isSameOrAfter);
-dayjs.extend(isSameOrBefore);
+import { applyColumnFilter } from "../utils/filterLogic";
 
 /**
  * Configuration hook for Expense Table (Columns, Sorting, Filtering)
@@ -128,11 +122,6 @@ export const useExpenseTableConfig = (data = [], t) => {
       const filter = columnFilters[key];
       if (!filter) return;
 
-      const { operator, value } = filter;
-      if (value === "" || value === null || value === undefined) {
-        if (operator !== "empty" && operator !== "notEmpty") return;
-      }
-
       rows = rows.filter((row) => {
         // Determine cell value based on key
         let cellValue;
@@ -140,85 +129,11 @@ export const useExpenseTableConfig = (data = [], t) => {
         else if (key === "categoryName") cellValue = row.categoryName;
         else cellValue = getExpenseField(row, key);
 
-        // Text Logic
-        if (
-          key === "expenseName" ||
-          key === "categoryName" ||
-          key === "paymentMethod" ||
-          key === "type" ||
-          key === "comments"
-        ) {
-          const strVal = String(cellValue || "").toLowerCase();
+        // Determine filter type from columns definition
+        const column = columns.find((c) => c.key === key);
+        const filterType = column?.filterType || "text";
 
-          // Handle multiple values for all text operators
-          const filterValues = Array.isArray(value)
-            ? value.map((v) => String(v).toLowerCase()).filter(Boolean)
-            : [String(value || "").toLowerCase()].filter(Boolean);
-
-          if (filterValues.length === 0) return true;
-
-          // OR logic for positive matches (matched if ANY filter value matches)
-          // AND logic for negative matches (matched if NONE of the filter values match)
-
-          if (operator === "contains") {
-            return filterValues.some((v) => strVal.includes(v));
-          }
-          if (operator === "notContains") {
-            return filterValues.every((v) => !strVal.includes(v));
-          }
-          if (operator === "equals") {
-            return filterValues.some((v) => strVal === v);
-          }
-          if (operator === "startsWith") {
-            return filterValues.some((v) => strVal.startsWith(v));
-          }
-          if (operator === "endsWith") {
-            return filterValues.some((v) => strVal.endsWith(v));
-          }
-          if (operator === "neq") {
-            return filterValues.every((v) => strVal !== v);
-          }
-
-          return true;
-        }
-
-        // Number Logic
-        if (key === "amount") {
-          const numVal = parseFloat(cellValue || 0);
-          const filterVal = parseFloat(value || 0);
-
-          if (operator === "equals") return numVal === filterVal;
-          if (operator === "gt") return numVal > filterVal;
-          if (operator === "lt") return numVal < filterVal;
-          if (operator === "gte") return numVal >= filterVal;
-          if (operator === "lte") return numVal <= filterVal;
-          if (operator === "neq") return numVal !== filterVal;
-          return true;
-        }
-
-        // Date Logic
-        if (key === "date") {
-          const dateVal = dayjs(cellValue);
-          if (!dateVal.isValid()) return false;
-
-          // Range
-          if (operator === "range") {
-            const { from, to } = value || {};
-            // If partial range is handled:
-            if (!from && !to) return true;
-            if (from && to) return dateVal.isBetween(from, to, "day", "[]");
-            if (from) return dateVal.isSameOrAfter(from, "day");
-            if (to) return dateVal.isSameOrBefore(to, "day");
-            return true;
-          }
-
-          if (operator === "equals") return dateVal.isSame(value, "day");
-          if (operator === "before") return dateVal.isBefore(value, "day");
-          if (operator === "after") return dateVal.isAfter(value, "day");
-          return true;
-        }
-
-        return true;
+        return applyColumnFilter(cellValue, filter, filterType);
       });
     });
 

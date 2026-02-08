@@ -409,7 +409,7 @@ const GroupedDataTable = ({
             </div>
           )}
           {(!enableSelection || selectedCount === 0) && (
-            <div style={{ width: "1px" }}></div>
+            <div style={{ width: "1px", minHeight: "21px" }}></div>
           )}
           <div
             className="pm-page-controls pm-centered"

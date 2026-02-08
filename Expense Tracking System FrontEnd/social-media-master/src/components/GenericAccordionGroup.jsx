@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
-import dayjs from 'dayjs';
+import dayjs from "dayjs";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FilterPopover from "./ui/FilterPopover";
 import GroupedDataTable from "./common/GroupedDataTable/GroupedDataTable";
@@ -9,6 +9,7 @@ import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 import AccordionToolbar from "./accordion/AccordionToolbar";
 import NoDataPlaceholder from "./NoDataPlaceholder";
+import { applyColumnFilter } from "../utils/filterLogic";
 
 /**
  * GenericAccordionGroup
@@ -202,14 +203,29 @@ export function GenericAccordionGroup({
     if (!col) return "text";
     if (col.type) return col.type;
     if (col.sortType) return col.sortType;
-    
+
     const k = (col.key || col.field || "").toLowerCase();
     const l = (col.label || "").toLowerCase();
-    
-    if (k.includes("amount") || k.includes("price") || k.includes("cost") || k.includes("credit") || k.includes("debit") || k.includes("balance") || k.includes("net") || l.includes("amount")) {
+
+    if (
+      k.includes("amount") ||
+      k.includes("price") ||
+      k.includes("cost") ||
+      k.includes("credit") ||
+      k.includes("debit") ||
+      k.includes("balance") ||
+      k.includes("net") ||
+      l.includes("amount")
+    ) {
       return "number";
     }
-    if (k.includes("date") || k.includes("time") || k.includes("created") || k.includes("updated") || l.includes("date")) {
+    if (
+      k.includes("date") ||
+      k.includes("time") ||
+      k.includes("created") ||
+      k.includes("updated") ||
+      l.includes("date")
+    ) {
       return "date";
     }
     return "text";
@@ -551,66 +567,25 @@ export function GenericAccordionGroup({
           const columnFilters = columnFiltersByGroup[groupKey] || {};
           const columnFiltered = appliedFiltered.filter((row) => {
             return Object.entries(columnFilters).every(([key, filter]) => {
-              if (filter.value === "" || filter.value === null || filter.value === undefined) return true;
-              
+              if (
+                filter.value === "" ||
+                filter.value === null ||
+                filter.value === undefined
+              )
+                return true;
+
               const colDef = columns?.find((c) => c.key === key);
               if (!colDef) return true;
 
               const cellVal = colDef.value
                 ? colDef.value(row)
-                : row.details?.[colDef.key] ?? row[colDef.key];
+                : (row.details?.[colDef.key] ?? row[colDef.key]);
 
               // Determine type
               const type = detectColumnType(colDef);
 
-              let a = cellVal;
-              let b = filter.value;
-
-              if (type === 'number') {
-                a = Number(a);
-                b = Number(b);
-                if (isNaN(a)) a = 0;
-              } else if (type === 'date') {
-                 // For dates, compare timestamps if possible or ISO strings
-                 if (filter.operator === 'range') {
-                     // b is already { from, to } object
-                     a = dayjs(a);
-                     const from = b.from ? dayjs(b.from).startOf('day') : null;
-                     const to = b.to ? dayjs(b.to).endOf('day') : null;
-                     if (!a.isValid()) return false;
-                     if (from && a.isBefore(from)) return false;
-                     if (to && a.isAfter(to)) return false;
-                     return true;
-                 }
-                 if (filter.operator === 'oneOf') {
-                     // b is array of strings
-                     a = dayjs(a).format('YYYY-MM-DD');
-                     return Array.isArray(b) && b.includes(a);
-                 }
-
-                 a = new Date(a).getTime(); // Standard single value comparison
-                 b = new Date(b).getTime();
-                 if (isNaN(a)) a = 0;
-              } else {
-                 a = String(a || "").toLowerCase();
-                 b = String(b || "").toLowerCase();
-              }
-
-              switch (filter.operator) {
-                // ... handled above for range/oneOf special cases
-                case 'contains': return a.includes(b);
-                case 'equals': return a === b;
-                case 'startsWith': return a.startsWith(b);
-                case 'endsWith': return a.endsWith(b);
-                case 'gt': return a > b;
-                case 'lt': return a < b;
-                case 'gte': return a >= b;
-                case 'lte': return a <= b;
-                case 'neq': return a !== b;
-                case 'before': return a < b;
-                case 'after': return a > b;
-                default: return true;
-              }
+              // Use centralized filter logic
+              return applyColumnFilter(cellVal, filter, type);
             });
           });
 
@@ -635,37 +610,40 @@ export function GenericAccordionGroup({
 
           // Row sorting (managed by GroupedDataTable or via props)
           // We pass 'searched' (unsorted) data to GroupedDataTable, which handles sorting.
-          const working = searched; 
+          const working = searched;
 
           // Pagination stats (Group level)
           const totalFiltered = working.length;
-          
+
           // Selection helpers
           const selectedForGroup = selectedRowsByGroup[groupKey] || {};
           const isRowSelected = (row, rowIndex) => {
             // Note: index passed here might be original index or sorted, depending on caller
-            // In GroupedDataTable, we pass actual sorted index. 
+            // In GroupedDataTable, we pass actual sorted index.
             // Here we just accept what comes.
-             const rowKey = resolveRowKey(row, groupKey, rowIndex);
-             return !!selectedForGroup[rowKey];
+            const rowKey = resolveRowKey(row, groupKey, rowIndex);
+            return !!selectedForGroup[rowKey];
           };
-          
+
           const toggleRow = (row, checked, rowIndex) => {
-             const rowKey = resolveRowKey(row, groupKey, rowIndex);
-             setSelectedRowsByGroup((prev) => {
-               const next = { ...prev };
-               const bucket = { ...(next[groupKey] || {}) };
-               if (checked) bucket[rowKey] = true;
-               else delete bucket[rowKey];
-               if (Object.keys(bucket).length === 0) delete next[groupKey];
-               else next[groupKey] = bucket;
-               
-               const selectedCount = Object.values(next).reduce((acc, m) => acc + Object.keys(m).length, 0);
-               if (onSelectionChange) {
-                 onSelectionChange({ selectedRowsByGroup: next, selectedCount });
-               }
-               return next;
-             });
+            const rowKey = resolveRowKey(row, groupKey, rowIndex);
+            setSelectedRowsByGroup((prev) => {
+              const next = { ...prev };
+              const bucket = { ...(next[groupKey] || {}) };
+              if (checked) bucket[rowKey] = true;
+              else delete bucket[rowKey];
+              if (Object.keys(bucket).length === 0) delete next[groupKey];
+              else next[groupKey] = bucket;
+
+              const selectedCount = Object.values(next).reduce(
+                (acc, m) => acc + Object.keys(m).length,
+                0,
+              );
+              if (onSelectionChange) {
+                onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+              }
+              return next;
+            });
           };
 
           const selectMany = (rows, checked) => {
@@ -673,25 +651,34 @@ export function GenericAccordionGroup({
               const next = { ...prev };
               const bucket = { ...(next[groupKey] || {}) };
               rows.forEach((row, i) => {
-                const rowKey = resolveRowKey(row, groupKey, i); // fallback index issue? 
+                const rowKey = resolveRowKey(row, groupKey, i); // fallback index issue?
                 // GroupedDataTable should pass row with stable identity or we use row.id
                 if (checked) bucket[rowKey] = true;
                 else delete bucket[rowKey];
               });
               if (Object.keys(bucket).length === 0) delete next[groupKey];
               else next[groupKey] = bucket;
-              
-              const selectedCount = Object.values(next).reduce((acc, m) => acc + Object.keys(m).length, 0);
+
+              const selectedCount = Object.values(next).reduce(
+                (acc, m) => acc + Object.keys(m).length,
+                0,
+              );
               if (onSelectionChange) {
-                 onSelectionChange({ selectedRowsByGroup: next, selectedCount });
-               }
+                onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+              }
               return next;
             });
           };
 
           // Group level selection status (for the header checkbox)
-          const groupAllSelected = enableSelection && totalFiltered > 0 && working.every((row, i) => isRowSelected(row, i));
-          const groupSomeSelected = enableSelection && !groupAllSelected && working.some((row, i) => isRowSelected(row, i));
+          const groupAllSelected =
+            enableSelection &&
+            totalFiltered > 0 &&
+            working.every((row, i) => isRowSelected(row, i));
+          const groupSomeSelected =
+            enableSelection &&
+            !groupAllSelected &&
+            working.some((row, i) => isRowSelected(row, i));
 
           return (
             <div
@@ -941,26 +928,29 @@ export function GenericAccordionGroup({
                     currencySymbol={displayCurrency}
                     activeTab={activeTab}
                     group={group}
-                    
                     // Controlled Sort via Header
                     sort={sortByGroupKey[groupKey]}
                     onSortChange={(newSort) => {
-                      setSortByGroupKey(prev => ({ ...prev, [groupKey]: newSort }));
+                      setSortByGroupKey((prev) => ({
+                        ...prev,
+                        [groupKey]: newSort,
+                      }));
                       // Note: We don't reset 'currentPage' here as GroupedDataTable manages it internally.
                     }}
-
                     // Filtering
                     columnFilters={columnFilters}
-                    onFilterClick={(e, col) => handleFilterClick(e, col, groupKey)}
-
+                    onFilterClick={(e, col) =>
+                      handleFilterClick(e, col, groupKey)
+                    }
                     // Selection
                     enableSelection={enableSelection}
                     selectedRows={selectedForGroup}
-                    onRowSelect={(row, checked, idx) => toggleRow(row, checked, idx)}
+                    onRowSelect={(row, checked, idx) =>
+                      toggleRow(row, checked, idx)
+                    }
                     onSelectAll={(rows, checked) => selectMany(rows, checked)}
                     resolveRowKey={(row, i) => resolveRowKey(row, groupKey, i)}
                     rowRender={rowRender}
-                    
                     // Pagination config
                     defaultPageSize={defaultPageSize}
                     pageSizeOptions={pageSizeOptions}
@@ -1003,12 +993,16 @@ export function GenericAccordionGroup({
                 setGroupsPage((p) => Math.max(1, p - 1));
               }}
               aria-label="Previous groups page"
-              style={{ cursor: safeGroupsPage <= 1 ? "not-allowed" : "pointer", zIndex: 10 }}
+              style={{
+                cursor: safeGroupsPage <= 1 ? "not-allowed" : "pointer",
+                zIndex: 10,
+              }}
             >
               ‹
             </button>
             <span className="pm-page-indicator">
-              Groups {startGroup + 1}-{Math.min(endGroup, filteredSortedGroups.length)} of{" "}
+              Groups {startGroup + 1}-
+              {Math.min(endGroup, filteredSortedGroups.length)} of{" "}
               {filteredSortedGroups.length}
             </span>
             <button
@@ -1020,7 +1014,11 @@ export function GenericAccordionGroup({
                 setGroupsPage((p) => Math.min(totalGroupPages, p + 1));
               }}
               aria-label="Next groups page"
-              style={{ cursor: safeGroupsPage >= totalGroupPages ? "not-allowed" : "pointer", zIndex: 10 }}
+              style={{
+                cursor:
+                  safeGroupsPage >= totalGroupPages ? "not-allowed" : "pointer",
+                zIndex: 10,
+              }}
             >
               ›
             </button>
@@ -1055,13 +1053,19 @@ export function GenericAccordionGroup({
           column={filterPopover.column}
           type={detectColumnType(filterPopover.column)}
           initialOperator={
-            filterPopover.groupKey && columnFiltersByGroup[filterPopover.groupKey]
-              ? columnFiltersByGroup[filterPopover.groupKey][filterPopover.column?.key]?.operator
+            filterPopover.groupKey &&
+            columnFiltersByGroup[filterPopover.groupKey]
+              ? columnFiltersByGroup[filterPopover.groupKey][
+                  filterPopover.column?.key
+                ]?.operator
               : undefined
           }
           initialValue={
-            filterPopover.groupKey && columnFiltersByGroup[filterPopover.groupKey]
-              ? columnFiltersByGroup[filterPopover.groupKey][filterPopover.column?.key]?.value
+            filterPopover.groupKey &&
+            columnFiltersByGroup[filterPopover.groupKey]
+              ? columnFiltersByGroup[filterPopover.groupKey][
+                  filterPopover.column?.key
+                ]?.value
               : undefined
           }
           onClose={handleFilterClose}

@@ -103,13 +103,7 @@ spring:
               - PATCH
               - DELETE
               - OPTIONS
-            allowedHeaders:
-              - Authorization
-              - Content-Type
-              - X-Requested-With
-              - Accept
-              - Origin
-              - X-Correlation-Id
+            allowedHeaders: "*"
             allowCredentials: true
             maxAge: 3600
   datasource:

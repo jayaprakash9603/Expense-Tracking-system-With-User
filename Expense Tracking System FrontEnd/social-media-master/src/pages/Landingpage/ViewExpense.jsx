@@ -86,20 +86,24 @@ const ViewExpense = () => {
 
   const handleFilterClose = () => setFilterPopover(null);
 
-  const handleFilterApply = (columnKey, value) => {
-    setColumnFilters((prev) => ({
-      ...prev,
-      [columnKey]: value,
-    }));
+  const handleFilterApply = (filterData) => {
+    if (filterPopover && filterPopover.column) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [filterPopover.column.key]: filterData,
+      }));
+    }
     handleFilterClose();
   };
 
-  const handleFilterClear = (columnKey) => {
-    setColumnFilters((prev) => {
-      const next = { ...prev };
-      delete next[columnKey];
-      return next;
-    });
+  const handleFilterClear = () => {
+    if (filterPopover && filterPopover.column) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterPopover.column.key];
+        return next;
+      });
+    }
     handleFilterClose();
   };
 
@@ -1478,9 +1482,23 @@ const ViewExpense = () => {
               anchorEl={filterPopover?.anchorEl}
               onClose={handleFilterClose}
               column={filterPopover?.column}
+              type={
+                filterPopover?.column
+                  ? detectColumnType(filterPopover.column)
+                  : "text"
+              }
               onApply={handleFilterApply}
               onClear={handleFilterClear}
-              currentValue={columnFilters[filterPopover?.column?.key]}
+              initialOperator={
+                filterPopover?.column && columnFilters[filterPopover.column.key]
+                  ? columnFilters[filterPopover.column.key].operator
+                  : undefined
+              }
+              initialValue={
+                filterPopover?.column && columnFilters[filterPopover.column.key]
+                  ? columnFilters[filterPopover.column.key].value
+                  : undefined
+              }
             />
           </div>
         </div>
