@@ -265,7 +265,7 @@ const EditCategory = () => {
   });
 
   const columns = React.useMemo(() => {
-    const baseColumns = standardColumns.filter((c) => c.key !== "categoryName");
+    const baseColumns = standardColumns;
 
     const typeCol = {
       key: "type",

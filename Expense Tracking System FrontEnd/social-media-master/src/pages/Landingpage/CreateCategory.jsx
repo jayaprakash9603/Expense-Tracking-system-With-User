@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchUncategorizedExpenses,
-  createCategory,
-} from "../../Redux/Category/categoryActions";
+import { createCategory } from "../../Redux/Category/categoryActions";
+import { getExpensesAction } from "../../Redux/Expenses/expense.action";
 import { useTheme } from "../../hooks/useTheme";
 import { getProfileAction } from "../../Redux/Auth/auth.action";
 import {
@@ -73,18 +71,16 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   });
   const [errors, setErrors] = useState({});
   const [showExpenses, setShowExpenses] = useState(false);
-  const { uncategorizedExpenses } = useSelector(
-    (state) => state.categories || {},
-  );
+  const { expenses } = useSelector((state) => state.expenses || {});
   const userId = useSelector((state) => state.auth?.user?.id);
   const [currentIconTab, setCurrentIconTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
-    // Fetch uncategorized expenses when component mounts
-    dispatch(fetchUncategorizedExpenses(friendId || ""));
-  }, [dispatch]);
+    // Fetch all expenses when component mounts
+    dispatch(getExpensesAction("desc", friendId || ""));
+  }, [dispatch, friendId]);
 
   useEffect(() => {
     const token = localStorage.getItem("jwt");
@@ -214,7 +210,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
   });
 
   const columns = React.useMemo(() => {
-    const baseColumns = standardColumns.filter((c) => c.key !== "categoryName");
+    const baseColumns = standardColumns;
 
     const typeCol = {
       key: "type",
@@ -717,7 +713,7 @@ const CreateCategory = ({ onClose, onCategoryCreated }) => {
                 <Grid item xs={12} sx={{ mt: 2 }}>
                   <Box sx={{ width: "100%", overflow: "hidden" }}>
                     <ExpenseListTable
-                      rows={uncategorizedExpenses || []}
+                      rows={expenses || []}
                       columns={columns}
                       enableSelection={true}
                       selectedRows={categoryData.selectedExpenses || []}
