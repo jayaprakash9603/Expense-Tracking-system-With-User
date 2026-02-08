@@ -4,6 +4,8 @@ import { Box } from "@mui/material";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
 import { getPaymentMethodIcon } from "../utils/iconMapping";
+import { useStandardExpenseColumns } from "../hooks/useStandardExpenseColumns";
+import { useTranslation } from "../hooks/useTranslation";
 
 /**
  * GroupedExpensesAccordion
@@ -95,109 +97,13 @@ const GroupedExpensesAccordion = ({
       .sort((a, b) => Number(b.totalAmount) - Number(a.totalAmount)); // groups descending by totalAmount
   }, [sourceMethods, grandTotal]);
 
-  const columns = [
-    {
-      key: "date",
-      label: "Date",
-      width: "100px",
-      value: (row) => row.date,
-      sortValue: (row) => {
-        const t = row?.date ? new Date(row.date).getTime() : 0;
-        return Number.isFinite(t) ? t : 0;
-      },
-    },
-    {
-      key: "name",
-      label: "Expense Name",
-      width: "230px",
-      value: (row) => (row.details || row.expense)?.expenseName || "-",
-      sortValue: (row) =>
-        String((row.details || row.expense)?.expenseName || "").toLowerCase(),
-      render: (val, row) => {
-        const expenseId = row?.id || row?.details?.id || row?.expense?.id;
-        if (!expenseId) return val || "-";
-        return (
-          <span
-            title={getViewExpenseUrl(expenseId)}
-            onClick={(e) => handleNameClick(e, expenseId)}
-            style={{
-              color: colors.primary_text,
-              cursor: "pointer",
-              transition: "text-decoration 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.textDecoration = "underline";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.textDecoration = "none";
-            }}
-          >
-            {val || "-"}
-          </span>
-        );
-      },
-    },
-    {
-      key: "amount",
-      label: "Amount",
-      width: "100px",
-      value: (row) => {
-        const d = row.details || row.expense || {};
-        return d.amount ?? d.netAmount ?? 0;
-      },
-      sortValue: (row) => {
-        const d = row.details || row.expense || {};
-        return Number(d.amount ?? d.netAmount ?? 0);
-      },
-      className: (row) => {
-        const d = row.details || row.expense || {};
-        const rawType = (d.type || "").toLowerCase();
-        if (rawType === "loss") return "pm-negative";
-        if (rawType === "gain" || rawType === "profit") return "pm-positive";
-        const amt = Number(d.amount ?? d.netAmount ?? 0);
-        return amt < 0 ? "pm-negative" : "pm-positive";
-      },
-    },
-    {
-      key: "netAmount",
-      label: "Net",
-      width: "90px",
-      value: (row) => {
-        const d = row.details || row.expense || {};
-        return d.netAmount ?? d.amount ?? 0;
-      },
-      sortValue: (row) => {
-        const d = row.details || row.expense || {};
-        return Number(d.netAmount ?? d.amount ?? 0);
-      },
-      className: (row) => {
-        const d = row.details || row.expense || {};
-        const net = Number(d.netAmount ?? d.amount ?? 0);
-        return net < 0 ? "pm-negative" : "pm-positive";
-      },
-    },
-    {
-      key: "creditDue",
-      label: "Credit Due",
-      width: "110px",
-      value: (row) => {
-        const d = row.details || row.expense || {};
-        return d.creditDue != null ? d.creditDue : "-";
-      },
-      sortValue: (row) => {
-        const d = row.details || row.expense || {};
-        return Number(d.creditDue ?? 0);
-      },
-    },
-    {
-      key: "comments",
-      label: "Comments",
-      width: "240px",
-      value: (row) => (row.details || row.expense)?.comments || "",
-      sortValue: (row) =>
-        String((row.details || row.expense)?.comments || "").toLowerCase(),
-    },
-  ];
+  const { t } = useTranslation();
+
+  // Use shared hook for consistent column definitions across reports
+  const columns = useStandardExpenseColumns(t, navigate, {
+    includeNet: true,
+    includeCredit: true,
+  });
 
   const classify = (row) => {
     const d = row.details || row.expense || {};
