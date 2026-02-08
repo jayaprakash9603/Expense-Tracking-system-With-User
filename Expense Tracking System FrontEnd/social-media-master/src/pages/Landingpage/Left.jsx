@@ -160,7 +160,10 @@ const Left = () => {
         {/* Top Section */}
         <div className="flex flex-col items-center w-full px-4">
           {/* Profile with Story Ring */}
-          <div className="w-[90%] max-w-[260px] h-[180px] flex flex-col justify-center items-center mb-4">
+          <div 
+            id="sidebar-profile-section"
+            className="w-[90%] max-w-[260px] h-[180px] flex flex-col justify-center items-center mb-4"
+          >
             <div
               className="w-20 h-20 mb-2 relative cursor-pointer"
               onClick={handleStoryClick}

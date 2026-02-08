@@ -100,8 +100,12 @@ const MenuItem = ({ name, path, icon, onClick, setIsSidebarOpen }) => {
   // Get shortcut attribute for Alt-key overlay
   const shortcutAttr = path ? PATH_TO_SHORTCUT_ATTR[path] : null;
 
+  // Generate ID for Tour Guide targeting
+  const tourId = path ? `nav-item-${path.replace(/^\//, "").replace(/\//g, "-")}` : undefined;
+
   return (
     <div
+      id={tourId}
       onClick={handleClick}
       data-shortcut={shortcutAttr}
       className={`flex items-center justify-start w-full max-w-[360px] h-[52px] cursor-pointer rounded-lg overflow-hidden transition-all duration-200 pl-6`}

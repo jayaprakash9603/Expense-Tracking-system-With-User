@@ -66,10 +66,13 @@ const HeaderBar = () => {
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Inline Search Bar */}
-          <InlineSearchBar />
+          <div id="header-search">
+            <InlineSearchBar />
+          </div>
 
           {/* Masking Toggle Button */}
           <button
+            id="header-masking"
             onClick={toggleMasking}
             data-shortcut="masking"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
@@ -95,6 +98,7 @@ const HeaderBar = () => {
 
           {/* Theme Toggle Button */}
           <button
+            id="header-theme"
             onClick={handleThemeToggle}
             data-shortcut="theme"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
@@ -139,6 +143,7 @@ const HeaderBar = () => {
           {/* Notifications Button */}
           <div className="relative">
             <button
+              id="header-notifications"
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               data-shortcut="notifications"
               className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
@@ -174,7 +179,9 @@ const HeaderBar = () => {
           </div>
 
           {/* Profile Dropdown */}
-          <ProfileDropdown />
+          <div id="header-profile">
+            <ProfileDropdown />
+          </div>
         </div>
       </div>
 

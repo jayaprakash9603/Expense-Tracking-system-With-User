@@ -29,6 +29,8 @@ export const en = {
     no: "No",
     notAvailable: "N/A",
     viewAnalytics: "View Analytics",
+    finish: "Finish",
+    skip: "Skip",
   },
 
   // Navigation
@@ -1352,6 +1354,10 @@ export const en = {
 
     // Quick Actions
     actions: {
+      // Tour Guide
+      restartTour: "Restart Tour",
+      restartTourDesc: "View the application walkthrough again",
+
       // Expense Actions
       addExpense: "Add Expense",
       addExpenseDesc: "Create a new expense entry",
@@ -1538,5 +1544,42 @@ export const en = {
     flowNav5: "Navigation 5",
     flowNav6: "Navigation 6",
     flowNav7: "Navigation 7",
+  },
+
+  // Tour
+  tour: {
+    welcomeTitle: "Welcome to Expensio!",
+    welcomeMessage: "Let's take a quick tour to help you get started.",
+    profileMessage:
+      "This is your profile area. View stories, friend updates, and your status here.",
+    dashboardMessage:
+      "Your Dashboard gives you a quick overview of your financial health and recent activities.",
+    expensesMessage:
+      "Track all your daily expenses here. Add, edit, and categorize your spending.",
+    budgetsMessage:
+      "Set monthly budgets to keep your spending in check. We'll alert you when you get close to your limits.",
+    groupsMessage:
+      "Create groups to split bills and share expenses with friends and family easily.",
+    reportsMessage:
+      "Visualize your spending habits with detailed reports and analytics to make better financial decisions.",
+    categoriesMessage:
+      "Manage your expense categories to organize your spending effectively.",
+    paymentsMessage: "Manage your payment methods and track transactions.",
+    billMessage: "Keep track of your bills and due dates to avoid late fees.",
+    friendsMessage: "Connect with friends and share your financial journey.",
+    utilitiesMessage:
+      "Access various utility tools to assist with your financial planning.",
+    headerSearchMessage:
+      "Quickly search for any feature, transaction, or setting.",
+    headerMaskingMessage:
+      "Toggle the visibility of sensitive amounts for privacy.",
+    headerThemeMessage:
+      "Switch between dark and light modes to suit your preference.",
+    headerNotificationsMessage:
+      "Stay updated with important alerts and notifications.",
+    headerProfileMessage:
+      "Access your profile settings and manage your account.",
+    finishTitle: "You're all set!",
+    finishMessage: "Enjoy using Expensio to manage your finances effortlessly.",
   },
 };
