@@ -12,7 +12,6 @@ import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
-  FilterPopover,
 } from "../../components/ui";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import PageHeader from "../../components/PageHeader";
@@ -22,7 +21,6 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../hooks/usePreviousExpense";
-import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -31,7 +29,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import HighlightedText from "../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
-import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
+import BudgetSelectionTable from "../../components/common/BudgetSelectionTable/BudgetSelectionTable";
 
 const NewExpense = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -179,7 +177,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
   });
   // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
-  const [selectedBudgetIds, setSelectedBudgetIds] = useState({});
+  const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
   const { friendId } = useParams();
   const { hasWriteAccess } = useFriendAccess(friendId);
 
@@ -332,12 +330,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
   // Update selection states when budgets change
   useEffect(() => {
     if (budgets && Array.isArray(budgets)) {
-      const initialSelection = {};
-      budgets.forEach((budget) => {
-        if (budget.includeInBudget) {
-          initialSelection[budget.id] = true;
-        }
-      });
+      const initialSelection = budgets
+        .filter((budget) => budget.includeInBudget)
+        .map((budget) => budget.id);
       setSelectedBudgetIds(initialSelection);
     }
   }, [budgets]);
@@ -409,14 +404,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     const amt = parseFloat(expenseData.amount) || 0;
     const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
 
-    const budgetIds = Object.keys(selectedBudgetIds)
-      .filter((id) => selectedBudgetIds[id])
-      // Ensure we're passing numbers if IDs are numbers, or strings if strings
-      .map((id) => {
-        // find original budget to get type of ID
-        const budget = budgets.find((b) => String(b.id) === String(id));
-        return budget ? budget.id : id;
-      });
+    const budgetIds = selectedBudgetIds;
 
     dispatch(
       createExpenseAction(
@@ -456,21 +444,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
 
   const handleCloseTable = () => {
     setShowTable(false);
-  };
-
-  const handleRowSelect = (row, checked) => {
-    setSelectedBudgetIds((prev) => ({
-      ...prev,
-      [row.id]: checked,
-    }));
-  };
-
-  const handleSelectAll = (displayedRows, checked) => {
-    const newSelection = { ...selectedBudgetIds };
-    displayedRows.forEach((row) => {
-      newSelection[row.id] = checked;
-    });
-    setSelectedBudgetIds(newSelection);
   };
 
   const renderInput = (id, type = "text", isTextarea = false) => {
@@ -1112,51 +1085,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     </div>
   );
 
-  // Budget Table Configuration
-  const {
-    columns: budgetColumns,
-    filteredRows,
-    sort,
-    setSort,
-    search,
-    setSearch,
-    columnFilters,
-    setColumnFilters,
-  } = useBudgetTableConfig(budgets, t);
-
-  // Filter Popover State
-  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-  const [filterColumn, setFilterColumn] = useState(null);
-
-  const handleFilterClick = (e, column) => {
-    setFilterAnchorEl(e.currentTarget);
-    setFilterColumn(column);
-  };
-
-  const handleFilterClose = () => {
-    setFilterAnchorEl(null);
-    setFilterColumn(null);
-  };
-
-  const handleFilterApply = (filterData) => {
-    if (filterColumn) {
-      setColumnFilters((prev) => ({
-        ...prev,
-        [filterColumn.key]: filterData,
-      }));
-    }
-  };
-
-  const handleFilterClear = () => {
-    if (filterColumn) {
-      setColumnFilters((prev) => {
-        const next = { ...prev };
-        delete next[filterColumn.key];
-        return next;
-      });
-    }
-  };
-
   // (Manual redirect effect removed in favor of generic hook)
 
   return (
@@ -1295,20 +1223,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
               </div>
             </div>
 
-            <GroupedDataTable
-              rows={filteredRows}
-              columns={budgetColumns}
-              sort={sort}
-              onSortChange={setSort}
-              columnFilters={columnFilters}
-              onFilterClick={handleFilterClick}
-              enableSelection={true}
-              selectedRows={selectedBudgetIds}
-              onRowSelect={handleRowSelect}
-              onSelectAll={handleSelectAll}
-              resolveRowKey={(row) => row.id}
-              className="w-full"
-              defaultPageSize={5}
+            <BudgetSelectionTable
+              budgets={budgets}
+              selectedBudgetIds={selectedBudgetIds}
+              onSelectionChange={setSelectedBudgetIds}
             />
           </div>
         )}
@@ -1347,26 +1265,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
             </button>
           )}
         </div>
-
-        <FilterPopover
-          open={Boolean(filterAnchorEl)}
-          anchorEl={filterAnchorEl}
-          column={filterColumn}
-          type={filterColumn?.filterType || "text"}
-          initialOperator={
-            filterColumn && columnFilters[filterColumn.key]
-              ? columnFilters[filterColumn.key].operator
-              : undefined
-          }
-          initialValue={
-            filterColumn && columnFilters[filterColumn.key]
-              ? columnFilters[filterColumn.key].value
-              : undefined
-          }
-          onClose={handleFilterClose}
-          onApply={handleFilterApply}
-          onClear={handleFilterClear}
-        />
 
         <style>
           {`

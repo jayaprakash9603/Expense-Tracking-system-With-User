@@ -26,7 +26,6 @@ import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
-  FilterPopover,
 } from "../../components/ui";
 import PreviousExpenseIndicator from "../../components/PreviousExpenseIndicator";
 import PageHeader from "../../components/PageHeader";
@@ -41,8 +40,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 import ReceiptScanModal from "../../components/ocr/ReceiptScanModal";
-import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
-import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
+import BudgetSelectionTable from "../../components/common/BudgetSelectionTable/BudgetSelectionTable";
 
 const CreateBill = ({ onClose, onSuccess }) => {
   const { colors } = useTheme();
@@ -108,76 +106,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const [showBudgetTable, setShowBudgetTable] = useState(false);
 
   const [selectedBudgets, setSelectedBudgets] = useState([]);
-
-  // --- New Table Logic ---
-  const {
-    filteredRows: filteredBudgets,
-    sort,
-    setSort,
-    columnFilters,
-    setColumnFilters,
-    columns: budgetTableColumns,
-  } = useBudgetTableConfig(budgets || []);
-
-  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-  const [filterColumn, setFilterColumn] = useState(null);
-
-  const handleFilterClick = (e, column) => {
-    setFilterAnchorEl(e.currentTarget);
-    setFilterColumn(column);
-  };
-
-  const handleFilterClose = () => {
-    setFilterAnchorEl(null);
-    setFilterColumn(null);
-  };
-
-  const handleFilterApply = (filterData) => {
-    if (filterColumn) {
-      setColumnFilters((prev) => ({
-        ...prev,
-        [filterColumn.key]: filterData,
-      }));
-    }
-  };
-
-  const handleFilterClear = () => {
-    if (filterColumn) {
-      setColumnFilters((prev) => {
-        const next = { ...prev };
-        delete next[filterColumn.key];
-        return next;
-      });
-    }
-  };
-
-  // Selection Adapter for GroupedDataTable
-  const selectedRowsMap = useMemo(() => {
-    return selectedBudgets.reduce((acc, id) => ({ ...acc, [id]: true }), {});
-  }, [selectedBudgets]);
-
-  const handleRowSelect = (row, isSelected) => {
-    setSelectedBudgets((prev) => {
-      const id = row.id;
-      if (isSelected) return [...prev, id];
-      return prev.filter((x) => x !== id);
-    });
-  };
-
-  const handleSelectAll = (rows, isSelected) => {
-    if (isSelected) {
-      const idsToCheck = rows.map((r) => r.id);
-      setSelectedBudgets((prev) => {
-        const unique = new Set([...prev, ...idsToCheck]);
-        return Array.from(unique);
-      });
-    } else {
-      const idsToUncheck = rows.map((r) => r.id);
-      setSelectedBudgets((prev) =>
-        prev.filter((id) => !idsToUncheck.includes(id)),
-      );
-    }
-  };
 
   // OCR Receipt Scan Modal state
   const [showReceiptScanModal, setShowReceiptScanModal] = useState(false);
@@ -1401,56 +1329,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 {t("billCommon.budgets.noBudgets")}
               </div>
             ) : (
-              <div
-                className="w-full relative"
-                style={{
-                  "--pm-text-primary": colors.primary_text,
-                  "--pm-text-secondary": colors.secondary_text,
-                  "--pm-text-tertiary": colors.secondary_text,
-                  "--pm-bg-primary": colors.active_bg,
-                  "--pm-bg-secondary": colors.secondary_bg,
-                  "--pm-border-color": colors.border_color,
-                  "--pm-accent-color": colors.primary_accent,
-                  "--pm-hover-bg": colors.hover_bg,
-                  "--pm-scrollbar-thumb": colors.primary_accent,
-                  "--pm-scrollbar-track": colors.secondary_bg,
-                }}
-              >
-                <GroupedDataTable
-                  rows={filteredBudgets}
-                  columns={budgetTableColumns}
-                  sort={sort}
-                  onSortChange={setSort}
-                  columnFilters={columnFilters}
-                  onFilterClick={handleFilterClick}
-                  enableSelection={true}
-                  selectedRows={selectedRowsMap}
-                  onRowSelect={handleRowSelect}
-                  onSelectAll={handleSelectAll}
-                  resolveRowKey={(row) => row.id}
-                  className="w-full"
-                  defaultPageSize={5}
-                />
-                <FilterPopover
-                  open={Boolean(filterAnchorEl)}
-                  anchorEl={filterAnchorEl}
-                  column={filterColumn}
-                  type={filterColumn?.filterType || "text"}
-                  initialOperator={
-                    filterColumn && columnFilters[filterColumn.key]
-                      ? columnFilters[filterColumn.key].operator
-                      : undefined
-                  }
-                  initialValue={
-                    filterColumn && columnFilters[filterColumn.key]
-                      ? columnFilters[filterColumn.key].value
-                      : undefined
-                  }
-                  onClose={handleFilterClose}
-                  onApply={handleFilterApply}
-                  onClear={handleFilterClear}
-                />
-              </div>
+              <BudgetSelectionTable
+                budgets={budgets} // Pass the raw list of budgets
+                selectedBudgetIds={selectedBudgets}
+                onSelectionChange={setSelectedBudgets}
+              />
             )}
           </div>
         )}

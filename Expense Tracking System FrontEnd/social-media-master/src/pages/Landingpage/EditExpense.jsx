@@ -21,9 +21,7 @@ import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
-  FilterPopover,
 } from "../../components/ui";
-import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 import { normalizePaymentMethod } from "../../utils/paymentMethodUtils";
 import TextField from "@mui/material/TextField";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -33,7 +31,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import HighlightedText from "../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../utils/fuzzyMatchUtils";
-import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
+import BudgetSelectionTable from "../../components/common/BudgetSelectionTable/BudgetSelectionTable";
 
 const EditExpense = ({}) => {
   const { colors } = useTheme();
@@ -187,7 +185,7 @@ const EditExpense = ({}) => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastSeverity, setToastSeverity] = useState("success");
   const [showTable, setShowTable] = useState(false);
-  const [selectedBudgetIds, setSelectedBudgetIds] = useState({});
+  const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
   // Suggestions handled by NameAutocomplete component / hook
 
   // Get topExpenses from Redux, just like NewExpense
@@ -216,12 +214,9 @@ const EditExpense = ({}) => {
   useEffect(() => {
     console.log("Budgets updated:", budgets);
     if (budgets && Array.isArray(budgets)) {
-      const initialSelection = {};
-      budgets.forEach((budget) => {
-        if (budget.includeInBudget) {
-          initialSelection[budget.id] = true;
-        }
-      });
+      const initialSelection = budgets
+        .filter((budget) => budget.includeInBudget)
+        .map((budget) => budget.id);
       setSelectedBudgetIds(initialSelection);
     }
   }, [budgets]);
@@ -301,12 +296,7 @@ const EditExpense = ({}) => {
 
     if (Object.keys(newErrors).length > 0) return;
 
-    const budgetIds = Object.keys(selectedBudgetIds)
-      .filter((id) => selectedBudgetIds[id])
-      .map((id) => {
-        const budget = budgets.find((b) => String(b.id) === String(id));
-        return budget ? budget.id : id;
-      });
+    const budgetIds = selectedBudgetIds;
 
     try {
       // Normalize payment method and compute creditDue per rules
@@ -355,21 +345,6 @@ const EditExpense = ({}) => {
 
   const handleCloseTable = () => {
     setShowTable(false);
-  };
-
-  const handleRowSelect = (row, checked) => {
-    setSelectedBudgetIds((prev) => ({
-      ...prev,
-      [row.id]: checked,
-    }));
-  };
-
-  const handleSelectAll = (displayedRows, checked) => {
-    const newSelection = { ...selectedBudgetIds };
-    displayedRows.forEach((row) => {
-      newSelection[row.id] = checked;
-    });
-    setSelectedBudgetIds(newSelection);
   };
 
   // Render input fields with consistent style and required asterisk
@@ -640,51 +615,6 @@ const EditExpense = ({}) => {
       </div>
     </div>
   );
-
-  // Budget Table Configuration
-  const {
-    columns: budgetColumns,
-    filteredRows,
-    sort,
-    setSort,
-    search,
-    setSearch,
-    columnFilters,
-    setColumnFilters,
-  } = useBudgetTableConfig(budgets, t);
-
-  // Filter Popover State
-  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-  const [filterColumn, setFilterColumn] = useState(null);
-
-  const handleFilterClick = (e, column) => {
-    setFilterAnchorEl(e.currentTarget);
-    setFilterColumn(column);
-  };
-
-  const handleFilterClose = () => {
-    setFilterAnchorEl(null);
-    setFilterColumn(null);
-  };
-
-  const handleFilterApply = (filterData) => {
-    if (filterColumn) {
-      setColumnFilters((prev) => ({
-        ...prev,
-        [filterColumn.key]: filterData,
-      }));
-    }
-  };
-
-  const handleFilterClear = () => {
-    if (filterColumn) {
-      setColumnFilters((prev) => {
-        const next = { ...prev };
-        delete next[filterColumn.key];
-        return next;
-      });
-    }
-  };
 
   const handleOnClose = () => {
     navigate(-1);
@@ -1070,20 +1000,10 @@ const EditExpense = ({}) => {
               </div>
             </div>
 
-            <GroupedDataTable
-              rows={filteredRows}
-              columns={budgetColumns}
-              sort={sort}
-              onSortChange={setSort}
-              columnFilters={columnFilters}
-              onFilterClick={handleFilterClick}
-              enableSelection={true}
-              selectedRows={selectedBudgetIds}
-              onRowSelect={handleRowSelect}
-              onSelectAll={handleSelectAll}
-              resolveRowKey={(row) => row.id}
-              className="w-full"
-              defaultPageSize={5}
+            <BudgetSelectionTable
+              budgets={budgets}
+              selectedBudgetIds={selectedBudgetIds}
+              onSelectionChange={setSelectedBudgetIds}
             />
           </div>
         )}
@@ -1115,26 +1035,6 @@ const EditExpense = ({}) => {
             </button>
           )}
         </div>
-
-        <FilterPopover
-          open={Boolean(filterAnchorEl)}
-          anchorEl={filterAnchorEl}
-          column={filterColumn}
-          type={filterColumn?.filterType || "text"}
-          initialOperator={
-            filterColumn && columnFilters[filterColumn.key]
-              ? columnFilters[filterColumn.key].operator
-              : undefined
-          }
-          initialValue={
-            filterColumn && columnFilters[filterColumn.key]
-              ? columnFilters[filterColumn.key].value
-              : undefined
-          }
-          onClose={handleFilterClose}
-          onApply={handleFilterApply}
-          onClear={handleFilterClear}
-        />
 
         <style>
           {`

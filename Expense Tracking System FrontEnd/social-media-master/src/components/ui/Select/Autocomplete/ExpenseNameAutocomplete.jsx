@@ -46,7 +46,7 @@ const ExpenseNameAutocomplete = ({
   value = "",
   onChange,
   friendId = "",
-  label = "Expense Name",
+  label = "",
   placeholder = "Enter name",
   error = false,
   helperText = "",
