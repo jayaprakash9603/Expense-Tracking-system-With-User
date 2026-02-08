@@ -5,8 +5,10 @@ import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
+  FilterPopover,
 } from "../../components/ui";
 import PageHeader from "../../components/PageHeader";
+
 import {
   Autocomplete,
   TextField,
@@ -16,10 +18,11 @@ import {
   Button,
   Skeleton,
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import GroupedDataTable from "../../components/common/GroupedDataTable/GroupedDataTable";
+import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -102,8 +105,78 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
   const [errors, setErrors] = useState({});
   const [showExpenseTable, setShowExpenseTable] = useState(false);
   const [showBudgetTable, setShowBudgetTable] = useState(false);
-  const [checkboxStates, setCheckboxStates] = useState([]);
   const [selectedBudgets, setSelectedBudgets] = useState([]);
+
+  // --- Budget Table Logic ---
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+  const {
+    columns: budgetTableColumns,
+    columnFilters,
+    setColumnFilters,
+    sort,
+    setSort,
+    filteredRows: filteredBudgets,
+  } = useBudgetTableConfig(budgets || []);
+
+  const handleFilterClick = (e, column) => {
+    setFilterAnchorEl(e.currentTarget);
+    setFilterColumn(column);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+    setFilterColumn(null);
+  };
+
+  const handleFilterApply = (filterData) => {
+    if (filterColumn) {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [filterColumn.key]: filterData,
+      }));
+    }
+  };
+
+  const handleFilterClear = () => {
+    if (filterColumn) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterColumn.key];
+        return next;
+      });
+    }
+  };
+
+  const selectedRowsMap = useMemo(() => {
+    return selectedBudgets.reduce((acc, id) => {
+      acc[id] = true;
+      return acc;
+    }, {});
+  }, [selectedBudgets]);
+
+  const handleRowSelect = (row, isSelected) => {
+    const rowId = row.id;
+    setSelectedBudgets((prev) => {
+      if (isSelected) {
+        return prev.includes(rowId) ? prev : [...prev, rowId];
+      } else {
+        return prev.filter((id) => id !== rowId);
+      }
+    });
+  };
+
+  const handleSelectAll = (rows, isSelected) => {
+    if (isSelected) {
+      const ids = rows.map((row) => row.id);
+      setSelectedBudgets((prev) => Array.from(new Set([...prev, ...ids])));
+    } else {
+      const idsToUnselect = rows.map((row) => row.id);
+      setSelectedBudgets((prev) =>
+        prev.filter((id) => !idsToUnselect.includes(id)),
+      );
+    }
+  };
 
   // Load bill data on component mount
   useEffect(() => {
@@ -210,22 +283,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       dispatch(getListOfBudgetsById(billData.date, friendId || ""));
     }
   }, [dispatch, billData.date]);
-
-  useEffect(() => {
-    if (budgets.length > 0) {
-      const newCheckboxStates = budgets.map(
-        (budget) =>
-          selectedBudgets.includes(budget.id) ||
-          budget.includeInBudget ||
-          false,
-      );
-      setCheckboxStates((prev) =>
-        JSON.stringify(prev) !== JSON.stringify(newCheckboxStates)
-          ? newCheckboxStates
-          : prev,
-      );
-    }
-  }, [budgets, selectedBudgets]);
 
   useEffect(() => {
     const totalAmount = expenses.reduce(
@@ -476,9 +533,7 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         (sum, expense) => sum + (expense.totalPrice || 0),
         0,
       );
-      const selectedBudgetIds = budgets
-        .filter((_, index) => checkboxStates[index])
-        .map((budget) => budget.id);
+      const selectedBudgetIds = selectedBudgets || [];
 
       const normalizedMethod = normalizePaymentMethod(billData.paymentMethod);
       const updatedBillData = {
@@ -517,14 +572,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
       console.error("Error updating bill:", error);
       alert(t("editBill.messages.errorWithReason", { message: error.message }));
     }
-  };
-
-  const handleCheckboxChange = (index) => {
-    setCheckboxStates((prevStates) => {
-      const newStates = [...prevStates];
-      newStates[index] = !newStates[index];
-      return newStates;
-    });
   };
 
   // Skeleton helpers to avoid layout shift while loading
@@ -937,100 +984,6 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
     </div>
   );
 
-  const dataGridColumns = [
-    {
-      field: "includeInBudget",
-      headerName: (
-        <input
-          type="checkbox"
-          checked={checkboxStates.length > 0 && checkboxStates.every(Boolean)}
-          ref={(el) => {
-            if (el) {
-              el.indeterminate =
-                checkboxStates.some(Boolean) && !checkboxStates.every(Boolean);
-            }
-          }}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setCheckboxStates(Array(budgets.length).fill(checked));
-          }}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0", marginLeft: 2, marginRight: 2 }}
-        />
-      ),
-      flex: 0.25,
-      minWidth: 40,
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      renderCell: (params) => (
-        <input
-          type="checkbox"
-          checked={checkboxStates[params.row.index]}
-          onChange={() => handleCheckboxChange(params.row.index)}
-          className="h-5 w-5 text-[#00dac6] border-gray-700 rounded focus:ring-[#00dac6]"
-          style={{ accentColor: "#00b8a0" }}
-        />
-      ),
-    },
-    {
-      field: "name",
-      headerName: t("billCommon.budgets.columns.name"),
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      field: "description",
-      headerName: t("billCommon.budgets.columns.description"),
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      field: "startDate",
-      headerName: t("billCommon.budgets.columns.startDate"),
-      flex: 1,
-      minWidth: 100,
-    },
-    {
-      field: "endDate",
-      headerName: t("billCommon.budgets.columns.endDate"),
-      flex: 1,
-      minWidth: 100,
-    },
-    {
-      field: "remainingAmount",
-      headerName: t("billCommon.budgets.columns.remainingAmount"),
-      flex: 1,
-      minWidth: 120,
-    },
-    {
-      field: "amount",
-      headerName: t("billCommon.budgets.columns.amount"),
-      flex: 1,
-      minWidth: 100,
-    },
-  ];
-
-  const dataGridRows = Array.isArray(budgets)
-    ? budgets.map((item, index) => ({
-        ...item,
-        index,
-        id: item.id ?? `temp-${index}-${Date.now()}`,
-        includeInBudget: checkboxStates[index],
-      }))
-    : [];
-
-  const selectedIds = dataGridRows
-    .filter((_, idx) => checkboxStates[idx])
-    .map((row) => row.id);
-
-  const handleDataGridSelection = (newSelection) => {
-    const newCheckboxStates = dataGridRows.map((row) =>
-      newSelection.includes(row.id),
-    );
-    setCheckboxStates(newCheckboxStates);
-  };
-
   const expenseSummaryCountKey =
     expenses.length === 1
       ? "billCommon.summary.singleItem"
@@ -1159,42 +1112,56 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
                 {t("billCommon.budgets.noBudgets")}
               </div>
             ) : (
-              <Box
-                sx={{
-                  height: 325,
-                  width: "100%",
-                  background: colors.secondary_bg,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.border_color}`,
+              <div
+                className="w-full relative"
+                style={{
+                  "--pm-text-primary": colors.primary_text,
+                  "--pm-text-secondary": colors.secondary_text,
+                  "--pm-text-tertiary": colors.secondary_text,
+                  "--pm-bg-primary": colors.active_bg,
+                  "--pm-bg-secondary": colors.secondary_bg,
+                  "--pm-border-color": colors.border_color,
+                  "--pm-accent-color": colors.primary_accent,
+                  "--pm-hover-bg": colors.hover_bg,
+                  "--pm-scrollbar-thumb": colors.primary_accent,
+                  "--pm-scrollbar-track": colors.secondary_bg,
                 }}
               >
-                <DataGrid
-                  rows={dataGridRows}
-                  columns={dataGridColumns}
-                  getRowId={(row) => row.id}
-                  disableRowSelectionOnClick
-                  selectionModel={selectedIds}
-                  onRowSelectionModelChange={handleDataGridSelection}
-                  pageSizeOptions={[5, 10, 20]}
-                  initialState={{
-                    pagination: { paginationModel: { page: 0, pageSize: 5 } },
-                  }}
-                  rowHeight={42}
-                  headerHeight={32}
-                  sx={{
-                    color: colors.primary_text,
-                    border: 0,
-                    "& .MuiDataGrid-columnHeaders": {
-                      background: colors.tertiary_bg,
-                    },
-                    "& .MuiDataGrid-row": { background: colors.secondary_bg },
-                    "& .MuiCheckbox-root": {
-                      color: `${colors.primary_accent} !important`,
-                    },
-                    fontSize: "0.92rem",
-                  }}
+                <GroupedDataTable
+                  rows={filteredBudgets}
+                  columns={budgetTableColumns}
+                  sort={sort}
+                  onSortChange={setSort}
+                  columnFilters={columnFilters}
+                  onFilterClick={handleFilterClick}
+                  enableSelection={true}
+                  selectedRows={selectedRowsMap}
+                  onRowSelect={handleRowSelect}
+                  onSelectAll={handleSelectAll}
+                  resolveRowKey={(row) => row.id}
+                  className="w-full"
+                  defaultPageSize={5}
                 />
-              </Box>
+                <FilterPopover
+                  open={Boolean(filterAnchorEl)}
+                  anchorEl={filterAnchorEl}
+                  column={filterColumn}
+                  type={filterColumn?.filterType || "text"}
+                  initialOperator={
+                    filterColumn && columnFilters[filterColumn.key]
+                      ? columnFilters[filterColumn.key].operator
+                      : undefined
+                  }
+                  initialValue={
+                    filterColumn && columnFilters[filterColumn.key]
+                      ? columnFilters[filterColumn.key].value
+                      : undefined
+                  }
+                  onClose={handleFilterClose}
+                  onApply={handleFilterApply}
+                  onClear={handleFilterClear}
+                />
+              </div>
             )}
           </div>
         )}
