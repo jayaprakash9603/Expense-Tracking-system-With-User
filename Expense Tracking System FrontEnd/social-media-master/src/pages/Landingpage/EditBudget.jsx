@@ -105,6 +105,16 @@ const EditBudget = () => {
     }
   };
 
+  const handleFilterClear = () => {
+    if (filterColumn) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterColumn.key];
+        return next;
+      });
+    }
+  };
+
   const inputWrapper = {
     width: "150px",
     minWidth: "150px",
@@ -342,12 +352,11 @@ const EditBudget = () => {
     }));
   };
 
-  const handleSelectAll = (e) => {
-    const checked = e.target.checked;
+  const handleSelectAll = (rows, checked) => {
     if (checked) {
       const allIds = {};
-      expenses.forEach((expense) => {
-        allIds[expense.id] = true;
+      rows.forEach((row) => {
+        allIds[row.id] = true;
       });
       setSelectedExpenseIds(allIds);
     } else {
@@ -725,29 +734,36 @@ const EditBudget = () => {
             )}
           </div>
           {showTable && (
-            <div className="mt-4 sm:mt-6 w-full relative">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={handleCloseTable}
-                  className="px-2 py-1 border rounded"
-                  style={{
-                    backgroundColor: colors.active_bg,
-                    color: colors.primary_text,
-                    borderColor: colors.border_color,
-                    whiteSpace: "nowrap",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = colors.hover_bg)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = colors.active_bg)
-                  }
-                >
-                  {closeLabel}
-                </button>
+            <div
+              className="mt-4 sm:mt-6 w-full relative"
+              style={{
+                "--pm-text-primary": colors.primary_text,
+                "--pm-text-secondary": colors.secondary_text,
+                "--pm-text-tertiary": colors.secondary_text,
+                "--pm-bg-primary": colors.active_bg,
+                "--pm-bg-secondary": colors.secondary_bg,
+                "--pm-border-color": colors.border_color,
+                "--pm-accent-color": colors.primary_accent,
+                "--pm-hover-bg": colors.hover_bg,
+                "--pm-scrollbar-thumb": colors.primary_accent,
+                "--pm-scrollbar-track": colors.secondary_bg,
+              }}
+            >
+              {/* Mobile Close Button */}
+              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
+                <div className="block sm:hidden self-end">
+                  <button
+                    onClick={handleCloseTable}
+                    className="px-2 py-1 border rounded"
+                    style={{
+                      backgroundColor: colors.active_bg,
+                      color: colors.primary_text,
+                      borderColor: colors.border_color,
+                    }}
+                  >
+                    {closeLabel}
+                  </button>
+                </div>
               </div>
               <GroupedDataTable
                 rows={filteredRows}
@@ -767,6 +783,7 @@ const EditBudget = () => {
                 open={Boolean(filterAnchorEl)}
                 onClose={handleFilterClose}
                 onApply={handleFilterApply}
+                onClear={handleFilterClear}
                 columnKey={filterColumn?.key}
               />
             </div>

@@ -39,6 +39,16 @@ export const useExpenseTableConfig = (data = [], t) => {
         render: (value) => (value ? dayjs(value).format("DD MMM YYYY") : "-"),
       },
       {
+        key: "categoryName",
+        label: t ? t("category") || "Category" : "Category",
+        filterable: true,
+        filterType: "text",
+        sortable: true,
+        width: "15%",
+        value: (row) => row.categoryName,
+        render: (value) => value || "-",
+      },
+      {
         key: "expenseName",
         label: t ? t("expenseName") || "Expense" : "Expense Name",
         filterable: true,
@@ -76,7 +86,7 @@ export const useExpenseTableConfig = (data = [], t) => {
         sortable: true,
         width: "10%",
         value: (row) => getExpenseField(row, "type"),
-        render: (value) => (value ? value.toUpperCase() : "-"),
+        render: (value) => (value ? value.toLowerCase() : "-"),
       },
       {
         key: "comments",
@@ -101,10 +111,12 @@ export const useExpenseTableConfig = (data = [], t) => {
       const lowerSearch = search.toLowerCase();
       rows = rows.filter((row) => {
         const name = getExpenseField(row, "expenseName").toLowerCase();
+        const category = (row.categoryName || "").toLowerCase();
         const desc = getExpenseField(row, "comments").toLowerCase();
         const amt = String(getExpenseField(row, "amount"));
         return (
           name.includes(lowerSearch) ||
+          category.includes(lowerSearch) ||
           desc.includes(lowerSearch) ||
           amt.includes(lowerSearch)
         );
@@ -125,11 +137,13 @@ export const useExpenseTableConfig = (data = [], t) => {
         // Determine cell value based on key
         let cellValue;
         if (key === "date") cellValue = row.date;
+        else if (key === "categoryName") cellValue = row.categoryName;
         else cellValue = getExpenseField(row, key);
 
         // Text Logic
         if (
           key === "expenseName" ||
+          key === "categoryName" ||
           key === "paymentMethod" ||
           key === "type" ||
           key === "comments"

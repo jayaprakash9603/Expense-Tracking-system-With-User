@@ -35,7 +35,7 @@ const NewBudget = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const { expenses, error: expenseError } = useSelector(
-    (state) => state.expenses
+    (state) => state.expenses,
   );
   const { error: budgetError } = useSelector((state) => state.budgets);
   // Replaced checkboxStates array with ID map for GroupedDataTable
@@ -74,7 +74,15 @@ const NewBudget = () => {
     }
   };
 
-
+  const handleFilterClear = () => {
+    if (filterColumn) {
+      setColumnFilters((prev) => {
+        const next = { ...prev };
+        delete next[filterColumn.key];
+        return next;
+      });
+    }
+  };
 
   const dispatch = useDispatch();
   const { friendId } = useParams();
@@ -104,7 +112,7 @@ const NewBudget = () => {
       endDate: t("newBudget.fields.endDate"),
       amount: t("newBudget.fields.amount"),
     }),
-    [t]
+    [t],
   );
 
   const fieldPlaceholders = useMemo(
@@ -115,7 +123,7 @@ const NewBudget = () => {
       endDate: t("newBudget.placeholders.endDate"),
       amount: t("newBudget.placeholders.amount"),
     }),
-    [t]
+    [t],
   );
 
   const validationMessages = useMemo(
@@ -126,7 +134,7 @@ const NewBudget = () => {
       endDate: t("newBudget.validation.endDate"),
       amount: t("newBudget.validation.amount"),
     }),
-    [t]
+    [t],
   );
 
   const requiredFields = [
@@ -147,7 +155,7 @@ const NewBudget = () => {
 
   const getFieldLabel = useCallback(
     (fieldId) => fieldLabels[fieldId] || formatLabelFromId(fieldId),
-    [fieldLabels, formatLabelFromId]
+    [fieldLabels, formatLabelFromId],
   );
 
   const getPlaceholderForField = useCallback(
@@ -156,7 +164,7 @@ const NewBudget = () => {
       t("newBudget.placeholders.generic", {
         field: fallbackLabel || formatLabelFromId(fieldId),
       }),
-    [fieldPlaceholders, formatLabelFromId, t]
+    [fieldPlaceholders, formatLabelFromId, t],
   );
 
   const tableNoRowsLabel = t("newBudget.table.noRows");
@@ -193,8 +201,8 @@ const NewBudget = () => {
             updatedFormData.startDate,
             updatedFormData.endDate,
             "desc",
-            friendId || ""
-          )
+            friendId || "",
+          ),
         );
       }
       return updatedFormData;
@@ -247,14 +255,14 @@ const NewBudget = () => {
       friendId
         ? navigate(`/budget/${friendId}`)
         : navigate(
-            `/budget?message=${encodeURIComponent(successMessage)}&type=success`
+            `/budget?message=${encodeURIComponent(successMessage)}&type=success`,
           );
     } catch (error) {
       console.error("Submission error:", error);
       navigate(
         `/budget?message=${encodeURIComponent(
-          error?.message || genericErrorMessage
-        )}&type=error`
+          error?.message || genericErrorMessage,
+        )}&type=error`,
       );
     } finally {
       setIsSubmitting(false);
@@ -269,8 +277,8 @@ const NewBudget = () => {
         formData.startDate,
         formData.endDate,
         "desc",
-        friendId || ""
-      )
+        friendId || "",
+      ),
     );
   };
 
@@ -291,12 +299,11 @@ const NewBudget = () => {
     }));
   };
 
-  const handleSelectAll = (e) => {
-    const checked = e.target.checked;
+  const handleSelectAll = (rows, checked) => {
     if (checked) {
       const allIds = {};
-      expenses.forEach((expense) => {
-        allIds[expense.id] = true;
+      rows.forEach((row) => {
+        allIds[row.id] = true;
       });
       setSelectedExpenseIds(allIds);
     } else {
@@ -408,8 +415,8 @@ const NewBudget = () => {
                             ? formatted
                             : updatedFormData.endDate,
                           "desc",
-                          friendId || ""
-                        )
+                          friendId || "",
+                        ),
                       );
                     }
                     return updatedFormData;
@@ -639,29 +646,36 @@ const NewBudget = () => {
             )}
           </div>
           {showTable && (
-            <div className="mt-4 sm:mt-6 w-full relative">
-              <div className="flex justify-end mb-2">
-                <button
-                  onClick={handleCloseTable}
-                  className="px-2 py-1 border rounded"
-                  style={{
-                    backgroundColor: colors.active_bg,
-                    color: colors.primary_text,
-                    borderColor: colors.border_color,
-                    whiteSpace: "nowrap",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.backgroundColor = colors.hover_bg)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.backgroundColor = colors.active_bg)
-                  }
-                >
-                  {closeLabel}
-                </button>
+            <div
+              className="mt-4 sm:mt-6 w-full relative"
+              style={{
+                "--pm-text-primary": colors.primary_text,
+                "--pm-text-secondary": colors.secondary_text,
+                "--pm-text-tertiary": colors.secondary_text,
+                "--pm-bg-primary": colors.active_bg,
+                "--pm-bg-secondary": colors.secondary_bg,
+                "--pm-border-color": colors.border_color,
+                "--pm-accent-color": colors.primary_accent,
+                "--pm-hover-bg": colors.hover_bg,
+                "--pm-scrollbar-thumb": colors.primary_accent,
+                "--pm-scrollbar-track": colors.secondary_bg,
+              }}
+            >
+              {/* Mobile Close Button */}
+              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
+                <div className="block sm:hidden self-end">
+                  <button
+                    onClick={handleCloseTable}
+                    className="px-2 py-1 border rounded"
+                    style={{
+                      backgroundColor: colors.active_bg,
+                      color: colors.primary_text,
+                      borderColor: colors.border_color,
+                    }}
+                  >
+                    {closeLabel}
+                  </button>
+                </div>
               </div>
               <GroupedDataTable
                 rows={filteredRows}
@@ -681,6 +695,7 @@ const NewBudget = () => {
                 open={Boolean(filterAnchorEl)}
                 onClose={handleFilterClose}
                 onApply={handleFilterApply}
+                onClear={handleFilterClear}
                 columnKey={filterColumn?.key}
               />
             </div>
