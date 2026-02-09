@@ -8,8 +8,8 @@ set "PROJECT_DIR=%PROJECT_DIR:~0,-1%"
 echo Project Directory: %PROJECT_DIR%
 
 REM Define relative paths to services
-set "BACKEND_BASE=%PROJECT_DIR%\Expense-tracking-backend"
-set "FRONTEND_BASE=%PROJECT_DIR%\Expense Tracking System FrontEnd\social-media-master"
+set "BACKEND_BASE=%PROJECT_DIR%\expense-tracking-backend"
+set "FRONTEND_BASE=%PROJECT_DIR%\expense-tracking-frontend"
 
 REM Check if Windows Terminal is available
 where wt >nul 2>nul

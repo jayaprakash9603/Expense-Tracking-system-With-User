@@ -2,12 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const workspaceRoot = path.resolve(__dirname, "..");
-const baseDir = path.join(
-  workspaceRoot,
-  "Expense Tracking System FrontEnd",
-  "social-media-master",
-  "src"
-);
+const baseDir = path.join(workspaceRoot, "src");
 
 const FAILURE_REGEX = /dispatch\(\{\s*type:\s*([A-Z0-9_]+_FAILURE)/g;
 const THROW_REGEX = /throw\s+\w+/;
