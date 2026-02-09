@@ -1,0 +1,177 @@
+# Monolithic Mode Configuration
+# Run with: mvn spring-boot:run -Dspring.profiles.active=monolithic
+
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: expense-tracking-monolith
+  
+  profiles:
+    active: monolithic
+  
+  main:
+    allow-bean-definition-overriding: true
+  
+  # Single consolidated database
+  datasource:
+    url: jdbc:mysql://localhost:3306/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  
+  # Kafka configuration (optional in monolithic mode)
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: monolith-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  
+  # Redis for caching (optional)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  
+  # Mail configuration
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Kafka Topics
+kafka:
+  topics:
+    expense-events: expense-events
+    budget-events: budget-events
+    bill-events: bill-events
+    category-events: category-events
+    payment-method-events: payment-method-events
+    friendship-events: friendship-events
+    friend-activity-events: friend-activity-events
+    unified-activity-events: unified-activity-events
+    audit-events: audit-events
+    story-creation-events: story-creation-events
+    notification-events: notification-events
+    expense-budget-linking-events: expense-budget-linking-events
+
+# Disable Eureka in monolithic mode
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Service URLs - point to self (localhost) in monolithic mode
+# These are used by Feign clients which will call local endpoints
+user:
+  service:
+    url: http://localhost:${server.port}
+expense:
+  service:
+    url: http://localhost:${server.port}
+budget:
+  service:
+    url: http://localhost:${server.port}
+category:
+  service:
+    url: http://localhost:${server.port}
+bill:
+  service:
+    url: http://localhost:${server.port}
+payment:
+  service:
+    url: http://localhost:${server.port}
+friendship:
+  service:
+    url: http://localhost:${server.port}
+notification:
+  service:
+    url: http://localhost:${server.port}
+chat:
+  service:
+    url: http://localhost:${server.port}
+audit:
+  service:
+    url: http://localhost:${server.port}
+analytics:
+  service:
+    url: http://localhost:${server.port}
+search:
+  service:
+    url: http://localhost:${server.port}
+story:
+  service:
+    url: http://localhost:${server.port}
+event:
+  service:
+    url: http://localhost:${server.port}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-for-jwt-token-generation-min-256-bits}
+  expiration: 86400000
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.jaya: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# OpenAPI Documentation
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
