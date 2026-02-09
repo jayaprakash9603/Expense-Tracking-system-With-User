@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "TASK-SERVICE",url = "${TASK_SERVICE_URL:http://localhost:6002}")
+@FeignClient(name = "TASK-SERVICE", url = "${TASK_SERVICE_URL:http://localhost:6002}", contextId = "notificationTaskClient")
 public interface TaskService {
 
 

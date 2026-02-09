@@ -2,15 +2,21 @@ package com.jaya.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import com.jaya.common.config.SharedAsyncConfig;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ * Expense-Service async configuration.
+ * friendActivityExecutor bean is now provided by SharedAsyncConfig in common-library.
+ */
 @Configuration
 @EnableAsync
-public class AsyncConfig {
+@Import(SharedAsyncConfig.class)
+public class ExpenseAsyncConfig {
 
     @Bean(name = "expensePostExecutor")
     public ThreadPoolTaskExecutor expensePostExecutor() {
@@ -26,17 +32,5 @@ public class AsyncConfig {
         ex.initialize();
         return ex;
     }
-
-    @Bean(name = "friendActivityExecutor")
-    public Executor friendActivityExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(500);
-        executor.setThreadNamePrefix("friend-activity-");
-        executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(30);
-        executor.initialize();
-        return executor;
-    }
+    // friendActivityExecutor moved to common-library SharedAsyncConfig
 }

@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+public class ChatWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired
     @Lazy

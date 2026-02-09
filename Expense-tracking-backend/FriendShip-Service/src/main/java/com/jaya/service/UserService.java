@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
-@FeignClient(name = "USER-SERVICE", url = "${USER_SERVICE_URL:http://localhost:6001}")
+@FeignClient(name = "USER-SERVICE", url = "${USER_SERVICE_URL:http://localhost:6001}", contextId = "friendshipUserClient")
 public interface UserService {
 
     @GetMapping("/api/user/profile")

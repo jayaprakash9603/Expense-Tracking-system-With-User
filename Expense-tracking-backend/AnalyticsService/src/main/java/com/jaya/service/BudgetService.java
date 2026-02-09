@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "BUDGET-SERVICE", url = "http://localhost:6005")
+@FeignClient(name = "BUDGET-SERVICE", url = "${BUDGET_SERVICE_URL:http://localhost:6005}", contextId = "analyticsBudgetClient")
 public interface BudgetService {
 
         @GetMapping("/api/budgets")

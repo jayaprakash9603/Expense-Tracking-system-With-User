@@ -7,13 +7,13 @@ server:
 spring:
   application:
     name: expense-tracking-monolith
-
+  
   profiles:
     active: monolithic
-
+  
   main:
     allow-bean-definition-overriding: true
-
+  
   # Single consolidated database (port 5000 matches docker-compose)
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
@@ -25,7 +25,7 @@ spring:
       minimum-idle: 5
       idle-timeout: 300000
       connection-timeout: 20000
-
+  
   jpa:
     hibernate:
       ddl-auto: update
@@ -38,7 +38,7 @@ spring:
           batch_size: 50
         order_inserts: true
         order_updates: true
-
+  
   # Kafka configuration (optional in monolithic mode)
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
@@ -54,13 +54,13 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-
+  
   # Redis for caching (optional)
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-
+  
   # Mail configuration
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}

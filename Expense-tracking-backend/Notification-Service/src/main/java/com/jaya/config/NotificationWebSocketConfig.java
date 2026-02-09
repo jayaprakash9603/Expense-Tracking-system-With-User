@@ -1,6 +1,5 @@
 package com.jaya.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -10,35 +9,32 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Arrays;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+public class NotificationWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}")
     private String allowedOrigins;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-
         config.enableSimpleBroker("/topic", "/queue");
-
         config.setApplicationDestinationPrefixes("/app");
-
         config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-
-        registry.addEndpoint("/ws-stories")
+        registry.addEndpoint("/notifications")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
                         "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
                 .withSockJS();
 
-        registry.addEndpoint("/stories-ws")
+        registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
                         "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
                 .withSockJS();

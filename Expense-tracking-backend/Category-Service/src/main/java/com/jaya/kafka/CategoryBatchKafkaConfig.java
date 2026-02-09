@@ -8,10 +8,12 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 @Configuration
 @EnableKafka
-public class CategoryKafkaConfig {
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
+public class CategoryBatchKafkaConfig {
 
     @Value("${app.kafka.category.concurrency:4}")
     private int concurrency;

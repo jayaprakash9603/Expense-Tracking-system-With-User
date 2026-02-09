@@ -19,9 +19,12 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Configuration
 @EnableKafka
-public class KafkaConfig {
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
+public class PaymentKafkaConfig {
 
     @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
