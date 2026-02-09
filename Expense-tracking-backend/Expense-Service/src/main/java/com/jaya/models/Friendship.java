@@ -6,6 +6,7 @@ import lombok.*;
 import com.jaya.dto.User;
 
 @Entity
+@Table(name = "expense_friendship")
 @Getter
 @Setter
 @NoArgsConstructor

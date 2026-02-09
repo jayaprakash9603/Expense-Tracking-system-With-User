@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Entity
-@Table(name = "email_logs")
+@Table(name = "expense_email_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
