@@ -57,7 +57,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "22181:2181" # remapped host port
+      - "22182:2181" # remapped host port
     networks:
       - app-net
     restart: unless-stopped
