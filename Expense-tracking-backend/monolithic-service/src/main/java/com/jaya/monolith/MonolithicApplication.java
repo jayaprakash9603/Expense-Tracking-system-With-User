@@ -51,8 +51,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "com.jaya.common"
 })
 @EntityScan(basePackages = {
+    // Most services use com.jaya.models
     "com.jaya.models",
-    "com.jaya.task.user.service.modal"
+    // User service entities (two folders - modal and model)
+    "com.jaya.task.user.service.modal",
+    "com.jaya.task.user.service.model",
+    // Notification service entities
+    "com.jaya.modal",
+    // Search service entities
+    "com.jaya.entity"
 })
 @EnableJpaRepositories(basePackages = {
     "com.jaya.repository",
