@@ -1,1 +1,5 @@
-# Auto-configuration disabled - classes are imported via component scan
+# Common Library Auto-Configuration
+# These configurations are automatically applied when common-library is on the classpath
+
+com.jaya.common.config.CommonLibraryAutoConfiguration
+com.jaya.common.config.ConditionalEurekaConfig

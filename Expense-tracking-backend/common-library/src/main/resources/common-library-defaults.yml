@@ -1,7 +1,31 @@
 # Common Library Default Configuration
 # These properties can be overridden in your service's application.yml
 
-# Exception Handler
+# Common Library Feature Toggles
+common-library:
+  # Enable/disable global exception handlers from common-library
+  exception-handling:
+    enabled: true
+  # Enable/disable security exception handler
+  security:
+    enabled: true
+  # JWT utilities configuration
+  jwt:
+    enabled: true
+    filter:
+      # JWT filter is opt-in - services configure their own security
+      enabled: false
+  # Feign client configuration
+  feign:
+    enabled: true
+  # Event handling configuration
+  events:
+    enabled: true
+  # Kafka configuration
+  kafka:
+    enabled: true
+
+# Legacy properties (kept for backward compatibility)
 common:
   exception-handler:
     enabled: true
@@ -16,3 +40,11 @@ kafka:
     friend-request-events: friend-request-events
     friend-activity-events: friend-activity-events
     notification-events: notification-events
+
+# Eureka configuration defaults
+eureka:
+  enabled: true
+
+# Scheduling configuration defaults
+scheduling:
+  enabled: true
