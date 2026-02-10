@@ -22,7 +22,7 @@ REM Use Windows Terminal with separate tabs
 wt new-tab --title "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvn spring-boot:run" ^
 ; new-tab --title "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvn spring-boot:run" ^
 ; new-tab --title "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvn spring-boot:run" ^
-; new-tab --title "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvn spring-boot:run" ^
+; new-tab --title "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\Expense-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvn spring-boot:run" ^
 ; new-tab --title "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvn spring-boot:run" ^
@@ -45,7 +45,7 @@ REM Fallback to separate windows if Windows Terminal is not available
 start "EurekaServer" cmd /k "cd /d \"%BACKEND_BASE%\eureka-server\" && mvn spring-boot:run"
 start "GatewayService" cmd /k "cd /d \"%BACKEND_BASE%\Gateway\" && mvn spring-boot:run"
 start "UserService" cmd /k "cd /d \"%BACKEND_BASE%\User-Service\" && mvn spring-boot:run"
-start "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\social-media-app\" && mvn spring-boot:run"
+start "ExpenseTracking" cmd /k "cd /d \"%BACKEND_BASE%\Expense-Service\" && mvn spring-boot:run"
 start "ChatService" cmd /k "cd /d \"%BACKEND_BASE%\Chat-Service\" && mvn spring-boot:run"
 start "PaymentService" cmd /k "cd /d \"%BACKEND_BASE%\Payment-method-Service\" && mvn spring-boot:run"
 start "CategoryService" cmd /k "cd /d \"%BACKEND_BASE%\Category-Service\" && mvn spring-boot:run"

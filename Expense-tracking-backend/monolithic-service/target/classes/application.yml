@@ -7,13 +7,13 @@ server:
 spring:
   application:
     name: expense-tracking-monolith
-  
+
   profiles:
     active: monolithic
-  
+
   main:
     allow-bean-definition-overriding: true
-  
+
   # Single consolidated database (port 5000 matches docker-compose)
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
@@ -25,7 +25,7 @@ spring:
       minimum-idle: 5
       idle-timeout: 300000
       connection-timeout: 20000
-  
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -38,7 +38,7 @@ spring:
           batch_size: 50
         order_inserts: true
         order_updates: true
-  
+
   # Kafka configuration (optional in monolithic mode)
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
@@ -54,16 +54,16 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
-  
+
   # Redis for caching (optional)
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
-  
+
   # Mail configuration
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
@@ -73,6 +73,11 @@ spring:
           auth: true
           starttls:
             enable: true
+
+# Google OAuth2 Configuration
+google:
+  oauth2:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:214438901958-uigakv87vusc9veirq3l5ocfpfr1do3a.apps.googleusercontent.com}
 
 # Kafka Topics
 kafka:
@@ -141,6 +146,18 @@ story:
 event:
   service:
     url: http://localhost:${server.port}
+
+# Support for Legacy/UPPERCASE URL keys used in some Feign clients
+USER_SERVICE_URL: http://localhost:${server.port}
+EXPENSE_SERVICE_URL: http://localhost:${server.port}
+BUDGET_SERVICE_URL: http://localhost:${server.port}
+CATEGORY_SERVICE_URL: http://localhost:${server.port}
+BILL_SERVICE_URL: http://localhost:${server.port}
+PAYMENT_SERVICE_URL: http://localhost:${server.port}
+FRIENDSHIP_SERVICE_URL: http://localhost:${server.port}
+NOTIFICATION_SERVICE_URL: http://localhost:${server.port}
+GROUP_SERVICE_URL: http://localhost:${server.port}
+ANALYTICS_USER_SERVICE_URL: http://localhost:${server.port}
 
 # JWT Configuration
 jwt:

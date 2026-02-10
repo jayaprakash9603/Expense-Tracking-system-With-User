@@ -249,12 +249,12 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities
+		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities -->
 		<dependency>
 			<groupId>com.jaya.common</groupId>
 			<artifactId>expense-common-library</artifactId>
 			<version>1.0.0</version>
-		</dependency> -->
+		</dependency>
 
 
 	</dependencies>

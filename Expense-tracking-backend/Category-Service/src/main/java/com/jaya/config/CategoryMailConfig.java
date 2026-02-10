@@ -12,3 +12,4 @@ import org.springframework.context.annotation.Import;
 @Import(SharedMailConfig.class)
 public class CategoryMailConfig {
     // Uses shared javaMailSender from SharedMailConfig
+}

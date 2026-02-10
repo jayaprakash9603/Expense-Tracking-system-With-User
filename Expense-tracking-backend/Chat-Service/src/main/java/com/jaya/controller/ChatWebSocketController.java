@@ -1,6 +1,6 @@
 package com.jaya.controller;
 
-import com.jaya.config.WebSocketConfig;
+import com.jaya.config.ChatWebSocketConfig;
 import com.jaya.dto.ChatRequest;
 import com.jaya.dto.ChatResponse;
 import com.jaya.dto.UserDto;
@@ -32,7 +32,7 @@ public class ChatWebSocketController {
     private PresenceService presenceService;
 
     @Autowired
-    private WebSocketConfig webSocketConfig;
+    private ChatWebSocketConfig webSocketConfig;
 
     @MessageMapping("/send/one-to-one")
     public void sendOneToOneChat(@Payload ChatRequest request, SimpMessageHeaderAccessor headerAccessor) {

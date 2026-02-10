@@ -1,6 +1,6 @@
 package com.jaya.controller;
 
-import com.jaya.config.WebSocketConfig;
+import com.jaya.config.ChatWebSocketConfig;
 import com.jaya.dto.UserDto;
 import com.jaya.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class TypingIndicatorController {
     private UserService userService;
 
     @Autowired
-    private WebSocketConfig webSocketConfig;
+    private ChatWebSocketConfig webSocketConfig;
 
     private final Map<String, Long> typingTimestamps = new ConcurrentHashMap<>();
 

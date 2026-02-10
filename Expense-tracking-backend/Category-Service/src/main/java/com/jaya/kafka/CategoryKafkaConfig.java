@@ -13,7 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Configuration
 @EnableKafka
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
-public class CategoryBatchKafkaConfig {
+public class CategoryKafkaConfig {
 
     @Value("${app.kafka.category.concurrency:4}")
     private int concurrency;

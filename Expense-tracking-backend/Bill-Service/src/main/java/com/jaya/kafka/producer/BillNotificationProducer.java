@@ -1,5 +1,7 @@
 package com.jaya.kafka.producer;
 
+import com.jaya.common.kafka.producer.NotificationEventProducer;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.BillNotificationEvent;
 import lombok.extern.slf4j.Slf4j;

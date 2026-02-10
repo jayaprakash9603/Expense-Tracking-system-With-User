@@ -1,4 +1,4 @@
-package com.jaya.kafka.producer;
+package com.jaya.common.kafka.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,7 +64,7 @@ public abstract class NotificationEventProducer<T> {
             log.info("Synchronously sent {} event to topic {}", getEventTypeName(), topic);
             return result;
         } catch (Exception e) {
-            log.error("Failed to send {} event synchronously: {}",
+            log.error("Failed to send {} event to topic synchronously: {}",
                     getEventTypeName(), e.getMessage(), e);
             throw new RuntimeException("Failed to send notification event", e);
         }
@@ -72,7 +72,9 @@ public abstract class NotificationEventProducer<T> {
 
     protected abstract String getTopicName();
 
-    protected abstract String getEventTypeName();
+    protected String getEventTypeName() {
+        return this.getClass().getSimpleName(); // Default/Fallback
+    }
 
     protected void validateEvent(T event) {
         if (event == null) {

@@ -63,7 +63,7 @@ spring:
 
   # Mail configuration
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
+    host: ${MAIL_HOST:smtp-relay.brevo.com}
     port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
@@ -73,6 +73,11 @@ spring:
           auth: true
           starttls:
             enable: true
+
+# Google OAuth2 Configuration
+google:
+  oauth2:
+    client-id: ${GOOGLE_OAUTH_CLIENT_ID:214438901958-uigakv87vusc9veirq3l5ocfpfr1do3a.apps.googleusercontent.com}
 
 # Kafka Topics
 kafka:
@@ -141,6 +146,18 @@ story:
 event:
   service:
     url: http://localhost:${server.port}
+
+# Support for Legacy/UPPERCASE URL keys used in some Feign clients
+USER_SERVICE_URL: http://localhost:${server.port}
+EXPENSE_SERVICE_URL: http://localhost:${server.port}
+BUDGET_SERVICE_URL: http://localhost:${server.port}
+CATEGORY_SERVICE_URL: http://localhost:${server.port}
+BILL_SERVICE_URL: http://localhost:${server.port}
+PAYMENT_SERVICE_URL: http://localhost:${server.port}
+FRIENDSHIP_SERVICE_URL: http://localhost:${server.port}
+NOTIFICATION_SERVICE_URL: http://localhost:${server.port}
+GROUP_SERVICE_URL: http://localhost:${server.port}
+ANALYTICS_USER_SERVICE_URL: http://localhost:${server.port}
 
 # JWT Configuration
 jwt:
