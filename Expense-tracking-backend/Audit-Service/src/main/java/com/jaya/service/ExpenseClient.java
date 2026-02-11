@@ -1,6 +1,6 @@
 package com.jaya.service;
 
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface ExpenseClient {
 
     @GetMapping("/api/user/profile")
-    public UserDto getuserProfile(@RequestHeader("Authorization") String jwt);
+    public UserDTO getuserProfile(@RequestHeader("Authorization") String jwt);
 }

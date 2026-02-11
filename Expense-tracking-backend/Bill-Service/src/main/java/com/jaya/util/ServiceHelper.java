@@ -3,8 +3,8 @@ package com.jaya.util;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
-import com.jaya.models.UserDto;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,15 +19,15 @@ import java.util.List;
 public class ServiceHelper {
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
-    public UserDto validateUser(Integer userId) throws Exception {
+    public UserDTO validateUser(Integer userId) throws Exception {
 
-        UserDto reqUser = userService.getUserProfileById(userId);
+        UserDTO reqUser = IUserServiceClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
@@ -210,7 +210,7 @@ public class ServiceHelper {
         }
     }
 
-    public ExpenseDTO createExpenseFromBill(Bill bill, UserDto user) {
+    public ExpenseDTO createExpenseFromBill(Bill bill, UserDTO user) {
         ExpenseDTO expense = new ExpenseDTO();
         expense.setDate(bill.getDate());
         expense.setUserId(user.getId());
