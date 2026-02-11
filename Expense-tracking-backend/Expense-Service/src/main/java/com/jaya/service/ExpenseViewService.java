@@ -2,7 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.ExpenseViewDTO;
 import com.jaya.dto.User;
-import com.jaya.models.Budget;
+import com.jaya.models.BudgetModel;
 import com.jaya.models.Category;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
@@ -251,7 +251,7 @@ public class ExpenseViewService {
 
         for (Integer budgetId : budgetIds) {
             try {
-                Budget budget = budgetService.getBudgetById(budgetId, userId);
+                BudgetModel budget = budgetService.getBudgetById(budgetId, userId);
                 if (budget != null) {
                     double usedAmount = budget.getAmount() - budget.getRemainingAmount();
                     double percentageUsed = budget.getAmount() > 0
@@ -401,7 +401,7 @@ public class ExpenseViewService {
     
 
 
-    private String determineBudgetStatus(Budget budget) {
+    private String determineBudgetStatus(BudgetModel budget) {
         LocalDate now = LocalDate.now();
 
         if (budget.getEndDate() != null && budget.getEndDate().isBefore(now)) {

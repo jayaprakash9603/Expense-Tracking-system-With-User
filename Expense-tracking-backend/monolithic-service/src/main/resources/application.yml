@@ -58,6 +58,8 @@ spring:
   # Redis for caching (optional)
   data:
     redis:
+      repositories:
+        enabled: false
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
@@ -81,6 +83,9 @@ google:
 
 # Kafka Topics
 kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  consumer:
+    group-id: monolith-consumer-group
   topics:
     expense-events: expense-events
     budget-events: budget-events

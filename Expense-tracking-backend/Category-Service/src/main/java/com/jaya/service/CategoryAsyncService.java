@@ -22,7 +22,7 @@ public class CategoryAsyncService {
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private ExpenseService expenseService;
+    private ExpenseClient expenseService;
 
     @Async("categoryTaskExecutor")
     public CompletableFuture<Void> finalizeCategoryCreateAsync(Category initialSavedCategory, Category inputCategory, User user) {

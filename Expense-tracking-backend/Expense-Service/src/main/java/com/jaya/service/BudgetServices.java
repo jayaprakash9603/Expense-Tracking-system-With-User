@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 
-import com.jaya.models.Budget;
+import com.jaya.models.BudgetModel;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,18 +12,18 @@ public interface BudgetServices {
 
 
     @GetMapping("/api/budgets/get-by-id")
-    public Budget getBudgetById(
+    public BudgetModel getBudgetById(
             @RequestParam Integer budgetId,
             @RequestParam Integer userId
     ) throws Exception;
 
     @PostMapping("/api/budgets/save")
-    public Budget save(
-            @RequestBody Budget budget
+    public BudgetModel save(
+            @RequestBody BudgetModel budget
     ) throws Exception;
 
     @GetMapping("/api/budgets/user")
-    public List<Budget> getAllBudgetForUser(
+    public List<BudgetModel> getAllBudgetForUser(
             @RequestParam Integer userId
     ) throws Exception;
 

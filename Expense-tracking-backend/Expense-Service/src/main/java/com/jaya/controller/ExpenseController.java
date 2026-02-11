@@ -14,6 +14,7 @@ import com.jaya.util.BulkProgressTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
@@ -79,7 +80,7 @@ public class ExpenseController extends BaseExpenseController {
             KafkaProducerService producer,
             UserPermissionHelper permissionHelper,
             BulkProgressTracker progressTracker,
-            TaskExecutor taskExecutor,
+            @Qualifier("expensePostExecutor") TaskExecutor taskExecutor,
             UnifiedActivityService unifiedActivityService,
             ReportHistoryService reportHistoryService,
             com.jaya.service.BillExportClient billExportClient,

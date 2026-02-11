@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "BUDGET-SERVICE", url = "${BUDGET_SERVICE_URL:http://localhost:6005}", contextId = "analyticsBudgetClient")
-public interface BudgetService {
+public interface BudgetClient {
 
         @GetMapping("/api/budgets")
         List<Map<String, Object>> getAllBudgets(

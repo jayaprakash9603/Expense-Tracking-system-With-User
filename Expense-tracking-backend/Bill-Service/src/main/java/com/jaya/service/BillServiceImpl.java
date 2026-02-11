@@ -27,7 +27,7 @@ public class BillServiceImpl implements BillService {
 
     private final BillRepository billRepository;
 
-    private final ExpenseService expenseService;
+    private final ExpenseClient expenseService;
 
     private final ServiceHelper helper;
 

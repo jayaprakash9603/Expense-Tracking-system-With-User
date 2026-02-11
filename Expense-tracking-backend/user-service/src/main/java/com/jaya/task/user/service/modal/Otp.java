@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "UserOtp")
 @Table(name = "user_otp")
 @Getter
 @Setter

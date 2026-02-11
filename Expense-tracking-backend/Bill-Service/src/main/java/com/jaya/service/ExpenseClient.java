@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 @FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${EXPENSE_SERVICE_URL:http://localhost:6000}", contextId = "billExpenseClient")
-public interface ExpenseService {
+public interface ExpenseClient {
 
     @PostMapping("/api/expenses/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);

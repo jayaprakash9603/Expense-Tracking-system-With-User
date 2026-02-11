@@ -10,7 +10,7 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Configuration
+@Configuration("categoryKafkaConfigKafkaPkg")
 @EnableKafka
 @ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class CategoryKafkaConfig {

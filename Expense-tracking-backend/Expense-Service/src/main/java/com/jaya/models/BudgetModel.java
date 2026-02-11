@@ -18,7 +18,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Budget {
+public class BudgetModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

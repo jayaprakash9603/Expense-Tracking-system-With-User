@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
+@Component("categoryServiceCategoryMapper")
 public class CategoryMapper {
 
     public Category toEntity(CreateCategoryRequest request, Integer userId) {

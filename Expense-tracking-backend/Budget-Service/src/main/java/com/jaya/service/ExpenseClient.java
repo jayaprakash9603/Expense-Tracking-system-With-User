@@ -12,8 +12,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-@FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${expense.service.url:http://localhost:6000}", contextId = "paymentExpenseClient")
-public interface ExpenseService {
+@FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${EXPENSE_SERVICE_URL:http://localhost:6000}", contextId = "budgetExpenseClient")
+public interface ExpenseClient {
 
     @PostMapping("/api/expenses/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);
@@ -21,7 +21,6 @@ public interface ExpenseService {
     @GetMapping("/api/expenses/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
 
-    
     @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Entity
+@Entity(name = "UserEmailLog")
 @Table(name = "user_email_logs")
 @Data
 @NoArgsConstructor

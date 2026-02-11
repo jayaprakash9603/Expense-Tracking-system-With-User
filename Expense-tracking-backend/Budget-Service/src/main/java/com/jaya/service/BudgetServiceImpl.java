@@ -45,7 +45,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     @Autowired
     @Lazy
-    private ExpenseService expenseService;
+    private ExpenseClient expenseService;
 
     @Autowired
     private BudgetNotificationService budgetNotificationService;

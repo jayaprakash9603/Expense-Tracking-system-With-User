@@ -49,6 +49,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     "com.jaya.scheduler",
     // Common library
     "com.jaya.common"
+}, excludeFilters = {
+    @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
 })
 @EntityScan(basePackages = {
     // Most services use com.jaya.models
@@ -59,7 +61,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
     // Notification service entities
     "com.jaya.modal",
     // Search service entities
-    "com.jaya.entity"
+    "com.jaya.entity",
+    // DTOs that are actually Entities (e.g. User in Expense Service)
+    "com.jaya.dto"
 })
 @EnableJpaRepositories(basePackages = {
     "com.jaya.repository",

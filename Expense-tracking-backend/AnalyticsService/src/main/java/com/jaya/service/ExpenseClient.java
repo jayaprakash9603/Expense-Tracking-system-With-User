@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${EXPENSE_SERVICE_URL:http://localhost:6000}", contextId = "analyticsExpenseClient")
-public interface ExpenseService {
+public interface ExpenseClient {
 
         @GetMapping("/api/expenses/summary-expenses")
         Map<String, Object> getExpenseSummary(

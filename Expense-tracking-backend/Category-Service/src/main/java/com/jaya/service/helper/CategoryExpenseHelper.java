@@ -4,7 +4,7 @@ import com.jaya.constant.CategoryConstants;
 import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.repository.CategoryRepository;
-import com.jaya.service.ExpenseService;
+import com.jaya.service.ExpenseClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import java.util.*;
 public class CategoryExpenseHelper {
 
     private final CategoryRepository categoryRepository;
-    private final ExpenseService expenseService;
+    private final ExpenseClient expenseService;
 
     public Set<Integer> getUserExpenseIds(Category category, Integer userId) {
         if (category.getExpenseIds() == null) {

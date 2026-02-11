@@ -12,7 +12,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Service
+@Service("userOtpService")
 public class OtpService {
 
     private static final Logger logger = LoggerFactory.getLogger(OtpService.class);

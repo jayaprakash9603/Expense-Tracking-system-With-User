@@ -28,7 +28,7 @@ public class CategoryService {
 
     @Autowired
     @Lazy
-    private ExpenseService expenseService;
+    private ExpenseClient expenseService;
 
     @Autowired
     private ServiceHelper helper;
@@ -298,7 +298,7 @@ public class CategoryService {
         categoryRepository.save(othersCategory);
     }
 
-    private ExpenseService getExpenseService() {
+    private ExpenseClient getExpenseService() {
         return expenseService;
     }
 

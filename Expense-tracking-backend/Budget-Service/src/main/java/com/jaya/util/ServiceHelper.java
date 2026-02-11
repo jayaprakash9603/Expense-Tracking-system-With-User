@@ -4,7 +4,7 @@ import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.models.Budget;
 import com.jaya.models.UserDto;
-import com.jaya.service.ExpenseService;
+import com.jaya.service.ExpenseClient;
 import com.jaya.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,7 @@ public class ServiceHelper {
         return budget;
     }
 
-    public Set<Integer> getValidBudgetIds(Budget budget, Integer userId, ExpenseService expenseService) {
+    public Set<Integer> getValidBudgetIds(Budget budget, Integer userId, ExpenseClient expenseService) {
         Set<Integer> validExpenseIds = new HashSet<>();
 
         for (Integer expenseId : budget.getExpenseIds()) {
@@ -111,7 +111,7 @@ public class ServiceHelper {
         return validExpenseIds;
     }
 
-    public void addBudgetIdInExpenses(Budget budget, ExpenseService expenseService, Integer userId) {
+    public void addBudgetIdInExpenses(Budget budget, ExpenseClient expenseService, Integer userId) {
         for (Integer expenseId : budget.getExpenseIds()) {
             try {
                 ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
@@ -132,7 +132,7 @@ public class ServiceHelper {
         }
     }
 
-    public void deleteBudgetIdInExpenses(Budget budget, ExpenseService expenseService, Integer userId,
+    public void deleteBudgetIdInExpenses(Budget budget, ExpenseClient expenseService, Integer userId,
             Integer budgetId) {
         Set<Integer> expenseIds = budget.getExpenseIds();
         if (expenseIds != null) {
@@ -151,7 +151,7 @@ public class ServiceHelper {
         }
     }
 
-    public void removeBudgetsIdsInAllExpenses(List<Budget> budgets, ExpenseService expenseService, Integer userId) {
+    public void removeBudgetsIdsInAllExpenses(List<Budget> budgets, ExpenseClient expenseService, Integer userId) {
         for (Budget budget : budgets) {
             deleteBudgetIdInExpenses(budget, expenseService, userId, budget.getId());
         }

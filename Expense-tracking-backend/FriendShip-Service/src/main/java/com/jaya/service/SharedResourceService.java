@@ -41,7 +41,7 @@ public class SharedResourceService {
     private final SecureTokenService secureTokenService;
     private final QrCodeService qrCodeService;
     private final UserService userService;
-    private final ExpenseService expenseService;
+    private final ExpenseClient expenseService;
     private final FriendshipService friendshipService;
 
     @Value("${app.share.rate-limit.max-shares-per-hour:10}")
