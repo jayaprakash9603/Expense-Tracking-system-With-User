@@ -23,7 +23,7 @@ public class ExpenseBudgetLinkingConsumer {
 
 
     @KafkaListener(
-        topics = "expense-budget-linking-events",
+        topics = "expense-BudgetModel-linking-events",
         groupId = "expense-service-linking-group",
         containerFactory = "expenseBudgetLinkingKafkaListenerContainerFactory"
     )
@@ -49,25 +49,25 @@ public class ExpenseBudgetLinkingConsumer {
                     
                 case BUDGET_EXPENSE_LINK_UPDATE:
                     
-                    log.info("Budget-Expense link update event (handled by Budget Service): expense={}, budget={}", 
+                    log.info("BudgetModel-Expense link update event (handled by BudgetModel Service): expense={}, BudgetModel={}", 
                         event.getNewExpenseId(), event.getNewBudgetId());
                     break;
                     
                 case EXPENSE_CREATED_WITH_OLD_BUDGETS:
                     
-                    log.debug("EXPENSE_CREATED_WITH_OLD_BUDGETS event (handled by Budget Service): expense={}", 
+                    log.debug("EXPENSE_CREATED_WITH_OLD_BUDGETS event (handled by BudgetModel Service): expense={}", 
                         event.getNewExpenseId());
                     break;
                     
                 case EXPENSE_CREATED_WITH_EXISTING_BUDGETS:
                     
-                    log.debug("EXPENSE_CREATED_WITH_EXISTING_BUDGETS event (handled by Budget Service): expense={}", 
+                    log.debug("EXPENSE_CREATED_WITH_EXISTING_BUDGETS event (handled by BudgetModel Service): expense={}", 
                         event.getNewExpenseId());
                     break;
                     
                 case BUDGET_CREATED_WITH_OLD_EXPENSES:
                     
-                    log.debug("BUDGET_CREATED_WITH_OLD_EXPENSES event (handled by Budget Service): budget={}", 
+                    log.debug("BUDGET_CREATED_WITH_OLD_EXPENSES event (handled by BudgetModel Service): BudgetModel={}", 
                         event.getOldBudgetId());
                     break;
                     
@@ -90,7 +90,7 @@ public class ExpenseBudgetLinkingConsumer {
                 event.getNewExpenseId(), event.getNewBudgetId(), event.getUserId());
             
             if (event.getNewExpenseId() == null || event.getNewBudgetId() == null) {
-                log.warn("Invalid event data - missing expense or budget ID");
+                log.warn("Invalid event data - missing expense or BudgetModel ID");
                 return;
             }
 
@@ -102,11 +102,11 @@ public class ExpenseBudgetLinkingConsumer {
                 event.getUserId().intValue()
             );
 
-            log.info(">>> Successfully updated expense {} with budget {}", 
+            log.info(">>> Successfully updated expense {} with BudgetModel {}", 
                 event.getNewExpenseId(), event.getNewBudgetId());
                 
         } catch (Exception e) {
-            log.error("Error handling expense-budget link update", e);
+            log.error("Error handling expense-BudgetModel link update", e);
         }
     }
 
@@ -123,7 +123,7 @@ public class ExpenseBudgetLinkingConsumer {
             
             if (event.getNewExpenseId() == null || event.getBudgetIdsToRemove() == null || 
                 event.getBudgetIdsToRemove().isEmpty()) {
-                log.warn("Invalid event data - missing expense ID or budget IDs to remove");
+                log.warn("Invalid event data - missing expense ID or BudgetModel IDs to remove");
                 return;
             }
 
@@ -135,11 +135,11 @@ public class ExpenseBudgetLinkingConsumer {
                 event.getUserId().intValue()
             );
 
-            log.info(">>> Successfully removed {} budget IDs from expense {}", 
+            log.info(">>> Successfully removed {} BudgetModel IDs from expense {}", 
                 event.getBudgetIdsToRemove().size(), event.getNewExpenseId());
                 
         } catch (Exception e) {
-            log.error("Error handling budget deleted remove from expenses", e);
+            log.error("Error handling BudgetModel deleted remove from expenses", e);
         }
     }
 }

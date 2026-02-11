@@ -967,7 +967,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     } else if ("paymentmethod".equals(normalized)) {
                         if (e.getExpense() != null && e.getExpense().getPaymentMethod() != null) {
                             try {
-                                PaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
+                                ExpensePaymentMethod pm = paymentMethodService.getByNameWithService(e.getUserId(),
                                         e.getExpense().getPaymentMethod());
                                 if (pm != null)
                                     id = pm.getId();
@@ -1030,7 +1030,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     return e.getCategoryName();
                 if (e.getCategoryId() != null) {
                     try {
-                        Category c = categoryService.getById(e.getCategoryId(), e.getUserId());
+                        ExpenseCategory c = categoryService.getById(e.getCategoryId(), e.getUserId());
                         if (c != null)
                             return c.getName();
                     } catch (Exception ignored) {
@@ -1079,15 +1079,15 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public List<Expense> getExpensesInBudgetRangeWithIncludeFlag(LocalDate startDate, LocalDate endDate,
             Integer budgetId, Integer userId) throws Exception {
 
-        Budget optionalBudget = budgetService.getBudgetById(budgetId, userId);
+        BudgetModel optionalBudget = budgetService.getBudgetById(budgetId, userId);
         if (optionalBudget == null) {
-            throw new RuntimeException("Budget not found for UserDTO with ID: " + budgetId);
+            throw new RuntimeException("BudgetModel not found for UserDTO with ID: " + budgetId);
         }
 
-        Budget budget = optionalBudget;
+        BudgetModel BudgetModel = optionalBudget;
 
-        LocalDate effectiveStartDate = (startDate != null) ? startDate : budget.getStartDate();
-        LocalDate effectiveEndDate = (endDate != null) ? endDate : budget.getEndDate();
+        LocalDate effectiveStartDate = (startDate != null) ? startDate : BudgetModel.getStartDate();
+        LocalDate effectiveEndDate = (endDate != null) ? endDate : BudgetModel.getEndDate();
 
         List<Expense> expensesInRange = expenseRepository.findByUserIdAndDateBetween(userId, effectiveStartDate,
                 effectiveEndDate);
@@ -1129,26 +1129,26 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 throw new IllegalArgumentException("Invalid rangeType. Valid options are: week, month, year, custom");
         }
 
-        List<Category> userCategories = categoryService.getAllForUser(userId);
+        List<ExpenseCategory> userCategories = categoryService.getAllForUser(userId);
 
         
-        List<PaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
-        Map<Integer, Category> categoryMap = userCategories.stream()
-                .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
-        Map<String, PaymentMethod> paymentMethodMap = allPaymentMethods.stream()
+        List<ExpensePaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+        Map<Integer, ExpenseCategory> categoryMap = userCategories.stream()
+                .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
+        Map<String, ExpensePaymentMethod> paymentMethodMap = allPaymentMethods.stream()
                 .filter(pm -> pm.getName() != null)
-                .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+                .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
 
-        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+        Map<ExpenseCategory, List<Expense>> categoryExpensesMap = new HashMap<>();
 
-        for (Category category : userCategories) {
+        for (ExpenseCategory category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
 
         for (Expense expense : filteredExpenses) {
-            for (Category category : userCategories) {
+            for (ExpenseCategory category : userCategories) {
                 
                 
                 
@@ -1170,8 +1170,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         double totalAmount = 0.0;
         Map<String, Double> categoryTotals = new HashMap<>();
 
-        for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
-            Category category = entry.getKey();
+        for (Map.Entry<ExpenseCategory, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+            ExpenseCategory category = entry.getKey();
             List<Expense> expenses = entry.getValue();
             totalExpenses += expenses.size();
 
@@ -1207,21 +1207,21 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public Map<String, Object> getFilteredExpensesByDateRange(Integer userId, LocalDate fromDate, LocalDate toDate,
             String flowType) throws Exception {
 
-        List<Category> userCategories = categoryService.getAllForUser(userId);
+        List<ExpenseCategory> userCategories = categoryService.getAllForUser(userId);
 
         
-        List<PaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
-        Map<Integer, Category> categoryMap = userCategories.stream()
-                .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
-        Map<String, PaymentMethod> paymentMethodMap = allPaymentMethods.stream()
+        List<ExpensePaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+        Map<Integer, ExpenseCategory> categoryMap = userCategories.stream()
+                .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
+        Map<String, ExpensePaymentMethod> paymentMethodMap = allPaymentMethods.stream()
                 .filter(pm -> pm.getName() != null)
-                .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+                .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
-        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+        Map<ExpenseCategory, List<Expense>> categoryExpensesMap = new HashMap<>();
 
-        for (Category category : userCategories) {
+        for (ExpenseCategory category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
 
@@ -1239,7 +1239,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 }
             }
 
-            for (Category category : userCategories) {
+            for (ExpenseCategory category : userCategories) {
                 
                 
                 
@@ -1261,8 +1261,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         double totalAmount = 0.0;
         Map<String, Double> categoryTotals = new HashMap<>();
 
-        for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
-            Category category = entry.getKey();
+        for (Map.Entry<ExpenseCategory, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+            ExpenseCategory category = entry.getKey();
             List<Expense> expenses = entry.getValue();
             totalExpenses += expenses.size();
 
@@ -1306,25 +1306,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         
         
-        Map<Integer, Category> categoryMap = Map.of();
-        Map<String, PaymentMethod> paymentMethodMap = Map.of();
+        Map<Integer, ExpenseCategory> categoryMap = Map.of();
+        Map<String, ExpensePaymentMethod> paymentMethodMap = Map.of();
         try {
-            List<Category> categories = categoryService.getAllForUser(userId);
+            List<ExpenseCategory> categories = categoryService.getAllForUser(userId);
             if (categories != null) {
                 categoryMap = categories.stream()
-                        .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+                        .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
             }
-            List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+            List<ExpensePaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
             if (paymentMethods != null) {
                 paymentMethodMap = paymentMethods.stream()
                         .filter(pm -> pm.getName() != null)
-                        .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+                        .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
             
         }
-        final Map<Integer, Category> finalCategoryMap = categoryMap;
-        final Map<String, PaymentMethod> finalPaymentMethodMap = paymentMethodMap;
+        final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
+        final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
 
         
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
@@ -1371,7 +1371,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
             
-            PaymentMethod pmEntity = finalPaymentMethodMap.get(paymentMethod);
+            ExpensePaymentMethod pmEntity = finalPaymentMethodMap.get(paymentMethod);
 
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
@@ -1444,25 +1444,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         
         
-        Map<Integer, Category> categoryMap = Map.of();
-        Map<String, PaymentMethod> paymentMethodMap = Map.of();
+        Map<Integer, ExpenseCategory> categoryMap = Map.of();
+        Map<String, ExpensePaymentMethod> paymentMethodMap = Map.of();
         try {
-            List<Category> categories = categoryService.getAllForUser(userId);
+            List<ExpenseCategory> categories = categoryService.getAllForUser(userId);
             if (categories != null) {
                 categoryMap = categories.stream()
-                        .collect(Collectors.toMap(Category::getId, c -> c, (a, b) -> a));
+                        .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
             }
-            List<PaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
+            List<ExpensePaymentMethod> paymentMethods = paymentMethodService.getAllPaymentMethods(userId);
             if (paymentMethods != null) {
                 paymentMethodMap = paymentMethods.stream()
                         .filter(pm -> pm.getName() != null)
-                        .collect(Collectors.toMap(PaymentMethod::getName, pm -> pm, (a, b) -> a));
+                        .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
             
         }
-        final Map<Integer, Category> finalCategoryMap = categoryMap;
-        final Map<String, PaymentMethod> finalPaymentMethodMap = paymentMethodMap;
+        final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
+        final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
 
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
 
@@ -1495,7 +1495,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             paymentMethodTotals.put(pmName, methodTotal);
 
             
-            PaymentMethod pmEntity = finalPaymentMethodMap.get(pmName);
+            ExpensePaymentMethod pmEntity = finalPaymentMethodMap.get(pmName);
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
             methodDetails.put("name", pmEntity != null ? pmEntity.getName() : pmName);
@@ -1568,7 +1568,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return response;
     }
 
-    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
+    private Map<String, Object> buildCategoryDetailsMap(ExpenseCategory category, List<Expense> expenses,
             double categoryTotal) {
         return buildCategoryDetailsMap(category, expenses, categoryTotal, null, null);
     }
@@ -1577,8 +1577,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
 
 
-    private Map<String, Object> buildCategoryDetailsMap(Category category, List<Expense> expenses,
-            double categoryTotal, Map<Integer, Category> categoryMap, Map<String, PaymentMethod> paymentMethodMap) {
+    private Map<String, Object> buildCategoryDetailsMap(ExpenseCategory category, List<Expense> expenses,
+            double categoryTotal, Map<Integer, ExpenseCategory> categoryMap, Map<String, ExpensePaymentMethod> paymentMethodMap) {
         Map<String, Object> categoryDetails = new HashMap<>();
         categoryDetails.put("id", category.getId());
         categoryDetails.put("name", category.getName());
@@ -1614,8 +1614,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
 
     private List<ExpenseDTO> formatExpensesForResponse(List<Expense> expenses,
-            Map<Integer, Category> categoryMap,
-            Map<String, PaymentMethod> paymentMethodMap) {
+            Map<Integer, ExpenseCategory> categoryMap,
+            Map<String, ExpensePaymentMethod> paymentMethodMap) {
         if (expenses == null || expenses.isEmpty()) {
             return Collections.emptyList();
         }
@@ -1711,3 +1711,5 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return pattern.toString();
     }
 }
+
+

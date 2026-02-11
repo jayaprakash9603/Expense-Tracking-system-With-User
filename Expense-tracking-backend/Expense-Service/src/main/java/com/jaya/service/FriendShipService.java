@@ -20,3 +20,4 @@ public interface FriendShipService {
     @GetMapping("/api/friendships/get-access-level")
     AccessLevel getUserAccessLevel(@RequestParam Integer userId, @RequestParam Integer viewerId) throws Exception;
 }
+

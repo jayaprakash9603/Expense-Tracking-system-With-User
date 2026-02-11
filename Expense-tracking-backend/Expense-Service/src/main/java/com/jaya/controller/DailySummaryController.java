@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;

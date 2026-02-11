@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "expense_chat")
-public class Chat {
+public class ExpenseChat {
 
 	
 	@Id
@@ -37,14 +37,17 @@ public class Chat {
 	private String chat_image;
 	
 	
-	@ManyToMany
-	private List<UserDTO> users=new ArrayList<>();
+	@jakarta.persistence.ElementCollection
+	private List<Integer> userIds=new ArrayList<>();
 	
 	
 	@JsonIgnore
 	@OneToMany(mappedBy="chat")
-	private List<Message>messages=new ArrayList<>();
+	private List<ExpenseMessage>messages=new ArrayList<>();
 	private LocalDateTime timestamp;
 	
 	
 }
+
+
+

@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +66,7 @@ public class UserCacheService {
 
         // Fetch from service
         try {
-            UserDTO user = userClient.getUserProfileById(userId);
+            UserDTO user = userClient.getUserById(userId);
             if (user != null) {
                 cacheUser(userId, user);
                 localCache.put(userId, user);
@@ -119,7 +120,7 @@ public class UserCacheService {
         List<CompletableFuture<Void>> futures = toFetch.stream()
                 .map(userId -> CompletableFuture.runAsync(() -> {
                     try {
-                        UserDTO user = userClient.getUserProfileById(userId);
+                        UserDTO user = userClient.getUserById(userId);
                         if (user != null) {
                             cacheUser(userId, user);
                             localCache.put(userId, user);

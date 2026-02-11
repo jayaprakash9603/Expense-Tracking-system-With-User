@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -166,7 +167,7 @@ public class ExpenseServiceHelper {
         if (!targetId.equals(reqUser.getId())) {
             
             try {
-                UserDTO fetched = IUserServiceClient.findUserById(targetId);
+                UserDTO fetched = IUserServiceClient.getUserById(targetId);
                 if (fetched == null) {
                     throw new RuntimeException("Target UserDTO not found with ID: " + targetId);
                 }

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository("userOtpRepository")
+@Repository("otpRepository")
 public interface OtpRepository extends JpaRepository<Otp, Long> {
     Optional<Otp> findByEmailAndOtp(String email, String otp);
     void deleteByEmail(String email);

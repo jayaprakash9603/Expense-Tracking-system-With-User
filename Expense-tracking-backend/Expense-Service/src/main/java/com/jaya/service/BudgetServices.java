@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "BUDGET-SERVICE", url = "${budget.service.url:http://localhost:6005}", contextId = "expenseBudgetClient")
+@FeignClient(name = "BudgetModel-SERVICE", url = "${BudgetModel.service.url:http://localhost:6005}", contextId = "expenseBudgetClient")
 public interface BudgetServices {
 
 
@@ -19,7 +19,7 @@ public interface BudgetServices {
 
     @PostMapping("/api/budgets/save")
     public BudgetModel save(
-            @RequestBody BudgetModel budget
+            @RequestBody BudgetModel BudgetModel
     ) throws Exception;
 
     @GetMapping("/api/budgets/UserDTO")

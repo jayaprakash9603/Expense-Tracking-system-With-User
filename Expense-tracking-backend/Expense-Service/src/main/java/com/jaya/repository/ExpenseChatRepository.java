@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import com.jaya.models.ExpenseChat;
 import com.jaya.common.dto.UserDTO;
 
-public interface ChatRepository extends JpaRepository<ExpenseChat, Integer>{
+public interface ExpenseChatRepository extends JpaRepository<ExpenseChat, Integer>{
 
 	
 	public List<ExpenseChat> findByUsersId(Integer userId);

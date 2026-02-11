@@ -18,7 +18,7 @@ public class UserSummaryDTO {
 
     
 
-    public static UserSummaryDTO fromUser(com.jaya.dto.UserDTO UserDTO) {
+    public static UserSummaryDTO fromUser(com.jaya.common.dto.UserDTO UserDTO) {
         if (UserDTO == null) return null;
         return new UserSummaryDTO(
                 Math.toIntExact(UserDTO.getId()),

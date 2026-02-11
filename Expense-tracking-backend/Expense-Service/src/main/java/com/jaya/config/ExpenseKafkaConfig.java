@@ -102,7 +102,7 @@ public class ExpenseKafkaConfig {
     public ConsumerFactory<String, Object> budgetExpenseConsumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "budget-expense-group");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "BudgetModel-expense-group");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.jaya.events.BudgetExpenseEvent");
@@ -203,3 +203,4 @@ public class ExpenseKafkaConfig {
         return factory;
     }
 }
+

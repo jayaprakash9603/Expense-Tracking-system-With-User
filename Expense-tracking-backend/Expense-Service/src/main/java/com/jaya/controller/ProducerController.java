@@ -32,7 +32,7 @@ public class ProducerController {
             producerService.sendMessage(message);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
-            response.put("message", "Message sent to Kafka: " + message);
+            response.put("message", "ExpenseMessage sent to Kafka: " + message);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> response = new HashMap<>();
@@ -129,3 +129,4 @@ public class ProducerController {
         }
     }
 }
+

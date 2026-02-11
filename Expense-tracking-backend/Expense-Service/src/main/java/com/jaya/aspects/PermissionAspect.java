@@ -72,7 +72,7 @@ public class PermissionAspect {
 
         UserDTO targetUser = targetUserCache.computeIfAbsent(targetId, id -> {
             try {
-                return IUserServiceClient.findUserById(id);
+                return IUserServiceClient.getUserById(id);
             } catch (Exception e) {
                 throw new RuntimeException("Target UserDTO not found with ID: " + id);
             }

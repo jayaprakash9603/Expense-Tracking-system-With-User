@@ -20,7 +20,7 @@ import java.util.Map;
 public class FriendActivityController {
 
     private final FriendActivityService friendActivityService;
-    private final userClient userClient;
+    private final IUserServiceClient userClient;
 
     @GetMapping
     public ResponseEntity<List<FriendActivityDTO>> getActivities(

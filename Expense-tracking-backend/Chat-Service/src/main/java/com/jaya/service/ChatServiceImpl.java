@@ -2,6 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.ChatRequest;
 import com.jaya.dto.ChatResponse;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.exception.ChatServiceException;
 import com.jaya.models.Chat;
 import com.jaya.repository.ChatRepository;
@@ -636,7 +637,7 @@ public class ChatServiceImpl implements ChatService {
             conversation.put("timestamp", lastChat.getTimestamp());
 
             // Use cached user info
-            com.jaya.dto.UserDto friendInfo = userCacheService.getUser(friendId);
+            UserDTO friendInfo = userCacheService.getUser(friendId);
             if (friendInfo != null) {
                 conversation.put("friendName", friendInfo.getFirstName() + " " + friendInfo.getLastName());
                 conversation.put("friendEmail", friendInfo.getEmail());

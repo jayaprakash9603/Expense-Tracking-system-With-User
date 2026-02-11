@@ -5,7 +5,7 @@ import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.models.Budget;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.service.ExpenseClient;
-import com.jaya.common.service.client.feign.FeignUserServiceClient;
+import com.jaya.common.service.client.IUserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ServiceHelper {
 
     @Autowired
-    private FeignUserServiceClient userService;
+    private IUserServiceClient userService;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;

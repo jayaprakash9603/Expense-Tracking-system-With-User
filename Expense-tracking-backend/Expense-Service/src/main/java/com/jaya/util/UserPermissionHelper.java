@@ -41,7 +41,7 @@ public class UserPermissionHelper {
             if (targetId == null) {
                 return reqUser;
             }
-            UserDTO targetUser = IUserServiceClient.findUserById(targetId);
+            UserDTO targetUser = IUserServiceClient.getUserById(targetId);
             if (targetUser == null) {
                 throw new RuntimeException("Target UserDTO not found");
             }
@@ -73,7 +73,7 @@ public class UserPermissionHelper {
             if (targetId == null) {
                 return reqUser;
             }
-            UserDTO targetUser = IUserServiceClient.findUserById(targetId);
+            UserDTO targetUser = IUserServiceClient.getUserById(targetId);
             if (targetUser == null) {
                 throw new RuntimeException("Target UserDTO not found");
             }

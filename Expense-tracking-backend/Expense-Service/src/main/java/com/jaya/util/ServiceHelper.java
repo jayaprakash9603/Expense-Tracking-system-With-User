@@ -22,7 +22,7 @@ public class ServiceHelper {
 
     public UserDTO validateUser(Integer userId) throws Exception {
 
-        UserDTO reqUser = IUserServiceClient.findUserById(userId);
+        UserDTO reqUser = IUserServiceClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("UserDTO ID cannot be null");
         }

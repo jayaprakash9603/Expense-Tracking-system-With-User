@@ -176,7 +176,7 @@ public class FriendActivityEvent implements Serializable {
 
     public static class SourceService {
         public static final String EXPENSE = "EXPENSE";
-        public static final String BUDGET = "BUDGET";
+        public static final String BudgetModel = "BudgetModel";
         public static final String CATEGORY = "CATEGORY";
         public static final String PAYMENT = "PAYMENT";
         public static final String BILL = "BILL";
@@ -190,7 +190,7 @@ public class FriendActivityEvent implements Serializable {
 
     public static class EntityType {
         public static final String EXPENSE = "EXPENSE";
-        public static final String BUDGET = "BUDGET";
+        public static final String BudgetModel = "BudgetModel";
         public static final String CATEGORY = "CATEGORY";
         public static final String PAYMENT = "PAYMENT";
         public static final String BILL = "BILL";
@@ -212,3 +212,5 @@ public class FriendActivityEvent implements Serializable {
         }
     }
 }
+
+

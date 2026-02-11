@@ -29,7 +29,7 @@ public class FriendshipMapper {
 
     private static UserDTO getUserProfileSafely(Integer userId) {
         try {
-            return userClient.getUserProfileById(userId);
+            return userClient.getUserById(userId);
         } catch (Exception e) {
             log.warn("User not found or error fetching user profile for userId={}: {}", userId, e.getMessage());
             return null;

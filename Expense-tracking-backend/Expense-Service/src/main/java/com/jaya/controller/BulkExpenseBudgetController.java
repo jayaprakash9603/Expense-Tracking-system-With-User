@@ -191,6 +191,6 @@ public class BulkExpenseBudgetController {
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Bulk Expense-Budget Service is running");
+        return ResponseEntity.ok("Bulk Expense-BudgetModel Service is running");
     }
 }

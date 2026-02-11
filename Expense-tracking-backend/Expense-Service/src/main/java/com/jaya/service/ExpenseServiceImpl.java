@@ -300,7 +300,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception {
+    public Map<ExpenseCategory, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception {
         return expenseCategoryService.getAllExpensesByCategories(userId);
     }
 
@@ -677,3 +677,5 @@ public class ExpenseServiceImpl implements ExpenseService {
         return expenseQueryService.searchExpensesFuzzy(userId, query, limit);
     }
 }
+
+

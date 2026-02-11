@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 
-import com.jaya.models.PaymentMethod;
+import com.jaya.models.ExpensePaymentMethod;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,22 +15,23 @@ public interface PaymentMethodServices {
 
 
     @GetMapping("/api/payment-methods/get-all-payment-methods")
-    public List<PaymentMethod> getAllPaymentMethods(
+    public List<ExpensePaymentMethod> getAllPaymentMethods(
             @RequestParam Integer userId);
 
     @PostMapping("/api/payment-methods/save")
-    public PaymentMethod save(
-            @RequestBody PaymentMethod paymentMethod
+    public ExpensePaymentMethod save(
+            @RequestBody ExpensePaymentMethod paymentMethod
     );
     @GetMapping("/api/payment-methods/name-and-type")
-    public PaymentMethod getByNameAndType(
+    public ExpensePaymentMethod getByNameAndType(
             @RequestParam Integer userId,
             @RequestParam String name,
             @RequestParam String type);
 
     @GetMapping("/api/payment-methods/names")
-    public PaymentMethod getByNameWithService(
+    public ExpensePaymentMethod getByNameWithService(
             @RequestParam Integer userId,
             @RequestParam String name
     );
 }
+

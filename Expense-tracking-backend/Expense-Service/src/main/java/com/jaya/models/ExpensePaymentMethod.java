@@ -18,7 +18,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PaymentMethod {
+public class ExpensePaymentMethod {
 
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.AUTO)
     @Id
@@ -59,3 +59,4 @@ public class PaymentMethod {
     @Column(name = "expense_value", columnDefinition = "LONGBLOB")
     private Map<Integer, Set<Integer>> expenseIds = new HashMap<>();
 }
+

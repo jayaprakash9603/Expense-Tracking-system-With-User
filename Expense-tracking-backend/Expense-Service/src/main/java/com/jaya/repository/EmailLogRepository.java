@@ -11,7 +11,7 @@ import java.util.List;
 public interface EmailLogRepository extends JpaRepository<EmailLog, Integer> {
     List<EmailLog> findBySentAtBetween(LocalDateTime start, LocalDateTime end);
 
-    List<EmailLog>findByUser(UserDTO UserDTO);
+    List<EmailLog> findByUserId(Integer userId);
 
-    List<EmailLog> findByUserAndSentAtBetween(UserDTO UserDTO, LocalDateTime startDate, LocalDateTime endDate);
+    List<EmailLog> findByUserIdAndSentAtBetween(Integer userId, LocalDateTime startDate, LocalDateTime endDate);
 }

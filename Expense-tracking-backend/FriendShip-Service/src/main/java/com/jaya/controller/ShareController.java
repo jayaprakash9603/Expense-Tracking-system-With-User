@@ -28,7 +28,7 @@ import java.util.Map;
 public class ShareController {
 
     private final SharedResourceService sharedResourceService;
-    private final userClient userClient;
+    private final IUserServiceClient userClient;
     private final QrCodeService qrCodeService;
     private final FriendshipNotificationService notificationService;
     private final UserAddedItemsService userAddedItemsService;

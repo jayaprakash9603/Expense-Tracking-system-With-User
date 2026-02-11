@@ -27,3 +27,4 @@ public class ExpenseSearchDTO {
     private Integer userId;
     private boolean includeInBudget;
 }
+

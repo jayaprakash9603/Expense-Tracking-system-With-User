@@ -18,3 +18,4 @@ public interface BillExportClient {
     List<Object> getAllBills(@RequestHeader("Authorization") String jwt,
             @RequestParam(value = "targetId", required = false) Integer targetId);
 }
+

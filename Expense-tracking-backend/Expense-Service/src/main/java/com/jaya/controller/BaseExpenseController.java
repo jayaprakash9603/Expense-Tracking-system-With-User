@@ -60,7 +60,7 @@ public abstract class BaseExpenseController {
         }
 
         AccessLevel accessLevel = friendshipService.getUserAccessLevel(userId, viewer.getId());
-        UserDTO targetUser = IUserServiceClient.findUserById(userId);
+        UserDTO targetUser = IUserServiceClient.getUserById(userId);
 
         if (targetUser == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserDTO not found");

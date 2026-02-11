@@ -11,6 +11,7 @@ import com.jaya.models.SharedResource.ResourceRef;
 import com.jaya.models.SharedResourceType;
 import com.jaya.models.ShareVisibility;
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.repository.ShareAccessLogRepository;
 import com.jaya.repository.SharedResourceRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,7 @@ public class SharedResourceService {
     private final ShareAccessLogRepository shareAccessLogRepository;
     private final SecureTokenService secureTokenService;
     private final QrCodeService qrCodeService;
-    private final userClient userClient;
+    private final IUserServiceClient userClient;
     private final ExpenseClient expenseService;
     private final FriendshipService friendshipService;
 
@@ -794,7 +795,7 @@ public class SharedResourceService {
 
     private SharedWithMeItem.OwnerInfo fetchSharedWithMeOwnerInfo(Integer ownerId) {
         try {
-            UserDTO owner = userClient.getUserProfileById(ownerId);
+            UserDTO owner = userClient.getUserById(ownerId);
             if (owner != null) {
                 return SharedWithMeItem.OwnerInfo.builder()
                         .id(owner.getId())
@@ -862,7 +863,7 @@ public class SharedResourceService {
 
     private PublicShareItem.OwnerInfo fetchPublicOwnerInfo(Integer ownerId) {
         try {
-            UserDTO owner = userClient.getUserProfileById(ownerId);
+            UserDTO owner = userClient.getUserById(ownerId);
             if (owner != null) {
                 return PublicShareItem.OwnerInfo.builder()
                         .id(owner.getId())

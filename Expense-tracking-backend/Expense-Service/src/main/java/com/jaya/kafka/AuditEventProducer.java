@@ -28,7 +28,7 @@ public class AuditEventProducer {
     @Value("${audit.kafka.topic:audit-events}")
     private String auditTopic;
 
-    @Value("${budget.expense.kafka.topic:budget-expense-events}")
+    @Value("${BudgetModel.expense.kafka.topic:BudgetModel-expense-events}")
     private String budgetExpenseTopic;
 
     @Value("${category.expense.kafka.topic:category-expense-events}")
@@ -170,3 +170,4 @@ public class AuditEventProducer {
         return mapper;
     }
 }
+

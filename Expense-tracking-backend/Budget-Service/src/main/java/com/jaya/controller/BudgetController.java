@@ -7,7 +7,7 @@ import com.jaya.models.Budget;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.service.BudgetService;
 import com.jaya.service.FriendshipService;
-import com.jaya.common.service.client.feign.FeignUserServiceClient;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class BudgetController {
     private BudgetService budgetService;
 
     @Autowired
-    private FeignUserServiceClient userService;
+    private IUserServiceClient userService;
 
     @Autowired
     private UnifiedActivityService unifiedActivityService;

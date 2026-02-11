@@ -32,7 +32,7 @@ public class PaymentMethodController {
             throws Exception {
         if (targetId == null)
             return reqUser;
-        UserDTO targetUser = userClient.getUserProfileById(targetId);
+        UserDTO targetUser = userClient.getUserById(targetId);
         if (targetUser == null)
             throw new RuntimeException("Target user not found");
         boolean hasAccess = needWriteAccess ? friendshipService.canUserModifyExpenses(targetId, reqUser.getId())

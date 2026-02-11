@@ -4,7 +4,7 @@ import com.jaya.dto.BillSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.BillRepository;
 import com.jaya.util.BulkProgressTracker;
 import com.jaya.util.ServiceHelper;
@@ -39,7 +39,7 @@ public class BillServiceImpl implements BillService {
     @Transactional(rollbackFor = Exception.class)
     public Bill createBill(Bill bill, Integer userId) throws Exception {
         try {
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
 
             helper.validateBillData(bill);
 
@@ -70,7 +70,7 @@ public class BillServiceImpl implements BillService {
     @Transactional
     public Bill updateBill(Bill bill, Integer userId) throws Exception {
         try {
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
 
             Bill existingBill = getByBillId(bill.getId(), userId);
 
@@ -158,7 +158,7 @@ public class BillServiceImpl implements BillService {
     public void deleteBill(Integer id, Integer userId) throws Exception {
         try {
             helper.validateBillId(id);
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
             Bill bill = getByBillId(id, userId);
             expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user.getId());
 
@@ -409,7 +409,7 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional
     public List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
         if (bills == null || bills.isEmpty())
             return java.util.Collections.emptyList();
 
@@ -436,7 +436,7 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional
     public List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
         if (bills == null || bills.isEmpty())
             return Collections.emptyList();
 

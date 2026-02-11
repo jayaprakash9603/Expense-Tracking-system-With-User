@@ -30,7 +30,7 @@ public class AuditHelper {
             String entityType, String actionType, Object details) throws Exception {
 
         String json = helper.toJson(details);
-        UserDTO UserDTO = IUserServiceClient.findUserById(userId);
+        UserDTO UserDTO = IUserServiceClient.getUserById(userId);
 
         String username = UserDTO.getUsername() != null ? UserDTO.getUsername() : UserDTO.getEmail().split("@")[0];
         try {

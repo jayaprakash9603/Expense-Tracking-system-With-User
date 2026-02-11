@@ -2,10 +2,10 @@ package com.jaya.mapper;
 
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
-import com.jaya.models.Category;
+import com.jaya.models.ExpenseCategory;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
-import com.jaya.models.PaymentMethod;
+import com.jaya.models.ExpensePaymentMethod;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.util.DataMaskingUtil;
@@ -106,7 +106,7 @@ public class ExpenseMapper {
             return;
         }
         try {
-            Category category = categoryServices.getById(categoryId, userId);
+            ExpenseCategory category = categoryServices.getById(categoryId, userId);
             if (category != null) {
                 dto.setCategoryIcon(category.getIcon());
                 dto.setCategoryColor(category.getColor());
@@ -129,7 +129,7 @@ public class ExpenseMapper {
             return;
         }
         try {
-            PaymentMethod paymentMethod = paymentMethodServices.getByNameWithService(userId, paymentMethodName);
+            ExpensePaymentMethod paymentMethod = paymentMethodServices.getByNameWithService(userId, paymentMethodName);
             if (paymentMethod != null) {
                 dto.setPaymentMethodIcon(paymentMethod.getIcon());
                 dto.setPaymentMethodColor(paymentMethod.getColor());
@@ -155,8 +155,8 @@ public class ExpenseMapper {
 
 
 
-    public ExpenseDTO toDTO(Expense entity, Map<Integer, Category> categoryMap,
-            Map<String, PaymentMethod> paymentMethodMap) {
+    public ExpenseDTO toDTO(Expense entity, Map<Integer, ExpenseCategory> categoryMap,
+            Map<String, ExpensePaymentMethod> paymentMethodMap) {
         return toDTO(entity, false, categoryMap, paymentMethodMap);
     }
 
@@ -172,8 +172,8 @@ public class ExpenseMapper {
 
 
     public ExpenseDTO toDTO(Expense entity, Boolean maskSensitiveData,
-            Map<Integer, Category> categoryMap,
-            Map<String, PaymentMethod> paymentMethodMap) {
+            Map<Integer, ExpenseCategory> categoryMap,
+            Map<String, ExpensePaymentMethod> paymentMethodMap) {
         if (entity == null) {
             return null;
         }
@@ -191,7 +191,7 @@ public class ExpenseMapper {
 
         
         if (categoryMap != null && entity.getCategoryId() != null) {
-            Category category = categoryMap.get(entity.getCategoryId());
+            ExpenseCategory category = categoryMap.get(entity.getCategoryId());
             if (category != null) {
                 dto.setCategoryIcon(category.getIcon());
                 dto.setCategoryColor(category.getColor());
@@ -205,7 +205,7 @@ public class ExpenseMapper {
             
             String paymentMethodName = entity.getExpense().getPaymentMethod();
             if (paymentMethodMap != null && paymentMethodName != null && !paymentMethodName.isEmpty()) {
-                PaymentMethod paymentMethod = paymentMethodMap.get(paymentMethodName);
+                ExpensePaymentMethod paymentMethod = paymentMethodMap.get(paymentMethodName);
                 if (paymentMethod != null) {
                     dto.setPaymentMethodIcon(paymentMethod.getIcon());
                     dto.setPaymentMethodColor(paymentMethod.getColor());
@@ -223,12 +223,12 @@ public class ExpenseMapper {
 
 
 
-    public Map<Integer, Category> fetchCategoryMapForUser(Integer userId) {
+    public Map<Integer, ExpenseCategory> fetchCategoryMapForUser(Integer userId) {
         try {
-            List<Category> categories = categoryServices.getAllForUser(userId);
+            List<ExpenseCategory> categories = categoryServices.getAllForUser(userId);
             if (categories != null) {
                 return categories.stream()
-                        .collect(Collectors.toMap(Category::getId, Function.identity(), (a, b) -> a));
+                        .collect(Collectors.toMap(ExpenseCategory::getId, Function.identity(), (a, b) -> a));
             }
         } catch (Exception e) {
             log.warn("Could not fetch categories for userId={}: {}", userId, e.getMessage());
@@ -243,13 +243,13 @@ public class ExpenseMapper {
 
 
 
-    public Map<String, PaymentMethod> fetchPaymentMethodMapForUser(Integer userId) {
+    public Map<String, ExpensePaymentMethod> fetchPaymentMethodMapForUser(Integer userId) {
         try {
-            List<PaymentMethod> paymentMethods = paymentMethodServices.getAllPaymentMethods(userId);
+            List<ExpensePaymentMethod> paymentMethods = paymentMethodServices.getAllPaymentMethods(userId);
             if (paymentMethods != null) {
                 return paymentMethods.stream()
                         .filter(pm -> pm.getName() != null)
-                        .collect(Collectors.toMap(PaymentMethod::getName, Function.identity(), (a, b) -> a));
+                        .collect(Collectors.toMap(ExpensePaymentMethod::getName, Function.identity(), (a, b) -> a));
             }
         } catch (Exception e) {
             log.warn("Could not fetch payment methods for userId={}: {}", userId, e.getMessage());
@@ -440,3 +440,5 @@ public class ExpenseMapper {
         }
     }
 }
+
+

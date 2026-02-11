@@ -101,11 +101,11 @@ public class ExpenseExcelParser {
         details.setCreditDue(creditDue != null ? creditDue : 0.0);
 
         
-        Cell categoryIdCell = columnMapper.getCell(row, "Category ID", "Category_Id", "CategoryId");
+        Cell categoryIdCell = columnMapper.getCell(row, "ExpenseCategory ID", "Category_Id", "CategoryId");
         expense.setCategoryId(ExcelCellReader.getCellValueAsInteger(categoryIdCell, evaluator));
 
         expense.setCategoryName(columnMapper.getCellValue(row, evaluator,
-                "Category Name", "Category", "CategoryName"));
+                "ExpenseCategory Name", "ExpenseCategory", "CategoryName"));
 
         
         expense.setExpense(details);
@@ -130,3 +130,4 @@ public class ExpenseExcelParser {
         return ExcelCellReader.getCellValueAsDouble(amountCell, evaluator);
     }
 }
+

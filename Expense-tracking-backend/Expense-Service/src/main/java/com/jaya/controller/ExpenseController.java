@@ -1,6 +1,7 @@
 package com.jaya.controller;
 
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.exceptions.UserException;
@@ -2064,13 +2065,13 @@ public class ExpenseController extends BaseExpenseController {
     }
 
     @PostMapping("/upload-categories")
-    public ResponseEntity<List<Category>> getCategoryFileContent(
+    public ResponseEntity<List<ExpenseCategory>> getCategoryFileContent(
             @RequestParam("file") MultipartFile file,
             @RequestHeader("Authorization") String jwt) throws IOException {
         IUserServiceClient.getUserProfile(jwt);
-        List<Category> categories = excelService.parseCategorySummarySheet(file);
+        List<ExpenseCategory> categories = excelService.parseCategorySummarySheet(file);
         int i = 0;
-        for (Category category : categories) {
+        for (ExpenseCategory category : categories) {
             
             
             category.setId(i++);
@@ -2658,7 +2659,7 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
-    @GetMapping("/included-in-budget/{startDate}/{endDate}")
+    @GetMapping("/included-in-BudgetModel/{startDate}/{endDate}")
     public ResponseEntity<?> getIncludeInBudgetExpenses(
             @RequestHeader("Authorization") String jwt,
             @PathVariable LocalDate startDate,
@@ -2722,7 +2723,7 @@ public class ExpenseController extends BaseExpenseController {
 
         if (budgetId == null || budgetId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid budget ID");
+                    .body("Invalid BudgetModel ID");
         }
 
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
@@ -2851,8 +2852,8 @@ public class ExpenseController extends BaseExpenseController {
 
         
         
-        Map<Integer, Category> categoryMap = expenseMapper.fetchCategoryMapForUser(targetUser.getId());
-        Map<String, PaymentMethod> paymentMethodMap = expenseMapper.fetchPaymentMethodMapForUser(targetUser.getId());
+        Map<Integer, ExpenseCategory> categoryMap = expenseMapper.fetchCategoryMapForUser(targetUser.getId());
+        Map<String, ExpensePaymentMethod> paymentMethodMap = expenseMapper.fetchPaymentMethodMapForUser(targetUser.getId());
 
         
         List<ExpenseDTO> expenseDTOs = expenses.stream()
@@ -3013,7 +3014,7 @@ public class ExpenseController extends BaseExpenseController {
         targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         
-        Map<Category, List<Expense>> categoryExpensesMap = expenseService
+        Map<ExpenseCategory, List<Expense>> categoryExpensesMap = expenseService
                 .getAllExpensesByCategories(targetUser.getId());
 
         if (categoryExpensesMap.isEmpty()) {
@@ -3029,8 +3030,8 @@ public class ExpenseController extends BaseExpenseController {
         double totalAmount = 0.0;
         Map<String, Double> categoryTotals = new HashMap<>();
 
-        for (Map.Entry<Category, List<Expense>> entry : categoryExpensesMap.entrySet()) {
-            Category category = entry.getKey();
+        for (Map.Entry<ExpenseCategory, List<Expense>> entry : categoryExpensesMap.entrySet()) {
+            ExpenseCategory category = entry.getKey();
             List<Expense> expenses = entry.getValue();
             totalExpenses += expenses.size();
 
@@ -3290,3 +3291,6 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(history);
     }
 }
+
+
+

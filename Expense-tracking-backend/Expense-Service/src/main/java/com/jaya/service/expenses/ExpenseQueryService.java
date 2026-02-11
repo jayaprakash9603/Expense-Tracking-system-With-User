@@ -109,3 +109,4 @@ public interface ExpenseQueryService {
 
     List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit);
 }
+

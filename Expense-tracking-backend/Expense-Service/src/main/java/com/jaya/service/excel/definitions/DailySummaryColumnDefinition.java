@@ -34,6 +34,7 @@ public class DailySummaryColumnDefinition implements ExcelColumnDefinition<Daily
                         summary -> summary.getCreditPaid() != null ? summary.getCreditPaid().toString() : "0"),
                 new ExcelColumn<>("Credit Due",
                         summary -> summary.getCreditDue() != null ? summary.getCreditDue().toString() : "0"),
-                new ExcelColumn<>("Credit Due Message", DailySummary::getCreditDueMessage));
+                new ExcelColumn<>("Credit Due ExpenseMessage", DailySummary::getCreditDueMessage));
     }
 }
+

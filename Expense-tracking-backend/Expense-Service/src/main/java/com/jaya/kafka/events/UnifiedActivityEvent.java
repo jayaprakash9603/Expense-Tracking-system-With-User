@@ -340,7 +340,7 @@ public class UnifiedActivityEvent implements Serializable {
 
     public static class SourceService {
         public static final String EXPENSE_SERVICE = "EXPENSE-SERVICE";
-        public static final String BUDGET_SERVICE = "BUDGET-SERVICE";
+        public static final String BUDGET_SERVICE = "BudgetModel-SERVICE";
         public static final String BILL_SERVICE = "BILL-SERVICE";
         public static final String CATEGORY_SERVICE = "CATEGORY-SERVICE";
         public static final String PAYMENT_METHOD_SERVICE = "PAYMENT-METHOD-SERVICE";
@@ -356,7 +356,7 @@ public class UnifiedActivityEvent implements Serializable {
 
     public static class EntityType {
         public static final String EXPENSE = "EXPENSE";
-        public static final String BUDGET = "BUDGET";
+        public static final String BudgetModel = "BudgetModel";
         public static final String CATEGORY = "CATEGORY";
         public static final String PAYMENT_METHOD = "PAYMENT_METHOD";
         public static final String BILL = "BILL";
@@ -428,3 +428,6 @@ public class UnifiedActivityEvent implements Serializable {
                 .isFriendActivity(true);
     }
 }
+
+
+

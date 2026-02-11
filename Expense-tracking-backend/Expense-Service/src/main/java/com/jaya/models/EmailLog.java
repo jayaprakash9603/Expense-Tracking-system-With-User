@@ -33,9 +33,7 @@ public class EmailLog {
     private Map<String, String> attachmentDetails;
 
 
-    @JsonIgnore
-    @ManyToOne
-    private UserDTO UserDTO;
+    private Integer userId;
 
     @OneToOne(mappedBy = "emailLog", cascade = CascadeType.ALL)
     private CommonLog commonLog;

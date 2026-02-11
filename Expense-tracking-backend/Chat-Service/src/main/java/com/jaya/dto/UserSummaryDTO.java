@@ -1,5 +1,6 @@
 package com.jaya.dto;
 
+import com.jaya.common.dto.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ public class UserSummaryDTO {
     private String email;
     private String profilePicture;
 
-    public static UserSummaryDTO fromUser(UserDto user) {
+    public static UserSummaryDTO fromUser(UserDTO user) {
         UserSummaryDTO dto = new UserSummaryDTO();
         dto.setId(user.getId());
         dto.setFirstName(user.getFirstName());

@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
+public class ExpenseMessage {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,9 +28,10 @@ public class Message {
 	
 	private String content;
 	private String image;
+	private Integer userId;
 	@ManyToOne
-	private UserDTO UserDTO;
-	@ManyToOne
-	private Chat chat;
+	private ExpenseChat chat;
 	private LocalDateTime createdAt;
 }
+
+

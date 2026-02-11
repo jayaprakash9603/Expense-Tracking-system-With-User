@@ -100,7 +100,7 @@ public class AsyncExpensePostProcessor {
             int bud = budCount.get();
             int total = pm + cat + bud;
             logger.info(
-                    "Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (UserDTO {})",
+                    "Job {}: total events produced: {} (payment: {}, category: {}, BudgetModel: {}), failures: {}, expenses: {} (UserDTO {})",
                     jobId, total, pm, cat, bud, failed.get(), savedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Job {}: Async post-processing failed: {}", jobId, ex.getMessage(), ex);
@@ -276,10 +276,10 @@ public class AsyncExpensePostProcessor {
                         budgetIds,
                         "REMOVE");
                 budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(budgetEvent);
-                logger.debug("Budget expense deletion event sent for expense ID: {} with budget IDs: {}",
+                logger.debug("BudgetModel expense deletion event sent for expense ID: {} with BudgetModel IDs: {}",
                         expense.getId(), budgetIds);
             } catch (Exception e) {
-                logger.error("Failed to send budget expense deletion event for expense ID: {} - {}",
+                logger.error("Failed to send BudgetModel expense deletion event for expense ID: {} - {}",
                         expense.getId(), e.getMessage());
             }
         }
@@ -296,7 +296,7 @@ public class AsyncExpensePostProcessor {
                         expense.getCategoryName(),
                         "REMOVE");
                 categoryExpenseKafkaProducer.sendCategoryExpenseEvent(categoryEvent);
-                logger.debug("Category expense deletion event sent for expense ID: {} with category ID: {}",
+                logger.debug("ExpenseCategory expense deletion event sent for expense ID: {} with category ID: {}",
                         expense.getId(), categoryId);
             } catch (Exception e) {
                 logger.error("Failed to send category expense deletion event for expense ID: {} - {}",
@@ -333,3 +333,4 @@ public class AsyncExpensePostProcessor {
         }
     }
 }
+

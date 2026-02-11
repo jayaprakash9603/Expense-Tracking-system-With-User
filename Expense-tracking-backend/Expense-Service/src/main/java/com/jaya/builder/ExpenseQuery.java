@@ -44,3 +44,4 @@ public class ExpenseQuery {
         return sortBy != null && !sortBy.trim().isEmpty();
     }
 }
+

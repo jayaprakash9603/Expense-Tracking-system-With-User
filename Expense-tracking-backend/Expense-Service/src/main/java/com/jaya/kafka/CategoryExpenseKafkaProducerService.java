@@ -24,9 +24,10 @@ public class CategoryExpenseKafkaProducerService {
         try {
             String eventJson = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(TOPIC, eventJson);
-            logger.info("Category expense event sent successfully: {}", event);
+            logger.info("ExpenseCategory expense event sent successfully: {}", event);
         } catch (Exception e) {
             logger.error("Failed to send category expense event: {}", event, e);
         }
     }
 }
+

@@ -187,3 +187,4 @@ public class AmountCalculator {
         return BigDecimal.valueOf(value).setScale(ExpenseConstants.DECIMAL_SCALE, RoundingMode.HALF_UP);
     }
 }
+

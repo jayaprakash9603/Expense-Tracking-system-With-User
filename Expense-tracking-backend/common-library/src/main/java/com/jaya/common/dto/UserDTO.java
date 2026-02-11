@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 
 
@@ -39,6 +40,8 @@ public class UserDTO implements Serializable {
 
     private String phoneNumber;
 
+    private String mobile;
+
     private String location;
 
     private String bio;
@@ -63,6 +66,22 @@ public class UserDTO implements Serializable {
     private LocalDateTime updatedAt;
 
     private boolean active;
+
+    private Set<String> roles;
+
+    private String currentMode;
+
+    public boolean hasAdminRole() {
+        return roles != null && (roles.contains("ADMIN") || roles.contains("ROLE_ADMIN"));
+    }
+
+    public boolean isInAdminMode() {
+        return "ADMIN".equalsIgnoreCase(currentMode);
+    }
+
+    public String getProfileImage() {
+        return image;
+    }
 
     
 

@@ -7,6 +7,7 @@ import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
 import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.repository.FriendshipRepository;
 import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;

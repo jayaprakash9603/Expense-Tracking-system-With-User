@@ -52,7 +52,7 @@ public class ServiceHelper {
             return cached;
         }
 
-        UserDTO reqUser = userClient.getUserProfileById(userId);
+        UserDTO reqUser = userClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User not found with ID: " + userId);
         }

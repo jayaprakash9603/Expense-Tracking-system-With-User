@@ -294,3 +294,4 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
         return expenseNames.stream().map(String::toLowerCase).distinct().collect(Collectors.toList());
     }
 }
+

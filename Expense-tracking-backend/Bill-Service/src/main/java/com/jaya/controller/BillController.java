@@ -45,7 +45,7 @@ public class BillController {
     private final ServiceHelper helper;
     private final FriendShipService friendshipService;
     private final BulkProgressTracker progressTracker;
-    private final TaskExecutor taskExecutor;
+    private final TaskExecutor billTaskExecutor;
     private final ExcelExportService excelExportService;
     private final UnifiedActivityService unifiedActivityService;
     private final ReceiptOcrService receiptOcrService;
@@ -115,7 +115,7 @@ public class BillController {
         String jobId = progressTracker.start(targetUser.getId(), bills != null ? bills.size() : 0,
                 "Bulk bills import started");
 
-        taskExecutor.execute(() -> {
+        billTaskExecutor.execute(() -> {
             try {
                 List<Bill> toCreate = bills == null ? java.util.Collections.emptyList()
                         : bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))

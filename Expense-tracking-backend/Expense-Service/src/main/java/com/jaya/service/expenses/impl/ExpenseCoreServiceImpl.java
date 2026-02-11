@@ -219,7 +219,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             throw new RuntimeException("Expense not found with ID: " + id);
         }
         if (existingExpense.isBill()) {
-            throw new RuntimeException("Cannot update a bill expense. Please use the Bill Id for updates.");
+            throw new RuntimeException("Cannot update a bill expense. Please use the ExpenseBill Id for updates.");
         }
 
         Map<String, Object> oldValues = expenseToMap(existingExpense);
@@ -269,17 +269,17 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         if (expense.isBill()) {
-            throw new RuntimeException("Cannot delete a bill expense. Please use the Bill Id for deletion.");
+            throw new RuntimeException("Cannot delete a bill expense. Please use the ExpenseBill Id for deletion.");
         }
 
         Set<Integer> budgetIds = expense.getBudgetIds();
         if (budgetIds != null) {
             for (Integer budgetId : budgetIds) {
-                Budget budget = budgetService.getBudgetById(budgetId, userId);
-                if (budget != null && budget.getExpenseIds() != null) {
-                    budget.getExpenseIds().remove(expense.getId());
-                    budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
-                    budgetService.save(budget);
+                BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
+                if (BudgetModel != null && BudgetModel.getExpenseIds() != null) {
+                    BudgetModel.getExpenseIds().remove(expense.getId());
+                    BudgetModel.setBudgetHasExpenses(!BudgetModel.getExpenseIds().isEmpty());
+                    budgetService.save(BudgetModel);
                 }
             }
         }
@@ -287,7 +287,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         Integer categoryId = expense.getCategoryId();
         if (categoryId != null) {
             try {
-                Category category = categoryService.getById(categoryId, userId);
+                ExpenseCategory category = categoryService.getById(categoryId, userId);
                 if (category != null && category.getExpenseIds() != null) {
                     Set<Integer> expenseSet = category.getExpenseIds().getOrDefault(userId, new HashSet<>());
                     expenseSet.remove(expense.getId());
@@ -307,7 +307,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             String paymentMethodName = expense.getExpense().getPaymentMethod();
             String type = expense.getExpense().getType();
             try {
-                PaymentMethod paymentMethod = paymentMethodService.getByNameAndType(userId, paymentMethodName,
+                ExpensePaymentMethod paymentMethod = paymentMethodService.getByNameAndType(userId, paymentMethodName,
                         type.equals("loss") ? "expense" : "income");
                 if (paymentMethod != null && paymentMethod.getExpenseIds() != null) {
                     Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
@@ -553,14 +553,14 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         int count = 0;
         List<Expense> savedExpenses = new ArrayList<>(Math.min(expenses.size(), 10_000));
 
-        Map<Integer, Budget> budgetCache = new HashMap<>();
+        Map<Integer, BudgetModel> budgetCache = new HashMap<>();
 
-        Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
-        Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
+        Map<Integer, Optional<ExpenseCategory>> categoryIdCache = new HashMap<>();
+        Map<String, Optional<ExpenseCategory>> categoryNameCache = new HashMap<>();
 
-        Category othersCategory = null;
+        ExpenseCategory othersCategory = null;
         try {
-            List<Category> others = categoryService.getByName(OTHERS, UserDTO.getId());
+            List<ExpenseCategory> others = categoryService.getByName(OTHERS, UserDTO.getId());
             if (others != null && !others.isEmpty()) {
                 othersCategory = others.get(0);
             }
@@ -627,13 +627,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
         List<Expense> savedExpenses = new ArrayList<>(expenses.size());
 
-        Map<Integer, Budget> budgetCache = new HashMap<>();
-        Map<Integer, Optional<Category>> categoryIdCache = new HashMap<>();
-        Map<String, Optional<Category>> categoryNameCache = new HashMap<>();
+        Map<Integer, BudgetModel> budgetCache = new HashMap<>();
+        Map<Integer, Optional<ExpenseCategory>> categoryIdCache = new HashMap<>();
+        Map<String, Optional<ExpenseCategory>> categoryNameCache = new HashMap<>();
 
-        Category othersCategory = null;
+        ExpenseCategory othersCategory = null;
         try {
-            List<Category> others = categoryService.getByName(OTHERS, UserDTO.getId());
+            List<ExpenseCategory> others = categoryService.getByName(OTHERS, UserDTO.getId());
             if (others != null && !others.isEmpty())
                 othersCategory = others.get(0);
         } catch (Exception ignore) {
@@ -698,7 +698,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
     private Set<Integer> validateAndExtractBudgetIdsCached(Expense expense, UserDTO UserDTO,
-            Map<Integer, Budget> budgetCache) {
+            Map<Integer, BudgetModel> budgetCache) {
         Set<Integer> validBudgetIds = new HashSet<>();
         if (expense.getBudgetIds() == null || expense.getBudgetIds().isEmpty())
             return validBudgetIds;
@@ -707,19 +707,19 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         for (Integer budgetId : expense.getBudgetIds()) {
             if (budgetId == null)
                 continue;
-            Budget budget = budgetCache.get(budgetId);
-            if (budget == null) {
+            BudgetModel BudgetModel = budgetCache.get(budgetId);
+            if (BudgetModel == null) {
                 try {
-                    budget = budgetService.getBudgetById(budgetId, UserDTO.getId());
-                    if (budget != null) {
-                        budgetCache.put(budgetId, budget);
+                    BudgetModel = budgetService.getBudgetById(budgetId, UserDTO.getId());
+                    if (BudgetModel != null) {
+                        budgetCache.put(budgetId, BudgetModel);
                     }
                 } catch (Exception ignore) {
 
                 }
             }
-            if (budget != null && !expenseDate.isBefore(budget.getStartDate())
-                    && !expenseDate.isAfter(budget.getEndDate())) {
+            if (BudgetModel != null && !expenseDate.isBefore(BudgetModel.getStartDate())
+                    && !expenseDate.isAfter(BudgetModel.getEndDate())) {
                 validBudgetIds.add(budgetId);
             }
         }
@@ -727,19 +727,19 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
     private void handleCategoryFast(Expense expense, UserDTO UserDTO,
-            Map<Integer, Optional<Category>> categoryIdCache,
-            Map<String, Optional<Category>> categoryNameCache,
-            Category othersCategory) {
+            Map<Integer, Optional<ExpenseCategory>> categoryIdCache,
+            Map<String, Optional<ExpenseCategory>> categoryNameCache,
+            ExpenseCategory othersCategory) {
         try {
 
             String categoryName = expense.getCategoryName();
             if (categoryName != null && !categoryName.trim().isEmpty()) {
                 String key = categoryName.trim().toLowerCase(Locale.ROOT);
-                Optional<Category> cachedByName = categoryNameCache.get(key);
+                Optional<ExpenseCategory> cachedByName = categoryNameCache.get(key);
                 if (cachedByName == null) {
-                    Category found = null;
+                    ExpenseCategory found = null;
                     try {
-                        List<Category> matches = categoryService.getByName(categoryName.trim(), UserDTO.getId());
+                        List<ExpenseCategory> matches = categoryService.getByName(categoryName.trim(), UserDTO.getId());
                         if (matches != null && !matches.isEmpty()) {
 
                             found = matches.stream()
@@ -757,7 +757,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     }
                 }
                 if (cachedByName.isPresent()) {
-                    Category cat = cachedByName.get();
+                    ExpenseCategory cat = cachedByName.get();
                     expense.setCategoryId(cat.getId());
                     expense.setCategoryName(cat.getName());
                     return;
@@ -766,10 +766,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
             Integer categoryId = expense.getCategoryId();
             if (categoryId != null && categoryId > 0) {
-                Optional<Category> cachedById = categoryIdCache.get(categoryId);
+                Optional<ExpenseCategory> cachedById = categoryIdCache.get(categoryId);
                 if (cachedById == null) {
 
-                    Category found = null;
+                    ExpenseCategory found = null;
                     try {
                         found = categoryService.getById(categoryId, UserDTO.getId());
                     } catch (Exception ignore) {
@@ -782,7 +782,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     }
                 }
                 if (cachedById.isPresent()) {
-                    Category cat = cachedById.get();
+                    ExpenseCategory cat = cachedById.get();
                     expense.setCategoryId(cat.getId());
                     expense.setCategoryName(cat.getName());
                     return;
@@ -797,7 +797,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 handleCategory(expense, UserDTO);
             }
         } catch (Exception e) {
-            logger.warn("Category handling fallback triggered: {}", e.getMessage());
+            logger.warn("ExpenseCategory handling fallback triggered: {}", e.getMessage());
 
             if (othersCategory != null) {
                 expense.setCategoryId(othersCategory.getId());
@@ -858,7 +858,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                     if (oldCategoryId != null) {
                         try {
-                            Category oldCategory = categoryService.getById(oldCategoryId, userId);
+                            ExpenseCategory oldCategory = categoryService.getById(oldCategoryId, userId);
                             if (oldCategory != null && oldCategory.getExpenseIds() != null) {
                                 Set<Integer> expenseSet = oldCategory.getExpenseIds().getOrDefault(userId,
                                         new HashSet<>());
@@ -877,7 +877,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                     if (newCategoryId != null) {
                         try {
-                            Category newCategory = categoryService.getById(newCategoryId, userId);
+                            ExpenseCategory newCategory = categoryService.getById(newCategoryId, userId);
                             if (newCategory != null) {
                                 existingExpense.setCategoryId(newCategory.getId());
                                 existingExpense.setCategoryName(newCategory.getName());
@@ -892,7 +892,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                             }
                         } catch (Exception e) {
                             try {
-                                Category category = categoryService.getByName(OTHERS, userId).get(0);
+                                ExpenseCategory category = categoryService.getByName(OTHERS, userId).get(0);
                                 existingExpense.setCategoryId(category.getId());
                                 existingExpense.setCategoryName(category.getName());
                                 if (category.getExpenseIds() == null) {
@@ -904,11 +904,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                                 category.getExpenseIds().put(userId, expenseSet);
                                 categoryService.save(category);
                             } catch (Exception notFound) {
-                                Category createdCategory = new Category();
+                                ExpenseCategory createdCategory = new ExpenseCategory();
                                 createdCategory.setDescription("Others Description");
                                 createdCategory.setName(OTHERS);
                                 try {
-                                    Category newCategory = categoryService.create(createdCategory, userId);
+                                    ExpenseCategory newCategory = categoryService.create(createdCategory, userId);
                                     existingExpense.setCategoryId(newCategory.getId());
                                     existingExpense.setCategoryName(newCategory.getName());
                                     if (newCategory.getExpenseIds() == null) {
@@ -942,8 +942,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                             && (newPaymentMethodName == null
                                     || !oldPaymentMethodName.trim().equalsIgnoreCase(newPaymentMethodName)
                                     || !oldPaymentType.equalsIgnoreCase(newPaymentType))) {
-                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-                        PaymentMethod oldPaymentMethod = allMethods.stream()
+                        List<ExpensePaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                        ExpensePaymentMethod oldPaymentMethod = allMethods.stream()
                                 .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim())
                                         && pm.getType().equalsIgnoreCase(oldPaymentType))
                                 .findFirst().orElse(null);
@@ -954,13 +954,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     }
 
                     if (newPaymentMethodName != null && !newPaymentMethodName.isEmpty()) {
-                        List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-                        PaymentMethod newPaymentMethod = allMethods.stream()
+                        List<ExpensePaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                        ExpensePaymentMethod newPaymentMethod = allMethods.stream()
                                 .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName)
                                         && pm.getType().equalsIgnoreCase(newPaymentType))
                                 .findFirst().orElse(null);
                         if (newPaymentMethod == null) {
-                            newPaymentMethod = new PaymentMethod();
+                            newPaymentMethod = new ExpensePaymentMethod();
                             newPaymentMethod.setUserId(userId);
                             newPaymentMethod.setName(newPaymentMethodName);
                             newPaymentMethod.setType(newPaymentType);
@@ -993,11 +993,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 Set<Integer> validBudgetIds = new HashSet<>();
                 if (expense.getBudgetIds() != null) {
                     for (Integer budgetId : expense.getBudgetIds()) {
-                        Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                        BudgetModel budgetOpt = budgetService.getBudgetById(budgetId, userId);
                         if (budgetOpt != null) {
-                            Budget budget = budgetOpt;
-                            if (!expense.getDate().isBefore(budget.getStartDate())
-                                    && !expense.getDate().isAfter(budget.getEndDate())) {
+                            BudgetModel BudgetModel = budgetOpt;
+                            if (!expense.getDate().isBefore(BudgetModel.getStartDate())
+                                    && !expense.getDate().isAfter(BudgetModel.getEndDate())) {
                                 validBudgetIds.add(budgetId);
                             }
                         }
@@ -1007,7 +1007,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 if (existingExpense.getBudgetIds() != null) {
                     for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
                         if (!validBudgetIds.contains(oldBudgetId)) {
-                            Budget oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
+                            BudgetModel oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
                             if (oldBudget != null && oldBudget.getExpenseIds() != null) {
                                 oldBudget.getExpenseIds().remove(existingExpense.getId());
                                 oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
@@ -1021,13 +1021,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 Expense savedExpense = expenseRepository.save(existingExpense);
 
                 for (Integer budgetId : validBudgetIds) {
-                    Budget budget = budgetService.getBudgetById(budgetId, userId);
-                    if (budget != null) {
-                        if (budget.getExpenseIds() == null)
-                            budget.setExpenseIds(new HashSet<>());
-                        budget.getExpenseIds().add(savedExpense.getId());
-                        budget.setBudgetHasExpenses(true);
-                        budgetService.save(budget);
+                    BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
+                    if (BudgetModel != null) {
+                        if (BudgetModel.getExpenseIds() == null)
+                            BudgetModel.setExpenseIds(new HashSet<>());
+                        BudgetModel.getExpenseIds().add(savedExpense.getId());
+                        BudgetModel.setBudgetHasExpenses(true);
+                        budgetService.save(BudgetModel);
                     }
                 }
 
@@ -1075,10 +1075,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         List<Expense> savedExpenses = new ArrayList<>();
         List<String> errorMessages = new ArrayList<>();
 
-        Category othersCategory = null;
+        ExpenseCategory othersCategory = null;
         try {
 
-            List<Category> othersCategories = categoryService.getByName(OTHERS, userId);
+            List<ExpenseCategory> othersCategories = categoryService.getByName(OTHERS, userId);
 
             if (othersCategories != null && !othersCategories.isEmpty()) {
                 othersCategory = othersCategories.get(0);
@@ -1119,7 +1119,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
                 Expense savedExpense = expenseRepository.save(expense);
 
-                Category category = null;
+                ExpenseCategory category = null;
                 Integer categoryId = dto.getCategoryId();
 
                 if (categoryId != null) {
@@ -1136,7 +1136,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         category = othersCategory;
                     } else {
                         try {
-                            List<Category> existingOthers = categoryService.getByName(OTHERS, userId);
+                            List<ExpenseCategory> existingOthers = categoryService.getByName(OTHERS, userId);
                             if (existingOthers != null && !existingOthers.isEmpty()) {
                                 category = existingOthers.get(0);
 
@@ -1169,11 +1169,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 Set<Integer> validBudgetIds = new HashSet<>();
                 if (dto.getBudgetIds() != null) {
                     for (Integer budgetId : dto.getBudgetIds()) {
-                        Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                        BudgetModel budgetOpt = budgetService.getBudgetById(budgetId, userId);
                         if (budgetOpt != null) {
-                            Budget budget = budgetOpt;
-                            if (!savedExpense.getDate().isBefore(budget.getStartDate())
-                                    && !savedExpense.getDate().isAfter(budget.getEndDate())) {
+                            BudgetModel BudgetModel = budgetOpt;
+                            if (!savedExpense.getDate().isBefore(BudgetModel.getStartDate())
+                                    && !savedExpense.getDate().isAfter(BudgetModel.getEndDate())) {
                                 validBudgetIds.add(budgetId);
                             }
                         }
@@ -1185,13 +1185,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 savedExpenses.add(savedExpense);
 
                 for (Integer budgetId : validBudgetIds) {
-                    Budget budget = budgetService.getBudgetById(budgetId, userId);
-                    if (budget != null) {
-                        if (budget.getExpenseIds() == null)
-                            budget.setExpenseIds(new HashSet<>());
-                        budget.getExpenseIds().add(savedExpense.getId());
-                        budget.setBudgetHasExpenses(true);
-                        budgetService.save(budget);
+                    BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
+                    if (BudgetModel != null) {
+                        if (BudgetModel.getExpenseIds() == null)
+                            BudgetModel.setExpenseIds(new HashSet<>());
+                        BudgetModel.getExpenseIds().add(savedExpense.getId());
+                        BudgetModel.setBudgetHasExpenses(true);
+                        budgetService.save(BudgetModel);
                     }
                 }
 
@@ -1323,11 +1323,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
     }
 
-    private Category createOthersCategory(Integer userId) throws Exception {
+    private ExpenseCategory createOthersCategory(Integer userId) throws Exception {
         try {
-            List<Category> existingCategories = categoryService.getByName(OTHERS, userId);
+            List<ExpenseCategory> existingCategories = categoryService.getByName(OTHERS, userId);
             if (existingCategories != null && !existingCategories.isEmpty()) {
-                Category existingCategory = existingCategories.get(0);
+                ExpenseCategory existingCategory = existingCategories.get(0);
 
                 if (existingCategory.getUserIds() == null) {
                     existingCategory.setUserIds(new HashSet<>());
@@ -1342,7 +1342,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 return categoryService.save(existingCategory);
             }
 
-            Category newCategory = new Category();
+            ExpenseCategory newCategory = new ExpenseCategory();
             newCategory.setName(OTHERS);
             newCategory.setDescription("Default category for uncategorized expenses");
             newCategory.setColor("#808080");
@@ -1462,7 +1462,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private void handleCategory(Expense expense, UserDTO UserDTO) throws Exception {
 
         try {
-            Category category = categoryService.getById(expense.getCategoryId(), UserDTO.getId());
+            ExpenseCategory category = categoryService.getById(expense.getCategoryId(), UserDTO.getId());
             if (category != null) {
                 expense.setCategoryId(category.getId());
                 expense.setCategoryName(category.getName());
@@ -1470,14 +1470,14 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         } catch (Exception e) {
 
             try {
-                Category category = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
+                ExpenseCategory category = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
                 expense.setCategoryId(category.getId());
                 expense.setCategoryName(category.getName());
             } catch (Exception notFound) {
-                Category createdCategory = new Category();
+                ExpenseCategory createdCategory = new ExpenseCategory();
                 createdCategory.setDescription("Others Description");
                 createdCategory.setName(OTHERS);
-                Category newCategory = categoryService.create(createdCategory, UserDTO.getId());
+                ExpenseCategory newCategory = categoryService.create(createdCategory, UserDTO.getId());
                 expense.setCategoryId(newCategory.getId());
                 expense.setCategoryName(newCategory.getName());
             }
@@ -1558,7 +1558,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             BudgetExpenseEvent budgetEvent = new BudgetExpenseEvent(UserDTO.getId(), savedExpense.getId(), validBudgetIds,
                     "ADD");
             budgetExpenseKafkaProducerService.sendBudgetExpenseEvent(budgetEvent);
-            logger.info("Budget expense event sent for expense ID: {} with budget IDs: {}", savedExpense.getId(),
+            logger.info("BudgetModel expense event sent for expense ID: {} with BudgetModel IDs: {}", savedExpense.getId(),
                     validBudgetIds);
         }
     }
@@ -1600,7 +1600,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         Set<Integer> validBudgetIds = new HashSet<>();
         for (Integer budgetId : expense.getBudgetIds()) {
 
-            Budget budgetOpt;
+            BudgetModel budgetOpt;
             try {
                 budgetOpt = budgetService.getBudgetById(budgetId, UserDTO.getId());
             } catch (Exception e) {
@@ -1609,9 +1609,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
             System.out.println("testing after catch");
             if (budgetOpt != null) {
-                Budget budget = budgetOpt;
+                BudgetModel BudgetModel = budgetOpt;
                 LocalDate expenseDate = expense.getDate();
-                if (!expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
+                if (!expenseDate.isBefore(BudgetModel.getStartDate()) && !expenseDate.isAfter(BudgetModel.getEndDate())) {
                     validBudgetIds.add(budgetId);
                 }
             }
@@ -1665,11 +1665,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         Set<Integer> validBudgetIds = new HashSet<>();
         if (updatedExpense.getBudgetIds() != null) {
             for (Integer budgetId : updatedExpense.getBudgetIds()) {
-                Budget budgetOpt = budgetService.getBudgetById(budgetId, userId);
+                BudgetModel budgetOpt = budgetService.getBudgetById(budgetId, userId);
                 if (budgetOpt != null) {
-                    Budget budget = budgetOpt;
+                    BudgetModel BudgetModel = budgetOpt;
                     LocalDate expenseDate = updatedExpense.getDate();
-                    if (!expenseDate.isBefore(budget.getStartDate()) && !expenseDate.isAfter(budget.getEndDate())) {
+                    if (!expenseDate.isBefore(BudgetModel.getStartDate()) && !expenseDate.isAfter(BudgetModel.getEndDate())) {
                         validBudgetIds.add(budgetId);
                     }
                 }
@@ -1680,14 +1680,14 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     private void updateBudgetLinks(Expense savedExpense, Set<Integer> validBudgetIds, Integer userId) throws Exception {
         for (Integer budgetId : validBudgetIds) {
-            Budget budget = budgetService.getBudgetById(budgetId, userId);
-            if (budget != null) {
-                if (budget.getExpenseIds() == null) {
-                    budget.setExpenseIds(new HashSet<>());
+            BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
+            if (BudgetModel != null) {
+                if (BudgetModel.getExpenseIds() == null) {
+                    BudgetModel.setExpenseIds(new HashSet<>());
                 }
-                budget.getExpenseIds().add(savedExpense.getId());
-                budget.setBudgetHasExpenses(true);
-                budgetService.save(budget);
+                BudgetModel.getExpenseIds().add(savedExpense.getId());
+                BudgetModel.setBudgetHasExpenses(true);
+                budgetService.save(BudgetModel);
             }
         }
     }
@@ -1697,7 +1697,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         if (existingExpense.getBudgetIds() != null) {
             for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
                 if (!validBudgetIds.contains(oldBudgetId)) {
-                    Budget oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
+                    BudgetModel oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
                     if (oldBudget != null && oldBudget.getExpenseIds() != null) {
                         oldBudget.getExpenseIds().remove(existingExpense.getId());
                         oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
@@ -1723,8 +1723,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
             if (oldPaymentMethodName != null && !oldPaymentMethodName.trim().isEmpty()) {
                 try {
-                    List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-                    PaymentMethod oldPaymentMethod = allMethods.stream()
+                    List<ExpensePaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                    ExpensePaymentMethod oldPaymentMethod = allMethods.stream()
                             .filter(pm -> pm.getName().equalsIgnoreCase(oldPaymentMethodName.trim())
                                     && pm.getType().equalsIgnoreCase(oldPaymentType))
                             .findFirst().orElse(null);
@@ -1750,13 +1750,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             try {
-                List<PaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
-                PaymentMethod newPaymentMethod = allMethods.stream()
+                List<ExpensePaymentMethod> allMethods = paymentMethodService.getAllPaymentMethods(userId);
+                ExpensePaymentMethod newPaymentMethod = allMethods.stream()
                         .filter(pm -> pm.getName().equalsIgnoreCase(newPaymentMethodName)
                                 && pm.getType().equalsIgnoreCase(newPaymentType))
                         .findFirst().orElse(null);
                 if (newPaymentMethod == null) {
-                    newPaymentMethod = new PaymentMethod();
+                    newPaymentMethod = new ExpensePaymentMethod();
                     newPaymentMethod.setUserId(userId);
                     newPaymentMethod.setName(newPaymentMethodName);
                     newPaymentMethod.setType(newPaymentType);
@@ -1799,7 +1799,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             try {
-                Category newCategory = categoryService.getById(newCategoryId, userId);
+                ExpenseCategory newCategory = categoryService.getById(newCategoryId, userId);
                 if (newCategory != null) {
                     existingExpense.setCategoryId(newCategory.getId());
                     existingExpense.setCategoryName(newCategory.getName());
@@ -1810,15 +1810,15 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             try {
-                Category others = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
+                ExpenseCategory others = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
                 existingExpense.setCategoryId(others.getId());
                 existingExpense.setCategoryName(others.getName());
             } catch (Exception notFound) {
-                Category createdCategory = new Category();
+                ExpenseCategory createdCategory = new ExpenseCategory();
                 createdCategory.setDescription("Others Description");
                 createdCategory.setName(OTHERS);
                 try {
-                    Category newCategory = categoryService.create(createdCategory, UserDTO.getId());
+                    ExpenseCategory newCategory = categoryService.create(createdCategory, UserDTO.getId());
                     existingExpense.setCategoryId(newCategory.getId());
                     existingExpense.setCategoryName(newCategory.getName());
                 } catch (Exception createError) {
@@ -1922,7 +1922,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             AuditEvent event = AuditEvent.builder()
                     .userId(UserDTO.getId())
                     .username(UserDTO.getFirstName())
-                    .userRole(UserDTO.getRoles().toString())
+                    .userRole("USER")
                     .entityId(String.valueOf(expense.getId()))
                     .entityType("EXPENSE")
                     .actionType(actionType)
@@ -2001,3 +2001,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     }
 
 }
+
+
+

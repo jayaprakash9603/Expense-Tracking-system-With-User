@@ -25,7 +25,7 @@ public class ServiceHelper {
 
     public UserDTO validateUser(Integer userId) throws Exception {
 
-        UserDTO reqUser=userClient.getUserProfileById(userId);
+        UserDTO reqUser=userClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }

@@ -139,3 +139,5 @@ public class DailySummaryService {
         return yearlySummaries;
     }
 }
+
+

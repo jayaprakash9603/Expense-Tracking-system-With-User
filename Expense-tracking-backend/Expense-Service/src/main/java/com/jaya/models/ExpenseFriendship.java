@@ -11,7 +11,7 @@ import com.jaya.common.dto.UserDTO;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Friendship {
+public class ExpenseFriendship {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
@@ -33,3 +33,4 @@ public class Friendship {
     @Column(length = 20)
     private AccessLevel recipientAccess; 
 }
+

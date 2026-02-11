@@ -24,7 +24,7 @@ public class ServiceHelper {
     public static final String DEFAULT_COMMENT = "";
 
     public UserDTO validateUser(Integer userId) throws Exception {
-        UserDTO reqUser = userClient.getUserProfileById(userId);
+        UserDTO reqUser = userClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
@@ -286,7 +286,7 @@ public class ServiceHelper {
 
     public boolean userExists(Integer userId) {
         try {
-            UserDTO user = userClient.getUserProfileById(userId);
+            UserDTO user = userClient.getUserById(userId);
             return user != null;
         } catch (Exception e) {
             return false;
@@ -297,7 +297,7 @@ public class ServiceHelper {
         Map<Integer, UserDTO> users = new HashMap<>();
         for (Integer userId : userIds) {
             try {
-                UserDTO user = userClient.getUserProfileById(userId);
+                UserDTO user = userClient.getUserById(userId);
                 if (user != null) {
                     users.put(userId, user);
                 }

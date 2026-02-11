@@ -1,6 +1,6 @@
 package com.jaya.service.excel.parser;
 
-import com.jaya.models.Category;
+import com.jaya.models.ExpenseCategory;
 import com.jaya.service.excel.util.DataParser;
 import com.jaya.service.excel.util.ExcelCellReader;
 import com.jaya.service.excel.util.ExcelColumnMapper;
@@ -23,11 +23,11 @@ public class CategoryExcelParser {
     
 
 
-    public List<Category> parseCategories(MultipartFile file) throws IOException {
-        List<Category> categories = new ArrayList<>();
+    public List<ExpenseCategory> parseCategories(MultipartFile file) throws IOException {
+        List<ExpenseCategory> categories = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
-            Sheet sheet = workbook.getSheet("Category Summary");
+            Sheet sheet = workbook.getSheet("ExpenseCategory Summary");
             if (sheet == null) {
                 return categories; 
             }
@@ -49,7 +49,7 @@ public class CategoryExcelParser {
                 if (row == null)
                     continue;
 
-                Category category = parseCategoryRow(row, columnMapper, evaluator);
+                ExpenseCategory category = parseCategoryRow(row, columnMapper, evaluator);
                 if (category != null) {
                     categories.add(category);
                 }
@@ -62,28 +62,28 @@ public class CategoryExcelParser {
     
 
 
-    private Category parseCategoryRow(Row row, ExcelColumnMapper columnMapper, FormulaEvaluator evaluator) {
-        Category category = new Category();
+    private ExpenseCategory parseCategoryRow(Row row, ExcelColumnMapper columnMapper, FormulaEvaluator evaluator) {
+        ExpenseCategory category = new ExpenseCategory();
 
         
-        Cell idCell = columnMapper.getCell(row, "Category ID", "CategoryId", "Category_Id");
+        Cell idCell = columnMapper.getCell(row, "ExpenseCategory ID", "CategoryId", "Category_Id");
         category.setId(ExcelCellReader.getCellValueAsInteger(idCell, evaluator));
 
         
         category.setName(columnMapper.getCellValue(row, evaluator,
-                "Category Name", "CategoryName", "Name"));
+                "ExpenseCategory Name", "CategoryName", "Name"));
 
         
         category.setColor(columnMapper.getCellValue(row, evaluator,
-                "Category Color", "Color"));
+                "ExpenseCategory Color", "Color"));
 
         
         category.setIcon(columnMapper.getCellValue(row, evaluator,
-                "Category Icon", "Icon"));
+                "ExpenseCategory Icon", "Icon"));
 
         
         category.setDescription(columnMapper.getCellValue(row, evaluator,
-                "Category Description", "Description"));
+                "ExpenseCategory Description", "Description"));
 
         
         Cell globalCell = columnMapper.getCell(row, "Is Global", "Global");
@@ -109,3 +109,4 @@ public class CategoryExcelParser {
         return category;
     }
 }
+
