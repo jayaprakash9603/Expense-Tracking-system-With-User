@@ -3,7 +3,7 @@ package com.jaya.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 @Entity
 @Table(name = "expense_friendship")

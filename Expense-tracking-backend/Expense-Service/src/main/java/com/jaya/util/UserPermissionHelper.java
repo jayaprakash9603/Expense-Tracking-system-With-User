@@ -1,8 +1,8 @@
 package com.jaya.util;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.exceptions.UserException;
 import com.jaya.service.FriendShipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,35 +15,35 @@ import java.util.function.Function;
 @Component
 public class UserPermissionHelper {
 
-    private final UserService userService;
+    private final IUserServiceClient IUserServiceClient;
     private final FriendShipService friendshipService;
 
     private final Logger logger= LoggerFactory.getLogger(UserPermissionHelper.class);
 
     @Autowired
-    public UserPermissionHelper(UserService userService, FriendShipService friendshipService) {
-        this.userService = userService;
+    public UserPermissionHelper(IUserServiceClient IUserServiceClient, FriendShipService friendshipService) {
+        this.IUserServiceClient = IUserServiceClient;
         this.friendshipService = friendshipService;
     }
 
 
-    public User validateUser(String jwt) throws Exception {
+    public UserDTO validateUser(String jwt) throws Exception {
 
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
-            throw new IllegalArgumentException("User ID cannot be null");
+            throw new IllegalArgumentException("UserDTO ID cannot be null");
         }
         return reqUser;
     }
-    public User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess)  {
+    public UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean needWriteAccess)  {
 
         try {
             if (targetId == null) {
                 return reqUser;
             }
-            User targetUser = userService.findUserById(targetId);
+            UserDTO targetUser = IUserServiceClient.findUserById(targetId);
             if (targetUser == null) {
-                throw new RuntimeException("Target user not found");
+                throw new RuntimeException("Target UserDTO not found");
             }
 
             boolean hasAccess = needWriteAccess ?
@@ -53,7 +53,7 @@ public class UserPermissionHelper {
                     System.out.println("can access the expense"+friendshipService.canUserModifyExpenses(targetId, reqUser.getId()));
             if (!hasAccess) {
                 String action = needWriteAccess ? "modify" : "access";
-                throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+                throw new RuntimeException("You don't have permission to " + action + " this UserDTO's expenses");
             }
             return targetUser;
         }
@@ -65,17 +65,17 @@ public class UserPermissionHelper {
     }
 
 
-    public User getTargetUserWithPermissionCheck(Integer targetId, String jwt, boolean needWriteAccess) throws Exception {
+    public UserDTO getTargetUserWithPermissionCheck(Integer targetId, String jwt, boolean needWriteAccess) throws Exception {
 
-        User reqUser=validateUser(jwt);
+        UserDTO reqUser=validateUser(jwt);
 
         try {
             if (targetId == null) {
                 return reqUser;
             }
-            User targetUser = userService.findUserById(targetId);
+            UserDTO targetUser = IUserServiceClient.findUserById(targetId);
             if (targetUser == null) {
-                throw new RuntimeException("Target user not found");
+                throw new RuntimeException("Target UserDTO not found");
             }
 
             boolean hasAccess = needWriteAccess ?
@@ -84,7 +84,7 @@ public class UserPermissionHelper {
 
             if (!hasAccess) {
                 String action = needWriteAccess ? "modify" : "access";
-                throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+                throw new RuntimeException("You don't have permission to " + action + " this UserDTO's expenses");
             }
             return targetUser;
         }
@@ -96,10 +96,10 @@ public class UserPermissionHelper {
     }
 
     public <T> ResponseEntity<?> executeWithPermissionCheck(String jwt, Integer targetId, boolean needWriteAccess,
-                                                            Function<User, T> operation, Function<RuntimeException, ResponseEntity<?>> runtimeHandler) {
+                                                            Function<UserDTO, T> operation, Function<RuntimeException, ResponseEntity<?>> runtimeHandler) {
         try {
-            User reqUser = userService.findUserByJwt(jwt);
-            User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, needWriteAccess);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, needWriteAccess);
             T result = operation.apply(targetUser);
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {

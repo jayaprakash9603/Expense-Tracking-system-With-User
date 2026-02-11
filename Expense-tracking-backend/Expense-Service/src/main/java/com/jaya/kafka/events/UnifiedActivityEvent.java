@@ -345,7 +345,7 @@ public class UnifiedActivityEvent implements Serializable {
         public static final String CATEGORY_SERVICE = "CATEGORY-SERVICE";
         public static final String PAYMENT_METHOD_SERVICE = "PAYMENT-METHOD-SERVICE";
         public static final String FRIENDSHIP_SERVICE = "FRIENDSHIP-SERVICE";
-        public static final String USER_SERVICE = "USER-SERVICE";
+        public static final String USER_SERVICE = "UserDTO-SERVICE";
 
         private SourceService() {
         }
@@ -360,7 +360,7 @@ public class UnifiedActivityEvent implements Serializable {
         public static final String CATEGORY = "CATEGORY";
         public static final String PAYMENT_METHOD = "PAYMENT_METHOD";
         public static final String BILL = "BILL";
-        public static final String USER = "USER";
+        public static final String UserDTO = "UserDTO";
         public static final String FRIENDSHIP = "FRIENDSHIP";
 
         private EntityType() {

@@ -16,10 +16,10 @@ public class ExceptionHandlerService {
             
             if (e.getMessage().contains("not found")) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ApiResponse.error("User not found: " + e.getMessage(), "NOT_FOUND", HttpStatus.NOT_FOUND.value()));
+                        .body(ApiResponse.error("UserDTO not found: " + e.getMessage(), "NOT_FOUND", HttpStatus.NOT_FOUND.value()));
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("User error: " + e.getMessage(), "USER_ERROR", HttpStatus.BAD_REQUEST.value()));
+                    .body(ApiResponse.error("UserDTO error: " + e.getMessage(), "USER_ERROR", HttpStatus.BAD_REQUEST.value()));
         } else if (e instanceof NoPermissionException) {
             
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

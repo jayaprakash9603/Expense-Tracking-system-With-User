@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.*;
 import org.springframework.stereotype.Service;
 
@@ -22,13 +22,13 @@ public class DailySummaryService {
         this.expenseService = expenseService;
     }
 
-    public List<DailySummary> getDailySummaries(Integer year, Integer month, User user) {
+    public List<DailySummary> getDailySummaries(Integer year, Integer month, UserDTO UserDTO) {
         List<DailySummary> dailySummaries = new ArrayList<>();
         LocalDate startDate = LocalDate.of(year, month, 1);
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
+            List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, UserDTO.getId());
 
             if (dailyExpenses.isEmpty()) {
                 continue;
@@ -41,8 +41,8 @@ public class DailySummaryService {
         return dailySummaries;
     }
 
-    public DailySummary getDailySummaryForDate(LocalDate date, User user) {
-        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
+    public DailySummary getDailySummaryForDate(LocalDate date, UserDTO UserDTO) {
+        List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, UserDTO.getId());
 
         if (dailyExpenses.isEmpty())
             return null;
@@ -119,7 +119,7 @@ public class DailySummaryService {
         return dailySummary;
     }
 
-    public List<DailySummary> getYearlySummaries(Integer year, User user) {
+    public List<DailySummary> getYearlySummaries(Integer year, UserDTO UserDTO) {
         List<DailySummary> yearlySummaries = new ArrayList<>();
 
         for (Month month : Month.values()) {
@@ -127,7 +127,7 @@ public class DailySummaryService {
             LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
 
             for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, user.getId());
+                List<Expense> dailyExpenses = expenseService.getExpensesByDate(date, UserDTO.getId());
                 if (dailyExpenses.isEmpty())
                     continue;
 

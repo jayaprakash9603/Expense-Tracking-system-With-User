@@ -1,7 +1,7 @@
 
 package com.jaya.async;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.events.BudgetExpenseEvent;
 import com.jaya.events.CategoryExpenseEvent;
 import com.jaya.dto.PaymentMethodEvent;
@@ -48,7 +48,7 @@ public class AsyncExpensePostProcessor {
     }
 
     @Async("expensePostExecutor")
-    public void publishEvent(List<Expense> savedExpenses, Integer userId, User user) {
+    public void publishEvent(List<Expense> savedExpenses, Integer userId, UserDTO UserDTO) {
         if (savedExpenses == null || savedExpenses.isEmpty())
             return;
         try {
@@ -60,20 +60,20 @@ public class AsyncExpensePostProcessor {
                 List<Expense> chunk = savedExpenses.subList(from, to);
                 futures.add(CompletableFuture.runAsync(() -> {
                     for (Expense e : chunk) {
-                        processSingleExpense(e, userId, user);
+                        processSingleExpense(e, userId, UserDTO);
                     }
                 }, expensePostExecutor));
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             updateExpenseCache(savedExpenses, userId);
-            logger.info("Async post-processing completed for {} expenses (user {})", savedExpenses.size(), userId);
+            logger.info("Async post-processing completed for {} expenses (UserDTO {})", savedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Async parallel post-processing failed: {}", ex.getMessage(), ex);
         }
     }
 
     @Async("expensePostExecutor")
-    public void publishEvent(List<Expense> savedExpenses, Integer userId, User user, String jobId) {
+    public void publishEvent(List<Expense> savedExpenses, Integer userId, UserDTO UserDTO, String jobId) {
         if (savedExpenses == null || savedExpenses.isEmpty())
             return;
         AtomicInteger pmCount = new AtomicInteger(0);
@@ -89,7 +89,7 @@ public class AsyncExpensePostProcessor {
                 List<Expense> chunk = savedExpenses.subList(from, to);
                 futures.add(CompletableFuture.runAsync(() -> {
                     for (Expense e : chunk) {
-                        processSingleExpenseTracked(e, userId, user, pmCount, catCount, budCount, failed);
+                        processSingleExpenseTracked(e, userId, UserDTO, pmCount, catCount, budCount, failed);
                     }
                 }, expensePostExecutor));
             }
@@ -100,24 +100,24 @@ public class AsyncExpensePostProcessor {
             int bud = budCount.get();
             int total = pm + cat + bud;
             logger.info(
-                    "Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (user {})",
+                    "Job {}: total events produced: {} (payment: {}, category: {}, budget: {}), failures: {}, expenses: {} (UserDTO {})",
                     jobId, total, pm, cat, bud, failed.get(), savedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Job {}: Async post-processing failed: {}", jobId, ex.getMessage(), ex);
         }
     }
 
-    private void processSingleExpense(Expense e, Integer userId, User user) {
+    private void processSingleExpense(Expense e, Integer userId, UserDTO UserDTO) {
         try {
-            handlePaymentMethod(e, user);
+            handlePaymentMethod(e, UserDTO);
             updateCategoryExpenseIds(e, userId);
-            updateBudgetExpenseLinks(e, e.getBudgetIds(), user);
+            updateBudgetExpenseLinks(e, e.getBudgetIds(), UserDTO);
         } catch (Exception ex) {
             logger.error("Failed processing expense {}: {}", e.getId(), ex.getMessage(), ex);
         }
     }
 
-    private void processSingleExpenseTracked(Expense savedExpense, Integer userId, User user,
+    private void processSingleExpenseTracked(Expense savedExpense, Integer userId, UserDTO UserDTO,
             AtomicInteger pmCount, AtomicInteger catCount,
             AtomicInteger budCount, AtomicInteger failed) {
         try {
@@ -127,7 +127,7 @@ public class AsyncExpensePostProcessor {
                 if (!paymentMethodName.isEmpty()) {
                     String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
                     PaymentMethodEvent event = new PaymentMethodEvent(
-                            user.getId(),
+                            UserDTO.getId(),
                             savedExpense.getId(),
                             paymentMethodName,
                             paymentType,
@@ -152,7 +152,7 @@ public class AsyncExpensePostProcessor {
             Set<Integer> validBudgetIds = savedExpense.getBudgetIds();
             if (validBudgetIds != null && !validBudgetIds.isEmpty()) {
                 BudgetExpenseEvent event = new BudgetExpenseEvent(
-                        user.getId(),
+                        UserDTO.getId(),
                         savedExpense.getId(),
                         validBudgetIds,
                         "ADD");
@@ -165,7 +165,7 @@ public class AsyncExpensePostProcessor {
         }
     }
 
-    private void handlePaymentMethod(Expense savedExpense, User user) {
+    private void handlePaymentMethod(Expense savedExpense, UserDTO UserDTO) {
         ExpenseDetails details = savedExpense.getExpense();
         if (details == null || details.getPaymentMethod() == null)
             return;
@@ -174,7 +174,7 @@ public class AsyncExpensePostProcessor {
             return;
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
         PaymentMethodEvent event = new PaymentMethodEvent(
-                user.getId(),
+                UserDTO.getId(),
                 savedExpense.getId(),
                 paymentMethodName,
                 paymentType,
@@ -197,11 +197,11 @@ public class AsyncExpensePostProcessor {
         categoryExpenseKafkaProducer.sendCategoryExpenseEvent(event);
     }
 
-    private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, User user) {
+    private void updateBudgetExpenseLinks(Expense savedExpense, Set<Integer> validBudgetIds, UserDTO UserDTO) {
         if (validBudgetIds == null || validBudgetIds.isEmpty())
             return;
         BudgetExpenseEvent event = new BudgetExpenseEvent(
-                user.getId(),
+                UserDTO.getId(),
                 savedExpense.getId(),
                 validBudgetIds,
                 "ADD");
@@ -244,7 +244,7 @@ public class AsyncExpensePostProcessor {
                     .toList();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            logger.info("Async deletion event processing completed for {} expenses (user {})",
+            logger.info("Async deletion event processing completed for {} expenses (UserDTO {})",
                     deletedExpenses.size(), userId);
         } catch (Exception ex) {
             logger.error("Async deletion event processing failed: {}", ex.getMessage(), ex);

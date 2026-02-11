@@ -50,7 +50,7 @@ public class ExpenseNotificationProducer extends NotificationEventProducer<Expen
 
         
         if (event.getUserId() == null) {
-            throw new IllegalArgumentException("User ID cannot be null for expense event");
+            throw new IllegalArgumentException("UserDTO ID cannot be null for expense event");
         }
 
         if (event.getAction() == null || event.getAction().trim().isEmpty()) {
@@ -66,13 +66,13 @@ public class ExpenseNotificationProducer extends NotificationEventProducer<Expen
     protected String generatePartitionKey(ExpenseNotificationEvent event) {
         
         
-        return "user-" + event.getUserId();
+        return "UserDTO-" + event.getUserId();
     }
 
     @Override
     protected void beforeSend(ExpenseNotificationEvent event) {
         super.beforeSend(event);
-        log.debug("Preparing to send expense {} event for user {} - expenseId: {}, amount: {}",
+        log.debug("Preparing to send expense {} event for UserDTO {} - expenseId: {}, amount: {}",
                 event.getAction(), event.getUserId(), event.getExpenseId(), event.getAmount());
     }
 }

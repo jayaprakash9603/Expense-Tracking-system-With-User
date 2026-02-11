@@ -1,7 +1,7 @@
 package com.jaya.controller;
 
-import com.jaya.dto.User;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class HomeController {
 
 	@Autowired
-	private UserService userService;
+	private IUserServiceClient IUserServiceClient;
 	
 	@GetMapping
 	public String homeControllerHandler()
@@ -26,9 +26,9 @@ public class HomeController {
 	}
 
 	@GetMapping("/test")
-	public User testuserlogin(@RequestHeader("Authorization") String jwt) {
-		User user = userService.findUserByJwt(jwt);
-		return user;
+	public UserDTO testuserlogin(@RequestHeader("Authorization") String jwt) {
+		UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
+		return UserDTO;
 	}
 }
 

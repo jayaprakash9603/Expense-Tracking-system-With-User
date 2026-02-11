@@ -92,7 +92,7 @@ public class CategoryExcelParser {
 
         
         String userIdsStr = columnMapper.getCellValue(row, evaluator,
-                "User Ids", "UserIds", "Users");
+                "UserDTO Ids", "UserIds", "Users");
         Set<Integer> userIds = DataParser.parseIntegerSet(userIdsStr);
         if (!userIds.isEmpty()) {
             category.setUserIds(userIds);

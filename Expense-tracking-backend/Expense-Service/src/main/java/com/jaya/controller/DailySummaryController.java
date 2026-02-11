@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
@@ -28,7 +28,7 @@ public class DailySummaryController {
     private final DailySummaryService dailySummaryService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
     public DailySummaryController(DailySummaryService dailySummaryService) {
         this.dailySummaryService = dailySummaryService;
@@ -37,14 +37,14 @@ public class DailySummaryController {
     @GetMapping("/monthly")
     public List<DailySummary> getDailySummaries(@RequestParam Integer year, @RequestParam Integer month,
             @RequestHeader("Authorization") String jwt) {
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         return dailySummaryService.getDailySummaries(year, month, reqUser);
     }
 
     @GetMapping("/yearly")
     public List<DailySummary> getYearlySummaries(@RequestParam Integer year,
             @RequestHeader("Authorization") String jwt) {
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         return dailySummaryService.getYearlySummaries(year, reqUser);
     }
 
@@ -52,7 +52,7 @@ public class DailySummaryController {
     public ResponseEntity<?> getDailySummaryForDate(@RequestParam String date,
             @RequestHeader("Authorization") String jwt) {
         LocalDate parsedDate = LocalDate.parse(date);
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         DailySummary dailySummary = dailySummaryService.getDailySummaryForDate(parsedDate, reqUser);
 
         if (dailySummary == null) {
@@ -75,7 +75,7 @@ public class DailySummaryController {
             @RequestParam Integer month,
             @RequestParam String email, @RequestHeader("Authorization") String jwt)
             throws IOException, MessagingException {
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         List<DailySummary> summaries = dailySummaryService.getDailySummaries(year, month, reqUser);
 
         ByteArrayInputStream in = excelService.generateDailySummariesExcel(summaries);
@@ -94,7 +94,7 @@ public class DailySummaryController {
             @RequestParam Integer year,
             @RequestParam String email, @RequestHeader("Authorization") String jwt)
             throws IOException, MessagingException {
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         List<DailySummary> summaries = dailySummaryService.getYearlySummaries(year, reqUser);
 
         ByteArrayInputStream in = excelService.generateYearlySummariesExcel(summaries);
@@ -115,7 +115,7 @@ public class DailySummaryController {
             throws IOException, MessagingException {
         System.out.println("Received date: " + date);
         System.out.println("Received email: " + email);
-        User reqUser = userService.findUserByJwt(jwt);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         LocalDate parsedDate;
         try {
             parsedDate = LocalDate.parse(date);

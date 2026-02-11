@@ -2,7 +2,7 @@ package com.jaya.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.dto.ExpenseDTO;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.kafka.events.UnifiedActivityEvent;
 import com.jaya.kafka.events.UnifiedActivityEvent.UserInfo;
 import com.jaya.kafka.producer.UnifiedActivityEventProducer;
@@ -43,7 +43,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCreatedEvent(ExpenseDTO expense, User actorUser, User targetUser) {
+    public void sendExpenseCreatedEvent(ExpenseDTO expense, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -94,7 +94,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCreatedEvent(Expense expense, User actorUser, User targetUser) {
+    public void sendExpenseCreatedEvent(Expense expense, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -143,7 +143,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesCreatedEvent(List<Expense> expenses, User actorUser, User targetUser) {
+    public void sendBulkExpensesCreatedEvent(List<Expense> expenses, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -195,7 +195,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseUpdatedEvent(Expense expense, Expense oldExpense, User actorUser, User targetUser) {
+    public void sendExpenseUpdatedEvent(Expense expense, Expense oldExpense, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -243,7 +243,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesUpdatedEvent(List<Expense> expenses, User actorUser, User targetUser) {
+    public void sendBulkExpensesUpdatedEvent(List<Expense> expenses, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -290,8 +290,8 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseDeletedEvent(Integer expenseId, String expenseName, Double amount, User actorUser,
-            User targetUser) {
+    public void sendExpenseDeletedEvent(Integer expenseId, String expenseName, Double amount, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -342,7 +342,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesDeletedEvent(int count, User actorUser, User targetUser) {
+    public void sendBulkExpensesDeletedEvent(int count, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -385,7 +385,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendAllExpensesDeletedEvent(int count, User actorUser, User targetUser) {
+    public void sendAllExpensesDeletedEvent(int count, UserDTO actorUser, UserDTO targetUser) {
         sendBulkExpensesDeletedEvent(count, actorUser, targetUser);
     }
 
@@ -393,7 +393,7 @@ public class UnifiedActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCopiedEvent(Expense expense, User actorUser, User targetUser) {
+    public void sendExpenseCopiedEvent(Expense expense, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -441,33 +441,33 @@ public class UnifiedActivityService {
     
     
 
-    private UserInfo buildUserInfo(User user) {
-        if (user == null)
+    private UserInfo buildUserInfo(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
 
         return UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .fullName(user.getFullName())
-                .image(user.getImage())
+                .id(UserDTO.getId())
+                .username(UserDTO.getUsername())
+                .email(UserDTO.getEmail())
+                .firstName(UserDTO.getFirstName())
+                .lastName(UserDTO.getLastName())
+                .fullName(UserDTO.getFullName())
+                .image(UserDTO.getImage())
                 .build();
     }
 
-    private String getDisplayName(User user) {
-        if (user == null)
+    private String getDisplayName(UserDTO UserDTO) {
+        if (UserDTO == null)
             return "Unknown";
-        if (user.getFullName() != null && !user.getFullName().isEmpty()) {
-            return user.getFullName();
+        if (UserDTO.getFullName() != null && !UserDTO.getFullName().isEmpty()) {
+            return UserDTO.getFullName();
         }
-        if (user.getFirstName() != null) {
-            return user.getLastName() != null
-                    ? user.getFirstName() + " " + user.getLastName()
-                    : user.getFirstName();
+        if (UserDTO.getFirstName() != null) {
+            return UserDTO.getLastName() != null
+                    ? UserDTO.getFirstName() + " " + UserDTO.getLastName()
+                    : UserDTO.getFirstName();
         }
-        return user.getUsername() != null ? user.getUsername() : user.getEmail();
+        return UserDTO.getUsername() != null ? UserDTO.getUsername() : UserDTO.getEmail();
     }
 
     private String getExpenseName(Expense expense) {

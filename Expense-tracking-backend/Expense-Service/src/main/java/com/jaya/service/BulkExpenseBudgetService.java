@@ -59,11 +59,11 @@ public class BulkExpenseBudgetService {
 
     @Transactional
     public BulkExpenseBudgetResponse processBulkExpensesAndBudgets(BulkExpenseBudgetRequest request, Integer userId) {
-        log.info("Processing bulk expense and budget request for user: {} with {} mappings", userId,
+        log.info("Processing bulk expense and budget request for UserDTO: {} with {} mappings", userId,
                 request.getMappings() != null ? request.getMappings().size() : 0);
 
         if (request.getMappings() == null || request.getMappings().isEmpty()) {
-            log.warn("Empty mappings received for user: {}", userId);
+            log.warn("Empty mappings received for UserDTO: {}", userId);
             return BulkExpenseBudgetResponse.builder()
                     .success(false)
                     .message("No mappings provided")
@@ -119,7 +119,7 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        log.info("Completed bulk processing for user {}: {} total, {} successful, {} failed",
+        log.info("Completed bulk processing for UserDTO {}: {} total, {} successful, {} failed",
                 userId, results.size(), successCount, failureCount);
 
         return BulkExpenseBudgetResponse.builder()
@@ -247,7 +247,7 @@ public class BulkExpenseBudgetService {
             Integer userId,
             String jobId) {
         try {
-            log.info("Starting async bulk processing for job: {} with user: {}", jobId, userId);
+            log.info("Starting async bulk processing for job: {} with UserDTO: {}", jobId, userId);
 
             int totalExpenses = 0;
             int totalBudgets = 0;
@@ -714,7 +714,7 @@ public class BulkExpenseBudgetService {
                 }
 
                 if (!expense.getUserId().equals(userId)) {
-                    log.warn("Unauthorized access attempt to expense: {} by user: {}", expenseId, userId);
+                    log.warn("Unauthorized access attempt to expense: {} by UserDTO: {}", expenseId, userId);
                     return;
                 }
 

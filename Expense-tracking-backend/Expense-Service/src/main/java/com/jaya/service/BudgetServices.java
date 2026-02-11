@@ -22,7 +22,7 @@ public interface BudgetServices {
             @RequestBody BudgetModel budget
     ) throws Exception;
 
-    @GetMapping("/api/budgets/user")
+    @GetMapping("/api/budgets/UserDTO")
     public List<BudgetModel> getAllBudgetForUser(
             @RequestParam Integer userId
     ) throws Exception;

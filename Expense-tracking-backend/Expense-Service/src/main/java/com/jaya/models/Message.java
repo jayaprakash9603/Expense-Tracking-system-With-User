@@ -2,7 +2,7 @@ package com.jaya.models;
 
 import java.time.LocalDateTime;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +29,7 @@ public class Message {
 	private String content;
 	private String image;
 	@ManyToOne
-	private User user;
+	private UserDTO UserDTO;
 	@ManyToOne
 	private Chat chat;
 	private LocalDateTime createdAt;

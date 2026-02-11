@@ -2,7 +2,7 @@ package com.jaya.service.expenses.impl;
 
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseSearchDTO;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
@@ -1081,7 +1081,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         Budget optionalBudget = budgetService.getBudgetById(budgetId, userId);
         if (optionalBudget == null) {
-            throw new RuntimeException("Budget not found for user with ID: " + budgetId);
+            throw new RuntimeException("Budget not found for UserDTO with ID: " + budgetId);
         }
 
         Budget budget = optionalBudget;
@@ -1639,7 +1639,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public Map<String, List<Map<String, Object>>> getExpensesGroupedByDateWithPagination(Integer userId,
             String sortOrder, int page, int size, String sortBy) throws Exception {
         Sort sort = Sort.by(Sort.Order.by(sortBy).with(Sort.Direction.fromString(sortOrder)));
-        User user = helper.validateUser(userId);
+        UserDTO UserDTO = helper.validateUser(userId);
         Pageable pageable = PageRequest.of(page, size, sort);
         Page<Expense> expensesPage = expenseRepository.findByUserId(userId, pageable);
 

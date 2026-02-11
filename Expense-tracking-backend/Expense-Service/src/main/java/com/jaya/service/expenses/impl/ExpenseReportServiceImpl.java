@@ -1,6 +1,6 @@
 package com.jaya.service.expenses.impl;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
@@ -92,7 +92,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     public String generateExcelReport(Integer userId) throws Exception {
         List<Expense> expenses = expenseRepository.findByUserId(userId);
 
-        User user = helper.validateUser(userId);
+        UserDTO UserDTO = helper.validateUser(userId);
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet expensesSheet = workbook.createSheet("Expenses");
             Map<Integer, Category> categoryCache = preloadCategories(userId);
@@ -120,7 +120,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             writeBudgetRows(budgetSheet, budgets);
             autosizeColumns(budgetSheet, 9);
 
-            String filePath = buildReportPath(user, userId);
+            String filePath = buildReportPath(UserDTO, userId);
             writeWorkbookToFile(workbook, filePath);
             return filePath;
         } catch (IOException e) {
@@ -178,7 +178,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         summaryHeader.createCell(5).setCellValue("Is Global");
         summaryHeader.createCell(6).setCellValue("Total Amount");
         summaryHeader.createCell(7).setCellValue("Number of Expenses");
-        summaryHeader.createCell(8).setCellValue("User Ids");
+        summaryHeader.createCell(8).setCellValue("UserDTO Ids");
         summaryHeader.createCell(9).setCellValue("Edited UserIds");
     }
 
@@ -348,10 +348,10 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    private String buildReportPath(User user, Integer userId) {
-        String emailPrefix = user.getEmail().split("@")[0];
+    private String buildReportPath(UserDTO UserDTO, Integer userId) {
+        String emailPrefix = UserDTO.getEmail().split("@")[0];
         String userFolderName = emailPrefix + "_" + userId;
-        String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
+        String userFolderPath = Paths.get(System.getProperty("UserDTO.home"), "reports", userFolderName).toString();
         File userFolder = new File(userFolderPath);
         if (!userFolder.exists()) {
             userFolder.mkdirs();
@@ -371,7 +371,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     public ResponseEntity<String> generateAndSendMonthlyReport(ReportRequest request) {
         try {
 
-            String reportsDir = System.getProperty("user.home") + "/reports";
+            String reportsDir = System.getProperty("UserDTO.home") + "/reports";
             Files.createDirectories(Paths.get(reportsDir));
 
             String uniqueFileName = "monthly_report_" + UUID.randomUUID() + ".xlsx";

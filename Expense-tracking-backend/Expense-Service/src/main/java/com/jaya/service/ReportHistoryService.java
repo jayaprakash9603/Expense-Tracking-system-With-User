@@ -2,7 +2,7 @@ package com.jaya.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.ReportHistory;
 import com.jaya.repository.ReportHistoryRepository;
 import org.slf4j.Logger;
@@ -31,13 +31,13 @@ public class ReportHistoryService {
 
 
     @Transactional
-    public ReportHistory logReportSuccess(User user, String reportName, String reportType,
+    public ReportHistory logReportSuccess(UserDTO UserDTO, String reportName, String reportType,
             String description, String recipientEmail,
             Integer expenseCount, String fileName,
             Map<String, Object> filters) {
         ReportHistory history = new ReportHistory();
-        history.setUserId(user.getId());
-        history.setUserEmail(user.getEmail());
+        history.setUserId(UserDTO.getId());
+        history.setUserEmail(UserDTO.getEmail());
         history.setReportName(reportName);
         history.setReportType(reportType);
         history.setDescription(description);
@@ -58,8 +58,8 @@ public class ReportHistoryService {
         }
 
         ReportHistory saved = reportHistoryRepository.save(history);
-        logger.info("Report history logged successfully - ID: {}, Type: {}, User: {}",
-                saved.getId(), reportType, user.getEmail());
+        logger.info("Report history logged successfully - ID: {}, Type: {}, UserDTO: {}",
+                saved.getId(), reportType, UserDTO.getEmail());
         return saved;
     }
 
@@ -67,12 +67,12 @@ public class ReportHistoryService {
 
 
     @Transactional
-    public ReportHistory logReportFailure(User user, String reportName, String reportType,
+    public ReportHistory logReportFailure(UserDTO UserDTO, String reportName, String reportType,
             String description, String recipientEmail,
             String errorMessage, Map<String, Object> filters) {
         ReportHistory history = new ReportHistory();
-        history.setUserId(user.getId());
-        history.setUserEmail(user.getEmail());
+        history.setUserId(UserDTO.getId());
+        history.setUserEmail(UserDTO.getEmail());
         history.setReportName(reportName);
         history.setReportType(reportType);
         history.setDescription(description);
@@ -92,61 +92,61 @@ public class ReportHistoryService {
         }
 
         ReportHistory saved = reportHistoryRepository.save(history);
-        logger.error("Report generation failed - ID: {}, Type: {}, User: {}, Error: {}",
-                saved.getId(), reportType, user.getEmail(), errorMessage);
+        logger.error("Report generation failed - ID: {}, Type: {}, UserDTO: {}, Error: {}",
+                saved.getId(), reportType, UserDTO.getEmail(), errorMessage);
         return saved;
     }
 
     
 
 
-    public List<ReportHistory> getReportHistoryByUser(User user) {
-        List<ReportHistory> reports = reportHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+    public List<ReportHistory> getReportHistoryByUser(UserDTO UserDTO) {
+        List<ReportHistory> reports = reportHistoryRepository.findByUserIdOrderByCreatedAtDesc(UserDTO.getId());
         
-        reports.forEach(report -> report.setUserEmail(user.getEmail()));
+        reports.forEach(report -> report.setUserEmail(UserDTO.getEmail()));
         return reports;
     }
 
     
 
 
-    public List<ReportHistory> getReportHistoryByStatus(User user, String status) {
-        List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndStatusOrderByCreatedAtDesc(user.getId(),
+    public List<ReportHistory> getReportHistoryByStatus(UserDTO UserDTO, String status) {
+        List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndStatusOrderByCreatedAtDesc(UserDTO.getId(),
                 status);
         
-        reports.forEach(report -> report.setUserEmail(user.getEmail()));
+        reports.forEach(report -> report.setUserEmail(UserDTO.getEmail()));
         return reports;
     }
 
     
 
 
-    public List<ReportHistory> getRecentReportHistory(User user) {
-        List<ReportHistory> reports = reportHistoryRepository.findTop10ByUserIdOrderByCreatedAtDesc(user.getId());
+    public List<ReportHistory> getRecentReportHistory(UserDTO UserDTO) {
+        List<ReportHistory> reports = reportHistoryRepository.findTop10ByUserIdOrderByCreatedAtDesc(UserDTO.getId());
         
-        reports.forEach(report -> report.setUserEmail(user.getEmail()));
+        reports.forEach(report -> report.setUserEmail(UserDTO.getEmail()));
         return reports;
     }
 
     
 
 
-    public List<ReportHistory> getReportHistoryByDateRange(User user, LocalDateTime startDate, LocalDateTime endDate) {
-        List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndDateRange(user.getId(), startDate,
+    public List<ReportHistory> getReportHistoryByDateRange(UserDTO UserDTO, LocalDateTime startDate, LocalDateTime endDate) {
+        List<ReportHistory> reports = reportHistoryRepository.findByUserIdAndDateRange(UserDTO.getId(), startDate,
                 endDate);
         
-        reports.forEach(report -> report.setUserEmail(user.getEmail()));
+        reports.forEach(report -> report.setUserEmail(UserDTO.getEmail()));
         return reports;
     }
 
     
 
 
-    public Map<String, Object> getReportStatistics(User user) {
+    public Map<String, Object> getReportStatistics(UserDTO UserDTO) {
         Map<String, Object> stats = new HashMap<>();
 
-        long successCount = reportHistoryRepository.countByUserIdAndStatus(user.getId(), "SUCCESS");
-        long failedCount = reportHistoryRepository.countByUserIdAndStatus(user.getId(), "FAILED");
+        long successCount = reportHistoryRepository.countByUserIdAndStatus(UserDTO.getId(), "SUCCESS");
+        long failedCount = reportHistoryRepository.countByUserIdAndStatus(UserDTO.getId(), "FAILED");
         long totalCount = successCount + failedCount;
 
         stats.put("totalReports", totalCount);

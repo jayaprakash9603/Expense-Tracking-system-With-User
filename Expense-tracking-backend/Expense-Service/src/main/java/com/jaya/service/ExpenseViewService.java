@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.ExpenseViewDTO;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.BudgetModel;
 import com.jaya.models.Category;
 import com.jaya.models.Expense;
@@ -36,7 +36,7 @@ public class ExpenseViewService {
 
 
     public ExpenseViewDTO getExpenseDetailedView(Integer expenseId, Integer userId) {
-        log.debug("Building detailed view for expense {} user {}", expenseId, userId);
+        log.debug("Building detailed view for expense {} UserDTO {}", expenseId, userId);
 
         
         Expense expense = expenseService.getExpenseById(expenseId, userId);

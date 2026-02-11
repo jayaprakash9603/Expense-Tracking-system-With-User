@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -38,7 +38,7 @@ public class Chat {
 	
 	
 	@ManyToMany
-	private List<User> users=new ArrayList<>();
+	private List<UserDTO> users=new ArrayList<>();
 	
 	
 	@JsonIgnore

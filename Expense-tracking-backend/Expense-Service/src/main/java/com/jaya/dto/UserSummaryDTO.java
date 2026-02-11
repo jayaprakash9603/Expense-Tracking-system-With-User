@@ -18,15 +18,15 @@ public class UserSummaryDTO {
 
     
 
-    public static UserSummaryDTO fromUser(com.jaya.dto.User user) {
-        if (user == null) return null;
+    public static UserSummaryDTO fromUser(com.jaya.dto.UserDTO UserDTO) {
+        if (UserDTO == null) return null;
         return new UserSummaryDTO(
-                Math.toIntExact(user.getId()),
-                user.getUsername(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getImage()
+                Math.toIntExact(UserDTO.getId()),
+                UserDTO.getUsername(),
+                UserDTO.getEmail(),
+                UserDTO.getFirstName(),
+                UserDTO.getLastName(),
+                UserDTO.getImage()
         );
     }
 }

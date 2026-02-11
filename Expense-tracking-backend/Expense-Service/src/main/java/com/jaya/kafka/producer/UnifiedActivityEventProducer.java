@@ -137,7 +137,7 @@ public class UnifiedActivityEventProducer {
             throw new IllegalArgumentException("Event cannot be null");
         }
         if (event.getTargetUserId() == null) {
-            throw new IllegalArgumentException("Target user ID is required");
+            throw new IllegalArgumentException("Target UserDTO ID is required");
         }
         if (event.getEntityType() == null) {
             throw new IllegalArgumentException("Entity type is required");

@@ -1,7 +1,7 @@
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,7 +35,7 @@ public class EmailLog {
 
     @JsonIgnore
     @ManyToOne
-    private User user;
+    private UserDTO UserDTO;
 
     @OneToOne(mappedBy = "emailLog", cascade = CascadeType.ALL)
     private CommonLog commonLog;

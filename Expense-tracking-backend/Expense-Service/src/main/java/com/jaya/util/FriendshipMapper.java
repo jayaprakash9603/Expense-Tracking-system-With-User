@@ -1,12 +1,12 @@
 package com.jaya.util;
 
 import com.jaya.dto.FriendshipResponseDTO;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.dto.UserSummaryDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,18 +16,18 @@ import java.util.stream.Collectors;
 
 public class FriendshipMapper {
 
-    private static UserService userService;
+    private static IUserServiceClient IUserServiceClient;
 
-    public static void setUserService(UserService service) {
-        userService = service;
+    public static void setUserService(IUserServiceClient service) {
+        IUserServiceClient = service;
     }
 
     public static FriendshipResponseDTO toDTO(Friendship friendship) throws Exception {
         if (friendship == null)
             return null;
 
-        User requester = userService.findUserById(friendship.getRequesterId());
-        User recipient = userService.findUserById(friendship.getRecipientId());
+        UserDTO requester = IUserServiceClient.findUserById(friendship.getRequesterId());
+        UserDTO recipient = IUserServiceClient.findUserById(friendship.getRecipientId());
 
         UserSummaryDTO requesterDTO = UserSummaryDTO.fromUser(requester);
         UserSummaryDTO recipientDTO = UserSummaryDTO.fromUser(recipient);

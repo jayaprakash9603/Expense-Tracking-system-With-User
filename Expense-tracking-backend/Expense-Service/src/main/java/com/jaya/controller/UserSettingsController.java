@@ -1,9 +1,9 @@
 package com.jaya.controller;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.dto.UserSettingsDTO;
 import com.jaya.request.UpdateUserSettingsRequest;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.UserSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,11 +47,11 @@ import java.util.Map;
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "User Settings", description = "User settings management API")
+@Tag(name = "UserDTO Settings", description = "UserDTO settings management API")
 public class UserSettingsController {
 
     private final UserSettingsService settingsService;
-    private final UserService userService;
+    private final IUserServiceClient IUserServiceClient;
 
     
 
@@ -61,24 +61,24 @@ public class UserSettingsController {
 
 
     @GetMapping
-    @Operation(summary = "Get user settings", description = "Retrieve current user settings. Creates default settings if none exist.")
+    @Operation(summary = "Get UserDTO settings", description = "Retrieve current UserDTO settings. Creates default settings if none exist.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Settings retrieved successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "UserDTO not found")
     })
     public ResponseEntity<UserSettingsDTO> getUserSettings(
             @Parameter(description = "JWT token", required = true) @RequestHeader("Authorization") String jwt) {
 
-        log.debug("GET /api/settings - Fetching user settings");
+        log.debug("GET /api/settings - Fetching UserDTO settings");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        UserSettingsDTO settings = settingsService.getUserSettings(user.getId());
+        UserSettingsDTO settings = settingsService.getUserSettings(UserDTO.getId());
 
-        log.info("Successfully retrieved settings for user ID: {}", user.getId());
+        log.info("Successfully retrieved settings for UserDTO ID: {}", UserDTO.getId());
         return ResponseEntity.ok(settings);
     }
 
@@ -91,26 +91,26 @@ public class UserSettingsController {
 
 
     @PutMapping
-    @Operation(summary = "Update user settings", description = "Update user settings. Supports partial updates - only provided fields will be updated.")
+    @Operation(summary = "Update UserDTO settings", description = "Update UserDTO settings. Supports partial updates - only provided fields will be updated.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Settings updated successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "UserDTO not found")
     })
     public ResponseEntity<UserSettingsDTO> updateUserSettings(
             @Parameter(description = "JWT token", required = true) @RequestHeader("Authorization") String jwt,
             @Parameter(description = "Settings update request", required = true) @Valid @RequestBody UpdateUserSettingsRequest request) {
 
-        log.debug("PUT /api/settings - Updating user settings");
+        log.debug("PUT /api/settings - Updating UserDTO settings");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        UserSettingsDTO updatedSettings = settingsService.updateUserSettings(user.getId(), request);
+        UserSettingsDTO updatedSettings = settingsService.updateUserSettings(UserDTO.getId(), request);
 
-        log.info("Successfully updated settings for user ID: {}", user.getId());
+        log.info("Successfully updated settings for UserDTO ID: {}", UserDTO.getId());
         return ResponseEntity.ok(updatedSettings);
     }
 
@@ -122,24 +122,24 @@ public class UserSettingsController {
 
 
     @PostMapping("/reset")
-    @Operation(summary = "Reset settings to defaults", description = "Reset all user settings to default values.")
+    @Operation(summary = "Reset settings to defaults", description = "Reset all UserDTO settings to default values.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Settings reset successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "UserDTO not found")
     })
     public ResponseEntity<UserSettingsDTO> resetSettings(
             @Parameter(description = "JWT token", required = true) @RequestHeader("Authorization") String jwt) {
 
-        log.debug("POST /api/settings/reset - Resetting user settings to defaults");
+        log.debug("POST /api/settings/reset - Resetting UserDTO settings to defaults");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        UserSettingsDTO defaultSettings = settingsService.resetToDefaults(user.getId());
+        UserSettingsDTO defaultSettings = settingsService.resetToDefaults(UserDTO.getId());
 
-        log.info("Successfully reset settings to defaults for user ID: {}", user.getId());
+        log.info("Successfully reset settings to defaults for UserDTO ID: {}", UserDTO.getId());
         return ResponseEntity.ok(defaultSettings);
     }
 
@@ -151,28 +151,28 @@ public class UserSettingsController {
 
 
     @DeleteMapping
-    @Operation(summary = "Delete user settings", description = "Delete all user settings. Default settings will be created on next access.")
+    @Operation(summary = "Delete UserDTO settings", description = "Delete all UserDTO settings. Default settings will be created on next access.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Settings deleted successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token"),
-            @ApiResponse(responseCode = "404", description = "User not found")
+            @ApiResponse(responseCode = "404", description = "UserDTO not found")
     })
     public ResponseEntity<Map<String, Object>> deleteSettings(
             @Parameter(description = "JWT token", required = true) @RequestHeader("Authorization") String jwt) {
 
-        log.debug("DELETE /api/settings - Deleting user settings");
+        log.debug("DELETE /api/settings - Deleting UserDTO settings");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        settingsService.deleteUserSettings(user.getId());
+        settingsService.deleteUserSettings(UserDTO.getId());
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Settings deleted successfully");
-        response.put("userId", user.getId());
+        response.put("userId", UserDTO.getId());
 
-        log.info("Successfully deleted settings for user ID: {}", user.getId());
+        log.info("Successfully deleted settings for UserDTO ID: {}", UserDTO.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -184,7 +184,7 @@ public class UserSettingsController {
 
 
     @GetMapping("/exists")
-    @Operation(summary = "Check if settings exist", description = "Check if user has settings configured.")
+    @Operation(summary = "Check if settings exist", description = "Check if UserDTO has settings configured.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Check completed successfully"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid or missing JWT token")
@@ -195,10 +195,10 @@ public class UserSettingsController {
         log.debug("GET /api/settings/exists - Checking if settings exist");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        boolean exists = settingsService.settingsExist(user.getId());
+        boolean exists = settingsService.settingsExist(UserDTO.getId());
 
         Map<String, Boolean> response = new HashMap<>();
         response.put("exists", exists);
@@ -214,7 +214,7 @@ public class UserSettingsController {
 
 
     @PostMapping("/default")
-    @Operation(summary = "Create default settings", description = "Explicitly create default settings for the user.")
+    @Operation(summary = "Create default settings", description = "Explicitly create default settings for the UserDTO.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Default settings created successfully"),
             @ApiResponse(responseCode = "400", description = "Settings already exist"),
@@ -226,12 +226,12 @@ public class UserSettingsController {
         log.debug("POST /api/settings/default - Creating default settings");
 
         
-        User user = userService.findUserByJwt(jwt);
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
 
         
-        UserSettingsDTO settings = settingsService.createDefaultSettings(user.getId());
+        UserSettingsDTO settings = settingsService.createDefaultSettings(UserDTO.getId());
 
-        log.info("Successfully created default settings for user ID: {}", user.getId());
+        log.info("Successfully created default settings for UserDTO ID: {}", UserDTO.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(settings);
     }
 }

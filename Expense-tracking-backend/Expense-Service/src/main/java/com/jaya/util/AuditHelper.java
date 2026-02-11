@@ -1,9 +1,9 @@
 package com.jaya.util;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.kafka.AuditEventProducer;
 import com.jaya.models.AuditEvent;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,20 +24,20 @@ public class AuditHelper {
 
     private final JsonConverter helper;
 
-    private final UserService userservice;
+    private final IUserServiceClient IUserServiceClient;
 
     public void auditAction(Integer userId, String entityId,
             String entityType, String actionType, Object details) throws Exception {
 
         String json = helper.toJson(details);
-        User user = userservice.findUserById(userId);
+        UserDTO UserDTO = IUserServiceClient.findUserById(userId);
 
-        String username = user.getUsername() != null ? user.getUsername() : user.getEmail().split("@")[0];
+        String username = UserDTO.getUsername() != null ? UserDTO.getUsername() : UserDTO.getEmail().split("@")[0];
         try {
             AuditEvent auditEvent = AuditEvent.builder()
                     .userId(userId)
                     .username(username)
-                    .userRole("USER")
+                    .userRole("UserDTO")
                     .entityId(entityId)
                     .entityType(entityType)
                     .actionType(actionType)
@@ -158,7 +158,7 @@ public class AuditHelper {
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 auditEvent.setIpAddress(getClientIpAddress(request));
-                auditEvent.setUserAgent(request.getHeader("User-Agent"));
+                auditEvent.setUserAgent(request.getHeader("UserDTO-Agent"));
                 auditEvent.setMethod(request.getMethod());
                 auditEvent.setEndpoint(request.getRequestURI());
                 auditEvent.setSessionId(request.getSession().getId());
@@ -189,7 +189,7 @@ public class AuditHelper {
     }
 
     private String determineSource(HttpServletRequest request) {
-        String userAgent = request.getHeader("User-Agent");
+        String userAgent = request.getHeader("UserDTO-Agent");
         if (userAgent != null) {
             userAgent = userAgent.toLowerCase();
             if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {

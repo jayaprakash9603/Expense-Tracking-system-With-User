@@ -54,11 +54,11 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     @Cacheable(value = "userSettings", key = "#userId")
     public UserSettingsDTO getUserSettings(Integer userId) {
-        log.debug("Fetching settings for user ID: {}", userId);
+        log.debug("Fetching settings for UserDTO ID: {}", userId);
 
         UserSettings settings = settingsRepository.findByUserId(userId)
                 .orElseGet(() -> {
-                    log.info("Settings not found for user ID: {}. Creating default settings.", userId);
+                    log.info("Settings not found for UserDTO ID: {}. Creating default settings.", userId);
                     return createAndSaveDefaultSettings(userId);
                 });
 
@@ -79,7 +79,7 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     @CacheEvict(value = "userSettings", key = "#userId")
     public UserSettingsDTO updateUserSettings(Integer userId, UpdateUserSettingsRequest request) {
-        log.debug("Updating settings for user ID: {}", userId);
+        log.debug("Updating settings for UserDTO ID: {}", userId);
 
         
         if (request == null) {
@@ -95,7 +95,7 @@ public class UserSettingsServiceImpl implements UserSettingsService {
 
         
         UserSettings updatedSettings = settingsRepository.save(settings);
-        log.info("Successfully updated settings for user ID: {}", userId);
+        log.info("Successfully updated settings for UserDTO ID: {}", userId);
 
         return settingsMapper.toDTO(updatedSettings);
     }
@@ -110,11 +110,11 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     @CacheEvict(value = "userSettings", key = "#userId")
     public UserSettingsDTO createDefaultSettings(Integer userId) {
-        log.debug("Creating default settings for user ID: {}", userId);
+        log.debug("Creating default settings for UserDTO ID: {}", userId);
 
         
         if (settingsRepository.existsByUserId(userId)) {
-            log.warn("Settings already exist for user ID: {}. Returning existing settings.", userId);
+            log.warn("Settings already exist for UserDTO ID: {}. Returning existing settings.", userId);
             return getUserSettings(userId);
         }
 
@@ -132,15 +132,15 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     @CacheEvict(value = "userSettings", key = "#userId")
     public void deleteUserSettings(Integer userId) {
-        log.debug("Deleting settings for user ID: {}", userId);
+        log.debug("Deleting settings for UserDTO ID: {}", userId);
 
         if (!settingsRepository.existsByUserId(userId)) {
-            log.warn("No settings found for user ID: {}. Nothing to delete.", userId);
+            log.warn("No settings found for UserDTO ID: {}. Nothing to delete.", userId);
             return;
         }
 
         settingsRepository.deleteByUserId(userId);
-        log.info("Successfully deleted settings for user ID: {}", userId);
+        log.info("Successfully deleted settings for UserDTO ID: {}", userId);
     }
 
     
@@ -165,14 +165,14 @@ public class UserSettingsServiceImpl implements UserSettingsService {
     @Override
     @CacheEvict(value = "userSettings", key = "#userId")
     public UserSettingsDTO resetToDefaults(Integer userId) {
-        log.debug("Resetting settings to defaults for user ID: {}", userId);
+        log.debug("Resetting settings to defaults for UserDTO ID: {}", userId);
 
         
         settingsRepository.deleteByUserId(userId);
 
         
         UserSettings settings = createAndSaveDefaultSettings(userId);
-        log.info("Successfully reset settings to defaults for user ID: {}", userId);
+        log.info("Successfully reset settings to defaults for UserDTO ID: {}", userId);
 
         return settingsMapper.toDTO(settings);
     }

@@ -2,7 +2,7 @@ package com.jaya.kafka.service;
 
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.kafka.producer.FriendActivityProducer;
 import com.jaya.models.Expense;
@@ -36,7 +36,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser) {
+    public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, UserDTO actorUser) {
         sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
@@ -44,16 +44,16 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, User actorUser, User targetUser) {
+    public void sendExpenseCreatedByFriend(ExpenseDTO expense, Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendExpenseCreatedByFriendInternal(expense, targetUserId, actorUser, targetUser);
     }
 
-    private void sendExpenseCreatedByFriendInternal(ExpenseDTO expense, Integer targetUserId, User actorUser,
-            User targetUser) {
+    private void sendExpenseCreatedByFriendInternal(ExpenseDTO expense, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 
-                log.debug("Skipping friend activity notification - user creating own expense");
+                log.debug("Skipping friend activity notification - UserDTO creating own expense");
                 return;
             }
 
@@ -79,7 +79,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} created expense {} for user {}",
+            log.info("Friend activity event sent: {} created expense {} for UserDTO {}",
                     actorUser.getId(), expense.getId(), targetUserId);
 
         } catch (Exception e) {
@@ -92,7 +92,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseUpdatedByFriend(Expense expense, Integer targetUserId, User actorUser) {
+    public void sendExpenseUpdatedByFriend(Expense expense, Integer targetUserId, UserDTO actorUser) {
         sendExpenseUpdatedByFriendInternal(expense, null, targetUserId, actorUser, null);
     }
 
@@ -102,12 +102,12 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendExpenseUpdatedByFriend(Expense expense, Expense previousExpense, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         sendExpenseUpdatedByFriendInternal(expense, previousExpense, targetUserId, actorUser, targetUser);
     }
 
     private void sendExpenseUpdatedByFriendInternal(Expense expense, Expense previousExpense, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -148,7 +148,7 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount,
-            Integer targetUserId, User actorUser) {
+            Integer targetUserId, UserDTO actorUser) {
         sendExpenseDeletedByFriendInternal(expenseId, expenseName, amount, null, targetUserId, actorUser, null);
     }
 
@@ -158,14 +158,14 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendExpenseDeletedByFriend(Integer expenseId, String expenseName, Double amount, Expense deletedExpense,
-            Integer targetUserId, User actorUser, User targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendExpenseDeletedByFriendInternal(expenseId, expenseName, amount, deletedExpense, targetUserId, actorUser,
                 targetUser);
     }
 
     private void sendExpenseDeletedByFriendInternal(Integer expenseId, String expenseName, Double amount,
             Expense deletedExpense,
-            Integer targetUserId, User actorUser, User targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -202,7 +202,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser) {
+    public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, UserDTO actorUser) {
         sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, null);
     }
 
@@ -210,12 +210,12 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, User actorUser, User targetUser) {
+    public void sendExpenseCopiedByFriend(Expense expense, Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendExpenseCopiedByFriendInternal(expense, targetUserId, actorUser, targetUser);
     }
 
-    private void sendExpenseCopiedByFriendInternal(Expense expense, Integer targetUserId, User actorUser,
-            User targetUser) {
+    private void sendExpenseCopiedByFriendInternal(Expense expense, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -254,7 +254,7 @@ public class FriendActivityService {
 
 
 
-    private String getActorDisplayName(User actor) {
+    private String getActorDisplayName(UserDTO actor) {
         if (actor == null) {
             return "A friend";
         }
@@ -265,24 +265,24 @@ public class FriendActivityService {
     
 
 
-    private FriendActivityEvent.UserInfo buildUserInfo(User user) {
-        if (user == null)
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
 
-        String fullName = getActorDisplayName(user);
+        String fullName = getActorDisplayName(UserDTO);
 
         return FriendActivityEvent.UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+                .id(UserDTO.getId())
+                .username(UserDTO.getUsername())
+                .email(UserDTO.getEmail())
+                .firstName(UserDTO.getFirstName())
+                .lastName(UserDTO.getLastName())
                 .fullName(fullName)
-                .image(user.getImage())
-                .coverImage(user.getCoverImage())
-                .phoneNumber(user.getPhoneNumber())
-                .location(user.getLocation())
-                .bio(user.getBio())
+                .image(UserDTO.getImage())
+                .coverImage(UserDTO.getCoverImage())
+                .phoneNumber(UserDTO.getPhoneNumber())
+                .location(UserDTO.getLocation())
+                .bio(UserDTO.getBio())
                 .build();
     }
 
@@ -349,7 +349,7 @@ public class FriendActivityService {
         return payload;
     }
 
-    private String buildExpenseDescription(ExpenseDTO expense, User actor) {
+    private String buildExpenseDescription(ExpenseDTO expense, UserDTO actor) {
         String actorName = getActorDisplayName(actor);
         ExpenseDetailsDTO details = expense.getExpense();
         String expenseName = (details != null && details.getExpenseName() != null)
@@ -377,7 +377,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
+    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, UserDTO actorUser) {
         sendBulkExpensesCreatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
@@ -386,13 +386,13 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
-            User targetUser) {
+    public void sendBulkExpensesCreatedByFriend(List<Expense> expenses, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBulkExpensesCreatedByFriendInternal(expenses, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBulkExpensesCreatedByFriendInternal(List<Expense> expenses, Integer targetUserId, User actorUser,
-            User targetUser) {
+    private void sendBulkExpensesCreatedByFriendInternal(List<Expense> expenses, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -432,7 +432,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} created {} expenses for user {}", actorUser.getId(), count,
+            log.info("Friend activity event sent: {} created {} expenses for UserDTO {}", actorUser.getId(), count,
                     targetUserId);
 
         } catch (Exception e) {
@@ -444,7 +444,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser) {
+    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, UserDTO actorUser) {
         sendBulkExpensesUpdatedByFriendInternal(expenses, targetUserId, actorUser, null);
     }
 
@@ -453,13 +453,13 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, User actorUser,
-            User targetUser) {
+    public void sendBulkExpensesUpdatedByFriend(List<Expense> expenses, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBulkExpensesUpdatedByFriendInternal(expenses, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBulkExpensesUpdatedByFriendInternal(List<Expense> expenses, Integer targetUserId, User actorUser,
-            User targetUser) {
+    private void sendBulkExpensesUpdatedByFriendInternal(List<Expense> expenses, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -494,7 +494,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} updated {} expenses for user {}", actorUser.getId(), count,
+            log.info("Friend activity event sent: {} updated {} expenses for UserDTO {}", actorUser.getId(), count,
                     targetUserId);
 
         } catch (Exception e) {
@@ -506,7 +506,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+    public void sendBulkExpensesDeletedByFriend(int count, Integer targetUserId, UserDTO actorUser) {
         sendBulkExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
@@ -516,12 +516,12 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendBulkExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         sendBulkExpensesDeletedByFriendInternal(count, deletedExpenses, targetUserId, actorUser, targetUser);
     }
 
     private void sendBulkExpensesDeletedByFriendInternal(int count, List<Expense> deletedExpenses, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -559,7 +559,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} deleted {} expenses for user {}", actorUser.getId(), count,
+            log.info("Friend activity event sent: {} deleted {} expenses for UserDTO {}", actorUser.getId(), count,
                     targetUserId);
 
         } catch (Exception e) {
@@ -571,7 +571,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+    public void sendAllExpensesDeletedByFriend(int count, Integer targetUserId, UserDTO actorUser) {
         sendAllExpensesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
@@ -581,12 +581,12 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendAllExpensesDeletedByFriend(int count, List<Expense> deletedExpenses, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         sendAllExpensesDeletedByFriendInternal(count, deletedExpenses, targetUserId, actorUser, targetUser);
     }
 
     private void sendAllExpensesDeletedByFriendInternal(int count, List<Expense> deletedExpenses, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -625,7 +625,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} deleted all {} expenses for user {}", actorUser.getId(), count,
+            log.info("Friend activity event sent: {} deleted all {} expenses for UserDTO {}", actorUser.getId(), count,
                     targetUserId);
 
         } catch (Exception e) {
