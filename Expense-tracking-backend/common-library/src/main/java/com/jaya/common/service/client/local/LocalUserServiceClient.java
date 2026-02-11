@@ -25,6 +25,7 @@ public class LocalUserServiceClient implements IUserServiceClient {
 
     private final ApplicationContext applicationContext;
     private Object userService;
+    private Object userRepository;
 
     @Autowired
     public LocalUserServiceClient(@Lazy ApplicationContext applicationContext) {
@@ -54,6 +55,21 @@ public class LocalUserServiceClient implements IUserServiceClient {
         return userService;
     }
 
+    /**
+     * Lazily resolve the UserRepository bean for direct DB lookups (e.g. getUserById).
+     */
+    private Object getUserRepository() {
+        if (userRepository == null) {
+            try {
+                userRepository = applicationContext.getBean(
+                    Class.forName("com.jaya.task.user.service.repository.UserRepository"));
+            } catch (Exception e) {
+                log.warn("Could not find UserRepository bean", e);
+            }
+        }
+        return userRepository;
+    }
+
     @Override
     public UserDTO getUserProfile(String jwt) {
         log.debug("LocalUserServiceClient: Getting user profile from JWT");
@@ -78,10 +94,40 @@ public class LocalUserServiceClient implements IUserServiceClient {
     public UserDTO getUserById(Integer userId) {
         log.debug("LocalUserServiceClient: Getting user by ID: {}", userId);
         try {
+            // Strategy 1: Try service-level methods via reflection
             Object service = getUserService();
-            var method = service.getClass().getMethod("getUserById", Integer.class);
-            Object result = method.invoke(service, userId);
-            return convertToUserDTO(result);
+            for (String methodName : new String[]{"getUserById", "findById"}) {
+                try {
+                    var method = service.getClass().getMethod(methodName, Integer.class);
+                    Object result = method.invoke(service, userId);
+                    // Handle Optional return type
+                    if (result instanceof java.util.Optional) {
+                        result = ((java.util.Optional<?>) result).orElse(null);
+                    }
+                    if (result != null) {
+                        return convertToUserDTO(result);
+                    }
+                } catch (NoSuchMethodException ignored) {
+                    // Try next method name
+                }
+            }
+
+            // Strategy 2: Fall back to UserRepository.findById(Object)
+            Object repo = getUserRepository();
+            if (repo != null) {
+                var method = repo.getClass().getMethod("findById", Object.class);
+                Object result = method.invoke(repo, userId);
+                if (result instanceof java.util.Optional) {
+                    result = ((java.util.Optional<?>) result).orElse(null);
+                }
+                if (result != null) {
+                    return convertToUserDTO(result);
+                }
+            }
+
+            throw new RuntimeException("User not found with ID: " + userId);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Error calling local UserService.getUserById", e);
             throw new RuntimeException("Failed to get user by ID locally", e);
@@ -110,8 +156,21 @@ public class LocalUserServiceClient implements IUserServiceClient {
         log.debug("LocalUserServiceClient: Finding user by email: {}", email);
         try {
             Object service = getUserService();
-            var method = service.getClass().getMethod("findUserByEmail", String.class);
-            Object result = method.invoke(service, email);
+            // UserServiceImplementation has findByEmail(String), not findUserByEmail
+            Object result = null;
+            for (String methodName : new String[]{"findByEmail", "getUserByEmail", "findUserByEmail"}) {
+                try {
+                    var method = service.getClass().getMethod(methodName, String.class);
+                    result = method.invoke(service, email);
+                    break;
+                } catch (NoSuchMethodException ignored) {
+                    // Try next method name
+                }
+            }
+            if (result == null) {
+                log.warn("No user found for email: {}", email);
+                return null;
+            }
             return convertToUserDTO(result);
         } catch (Exception e) {
             log.error("Error calling local UserService.findUserByEmail", e);

@@ -5,6 +5,7 @@ import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.models.PaymentMethod;
 import com.jaya.repository.PaymentMethodRepository;
 import com.jaya.service.PaymentMethodService;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +40,21 @@ public class PaymentMethodKafkaConsumerService {
     public void handlePaymentMethodEvent(Object payload) {
         try {
             PaymentMethodEvent event;
-            if (payload instanceof PaymentMethodEvent) {
-                event = (PaymentMethodEvent) payload;
+
+            // In monolithic mode, the shared container factory may wrap the value in a ConsumerRecord
+            Object actualPayload = payload;
+            if (payload instanceof ConsumerRecord) {
+                actualPayload = ((ConsumerRecord<?, ?>) payload).value();
+                logger.debug("Unwrapped ConsumerRecord, actual payload type: {}",
+                        actualPayload != null ? actualPayload.getClass().getSimpleName() : "null");
+            }
+
+            if (actualPayload instanceof PaymentMethodEvent) {
+                event = (PaymentMethodEvent) actualPayload;
+            } else if (actualPayload instanceof String) {
+                event = objectMapper.readValue((String) actualPayload, PaymentMethodEvent.class);
             } else {
-                event = objectMapper.convertValue(payload, PaymentMethodEvent.class);
+                event = objectMapper.convertValue(actualPayload, PaymentMethodEvent.class);
             }
             processPaymentMethodEvent(event);
         } catch (Exception e) {
