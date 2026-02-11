@@ -3,9 +3,9 @@ package com.jaya.controller;
 
 import com.jaya.dto.*;
 import com.jaya.models.GroupRole;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.GroupService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +23,14 @@ public class GroupController {
     private GroupService groupService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @PostMapping
     public ResponseEntity<?> createGroup(
             @RequestHeader("Authorization") String jwt,
             @RequestBody GroupRequestDTO groupRequestDTO) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             groupRequestDTO.setCreatedBy(user.getId());
 
             GroupResponseDTO createdGroup = groupService.createGroup(groupRequestDTO);
@@ -45,7 +45,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Optional<GroupResponseDTO> group = groupService.getGroupById(id, user.getId());
 
             if (group.isPresent()) {
@@ -68,7 +68,7 @@ public class GroupController {
     @GetMapping
     public ResponseEntity<?> getAllUserGroups(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupResponseDTO> groups = groupService.getAllUserGroups(user.getId());
             return ResponseEntity.ok(groups);
         } catch (Exception e) {
@@ -79,7 +79,7 @@ public class GroupController {
     @GetMapping("/created")
     public ResponseEntity<?> getGroupsCreatedByUser(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupResponseDTO> groups = groupService.getGroupsCreatedByUser(user.getId());
             return ResponseEntity.ok(groups);
         } catch (Exception e) {
@@ -90,7 +90,7 @@ public class GroupController {
     @GetMapping("/member")
     public ResponseEntity<?> getGroupsWhereUserIsMember(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupResponseDTO> groups = groupService.getGroupsWhereUserIsMember(user.getId());
             return ResponseEntity.ok(groups);
         } catch (Exception e) {
@@ -104,7 +104,7 @@ public class GroupController {
             @PathVariable Integer id,
             @RequestBody GroupUpdateDTO groupUpdateDTO) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.updateGroup(id, groupUpdateDTO, user.getId());
             return ResponseEntity.ok(updatedGroup);
         } catch (Exception e) {
@@ -117,7 +117,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer id) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             groupService.deleteGroup(id, user.getId());
             return ResponseEntity.ok(Map.of("message", "Group deleted successfully"));
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @PathVariable Integer userId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.addMemberToGroup(groupId, userId, user.getId());
             return ResponseEntity.ok(updatedGroup);
         } catch (Exception e) {
@@ -146,7 +146,7 @@ public class GroupController {
             @PathVariable Integer userId,
             @RequestBody RoleChangeRequestDTO roleRequest) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.addMemberToGroupWithRole(
                     groupId, userId, roleRequest.getNewRole(), user.getId());
             return ResponseEntity.ok(updatedGroup);
@@ -161,7 +161,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @PathVariable Integer userId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.removeMemberFromGroup(groupId, userId, user.getId());
             return ResponseEntity.ok(updatedGroup);
         } catch (Exception e) {
@@ -176,7 +176,7 @@ public class GroupController {
             @PathVariable Integer userId,
             @RequestBody RoleChangeRequestDTO roleRequest) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.changeUserRole(
                     groupId, userId, roleRequest.getNewRole(), user.getId());
             return ResponseEntity.ok(updatedGroup);
@@ -190,7 +190,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupMemberDTO> members = groupService.getGroupMembers(groupId, user.getId());
             return ResponseEntity.ok(members);
         } catch (Exception e) {
@@ -203,7 +203,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupRole role = groupService.getUserRoleInGroup(groupId, user.getId());
             return ResponseEntity.ok(Map.of("role", role));
         } catch (Exception e) {
@@ -216,7 +216,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Boolean> permissions = Map.of(
                     "canDeleteGroup", groupService.hasPermissionInGroup(groupId, user.getId(), "delete_group"),
                     "canEditSettings", groupService.hasPermissionInGroup(groupId, user.getId(), "edit_settings"),
@@ -240,7 +240,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @PathVariable String permission) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             boolean hasPermission = groupService.hasPermissionInGroup(groupId, user.getId(), permission);
             return ResponseEntity.ok(Map.of("hasPermission", hasPermission));
         } catch (Exception e) {
@@ -253,7 +253,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             boolean isMember = groupService.isUserMemberOfGroup(groupId, user.getId());
             return ResponseEntity.ok(Map.of("isMember", isMember));
         } catch (Exception e) {
@@ -266,7 +266,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             boolean isOwner = groupService.isUserOwnerOfGroup(groupId, user.getId());
             return ResponseEntity.ok(Map.of("isOwner", isOwner));
         } catch (Exception e) {
@@ -280,7 +280,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestBody List<RoleChangeRequestDTO> memberRequests) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
 
             for (RoleChangeRequestDTO request : memberRequests) {
                 try {
@@ -304,7 +304,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestBody List<Integer> userIds) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
 
             for (Integer userId : userIds) {
                 try {
@@ -372,7 +372,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> stats = groupService.getGroupStatistics(groupId, user.getId());
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
@@ -387,7 +387,7 @@ public class GroupController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<Map<String, Object>> activities = groupService.getGroupActivity(groupId, user.getId(), page, size);
             return ResponseEntity.ok(activities);
         } catch (Exception e) {
@@ -402,7 +402,7 @@ public class GroupController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupResponseDTO> groups = groupService.searchGroups(query, user.getId(), page, size);
             return ResponseEntity.ok(groups);
         } catch (Exception e) {
@@ -415,7 +415,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId,
             @RequestBody GroupInviteRequestDTO inviteRequest) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> result = groupService.inviteUserToGroup(
                 groupId,
                 inviteRequest.getUserId(),
@@ -427,7 +427,7 @@ public class GroupController {
     @GetMapping("/invitations/pending")
     public ResponseEntity<List<Map<String, Object>>> getPendingInvitations(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> invitations = groupService.getPendingInvitations(user.getId());
         return ResponseEntity.ok(invitations);
     }
@@ -435,7 +435,7 @@ public class GroupController {
     @GetMapping("/invitations/sent")
     public ResponseEntity<List<Map<String, Object>>> getSentInvitations(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> invitations = groupService.getSentInvitations(user.getId());
         return ResponseEntity.ok(invitations);
     }
@@ -445,7 +445,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer invitationId,
             @RequestParam boolean accept) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> result = groupService.respondToInvitation(invitationId, user.getId(), accept);
         return ResponseEntity.ok(result);
     }
@@ -456,7 +456,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @PathVariable GroupRole role) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupMemberDTO> members = groupService.getMembersByRole(groupId, role, user.getId());
             return ResponseEntity.ok(members);
         } catch (Exception e) {
@@ -470,7 +470,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestParam(defaultValue = "5") int limit) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupMemberDTO> members = groupService.getRecentMembers(groupId, user.getId(), limit);
             return ResponseEntity.ok(members);
         } catch (Exception e) {
@@ -483,7 +483,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> result = groupService.leaveGroup(groupId, user.getId());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -495,7 +495,7 @@ public class GroupController {
     public ResponseEntity<?> cancelInvitation(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer invitationId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> result = groupService.cancelInvitation(invitationId, user.getId());
         return ResponseEntity.ok(result);
     }
@@ -506,7 +506,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestBody GroupSettingsDTO settings) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO updatedGroup = groupService.updateGroupSettings(groupId, settings, user.getId());
             return ResponseEntity.ok(updatedGroup);
         } catch (Exception e) {
@@ -519,7 +519,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> settings = groupService.getGroupSettings(groupId, user.getId());
             return ResponseEntity.ok(settings);
         } catch (Exception e) {
@@ -533,7 +533,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestBody GroupDuplicateRequestDTO duplicateRequest) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             GroupResponseDTO newGroup = groupService.duplicateGroup(groupId, duplicateRequest, user.getId());
             return ResponseEntity.ok(newGroup);
         } catch (Exception e) {
@@ -546,7 +546,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> result = groupService.archiveGroup(groupId, user.getId());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -559,7 +559,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> result = groupService.restoreGroup(groupId, user.getId());
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -571,7 +571,7 @@ public class GroupController {
     public ResponseEntity<?> getArchivedGroups(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<GroupResponseDTO> groups = groupService.getArchivedGroups(user.getId());
             return ResponseEntity.ok(groups);
         } catch (Exception e) {
@@ -585,7 +585,7 @@ public class GroupController {
             @PathVariable Integer groupId,
             @RequestParam(defaultValue = "json") String format) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> exportData = groupService.exportGroupData(groupId, user.getId(), format);
             return ResponseEntity.ok(exportData);
         } catch (Exception e) {
@@ -598,7 +598,7 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "5") int limit) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<Map<String, Object>> recommendations = groupService.getGroupRecommendations(user.getId(), limit);
             return ResponseEntity.ok(recommendations);
         } catch (Exception e) {
@@ -613,7 +613,7 @@ public class GroupController {
             @PathVariable Integer targetGroupId,
             @RequestBody GroupMergeRequestDTO mergeRequest) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Map<String, Object> result = groupService.mergeGroups(sourceGroupId, targetGroupId, mergeRequest,
                     user.getId());
             return ResponseEntity.ok(result);
@@ -627,8 +627,8 @@ public class GroupController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
-            List<UserDto> friendsNotInGroup = groupService.getFriendsNotInGroup(user.getId(), groupId);
+            UserDTO user = userClient.getUserProfile(jwt);
+            List<UserDTO> friendsNotInGroup = groupService.getFriendsNotInGroup(user.getId(), groupId);
             return ResponseEntity.ok(friendsNotInGroup);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -639,7 +639,7 @@ public class GroupController {
     public ResponseEntity<List<Map<String, Object>>> getSentInvitationsByGroupId(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer groupId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> invitations = groupService.getSentInvitationsByGroupId(groupId, user.getId());
         return ResponseEntity.ok(invitations);
     }
@@ -648,7 +648,7 @@ public class GroupController {
     public ResponseEntity<?> cancelInvitationStatusOnly(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer invitationId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         groupService.updateInvitationStatusToCancelled(invitationId);
         return ResponseEntity.ok(Map.of("message", "Invitation status updated to CANCELLED"));
     }

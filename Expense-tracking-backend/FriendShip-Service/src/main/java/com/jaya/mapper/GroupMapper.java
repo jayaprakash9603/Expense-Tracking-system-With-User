@@ -3,7 +3,7 @@ package com.jaya.mapper;
 import com.jaya.dto.*;
 import com.jaya.models.Group;
 import com.jaya.models.GroupRole;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ public class GroupMapper {
         dto.setAvatar(group.getAvatar());
 
         try {
-            UserDto creator = helper.validateUser(group.getCreatedBy());
+            UserDTO creator = helper.validateUser(group.getCreatedBy());
             dto.setCreatedByUsername(creator.getUsername());
         } catch (Exception e) {
             dto.setCreatedByUsername("Unknown");
@@ -80,7 +80,7 @@ public class GroupMapper {
         return group.getMemberIds().stream()
                 .map(memberId -> {
                     try {
-                        UserDto user = helper.validateUser(memberId);
+                        UserDTO user = helper.validateUser(memberId);
                         GroupMemberDTO memberDTO = new GroupMemberDTO();
                         memberDTO.setUserId(memberId);
                         memberDTO.setUsername(user.getUsername());
@@ -95,7 +95,7 @@ public class GroupMapper {
                         Integer addedBy = group.getMemberAddedBy(memberId);
                         if (addedBy != null) {
                             try {
-                                UserDto adder = helper.validateUser(addedBy);
+                                UserDTO adder = helper.validateUser(addedBy);
                                 memberDTO.setAddedByUsername(adder.getUsername());
                             } catch (Exception e) {
                                 memberDTO.setAddedByUsername("Unknown");

@@ -1,6 +1,6 @@
 package com.jaya.dto;
 
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,7 @@ public class UserSummaryDTO {
     private String image;
     private String profileImage;
 
-    public static UserSummaryDTO fromUser(UserDto user) {
+    public static UserSummaryDTO fromUser(UserDTO user) {
         if (user == null)
             return null;
         return new UserSummaryDTO(

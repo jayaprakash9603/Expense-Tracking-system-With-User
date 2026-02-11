@@ -4,14 +4,14 @@ package com.jaya.service;
 import com.jaya.dto.*;
 import com.jaya.models.Group;
 import com.jaya.models.GroupRole;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface GroupService {
-        List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception;
+        List<UserDTO> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception;
 
         GroupResponseDTO createGroup(GroupRequestDTO groupRequestDTO) throws Exception;
 

@@ -5,7 +5,7 @@ import com.jaya.kafka.producer.FriendshipNotificationProducer;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -27,7 +27,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendFriendRequestSentNotification(Friendship friendship, UserDto requester) {
+    public void sendFriendRequestSentNotification(Friendship friendship, UserDTO requester) {
         try {
             log.debug("Preparing friend request received notification for recipient ID: {}",
                     friendship.getRecipientId());
@@ -56,7 +56,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendFriendRequestAcceptedNotification(Friendship friendship, UserDto acceptor) {
+    public void sendFriendRequestAcceptedNotification(Friendship friendship, UserDTO acceptor) {
         try {
             log.debug("Preparing friend request accepted notification for requester ID: {}",
                     friendship.getRequesterId());
@@ -87,7 +87,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendFriendRequestRejectedNotification(Friendship friendship, UserDto rejector) {
+    public void sendFriendRequestRejectedNotification(Friendship friendship, UserDTO rejector) {
         try {
             log.debug("Preparing friend request rejected notification for requester ID: {}",
                     friendship.getRequesterId());
@@ -116,7 +116,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendFriendRequestCancelledNotification(Friendship friendship, UserDto canceller) {
+    public void sendFriendRequestCancelledNotification(Friendship friendship, UserDTO canceller) {
         try {
             log.debug("Preparing friend request cancelled notification for recipient ID: {}",
                     friendship.getRecipientId());
@@ -145,7 +145,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendFriendshipRemovedNotification(Friendship friendship, UserDto remover, Integer otherId) {
+    public void sendFriendshipRemovedNotification(Friendship friendship, UserDTO remover, Integer otherId) {
         try {
             log.debug("Preparing friendship removed notification for user ID: {}", otherId);
 
@@ -173,7 +173,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendAccessLevelChangedNotification(Friendship friendship, UserDto changer,
+    public void sendAccessLevelChangedNotification(Friendship friendship, UserDTO changer,
             Integer otherId, AccessLevel oldAccess,
             AccessLevel newAccess) {
         try {
@@ -207,7 +207,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendUserBlockedNotification(Integer friendshipId, UserDto blocker, Integer blockedId) {
+    public void sendUserBlockedNotification(Integer friendshipId, UserDTO blocker, Integer blockedId) {
         try {
             log.debug("User {} blocked user {}", blocker.getId(), blockedId);
 
@@ -231,7 +231,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendUserUnblockedNotification(Integer friendshipId, UserDto unblocker, Integer unblockedId) {
+    public void sendUserUnblockedNotification(Integer friendshipId, UserDTO unblocker, Integer unblockedId) {
         try {
             log.debug("User {} unblocked user {}", unblocker.getId(), unblockedId);
 
@@ -256,7 +256,7 @@ public class FriendshipNotificationService {
         }
     }
 
-    private Map<String, Object> buildFriendRequestMetadata(Friendship friendship, UserDto requester) {
+    private Map<String, Object> buildFriendRequestMetadata(Friendship friendship, UserDTO requester) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request");
         metadata.put("requesterName", getFullName(requester));
@@ -267,7 +267,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildAcceptedMetadata(Friendship friendship, UserDto acceptor) {
+    private Map<String, Object> buildAcceptedMetadata(Friendship friendship, UserDTO acceptor) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_accepted");
         metadata.put("acceptorName", getFullName(acceptor));
@@ -278,7 +278,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildRejectedMetadata(Friendship friendship, UserDto rejector) {
+    private Map<String, Object> buildRejectedMetadata(Friendship friendship, UserDTO rejector) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_rejected");
         metadata.put("rejectorName", getFullName(rejector));
@@ -287,7 +287,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildCancelledMetadata(Friendship friendship, UserDto canceller) {
+    private Map<String, Object> buildCancelledMetadata(Friendship friendship, UserDTO canceller) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friend_request_cancelled");
         metadata.put("cancellerName", getFullName(canceller));
@@ -296,7 +296,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildRemovedMetadata(Friendship friendship, UserDto remover) {
+    private Map<String, Object> buildRemovedMetadata(Friendship friendship, UserDTO remover) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "friendship_removed");
         metadata.put("removerName", getFullName(remover));
@@ -305,7 +305,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildAccessChangedMetadata(Friendship friendship, UserDto changer,
+    private Map<String, Object> buildAccessChangedMetadata(Friendship friendship, UserDTO changer,
             AccessLevel oldAccess, AccessLevel newAccess) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "access_level_changed");
@@ -318,7 +318,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildBlockedMetadata(UserDto blocker, Integer blockedId) {
+    private Map<String, Object> buildBlockedMetadata(UserDTO blocker, Integer blockedId) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "user_blocked");
         metadata.put("blockerName", getFullName(blocker));
@@ -328,7 +328,7 @@ public class FriendshipNotificationService {
         return metadata;
     }
 
-    private Map<String, Object> buildUnblockedMetadata(UserDto unblocker, Integer unblockedId) {
+    private Map<String, Object> buildUnblockedMetadata(UserDTO unblocker, Integer unblockedId) {
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("type", "user_unblocked");
         metadata.put("unblockerName", getFullName(unblocker));
@@ -339,7 +339,7 @@ public class FriendshipNotificationService {
     }
 
     @Async
-    public void sendDataSharedNotification(UserDto sharer, Integer friendId, String shareUrl,
+    public void sendDataSharedNotification(UserDTO sharer, Integer friendId, String shareUrl,
             String shareName, int resourceCount, String message) {
         try {
             log.debug("Preparing data shared notification for friend ID: {}", friendId);
@@ -381,7 +381,7 @@ public class FriendshipNotificationService {
         return accessLevel != null ? accessLevel.name() : "NONE";
     }
 
-    private String getFullName(UserDto user) {
+    private String getFullName(UserDTO user) {
         if (user == null) {
             return "Unknown User";
         }

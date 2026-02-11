@@ -6,7 +6,7 @@ import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.FriendshipRepository;
 import com.jaya.util.ServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     private ServiceHelper helper;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private UnifiedActivityService unifiedActivityService;
@@ -45,8 +45,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot send friend request to yourself");
         }
 
-        UserDto requester = helper.validateUser(requesterId);
-        UserDto recipient = helper.validateUser(recipientId);
+        UserDTO requester = helper.validateUser(requesterId);
+        UserDTO recipient = helper.validateUser(recipientId);
 
         if (friendshipRepository.findByRequesterIdAndRecipientId(requester.getId(), recipient.getId()).isPresent() ||
                 friendshipRepository.findByRequesterIdAndRecipientId(recipient.getId(), requester.getId())
@@ -92,8 +92,8 @@ public class FriendshipServiceImpl implements FriendshipService {
         friendship = friendshipRepository.save(friendship);
 
         try {
-            UserDto requester = helper.validateUser(friendship.getRequesterId());
-            UserDto recipient = helper.validateUser(friendship.getRecipientId());
+            UserDTO requester = helper.validateUser(friendship.getRequesterId());
+            UserDTO recipient = helper.validateUser(friendship.getRecipientId());
 
             if (accept) {
                 unifiedActivityService.sendFriendRequestAcceptedEvent(friendship, requester, recipient);
@@ -135,8 +135,8 @@ public class FriendshipServiceImpl implements FriendshipService {
         Friendship savedFriendship = friendshipRepository.save(friendship);
 
         try {
-            UserDto changer = helper.validateUser(userId);
-            UserDto targetUser = helper.validateUser(otherUserId);
+            UserDTO changer = helper.validateUser(userId);
+            UserDTO targetUser = helper.validateUser(otherUserId);
             unifiedActivityService.sendAccessLevelChangedEvent(
                     savedFriendship, changer, targetUser, oldAccess, accessLevel);
         } catch (Exception e) {
@@ -148,7 +148,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public List<Friendship> getUserFriendships(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
         return friendships.stream()
@@ -158,7 +158,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public List<Friendship> getPendingRequests(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         List<Friendship> allFriendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
         return allFriendships.stream()
@@ -168,14 +168,14 @@ public class FriendshipServiceImpl implements FriendshipService {
 
     @Override
     public List<Friendship> getIncomingRequests(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         return friendshipRepository.findByRecipientIdAndStatus(user.getId(), FriendshipStatus.PENDING);
     }
 
     @Override
     public List<Friendship> getOutgoingRequests(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         return friendshipRepository.findByRequesterIdAndStatus(user.getId(), FriendshipStatus.PENDING);
     }
@@ -196,8 +196,8 @@ public class FriendshipServiceImpl implements FriendshipService {
         }
 
         try {
-            UserDto canceller = helper.validateUser(userId);
-            UserDto recipient = helper.validateUser(friendship.getRecipientId());
+            UserDTO canceller = helper.validateUser(userId);
+            UserDTO recipient = helper.validateUser(friendship.getRecipientId());
             unifiedActivityService.sendFriendRequestCancelledEvent(friendship, canceller, recipient);
         } catch (Exception e) {
             System.err.println("Failed to send friend request cancelled event: " + e.getMessage());
@@ -226,8 +226,8 @@ public class FriendshipServiceImpl implements FriendshipService {
                 : friendship.getRequesterId();
 
         try {
-            UserDto remover = helper.validateUser(userId);
-            UserDto removedUser = helper.validateUser(otherUserId);
+            UserDTO remover = helper.validateUser(userId);
+            UserDTO removedUser = helper.validateUser(otherUserId);
             unifiedActivityService.sendFriendRemovedEvent(friendship, remover, removedUser);
         } catch (Exception e) {
             System.err.println("Failed to send friendship removed event: " + e.getMessage());
@@ -243,8 +243,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot block yourself");
         }
 
-        UserDto blocker = helper.validateUser(blockerId);
-        UserDto blocked = helper.validateUser(blockedId);
+        UserDTO blocker = helper.validateUser(blockerId);
+        UserDTO blocked = helper.validateUser(blockedId);
 
         Optional<Friendship> existingFriendship = friendshipRepository.findByRequesterIdAndRecipientId(blocker.getId(),
                 blocked.getId());
@@ -285,8 +285,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             throw new RuntimeException("Cannot unblock yourself");
         }
 
-        UserDto unblocker = helper.validateUser(unblockerId);
-        UserDto unblocked = helper.validateUser(unblockedId);
+        UserDTO unblocker = helper.validateUser(unblockerId);
+        UserDTO unblocked = helper.validateUser(unblockedId);
 
         Optional<Friendship> blockedFriendship = friendshipRepository.findByRequesterIdAndRecipientIdAndStatus(
                 unblocker.getId(), unblocked.getId(), FriendshipStatus.BLOCKED);
@@ -303,7 +303,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public List<UserDto> getBlockedUsers(Integer userId) throws Exception {
+    public List<UserDTO> getBlockedUsers(Integer userId) throws Exception {
         helper.validateUser(userId);
 
         List<Friendship> blockedRelationships = friendshipRepository.findByRequesterIdAndStatus(userId,
@@ -357,8 +357,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             return FriendshipStatus.NONE;
         }
 
-        UserDto user1 = helper.validateUser(userId1);
-        UserDto user2 = helper.validateUser(userId2);
+        UserDTO user1 = helper.validateUser(userId1);
+        UserDTO user2 = helper.validateUser(userId2);
 
         Optional<Friendship> friendship = friendshipRepository.findBidirectional(user1.getId(), user2.getId());
         return friendship.map(Friendship::getStatus).orElse(FriendshipStatus.NONE);
@@ -370,8 +370,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             return false;
         }
 
-        UserDto user = helper.validateUser(userId);
-        UserDto otherUser = helper.validateUser(otherUserId);
+        UserDTO user = helper.validateUser(userId);
+        UserDTO otherUser = helper.validateUser(otherUserId);
 
         Optional<Friendship> friendship = friendshipRepository.findByRequesterIdAndRecipientIdAndStatus(
                 user.getId(), otherUser.getId(), FriendshipStatus.PENDING);
@@ -396,21 +396,21 @@ public class FriendshipServiceImpl implements FriendshipService {
             return null;
         }
 
-        UserDto user1 = helper.validateUser(userId1);
-        UserDto user2 = helper.validateUser(userId2);
+        UserDTO user1 = helper.validateUser(userId1);
+        UserDTO user2 = helper.validateUser(userId2);
 
         return friendshipRepository.findBidirectional(user1.getId(), user2.getId()).orElse(null);
     }
 
     @Override
     public List<Friendship> getAllUserFriendships(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         return friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
     }
 
     @Override
-    public List<UserDto> getFriendSuggestions(Integer userId, int limit) throws Exception {
+    public List<UserDTO> getFriendSuggestions(Integer userId, int limit) throws Exception {
         helper.validateUser(userId);
 
         List<Friendship> allRelationships = friendshipRepository.findByRequesterIdOrRecipientId(userId);
@@ -426,7 +426,7 @@ public class FriendshipServiceImpl implements FriendshipService {
             }
         }
 
-        List<UserDto> friendsOfFriends = new ArrayList<>();
+        List<UserDTO> friendsOfFriends = new ArrayList<>();
         List<Friendship> userFriendships = getUserFriendships(userId);
 
         for (Friendship friendship : userFriendships) {
@@ -434,7 +434,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 Integer friendId = friendship.getRequesterId().equals(userId) ? friendship.getRecipientId()
                         : friendship.getRequesterId();
 
-                UserDto friend = helper.validateUser(friendId);
+                UserDTO friend = helper.validateUser(friendId);
 
                 List<Friendship> friendFriendships = getUserFriendships(friend.getId());
 
@@ -445,7 +445,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                                 : friendFriendship.getRequesterId();
 
                         if (!excludedUserIds.contains(friendFriendId)) {
-                            UserDto friendOfFriend = helper.validateUser(friendFriendId);
+                            UserDTO friendOfFriend = helper.validateUser(friendFriendId);
                             friendsOfFriends.add(friendOfFriend);
                             excludedUserIds.add(friendFriendId);
                         }
@@ -460,7 +460,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         if (friendsOfFriends.size() < limit) {
             int remainingCount = limit - friendsOfFriends.size();
-            List<UserDto> randomUsers = getRandomUsersExcluding(excludedUserIds, remainingCount);
+            List<UserDTO> randomUsers = getRandomUsersExcluding(excludedUserIds, remainingCount);
             friendsOfFriends.addAll(randomUsers);
         }
 
@@ -471,13 +471,13 @@ public class FriendshipServiceImpl implements FriendshipService {
         return friendsOfFriends;
     }
 
-    private List<UserDto> getRandomUsersExcluding(Set<Integer> excludedUserIds, int count) {
-        List<UserDto> randomUsers = new ArrayList<>();
+    private List<UserDTO> getRandomUsersExcluding(Set<Integer> excludedUserIds, int count) {
+        List<UserDTO> randomUsers = new ArrayList<>();
 
         try {
-            List<UserDto> allUsers = userService.getAllUsers();
+            List<UserDTO> allUsers = userClient.getAllUsers();
 
-            List<UserDto> availableUsers = allUsers.stream()
+            List<UserDTO> availableUsers = allUsers.stream()
                     .filter(user -> !excludedUserIds.contains(user.getId()))
                     .collect(Collectors.toList());
 
@@ -513,7 +513,7 @@ public class FriendshipServiceImpl implements FriendshipService {
 
                 for (int i = 0; i < usersToGet; i++) {
                     try {
-                        UserDto user = helper.validateUser(availableUserIds.get(i));
+                        UserDTO user = helper.validateUser(availableUserIds.get(i));
                         randomUsers.add(user);
                     } catch (Exception ex) {
                         System.err.println("Error validating user " + availableUserIds.get(i) + ": " + ex.getMessage());
@@ -528,7 +528,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public List<UserDto> getMutualFriends(Integer userId1, Integer userId2) throws Exception {
+    public List<UserDTO> getMutualFriends(Integer userId1, Integer userId2) throws Exception {
         if (userId1.equals(userId2)) {
             return Collections.emptyList();
         }
@@ -541,7 +541,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .map(f -> f.getRequesterId().equals(userId2) ? f.getRecipientId() : f.getRequesterId())
                 .collect(Collectors.toList());
 
-        Set<UserDto> friendIds1 = friendsOfUser1.stream()
+        Set<UserDTO> friendIds1 = friendsOfUser1.stream()
                 .map(e -> {
                     try {
                         return helper.validateUser(e);
@@ -551,7 +551,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 })
                 .collect(Collectors.toSet());
 
-        Set<UserDto> friendIds2 = friendsOfUser2.stream()
+        Set<UserDTO> friendIds2 = friendsOfUser2.stream()
                 .map(e -> {
                     try {
                         return helper.validateUser(e);
@@ -567,7 +567,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public List<UserDto> searchFriends(Integer userId, String query) throws Exception {
+    public List<UserDTO> searchFriends(Integer userId, String query) throws Exception {
         if (query == null || query.trim().isEmpty()) {
             return List.of();
         }
@@ -576,7 +576,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .map(f -> f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId())
                 .collect(Collectors.toList());
 
-        List<UserDto> users = friends.stream().map(e -> {
+        List<UserDTO> users = friends.stream().map(e -> {
             try {
                 return helper.validateUser(e);
             } catch (Exception ex) {
@@ -732,7 +732,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                         Integer friendId = f.getRequesterId().equals(userId)
                                 ? f.getRecipientId()
                                 : f.getRequesterId();
-                        UserDto friend = helper.validateUser(friendId);
+                        UserDTO friend = helper.validateUser(friendId);
 
                         Map<String, Object> friendInfo = new HashMap<>();
                         friendInfo.put("userId", friend.getId());
@@ -839,7 +839,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                         Integer friendId = f.getRequesterId().equals(userId)
                                 ? f.getRecipientId()
                                 : f.getRequesterId();
-                        UserDto friend = helper.validateUser(friendId);
+                        UserDTO friend = helper.validateUser(friendId);
 
                         AccessLevel accessLevel = getUserAccessLevel(friend.getId(), userId);
 
@@ -880,7 +880,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                         Integer friendId = f.getRequesterId().equals(userId)
                                 ? f.getRecipientId()
                                 : f.getRequesterId();
-                        UserDto friend = helper.validateUser(friendId);
+                        UserDTO friend = helper.validateUser(friendId);
 
                         AccessLevel accessLevel = getUserAccessLevel(userId, friend.getId());
 
@@ -939,7 +939,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                 }
 
                 Integer friendId = f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId();
-                UserDto friend = helper.validateUser(friendId);
+                UserDTO friend = helper.validateUser(friendId);
 
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", friend.getId());
@@ -980,8 +980,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             return null;
         }
 
-        UserDto requester = helper.validateUser(friendship.getRequesterId());
-        UserDto recipient = helper.validateUser(friendship.getRecipientId());
+        UserDTO requester = helper.validateUser(friendship.getRequesterId());
+        UserDTO recipient = helper.validateUser(friendship.getRecipientId());
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", friendship.getId());
@@ -1018,17 +1018,17 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
-    public List<UserDto> getFriendsOfUser(Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+    public List<UserDTO> getFriendsOfUser(Integer userId) throws Exception {
+        UserDTO user = helper.validateUser(userId);
         List<Friendship> friendships = friendshipRepository.findByRequesterIdOrRecipientId(user.getId());
-        List<UserDto> friends = new ArrayList<>();
+        List<UserDTO> friends = new ArrayList<>();
         for (Friendship friendship : friendships) {
             if (friendship.getStatus() == FriendshipStatus.ACCEPTED) {
                 Integer friendId = friendship.getRequesterId().equals(userId)
                         ? friendship.getRecipientId()
                         : friendship.getRequesterId();
                 try {
-                    UserDto friend = helper.validateUser(friendId);
+                    UserDTO friend = helper.validateUser(friendId);
                     friends.add(friend);
                 } catch (Exception e) {
                 }
@@ -1135,7 +1135,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         for (Friendship f : friendshipsPage.getContent()) {
             try {
                 Integer friendId = f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId();
-                UserDto friend = helper.validateUser(friendId);
+                UserDTO friend = helper.validateUser(friendId);
 
                 AccessLevel myAccess = f.getRequesterId().equals(userId)
                         ? f.getRequesterAccess()
@@ -1235,7 +1235,7 @@ public class FriendshipServiceImpl implements FriendshipService {
         for (Friendship f : acceptedFriends) {
             try {
                 Integer friendId = f.getRequesterId().equals(userId) ? f.getRecipientId() : f.getRequesterId();
-                UserDto friend = helper.validateUser(friendId);
+                UserDTO friend = helper.validateUser(friendId);
                 int score = calculateInteractionScore(f, userId);
 
                 topFriends.add(FriendshipReportDTO.TopFriendDTO.builder()

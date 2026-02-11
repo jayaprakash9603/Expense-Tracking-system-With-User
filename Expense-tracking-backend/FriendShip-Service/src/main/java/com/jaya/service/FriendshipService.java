@@ -5,14 +5,14 @@ import com.jaya.dto.FriendshipReportDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 public interface FriendshipService {
-        List<UserDto> getFriendsOfUser(Integer userId) throws Exception;
+        List<UserDTO> getFriendsOfUser(Integer userId) throws Exception;
 
         Friendship sendFriendRequest(Integer requesterId, Integer recipientId) throws Exception;
 
@@ -36,7 +36,7 @@ public interface FriendshipService {
 
         void unblockUser(Integer unblockerId, Integer unblockedId) throws Exception;
 
-        List<UserDto> getBlockedUsers(Integer userId) throws Exception;
+        List<UserDTO> getBlockedUsers(Integer userId) throws Exception;
 
         int getTotalFriendsCount(Integer userId) throws Exception;
 
@@ -52,11 +52,11 @@ public interface FriendshipService {
 
         AccessLevel getUserAccessLevel(Integer ownerId, Integer viewerId) throws Exception;
 
-        List<UserDto> getFriendSuggestions(Integer userId, int limit) throws Exception;
+        List<UserDTO> getFriendSuggestions(Integer userId, int limit) throws Exception;
 
-        List<UserDto> getMutualFriends(Integer userId1, Integer userId2) throws Exception;
+        List<UserDTO> getMutualFriends(Integer userId1, Integer userId2) throws Exception;
 
-        List<UserDto> searchFriends(Integer userId, String query) throws Exception;
+        List<UserDTO> searchFriends(Integer userId, String query) throws Exception;
 
         boolean canUserAccessExpenses(Integer ownerId, Integer viewerId) throws Exception;
 
