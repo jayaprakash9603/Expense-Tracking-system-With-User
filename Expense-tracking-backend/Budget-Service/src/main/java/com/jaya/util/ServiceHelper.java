@@ -3,9 +3,9 @@ package com.jaya.util;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.models.Budget;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.ExpenseClient;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.feign.FeignUserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class ServiceHelper {
 
     @Autowired
-    private UserService userService;
+    private FeignUserServiceClient userService;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -37,17 +37,17 @@ public class ServiceHelper {
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
-    public UserDto validateUser(Integer userId) throws Exception {
+    public UserDTO validateUser(Integer userId) throws Exception {
 
-        UserDto reqUser = userService.getUserProfileById(userId);
+        UserDTO reqUser = userService.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
         return reqUser;
     }
 
-    private UserDto authenticate(String jwt) {
-        UserDto reqUser = userService.getuserProfile(jwt);
+    private UserDTO authenticate(String jwt) {
+        UserDTO reqUser = userService.getUserProfile(jwt);
         if (reqUser == null) {
             throw new com.jaya.exceptions.UnauthorizedException("Invalid or expired token");
         }

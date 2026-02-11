@@ -1,7 +1,7 @@
 package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.modal.Otp;
-import com.jaya.task.user.service.repository.OtpRepository;
+import com.jaya.task.user.service.repository.UserOtpRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,7 @@ public class OtpService {
     private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
 
     @Autowired
-    private OtpRepository otpRepository;
+    private UserOtpRepository otpRepository;
 
     @Autowired
     private EmailService emailService;

@@ -1,6 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.modal.*;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.NotificationRepository;
 import com.jaya.repository.NotificationPreferencesRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,7 +99,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendBudgetExceededAlert(UserDto user, BudgetDTO budget, double currentSpending) {
+        public void sendBudgetExceededAlert(UserDTO user, BudgetDTO budget, double currentSpending) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getBudgetAlertsEnabled())
                         return;
@@ -120,7 +121,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendBudgetWarningAlert(UserDto user, BudgetDTO budget, double currentSpending,
+        public void sendBudgetWarningAlert(UserDTO user, BudgetDTO budget, double currentSpending,
                         double warningThreshold) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getBudgetAlertsEnabled())
@@ -144,7 +145,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendBudgetDTOExceededAlert(UserDto user, BudgetDTO budget, double currentSpending) {
+        public void sendBudgetDTOExceededAlert(UserDTO user, BudgetDTO budget, double currentSpending) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getBudgetAlertsEnabled())
                         return;
@@ -166,7 +167,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendBudgetDTOWarningAlert(UserDto user, BudgetDTO budget, double currentSpending,
+        public void sendBudgetDTOWarningAlert(UserDTO user, BudgetDTO budget, double currentSpending,
                         double warningThreshold) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getBudgetAlertsEnabled())
@@ -191,7 +192,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendMonthlySpendingSummary(UserDto user, LocalDate month) {
+        public void sendMonthlySpendingSummary(UserDTO user, LocalDate month) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getMonthlySummaryEnabled())
                         return;
@@ -210,7 +211,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendDailyExpenseDTOReminder(UserDto user) {
+        public void sendDailyExpenseDTOReminder(UserDTO user) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getDailyRemindersEnabled())
                         return;
@@ -229,7 +230,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendWeeklyExpenseDTOReport(UserDto user) {
+        public void sendWeeklyExpenseDTOReport(UserDTO user) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getWeeklyReportsEnabled())
                         return;
@@ -249,7 +250,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendDailyExpenseReminder(UserDto user) {
+        public void sendDailyExpenseReminder(UserDTO user) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getDailyRemindersEnabled())
                         return;
@@ -264,7 +265,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendWeeklyExpenseReport(UserDto user) {
+        public void sendWeeklyExpenseReport(UserDTO user) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getWeeklyReportsEnabled())
                         return;
@@ -283,7 +284,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendUnusualSpendingAlert(UserDto user, ExpenseDTO expense) {
+        public void sendUnusualSpendingAlert(UserDTO user, ExpenseDTO expense) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getUnusualSpendingAlerts())
                         return;
@@ -304,7 +305,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendRecurringExpenseDTOReminder(UserDto user, List<ExpenseDTO> recurringExpenses) {
+        public void sendRecurringExpenseDTOReminder(UserDTO user, List<ExpenseDTO> recurringExpenses) {
                 if (recurringExpenses.isEmpty())
                         return;
 
@@ -328,7 +329,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendRecurringExpenseReminder(UserDto user, List<ExpenseDTO> recurringExpenses) {
+        public void sendRecurringExpenseReminder(UserDTO user, List<ExpenseDTO> recurringExpenses) {
                 if (recurringExpenses.isEmpty())
                         return;
 
@@ -347,7 +348,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendGoalAchievementNotification(UserDto user, String goalType, double targetAmount) {
+        public void sendGoalAchievementNotification(UserDTO user, String goalType, double targetAmount) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
                 if (!prefs.getGoalNotificationsEnabled())
                         return;
@@ -367,7 +368,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void sendInactivityReminder(UserDto user, int daysSinceLastExpense) {
+        public void sendInactivityReminder(UserDTO user, int daysSinceLastExpense) {
                 String title = "Expense Tracking Reminder";
                 String message = String.format("It's been %d days since your last expense entry. " +
                                 "Keep your financial tracking up to date!", daysSinceLastExpense);
@@ -381,13 +382,13 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Async
-        public void scheduleMonthlyReports(UserDto user) {
+        public void scheduleMonthlyReports(UserDTO user) {
                 sendMonthlySpendingSummary(user, LocalDate.now().minusMonths(1));
         }
 
         @Override
         @Async
-        public void sendCustomAlert(UserDto user, String message, String alertType) {
+        public void sendCustomAlert(UserDTO user, String message, String alertType) {
                 String title = "Custom Alert";
 
                 Map<String, Object> metadata = new HashMap<>();
@@ -398,7 +399,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         @Override
-        public List<String> getNotificationHistory(UserDto user, int limit) {
+        public List<String> getNotificationHistory(UserDTO user, int limit) {
                 List<Notification> notifications = notificationRepository
                                 .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(0, limit))
                                 .getContent();
@@ -411,7 +412,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         @Override
         @Transactional
-        public void updateNotificationPreferences(UserDto user, Map<String, Boolean> preferences) {
+        public void updateNotificationPreferences(UserDTO user, Map<String, Boolean> preferences) {
                 NotificationPreferences prefs = getUserPreferences(user.getId());
 
                 preferences.forEach((key, value) -> {
@@ -432,7 +433,7 @@ public class NotificationServiceImpl implements NotificationService {
                 preferencesRepository.save(prefs);
         }
 
-        private void createAndSendNotification(UserDto user, String title, String message,
+        private void createAndSendNotification(UserDTO user, String title, String message,
                         NotificationType type, NotificationPriority priority,
                         Map<String, Object> metadata) {
                 try {
@@ -465,7 +466,7 @@ public class NotificationServiceImpl implements NotificationService {
                 }
         }
 
-        private void sendEmailNotification(UserDto user, Notification notification) {
+        private void sendEmailNotification(UserDTO user, Notification notification) {
                 try {
                         emailService.sendSimpleMessage(
                                         user.getEmail(),

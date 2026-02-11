@@ -25,49 +25,38 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 @EnableFeignClients(basePackages = {
-    "com.jaya.service",
-    "com.jaya.task.user.service.service"
+        "com.jaya.service",
+        "com.jaya.task.user.service.service"
 })
 @ComponentScan(basePackages = {
-    "com.jaya.monolith",
-    // User Service (different package structure)
-    "com.jaya.task.user.service",
-    // All other services use com.jaya package
-    "com.jaya.config",
-    "com.jaya.controller",
-    "com.jaya.service",
-    "com.jaya.repository",
-    "com.jaya.kafka",
-    "com.jaya.dto",
-    "com.jaya.util",
-    "com.jaya.mapper",
-    "com.jaya.exception",
-    "com.jaya.aspects",
-    "com.jaya.async",
-    "com.jaya.builder",
-    "com.jaya.Initiator",
-    "com.jaya.scheduler",
-    // Common library
-    "com.jaya.common"
+        "com.jaya.monolith",
+        // User Service (different package structure)
+        "com.jaya.task.user.service",
+        // All other services use com.jaya package
+        "com.jaya.config",
+        "com.jaya.controller",
+        "com.jaya.service",
+        "com.jaya.repository",
+        "com.jaya.kafka",
+        "com.jaya.dto",
+        "com.jaya.util",
+        "com.jaya.mapper",
+        "com.jaya.exception",
+        "com.jaya.aspects",
+        "com.jaya.async",
+        "com.jaya.builder",
+        "com.jaya.Initiator",
+        "com.jaya.scheduler",
+        // Common library
+        "com.jaya.common"
 }, excludeFilters = {
-    @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
+        @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
 })
 @EntityScan(basePackages = {
-    // Most services use com.jaya.models
-    "com.jaya.models",
-    // User service entities (two folders - modal and model)
-    "com.jaya.task.user.service.modal",
-    "com.jaya.task.user.service.model",
-    // Notification service entities
-    "com.jaya.modal",
-    // Search service entities
-    "com.jaya.entity",
-    // DTOs that are actually Entities (e.g. User in Expense Service)
-    "com.jaya.dto"
+        "com.jaya"
 })
 @EnableJpaRepositories(basePackages = {
-    "com.jaya.repository",
-    "com.jaya.task.user.service.repository"
+        "com.jaya"
 })
 public class MonolithicApplication {
 

@@ -10,7 +10,8 @@ import com.jaya.common.exception.AuthenticationException;
 import com.jaya.common.exception.ResourceNotFoundException;
 import com.jaya.constant.CategoryConstants;
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.*;
 import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.util.mapper.CategoryMapper;
@@ -35,29 +36,29 @@ import java.util.stream.Collectors;
 public class CategoryController {
 
     private final CategoryService categoryService;
-    private final UserService userService;
+    private final IUserServiceClient IUserServiceClient;
     private final FriendShipService friendshipService;
     private final UnifiedActivityService unifiedActivityService;
     private final CategoryMapper categoryMapper;
 
-    private User validateUserFromJwt(String jwt) {
-        User user = userService.getuserProfile(jwt);
-        if (user == null) {
-            log.warn("Failed to authenticate user from JWT");
+    private UserDTO validateUserFromJwt(String jwt) {
+        UserDTO UserDTO = IUserServiceClient.getUserProfile(jwt);
+        if (UserDTO == null) {
+            log.warn("Failed to authenticate UserDTO from JWT");
             throw AuthenticationException.invalidToken();
         }
-        log.debug("Authenticated user: id={}, email={}", user.getId(), user.getEmail());
-        return user;
+        log.debug("Authenticated UserDTO: id={}, email={}", UserDTO.getId(), UserDTO.getEmail());
+        return UserDTO;
     }
 
-    private User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean needWriteAccess) {
+    private UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean needWriteAccess) {
         if (targetId == null) {
             return reqUser;
         }
 
-        User targetUser = userService.getUserProfileById(targetId);
+        UserDTO targetUser = IUserServiceClient.getUserById(targetId);
         if (targetUser == null) {
-            log.warn("Target user not found: targetId={}", targetId);
+            log.warn("Target UserDTO not found: targetId={}", targetId);
             throw ResourceNotFoundException.userNotFound(targetId);
         }
 
@@ -68,7 +69,7 @@ public class CategoryController {
         if (!hasAccess) {
             String action = needWriteAccess ? "modify" : "access";
             log.warn("Permission denied: userId={}, targetId={}, action={}", reqUser.getId(), targetId, action);
-            throw new AccessDeniedException("You don't have permission to " + action + " this user's categories");
+            throw new AccessDeniedException("You don't have permission to " + action + " this UserDTO's categories");
         }
 
         log.debug("Permission granted: userId={}, targetId={}, writeAccess={}",
@@ -77,14 +78,14 @@ public class CategoryController {
     }
 
     @PostMapping
-    @Operation(summary = "Create a new category", description = "Creates a new category for the user or target user")
+    @Operation(summary = "Create a new category", description = "Creates a new category for the UserDTO or target UserDTO")
     public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(
             @RequestHeader("Authorization") String jwt,
             @Valid @RequestBody CreateCategoryRequest request,
-            @Parameter(description = "Target user ID for friend expense management") @RequestParam(required = false) Integer targetId) {
+            @Parameter(description = "Target UserDTO ID for friend expense management") @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         log.info("Creating category: name={}, userId={}, isGlobal={}",
                 request.getName(), targetUser.getId(), request.isGlobal());
@@ -108,8 +109,8 @@ public class CategoryController {
             @PathVariable Integer id,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         log.debug("Getting category: id={}, userId={}", id, targetUser.getId());
 
@@ -126,8 +127,8 @@ public class CategoryController {
             @PathVariable String name,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         log.debug("Getting categories by name: name={}, userId={}", name, targetUser.getId());
 
@@ -138,15 +139,15 @@ public class CategoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all categories", description = "Retrieves all categories for the user")
+    @Operation(summary = "Get all categories", description = "Retrieves all categories for the UserDTO")
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
-        log.debug("Getting all categories for user: userId={}", targetUser.getId());
+        log.debug("Getting all categories for UserDTO: userId={}", targetUser.getId());
 
         List<Category> categories = categoryService.getAll(targetUser.getId());
 
@@ -166,13 +167,13 @@ public class CategoryController {
             @Valid @RequestBody UpdateCategoryRequest request,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         log.info("Updating category: id={}, userId={}", id, targetUser.getId());
 
         Category oldCategory = categoryService.getById(id, targetUser.getId());
-        User userForUpdate = (targetId == null) ? reqUser : targetUser;
+        UserDTO userForUpdate = (targetId == null) ? reqUser : targetUser;
 
         Category categoryUpdate = categoryMapper.toEntityForUpdate(request, targetUser.getId());
         Category updated = categoryService.update(id, categoryUpdate, userForUpdate);
@@ -191,8 +192,8 @@ public class CategoryController {
             @PathVariable Integer id,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         log.info("Deleting category: id={}, userId={}", id, targetUser.getId());
 
@@ -217,10 +218,10 @@ public class CategoryController {
             @Valid @RequestBody List<CreateCategoryRequest> requests,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
-        log.info("Creating {} categories for user: userId={}", requests.size(), targetUser.getId());
+        log.info("Creating {} categories for UserDTO: userId={}", requests.size(), targetUser.getId());
 
         final Integer userId = targetUser.getId();
         List<Category> categoriesToCreate = requests.stream()
@@ -246,11 +247,11 @@ public class CategoryController {
             @RequestBody List<Category> categories,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
-        User userForUpdate = (targetId == null) ? reqUser : targetUser;
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO userForUpdate = (targetId == null) ? reqUser : targetUser;
 
-        log.info("Updating {} categories for user: userId={}", categories.size(), targetUser.getId());
+        log.info("Updating {} categories for UserDTO: userId={}", categories.size(), targetUser.getId());
 
         List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
 
@@ -270,11 +271,11 @@ public class CategoryController {
             @RequestBody List<Integer> categoryIds,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         int count = categoryIds != null ? categoryIds.size() : 0;
-        log.info("Deleting {} categories for user: userId={}", count, targetUser.getId());
+        log.info("Deleting {} categories for UserDTO: userId={}", count, targetUser.getId());
 
         categoryService.deleteMultiple(categoryIds, targetUser.getId());
 
@@ -288,16 +289,16 @@ public class CategoryController {
     }
 
     @DeleteMapping("/all/global")
-    @Operation(summary = "Delete all global categories", description = "Removes user's association with global categories")
+    @Operation(summary = "Delete all global categories", description = "Removes UserDTO's association with global categories")
     public ResponseEntity<ApiResponse<Void>> deleteAllGlobalCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(name = "global", defaultValue = "true") boolean global,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
-        log.info("Deleting all global categories for user: userId={}", targetUser.getId());
+        log.info("Deleting all global categories for UserDTO: userId={}", targetUser.getId());
 
         categoryService.deleteAllGlobal(targetUser.getId(), global);
 
@@ -307,24 +308,24 @@ public class CategoryController {
     }
 
     @DeleteMapping("")
-    @Operation(summary = "Delete all categories", description = "Deletes all user categories")
+    @Operation(summary = "Delete all categories", description = "Deletes all UserDTO categories")
     public ResponseEntity<ApiResponse<Void>> deleteAllCategories(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         List<Category> categories = categoryService.getAll(targetUser.getId());
         int count = categories != null ? categories.size() : 0;
 
-        log.info("Deleting all {} categories for user: userId={}", count, targetUser.getId());
+        log.info("Deleting all {} categories for UserDTO: userId={}", count, targetUser.getId());
 
         categoryService.deleteAllUserCategories(targetUser.getId());
 
         unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
 
-        log.info("Deleted all {} categories for user: userId={}", count, targetUser.getId());
+        log.info("Deleted all {} categories for UserDTO: userId={}", count, targetUser.getId());
 
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
@@ -338,7 +339,7 @@ public class CategoryController {
             @PathVariable Integer id,
             @Valid @RequestBody UpdateCategoryRequest request) {
 
-        User reqUser = validateUserFromJwt(jwt);
+        UserDTO reqUser = validateUserFromJwt(jwt);
 
         log.info("Admin updating global category: id={}, adminId={}", id, reqUser.getId());
 
@@ -360,10 +361,10 @@ public class CategoryController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
-        log.debug("Getting uncategorized expenses for user: userId={}", targetUser.getId());
+        log.debug("Getting uncategorized expenses for UserDTO: userId={}", targetUser.getId());
 
         List<ExpenseDTO> uncategorizedExpenses = categoryService.getOthersAndUncategorizedExpenses(targetUser);
 
@@ -377,8 +378,8 @@ public class CategoryController {
             @PathVariable Integer categoryId,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         log.debug("Getting filtered expenses for category: categoryId={}, userId={}",
                 categoryId, targetUser.getId());
@@ -402,8 +403,8 @@ public class CategoryController {
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         log.debug("Getting expenses for category: categoryId={}, userId={}, page={}, size={}",
                 categoryId, targetUser.getId(), page, size);
@@ -427,8 +428,8 @@ public class CategoryController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
 
-        User reqUser = validateUserFromJwt(jwt);
-        User targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = validateUserFromJwt(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
 
         log.debug("Searching categories: query={}, userId={}, limit={}", query, targetUser.getId(), limit);
 
@@ -472,7 +473,7 @@ public class CategoryController {
     }
 
     @GetMapping("/get-all-for-users")
-    @Operation(summary = "Internal: Get all categories for user", description = "Internal endpoint for inter-service communication")
+    @Operation(summary = "Internal: Get all categories for UserDTO", description = "Internal endpoint for inter-service communication")
     public List<CategoryDTO> getAllForUser(@RequestParam Integer userId) {
         List<Category> categories = categoryService.getAllForUser(userId);
         return categoryMapper.toResponseList(categories);

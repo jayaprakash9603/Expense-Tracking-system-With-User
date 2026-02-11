@@ -4,7 +4,7 @@ import com.jaya.common.dto.CategoryDTO;
 import com.jaya.common.dto.request.CreateCategoryRequest;
 import com.jaya.common.dto.request.UpdateCategoryRequest;
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface ICategoryService {
 
     List<Category> getAllForUser(Integer userId);
 
-    Category update(Integer id, UpdateCategoryRequest request, User user);
+    Category update(Integer id, UpdateCategoryRequest request, UserDTO UserDTO);
 
     String delete(Integer id, Integer userId);
 

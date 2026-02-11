@@ -1,8 +1,8 @@
 package com.jaya.util;
 
 import com.jaya.common.exception.ResourceNotFoundException;
-import com.jaya.models.User;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,17 +10,17 @@ import org.springframework.stereotype.Component;
 public class ServiceHelper {
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
-    public User validateUser(Integer userId) {
+    public UserDTO validateUser(Integer userId) {
         if (userId == null) {
             throw ResourceNotFoundException.userNotFound(0);
         }
-        User reqUser = userService.getUserProfileById(userId);
+        UserDTO reqUser = IUserServiceClient.getUserById(userId);
         if (reqUser == null) {
             throw ResourceNotFoundException.userNotFound(userId);
         }

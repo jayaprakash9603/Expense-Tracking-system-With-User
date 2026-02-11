@@ -7,7 +7,7 @@ import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.exceptions.BudgetNotFoundException;
 import com.jaya.models.Budget;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.BudgetRepository;
 import com.jaya.util.ServiceHelper;
 import jakarta.persistence.EntityManager;
@@ -56,7 +56,7 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
 
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
 
         budget = helper.validateBudget(budget, user.getId());
 

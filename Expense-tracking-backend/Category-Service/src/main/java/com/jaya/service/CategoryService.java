@@ -8,7 +8,7 @@ import com.jaya.common.error.ErrorCode;
 import com.jaya.common.dto.CategoryDTO;
 import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.CategoryRepository;
 import com.jaya.util.ServiceHelper;
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ public class CategoryService {
     }
 
     public Category create(Category category, Integer userId) {
-        User user = helper.validateUser(userId);
+        UserDTO UserDTO = helper.validateUser(userId);
         checkForDuplicateCategory(category.getName(), category.getType(), userId, category.isGlobal(), null);
         Category createCategory = new Category();
         if (category.isGlobal()) {
@@ -89,7 +89,7 @@ public class CategoryService {
         createCategory.setEditUserIds(new HashSet<>());
         Category initialSavedCategory = categoryRepository.save(createCategory);
         try {
-            categoryAsyncService.finalizeCategoryCreateAsync(initialSavedCategory, category, user);
+            categoryAsyncService.finalizeCategoryCreateAsync(initialSavedCategory, category, UserDTO);
         } catch (Exception e) {
             logger.warn("Failed to dispatch async finalize for category {}: {}", initialSavedCategory.getId(),
                     e.getMessage());
@@ -101,9 +101,9 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.categoryNotFound(id));
 
-        logger.debug("Checking access for user {} to category {}", userId, id);
+        logger.debug("Checking access for UserDTO {} to category {}", userId, id);
         if (category.getUserId() != null && category.getUserId().equals(userId)) {
-            logger.debug("User {} owns category {}", userId, id);
+            logger.debug("UserDTO {} owns category {}", userId, id);
             return category;
         }
         if (category.isGlobal()) {
@@ -112,18 +112,18 @@ public class CategoryService {
 
             logger.debug("Global category - inUserIds: {}, inEditUserIds: {}", inUserIds, inEditUserIds);
             if (!inUserIds && !inEditUserIds) {
-                logger.debug("User {} can access global category {}", userId, id);
+                logger.debug("UserDTO {} can access global category {}", userId, id);
                 return category;
             }
         }
 
-        logger.warn("Access denied for user {} to category {}", userId, id);
+        logger.warn("Access denied for UserDTO {} to category {}", userId, id);
         throw AccessDeniedException.forCategory(Long.valueOf(id));
     }
 
     public List<Category> getAll(Integer userId) {
-        User user = helper.validateUser(userId);
-        List<Category> userCategories = categoryRepository.findAllWithDetailsByUserId(user.getId());
+        UserDTO UserDTO = helper.validateUser(userId);
+        List<Category> userCategories = categoryRepository.findAllWithDetailsByUserId(UserDTO.getId());
         List<Category> globalCategories = categoryRepository.findAllGlobalWithDetails().stream()
                 .filter(category -> !category.getUserIds().contains(userId) &&
                         !category.getEditUserIds().contains(userId))
@@ -144,8 +144,8 @@ public class CategoryService {
         return false;
     }
 
-    public Category update(Integer id, Category category, User user) {
-        Integer userId = user.getId();
+    public Category update(Integer id, Category category, UserDTO UserDTO) {
+        Integer userId = UserDTO.getId();
         Category existing = categoryRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.categoryNotFound(id));
         if (existing.isGlobal() && isUserEdited(userId, id)) {
@@ -221,13 +221,13 @@ public class CategoryService {
         return categoryRepository.save(existing);
     }
 
-    public Category adminUpdateGlobalCategory(Integer id, Category category, User user) {
-        if (!user.hasAdminRole()) {
-            throw new AccessDeniedException(ErrorCode.AUTHZ_ROLE_REQUIRED, "User does not have ADMIN role");
+    public Category adminUpdateGlobalCategory(Integer id, Category category, UserDTO UserDTO) {
+        if (!UserDTO.hasAdminRole()) {
+            throw new AccessDeniedException(ErrorCode.AUTHZ_ROLE_REQUIRED, "UserDTO does not have ADMIN role");
         }
-        if (!user.isInAdminMode()) {
+        if (!UserDTO.isInAdminMode()) {
             throw new AccessDeniedException(ErrorCode.AUTHZ_INSUFFICIENT_PRIVILEGES,
-                    "User must be in ADMIN mode to edit global categories");
+                    "UserDTO must be in ADMIN mode to edit global categories");
         }
 
         Category existing = categoryRepository.findById(id)
@@ -241,7 +241,7 @@ public class CategoryService {
         String newType = category.getType() != null ? category.getType() : existing.getType();
         checkForDuplicateCategory(newName, newType, 0, true, id);
 
-        logger.info("Admin user {} updating global category: {} (ID: {})", user.getId(), existing.getName(),
+        logger.info("Admin UserDTO {} updating global category: {} (ID: {})", UserDTO.getId(), existing.getName(),
                 existing.getId());
         if (category.getName() != null) {
             existing.setName(category.getName());
@@ -440,10 +440,10 @@ public class CategoryService {
         }
     }
 
-    public String deleteGlobalCategoryById(Integer id, User user) {
-        Category existing = getById(id, user.getId());
-        if (existing != null && existing.isGlobal() && (!existing.getUserIds().contains(user.getId())
-                && !existing.getEditUserIds().contains(user.getId()))) {
+    public String deleteGlobalCategoryById(Integer id, UserDTO UserDTO) {
+        Category existing = getById(id, UserDTO.getId());
+        if (existing != null && existing.isGlobal() && (!existing.getUserIds().contains(UserDTO.getId())
+                && !existing.getEditUserIds().contains(UserDTO.getId()))) {
             categoryRepository.deleteById(id);
             return "Category is deleted";
         }
@@ -507,8 +507,8 @@ public class CategoryService {
         return createdCategories;
     }
 
-    public List<Category> updateMultiple(List<Category> categories, User user) {
-        Integer userId = user.getId();
+    public List<Category> updateMultiple(List<Category> categories, UserDTO UserDTO) {
+        Integer userId = UserDTO.getId();
         List<Category> updatedCategories = new ArrayList<>();
         Map<Integer, List<Category>> expenseToCategories = new HashMap<>();
         Map<Integer, Set<Integer>> previousExpenseIdsByCategory = new HashMap<>();
@@ -715,11 +715,11 @@ public class CategoryService {
             if (existing.isGlobal()) {
                 existing.getUserIds().add(userId);
                 categoryRepository.save(existing);
-                logger.info("Added user {} to userIds of global category {}", userId, id);
+                logger.info("Added UserDTO {} to userIds of global category {}", userId, id);
                 continue;
             }
             if (existing.getUserId() == null || !existing.getUserId().equals(userId)) {
-                logger.warn("Category {} does not belong to user {}", id, userId);
+                logger.warn("Category {} does not belong to UserDTO {}", id, userId);
                 continue;
             }
             if (existing.getExpenseIds() != null && existing.getExpenseIds().containsKey(userId)) {
@@ -784,7 +784,7 @@ public class CategoryService {
     }
 
     public void deleteAllGlobal(Integer userId, boolean global) {
-        logger.info("deleteAllGlobal called with user: {} and global: {}", userId, global);
+        logger.info("deleteAllGlobal called with UserDTO: {} and global: {}", userId, global);
 
         List<ExpenseDTO> expensesToReassign = new ArrayList<>();
 
@@ -813,13 +813,13 @@ public class CategoryService {
                 }
             }
 
-            logger.info("Added user {} to userIds of {} global categories",
+            logger.info("Added UserDTO {} to userIds of {} global categories",
                     userId, globalCategories.size());
             logger.info("Found {} expenses to reassign from global categories", expensesToReassign.size());
 
         } else {
             List<Category> userCategories = categoryRepository.findAllByUserId(userId);
-            logger.info("User-specific categories to delete: {}", userCategories.size());
+            logger.info("UserDTO-specific categories to delete: {}", userCategories.size());
             for (Category category : userCategories) {
                 if ("Others".equals(category.getName())) {
                     continue;
@@ -844,8 +844,8 @@ public class CategoryService {
                     .collect(Collectors.toList());
 
             categoryRepository.deleteAll(categoriesToDelete);
-            logger.info("Deleted {} user-specific categories", categoriesToDelete.size());
-            logger.info("Found {} expenses to reassign from user categories", expensesToReassign.size());
+            logger.info("Deleted {} UserDTO-specific categories", categoriesToDelete.size());
+            logger.info("Found {} expenses to reassign from UserDTO categories", expensesToReassign.size());
         }
         if (!expensesToReassign.isEmpty()) {
             Category othersCategory;
@@ -889,10 +889,10 @@ public class CategoryService {
     }
 
     public void deleteAllUserCategories(Integer userId) {
-        logger.info("Deleting all user categories for user ID: {}", userId);
+        logger.info("Deleting all UserDTO categories for UserDTO ID: {}", userId);
 
         List<Category> userCategories = getAll(userId);
-        logger.info("User categories to delete: {}", userCategories.size());
+        logger.info("UserDTO categories to delete: {}", userCategories.size());
         List<ExpenseDTO> allUserExpenses = new ArrayList<>();
         for (Category category : userCategories) {
             if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(userId)) {
@@ -910,7 +910,7 @@ public class CategoryService {
             }
         }
 
-        logger.info("Found {} expenses across all user categories", allUserExpenses.size());
+        logger.info("Found {} expenses across all UserDTO categories", allUserExpenses.size());
         List<Category> filteredCategories = new ArrayList<>();
         for (Category category : userCategories) {
             if (category.isGlobal()) {
@@ -919,13 +919,13 @@ public class CategoryService {
                 }
                 category.getUserIds().add(userId);
                 categoryRepository.save(category);
-                logger.info("Added user {} to userIds of global category {}", userId, category.getId());
+                logger.info("Added UserDTO {} to userIds of global category {}", userId, category.getId());
             } else {
                 filteredCategories.add(category);
             }
         }
         categoryRepository.deleteAll(filteredCategories);
-        logger.info("Deleted {} user-specific categories", filteredCategories.size());
+        logger.info("Deleted {} UserDTO-specific categories", filteredCategories.size());
         if (!allUserExpenses.isEmpty()) {
             Category newOthersCategory = new Category();
             newOthersCategory.setName("Others");
@@ -960,7 +960,7 @@ public class CategoryService {
     public List<Category> getByName(String name, Integer userId) {
         List<Category> categories = getAll(userId);
         if (categories.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.CATEGORY_NOT_FOUND, "No categories found for user");
+            throw new ResourceNotFoundException(ErrorCode.CATEGORY_NOT_FOUND, "No categories found for UserDTO");
         } else {
             logger.debug("Categories found with the name: {}", name);
             List<Category> foundCategories = categories.stream()
@@ -996,23 +996,23 @@ public class CategoryService {
         return userCategories;
     }
 
-    public List<ExpenseDTO> getOthersAndUncategorizedExpenses(User user) {
-        List<ExpenseDTO> allUserExpenses = expenseService.getAllExpenses(user.getId());
+    public List<ExpenseDTO> getOthersAndUncategorizedExpenses(UserDTO UserDTO) {
+        List<ExpenseDTO> allUserExpenses = expenseService.getAllExpenses(UserDTO.getId());
         List<Category> allCategories = categoryRepository.findAll();
         Category othersCategory = allCategories.stream()
                 .filter(cat -> "Others".equalsIgnoreCase(cat.getName()) &&
-                        ((cat.getUserId() != null && cat.getUserId().equals(user.getId())) || cat.isGlobal()))
+                        ((cat.getUserId() != null && cat.getUserId().equals(UserDTO.getId())) || cat.isGlobal()))
                 .findFirst().orElse(null);
 
         Set<Integer> othersExpenseIds = new HashSet<>();
         if (othersCategory != null && othersCategory.getExpenseIds() != null
-                && othersCategory.getExpenseIds().containsKey(user.getId())) {
-            othersExpenseIds.addAll(othersCategory.getExpenseIds().get(user.getId()));
+                && othersCategory.getExpenseIds().containsKey(UserDTO.getId())) {
+            othersExpenseIds.addAll(othersCategory.getExpenseIds().get(UserDTO.getId()));
         }
         Set<Integer> categorizedExpenseIds = new HashSet<>();
         for (Category category : allCategories) {
-            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(user.getId())) {
-                categorizedExpenseIds.addAll(category.getExpenseIds().get(user.getId()));
+            if (category.getExpenseIds() != null && category.getExpenseIds().containsKey(UserDTO.getId())) {
+                categorizedExpenseIds.addAll(category.getExpenseIds().get(UserDTO.getId()));
             }
         }
         return allUserExpenses.stream()
@@ -1207,7 +1207,7 @@ public class CategoryService {
             return Collections.emptyList();
         }
         String subsequencePattern = convertToSubsequencePattern(query.trim());
-        logger.debug("Searching categories for user {} with query '{}' (pattern: '{}') limit {}", userId, query,
+        logger.debug("Searching categories for UserDTO {} with query '{}' (pattern: '{}') limit {}", userId, query,
                 subsequencePattern, limit);
         List<CategoryDTO> results = categoryRepository.searchCategoriesFuzzyWithLimit(userId, subsequencePattern);
         return results.stream().limit(limit).collect(Collectors.toList());
