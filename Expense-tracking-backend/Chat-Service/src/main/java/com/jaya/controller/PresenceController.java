@@ -1,9 +1,9 @@
 package com.jaya.controller;
 
-import com.jaya.dto.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.PresenceService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +19,7 @@ public class PresenceController {
     private PresenceService presenceService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private FriendShipService friendshipService;
@@ -29,7 +29,7 @@ public class PresenceController {
             @PathVariable Integer userId,
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto currentUser = userService.getuserProfile(jwt);
+        UserDTO currentUser = userClient.getUserProfile(jwt);
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }
@@ -53,7 +53,7 @@ public class PresenceController {
     public ResponseEntity<Map<String, Object>> getFriendsPresence(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto currentUser = userService.getuserProfile(jwt);
+        UserDTO currentUser = userClient.getUserProfile(jwt);
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }
@@ -72,7 +72,7 @@ public class PresenceController {
             @RequestParam List<Integer> userIds,
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto currentUser = userService.getuserProfile(jwt);
+        UserDTO currentUser = userClient.getUserProfile(jwt);
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }
@@ -83,7 +83,7 @@ public class PresenceController {
 
     @PostMapping("/heartbeat")
     public ResponseEntity<Void> heartbeat(@RequestHeader("Authorization") String jwt) {
-        UserDto currentUser = userService.getuserProfile(jwt);
+        UserDTO currentUser = userClient.getUserProfile(jwt);
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }
@@ -94,7 +94,7 @@ public class PresenceController {
 
     @GetMapping("/online")
     public ResponseEntity<Set<Integer>> getOnlineUsers(@RequestHeader("Authorization") String jwt) {
-        UserDto currentUser = userService.getuserProfile(jwt);
+        UserDTO currentUser = userClient.getUserProfile(jwt);
         if (currentUser == null) {
             return ResponseEntity.status(401).build();
         }

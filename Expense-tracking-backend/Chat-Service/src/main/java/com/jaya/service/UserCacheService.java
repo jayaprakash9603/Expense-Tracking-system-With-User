@@ -1,6 +1,6 @@
 package com.jaya.service;
 
-import com.jaya.dto.UserDto;
+import com.jaya.common.dto.UserDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,27 +25,27 @@ public class UserCacheService {
     private static final int USER_CACHE_TTL_MINUTES = 5;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     // Thread-local cache for batch operations within a single request
-    private final ThreadLocal<Map<Integer, UserDto>> requestScopeCache = ThreadLocal.withInitial(ConcurrentHashMap::new);
+    private final ThreadLocal<Map<Integer, UserDTO>> requestScopeCache = ThreadLocal.withInitial(ConcurrentHashMap::new);
 
     /**
      * Get a user by ID, using cache first.
      * 
      * @param userId The user ID to fetch
-     * @return The UserDto or null if not found
+     * @return The UserDTO or null if not found
      */
-    public UserDto getUser(Integer userId) {
+    public UserDTO getUser(Integer userId) {
         if (userId == null) {
             return null;
         }
 
         // Check request-scope cache first
-        Map<Integer, UserDto> localCache = requestScopeCache.get();
+        Map<Integer, UserDTO> localCache = requestScopeCache.get();
         if (localCache.containsKey(userId)) {
             return localCache.get(userId);
         }
@@ -54,10 +54,10 @@ public class UserCacheService {
         String cacheKey = USER_CACHE_PREFIX + userId;
         try {
             Object cached = redisTemplate.opsForValue().get(cacheKey);
-            if (cached instanceof UserDto) {
-                UserDto userDto = (UserDto) cached;
-                localCache.put(userId, userDto);
-                return userDto;
+            if (cached instanceof UserDTO) {
+                UserDTO UserDTO = (UserDTO) cached;
+                localCache.put(userId, UserDTO);
+                return UserDTO;
             }
         } catch (Exception e) {
             logger.debug("Redis cache miss for user {}: {}", userId, e.getMessage());
@@ -65,7 +65,7 @@ public class UserCacheService {
 
         // Fetch from service
         try {
-            UserDto user = userService.getUserProfileById(userId);
+            UserDTO user = userClient.getUserProfileById(userId);
             if (user != null) {
                 cacheUser(userId, user);
                 localCache.put(userId, user);
@@ -89,7 +89,7 @@ public class UserCacheService {
             return;
         }
 
-        Map<Integer, UserDto> localCache = requestScopeCache.get();
+        Map<Integer, UserDTO> localCache = requestScopeCache.get();
         Set<Integer> toFetch = new HashSet<>();
 
         // Find which users we need to fetch
@@ -99,8 +99,8 @@ public class UserCacheService {
                 String cacheKey = USER_CACHE_PREFIX + userId;
                 try {
                     Object cached = redisTemplate.opsForValue().get(cacheKey);
-                    if (cached instanceof UserDto) {
-                        localCache.put(userId, (UserDto) cached);
+                    if (cached instanceof UserDTO) {
+                        localCache.put(userId, (UserDTO) cached);
                         continue;
                     }
                 } catch (Exception e) {
@@ -119,7 +119,7 @@ public class UserCacheService {
         List<CompletableFuture<Void>> futures = toFetch.stream()
                 .map(userId -> CompletableFuture.runAsync(() -> {
                     try {
-                        UserDto user = userService.getUserProfileById(userId);
+                        UserDTO user = userClient.getUserProfileById(userId);
                         if (user != null) {
                             cacheUser(userId, user);
                             localCache.put(userId, user);
@@ -173,7 +173,7 @@ public class UserCacheService {
     /**
      * Cache a user in Redis.
      */
-    private void cacheUser(Integer userId, UserDto user) {
+    private void cacheUser(Integer userId, UserDTO user) {
         String cacheKey = USER_CACHE_PREFIX + userId;
         try {
             redisTemplate.opsForValue().set(cacheKey, user, USER_CACHE_TTL_MINUTES, TimeUnit.MINUTES);

@@ -3,11 +3,11 @@ package com.jaya.controller;
 import com.jaya.dto.BulkDeleteRequest;
 import com.jaya.dto.ChatRequest;
 import com.jaya.dto.ChatResponse;
-import com.jaya.dto.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.exception.ChatServiceException;
 import com.jaya.service.ChatService;
 import com.jaya.service.PresenceService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -26,7 +26,7 @@ public class ChatController {
     private ChatService chatService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private PresenceService presenceService;
@@ -34,41 +34,41 @@ public class ChatController {
     @PostMapping("/one-to-one")
     public ChatResponse sendOneToOneChat(@Valid @RequestBody ChatRequest request,
             @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.sendOneToOneChat(request, user.getId());
     }
 
     @PostMapping("/group")
     public ChatResponse sendGroupChat(@Valid @RequestBody ChatRequest request,
             @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.sendGroupChat(request, user.getId());
 
     }
 
     @GetMapping("/user")
     public List<ChatResponse> getChatsForUser(@RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getChatsForUser(user.getId());
     }
 
     @GetMapping("/group/{groupId}")
     public List<ChatResponse> getChatsForGroup(@PathVariable Integer groupId,
             @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getChatsForGroup(groupId, user.getId());
     }
 
     @GetMapping("")
     public List<ChatResponse> getChatsBySender(@RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getChatsBySender(user.getId());
     }
 
     @GetMapping("/between")
     public ResponseEntity<?> getChatsBetweenUsers(
             @RequestHeader("Authorization") String jwt, @RequestParam String userId2) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         if (userId2 == null || userId2.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("userId2 is required");
         }
@@ -84,21 +84,21 @@ public class ChatController {
     @GetMapping("/user/search")
     public List<ChatResponse> searchChatsForUser(
             @RequestParam String keyword, @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.searchChatsForUser(user.getId(), keyword);
     }
 
     @GetMapping("/group/{groupId}/search")
     public List<ChatResponse> searchChatsForGroup(
             @PathVariable Integer groupId, @RequestParam String keyword, @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.searchChatsForGroup(groupId, keyword, user.getId());
     }
 
     @PutMapping("/{chatId}/read")
     public ChatResponse markChatAsRead(@PathVariable Integer chatId, @RequestHeader("Authorization") String jwt)
             throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.markChatAsRead(chatId, user.getId());
     }
 
@@ -107,7 +107,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -157,27 +157,27 @@ public class ChatController {
 
     @GetMapping("/user/unread")
     public List<ChatResponse> getUnreadChatsForUser(@RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getUnreadChatsForUser(user.getId());
     }
 
     @GetMapping("/group/{groupId}/unread")
     public List<ChatResponse> getUnreadChatsForGroup(@PathVariable Integer groupId,
             @RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getUnreadChatsForGroup(groupId, user.getId());
     }
 
     @DeleteMapping("/bulk")
     public void deleteChats(@Valid @RequestBody BulkDeleteRequest request, @RequestHeader("Authorization") String jwt)
             throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         chatService.deleteChats(request.getChatIds(), user.getId());
     }
 
     @DeleteMapping("/{id}")
     public void deleteChat(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         chatService.deleteChat(id, user.getId());
     }
 
@@ -187,7 +187,7 @@ public class ChatController {
             @RequestBody Map<String, String> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -213,7 +213,7 @@ public class ChatController {
             @RequestBody Map<String, String> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -239,7 +239,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -264,7 +264,7 @@ public class ChatController {
             @RequestParam(defaultValue = "20") int size,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -286,7 +286,7 @@ public class ChatController {
             @RequestParam(defaultValue = "20") int size,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -305,7 +305,7 @@ public class ChatController {
     @GetMapping("/statistics")
     public ResponseEntity<?> getChatStatistics(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -324,7 +324,7 @@ public class ChatController {
             @RequestBody Map<String, String> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -350,7 +350,7 @@ public class ChatController {
             @RequestBody Map<String, String> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -375,7 +375,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -404,7 +404,7 @@ public class ChatController {
     @GetMapping("/unread/count")
     public ResponseEntity<?> getUnreadMessageCount(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -422,7 +422,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -443,7 +443,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -462,7 +462,7 @@ public class ChatController {
     @GetMapping("/conversations")
     public ResponseEntity<?> getConversationsList(@RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
@@ -480,7 +480,7 @@ public class ChatController {
             @RequestBody Map<String, Object> request,
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }

@@ -2,7 +2,7 @@ package com.jaya.service;
 
 import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.PaymentMethodRepository;
 import com.jaya.util.ServiceHelper;
 import jakarta.persistence.EntityNotFoundException;
@@ -169,7 +169,7 @@ public class PaymentMethodImpl implements PaymentMethodService {
     public PaymentMethod updatePaymentMethod(Integer userId, Integer id, PaymentMethod paymentMethod) throws Exception {
         PaymentMethod existingPaymentMethod = paymentMethodRepository.findById(id)
                 .orElseThrow(() -> new Exception("Payment method not found with ID " + id));
-        UserDto userOpt = helper.validateUser(userId);
+        UserDTO userOpt = helper.validateUser(userId);
         if (userOpt == null && !existingPaymentMethod.isGlobal()) {
             throw new EntityNotFoundException("User with ID " + userId + " not found");
         }

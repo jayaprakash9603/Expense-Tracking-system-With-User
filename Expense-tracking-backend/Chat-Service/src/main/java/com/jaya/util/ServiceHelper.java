@@ -1,7 +1,7 @@
 package com.jaya.util;
 
-import com.jaya.dto.UserDto;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ServiceHelper {
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -23,8 +23,8 @@ public class ServiceHelper {
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
-    public UserDto validateUser(Integer userId) throws Exception {
-        UserDto reqUser = userService.getUserProfileById(userId);
+    public UserDTO validateUser(Integer userId) throws Exception {
+        UserDTO reqUser = userClient.getUserProfileById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }
@@ -286,18 +286,18 @@ public class ServiceHelper {
 
     public boolean userExists(Integer userId) {
         try {
-            UserDto user = userService.getUserProfileById(userId);
+            UserDTO user = userClient.getUserProfileById(userId);
             return user != null;
         } catch (Exception e) {
             return false;
         }
     }
 
-    public Map<Integer, UserDto> getMultipleUsers(List<Integer> userIds) {
-        Map<Integer, UserDto> users = new HashMap<>();
+    public Map<Integer, UserDTO> getMultipleUsers(List<Integer> userIds) {
+        Map<Integer, UserDTO> users = new HashMap<>();
         for (Integer userId : userIds) {
             try {
-                UserDto user = userService.getUserProfileById(userId);
+                UserDTO user = userClient.getUserProfileById(userId);
                 if (user != null) {
                     users.put(userId, user);
                 }

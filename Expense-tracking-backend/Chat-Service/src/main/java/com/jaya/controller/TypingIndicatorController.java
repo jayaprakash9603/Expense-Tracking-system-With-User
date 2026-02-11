@@ -1,8 +1,8 @@
 package com.jaya.controller;
 
 import com.jaya.config.ChatWebSocketConfig;
-import com.jaya.dto.UserDto;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -21,7 +21,7 @@ public class TypingIndicatorController {
     private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private ChatWebSocketConfig webSocketConfig;
@@ -107,7 +107,7 @@ public class TypingIndicatorController {
 
         if (jwt != null) {
             try {
-                UserDto user = userService.getuserProfile(jwt);
+                UserDTO user = userClient.getUserProfile(jwt);
                 return user != null ? user.getId() : null;
             } catch (Exception e) {
                 return null;

@@ -1,7 +1,7 @@
 package com.jaya.util;
 
-import com.jaya.models.UserDto;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ public class ServiceHelper {
 
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
 
     public static final String DEFAULT_TYPE = "loss";
@@ -23,9 +23,9 @@ public class ServiceHelper {
     public static final String DEFAULT_COMMENT = "";
 
 
-    public UserDto validateUser(Integer userId) throws Exception {
+    public UserDTO validateUser(Integer userId) throws Exception {
 
-        UserDto reqUser=userService.getUserProfileById(userId);
+        UserDTO reqUser=userClient.getUserProfileById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("User ID cannot be null");
         }

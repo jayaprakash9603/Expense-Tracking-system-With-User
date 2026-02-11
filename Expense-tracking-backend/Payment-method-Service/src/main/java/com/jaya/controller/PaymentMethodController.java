@@ -3,10 +3,10 @@ package com.jaya.controller;
 import com.jaya.dto.ErrorDetails;
 import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.FriendShipService;
 import com.jaya.service.PaymentMethodService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,17 +22,17 @@ public class PaymentMethodController {
     @Autowired
     private PaymentMethodService paymentMethodService;
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
     @Autowired
     private FriendShipService friendshipService;
     @Autowired
     private UnifiedActivityService unifiedActivityService;
 
-    private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
+    private UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean needWriteAccess)
             throws Exception {
         if (targetId == null)
             return reqUser;
-        UserDto targetUser = userService.getUserProfileById(targetId);
+        UserDTO targetUser = userClient.getUserProfileById(targetId);
         if (targetUser == null)
             throw new RuntimeException("Target user not found");
         boolean hasAccess = needWriteAccess ? friendshipService.canUserModifyExpenses(targetId, reqUser.getId())
@@ -60,10 +60,10 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
             return ResponseEntity.ok(pm);
         } catch (RuntimeException e) {
@@ -79,10 +79,10 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             List<PaymentMethod> list = paymentMethodService.getAllPaymentMethods(targetUser.getId());
             return ResponseEntity.ok(list);
         } catch (RuntimeException e) {
@@ -107,10 +107,10 @@ public class PaymentMethodController {
             @RequestParam String name,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             PaymentMethod paymentMethod = paymentMethodService.getByName(targetUser.getId(), name);
             return ResponseEntity.ok(paymentMethod);
         } catch (RuntimeException e) {
@@ -167,10 +167,10 @@ public class PaymentMethodController {
             @RequestBody PaymentMethod paymentMethod,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
 
             
@@ -193,10 +193,10 @@ public class PaymentMethodController {
             @RequestBody PaymentMethod paymentMethod,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
             
             PaymentMethod oldPaymentMethod = paymentMethodService.getById(targetUser.getId(), id);
@@ -221,10 +221,10 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             
             PaymentMethod pm = paymentMethodService.getById(targetUser.getId(), id);
             String pmName = pm != null ? pm.getName() : null;
@@ -250,10 +250,10 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null)
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             
             int count = paymentMethodService.getAllPaymentMethods(targetUser.getId()).size();
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
@@ -276,11 +276,11 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             List<PaymentMethod> unusedMethods = paymentMethodService
                     .getOthersAndUnusedPaymentMethods(targetUser.getId());
             return ResponseEntity.ok(unusedMethods);
@@ -305,11 +305,11 @@ public class PaymentMethodController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
+            UserDTO reqUser = userClient.getUserProfile(jwt);
             if (reqUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
             }
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
             List<PaymentMethodSearchDTO> paymentMethods = paymentMethodService.searchPaymentMethods(targetUser.getId(),
                     query,
                     limit);

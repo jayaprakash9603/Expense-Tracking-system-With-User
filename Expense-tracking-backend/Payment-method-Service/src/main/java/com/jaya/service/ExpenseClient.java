@@ -2,7 +2,7 @@
 package com.jaya.service;
 
 import com.jaya.dto.ExpenseDTO;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
