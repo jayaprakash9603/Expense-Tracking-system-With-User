@@ -1,6 +1,7 @@
 package com.jaya.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +13,11 @@ import java.util.Properties;
 
 /**
  * Shared mail configuration for both microservices and monolithic mode.
+ * Only loaded when jakarta.mail is on the classpath.
  * Individual services can still override by providing their own JavaMailSender bean.
  */
 @Configuration
+@ConditionalOnClass(name = "jakarta.mail.MessagingException")
 public class SharedMailConfig {
 
     @Value("${spring.mail.host:smtp.gmail.com}")

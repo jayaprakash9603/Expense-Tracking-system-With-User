@@ -12,7 +12,8 @@ import com.jaya.common.dto.UserDTO;
 public interface ExpenseChatRepository extends JpaRepository<ExpenseChat, Integer>{
 
 	
-	public List<ExpenseChat> findByUsersId(Integer userId);
+	@Query("select c from ExpenseChat c where :userId member of c.userIds")
+	public List<ExpenseChat> findByUsersId(@Param("userId") Integer userId);
 	
 	@Query("select c from ExpenseChat c Where :userId Member of c.userIds And :reqUserId Member of c.userIds")
 	public ExpenseChat findChatByUsersId(@Param("userId") Integer userId, @Param("reqUserId") Integer reqUserId);
