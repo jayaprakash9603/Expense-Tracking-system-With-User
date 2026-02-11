@@ -25,43 +25,27 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAsync
 @EnableScheduling
 @EnableFeignClients(basePackages = {
-        "com.jaya.service",
-        "com.jaya.task.user.service.service"
+                "com.jaya.service",
+                "com.jaya.service.client",
+                "com.jaya.common.service.client.feign",
+                "com.jaya.task.user.service.service"
 })
 @ComponentScan(basePackages = {
-        "com.jaya.monolith",
-        // User Service (different package structure)
-        "com.jaya.task.user.service",
-        // All other services use com.jaya package
-        "com.jaya.config",
-        "com.jaya.controller",
-        "com.jaya.service",
-        "com.jaya.repository",
-        "com.jaya.kafka",
-        "com.jaya.dto",
-        "com.jaya.util",
-        "com.jaya.mapper",
-        "com.jaya.exception",
-        "com.jaya.aspects",
-        "com.jaya.async",
-        "com.jaya.builder",
-        "com.jaya.Initiator",
-        "com.jaya.scheduler",
-        // Common library
-        "com.jaya.common"
+                "com.jaya",
+                "com.jaya.task.user.service"
 }, excludeFilters = {
-        @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
 })
 @EntityScan(basePackages = {
-        "com.jaya"
+                "com.jaya"
 })
 @EnableJpaRepositories(basePackages = {
-        "com.jaya"
+                "com.jaya"
 })
 public class MonolithicApplication {
 
-    public static void main(String[] args) {
-        System.setProperty("spring.profiles.active", "monolithic");
-        SpringApplication.run(MonolithicApplication.class, args);
-    }
+        public static void main(String[] args) {
+                System.setProperty("spring.profiles.active", "monolithic");
+                SpringApplication.run(MonolithicApplication.class, args);
+        }
 }

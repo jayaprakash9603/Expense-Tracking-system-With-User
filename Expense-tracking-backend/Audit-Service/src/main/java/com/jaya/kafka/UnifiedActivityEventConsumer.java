@@ -67,7 +67,6 @@ public class UnifiedActivityEventConsumer {
     @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${audit.kafka.consumer.batch-group-id:audit-service-unified-batch-group}", containerFactory = "auditBatchKafkaListenerContainerFactory")
     public void consumeUnifiedEventsBatch(
             List<Object> payloads,
-            @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
             Acknowledgment acknowledgment) {
 
         if (payloads == null || payloads.isEmpty()) {

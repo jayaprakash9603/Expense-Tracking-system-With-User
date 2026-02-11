@@ -56,11 +56,22 @@ public class LocalUserServiceClient implements IUserServiceClient {
 
     @Override
     public UserDTO getUserProfile(String jwt) {
-        log.debug("LocalUserServiceClient: Getting user profile");
-        // In monolithic mode, extract user from JWT directly
-        // The actual implementation would call the local service
-        throw new UnsupportedOperationException(
-            "getUserProfile by JWT not implemented in local mode. Use getUserById instead.");
+        log.debug("LocalUserServiceClient: Getting user profile from JWT");
+        // In monolithic mode, the JwtTokenValidator has already set the email
+        // in the SecurityContext, so we can resolve the user from there
+        try {
+            org.springframework.security.core.Authentication auth =
+                    org.springframework.security.core.context.SecurityContextHolder
+                            .getContext().getAuthentication();
+            if (auth != null && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+                String email = auth.getName();
+                log.debug("LocalUserServiceClient: Resolved email from SecurityContext: {}", email);
+                return findUserByEmail(email);
+            }
+        } catch (Exception e) {
+            log.warn("Could not get user from SecurityContext", e);
+        }
+        throw new RuntimeException("Unable to resolve user profile in monolithic mode - no authenticated user found");
     }
 
     @Override

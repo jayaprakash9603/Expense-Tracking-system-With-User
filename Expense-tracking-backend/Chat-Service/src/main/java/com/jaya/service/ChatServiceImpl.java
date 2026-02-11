@@ -6,6 +6,7 @@ import com.jaya.common.dto.UserDTO;
 import com.jaya.exception.ChatServiceException;
 import com.jaya.models.Chat;
 import com.jaya.repository.ChatRepository;
+import com.jaya.service.client.GroupService;
 import com.jaya.util.ServiceHelper;
 import feign.FeignException;
 

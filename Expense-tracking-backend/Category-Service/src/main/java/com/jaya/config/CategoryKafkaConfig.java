@@ -33,6 +33,12 @@ public class CategoryKafkaConfig {
 
     @Value("${spring.kafka.consumer.group-id:category-service-group}")
     private String groupId;
+
+    @Value("${app.kafka.category.concurrency:4}")
+    private int concurrency;
+
+    @Value("${spring.kafka.consumer.max-poll-records:500}")
+    private int maxPollRecords;
     @Bean
     public ProducerFactory<String, String> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
@@ -99,6 +105,19 @@ public class CategoryKafkaConfig {
 
         return factory;
     }
+    @Bean(name = "categoryBatchFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, String> categoryBatchFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.setBatchListener(true);
+        factory.setConcurrency(concurrency);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.BATCH);
+        factory.getContainerProperties().getKafkaConsumerProperties()
+                .put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, String.valueOf(maxPollRecords));
+        return factory;
+    }
+
     @Bean
     @Primary
     public ObjectMapper objectMapper() {

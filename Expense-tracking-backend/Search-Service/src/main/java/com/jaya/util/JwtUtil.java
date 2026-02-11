@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 
 
 
-@Component
+@Component("searchServiceJwtUtil")
 public class JwtUtil {
 
     private final SecretKey key;

@@ -1,5 +1,6 @@
 package com.jaya.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.models.PaymentMethod;
 import com.jaya.repository.PaymentMethodRepository;
@@ -26,13 +27,30 @@ public class PaymentMethodKafkaConsumerService {
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @KafkaListener(
             topics = "payment-method-events",
             groupId = "payment-method-group",
             containerFactory = "objectKafkaListenerContainerFactory"
     )
     @Transactional
-    public void handlePaymentMethodEvent(PaymentMethodEvent event) {
+    public void handlePaymentMethodEvent(Object payload) {
+        try {
+            PaymentMethodEvent event;
+            if (payload instanceof PaymentMethodEvent) {
+                event = (PaymentMethodEvent) payload;
+            } else {
+                event = objectMapper.convertValue(payload, PaymentMethodEvent.class);
+            }
+            processPaymentMethodEvent(event);
+        } catch (Exception e) {
+            logger.error("Error processing payment method event: {}", e.getMessage(), e);
+        }
+    }
+
+    private void processPaymentMethodEvent(PaymentMethodEvent event) {
         try {
             logger.info("Received payment method event for user: {} and payment method: {}",
                     event.getUserId(), event.getPaymentMethodName());
@@ -54,6 +72,7 @@ public class PaymentMethodKafkaConsumerService {
             logger.error("Error processing payment method event: {}", e.getMessage(), e);
         }
     }
+
 
     private void handleCreatePaymentMethod(PaymentMethodEvent event) {
         PaymentMethod paymentMethod = paymentMethodService.getAllPaymentMethods(event.getUserId())
