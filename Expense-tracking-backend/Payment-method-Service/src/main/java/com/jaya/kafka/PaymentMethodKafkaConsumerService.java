@@ -41,10 +41,10 @@ public class PaymentMethodKafkaConsumerService {
         try {
             PaymentMethodEvent event;
 
-            // In monolithic mode, the shared container factory may wrap the value in a ConsumerRecord
+            // In monolithic mode, the shared container factory may wrap (or double-wrap) the value in ConsumerRecord
             Object actualPayload = payload;
-            if (payload instanceof ConsumerRecord) {
-                actualPayload = ((ConsumerRecord<?, ?>) payload).value();
+            while (actualPayload instanceof ConsumerRecord) {
+                actualPayload = ((ConsumerRecord<?, ?>) actualPayload).value();
                 logger.debug("Unwrapped ConsumerRecord, actual payload type: {}",
                         actualPayload != null ? actualPayload.getClass().getSimpleName() : "null");
             }

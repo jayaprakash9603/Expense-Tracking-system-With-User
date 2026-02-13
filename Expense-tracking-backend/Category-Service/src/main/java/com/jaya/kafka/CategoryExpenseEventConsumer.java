@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.events.CategoryExpenseEvent;
 import com.jaya.models.Category;
 import com.jaya.repository.CategoryRepository;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 public class CategoryExpenseEventConsumer {
@@ -24,14 +27,29 @@ public class CategoryExpenseEventConsumer {
     @KafkaListener(topics = "category-expense-events", groupId = "category-expense-group",
             containerFactory = "categoryBatchFactory")
     @Transactional
-    public void handleCategoryExpenseEvents(java.util.List<String> eventsJson) {
-        if (eventsJson == null || eventsJson.isEmpty()) return;
-    java.util.List<CategoryExpenseEvent> parsed = new java.util.ArrayList<>(eventsJson.size());
+    public void handleCategoryExpenseEvents(java.util.List<Object> eventsRaw) {
+        if (eventsRaw == null || eventsRaw.isEmpty()) return;
+    java.util.List<CategoryExpenseEvent> parsed = new java.util.ArrayList<>(eventsRaw.size());
     java.util.Set<Integer> impactedCategoryIds = new java.util.HashSet<>();
 
-        for (String eventJson : eventsJson) {
+        for (Object rawPayload : eventsRaw) {
             try {
-                CategoryExpenseEvent event = objectMapper.readValue(eventJson, CategoryExpenseEvent.class);
+                // Unwrap ConsumerRecord if needed (monolithic mode)
+                Object actualPayload = rawPayload;
+                while (actualPayload instanceof ConsumerRecord) {
+                    actualPayload = ((ConsumerRecord<?, ?>) actualPayload).value();
+                }
+
+                CategoryExpenseEvent event;
+                if (actualPayload instanceof CategoryExpenseEvent) {
+                    event = (CategoryExpenseEvent) actualPayload;
+                } else if (actualPayload instanceof String) {
+                    event = objectMapper.readValue((String) actualPayload, CategoryExpenseEvent.class);
+                } else if (actualPayload instanceof Map) {
+                    event = objectMapper.convertValue(actualPayload, CategoryExpenseEvent.class);
+                } else {
+                    event = objectMapper.convertValue(actualPayload, CategoryExpenseEvent.class);
+                }
                 String action = event.getAction() == null ? "" : event.getAction().toUpperCase();
                 int categoryId = event.getCategoryId();
                 if (!"ADD".equals(action) && !"REMOVE".equals(action) && !"UPDATE".equals(action)) {
@@ -41,7 +59,7 @@ public class CategoryExpenseEventConsumer {
                 parsed.add(normalized);
                 impactedCategoryIds.add(categoryId);
             } catch (Exception e) {
-                logger.error("Error parsing category expense event in batch: {}", eventJson, e);
+                logger.error("Error parsing category expense event in batch: {}", rawPayload, e);
             }
         }
         if (impactedCategoryIds.isEmpty()) return;
@@ -83,7 +101,7 @@ public class CategoryExpenseEventConsumer {
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 categoryRepository.saveAll(byId.values());
-                logger.info("Batch-processed {} category events across {} categories (ordered)", eventsJson.size(), byId.size());
+                logger.info("Batch-processed {} category events across {} categories (ordered)", eventsRaw.size(), byId.size());
                 break;
             } catch (org.springframework.dao.OptimisticLockingFailureException olfe) {
                 if (attempt == maxRetries) {
