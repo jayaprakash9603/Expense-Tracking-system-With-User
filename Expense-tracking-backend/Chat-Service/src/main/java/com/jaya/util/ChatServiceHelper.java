@@ -10,8 +10,9 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Component
-public class ServiceHelper {
+/** Chat-service-specific helper; unique name to avoid conflict in monolithic mode. */
+@Component("chatServiceHelper")
+public class ChatServiceHelper {
 
     @Autowired
     private IUserServiceClient userClient;

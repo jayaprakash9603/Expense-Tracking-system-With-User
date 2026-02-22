@@ -2,7 +2,7 @@ package com.jaya.service;
 
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ExpenseValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +27,7 @@ public class ExpenseServiceHelper {
 
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
 
     

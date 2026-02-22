@@ -14,6 +14,10 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
+  # Use in-memory cache so @Cacheable("userSettings") etc. work (no Redis cache required)
+  cache:
+    type: simple
+
   # Single consolidated database (port 5000 matches docker-compose)
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true}
@@ -53,7 +57,8 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"
+        # Restrict to application packages (security)
+        spring.json.trusted.packages: "com.jaya.*"
 
   # Redis for caching (optional)
   data:
@@ -81,8 +86,9 @@ google:
   oauth2:
     client-id: ${GOOGLE_OAUTH_CLIENT_ID:214438901958-uigakv87vusc9veirq3l5ocfpfr1do3a.apps.googleusercontent.com}
 
-# Kafka Topics
+# Kafka Topics (aligned with microservices; same names for producers/consumers)
 kafka:
+  enabled: true
   bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   consumer:
     group-id: monolith-consumer-group
@@ -91,15 +97,17 @@ kafka:
     budget-events: budget-events
     bill-events: bill-events
     category-events: category-events
+    category-expense-events: category-expense-events
     payment-method-events: payment-method-events
     friendship-events: friendship-events
     friend-activity-events: friend-activity-events
+    friend-request-events: friend-request-events
     unified-activity-events: unified-activity-events
     audit-events: audit-events
     story-creation-events: story-creation-events
     notification-events: notification-events
     expense-budget-linking-events: expense-budget-linking-events
-
+    expense-BudgetModel-linking-events: expense-BudgetModel-linking-events
 # Disable Eureka in monolithic mode
 eureka:
   client:
@@ -118,6 +126,13 @@ expense:
 budget:
   service:
     url: http://localhost:${server.port}
+# Expense-Service Feign client uses this exact key (BudgetServices.java); Expense-Service producer uses BudgetModel.expense.kafka.topic
+BudgetModel:
+  service:
+    url: http://localhost:${server.port}
+  expense:
+    kafka:
+      topic: BudgetModel-expense-events
 category:
   service:
     url: http://localhost:${server.port}
@@ -136,9 +151,15 @@ notification:
 chat:
   service:
     url: http://localhost:${server.port}
+# Audit-Service: service URL and kafka config (single audit key)
 audit:
   service:
     url: http://localhost:${server.port}
+  kafka:
+    topic: audit-events
+    consumer:
+      group-id: audit-service-group
+      batch-group-id: audit-service-unified-batch-group
 analytics:
   service:
     url: http://localhost:${server.port}
@@ -163,6 +184,8 @@ FRIENDSHIP_SERVICE_URL: http://localhost:${server.port}
 NOTIFICATION_SERVICE_URL: http://localhost:${server.port}
 GROUP_SERVICE_URL: http://localhost:${server.port}
 ANALYTICS_USER_SERVICE_URL: http://localhost:${server.port}
+# Notification-Service TaskService Feign client; point to self if task endpoints exist in monolith
+TASK_SERVICE_URL: http://localhost:${server.port}
 
 # JWT Configuration
 jwt:

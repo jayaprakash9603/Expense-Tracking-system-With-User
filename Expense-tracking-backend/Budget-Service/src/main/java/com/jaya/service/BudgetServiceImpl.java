@@ -9,7 +9,7 @@ import com.jaya.exceptions.BudgetNotFoundException;
 import com.jaya.models.Budget;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.BudgetRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.BudgetServiceHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
@@ -41,7 +41,7 @@ public class BudgetServiceImpl implements BudgetService {
     private EntityManager entityManager;
 
     @Autowired
-    private ServiceHelper helper;
+    private BudgetServiceHelper helper;
 
     @Autowired
     @Lazy

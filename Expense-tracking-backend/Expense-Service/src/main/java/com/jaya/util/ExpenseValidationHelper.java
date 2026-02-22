@@ -6,31 +6,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Expense-service-specific validation helper. Named to avoid conflict with com.jaya.util.ServiceHelper
+ * from other services in monolithic mode.
+ */
 @Slf4j
-@Component
-public class ServiceHelper {
-
+@Component("expenseValidationHelper")
+public class ExpenseValidationHelper {
 
     @Autowired
     private IUserServiceClient IUserServiceClient;
-
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
     public static final String DEFAULT_COMMENT = "";
 
     public UserDTO validateUser(Integer userId) throws Exception {
-
         UserDTO reqUser = IUserServiceClient.getUserById(userId);
         if (reqUser == null) {
             throw new IllegalArgumentException("UserDTO ID cannot be null");
         }
         return reqUser;
     }
-
-
-
-
-
 }

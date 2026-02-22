@@ -7,7 +7,7 @@ import com.jaya.models.Bill;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.BillRepository;
 import com.jaya.util.BulkProgressTracker;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.BillServiceHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +29,7 @@ public class BillServiceImpl implements BillService {
 
     private final ExpenseClient expenseService;
 
-    private final ServiceHelper helper;
+    private final BillServiceHelper helper;
 
     private final BulkProgressTracker progressTracker;
 

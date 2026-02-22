@@ -7,7 +7,7 @@ import com.jaya.exception.ChatServiceException;
 import com.jaya.models.Chat;
 import com.jaya.repository.ChatRepository;
 import com.jaya.service.client.GroupService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ChatServiceHelper;
 import feign.FeignException;
 
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatRepository chatRepository;
 
     @Autowired
-    private ServiceHelper helper;
+    private ChatServiceHelper helper;
 
     @Autowired
     private GroupService groupService;

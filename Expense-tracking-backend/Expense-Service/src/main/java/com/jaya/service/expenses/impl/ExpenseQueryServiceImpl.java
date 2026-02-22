@@ -11,7 +11,7 @@ import com.jaya.service.BudgetServices;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.service.expenses.ExpenseQueryService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ExpenseValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -59,7 +59,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     private ExpenseMapper expenseMapper;
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
     public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository,
             ExpenseReportRepository expenseReportRepository) {

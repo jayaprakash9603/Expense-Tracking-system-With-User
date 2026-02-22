@@ -20,7 +20,7 @@ import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import com.jaya.service.expenses.ExpenseCoreService;
 import com.jaya.util.JsonConverter;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ExpenseValidationHelper;
 import com.jaya.util.BulkProgressTracker;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -62,7 +62,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private static final Logger logger = (Logger) LoggerFactory.getLogger(ExpenseCoreServiceImpl.class);
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
     @Autowired
     private CacheManager cacheManager;

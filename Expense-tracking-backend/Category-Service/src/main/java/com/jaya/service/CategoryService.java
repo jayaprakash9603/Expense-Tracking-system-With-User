@@ -10,7 +10,7 @@ import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.CategoryRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.CategoryServiceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ public class CategoryService {
     private ExpenseClient expenseService;
 
     @Autowired
-    private ServiceHelper helper;
+    private CategoryServiceHelper helper;
 
     private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
 

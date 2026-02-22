@@ -21,9 +21,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Component
+/**
+ * Budget-service-specific helper. Named BudgetServiceHelper to avoid
+ * conflict with com.jaya.util.ServiceHelper from other services in monolithic mode.
+ */
+@Component("budgetServiceHelper")
 @Slf4j
-public class ServiceHelper {
+public class BudgetServiceHelper {
 
     @Autowired
     private IUserServiceClient userService;

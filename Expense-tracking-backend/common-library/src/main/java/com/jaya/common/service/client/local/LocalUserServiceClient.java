@@ -38,17 +38,59 @@ public class LocalUserServiceClient implements IUserServiceClient {
      */
     private Object getUserService() {
         if (userService == null) {
-            try {
-                // Try to get UserService from user-service module
-                userService = applicationContext.getBean("userServiceImpl");
-            } catch (Exception e) {
-                log.warn("Could not find userServiceImpl, trying UserService class", e);
+            // Try several plausible bean names first (matches common naming conventions)
+            String[] candidateNames = new String[] {
+                "userServiceImpl",
+                "userServiceImplementation",
+                "customUserServiceImplementation",
+                "userService"
+            };
+
+            for (String name : candidateNames) {
                 try {
-                    userService = applicationContext.getBean(
-                        Class.forName("com.jaya.task.user.service.service.UserService"));
-                } catch (ClassNotFoundException ex) {
-                    log.error("UserService class not found", ex);
-                    throw new RuntimeException("UserService not available in monolithic mode", ex);
+                    userService = applicationContext.getBean(name);
+                    log.debug("Resolved UserService bean by name: {}", name);
+                    break;
+                } catch (Exception ignored) {
+                    // Try next candidate
+                }
+            }
+
+            // Fall back to type-based lookup: try to resolve by the UserService interface class
+            if (userService == null) {
+                try {
+                    Class<?> userServiceClass = Class.forName("com.jaya.task.user.service.service.UserService");
+                    userService = applicationContext.getBean(userServiceClass);
+                    log.debug("Resolved UserService bean by type: {}", userServiceClass.getName());
+                } catch (ClassNotFoundException cnf) {
+                    log.error("UserService class not found on classpath", cnf);
+                    throw new RuntimeException("UserService not available in monolithic mode", cnf);
+                } catch (Exception ex) {
+                    // If type-based lookup failed, try to find any bean implementing the interface by scanning beans
+                    try {
+                        var beans = applicationContext.getBeansWithAnnotation(org.springframework.stereotype.Service.class);
+                        if (!beans.isEmpty()) {
+                            // Choose the first service bean that implements the expected interface (best-effort)
+                            for (Object b : beans.values()) {
+                                Class<?>[] interfaces = b.getClass().getInterfaces();
+                                for (Class<?> iface : interfaces) {
+                                    if (iface.getName().equals("com.jaya.task.user.service.service.UserService")) {
+                                        userService = b;
+                                        log.debug("Resolved UserService bean by scanning: {}", b.getClass().getName());
+                                        break;
+                                    }
+                                }
+                                if (userService != null) break;
+                            }
+                        }
+                    } catch (Exception scanEx) {
+                        log.warn("Failed to scan for UserService beans", scanEx);
+                    }
+
+                    if (userService == null) {
+                        log.warn("Could not resolve UserService bean by name or type", ex);
+                        throw new RuntimeException("UserService not available in monolithic mode", ex);
+                    }
                 }
             }
         }

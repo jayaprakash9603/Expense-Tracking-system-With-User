@@ -6,8 +6,12 @@ import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Component
-public class ServiceHelper {
+/**
+ * Category-service-specific helper. Named to avoid conflict with com.jaya.util.ServiceHelper
+ * from other services in monolithic mode.
+ */
+@Component("categoryServiceHelper")
+public class CategoryServiceHelper {
 
     @Autowired
     private IUserServiceClient IUserServiceClient;

@@ -1,0 +1,105 @@
+# Run the backend as a single monolithic application.
+# Usage (from expense-tracking-backend):
+#   docker compose -f docker-compose.monolith.yml up -d
+#   Frontend: REACT_APP_API_BASE_URL=http://localhost:8080
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-monolith
+    ports:
+      - "5000:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    networks:
+      - expense-net
+    volumes:
+      - mysql_monolith_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-monolith
+    ports:
+      - "6379:6379"
+    networks:
+      - expense-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "22181:2181"
+    networks:
+      - expense-net
+    healthcheck:
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181 || exit 1"]
+      interval: 10s
+      retries: 10
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - expense-net
+    restart: unless-stopped
+
+  monolith:
+    build:
+      context: .
+      dockerfile: monolithic-service/Dockerfile
+    image: expense-tracking-monolith:latest
+    container_name: expense-tracking-monolith
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: monolithic
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      DB_USERNAME: root
+      DB_PASSWORD: 123456
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # JWT: set in production; user-service JwtTokenValidator reads this
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-secret-key-change-in-production-min-32-chars}
+    networks:
+      - expense-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+networks:
+  expense-net:
+    driver: bridge
+
+volumes:
+  mysql_monolith_data:

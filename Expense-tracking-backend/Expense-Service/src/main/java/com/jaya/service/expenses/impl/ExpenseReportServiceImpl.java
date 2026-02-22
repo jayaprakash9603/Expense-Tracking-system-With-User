@@ -7,7 +7,7 @@ import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.expenses.ExpenseReportService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ExpenseValidationHelper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.apache.poi.ss.usermodel.Row;
@@ -41,7 +41,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     private final ExpenseReportRepository expenseReportRepository;
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
     @Autowired
     private CategoryServiceWrapper categoryService;

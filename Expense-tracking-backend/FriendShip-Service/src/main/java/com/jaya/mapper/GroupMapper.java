@@ -4,7 +4,7 @@ import com.jaya.dto.*;
 import com.jaya.models.Group;
 import com.jaya.models.GroupRole;
 import com.jaya.common.dto.UserDTO;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.FriendshipServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class GroupMapper {
 
     @Autowired
-    private ServiceHelper helper;
+    private FriendshipServiceHelper helper;
 
     public Group toEntity(GroupRequestDTO dto) {
         Group group = new Group();

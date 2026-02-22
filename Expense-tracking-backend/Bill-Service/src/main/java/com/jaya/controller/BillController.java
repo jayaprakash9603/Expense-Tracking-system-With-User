@@ -13,7 +13,7 @@ import com.jaya.service.ExcelExportService;
 import com.jaya.service.FriendShipService;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.ocr.ReceiptOcrService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.BillServiceHelper;
 import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.exceptions.InvalidImageException;
 import com.jaya.exceptions.OcrProcessingException;
@@ -42,7 +42,7 @@ public class BillController {
 
     private final BillService billService;
     private final IUserServiceClient IUserServiceClient;
-    private final ServiceHelper helper;
+    private final BillServiceHelper helper;
     private final FriendShipService friendshipService;
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor billTaskExecutor;

@@ -9,7 +9,7 @@ import com.jaya.models.FriendshipStatus;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.repository.FriendshipRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.FriendshipServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,7 +32,7 @@ public class FriendshipServiceImpl implements FriendshipService {
     private FriendshipRepository friendshipRepository;
 
     @Autowired
-    private ServiceHelper helper;
+    private FriendshipServiceHelper helper;
 
     @Autowired
     private IUserServiceClient userClient;

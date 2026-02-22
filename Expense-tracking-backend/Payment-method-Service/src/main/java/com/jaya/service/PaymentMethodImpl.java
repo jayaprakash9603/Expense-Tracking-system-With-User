@@ -4,7 +4,7 @@ import com.jaya.dto.PaymentMethodSearchDTO;
 import com.jaya.models.PaymentMethod;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.PaymentMethodRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.PaymentMethodServiceHelper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,7 @@ public class PaymentMethodImpl implements PaymentMethodService {
     private PaymentMethodRepository paymentMethodRepository;
 
     @Autowired
-    private ServiceHelper helper;
+    private PaymentMethodServiceHelper helper;
 
     @Override
     public PaymentMethod getById(Integer userId, Integer id) throws Exception {

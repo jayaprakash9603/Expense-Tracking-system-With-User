@@ -9,8 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
-public class ServiceHelper {
+/**
+ * Friendship-service-specific helper. Named to avoid conflict with com.jaya.util.ServiceHelper
+ * from other services in monolithic mode.
+ */
+@Component("friendshipServiceHelper")
+public class FriendshipServiceHelper {
 
     @Autowired
     private IUserServiceClient userClient;
@@ -63,5 +67,4 @@ public class ServiceHelper {
 
         return reqUser;
     }
-
 }

@@ -14,9 +14,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * Bill-service-specific helper. Named to avoid conflict with com.jaya.util.ServiceHelper
+ * from other services in monolithic mode.
+ */
 @Slf4j
-@Component
-public class ServiceHelper {
+@Component("billServiceHelper")
+public class BillServiceHelper {
 
     @Autowired
     private IUserServiceClient IUserServiceClient;

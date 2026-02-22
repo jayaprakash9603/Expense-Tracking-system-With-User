@@ -7,7 +7,7 @@ import com.jaya.mapper.GroupMapper;
 import com.jaya.models.*;
 import com.jaya.repository.GroupInvitationRepository;
 import com.jaya.repository.GroupRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.FriendshipServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +26,7 @@ public class GroupServiceImpl implements GroupService {
     private GroupMapper groupMapper;
 
     @Autowired
-    private ServiceHelper helper;
+    private FriendshipServiceHelper helper;
 
     @Autowired
     private GroupInvitationRepository groupInvitationRepository;
