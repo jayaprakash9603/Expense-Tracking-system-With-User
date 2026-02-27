@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.ToString;
 
 @Entity
@@ -16,6 +17,7 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ExpenseDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

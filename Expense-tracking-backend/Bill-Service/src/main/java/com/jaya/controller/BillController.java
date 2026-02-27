@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.task.TaskExecutor;
 import com.jaya.util.BulkProgressTracker;
+import com.jaya.common.config.FeignAuthForwardingConfig;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -125,6 +126,7 @@ public class BillController {
 
         billTaskExecutor.execute(() -> {
             try {
+                FeignAuthForwardingConfig.setAsyncAuthToken(jwt);
                 List<Bill> toCreate = bills == null ? java.util.Collections.emptyList()
                         : bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
                                 .toList();
@@ -133,6 +135,8 @@ public class BillController {
                         "Bulk bills import completed: " + (saved != null ? saved.size() : 0) + " records");
             } catch (Exception ex) {
                 progressTracker.fail(jobId, ex.getMessage());
+            } finally {
+                FeignAuthForwardingConfig.clearAsyncAuthToken();
             }
         });
 

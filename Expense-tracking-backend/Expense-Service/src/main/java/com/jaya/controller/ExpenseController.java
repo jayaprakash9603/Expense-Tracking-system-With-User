@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.task.TaskExecutor;
+import com.jaya.common.config.FeignAuthForwardingConfig;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -173,20 +174,21 @@ public class ExpenseController extends BaseExpenseController {
         String jobId = progressTracker.start(targetUser.getId(), expenses != null ? expenses.size() : 0,
                 "Bulk import started");
 
-        
         taskExecutor.execute(() -> {
             try {
+                FeignAuthForwardingConfig.setAsyncAuthToken(jwt);
                 List<Expense> saved;
                 try {
                     saved = expenseService.addMultipleExpensesWithProgress(expenses, targetUser.getId(), jobId);
                 } catch (Exception ex) {
-                    
                     throw ex;
                 }
                 progressTracker.complete(jobId,
                         "Bulk import completed: " + (saved != null ? saved.size() : 0) + " records");
             } catch (Exception ex) {
                 progressTracker.fail(jobId, ex.getMessage());
+            } finally {
+                FeignAuthForwardingConfig.clearAsyncAuthToken();
             }
         });
 

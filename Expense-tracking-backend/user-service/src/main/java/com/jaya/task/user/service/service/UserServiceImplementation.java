@@ -33,6 +33,9 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
@@ -251,6 +254,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public User switchUserMode(String jwt, String newMode) {
         User user = getUserProfile(jwt);
 
@@ -266,10 +270,13 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User does not have ADMIN role");
         }
 
-        user.setCurrentMode(newMode);
-        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.updateCurrentMode(user.getId(), newMode, LocalDateTime.now());
 
-        return userRepository.save(user);
+        // Detach so Hibernate won't try to flush/validate the full entity on commit
+        entityManager.detach(user);
+        user.setCurrentMode(newMode);
+
+        return user;
     }
 
     private static boolean hasText(String s) {
