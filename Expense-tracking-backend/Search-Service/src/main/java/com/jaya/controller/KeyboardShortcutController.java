@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/shortcuts")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class KeyboardShortcutController {
 
     private final KeyboardShortcutService shortcutService;

@@ -37,8 +37,15 @@ public class FriendshipController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam Integer recipientId) throws Exception {
         UserDTO requester = userClient.getUserProfile(jwt);
-        Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
-        return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
+        try {
+            Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
+            return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("already exists")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @PutMapping("/{friendshipId}/respond")

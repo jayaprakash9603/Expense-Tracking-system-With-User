@@ -6,35 +6,18 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
 import java.util.Arrays;
 import java.util.Collections;
 
 /**
  * Web configuration for monolithic mode.
- * Handles CORS, request mappings, and other web-related configurations.
+ * CORS is handled by the corsConfigurationSource bean (used by Spring Security).
+ * Do NOT use WebMvcConfigurer.addCorsMappings — CorsRegistration defaults
+ * allowedOrigins to ["*"] which conflicts with allowCredentials=true.
  */
 @Configuration
 @Profile("monolithic")
-public class MonolithicWebConfig implements WebMvcConfigurer {
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns(
-                    "http://localhost:*",
-                    "https://localhost:*",
-                    "http://127.0.0.1:*",
-                    "https://jjayaprakash.netlify.app"
-                )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-                .allowedHeaders("*")
-                .exposedHeaders("Authorization", "Content-Type")
-                .allowCredentials(true)
-                .maxAge(3600);
-    }
+public class MonolithicWebConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

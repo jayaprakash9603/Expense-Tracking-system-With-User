@@ -33,23 +33,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @RestControllerAdvice
 @Slf4j
 @ConditionalOnClass(name = "org.springframework.web.servlet.DispatcherServlet")
@@ -57,14 +40,6 @@ public class GlobalExceptionHandler {
 
         @Value("${spring.application.name:unknown-service}")
         private String serviceName;
-
-        
-        
-        
-
-        
-
-
         @ExceptionHandler(BaseException.class)
         public ResponseEntity<ApiError> handleBaseException(BaseException ex, WebRequest request) {
                 String path = extractPath(request);

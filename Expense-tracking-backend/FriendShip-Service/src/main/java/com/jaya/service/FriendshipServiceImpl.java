@@ -64,7 +64,13 @@ public class FriendshipServiceImpl implements FriendshipService {
                 .build();
         friendship = friendshipRepository.save(friendship);
 
-        unifiedActivityService.sendFriendRequestSentEvent(friendship, requester, recipient);
+        try {
+            unifiedActivityService.sendFriendRequestSentEvent(friendship, requester, recipient);
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped friend request sent activity event due to classpath mismatch: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Failed to send friend request sent event: " + e.getMessage());
+        }
 
         return friendship;
     }
@@ -101,6 +107,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             } else {
                 unifiedActivityService.sendFriendRequestRejectedEvent(friendship, requester, recipient);
             }
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped friend request response activity event due to classpath mismatch: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Failed to send friend request response event: " + e.getMessage());
         }
@@ -140,6 +148,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             UserDTO targetUser = helper.validateUser(otherUserId);
             unifiedActivityService.sendAccessLevelChangedEvent(
                     savedFriendship, changer, targetUser, oldAccess, accessLevel);
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped access level changed activity event due to classpath mismatch: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Failed to send access level changed event: " + e.getMessage());
         }
@@ -200,6 +210,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             UserDTO canceller = helper.validateUser(userId);
             UserDTO recipient = helper.validateUser(friendship.getRecipientId());
             unifiedActivityService.sendFriendRequestCancelledEvent(friendship, canceller, recipient);
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped friend request cancelled activity event due to classpath mismatch: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Failed to send friend request cancelled event: " + e.getMessage());
         }
@@ -230,6 +242,8 @@ public class FriendshipServiceImpl implements FriendshipService {
             UserDTO remover = helper.validateUser(userId);
             UserDTO removedUser = helper.validateUser(otherUserId);
             unifiedActivityService.sendFriendRemovedEvent(friendship, remover, removedUser);
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped friend removed activity event due to classpath mismatch: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Failed to send friendship removed event: " + e.getMessage());
         }
@@ -298,7 +312,13 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         Friendship friendship = blockedFriendship.get();
 
-        unifiedActivityService.sendUserUnblockedEvent(unblocker, unblocked);
+        try {
+            unifiedActivityService.sendUserUnblockedEvent(unblocker, unblocked);
+        } catch (NoSuchMethodError e) {
+            System.err.println("Skipped user unblocked activity event due to classpath mismatch: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Failed to send user unblocked event: " + e.getMessage());
+        }
 
         friendshipRepository.delete(friendship);
     }
@@ -1296,4 +1316,5 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         return score;
     }
+
 }

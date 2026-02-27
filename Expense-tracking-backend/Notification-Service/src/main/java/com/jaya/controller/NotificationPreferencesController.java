@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/notification-preferences")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class NotificationPreferencesController {
 
     private final NotificationPreferencesService service;

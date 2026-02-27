@@ -5,8 +5,8 @@ import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
 import com.jaya.common.dto.UserDTO;
+import com.jaya.client.BudgetFriendshipClient;
 import com.jaya.service.BudgetService;
-import com.jaya.service.FriendshipService;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
 import jakarta.validation.Valid;
@@ -36,7 +36,7 @@ public class BudgetController {
     private UnifiedActivityService unifiedActivityService;
 
     @Autowired
-    private FriendshipService friendshipService;
+    private BudgetFriendshipClient friendshipService;
 
     private UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean needWriteAccess)
             throws Exception {
