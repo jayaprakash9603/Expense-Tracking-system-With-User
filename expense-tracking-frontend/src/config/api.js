@@ -22,6 +22,17 @@ export const NOTIFICATION_WS_URL =
   process.env.REACT_APP_NOTIFICATION_WS_URL ||
   `${API_BASE_URL}/notifications`;
 
+// Chat WebSocket URL:
+// - Monolithic mode: default to API host (/chat on 8080)
+// - Microservices mode: default to direct Chat Service (7001)
+// - Override with REACT_APP_CHAT_WS_URL in any environment
+const isMonolithicApiBase = /:\/\/[^/]*:8080(?:\/|$)/.test(API_BASE_URL);
+export const CHAT_WS_URL =
+  process.env.REACT_APP_CHAT_WS_URL ||
+  (process.env.REACT_APP_DEPLOY_MODE === "monolithic" || isMonolithicApiBase
+    ? `${API_BASE_URL}/chat`
+    : "http://localhost:7001/chat");
+
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
 const getJwtToken = () => localStorage.getItem("jwt");

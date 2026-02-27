@@ -1,7 +1,8 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { CHAT_WS_URL } from "../config/api";
 
-const WS_URL = "http://localhost:7001/chat";
+const WS_URL = CHAT_WS_URL;
 
 class ChatWebSocketService {
   constructor() {
