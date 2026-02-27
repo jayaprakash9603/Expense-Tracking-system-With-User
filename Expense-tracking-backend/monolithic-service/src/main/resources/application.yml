@@ -173,6 +173,24 @@ event:
   service:
     url: http://localhost:${server.port}
 
+# Search Service - services.* URLs (used by UniversalSearchService WebClient)
+# In monolithic mode, all services run on the same host/port
+services:
+  expense:
+    url: http://localhost:${server.port}
+  budget:
+    url: http://localhost:${server.port}
+  category:
+    url: http://localhost:${server.port}
+  bill:
+    url: http://localhost:${server.port}
+  payment-method:
+    url: http://localhost:${server.port}
+  friendship:
+    url: http://localhost:${server.port}
+  user:
+    url: http://localhost:${server.port}
+
 # Support for Legacy/UPPERCASE URL keys used in some Feign clients
 USER_SERVICE_URL: http://localhost:${server.port}
 EXPENSE_SERVICE_URL: http://localhost:${server.port}
