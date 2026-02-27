@@ -123,7 +123,7 @@ public class SharedResourceService {
 
     @Transactional
     public SharedDataResponse accessShare(String token, Integer accessingUserId) {
-        log.debug("Accessing share with token: {}", token.substring(0, 8) + "...");
+        log.debug("Accessing share");
 
         SharedResource share = sharedResourceRepository.findByShareToken(token)
                 .orElseThrow(() -> new ShareNotFoundException("Share not found"));
@@ -190,8 +190,8 @@ public class SharedResourceService {
     @Transactional
     public SharedDataPageResponse accessSharePaginated(String token, Integer accessingUserId,
             String resourceType, int page, int size, String search) {
-        log.debug("Accessing share with pagination: token={}, type={}, page={}, size={}, search={}",
-                token.substring(0, Math.min(8, token.length())) + "...", resourceType, page, size,
+        log.debug("Accessing share with pagination: type={}, page={}, size={}, search={}",
+                resourceType, page, size,
                 search != null ? search : "none");
 
         SharedResource share = sharedResourceRepository.findByShareToken(token)

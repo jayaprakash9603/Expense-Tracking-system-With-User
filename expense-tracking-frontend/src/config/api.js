@@ -24,11 +24,7 @@ export const NOTIFICATION_WS_URL =
 
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
-const getJwtToken = () => {
-  const jwtToken = localStorage.getItem("jwt");
-  // console.log("JWT Token:", jwtToken);
-  return jwtToken;
-};
+const getJwtToken = () => localStorage.getItem("jwt");
 
 // Create an Axios instance used across the app
 export const api = axios.create({
@@ -127,10 +123,8 @@ const handleResponseError = (error) => {
         if (shouldNormalizeStatus(status)) {
           attachSystemError();
         }
-        console.error("API Error:", error.response.data);
     }
   } else {
-    console.error("Network Error:", error.message);
     attachSystemErrorPayload(error, {
       ...buildSystemErrorPayloadFromAxios(error),
       status: "NETWORK",

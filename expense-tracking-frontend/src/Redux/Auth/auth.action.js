@@ -30,18 +30,9 @@ const loadUserDashboardPreferences = async () => {
     api.get("/api/user/dashboard-preferences"),
   );
 
-  if (error || !data?.layoutConfig) {
-    if (error?.message) {
-      console.log("Could not load dashboard preferences:", error.message);
-    }
-    return false;
-  }
+  if (error || !data?.layoutConfig) return false;
 
   localStorage.setItem("dashboard_layout_config", data.layoutConfig);
-  console.log(
-    "Dashboard preferences loaded:",
-    data.id ? "custom layout" : "default layout",
-  );
   return true;
 };
 
@@ -54,14 +45,11 @@ const completeLoginWithJwt = async (dispatch, jwt) => {
   updateAuthHeader();
 
   // Load user dashboard preferences (non-blocking)
-  loadUserDashboardPreferences().catch((err) =>
-    console.log("Failed to load dashboard preferences:", err),
-  );
+  loadUserDashboardPreferences().catch(() => {});
 
   if (!profileResult?.success) {
     const message =
       profileResult?.error?.message || "Failed to load profile after login.";
-    console.log("Profile load error:", message);
     return { success: false, message };
   }
 
@@ -85,7 +73,6 @@ export const loginUserAction = (loginData) => async (dispatch) => {
 
   if (error) {
     const errorMessage = error?.message || "Login failed. Please try again.";
-    console.log("Login error:", errorMessage);
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return {
       success: false,
@@ -126,7 +113,6 @@ export const loginUserAction = (loginData) => async (dispatch) => {
 
   if (!data?.jwt) {
     const errorMessage = "Login failed. Please try again.";
-    console.log("Login error:", errorMessage);
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return {
       success: false,
@@ -169,7 +155,6 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
   if (error || !data?.jwt) {
     const errorMessage =
       error?.message || "Google authentication failed. Please try again.";
-    console.log("Google login error:", errorMessage);
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return {
       success: false,
@@ -185,15 +170,12 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
   updateAuthHeader();
 
   // Load user dashboard preferences (non-blocking)
-  loadUserDashboardPreferences().catch((err) =>
-    console.log("Failed to load dashboard preferences:", err),
-  );
+  loadUserDashboardPreferences().catch(() => {});
 
   if (!profileResult?.success) {
     const message =
       profileResult?.error?.message ||
       "Failed to load profile after Google login.";
-    console.log("Profile load error:", message);
     return { success: false, message };
   }
 
@@ -294,12 +276,10 @@ export const registerUserAction = (loginData) => async (dispatch) => {
 
   if (error) {
     const message = error.message || "Registration failed.";
-    console.log("Register error:", message);
     dispatch({ type: LOGIN_FAILURE, payload: message });
     return { success: false, message };
   }
 
-  console.log("Register response data:", data);
   // Do NOT store token or mark as logged in; require explicit login afterwards
   dispatch({ type: LOGIN_SUCCESS, payload: null });
   return { success: true };
@@ -322,10 +302,8 @@ export const getProfileAction = (jwt) => async (dispatch) => {
   );
 
   if (error) {
-    console.error("Get profile error:", error);
     const status = error.status;
     if (status === 401 || status === 403 || status === undefined) {
-      console.log("Invalid or expired token, clearing JWT and logging out");
       localStorage.removeItem("jwt");
       dispatch({ type: LOGOUT });
     }
@@ -407,7 +385,6 @@ export const switchUserModeAction = (mode) => async (dispatch) => {
     return { success: true, currentMode: data.currentMode };
   } catch (error) {
     const errorMessage = error.response?.data?.error || "Failed to switch mode";
-    console.error("Switch mode error:", errorMessage);
     return { success: false, message: errorMessage };
   }
 };

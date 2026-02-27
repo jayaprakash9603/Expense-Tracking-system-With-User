@@ -38,22 +38,10 @@ public class UserServiceImplementation implements UserService {
         String email = JwtProvider.getEmailFromJwt(jwt);
         User user = userRepository.findByEmail(email);
 
-        System.out.println("=== GET USER PROFILE DEBUG ===");
-        System.out.println("Roles from user T: " + (user != null ? user.getRoles() : null));
-        System.out.println("User found: " + (user != null));
-        if (user != null) {
-            System.out.println("User roles count: " + user.getRoles().size());
-            for (String roleName : user.getRoles()) {
-                System.out.println("User role: " + roleName);
-            }
-
-            if (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty()) {
-
-                user.setCurrentMode("USER");
-                user.setUpdatedAt(LocalDateTime.now());
-                user = userRepository.save(user);
-                System.out.println("Set default currentMode to USER for existing user: " + user.getEmail());
-            }
+        if (user != null && (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty())) {
+            user.setCurrentMode("USER");
+            user.setUpdatedAt(LocalDateTime.now());
+            user = userRepository.save(user);
         }
 
         return user;

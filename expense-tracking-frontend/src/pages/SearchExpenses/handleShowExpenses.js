@@ -117,7 +117,6 @@ const handleShowExpenses = (
     url = `${url}?${queryParams}`;
   }
 
-  console.log("Sending request to:", url, "with params:", params);
   setUrl(url);
 };
 

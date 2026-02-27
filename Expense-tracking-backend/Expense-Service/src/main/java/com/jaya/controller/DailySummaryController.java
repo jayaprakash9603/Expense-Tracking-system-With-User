@@ -114,8 +114,6 @@ public class DailySummaryController {
             @PathVariable String date,
             @RequestParam String email, @RequestHeader("Authorization") String jwt)
             throws IOException, MessagingException {
-        System.out.println("Received date: " + date);
-        System.out.println("Received email: " + email);
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         LocalDate parsedDate;
         try {

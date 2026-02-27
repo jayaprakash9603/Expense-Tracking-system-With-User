@@ -122,7 +122,7 @@ public class ShareController {
             }
         }
 
-        log.debug("Accessing share with token (first 8 chars): {}", token.substring(0, Math.min(8, token.length())));
+        log.debug("Accessing share");
 
         SharedDataResponse response = sharedResourceService.accessShare(token, accessingUserId);
 
@@ -152,8 +152,8 @@ public class ShareController {
             }
         }
 
-        log.debug("Accessing paginated share: token={}..., type={}, page={}, size={}, search={}",
-                token.substring(0, Math.min(8, token.length())), type, page, size,
+        log.debug("Accessing paginated share: type={}, page={}, size={}, search={}",
+                type, page, size,
                 search != null ? search : "none");
 
         size = Math.max(1, Math.min(100, size));
@@ -192,8 +192,7 @@ public class ShareController {
             @PathVariable String token) throws Exception {
 
         UserDTO user = userClient.getUserProfile(jwt);
-        log.info("User {} revoking share with token: {}...", user.getId(),
-                token.substring(0, Math.min(8, token.length())));
+        log.info("User {} revoking share", user.getId());
 
         sharedResourceService.revokeShare(token, user.getId());
 
@@ -259,8 +258,7 @@ public class ShareController {
             @PathVariable String token) throws Exception {
 
         UserDTO user = userClient.getUserProfile(jwt);
-        log.info("User {} toggling save for share token: {}...", user.getId(),
-                token.substring(0, Math.min(8, token.length())));
+        log.info("User {} toggling save for share", user.getId());
 
         boolean isSaved = sharedResourceService.toggleSaveShare(token, user.getId());
 
@@ -277,8 +275,7 @@ public class ShareController {
             @RequestParam boolean isPublic) throws Exception {
 
         UserDTO user = userClient.getUserProfile(jwt);
-        log.info("User {} setting share {}... to public={}", user.getId(),
-                token.substring(0, Math.min(8, token.length())), isPublic);
+        log.info("User {} setting share to public={}", user.getId(), isPublic);
 
         sharedResourceService.setSharePublic(token, user.getId(), isPublic);
 
@@ -306,7 +303,7 @@ public class ShareController {
             HttpServletRequest httpRequest) throws Exception {
 
         UserDTO user = userClient.getUserProfile(jwt);
-        log.debug("Regenerating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
+        log.debug("Regenerating QR for share");
 
         List<ShareListItem> userShares = sharedResourceService.getUserShares(user.getId());
         boolean ownsShare = userShares.stream().anyMatch(s -> s.getToken().equals(token));
@@ -331,7 +328,7 @@ public class ShareController {
             @RequestParam(defaultValue = "300") int size,
             HttpServletRequest httpRequest) {
 
-        log.debug("Generating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
+        log.debug("Generating QR for share");
 
         try {
             SharedDataResponse response = sharedResourceService.accessShare(token, null);
@@ -361,8 +358,7 @@ public class ShareController {
             HttpServletRequest httpRequest) throws Exception {
 
         UserDTO user = userClient.getUserProfile(jwt);
-        log.info("User {} sharing token {}... with friend {}",
-                user.getId(), token.substring(0, Math.min(8, token.length())), request.getFriendId());
+        log.info("User {} sharing with friend {}", user.getId(), request.getFriendId());
 
         List<ShareListItem> userShares = sharedResourceService.getUserShares(user.getId());
         ShareListItem share = userShares.stream()

@@ -57,7 +57,6 @@ const GoogleLoginButton = ({
   const handleOAuthCallback = useCallback(
     async (accessToken) => {
       setIsLoading(true);
-      console.log("Processing Google OAuth callback...");
 
       try {
         // Get basic user info from Google userinfo endpoint
@@ -73,7 +72,6 @@ const GoogleLoginButton = ({
         }
 
         const userInfo = await userInfoResponse.json();
-        console.log("Google user info received:", userInfo.email);
 
         // Send to our backend for authentication (basic info only)
         const response = await api.post(
@@ -131,7 +129,6 @@ const GoogleLoginButton = ({
           onError?.(response.data?.message || "Authentication failed");
         }
       } catch (error) {
-        console.error("Google login error:", error);
         onError?.(
           error.response?.data?.message ||
             error.message ||
@@ -154,10 +151,8 @@ const GoogleLoginButton = ({
         event.data?.type === "GOOGLE_OAUTH_SUCCESS" &&
         event.data?.accessToken
       ) {
-        console.log("Received OAuth token from popup");
         handleOAuthCallback(event.data.accessToken);
       } else if (event.data?.type === "GOOGLE_OAUTH_ERROR") {
-        console.error("OAuth error from popup:", event.data.error);
         setIsLoading(false);
         onError?.(event.data.error || "Google Sign-In failed");
       }
@@ -168,8 +163,6 @@ const GoogleLoginButton = ({
   }, [handleOAuthCallback, onError]);
 
   const handleClick = () => {
-    console.log("Google Sign-In button clicked");
-
     // Check if Client ID is properly configured
     if (
       !GOOGLE_CLIENT_ID ||
@@ -195,9 +188,6 @@ const GoogleLoginButton = ({
     authUrl.searchParams.set("response_type", responseType);
     authUrl.searchParams.set("scope", scope);
     authUrl.searchParams.set("prompt", "select_account");
-
-    console.log("Opening Google OAuth popup...");
-    console.log("Redirect URI:", redirectUri);
 
     // Open popup
     const width = 500;

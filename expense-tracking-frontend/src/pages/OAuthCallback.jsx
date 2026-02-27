@@ -17,10 +17,6 @@ const OAuthCallback = () => {
     const error = params.get("error");
     const errorDescription = params.get("error_description");
 
-    console.log("OAuth callback received");
-    console.log("Access token present:", !!accessToken);
-    console.log("Error:", error);
-
     if (accessToken) {
       // Send token to parent window (the opener)
       if (window.opener) {
@@ -45,7 +41,6 @@ const OAuthCallback = () => {
     } else if (error) {
       // Handle error
       const errorMsg = errorDescription || error || "Authentication failed";
-      console.error("OAuth error:", errorMsg);
 
       if (window.opener) {
         window.opener.postMessage(
@@ -62,9 +57,6 @@ const OAuthCallback = () => {
       } else {
         window.location.href = `/login?error=${encodeURIComponent(errorMsg)}`;
       }
-    } else {
-      // No token and no error - might be initial load or invalid state
-      console.log("No token or error found in URL hash");
     }
   }, []);
 

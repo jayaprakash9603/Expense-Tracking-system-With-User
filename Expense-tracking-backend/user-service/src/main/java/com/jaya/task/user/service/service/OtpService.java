@@ -2,8 +2,6 @@ package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.modal.Otp;
 import com.jaya.task.user.service.repository.UserOtpRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +12,6 @@ import java.util.Optional;
 
 @Service("userOtpService")
 public class OtpService {
-
-    private static final Logger logger = LoggerFactory.getLogger(OtpService.class);
 
     @Autowired
     private UserOtpRepository otpRepository;
@@ -49,10 +45,6 @@ public class OtpService {
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
 
-        
-        logger.info("Generated password-reset OTP for email={}: otp={}", email, otp);
-
-        
         emailService.sendOtpEmail(email, otp);
 
         return "Otp Send Successfull"; 
@@ -68,9 +60,6 @@ public class OtpService {
 
         Otp otpEntity = new Otp(email, otp, now, expiresAt);
         otpRepository.save(otpEntity);
-
-        
-        logger.info("Generated login OTP for email={}: otp={}", email, otp);
 
         emailService.sendLoginOtpEmail(email, otp);
 
