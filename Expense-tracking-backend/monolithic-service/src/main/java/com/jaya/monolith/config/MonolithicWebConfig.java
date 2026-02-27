@@ -26,7 +26,8 @@ public class MonolithicWebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                     "http://localhost:*",
                     "https://localhost:*",
-                    "http://127.0.0.1:*"
+                    "http://127.0.0.1:*",
+                    "https://jjayaprakash.netlify.app"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
@@ -41,7 +42,8 @@ public class MonolithicWebConfig implements WebMvcConfigurer {
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",
             "https://localhost:*",
-            "http://127.0.0.1:*"
+            "http://127.0.0.1:*",
+            "https://jjayaprakash.netlify.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Collections.singletonList("*"));

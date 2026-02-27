@@ -29,4 +29,21 @@ public interface ExpenseClient {
 
     @PostMapping("/api/expenses/get-expenses-by-ids")
     List<ExpenseDTO> getExpensesByIds(@RequestParam Integer userId, @RequestBody Set<Integer> expenseIds);
+
+    @PostMapping("/api/expenses/add-expense-with-bill-service")
+    ExpenseDTO addExpense(@RequestBody ExpenseDTO expense, @RequestParam Integer userId) throws Exception;
+
+    @PostMapping("/api/expenses/update-expense-with-bill-service")
+    ExpenseDTO updateExpenseWithBillService(@RequestParam Integer expenseId, @RequestBody ExpenseDTO expense,
+            @RequestParam Integer userId) throws Exception;
+
+    @DeleteMapping("/api/expenses/delete-expenses-with-bill-service")
+    void deleteExpensesByIdsWithBillService(@RequestParam List<Integer> expenseIds, @RequestParam Integer userId)
+            throws Exception;
+
+    @GetMapping("/api/expenses/get-all-expenses-with-bill-service")
+    List<ExpenseDTO> getAllExpenses(@RequestParam Integer userId);
+
+    @GetMapping("/get-all-expenses-sort-with-bill-service")
+    List<ExpenseDTO> getAllExpensesWithSort(@RequestParam Integer userId, @RequestParam String sort);
 }

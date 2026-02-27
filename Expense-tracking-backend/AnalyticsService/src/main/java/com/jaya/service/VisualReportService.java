@@ -27,7 +27,7 @@ public class VisualReportService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private final ExpenseClient expenseService;
+    private final AnalyticsExpenseClient expenseService;
     private final BudgetClient budgetService;
     private final BudgetAnalyticsClient budgetAnalyticsClient;
     private final VisualReportGenerator reportGenerator;

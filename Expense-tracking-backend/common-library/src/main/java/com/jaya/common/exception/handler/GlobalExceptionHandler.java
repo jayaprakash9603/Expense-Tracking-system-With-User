@@ -413,13 +413,17 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ApiError> handleGenericException(Exception ex, WebRequest request) {
                 String path = extractPath(request);
+                Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                String detailMessage = cause.getMessage() != null ? cause.getMessage() : ex.getMessage();
 
-                
-                log.error("Unexpected error at path: {} - {}", path, ex.getMessage(), ex);
+                log.error("Unexpected error at path: {} - {}", path, detailMessage, ex);
 
                 ApiError error = ApiError.internalError(path,
                                 "An unexpected error occurred. Please try again later.")
                                 .withServiceName(serviceName);
+                if (detailMessage != null && !detailMessage.isBlank()) {
+                        error.setDetails(detailMessage);
+                }
 
                 return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }

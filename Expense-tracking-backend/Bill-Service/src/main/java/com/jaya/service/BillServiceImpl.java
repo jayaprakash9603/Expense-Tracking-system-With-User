@@ -79,7 +79,7 @@ public class BillServiceImpl implements BillService {
                 throw new Exception("Associated expense not found for bill ID: " + bill.getId());
             }
 
-            expense.setDate(bill.getDate());
+            expense.setDate(bill.getDate() != null ? bill.getDate().toString() : null);
 
             expense.setUserId(userId);
             expense.setCategoryId(bill.getCategoryId());
@@ -110,15 +110,15 @@ public class BillServiceImpl implements BillService {
                     user.getId());
 
             existingBill.setUserId(userId);
-            existingBill.setDate(savedExpense.getDate());
+            existingBill.setDate(savedExpense.getDate() != null ? LocalDate.parse(savedExpense.getDate()) : null);
             existingBill.setCategoryId(savedExpense.getCategoryId());
             existingBill.setDescription(savedExpense.getExpense().getComments());
             existingBill.setPaymentMethod(savedExpense.getExpense().getPaymentMethod());
-            existingBill.setAmount(savedExpense.getExpense().getAmount());
-            existingBill.setNetAmount(savedExpense.getExpense().getNetAmount());
+            existingBill.setAmount(savedExpense.getExpense().getAmountAsDouble());
+            existingBill.setNetAmount(savedExpense.getExpense().getNetAmountAsDouble());
             existingBill.setName(bill.getName());
             existingBill.setType(savedExpense.getExpense().getType());
-            existingBill.setCreditDue(savedExpense.getExpense().getCreditDue());
+            existingBill.setCreditDue(savedExpense.getExpense().getCreditDueAsDouble());
             existingBill.setBudgetIds(savedExpense.getBudgetIds());
             existingBill.setIncludeInBudget(bill.isIncludeInBudget());
             existingBill.setCategory(savedExpense.getCategoryName());

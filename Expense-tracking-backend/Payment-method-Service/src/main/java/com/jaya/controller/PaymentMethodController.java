@@ -8,6 +8,7 @@ import com.jaya.service.FriendShipService;
 import com.jaya.service.PaymentMethodService;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/payment-methods")
+@Slf4j
 public class PaymentMethodController {
 
     @Autowired
@@ -173,8 +175,11 @@ public class PaymentMethodController {
             UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
             PaymentMethod created = paymentMethodService.createPaymentMethod(targetUser.getId(), paymentMethod);
 
-            
-            unifiedActivityService.sendPaymentMethodCreatedEvent(created, reqUser, targetUser);
+            try {
+                unifiedActivityService.sendPaymentMethodCreatedEvent(created, reqUser, targetUser);
+            } catch (NoSuchMethodError | Exception e) {
+                log.warn("Failed to send payment method created event: {}", e.getMessage());
+            }
 
             return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (RuntimeException e) {
@@ -203,8 +208,11 @@ public class PaymentMethodController {
 
             PaymentMethod updated = paymentMethodService.updatePaymentMethod(targetUser.getId(), id, paymentMethod);
 
-            
-            unifiedActivityService.sendPaymentMethodUpdatedEvent(updated, oldPaymentMethod, reqUser, targetUser);
+            try {
+                unifiedActivityService.sendPaymentMethodUpdatedEvent(updated, oldPaymentMethod, reqUser, targetUser);
+            } catch (NoSuchMethodError | Exception e) {
+                log.warn("Failed to send payment method updated event: {}", e.getMessage());
+            }
 
             return ResponseEntity.ok(updated);
         } catch (RuntimeException e) {
@@ -233,7 +241,11 @@ public class PaymentMethodController {
 
             
             if (pmName != null) {
-                unifiedActivityService.sendPaymentMethodDeletedEvent(id, pmName, pmType, reqUser, targetUser);
+                try {
+                    unifiedActivityService.sendPaymentMethodDeletedEvent(id, pmName, pmType, reqUser, targetUser);
+                } catch (NoSuchMethodError | Exception e) {
+                    log.warn("Failed to send payment method deleted event: {}", e.getMessage());
+                }
             }
 
             return ResponseEntity.noContent().build();
@@ -258,8 +270,11 @@ public class PaymentMethodController {
             int count = paymentMethodService.getAllPaymentMethods(targetUser.getId()).size();
             paymentMethodService.deleteAllUserPaymentMethods(targetUser.getId());
 
-            
-            unifiedActivityService.sendAllPaymentMethodsDeletedEvent(count, reqUser, targetUser);
+            try {
+                unifiedActivityService.sendAllPaymentMethodsDeletedEvent(count, reqUser, targetUser);
+            } catch (NoSuchMethodError | Exception e) {
+                log.warn("Failed to send all payment methods deleted event: {}", e.getMessage());
+            }
 
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {

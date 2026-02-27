@@ -1,5 +1,6 @@
 package com.jaya.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -79,6 +80,7 @@ public class UserDTO implements Serializable {
         return "ADMIN".equalsIgnoreCase(currentMode);
     }
 
+    @JsonIgnore
     public String getProfileImage() {
         return image;
     }

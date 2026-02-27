@@ -1,11 +1,12 @@
 
 package com.jaya.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @NoArgsConstructor
@@ -16,12 +17,36 @@ public class ExpenseDetailsDTO {
 
     private Integer id;
     private String expenseName;
-    private double amount;
+    private Object amount;
     private String type;
     private String paymentMethod;
-    private double netAmount;
+    private Object netAmount;
     private String comments;
-    private double creditDue;
+    private Object creditDue;
+
+    @JsonIgnore
+    public double getAmountAsDouble() {
+        if (amount instanceof Number) {
+            return ((Number) amount).doubleValue();
+        }
+        return 0.0;
+    }
+
+    @JsonIgnore
+    public double getNetAmountAsDouble() {
+        if (netAmount instanceof Number) {
+            return ((Number) netAmount).doubleValue();
+        }
+        return 0.0;
+    }
+
+    @JsonIgnore
+    public double getCreditDueAsDouble() {
+        if (creditDue instanceof Number) {
+            return ((Number) creditDue).doubleValue();
+        }
+        return 0.0;
+    }
 
     @Override
     public String toString() {

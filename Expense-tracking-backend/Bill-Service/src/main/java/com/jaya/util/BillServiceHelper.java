@@ -81,7 +81,7 @@ public class BillServiceHelper {
         if (details.getExpenseName() == null || details.getExpenseName().trim().isEmpty()) {
             throw new IllegalArgumentException("Expense name is required");
         }
-        if (details.getAmount() < 0) {
+        if (details.getAmountAsDouble() < 0) {
             throw new IllegalArgumentException("Expense amount cannot be negative");
         }
         if (details.getPaymentMethod() == null || details.getPaymentMethod().trim().isEmpty()) {
@@ -216,7 +216,7 @@ public class BillServiceHelper {
 
     public ExpenseDTO createExpenseFromBill(Bill bill, UserDTO user) {
         ExpenseDTO expense = new ExpenseDTO();
-        expense.setDate(bill.getDate());
+        expense.setDate(bill.getDate() != null ? bill.getDate().toString() : null);
         expense.setUserId(user.getId());
         expense.setCategoryId(bill.getCategoryId() != null ? bill.getCategoryId() : 0);
         expense.setCategoryName(bill.getCategory());
@@ -244,16 +244,16 @@ public class BillServiceHelper {
     public Bill mapExpenseToBill(Bill originalBill, ExpenseDTO savedExpense) {
         Bill newBill = new Bill();
         newBill.setUserId(savedExpense.getUserId());
-        newBill.setDate(savedExpense.getDate());
+        newBill.setDate(savedExpense.getDate() != null ? LocalDate.parse(savedExpense.getDate()) : null);
         newBill.setExpenses(originalBill.getExpenses() != null ? originalBill.getExpenses() : new ArrayList<>());
         newBill.setCategoryId(savedExpense.getCategoryId());
         newBill.setDescription(savedExpense.getExpense().getComments());
         newBill.setPaymentMethod(savedExpense.getExpense().getPaymentMethod());
-        newBill.setAmount(savedExpense.getExpense().getAmount());
-        newBill.setNetAmount(savedExpense.getExpense().getNetAmount());
+        newBill.setAmount(savedExpense.getExpense().getAmountAsDouble());
+        newBill.setNetAmount(savedExpense.getExpense().getNetAmountAsDouble());
         newBill.setName(originalBill.getName());
         newBill.setType(savedExpense.getExpense().getType());
-        newBill.setCreditDue(savedExpense.getExpense().getCreditDue());
+        newBill.setCreditDue(savedExpense.getExpense().getCreditDueAsDouble());
         newBill.setBudgetIds(savedExpense.getBudgetIds());
         newBill.setExpenseId(savedExpense.getExpense().getId());
         newBill.setIncludeInBudget(originalBill.isIncludeInBudget());

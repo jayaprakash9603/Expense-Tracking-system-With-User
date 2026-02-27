@@ -10,6 +10,7 @@ import com.jaya.service.FriendshipService;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
+@Slf4j
 public class BudgetController {
 
     @Autowired
@@ -77,7 +79,11 @@ public class BudgetController {
             createdBudget = budgetService.createBudget(budget, reqUser.getId());
         }
 
-        unifiedActivityService.sendBudgetCreatedEvent(createdBudget, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetCreatedEvent(createdBudget, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget created event (classpath conflict in monolithic mode?): {}", e.getMessage());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
@@ -95,7 +101,11 @@ public class BudgetController {
 
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
 
-        unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget updated event: {}", e.getMessage());
+        }
 
         return ResponseEntity.ok(updatedBudget);
     }
@@ -112,7 +122,11 @@ public class BudgetController {
         Double budgetAmount = budget.getAmount();
         budgetService.deleteBudget(budgetId, targetUser.getId());
 
-        unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget deleted event: {}", e.getMessage());
+        }
 
         return ResponseEntity.noContent().build();
     }
@@ -127,7 +141,11 @@ public class BudgetController {
         int count = budgets != null ? budgets.size() : 0;
         budgetService.deleteAllBudget(targetUser.getId());
 
-        unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send all budgets deleted event: {}", e.getMessage());
+        }
 
         return ResponseEntity.noContent().build();
     }

@@ -21,7 +21,7 @@ import java.util.List;
 public interface FeignUserServiceClient extends IUserServiceClient {
 
     @Override
-    @GetMapping("/api/user/profile")
+    @GetMapping(value = "/api/user/profile", headers = "Accept=application/json")
     UserDTO getUserProfile(@RequestHeader("Authorization") String jwt);
 
     @Override

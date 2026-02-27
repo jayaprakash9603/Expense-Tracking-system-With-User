@@ -34,7 +34,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
                 "com.jaya",
                 "com.jaya.task.user.service"
 }, excludeFilters = {
-                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig")
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.NoOpCacheConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.CacheConfig")
 })
 @EntityScan(basePackages = {
                 "com.jaya"

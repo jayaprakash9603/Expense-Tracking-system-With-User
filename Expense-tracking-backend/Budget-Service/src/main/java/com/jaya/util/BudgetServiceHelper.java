@@ -99,8 +99,9 @@ public class BudgetServiceHelper {
             }
 
             if (expense != null) {
-                LocalDate expenseDate = expense.getDate();
-                boolean isWithinDateRange = !expenseDate.isBefore(budget.getStartDate())
+                LocalDate expenseDate = expense.getDate() != null ? LocalDate.parse(expense.getDate()) : null;
+                boolean isWithinDateRange = expenseDate != null
+                        && !expenseDate.isBefore(budget.getStartDate())
                         && !expenseDate.isAfter(budget.getEndDate());
 
                 if (isWithinDateRange) {

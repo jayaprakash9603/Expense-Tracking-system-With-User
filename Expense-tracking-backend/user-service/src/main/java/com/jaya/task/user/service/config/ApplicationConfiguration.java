@@ -83,7 +83,8 @@ public class ApplicationConfiguration {
                         "https://localhost:*",
                         "http://127.0.0.1:*",
                         "https://127.0.0.1:*",
-                        "https://jayaprakash.netlify.app"));
+                        "https://jayaprakash.netlify.app",
+                        "https://jjayaprakash.netlify.app"));
 
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));

@@ -92,7 +92,11 @@ public class CategoryController {
 
         Category categoryToCreate = categoryMapper.toEntity(request, targetUser.getId());
         Category created = categoryService.create(categoryToCreate, targetUser.getId());
-        unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendCategoryCreatedEvent(created, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send category created event: {}", e.getMessage());
+        }
 
         CategoryDTO response = categoryMapper.toResponse(created);
         log.info("Category created: id={}, name={}", created.getId(), created.getName());
@@ -177,7 +181,11 @@ public class CategoryController {
 
         Category categoryUpdate = categoryMapper.toEntityForUpdate(request, targetUser.getId());
         Category updated = categoryService.update(id, categoryUpdate, userForUpdate);
-        unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send category updated event: {}", e.getMessage());
+        }
 
         CategoryDTO response = categoryMapper.toResponse(updated);
         log.info("Category updated: id={}, name={}", updated.getId(), updated.getName());
@@ -202,7 +210,11 @@ public class CategoryController {
 
         categoryService.delete(id, targetUser.getId());
 
-        unifiedActivityService.sendCategoryDeletedEvent(id, categoryName, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendCategoryDeletedEvent(id, categoryName, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send category deleted event: {}", e.getMessage());
+        }
 
         log.info("Category deleted: id={}, name={}", id, categoryName);
 
@@ -230,7 +242,11 @@ public class CategoryController {
 
         List<Category> createdCategories = categoryService.createMultiple(categoriesToCreate, targetUser.getId());
 
-        unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBulkCategoriesCreatedEvent(createdCategories, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bulk categories created event: {}", e.getMessage());
+        }
 
         List<CategoryDTO> responses = categoryMapper.toResponseList(createdCategories);
         log.info("Created {} categories", createdCategories.size());
@@ -255,7 +271,11 @@ public class CategoryController {
 
         List<Category> updatedCategories = categoryService.updateMultiple(categories, userForUpdate);
 
-        unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendMultipleCategoriesUpdatedEvent(updatedCategories, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send multiple categories updated event: {}", e.getMessage());
+        }
 
         List<CategoryDTO> responses = categoryMapper.toResponseList(updatedCategories);
         log.info("Updated {} categories", updatedCategories.size());
@@ -279,7 +299,11 @@ public class CategoryController {
 
         categoryService.deleteMultiple(categoryIds, targetUser.getId());
 
-        unifiedActivityService.sendMultipleCategoriesDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendMultipleCategoriesDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send multiple categories deleted event: {}", e.getMessage());
+        }
 
         log.info("Deleted {} categories", count);
 
@@ -323,7 +347,11 @@ public class CategoryController {
 
         categoryService.deleteAllUserCategories(targetUser.getId());
 
-        unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendAllCategoriesDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send all categories deleted event: {}", e.getMessage());
+        }
 
         log.info("Deleted all {} categories for UserDTO: userId={}", count, targetUser.getId());
 
@@ -347,7 +375,11 @@ public class CategoryController {
         Category categoryUpdate = categoryMapper.toEntityForUpdate(request, reqUser.getId());
         Category updated = categoryService.adminUpdateGlobalCategory(id, categoryUpdate, reqUser);
 
-        unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
+        try {
+            unifiedActivityService.sendCategoryUpdatedEvent(updated, oldCategory, reqUser, reqUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send category updated event: {}", e.getMessage());
+        }
 
         CategoryDTO response = categoryMapper.toResponse(updated);
         log.info("Admin updated global category: id={}", id);

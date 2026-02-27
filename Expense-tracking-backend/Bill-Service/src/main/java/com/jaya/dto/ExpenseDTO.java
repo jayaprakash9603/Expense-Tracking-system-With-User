@@ -6,9 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,8 +19,7 @@ public class ExpenseDTO {
 
     private Integer id;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate date;
+    private String date;
 
     private boolean includeInBudget = false;
 

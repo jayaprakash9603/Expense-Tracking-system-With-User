@@ -83,7 +83,11 @@ public class BillController {
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         Bill createdBill = billService.createBill(bill, targetUser.getId());
 
-        unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bill created event: {}", e.getMessage());
+        }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
         return ResponseEntity.ok(resp);
@@ -99,7 +103,11 @@ public class BillController {
                 .toList();
         List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
 
-        unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bulk bills created event: {}", e.getMessage());
+        }
 
         List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
@@ -170,7 +178,11 @@ public class BillController {
         bill.setId(id);
         Bill updatedBill = billService.updateBill(bill, targetUser.getId());
 
-        unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bill updated event: {}", e.getMessage());
+        }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
         return ResponseEntity.ok(resp);
@@ -193,7 +205,11 @@ public class BillController {
 
             billService.deleteBill(id, targetUser.getId());
 
-            unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
+            try {
+                unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
+            } catch (NoSuchMethodError | Exception e) {
+                log.warn("Failed to send bill deleted event: {}", e.getMessage());
+            }
 
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
@@ -213,7 +229,11 @@ public class BillController {
 
         String message = billService.deleteAllBillsForUser(targetUser.getId());
 
-        unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send all bills deleted event: {}", e.getMessage());
+        }
 
         return new ResponseEntity<>(message, HttpStatus.NO_CONTENT);
 
