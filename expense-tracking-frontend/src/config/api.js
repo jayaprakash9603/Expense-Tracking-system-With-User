@@ -14,6 +14,14 @@ const isCanceledError = (error) =>
 export const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
+// WebSocket URL for notifications — defaults to API_BASE_URL so it works in both
+// monolithic (single host) and microservice (gateway-proxied) modes.
+// Override with REACT_APP_NOTIFICATION_WS_URL for direct-to-service connections
+// (e.g. http://localhost:6003/notifications in microservice mode without gateway WS proxy).
+export const NOTIFICATION_WS_URL =
+  process.env.REACT_APP_NOTIFICATION_WS_URL ||
+  `${API_BASE_URL}/notifications`;
+
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
 const getJwtToken = () => {

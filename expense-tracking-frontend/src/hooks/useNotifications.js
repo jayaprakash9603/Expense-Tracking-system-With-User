@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import notificationWebSocketService from "../services/notificationWebSocket";
+import { NOTIFICATION_WS_URL } from "../config/api";
 
 /**
  * Custom hook for managing notifications
@@ -151,7 +152,7 @@ const useNotifications = ({
       "🎫 Token:",
       localStorage.getItem("jwt") ? "Present ✅" : "Missing ❌"
     );
-    console.log("🌐 WebSocket URL: http://localhost:6003/notifications");
+    console.log("🌐 WebSocket URL:", NOTIFICATION_WS_URL);
     console.log("═══════════════════════════════════════════════════════════");
 
     notificationWebSocketService.connect({

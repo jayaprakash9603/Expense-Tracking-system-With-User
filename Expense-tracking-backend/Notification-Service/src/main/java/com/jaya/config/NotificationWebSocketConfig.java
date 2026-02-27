@@ -31,12 +31,14 @@ public class NotificationWebSocketConfig implements WebSocketMessageBrokerConfig
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/notifications")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
-                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app",
+                        "https://jjayaprakash.netlify.app")
                 .withSockJS();
 
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
-                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app",
+                        "https://jjayaprakash.netlify.app")
                 .withSockJS();
     }
 
@@ -48,7 +50,8 @@ public class NotificationWebSocketConfig implements WebSocketMessageBrokerConfig
                 "https://localhost:*",
                 "http://127.0.0.1:*",
                 "https://127.0.0.1:*",
-                "https://jayaprakash.netlify.app"));
+                "https://jayaprakash.netlify.app",
+                "https://jjayaprakash.netlify.app"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);

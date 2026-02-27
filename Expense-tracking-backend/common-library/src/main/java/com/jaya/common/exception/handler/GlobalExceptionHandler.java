@@ -317,8 +317,11 @@ public class GlobalExceptionHandler {
 
                 log.warn("Message not readable at path: {} - {}", path, ex.getMessage());
 
-                ApiError error = ApiError.of(ErrorCode.VALIDATION_REQUEST_BODY_MISSING, path,
-                                "Request body is missing or malformed")
+                String detail = ex.getMostSpecificCause() != null
+                                ? ex.getMostSpecificCause().getMessage()
+                                : "Request body is missing or malformed";
+
+                ApiError error = ApiError.of(ErrorCode.VALIDATION_REQUEST_BODY_MISSING, path, detail)
                                 .withServiceName(serviceName);
 
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);

@@ -6,6 +6,7 @@
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { NOTIFICATION_WS_URL } from "../config/api";
 
 class SocketService {
   constructor() {
@@ -26,7 +27,7 @@ class SocketService {
     console.log("═══════════════════════════════════════════════════════════");
     console.log("👤 User ID:", userId);
     console.log("🎫 JWT Token:", jwt ? "Present ✅" : "Missing ❌");
-    console.log("🌐 WebSocket URL: http://localhost:6003/notifications");
+    console.log("🌐 WebSocket URL:", NOTIFICATION_WS_URL);
     console.log("📍 Test Topic: /topic/user/" + userId + "/notifications");
     console.log("📚 Pattern: Broadcast Topic (like Chat service)");
     console.log(
@@ -36,7 +37,7 @@ class SocketService {
     this.client = new Client({
       webSocketFactory: () => {
         console.log("🔌 Creating SockJS connection...");
-        return new SockJS("http://localhost:6003/notifications");
+        return new SockJS(NOTIFICATION_WS_URL);
       },
       connectHeaders: {
         Authorization: `Bearer ${jwt}`,

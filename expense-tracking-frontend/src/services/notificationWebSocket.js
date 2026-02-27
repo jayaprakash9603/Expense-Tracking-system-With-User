@@ -6,9 +6,9 @@
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { NOTIFICATION_WS_URL } from "../config/api";
 
 // Configuration
-const NOTIFICATION_WS_URL = "http://localhost:6003/notifications"; // Notification-Service WebSocket endpoint
 const RECONNECT_DELAY = 5000; // 5 seconds
 
 // Notification topic patterns
