@@ -19,7 +19,7 @@ public class FriendActivityConsumer {
     private final FriendActivityRepository friendActivityRepository;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "${kafka.consumer.group-id:friendship-activity-group}", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "${kafka.topics.friend-activity-events:friend-activity-events}", groupId = "${kafka.consumer.group-id:friendship-activity-group}", containerFactory = "friendshipKafkaListenerContainerFactory")
     @Transactional
     public void consumeFriendActivity(FriendActivityEvent event) {
         try {

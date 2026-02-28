@@ -64,30 +64,30 @@ class NotificationWebSocketService {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
-      onConnect: () => {
+      onConnect: (connectFrame) => {
         this.isConnected = true;
 
         // Resubscribe to all previous subscriptions
         this.resubscribeAll();
 
         if (onConnect) {
-          onConnect(frame);
+          onConnect(connectFrame);
         }
       },
 
-      onStompError: () => {
+      onStompError: (errorFrame) => {
         this.isConnected = false;
 
         if (onError) {
-          onError(frame);
+          onError(errorFrame);
         }
       },
 
-      onWebSocketClose: () => {
+      onWebSocketClose: (closeEvent) => {
         this.isConnected = false;
 
         if (onDisconnect) {
-          onDisconnect(event);
+          onDisconnect(closeEvent);
         }
       },
 

@@ -104,6 +104,15 @@ public class FriendshipKafkaConfig {
         return factory;
     }
 
+    @Bean("friendshipKafkaListenerContainerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, Object> friendshipKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.setConcurrency(3);
+        return factory;
+    }
+
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> batchKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory = new ConcurrentKafkaListenerContainerFactory<>();

@@ -105,6 +105,18 @@ public class ApplicationConfiguration {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate template = new RestTemplate();
+        template.getInterceptors().add((request, body, execution) -> {
+            jakarta.servlet.http.HttpServletRequest servletRequest =
+                    ((org.springframework.web.context.request.ServletRequestAttributes)
+                            org.springframework.web.context.request.RequestContextHolder.getRequestAttributes())
+                            .getRequest();
+            String auth = servletRequest.getHeader("Authorization");
+            if (auth != null) {
+                request.getHeaders().set("Authorization", auth);
+            }
+            return execution.execute(request, body);
+        });
+        return template;
     }
 }
