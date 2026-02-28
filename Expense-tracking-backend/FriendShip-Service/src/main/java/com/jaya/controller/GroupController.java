@@ -61,8 +61,12 @@ public class GroupController {
     @GetMapping("/get-group-by-id")
     public Optional<GroupResponseDTO> getGroupByIdwithService(
             @RequestParam Integer id, @RequestParam Integer userId) throws Exception {
-        return groupService.getGroupById(id, userId);
-
+        try {
+            Optional<GroupResponseDTO> result = groupService.getGroupById(id, userId);
+            return result;
+        } catch (Exception e) {
+            throw e;
+        }
     }
 
     @GetMapping
