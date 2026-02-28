@@ -1,0 +1,30 @@
+package com.jaya.models.enums;
+
+
+
+
+public enum StoryType {
+    
+    BUDGET_THRESHOLD_80, 
+    BUDGET_THRESHOLD_90, 
+    BUDGET_THRESHOLD_100, 
+    EXPENSE_SPIKE, 
+    SAVINGS_UPDATE, 
+    BILL_REMINDER, 
+    BILL_OVERDUE, 
+    WEEKLY_SUMMARY, 
+    MONTHLY_SUMMARY, 
+
+    
+    FEATURE_ANNOUNCEMENT, 
+    MAINTENANCE_ALERT, 
+    SYSTEM_NOTICE, 
+    PROMOTIONAL, 
+    TIP_OF_THE_DAY, 
+    TIP, 
+    ACHIEVEMENT, 
+    ANNOUNCEMENT, 
+    SYSTEM_UPDATE, 
+    SAVINGS_GOAL, 
+    CUSTOM 
+}

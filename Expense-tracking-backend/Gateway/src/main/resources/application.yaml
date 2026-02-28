@@ -1,0 +1,137 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG # For Gateway specific logs
+    org.springframework.cloud.openfeign: DEBUG # For Feign client logs
+
+spring:
+  application:
+    name: GATEWAY-SERVICE
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    compatibility-verifier:
+      enabled: false
+    gateway:
+      routes:
+        # Admin Audit Logs & Reports - More specific routes must come before general /api/admin/**
+        - id: ADMIN-AUDIT-SERVICE
+          uri: ${AUDIT_SERVICE_URL:http://localhost:6004}
+          predicates:
+            - Path=/api/admin/audit-logs/**, /api/admin/reports/**
+        # Story Service - Must come before USER-SERVICE to handle /api/admin/stories/**
+        - id: STORY-SERVICE
+          uri: ${STORY_SERVICE_URL:http://localhost:6010}
+          predicates:
+            - Path=/api/stories/**, /api/admin/stories/**, /ws-stories/**
+        - id: USER-SERVICE
+          uri: ${USER_SERVICE_URL:http://localhost:6001}
+          predicates:
+            - Path=/auth/**, /user/**, /api/user/**, /api/admin/**, /api/roles/**, /api/permissions/**
+        - id: SEARCH-SERVICE
+          uri: ${SEARCH_SERVICE_URL:http://localhost:7005}
+          predicates:
+            - Path=/api/search/**, /api/shortcuts/**
+        - id: ANALYTICS-SERVICE
+          uri: ${ANALYTICS_SERVICE_URL:http://localhost:7004}
+          predicates:
+            - Path= /api/analytics/**
+        - id: EVENT-SERVICE
+          uri: ${EVENT_SERVICE_URL:http://localhost:7002}
+          predicates:
+            - Path= /api/events/**
+        - id: BUDGET-SERVICE
+          uri: ${BUDGET_SERVICE_URL:http://localhost:6005}
+          predicates:
+            - Path= /api/budgets/**
+        - id: CHAT-SERVICE
+          uri: ${CHAT_SERVICE_URL:http://localhost:7001}
+          predicates:
+            - Path= /api/chats/**, /chat/**
+        - id: FRIENDSHIP-SERVICE
+          uri: ${FRIENDSHIP_SERVICE_URL:http://localhost:6009}
+          predicates:
+            - Path= /api/friendships/**,/api/groups/**, /api/activities/**, /api/shares/**
+        - id: PAYMENT-SERVICE
+          uri: ${PAYMENT_SERVICE_URL:http://localhost:6006}
+          predicates:
+            - Path= /api/payment-methods/**
+        - id: CATEGORY-SERVICE
+          uri: ${CATEGORY_SERVICE_URL:http://localhost:6008}
+          predicates:
+            - Path= /api/categories/**
+        - id: BILL-SERVICE
+          uri: ${BILL_SERVICE_URL:http://localhost:6007}
+          predicates:
+            - Path= /api/bills/**
+        - id: AUDIT-SERVICE
+          uri: ${AUDIT_SERVICE_URL:http://localhost:6004}
+          predicates:
+            - Path=/api/audit-logs/**, /audit-logs/**
+        - id: EXPENSE-TRACKING-SYSTEM
+          uri: ${EXPENSE_TRACKING_SERVICE_URL:http://localhost:6000}
+          predicates:
+            - Path=/api/expenses/**, /api/settings/**, /daily-summary/**, /api/investment/**, /api/bulk/**
+        - id: NOTIFICATION-SERVICE
+          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:6003}
+          predicates:
+            - Path=/api/notifications/**, /notifications/** , /api/notification-preferences/**
+      default-filters:
+        - name: DedupeResponseHeader
+          args:
+            name: "Access-Control-Allow-Origin"
+            strategy: "RETAIN_FIRST" # Choose "RETAIN_FIRST", "RETAIN_LAST", or "RETAIN_UNIQUE"
+        - name: DedupeResponseHeader
+          args:
+            name: "Access-Control-Allow-Credentials"
+            strategy: "RETAIN_FIRST"
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "https://localhost:*"
+              - "http://127.0.0.1:*"
+              - "https://127.0.0.1:*"
+              - "https://jayaprakash.netlify.app"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/gateway_service}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    registry-fetch-interval: 5s
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka
+
+gateway:
+  rate-limit:
+    enabled: true
+    requests: 10
+    window-seconds: 60

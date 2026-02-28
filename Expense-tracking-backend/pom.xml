@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.jaya</groupId>
+    <artifactId>expense-tracking-backend-aggregator</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>expense-tracking-backend-aggregator</name>
+    <description>Aggregator project for Expense Tracking System - supports both microservices and monolithic deployment</description>
+
+    <modules>
+        <!-- Shared Library - must be built first -->
+        <module>common-library</module>
+        
+        <!-- Domain Services -->
+        <module>user-service</module>
+        <module>Expense-Service</module>
+        <module>Budget-Service</module>
+        <module>Category-Service</module>
+        <module>Bill-Service</module>
+        <module>Payment-method-Service</module>
+        <module>FriendShip-Service</module>
+        <module>Notification-Service</module>
+        <module>Chat-Service</module>
+        <module>Audit-Service</module>
+        <module>AnalyticsService</module>
+        <module>Search-Service</module>
+        <module>Story-Service</module>
+        <module>Event-Service</module>
+        
+        <!-- Infrastructure services (for microservices mode) -->
+        <module>eureka-server</module>
+        <module>Gateway</module>
+        
+        <!-- Monolithic service (combines all domain services) -->
+        <module>monolithic-service</module>
+    </modules>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <profiles>
+        <!-- Profile for building microservices mode (excludes monolithic) -->
+        <profile>
+            <id>microservices</id>
+            <modules>
+                <module>common-library</module>
+                <module>user-service</module>
+                <module>Expense-Service</module>
+                <module>Budget-Service</module>
+                <module>Category-Service</module>
+                <module>Bill-Service</module>
+                <module>Payment-method-Service</module>
+                <module>FriendShip-Service</module>
+                <module>Notification-Service</module>
+                <module>Chat-Service</module>
+                <module>Audit-Service</module>
+                <module>AnalyticsService</module>
+                <module>Search-Service</module>
+                <module>Story-Service</module>
+                <module>Event-Service</module>
+                <module>eureka-server</module>
+                <module>Gateway</module>
+            </modules>
+        </profile>
+        
+        <!-- Profile for building monolithic mode only -->
+        <profile>
+            <id>monolithic</id>
+            <modules>
+                <module>common-library</module>
+                <module>user-service</module>
+                <module>Expense-Service</module>
+                <module>Budget-Service</module>
+                <module>Category-Service</module>
+                <module>Bill-Service</module>
+                <module>Payment-method-Service</module>
+                <module>FriendShip-Service</module>
+                <module>Notification-Service</module>
+                <module>Chat-Service</module>
+                <module>Audit-Service</module>
+                <module>AnalyticsService</module>
+                <module>Search-Service</module>
+                <module>Story-Service</module>
+                <module>Event-Service</module>
+                <module>monolithic-service</module>
+            </modules>
+        </profile>
+    </profiles>
+</project>
