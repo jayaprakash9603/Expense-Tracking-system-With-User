@@ -190,7 +190,6 @@ public class BudgetController {
     @GetMapping("/user")
     public List<Budget> getAllBudgetForUser(
             @RequestParam Integer userId) throws Exception {
-
         return budgetService.getBudgetsForUser(userId);
 
     }

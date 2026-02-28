@@ -351,7 +351,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     private String buildReportPath(UserDTO UserDTO, Integer userId) {
         String emailPrefix = UserDTO.getEmail().split("@")[0];
         String userFolderName = emailPrefix + "_" + userId;
-        String userFolderPath = Paths.get(System.getProperty("UserDTO.home"), "reports", userFolderName).toString();
+        String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
         File userFolder = new File(userFolderPath);
         if (!userFolder.exists()) {
             userFolder.mkdirs();
@@ -371,7 +371,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     public ResponseEntity<String> generateAndSendMonthlyReport(ReportRequest request) {
         try {
 
-            String reportsDir = System.getProperty("UserDTO.home") + "/reports";
+            String reportsDir = System.getProperty("user.home") + "/reports";
             Files.createDirectories(Paths.get(reportsDir));
 
             String uniqueFileName = "monthly_report_" + UUID.randomUUID() + ".xlsx";

@@ -66,6 +66,15 @@ public class UserController {
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        List<UserDTO> result = users.stream()
+                .map(mapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Object> getUserById(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
