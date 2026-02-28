@@ -53,6 +53,8 @@ public class ApplicationConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
 
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/user/all").permitAll()
+                        .requestMatchers("/api/user/by-email").permitAll()
 
                         .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")

@@ -59,14 +59,11 @@ public class GroupController {
     }
 
     @GetMapping("/get-group-by-id")
-    public Optional<GroupResponseDTO> getGroupByIdwithService(
+    public ResponseEntity<GroupResponseDTO> getGroupByIdwithService(
             @RequestParam Integer id, @RequestParam Integer userId) throws Exception {
-        try {
-            Optional<GroupResponseDTO> result = groupService.getGroupById(id, userId);
-            return result;
-        } catch (Exception e) {
-            throw e;
-        }
+        Optional<GroupResponseDTO> result = groupService.getGroupById(id, userId);
+        return result.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping

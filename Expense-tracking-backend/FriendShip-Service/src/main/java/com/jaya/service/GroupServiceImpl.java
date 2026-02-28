@@ -84,7 +84,9 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupOpt.get();
 
-        if (!group.getMemberIds().contains(userId) && !group.getCreatedBy().equals(userId)) {
+        Set<Integer> members = group.getMemberIds();
+        boolean isMember = members != null && members.contains(userId);
+        if (!isMember && !group.getCreatedBy().equals(userId)) {
             throw new RuntimeException("Access denied: User is not a member of this group");
         }
 
@@ -307,7 +309,7 @@ public class GroupServiceImpl implements GroupService {
         }
 
         Group group = groupOpt.get();
-        return group.getMemberIds().contains(userId);
+        return group.getMemberIds() != null && group.getMemberIds().contains(userId);
     }
 
     @Override
@@ -330,7 +332,8 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupOpt.get();
 
-        if (!group.getMemberIds().contains(userId) && !group.getCreatedBy().equals(userId)) {
+        Set<Integer> memberSet = group.getMemberIds();
+        if ((memberSet == null || !memberSet.contains(userId)) && !group.getCreatedBy().equals(userId)) {
             throw new RuntimeException("Access denied: User is not a member of this group");
         }
 
