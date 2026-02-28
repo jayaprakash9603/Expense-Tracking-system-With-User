@@ -1,7 +1,8 @@
 package com.jaya.service;
 
-import com.jaya.dto.User;
-import com.jaya.util.ServiceHelper;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
+import com.jaya.util.ExpenseValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,46 +23,46 @@ import java.util.function.Function;
 public class ExpenseServiceHelper {
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
 
     
     public static class RequestContext {
-        private final User reqUser;
-        private final User targetUser;
+        private final UserDTO reqUser;
+        private final UserDTO targetUser;
         private final String auditMessage;
 
-        public RequestContext(User reqUser, User targetUser, String auditMessage) {
+        public RequestContext(UserDTO reqUser, UserDTO targetUser, String auditMessage) {
             this.reqUser = reqUser;
             this.targetUser = targetUser;
             this.auditMessage = auditMessage;
         }
 
-        public User getReqUser() { return reqUser; }
-        public User getTargetUser() { return targetUser; }
+        public UserDTO getReqUser() { return reqUser; }
+        public UserDTO getTargetUser() { return targetUser; }
         public String getAuditMessage() { return auditMessage; }
     }
 
     
     public static class EmailReportContext {
-        private final User reqUser;
-        private final User targetUser;
+        private final UserDTO reqUser;
+        private final UserDTO targetUser;
         private final String email;
         private final String reportType;
 
-        public EmailReportContext(User reqUser, User targetUser, String email, String reportType) {
+        public EmailReportContext(UserDTO reqUser, UserDTO targetUser, String email, String reportType) {
             this.reqUser = reqUser;
             this.targetUser = targetUser;
             this.email = email;
             this.reportType = reportType;
         }
 
-        public User getReqUser() { return reqUser; }
-        public User getTargetUser() { return targetUser; }
+        public UserDTO getReqUser() { return reqUser; }
+        public UserDTO getTargetUser() { return targetUser; }
         public String getEmail() { return email; }
         public String getReportType() { return reportType; }
     }
@@ -149,8 +150,8 @@ public class ExpenseServiceHelper {
 
     
 
-    public User authenticateUser(String jwt) {
-        return userService.findUserByJwt(jwt);
+    public UserDTO authenticateUser(String jwt) {
+        return IUserServiceClient.getUserProfile(jwt);
     }
 
     public ResponseEntity<Map<String, Object>> createUnauthorizedResponse() {
@@ -158,7 +159,7 @@ public class ExpenseServiceHelper {
                 .body(Map.of("error", "Invalid or expired token"));
     }
 
-    public User getTargetUserWithPermissionCheck(Integer targetId, User reqUser, boolean requireWriteAccess) {
+    public UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean requireWriteAccess) {
         if (targetId == null) {
             return reqUser;
         }
@@ -166,13 +167,13 @@ public class ExpenseServiceHelper {
         if (!targetId.equals(reqUser.getId())) {
             
             try {
-                User fetched = userService.findUserById(targetId);
+                UserDTO fetched = IUserServiceClient.getUserById(targetId);
                 if (fetched == null) {
-                    throw new RuntimeException("Target user not found with ID: " + targetId);
+                    throw new RuntimeException("Target UserDTO not found with ID: " + targetId);
                 }
                 return fetched;
             } catch (Exception e) {
-                throw new RuntimeException("Target user not found with ID: " + targetId);
+                throw new RuntimeException("Target UserDTO not found with ID: " + targetId);
             }
         }
 
@@ -181,19 +182,19 @@ public class ExpenseServiceHelper {
 
     
     public ResponseEntity<?> setupRequestContext(String jwt, Integer targetId, String auditMessageTemplate, Object... params) {
-        User reqUser = authenticateUser(jwt);
+        UserDTO reqUser = authenticateUser(jwt);
         if (reqUser == null) {
             return createUnauthorizedResponse();
         }
 
-        User targetUser;
+        UserDTO targetUser;
         try {
             targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
         }
         if (targetUser == null) {
-            return handleRuntimeException(new RuntimeException("Target user not found with ID: " + targetId));
+            return handleRuntimeException(new RuntimeException("Target UserDTO not found with ID: " + targetId));
         }
 
         String auditMessage = createAuditMessage(auditMessageTemplate, targetId, reqUser.getId(), params);
@@ -207,19 +208,19 @@ public class ExpenseServiceHelper {
             return emailValidation;
         }
 
-        User reqUser = authenticateUser(jwt);
+        UserDTO reqUser = authenticateUser(jwt);
         if (reqUser == null) {
             return createUnauthorizedResponse();
         }
 
-        User targetUser;
+        UserDTO targetUser;
         try {
             targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
         }
         if (targetUser == null) {
-            return handleRuntimeException(new RuntimeException("Target user not found with ID: " + targetId));
+            return handleRuntimeException(new RuntimeException("Target UserDTO not found with ID: " + targetId));
         }
 
         return ResponseEntity.ok(new EmailReportContext(reqUser, targetUser, email, reportType));
@@ -268,14 +269,14 @@ public class ExpenseServiceHelper {
     }
 
     
-    public void logAudit(User user, Integer expenseId, String action, String message) {
+    public void logAudit(UserDTO UserDTO, Integer expenseId, String action, String message) {
         
     }
 
     public String createAuditMessage(String baseMessage, Integer targetId, Integer reqUserId, Object... params) {
         String formattedMessage = String.format(baseMessage, params);
         if (targetId != null && !targetId.equals(reqUserId)) {
-            return formattedMessage + " for user ID: " + targetId;
+            return formattedMessage + " for UserDTO ID: " + targetId;
         }
         return formattedMessage;
     }
@@ -307,7 +308,7 @@ public class ExpenseServiceHelper {
             Integer targetId,
             String email,
             String reportType,
-            Function<User, T> dataExtractor,
+            Function<UserDTO, T> dataExtractor,
             EmailReportProcessor<T> processor) {
 
         return executeWithErrorHandling(() -> {

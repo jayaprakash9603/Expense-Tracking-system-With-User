@@ -16,7 +16,6 @@ public class UserIdHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        
         // Try query parameters first
         String query = request.getURI().getQuery();
         if (query != null) {

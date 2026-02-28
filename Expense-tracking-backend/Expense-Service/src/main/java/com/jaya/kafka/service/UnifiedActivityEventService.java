@@ -1,7 +1,7 @@
 package com.jaya.kafka.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.kafka.events.UnifiedActivityEvent;
 import com.jaya.kafka.events.UnifiedActivityEvent.UserInfo;
 import com.jaya.kafka.producer.UnifiedActivityEventProducer;
@@ -40,7 +40,7 @@ public class UnifiedActivityEventService {
     
 
 
-    public void sendExpenseCreatedEvent(Expense expense, User actor, User target, HttpServletRequest request) {
+    public void sendExpenseCreatedEvent(Expense expense, UserDTO actor, UserDTO target, HttpServletRequest request) {
         UnifiedActivityEvent event = buildExpenseEvent(expense, actor, target,
                 UnifiedActivityEvent.Action.CREATE, null, request);
         eventProducer.sendEvent(event);
@@ -49,7 +49,7 @@ public class UnifiedActivityEventService {
     
 
 
-    public void sendExpenseUpdatedEvent(Expense expense, Expense oldExpense, User actor, User target,
+    public void sendExpenseUpdatedEvent(Expense expense, Expense oldExpense, UserDTO actor, UserDTO target,
             HttpServletRequest request) {
         Map<String, Object> oldValues = convertToMap(oldExpense);
         UnifiedActivityEvent event = buildExpenseEvent(expense, actor, target,
@@ -60,7 +60,7 @@ public class UnifiedActivityEventService {
     
 
 
-    public void sendExpenseDeletedEvent(Expense expense, User actor, User target, HttpServletRequest request) {
+    public void sendExpenseDeletedEvent(Expense expense, UserDTO actor, UserDTO target, HttpServletRequest request) {
         UnifiedActivityEvent event = buildExpenseEvent(expense, actor, target,
                 UnifiedActivityEvent.Action.DELETE, null, request);
         
@@ -72,7 +72,7 @@ public class UnifiedActivityEventService {
     
 
 
-    private UnifiedActivityEvent buildExpenseEvent(Expense expense, User actor, User target,
+    private UnifiedActivityEvent buildExpenseEvent(Expense expense, UserDTO actor, UserDTO target,
             String action, Map<String, Object> oldValues,
             HttpServletRequest request) {
         boolean isOwnAction = actor.getId().equals(target.getId());
@@ -115,7 +115,7 @@ public class UnifiedActivityEventService {
     
 
 
-    private String buildExpenseDescription(Expense expense, User actor, String action, boolean isOwnAction) {
+    private String buildExpenseDescription(Expense expense, UserDTO actor, String action, boolean isOwnAction) {
         String actionText = switch (action) {
             case UnifiedActivityEvent.Action.CREATE -> "created";
             case UnifiedActivityEvent.Action.UPDATE -> "updated";
@@ -148,8 +148,8 @@ public class UnifiedActivityEventService {
             Long entityId,
             String entityName,
             String action,
-            User actor,
-            User target) {
+            UserDTO actor,
+            UserDTO target) {
 
         boolean isOwnAction = actor.getId().equals(target.getId());
 
@@ -187,22 +187,22 @@ public class UnifiedActivityEventService {
     
 
 
-    public UserInfo buildUserInfo(User user) {
-        if (user == null)
+    public UserInfo buildUserInfo(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
 
         return UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .fullName(user.getFullName())
-                .image(user.getImage())
-                .coverImage(user.getCoverImage())
-                .phoneNumber(user.getPhoneNumber())
-                .location(user.getLocation())
-                .bio(user.getBio())
+                .id(UserDTO.getId())
+                .username(UserDTO.getUsername())
+                .email(UserDTO.getEmail())
+                .firstName(UserDTO.getFirstName())
+                .lastName(UserDTO.getLastName())
+                .fullName(UserDTO.getFullName())
+                .image(UserDTO.getImage())
+                .coverImage(UserDTO.getCoverImage())
+                .phoneNumber(UserDTO.getPhoneNumber())
+                .location(UserDTO.getLocation())
+                .bio(UserDTO.getBio())
                 .build();
     }
 
@@ -215,7 +215,7 @@ public class UnifiedActivityEventService {
             return;
 
         builder.ipAddress(getClientIpAddress(request))
-                .userAgent(request.getHeader("User-Agent"))
+                .userAgent(request.getHeader("UserDTO-Agent"))
                 .sessionId(request.getSession(false) != null ? request.getSession().getId() : null)
                 .correlationId(request.getHeader("X-Correlation-ID"))
                 .requestId(request.getHeader("X-Request-ID"))

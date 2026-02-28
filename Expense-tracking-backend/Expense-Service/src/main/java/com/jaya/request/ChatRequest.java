@@ -1,6 +1,6 @@
 package com.jaya.request;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 import lombok.Data;
 

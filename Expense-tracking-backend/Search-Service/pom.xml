@@ -113,11 +113,11 @@
 		</dependency>
 
 		<!-- Common Library - Shared exceptions, DTOs, Kafka events, utilities -->
-		<!-- <dependency>
+		<dependency>
 			<groupId>com.jaya.common</groupId>
 			<artifactId>expense-common-library</artifactId>
 			<version>1.0.0</version>
-		</dependency> -->
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
@@ -138,6 +138,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<classifier>exec</classifier>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-@Component
+@Component("friendshipUnifiedActivityEventConsumer")
 @RequiredArgsConstructor
 @Slf4j
 public class UnifiedActivityEventConsumer {
@@ -29,7 +29,7 @@ public class UnifiedActivityEventConsumer {
     private final FriendActivityRepository friendActivityRepository;
     private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${kafka.consumer.group-id:friendship-unified-activity-group}", containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(topics = "${kafka.topics.unified-activity-events:unified-activity-events}", groupId = "${kafka.consumer.group-id:friendship-unified-activity-group}", containerFactory = "friendshipKafkaListenerContainerFactory")
     @Transactional
     public void consumeUnifiedActivityEvent(
             Object payload,

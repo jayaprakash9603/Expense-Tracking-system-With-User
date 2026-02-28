@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@Entity
-@Table(name = "email_logs")
+@Entity(name = "UserEmailLog")
+@Table(name = "user_email_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

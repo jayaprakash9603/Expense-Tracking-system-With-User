@@ -22,7 +22,7 @@ public class PaymentMethodKafkaProducerService {
         try {
             String key = event.getUserId() + "-" + event.getPaymentMethodName();
             kafkaTemplate.send(PAYMENT_METHOD_TOPIC, key, event);
-            logger.info("Payment method event sent successfully for user: {} and payment method: {}",
+            logger.info("Payment method event sent successfully for UserDTO: {} and payment method: {}",
                     event.getUserId(), event.getPaymentMethodName());
         } catch (Exception e) {
             logger.error("Error sending payment method event: {}", e.getMessage(), e);

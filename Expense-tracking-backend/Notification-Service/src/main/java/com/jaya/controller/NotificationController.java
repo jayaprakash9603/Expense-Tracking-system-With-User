@@ -2,11 +2,11 @@ package com.jaya.controller;
 
 import com.jaya.modal.Notification;
 import com.jaya.modal.NotificationPreferences;
-import com.jaya.modal.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.NotificationRepository;
 import com.jaya.repository.NotificationPreferencesRepository;
 import com.jaya.service.NotificationService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,7 +31,7 @@ public class NotificationController {
     private NotificationPreferencesRepository preferencesRepository;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @GetMapping
     public ResponseEntity<List<Notification>> getAllNotifications(
@@ -40,7 +40,7 @@ public class NotificationController {
             @RequestParam(defaultValue = "20") int size) {
 
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Page<Notification> notifications = notificationRepository
                     .findByUserIdOrderByCreatedAtDesc(user.getId(), PageRequest.of(page, size));
 
@@ -57,7 +57,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             List<Notification> notifications = notificationRepository
                     .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
 
@@ -74,7 +74,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             Long count = notificationRepository.countUnreadNotifications(user.getId());
 
             return ResponseEntity.ok(Map.of("unreadCount", count));
@@ -90,7 +90,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer notificationId) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
@@ -107,7 +107,7 @@ public class NotificationController {
 
     @PutMapping("/read-all")
     public ResponseEntity<String> markAllAsRead(@RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Notification> unreadNotifications = notificationRepository
                 .findByUserIdAndIsReadFalseOrderByCreatedAtDesc(user.getId());
 
@@ -125,7 +125,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer notificationId) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
 
@@ -141,7 +141,7 @@ public class NotificationController {
     public ResponseEntity<NotificationPreferences> getNotificationPreferences(
             @RequestHeader("Authorization") String jwt) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         NotificationPreferences preferences = preferencesRepository.findByUserId(user.getId())
                 .orElseGet(() -> createDefaultPreferences(user.getId()));
 
@@ -153,7 +153,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody Map<String, Boolean> preferences) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         notificationService.updateNotificationPreferences(user, preferences);
 
         return ResponseEntity.ok("Notification preferences updated successfully");
@@ -164,7 +164,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody Map<String, String> request) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         String message = request.getOrDefault("message", "This is a test notification");
         String alertType = request.getOrDefault("alertType", "TEST");
 
@@ -177,7 +177,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "50") int limit) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<String> history = notificationService.getNotificationHistory(user, limit);
 
         return ResponseEntity.ok(history);
@@ -188,7 +188,7 @@ public class NotificationController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "30") int daysOld) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysOld);
 
         notificationRepository.deleteByUserIdAndCreatedAtBefore(user.getId(), cutoffDate);
@@ -197,7 +197,7 @@ public class NotificationController {
 
     @DeleteMapping("/all")
     public ResponseEntity<String> deleteAllNotifications(@RequestHeader("Authorization") String jwt) {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         notificationService.deleteAllNotifications(user.getId());
         return ResponseEntity.ok("All notifications deleted successfully");
     }
@@ -209,7 +209,7 @@ public class NotificationController {
             @RequestParam(defaultValue = "20") Integer limit,
             @RequestParam(defaultValue = "0") Integer offset) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Notification> notifications = notificationService.getUserNotifications(
                 user.getId(), isRead, limit, offset);
 

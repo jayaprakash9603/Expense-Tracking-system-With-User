@@ -3,7 +3,8 @@ package com.jaya.kafka.service;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.kafka.producer.FriendActivityProducer;
 import com.jaya.models.Budget;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.kafka.events.FriendActivityEvent.UserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -22,17 +23,17 @@ public class FriendActivityService {
     private final FriendActivityProducer friendActivityProducer;
 
     @Async("friendActivityExecutor")
-    public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
+    public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDTO actorUser) {
         sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+    public void sendBudgetCreatedByFriend(Budget budget, Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendBudgetCreatedByFriendInternal(budget, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBudgetCreatedByFriendInternal(Budget budget, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    private void sendBudgetCreatedByFriendInternal(Budget budget, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own budget");
@@ -70,19 +71,19 @@ public class FriendActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendBudgetUpdatedByFriend(Budget budget, Integer targetUserId, UserDto actorUser) {
+    public void sendBudgetUpdatedByFriend(Budget budget, Integer targetUserId, UserDTO actorUser) {
         sendBudgetUpdatedByFriendInternal(budget, null, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendBudgetUpdatedByFriend(Budget budget, Budget previousBudget, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    public void sendBudgetUpdatedByFriend(Budget budget, Budget previousBudget, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBudgetUpdatedByFriendInternal(budget, previousBudget, targetUserId, actorUser, targetUser);
     }
 
     private void sendBudgetUpdatedByFriendInternal(Budget budget, Budget previousBudget, Integer targetUserId,
-            UserDto actorUser,
-            UserDto targetUser) {
+            UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -117,20 +118,20 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount,
-            Integer targetUserId, UserDto actorUser) {
+            Integer targetUserId, UserDTO actorUser) {
         sendBudgetDeletedByFriendInternal(budgetId, budgetName, amount, null, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
     public void sendBudgetDeletedByFriend(Integer budgetId, String budgetName, Double amount, Budget deletedBudget,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendBudgetDeletedByFriendInternal(budgetId, budgetName, amount, deletedBudget, targetUserId, actorUser,
                 targetUser);
     }
 
     private void sendBudgetDeletedByFriendInternal(Integer budgetId, String budgetName, Double amount,
             Budget deletedBudget,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -164,17 +165,17 @@ public class FriendActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+    public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDTO actorUser, int count) {
         sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
+    public void sendAllBudgetsDeletedByFriend(Integer targetUserId, UserDTO actorUser, UserDTO targetUser, int count,
             List<Budget> deletedBudgets) {
         sendAllBudgetsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedBudgets);
     }
 
-    private void sendAllBudgetsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+    private void sendAllBudgetsDeletedByFriendInternal(Integer targetUserId, UserDTO actorUser, UserDTO targetUser,
             int count,
             List<Budget> deletedBudgets) {
         try {
@@ -215,7 +216,7 @@ public class FriendActivityService {
         }
     }
 
-    private String getActorDisplayName(UserDto user) {
+    private String getActorDisplayName(UserDTO user) {
         if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
             if (user.getLastName() != null && !user.getLastName().isEmpty()) {
                 return user.getFirstName() + " " + user.getLastName();
@@ -225,7 +226,7 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDTO user) {
         if (user == null)
             return null;
 

@@ -1,9 +1,9 @@
 package com.jaya.service;
 
 import com.jaya.dto.ExpenseViewDTO;
-import com.jaya.dto.User;
-import com.jaya.models.Budget;
-import com.jaya.models.Category;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.models.BudgetModel;
+import com.jaya.models.ExpenseCategory;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class ExpenseViewService {
 
 
     public ExpenseViewDTO getExpenseDetailedView(Integer expenseId, Integer userId) {
-        log.debug("Building detailed view for expense {} user {}", expenseId, userId);
+        log.debug("Building detailed view for expense {} UserDTO {}", expenseId, userId);
 
         
         Expense expense = expenseService.getExpenseById(expenseId, userId);
@@ -92,7 +92,7 @@ public class ExpenseViewService {
         }
 
         try {
-            Category category = categoryService.getById(expense.getCategoryId(), userId);
+            ExpenseCategory category = categoryService.getById(expense.getCategoryId(), userId);
             if (category == null) {
                 return ExpenseViewDTO.CategoryInfo.builder()
                         .id(expense.getCategoryId())
@@ -251,30 +251,30 @@ public class ExpenseViewService {
 
         for (Integer budgetId : budgetIds) {
             try {
-                Budget budget = budgetService.getBudgetById(budgetId, userId);
-                if (budget != null) {
-                    double usedAmount = budget.getAmount() - budget.getRemainingAmount();
-                    double percentageUsed = budget.getAmount() > 0
-                            ? (usedAmount / budget.getAmount()) * 100
+                BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
+                if (BudgetModel != null) {
+                    double usedAmount = BudgetModel.getAmount() - BudgetModel.getRemainingAmount();
+                    double percentageUsed = BudgetModel.getAmount() > 0
+                            ? (usedAmount / BudgetModel.getAmount()) * 100
                             : 0;
 
-                    String status = determineBudgetStatus(budget);
+                    String status = determineBudgetStatus(BudgetModel);
 
                     budgetInfoList.add(ExpenseViewDTO.BudgetInfo.builder()
-                            .id(budget.getId())
-                            .name(budget.getName())
-                            .description(budget.getDescription())
-                            .startDate(budget.getStartDate())
-                            .endDate(budget.getEndDate())
-                            .amount(budget.getAmount())
-                            .remainingAmount(budget.getRemainingAmount())
+                            .id(BudgetModel.getId())
+                            .name(BudgetModel.getName())
+                            .description(BudgetModel.getDescription())
+                            .startDate(BudgetModel.getStartDate())
+                            .endDate(BudgetModel.getEndDate())
+                            .amount(BudgetModel.getAmount())
+                            .remainingAmount(BudgetModel.getRemainingAmount())
                             .usedAmount(usedAmount)
                             .percentageUsed(Math.round(percentageUsed * 100.0) / 100.0)
                             .status(status)
                             .build());
                 }
             } catch (Exception e) {
-                log.warn("Error fetching budget {}: {}", budgetId, e.getMessage());
+                log.warn("Error fetching BudgetModel {}: {}", budgetId, e.getMessage());
             }
         }
 
@@ -401,19 +401,19 @@ public class ExpenseViewService {
     
 
 
-    private String determineBudgetStatus(Budget budget) {
+    private String determineBudgetStatus(BudgetModel BudgetModel) {
         LocalDate now = LocalDate.now();
 
-        if (budget.getEndDate() != null && budget.getEndDate().isBefore(now)) {
+        if (BudgetModel.getEndDate() != null && BudgetModel.getEndDate().isBefore(now)) {
             return "EXPIRED";
         }
 
-        if (budget.getRemainingAmount() <= 0) {
+        if (BudgetModel.getRemainingAmount() <= 0) {
             return "EXCEEDED";
         }
 
-        double percentageUsed = budget.getAmount() > 0
-                ? ((budget.getAmount() - budget.getRemainingAmount()) / budget.getAmount()) * 100
+        double percentageUsed = BudgetModel.getAmount() > 0
+                ? ((BudgetModel.getAmount() - BudgetModel.getRemainingAmount()) / BudgetModel.getAmount()) * 100
                 : 0;
 
         if (percentageUsed >= 90) {
@@ -425,3 +425,5 @@ public class ExpenseViewService {
         return "ACTIVE";
     }
 }
+
+

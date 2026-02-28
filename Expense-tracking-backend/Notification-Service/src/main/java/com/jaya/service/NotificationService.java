@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.modal.Notification;
-import com.jaya.modal.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.modal.ExpenseDTO;
 import com.jaya.modal.BudgetDTO;
 import java.time.LocalDate;
@@ -23,40 +23,40 @@ public interface NotificationService {
 
     Long getUnreadCount(Integer userId);
 
-    void sendBudgetDTOExceededAlert(UserDto UserDto, BudgetDTO BudgetDTO, double currentSpending);
+    void sendBudgetDTOExceededAlert(UserDTO user, BudgetDTO BudgetDTO, double currentSpending);
 
-    void sendBudgetDTOWarningAlert(UserDto UserDto, BudgetDTO BudgetDTO, double currentSpending,
+    void sendBudgetDTOWarningAlert(UserDTO user, BudgetDTO BudgetDTO, double currentSpending,
             double warningThreshold);
 
-    void sendMonthlySpendingSummary(UserDto UserDto, LocalDate month);
+    void sendMonthlySpendingSummary(UserDTO user, LocalDate month);
 
-    void sendDailyExpenseDTOReminder(UserDto UserDto);
+    void sendDailyExpenseDTOReminder(UserDTO user);
 
-    void sendWeeklyExpenseDTOReport(UserDto UserDto);
+    void sendWeeklyExpenseDTOReport(UserDTO user);
 
-    void sendUnusualSpendingAlert(UserDto UserDto, ExpenseDTO ExpenseDTO);
+    void sendUnusualSpendingAlert(UserDTO user, ExpenseDTO ExpenseDTO);
 
-    void sendRecurringExpenseDTOReminder(UserDto UserDto, List<ExpenseDTO> recurringExpenseDTOs);
+    void sendRecurringExpenseDTOReminder(UserDTO user, List<ExpenseDTO> recurringExpenseDTOs);
 
-    void sendGoalAchievementNotification(UserDto UserDto, String goalType, double targetAmount);
+    void sendGoalAchievementNotification(UserDTO user, String goalType, double targetAmount);
 
-    void sendInactivityReminder(UserDto UserDto, int daysSinceLastExpenseDTO);
+    void sendInactivityReminder(UserDTO user, int daysSinceLastExpenseDTO);
 
-    void scheduleMonthlyReports(UserDto UserDto);
+    void scheduleMonthlyReports(UserDTO user);
 
-    void sendCustomAlert(UserDto UserDto, String message, String alertType);
+    void sendCustomAlert(UserDTO user, String message, String alertType);
 
-    List<String> getNotificationHistory(UserDto UserDto, int limit);
+    List<String> getNotificationHistory(UserDTO user, int limit);
 
-    void sendBudgetExceededAlert(UserDto user, BudgetDTO budget, double currentSpending);
+    void sendBudgetExceededAlert(UserDTO user, BudgetDTO budget, double currentSpending);
 
-    public void sendBudgetWarningAlert(UserDto user, BudgetDTO budget, double currentSpending, double warningThreshold);
+    public void sendBudgetWarningAlert(UserDTO user, BudgetDTO budget, double currentSpending, double warningThreshold);
 
-    public void sendDailyExpenseReminder(UserDto user);
+    public void sendDailyExpenseReminder(UserDTO user);
 
-    public void sendWeeklyExpenseReport(UserDto user);
+    public void sendWeeklyExpenseReport(UserDTO user);
 
-    public void sendRecurringExpenseReminder(UserDto user, List<ExpenseDTO> recurringExpenses);
+    public void sendRecurringExpenseReminder(UserDTO user, List<ExpenseDTO> recurringExpenses);
 
-    public void updateNotificationPreferences(UserDto user, Map<String, Boolean> preferences);
+    public void updateNotificationPreferences(UserDTO user, Map<String, Boolean> preferences);
 }

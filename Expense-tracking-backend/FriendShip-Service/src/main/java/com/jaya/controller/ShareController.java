@@ -1,12 +1,12 @@
 package com.jaya.controller;
 
 import com.jaya.dto.share.*;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.FriendshipNotificationService;
 import com.jaya.service.QrCodeService;
 import com.jaya.service.SharedResourceService;
 import com.jaya.service.UserAddedItemsService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import java.util.Map;
 public class ShareController {
 
     private final SharedResourceService sharedResourceService;
-    private final UserService userService;
+    private final IUserServiceClient userClient;
     private final QrCodeService qrCodeService;
     private final FriendshipNotificationService notificationService;
     private final UserAddedItemsService userAddedItemsService;
@@ -39,7 +39,7 @@ public class ShareController {
             @Valid @RequestBody CreateShareRequest request,
             HttpServletRequest httpRequest) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         log.info("User {} creating share for {} resources", user.getId(), request.getResourceRefs().size());
 
         String shareBaseUrlOverride = resolveShareBaseUrl(httpRequest);
@@ -115,14 +115,14 @@ public class ShareController {
         Integer accessingUserId = null;
         if (jwt != null && !jwt.isEmpty()) {
             try {
-                UserDto user = userService.getuserProfile(jwt);
+                UserDTO user = userClient.getUserProfile(jwt);
                 accessingUserId = user.getId();
             } catch (Exception e) {
                 log.debug("Could not get user from JWT, proceeding as anonymous");
             }
         }
 
-        log.debug("Accessing share with token (first 8 chars): {}", token.substring(0, Math.min(8, token.length())));
+        log.debug("Accessing share");
 
         SharedDataResponse response = sharedResourceService.accessShare(token, accessingUserId);
 
@@ -145,15 +145,15 @@ public class ShareController {
         Integer accessingUserId = null;
         if (jwt != null && !jwt.isEmpty()) {
             try {
-                UserDto user = userService.getuserProfile(jwt);
+                UserDTO user = userClient.getUserProfile(jwt);
                 accessingUserId = user.getId();
             } catch (Exception e) {
                 log.debug("Could not get user from JWT, proceeding as anonymous");
             }
         }
 
-        log.debug("Accessing paginated share: token={}..., type={}, page={}, size={}, search={}",
-                token.substring(0, Math.min(8, token.length())), type, page, size,
+        log.debug("Accessing paginated share: type={}, page={}, size={}, search={}",
+                type, page, size,
                 search != null ? search : "none");
 
         size = Math.max(1, Math.min(100, size));
@@ -191,9 +191,8 @@ public class ShareController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String token) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
-        log.info("User {} revoking share with token: {}...", user.getId(),
-                token.substring(0, Math.min(8, token.length())));
+        UserDTO user = userClient.getUserProfile(jwt);
+        log.info("User {} revoking share", user.getId());
 
         sharedResourceService.revokeShare(token, user.getId());
 
@@ -205,7 +204,7 @@ public class ShareController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "false") boolean activeOnly) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
 
         List<ShareListItem> shares;
         if (activeOnly) {
@@ -222,7 +221,7 @@ public class ShareController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "false") boolean savedOnly) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         log.info("User {} fetching shares shared with them, savedOnly={}", user.getId(), savedOnly);
 
         List<SharedWithMeItem> shares;
@@ -242,7 +241,7 @@ public class ShareController {
         Integer excludeUserId = null;
         if (jwt != null && !jwt.isEmpty()) {
             try {
-                UserDto user = userService.getuserProfile(jwt);
+                UserDTO user = userClient.getUserProfile(jwt);
                 excludeUserId = user.getId();
             } catch (Exception e) {
                 log.debug("Could not get user from JWT for public shares");
@@ -258,9 +257,8 @@ public class ShareController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String token) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
-        log.info("User {} toggling save for share token: {}...", user.getId(),
-                token.substring(0, Math.min(8, token.length())));
+        UserDTO user = userClient.getUserProfile(jwt);
+        log.info("User {} toggling save for share", user.getId());
 
         boolean isSaved = sharedResourceService.toggleSaveShare(token, user.getId());
 
@@ -276,9 +274,8 @@ public class ShareController {
             @PathVariable String token,
             @RequestParam boolean isPublic) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
-        log.info("User {} setting share {}... to public={}", user.getId(),
-                token.substring(0, Math.min(8, token.length())), isPublic);
+        UserDTO user = userClient.getUserProfile(jwt);
+        log.info("User {} setting share to public={}", user.getId(), isPublic);
 
         sharedResourceService.setSharePublic(token, user.getId(), isPublic);
 
@@ -292,7 +289,7 @@ public class ShareController {
     public ResponseEntity<ShareStats> getShareStats(
             @RequestHeader("Authorization") String jwt) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         ShareStats stats = sharedResourceService.getShareStats(user.getId());
 
         return ResponseEntity.ok(stats);
@@ -305,8 +302,8 @@ public class ShareController {
             @RequestParam(defaultValue = "300") int size,
             HttpServletRequest httpRequest) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
-        log.debug("Regenerating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
+        UserDTO user = userClient.getUserProfile(jwt);
+        log.debug("Regenerating QR for share");
 
         List<ShareListItem> userShares = sharedResourceService.getUserShares(user.getId());
         boolean ownsShare = userShares.stream().anyMatch(s -> s.getToken().equals(token));
@@ -331,7 +328,7 @@ public class ShareController {
             @RequestParam(defaultValue = "300") int size,
             HttpServletRequest httpRequest) {
 
-        log.debug("Generating QR for share token: {}...", token.substring(0, Math.min(8, token.length())));
+        log.debug("Generating QR for share");
 
         try {
             SharedDataResponse response = sharedResourceService.accessShare(token, null);
@@ -360,9 +357,8 @@ public class ShareController {
             @Valid @RequestBody ShareWithFriendRequest request,
             HttpServletRequest httpRequest) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
-        log.info("User {} sharing token {}... with friend {}",
-                user.getId(), token.substring(0, Math.min(8, token.length())), request.getFriendId());
+        UserDTO user = userClient.getUserProfile(jwt);
+        log.info("User {} sharing with friend {}", user.getId(), request.getFriendId());
 
         List<ShareListItem> userShares = sharedResourceService.getUserShares(user.getId());
         ShareListItem share = userShares.stream()
@@ -418,7 +414,7 @@ public class ShareController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable String token) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         UserAddedItemsDTO addedItems = userAddedItemsService.getAddedItems(user.getId(), token);
 
         return ResponseEntity.ok(addedItems);
@@ -430,7 +426,7 @@ public class ShareController {
             @PathVariable String token,
             @Valid @RequestBody UserAddedItemsDTO.AddItemRequest request) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         log.debug("User {} tracking added item {} from share {}",
                 user.getId(), request.getExternalRef(), token);
 
@@ -446,7 +442,7 @@ public class ShareController {
             @PathVariable String token,
             @Valid @RequestBody UserAddedItemsDTO.BulkAddRequest request) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         log.debug("User {} bulk tracking {} items from share {}",
                 user.getId(), request.getItems().size(), token);
 
@@ -462,7 +458,7 @@ public class ShareController {
             @PathVariable String token,
             @PathVariable String externalRef) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         boolean isAdded = userAddedItemsService.isItemAdded(user.getId(), token, externalRef);
 
         return ResponseEntity.ok(Map.of(
@@ -476,7 +472,7 @@ public class ShareController {
             @PathVariable String token,
             @PathVariable String externalRef) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         userAddedItemsService.untrackItem(user.getId(), token, externalRef);
 
         return ResponseEntity.ok(Map.of("message", "Item untracked successfully"));

@@ -268,56 +268,54 @@ public class ExcelExportService {
         if (cell == null)
             return "";
 
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue().trim();
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getLocalDateTimeCellValue().toLocalDate()
-                            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        CellType cellType = cell.getCellType();
+        if (cellType == CellType.STRING) {
+            return cell.getStringCellValue().trim();
+        } else if (cellType == CellType.NUMERIC) {
+            if (DateUtil.isCellDateFormatted(cell)) {
+                return cell.getLocalDateTimeCellValue().toLocalDate()
+                        .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            } else {
+                double numValue = cell.getNumericCellValue();
+                if (numValue == Math.floor(numValue)) {
+                    return String.valueOf((long) numValue);
                 } else {
-                    double numValue = cell.getNumericCellValue();
-                    if (numValue == Math.floor(numValue)) {
-                        return String.valueOf((long) numValue);
-                    } else {
-                        return String.valueOf(numValue);
-                    }
+                    return String.valueOf(numValue);
                 }
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                try {
-                    return String.valueOf(cell.getNumericCellValue());
-                } catch (Exception e) {
-                    return cell.getStringCellValue().trim();
-                }
-            default:
-                return "";
+            }
+        } else if (cellType == CellType.BOOLEAN) {
+            return String.valueOf(cell.getBooleanCellValue());
+        } else if (cellType == CellType.FORMULA) {
+            try {
+                return String.valueOf(cell.getNumericCellValue());
+            } catch (Exception e) {
+                return cell.getStringCellValue().trim();
+            }
         }
+        return "";
     }
 
     private double getCellValueAsDouble(Cell cell) {
         if (cell == null)
             return 0.0;
 
-        switch (cell.getCellType()) {
-            case NUMERIC:
-                return cell.getNumericCellValue();
-            case STRING:
-                try {
-                    String value = cell.getStringCellValue().trim();
-                    return value.isEmpty() ? 0.0 : Double.parseDouble(value);
-                } catch (NumberFormatException e) {
-                    return 0.0;
-                }
-            case FORMULA:
-                try {
-                    return cell.getNumericCellValue();
-                } catch (Exception e) {
-                    return 0.0;
-                }
-            default:
+        CellType cellType = cell.getCellType();
+        if (cellType == CellType.NUMERIC) {
+            return cell.getNumericCellValue();
+        } else if (cellType == CellType.STRING) {
+            try {
+                String value = cell.getStringCellValue().trim();
+                return value.isEmpty() ? 0.0 : Double.parseDouble(value);
+            } catch (NumberFormatException e) {
                 return 0.0;
+            }
+        } else if (cellType == CellType.FORMULA) {
+            try {
+                return cell.getNumericCellValue();
+            } catch (Exception e) {
+                return 0.0;
+            }
         }
+        return 0.0;
     }
 }

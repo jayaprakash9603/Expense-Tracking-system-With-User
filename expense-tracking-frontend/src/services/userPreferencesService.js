@@ -14,11 +14,9 @@ const preloadDashboardPreferences = async () => {
     const { data } = await api.get("/api/user/dashboard-preferences");
     if (data?.layoutConfig) {
       localStorage.setItem("dashboard_layout_config", data.layoutConfig);
-      console.log("Dashboard preferences preloaded");
       return true;
     }
-  } catch (error) {
-    console.log("Could not preload dashboard preferences:", error.message);
+  } catch {
     return false;
   }
 };
@@ -30,14 +28,11 @@ const preloadThemePreference = async (dispatch) => {
   try {
     const { data } = await api.get("/api/settings");
     if (data?.themeMode) {
-      // Set theme immediately in localStorage before components render
       localStorage.setItem("theme", data.themeMode);
       dispatch(setTheme(data.themeMode));
-      console.log("Theme preloaded:", data.themeMode);
       return true;
     }
-  } catch (error) {
-    console.log("Could not preload theme:", error.message);
+  } catch {
     return false;
   }
 };
@@ -49,13 +44,10 @@ const preloadLanguagePreference = async () => {
   try {
     const { data } = await api.get("/api/settings");
     if (data?.language) {
-      // Store language in localStorage for LanguageContext to pick up
       localStorage.setItem("language", data.language);
-      console.log("Language preloaded:", data.language);
       return true;
     }
-  } catch (error) {
-    console.log("Could not preload language:", error.message);
+  } catch {
     return false;
   }
 };

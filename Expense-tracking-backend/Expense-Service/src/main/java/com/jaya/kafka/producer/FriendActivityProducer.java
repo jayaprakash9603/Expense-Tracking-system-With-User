@@ -1,5 +1,7 @@
 package com.jaya.kafka.producer;
 
+import com.jaya.common.kafka.producer.NotificationEventProducer;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.FriendActivityEvent;
 import lombok.extern.slf4j.Slf4j;
@@ -53,10 +55,10 @@ public class FriendActivityProducer extends NotificationEventProducer<FriendActi
     protected void validateEvent(FriendActivityEvent event) {
         super.validateEvent(event);
         if (event.getTargetUserId() == null) {
-            throw new IllegalArgumentException("Target user ID is required for friend activity event");
+            throw new IllegalArgumentException("Target UserDTO ID is required for friend activity event");
         }
         if (event.getActorUserId() == null) {
-            throw new IllegalArgumentException("Actor user ID is required for friend activity event");
+            throw new IllegalArgumentException("Actor UserDTO ID is required for friend activity event");
         }
         if (event.getAction() == null || event.getAction().isEmpty()) {
             throw new IllegalArgumentException("Action is required for friend activity event");

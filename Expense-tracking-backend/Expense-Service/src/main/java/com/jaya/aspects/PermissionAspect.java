@@ -1,11 +1,11 @@
 package com.jaya.aspects;
 
 import com.jaya.annotations.CheckPermission;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.exceptions.UserException;
 
 import com.jaya.service.FriendShipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -21,12 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PermissionAspect {
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
     @Autowired
     private FriendShipService friendshipService;
 
-    private final ConcurrentHashMap<Integer, User> targetUserCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, UserDTO> targetUserCache = new ConcurrentHashMap<>();
 
     @Around("@annotation(checkPermission)")
     public Object checkPermission(ProceedingJoinPoint joinPoint, CheckPermission checkPermission) throws Throwable {
@@ -59,27 +59,27 @@ public class PermissionAspect {
             throw new RuntimeException("JWT token not found in method parameters");
         }
 
-        User reqUser;
+        UserDTO reqUser;
         try {
-            reqUser = userService.findUserByJwt(jwt);
+            reqUser = IUserServiceClient.getUserProfile(jwt);
         } catch (Exception e) {
-            throw new RuntimeException("Invalid JWT token or user not found");
+            throw new RuntimeException("Invalid JWT token or UserDTO not found");
         }
 
         if (targetId == null) {
             targetId = reqUser.getId();
         }
 
-        User targetUser = targetUserCache.computeIfAbsent(targetId, id -> {
+        UserDTO targetUser = targetUserCache.computeIfAbsent(targetId, id -> {
             try {
-                return userService.findUserById(id);
+                return IUserServiceClient.getUserById(id);
             } catch (Exception e) {
-                throw new RuntimeException("Target user not found with ID: " + id);
+                throw new RuntimeException("Target UserDTO not found with ID: " + id);
             }
         });
 
         if (targetUser == null) {
-            throw new RuntimeException("Target user not found");
+            throw new RuntimeException("Target UserDTO not found");
         }
 
         if (!targetId.equals(reqUser.getId())) {
@@ -89,7 +89,7 @@ public class PermissionAspect {
 
             if (!hasAccess) {
                 String action = checkPermission.needWriteAccess() ? "modify" : "access";
-                throw new RuntimeException("You don't have permission to " + action + " this user's expenses");
+                throw new RuntimeException("You don't have permission to " + action + " this UserDTO's expenses");
             }
         }
 

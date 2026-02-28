@@ -1,7 +1,9 @@
 package com.jaya.task.user.service.controller;
 
+import com.jaya.common.dto.UserDTO;
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.exceptions.UserNotFoundException;
+import com.jaya.task.user.service.mapper.UserMapper;
 import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.RoleRepository;
@@ -16,6 +18,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,11 +48,13 @@ public class UserController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final CustomUserServiceImplementation customUserService;
+    private final UserMapper mapper;
 
-    @GetMapping("/profile")
-    public ResponseEntity<User> findUserByJwt(@RequestHeader("Authorization") String jwt) {
+    @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserDTO> findUserByJwt(@RequestHeader("Authorization") String jwt) {
         User user = userService.getUserProfile(jwt);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        UserDTO result=mapper.toDTO(user);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping("/email")
@@ -59,6 +64,15 @@ public class UserController {
 
         User user = userService.getUserByEmail(email);
         return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        List<UserDTO> result = users.stream()
+                .map(mapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")

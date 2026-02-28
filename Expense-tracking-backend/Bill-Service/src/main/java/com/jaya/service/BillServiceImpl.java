@@ -4,10 +4,10 @@ import com.jaya.dto.BillSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.Bill;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.BillRepository;
 import com.jaya.util.BulkProgressTracker;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.BillServiceHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +27,9 @@ public class BillServiceImpl implements BillService {
 
     private final BillRepository billRepository;
 
-    private final ExpenseService expenseService;
+    private final BillExpenseClient expenseService;
 
-    private final ServiceHelper helper;
+    private final BillServiceHelper helper;
 
     private final BulkProgressTracker progressTracker;
 
@@ -39,7 +39,7 @@ public class BillServiceImpl implements BillService {
     @Transactional(rollbackFor = Exception.class)
     public Bill createBill(Bill bill, Integer userId) throws Exception {
         try {
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
 
             helper.validateBillData(bill);
 
@@ -70,7 +70,7 @@ public class BillServiceImpl implements BillService {
     @Transactional
     public Bill updateBill(Bill bill, Integer userId) throws Exception {
         try {
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
 
             Bill existingBill = getByBillId(bill.getId(), userId);
 
@@ -79,7 +79,7 @@ public class BillServiceImpl implements BillService {
                 throw new Exception("Associated expense not found for bill ID: " + bill.getId());
             }
 
-            expense.setDate(bill.getDate());
+            expense.setDate(bill.getDate() != null ? bill.getDate().toString() : null);
 
             expense.setUserId(userId);
             expense.setCategoryId(bill.getCategoryId());
@@ -110,15 +110,15 @@ public class BillServiceImpl implements BillService {
                     user.getId());
 
             existingBill.setUserId(userId);
-            existingBill.setDate(savedExpense.getDate());
+            existingBill.setDate(savedExpense.getDate() != null ? LocalDate.parse(savedExpense.getDate()) : null);
             existingBill.setCategoryId(savedExpense.getCategoryId());
             existingBill.setDescription(savedExpense.getExpense().getComments());
             existingBill.setPaymentMethod(savedExpense.getExpense().getPaymentMethod());
-            existingBill.setAmount(savedExpense.getExpense().getAmount());
-            existingBill.setNetAmount(savedExpense.getExpense().getNetAmount());
+            existingBill.setAmount(savedExpense.getExpense().getAmountAsDouble());
+            existingBill.setNetAmount(savedExpense.getExpense().getNetAmountAsDouble());
             existingBill.setName(bill.getName());
             existingBill.setType(savedExpense.getExpense().getType());
-            existingBill.setCreditDue(savedExpense.getExpense().getCreditDue());
+            existingBill.setCreditDue(savedExpense.getExpense().getCreditDueAsDouble());
             existingBill.setBudgetIds(savedExpense.getBudgetIds());
             existingBill.setIncludeInBudget(bill.isIncludeInBudget());
             existingBill.setCategory(savedExpense.getCategoryName());
@@ -158,7 +158,7 @@ public class BillServiceImpl implements BillService {
     public void deleteBill(Integer id, Integer userId) throws Exception {
         try {
             helper.validateBillId(id);
-            UserDto user = helper.validateUser(userId);
+            UserDTO user = helper.validateUser(userId);
             Bill bill = getByBillId(id, userId);
             expenseService.deleteExpensesByIdsWithBillService(Arrays.asList(bill.getExpenseId()), user.getId());
 
@@ -409,7 +409,7 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional
     public List<Bill> addMultipleBills(List<Bill> bills, Integer userId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
         if (bills == null || bills.isEmpty())
             return java.util.Collections.emptyList();
 
@@ -436,7 +436,7 @@ public class BillServiceImpl implements BillService {
     @Override
     @Transactional
     public List<Bill> addMultipleBillsWithProgress(List<Bill> bills, Integer userId, String jobId) throws Exception {
-        UserDto user = helper.validateUser(userId);
+        UserDTO user = helper.validateUser(userId);
         if (bills == null || bills.isEmpty())
             return Collections.emptyList();
 

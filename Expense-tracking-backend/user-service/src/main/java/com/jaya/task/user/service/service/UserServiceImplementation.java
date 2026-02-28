@@ -33,27 +33,18 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     @Override
     public User getUserProfile(String jwt) {
         String email = JwtProvider.getEmailFromJwt(jwt);
         User user = userRepository.findByEmail(email);
 
-        System.out.println("=== GET USER PROFILE DEBUG ===");
-        System.out.println("Roles from user T: " + (user != null ? user.getRoles() : null));
-        System.out.println("User found: " + (user != null));
-        if (user != null) {
-            System.out.println("User roles count: " + user.getRoles().size());
-            for (String roleName : user.getRoles()) {
-                System.out.println("User role: " + roleName);
-            }
-
-            if (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty()) {
-
-                user.setCurrentMode("USER");
-                user.setUpdatedAt(LocalDateTime.now());
-                user = userRepository.save(user);
-                System.out.println("Set default currentMode to USER for existing user: " + user.getEmail());
-            }
+        if (user != null && (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty())) {
+            user.setCurrentMode("USER");
+            user.setUpdatedAt(LocalDateTime.now());
+            user = userRepository.save(user);
         }
 
         return user;
@@ -263,6 +254,7 @@ public class UserServiceImplementation implements UserService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public User switchUserMode(String jwt, String newMode) {
         User user = getUserProfile(jwt);
 
@@ -278,10 +270,13 @@ public class UserServiceImplementation implements UserService {
             throw new RuntimeException("User does not have ADMIN role");
         }
 
-        user.setCurrentMode(newMode);
-        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.updateCurrentMode(user.getId(), newMode, LocalDateTime.now());
 
-        return userRepository.save(user);
+        // Detach so Hibernate won't try to flush/validate the full entity on commit
+        entityManager.detach(user);
+        user.setCurrentMode(newMode);
+
+        return user;
     }
 
     private static boolean hasText(String s) {

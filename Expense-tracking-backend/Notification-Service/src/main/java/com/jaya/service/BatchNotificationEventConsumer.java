@@ -5,6 +5,7 @@ import com.jaya.dto.events.*;
 import com.jaya.service.processor.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,13 +30,22 @@ public class BatchNotificationEventConsumer {
 
     private <T> T convertToDto(Object payload, Class<T> dtoClass) {
         try {
-            if (payload instanceof Map) {
-                return objectMapper.convertValue(payload, dtoClass);
+            // Unwrap ConsumerRecord if needed (monolithic mode)
+            Object actualPayload = payload;
+            while (actualPayload instanceof ConsumerRecord) {
+                actualPayload = ((ConsumerRecord<?, ?>) actualPayload).value();
             }
-            if (dtoClass.isInstance(payload)) {
-                return dtoClass.cast(payload);
+
+            if (dtoClass.isInstance(actualPayload)) {
+                return dtoClass.cast(actualPayload);
             }
-            throw new IllegalArgumentException("Unsupported payload type: " + payload.getClass().getName());
+            if (actualPayload instanceof String) {
+                return objectMapper.readValue((String) actualPayload, dtoClass);
+            }
+            if (actualPayload instanceof Map) {
+                return objectMapper.convertValue(actualPayload, dtoClass);
+            }
+            return objectMapper.convertValue(actualPayload, dtoClass);
         } catch (Exception e) {
             log.error("Failed to convert payload to {}: {}", dtoClass.getSimpleName(), e.getMessage());
             return null;

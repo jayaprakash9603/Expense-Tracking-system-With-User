@@ -18,7 +18,6 @@ import java.util.UUID;
 @RequestMapping("/api/stories")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class StoryController {
 
     private final StoryService storyService;

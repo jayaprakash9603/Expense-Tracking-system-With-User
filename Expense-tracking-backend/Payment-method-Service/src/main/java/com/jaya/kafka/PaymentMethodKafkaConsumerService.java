@@ -1,9 +1,11 @@
 package com.jaya.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.dto.PaymentMethodEvent;
 import com.jaya.models.PaymentMethod;
 import com.jaya.repository.PaymentMethodRepository;
 import com.jaya.service.PaymentMethodService;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +28,41 @@ public class PaymentMethodKafkaConsumerService {
     @Autowired
     private PaymentMethodRepository paymentMethodRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @KafkaListener(
             topics = "payment-method-events",
             groupId = "payment-method-group",
             containerFactory = "objectKafkaListenerContainerFactory"
     )
     @Transactional
-    public void handlePaymentMethodEvent(PaymentMethodEvent event) {
+    public void handlePaymentMethodEvent(Object payload) {
+        try {
+            PaymentMethodEvent event;
+
+            // In monolithic mode, the shared container factory may wrap (or double-wrap) the value in ConsumerRecord
+            Object actualPayload = payload;
+            while (actualPayload instanceof ConsumerRecord) {
+                actualPayload = ((ConsumerRecord<?, ?>) actualPayload).value();
+                logger.debug("Unwrapped ConsumerRecord, actual payload type: {}",
+                        actualPayload != null ? actualPayload.getClass().getSimpleName() : "null");
+            }
+
+            if (actualPayload instanceof PaymentMethodEvent) {
+                event = (PaymentMethodEvent) actualPayload;
+            } else if (actualPayload instanceof String) {
+                event = objectMapper.readValue((String) actualPayload, PaymentMethodEvent.class);
+            } else {
+                event = objectMapper.convertValue(actualPayload, PaymentMethodEvent.class);
+            }
+            processPaymentMethodEvent(event);
+        } catch (Exception e) {
+            logger.error("Error processing payment method event: {}", e.getMessage(), e);
+        }
+    }
+
+    private void processPaymentMethodEvent(PaymentMethodEvent event) {
         try {
             logger.info("Received payment method event for user: {} and payment method: {}",
                     event.getUserId(), event.getPaymentMethodName());
@@ -54,6 +84,7 @@ public class PaymentMethodKafkaConsumerService {
             logger.error("Error processing payment method event: {}", e.getMessage(), e);
         }
     }
+
 
     private void handleCreatePaymentMethod(PaymentMethodEvent event) {
         PaymentMethod paymentMethod = paymentMethodService.getAllPaymentMethods(event.getUserId())

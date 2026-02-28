@@ -34,3 +34,4 @@ public class ExpenseCalculationResult {
         return categoryBreakdown.getOrDefault(category, BigDecimal.ZERO);
     }
 }
+

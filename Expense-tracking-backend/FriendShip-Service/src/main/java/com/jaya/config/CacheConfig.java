@@ -6,11 +6,13 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
 
 @Configuration
 @EnableCaching
+@Profile("!monolithic")
 public class CacheConfig {
 
     @Bean

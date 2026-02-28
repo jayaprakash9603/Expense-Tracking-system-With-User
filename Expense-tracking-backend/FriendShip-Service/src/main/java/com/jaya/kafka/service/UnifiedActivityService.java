@@ -6,7 +6,7 @@ import com.jaya.kafka.producer.UnifiedActivityEventProducer;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -24,7 +24,7 @@ public class UnifiedActivityService {
     private final ObjectMapper objectMapper;
 
     @Async("friendActivityExecutor")
-    public void sendFriendRequestSentEvent(Friendship friendship, UserDto requester, UserDto recipient) {
+    public void sendFriendRequestSentEvent(Friendship friendship, UserDTO requester, UserDTO recipient) {
         try {
             log.debug("Sending friend request sent event: requester={}, recipient={}",
                     requester.getId(), recipient.getId());
@@ -59,7 +59,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendFriendRequestAcceptedEvent(Friendship friendship, UserDto requester, UserDto acceptor) {
+    public void sendFriendRequestAcceptedEvent(Friendship friendship, UserDTO requester, UserDTO acceptor) {
         try {
             log.debug("Sending friend request accepted event: requester={}, acceptor={}",
                     requester.getId(), acceptor.getId());
@@ -94,7 +94,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendFriendRequestRejectedEvent(Friendship friendship, UserDto requester, UserDto rejector) {
+    public void sendFriendRequestRejectedEvent(Friendship friendship, UserDTO requester, UserDTO rejector) {
         try {
             log.debug("Sending friend request rejected event: requester={}, rejector={}",
                     requester.getId(), rejector.getId());
@@ -129,7 +129,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendFriendRequestCancelledEvent(Friendship friendship, UserDto canceller, UserDto recipient) {
+    public void sendFriendRequestCancelledEvent(Friendship friendship, UserDTO canceller, UserDTO recipient) {
         try {
             log.debug("Sending friend request cancelled event: canceller={}, recipient={}",
                     canceller.getId(), recipient.getId());
@@ -165,7 +165,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendFriendRemovedEvent(Friendship friendship, UserDto remover, UserDto removedUser) {
+    public void sendFriendRemovedEvent(Friendship friendship, UserDTO remover, UserDTO removedUser) {
         try {
             log.debug("Sending friend removed event: remover={}, removed={}",
                     remover.getId(), removedUser.getId());
@@ -200,7 +200,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendAccessLevelChangedEvent(Friendship friendship, UserDto changer, UserDto targetUser,
+    public void sendAccessLevelChangedEvent(Friendship friendship, UserDTO changer, UserDTO targetUser,
             AccessLevel oldAccess, AccessLevel newAccess) {
         try {
             log.debug("Sending access level changed event: changer={}, target={}, old={}, new={}",
@@ -239,7 +239,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendUserBlockedEvent(UserDto blocker, UserDto blockedUser) {
+    public void sendUserBlockedEvent(UserDTO blocker, UserDTO blockedUser) {
         try {
             log.debug("Sending user blocked event: blocker={}, blocked={}",
                     blocker.getId(), blockedUser.getId());
@@ -273,7 +273,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendUserUnblockedEvent(UserDto unblocker, UserDto unblockedUser) {
+    public void sendUserUnblockedEvent(UserDTO unblocker, UserDTO unblockedUser) {
         try {
             log.debug("Sending user unblocked event: unblocker={}, unblocked={}",
                     unblocker.getId(), unblockedUser.getId());
@@ -307,7 +307,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private UnifiedActivityEvent.UserInfo buildUserInfo(UserDto user) {
+    private UnifiedActivityEvent.UserInfo buildUserInfo(UserDTO user) {
         if (user == null)
             return null;
         return UnifiedActivityEvent.UserInfo.builder()
@@ -321,7 +321,7 @@ public class UnifiedActivityService {
                 .build();
     }
 
-    private String getDisplayName(UserDto user) {
+    private String getDisplayName(UserDTO user) {
         if (user == null)
             return "Unknown";
         if (user.getFirstName() != null && user.getLastName() != null) {
@@ -349,7 +349,7 @@ public class UnifiedActivityService {
         return payload;
     }
 
-    private String buildFriendRequestMetadata(Friendship friendship, UserDto requester) {
+    private String buildFriendRequestMetadata(Friendship friendship, UserDTO requester) {
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("friendshipId", friendship.getId());
@@ -366,7 +366,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private String buildFriendshipStatusMetadata(Friendship friendship, UserDto actor, FriendshipStatus status) {
+    private String buildFriendshipStatusMetadata(Friendship friendship, UserDTO actor, FriendshipStatus status) {
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("friendshipId", friendship.getId());
@@ -380,7 +380,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private String buildFriendRemovedMetadata(Friendship friendship, UserDto remover) {
+    private String buildFriendRemovedMetadata(Friendship friendship, UserDTO remover) {
         try {
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("friendshipId", friendship.getId());
@@ -393,7 +393,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private String buildAccessLevelDescription(UserDto changer, AccessLevel oldAccess, AccessLevel newAccess) {
+    private String buildAccessLevelDescription(UserDTO changer, AccessLevel oldAccess, AccessLevel newAccess) {
         String changerName = getDisplayName(changer);
 
         if (newAccess == AccessLevel.NONE) {
@@ -410,7 +410,7 @@ public class UnifiedActivityService {
         return String.format("%s updated your expense access level", changerName);
     }
 
-    private String buildAccessLevelMetadata(Friendship friendship, UserDto changer,
+    private String buildAccessLevelMetadata(Friendship friendship, UserDTO changer,
             AccessLevel oldAccess, AccessLevel newAccess) {
         try {
             Map<String, Object> metadata = new HashMap<>();
@@ -426,7 +426,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private Map<String, Object> buildBlockPayload(UserDto actor, UserDto target) {
+    private Map<String, Object> buildBlockPayload(UserDTO actor, UserDTO target) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("actorId", actor.getId());
         payload.put("actorName", getDisplayName(actor));

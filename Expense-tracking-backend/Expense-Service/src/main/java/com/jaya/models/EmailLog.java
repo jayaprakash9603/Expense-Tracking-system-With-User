@@ -1,7 +1,7 @@
 package com.jaya.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Entity
-@Table(name = "email_logs")
+@Table(name = "expense_email_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,9 +33,7 @@ public class EmailLog {
     private Map<String, String> attachmentDetails;
 
 
-    @JsonIgnore
-    @ManyToOne
-    private User user;
+    private Integer userId;
 
     @OneToOne(mappedBy = "emailLog", cascade = CascadeType.ALL)
     private CommonLog commonLog;

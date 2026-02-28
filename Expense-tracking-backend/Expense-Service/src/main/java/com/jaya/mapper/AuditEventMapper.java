@@ -104,7 +104,7 @@ public class AuditEventMapper {
                         auditEvent.getDetails().toLowerCase().contains("category")) {
                     return mapToCategoryExpenseEvent(auditEvent);
                 } else if (auditEvent.getDetails() != null &&
-                        auditEvent.getDetails().toLowerCase().contains("budget")) {
+                        auditEvent.getDetails().toLowerCase().contains("BudgetModel")) {
                     return mapToBudgetExpenseEvent(auditEvent);
                 }
                 break;
@@ -112,7 +112,7 @@ public class AuditEventMapper {
                 return mapToPaymentMethodEvent(auditEvent);
             case "CATEGORY":
                 return mapToCategoryExpenseEvent(auditEvent);
-            case "BUDGET":
+            case "BudgetModel":
                 return mapToBudgetExpenseEvent(auditEvent);
             default:
                 return null;
@@ -221,11 +221,13 @@ public class AuditEventMapper {
                 return "PAYMENT_METHOD";
             } else if (details.contains("category")) {
                 return "CATEGORY";
-            } else if (details.contains("budget")) {
-                return "BUDGET";
+            } else if (details.contains("BudgetModel")) {
+                return "BudgetModel";
             }
         }
 
         return auditEvent.getEntityType();
     }
 }
+
+

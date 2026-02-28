@@ -40,7 +40,7 @@ public class BulkExpenseBudgetService {
     @Autowired
     private BulkProgressTracker progressTracker;
 
-    private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
+    private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-BudgetModel-linking-events";
     private static final int BATCH_SIZE = 20;
     private static final int PROGRESS_UPDATE_INTERVAL = 10;
 
@@ -59,11 +59,11 @@ public class BulkExpenseBudgetService {
 
     @Transactional
     public BulkExpenseBudgetResponse processBulkExpensesAndBudgets(BulkExpenseBudgetRequest request, Integer userId) {
-        log.info("Processing bulk expense and budget request for user: {} with {} mappings", userId,
+        log.info("Processing bulk expense and BudgetModel request for UserDTO: {} with {} mappings", userId,
                 request.getMappings() != null ? request.getMappings().size() : 0);
 
         if (request.getMappings() == null || request.getMappings().isEmpty()) {
-            log.warn("Empty mappings received for user: {}", userId);
+            log.warn("Empty mappings received for UserDTO: {}", userId);
             return BulkExpenseBudgetResponse.builder()
                     .success(false)
                     .message("No mappings provided")
@@ -119,7 +119,7 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        log.info("Completed bulk processing for user {}: {} total, {} successful, {} failed",
+        log.info("Completed bulk processing for UserDTO {}: {} total, {} successful, {} failed",
                 userId, results.size(), successCount, failureCount);
 
         return BulkExpenseBudgetResponse.builder()
@@ -151,7 +151,7 @@ public class BulkExpenseBudgetService {
                     Long oldBudgetId = budgetData.getId();
 
                     if (oldToNewBudgetIds.containsKey(oldBudgetId)) {
-                        log.info("Budget {} already processed, skipping duplicate", oldBudgetId);
+                        log.info("BudgetModel {} already processed, skipping duplicate", oldBudgetId);
                         continue;
                     }
 
@@ -164,10 +164,10 @@ public class BulkExpenseBudgetService {
 
                     oldToNewBudgetIds.put(oldBudgetId, null);
 
-                    log.info("Published budget creation event for old budget ID: {}", oldBudgetId);
+                    log.info("Published BudgetModel creation event for old BudgetModel ID: {}", oldBudgetId);
 
                 } catch (Exception e) {
-                    log.error("Error processing budget ID: {}", budgetData.getId(), e);
+                    log.error("Error processing BudgetModel ID: {}", budgetData.getId(), e);
                 }
             }
         }
@@ -247,7 +247,7 @@ public class BulkExpenseBudgetService {
             Integer userId,
             String jobId) {
         try {
-            log.info("Starting async bulk processing for job: {} with user: {}", jobId, userId);
+            log.info("Starting async bulk processing for job: {} with UserDTO: {}", jobId, userId);
 
             int totalExpenses = 0;
             int totalBudgets = 0;
@@ -384,10 +384,10 @@ public class BulkExpenseBudgetService {
                 successCount.incrementAndGet();
 
                 progressTracker.addRecentItem(jobId,
-                        String.format("Budget: %s (%.0f)", budgetData.getName(), budgetData.getAmount()));
+                        String.format("BudgetModel: %s (%.0f)", budgetData.getName(), budgetData.getAmount()));
 
             } catch (Exception e) {
-                log.error("Error processing budget ID: {}", budgetData.getId(), e);
+                log.error("Error processing BudgetModel ID: {}", budgetData.getId(), e);
                 failureCount.incrementAndGet();
             } finally {
                 int current = processedCount.incrementAndGet();
@@ -644,12 +644,12 @@ public class BulkExpenseBudgetService {
         try {
             publishAfterCommit(event);
             log.info(
-                    "Published budget creation event for old budget ID: {} with {} mapped expense IDs (out of {} total)",
+                    "Published BudgetModel creation event for old BudgetModel ID: {} with {} mapped expense IDs (out of {} total)",
                     budgetData.getId(), mappedNewExpenseIds.size(),
                     budgetData.getExpenseIds() != null ? budgetData.getExpenseIds().size() : 0);
         } catch (Exception e) {
-            log.error("Failed to publish budget creation event for budget ID: {}", budgetData.getId(), e);
-            throw new RuntimeException("Failed to publish budget creation event", e);
+            log.error("Failed to publish BudgetModel creation event for BudgetModel ID: {}", budgetData.getId(), e);
+            throw new RuntimeException("Failed to publish BudgetModel creation event", e);
         }
     }
 
@@ -668,7 +668,7 @@ public class BulkExpenseBudgetService {
                 .build();
 
         publishAfterCommit(event);
-        log.info("Published expense created event with old budget IDs: {}", oldBudgetIds);
+        log.info("Published expense created event with old BudgetModel IDs: {}", oldBudgetIds);
     }
 
     private void publishExpenseCreatedWithExistingBudgetsEvent(
@@ -714,7 +714,7 @@ public class BulkExpenseBudgetService {
                 }
 
                 if (!expense.getUserId().equals(userId)) {
-                    log.warn("Unauthorized access attempt to expense: {} by user: {}", expenseId, userId);
+                    log.warn("Unauthorized access attempt to expense: {} by UserDTO: {}", expenseId, userId);
                     return;
                 }
 
@@ -725,7 +725,7 @@ public class BulkExpenseBudgetService {
                 expense.getBudgetIds().addAll(budgetIdsSet);
                 expenseRepository.save(expense);
 
-                log.info("Updated expense {} with new budget IDs: {}", expenseId, newBudgetIds);
+                log.info("Updated expense {} with new BudgetModel IDs: {}", expenseId, newBudgetIds);
                 return;
 
             } catch (InterruptedException ie) {
@@ -743,7 +743,7 @@ public class BulkExpenseBudgetService {
                         return;
                     }
                 } else {
-                    log.error("Failed to update expense {} with budget IDs after {} attempts",
+                    log.error("Failed to update expense {} with BudgetModel IDs after {} attempts",
                             expenseId, maxRetries, e);
                 }
             }
@@ -760,7 +760,7 @@ public class BulkExpenseBudgetService {
                 .build();
 
         kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-        log.info("Published expense-budget link update event for expense: {}, budget: {}", expenseId, budgetId);
+        log.info("Published expense-BudgetModel link update event for expense: {}, BudgetModel: {}", expenseId, budgetId);
     }
 
     public void removeBudgetIdsFromExpense(Long expenseId, List<Long> budgetIdsToRemove, Integer userId) {
@@ -772,7 +772,7 @@ public class BulkExpenseBudgetService {
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                log.info(">>> Removing budget IDs from expense {} (attempt {}/{})",
+                log.info(">>> Removing BudgetModel IDs from expense {} (attempt {}/{})",
                         expenseId, attempt, maxRetries);
 
                 Expense expense = expenseRepository.findById(expenseId.intValue())
@@ -781,7 +781,7 @@ public class BulkExpenseBudgetService {
                 log.info(">>> Found expense {}. Current budgetIds: {}", expenseId, expense.getBudgetIds());
 
                 if (expense.getBudgetIds() == null || expense.getBudgetIds().isEmpty()) {
-                    log.info(">>> Expense {} has no budget IDs, nothing to remove", expenseId);
+                    log.info(">>> Expense {} has no BudgetModel IDs, nothing to remove", expenseId);
                     return;
                 }
 
@@ -789,7 +789,7 @@ public class BulkExpenseBudgetService {
                         .map(Long::intValue)
                         .collect(Collectors.toSet());
 
-                log.info(">>> Budget IDs to remove (as Integer): {}", budgetIdsSetToRemove);
+                log.info(">>> BudgetModel IDs to remove (as Integer): {}", budgetIdsSetToRemove);
 
                 int initialSize = expense.getBudgetIds().size();
                 boolean removed = expense.getBudgetIds().removeAll(budgetIdsSetToRemove);
@@ -802,7 +802,7 @@ public class BulkExpenseBudgetService {
                 log.info(">>> Saved expense {}. Final budgetIds: {}",
                         savedExpense.getId(), savedExpense.getBudgetIds());
 
-                log.info(">>> Successfully removed {} budget IDs from expense {}. Remaining budgets: {}",
+                log.info(">>> Successfully removed {} BudgetModel IDs from expense {}. Remaining budgets: {}",
                         removedCount, expenseId, expense.getBudgetIds().size());
                 return;
 
@@ -820,7 +820,7 @@ public class BulkExpenseBudgetService {
                         return;
                     }
                 } else {
-                    log.error(">>> Failed to remove budget IDs from expense {} after {} attempts. Giving up.",
+                    log.error(">>> Failed to remove BudgetModel IDs from expense {} after {} attempts. Giving up.",
                             expenseId, maxRetries);
                 }
             }

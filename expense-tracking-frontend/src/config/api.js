@@ -14,13 +14,24 @@ const isCanceledError = (error) =>
 export const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
+// WebSocket URL for notifications — defaults to API_BASE_URL so it works in both
+// monolithic (single host) and microservice (gateway-proxied) modes.
+// Override with REACT_APP_NOTIFICATION_WS_URL for direct-to-service connections
+// (e.g. http://localhost:6003/notifications in microservice mode without gateway WS proxy).
+export const NOTIFICATION_WS_URL =
+  process.env.REACT_APP_NOTIFICATION_WS_URL ||
+  `${API_BASE_URL}/notifications`;
+
+// Chat WebSocket URL — defaults to API_BASE_URL so it works in both
+// monolithic (single host) and microservice (gateway-proxied) modes.
+// Override with REACT_APP_CHAT_WS_URL for direct-to-service connections
+// (e.g. http://localhost:7001/chat in microservice mode without gateway WS proxy).
+export const CHAT_WS_URL =
+  process.env.REACT_APP_CHAT_WS_URL || `${API_BASE_URL}/chat`;
+
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
-const getJwtToken = () => {
-  const jwtToken = localStorage.getItem("jwt");
-  // console.log("JWT Token:", jwtToken);
-  return jwtToken;
-};
+const getJwtToken = () => localStorage.getItem("jwt");
 
 // Create an Axios instance used across the app
 export const api = axios.create({
@@ -119,10 +130,8 @@ const handleResponseError = (error) => {
         if (shouldNormalizeStatus(status)) {
           attachSystemError();
         }
-        console.error("API Error:", error.response.data);
     }
   } else {
-    console.error("Network Error:", error.message);
     attachSystemErrorPayload(error, {
       ...buildSystemErrorPayloadFromAxios(error),
       status: "NETWORK",

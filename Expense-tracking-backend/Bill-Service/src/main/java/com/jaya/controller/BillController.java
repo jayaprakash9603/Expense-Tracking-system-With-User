@@ -6,14 +6,14 @@ import com.jaya.dto.BillResponseDTO;
 import com.jaya.dto.BillSearchDTO;
 import com.jaya.dto.ProgressStatus;
 import com.jaya.dto.ocr.OcrReceiptResponseDTO;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.response.Error;
 import com.jaya.service.BillService;
 import com.jaya.service.ExcelExportService;
 import com.jaya.service.FriendShipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.ocr.ReceiptOcrService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.BillServiceHelper;
 import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.exceptions.InvalidImageException;
 import com.jaya.exceptions.OcrProcessingException;
@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.springframework.core.task.TaskExecutor;
 import com.jaya.util.BulkProgressTracker;
+import com.jaya.common.config.FeignAuthForwardingConfig;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -41,19 +42,19 @@ import org.springframework.web.multipart.MultipartFile;
 public class BillController {
 
     private final BillService billService;
-    private final UserService userService;
-    private final ServiceHelper helper;
+    private final IUserServiceClient IUserServiceClient;
+    private final BillServiceHelper helper;
     private final FriendShipService friendshipService;
     private final BulkProgressTracker progressTracker;
-    private final TaskExecutor taskExecutor;
+    private final TaskExecutor billTaskExecutor;
     private final ExcelExportService excelExportService;
     private final UnifiedActivityService unifiedActivityService;
     private final ReceiptOcrService receiptOcrService;
 
-    private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser) throws Exception {
+    private UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser) throws Exception {
         if (targetId == null)
             return reqUser;
-        UserDto targetUser = helper.validateUser(targetId);
+        UserDTO targetUser = helper.validateUser(targetId);
         if (targetUser == null)
             throw new Exception("Target user not found");
         boolean hasAccess = friendshipService.canUserModifyExpenses(targetId, reqUser.getId());
@@ -62,10 +63,10 @@ public class BillController {
         return targetUser;
     }
 
-    private UserDto getTargetUserWithReadAccess(Integer targetId, UserDto reqUser) throws Exception {
+    private UserDTO getTargetUserWithReadAccess(Integer targetId, UserDTO reqUser) throws Exception {
         if (targetId == null)
             return reqUser;
-        UserDto targetUser = helper.validateUser(targetId);
+        UserDTO targetUser = helper.validateUser(targetId);
         if (targetUser == null)
             throw new Exception("Target user not found");
         boolean canView = friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
@@ -78,12 +79,16 @@ public class BillController {
     public ResponseEntity<BillResponseDTO> createBill(@RequestBody BillRequestDTO billDto,
             @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId)
             throws Exception {
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
         Bill bill = com.jaya.mapper.BillMapper.toEntity(billDto, targetUser.getId());
         Bill createdBill = billService.createBill(bill, targetUser.getId());
 
-        unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBillCreatedEvent(createdBill, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bill created event: {}", e.getMessage());
+        }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(createdBill);
         return ResponseEntity.ok(resp);
@@ -93,13 +98,17 @@ public class BillController {
     public ResponseEntity<List<BillResponseDTO>> addMultipleBills(@RequestHeader("Authorization") String jwt,
             @RequestBody List<BillRequestDTO> bills,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
         List<Bill> toCreate = bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
                 .toList();
         List<Bill> saved = billService.addMultipleBills(toCreate, targetUser.getId());
 
-        unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBulkBillsCreatedEvent(saved, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bulk bills created event: {}", e.getMessage());
+        }
 
         List<BillResponseDTO> resp = saved.stream().map(com.jaya.mapper.BillMapper::toDto).toList();
         return ResponseEntity.status(HttpStatus.CREATED).body(resp);
@@ -109,14 +118,15 @@ public class BillController {
     public ResponseEntity<Map<String, String>> addMultipleBillsTracked(@RequestHeader("Authorization") String jwt,
             @RequestBody List<BillRequestDTO> bills,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
         String jobId = progressTracker.start(targetUser.getId(), bills != null ? bills.size() : 0,
                 "Bulk bills import started");
 
-        taskExecutor.execute(() -> {
+        billTaskExecutor.execute(() -> {
             try {
+                FeignAuthForwardingConfig.setAsyncAuthToken(jwt);
                 List<Bill> toCreate = bills == null ? java.util.Collections.emptyList()
                         : bills.stream().map(dto -> com.jaya.mapper.BillMapper.toEntity(dto, targetUser.getId()))
                                 .toList();
@@ -125,6 +135,8 @@ public class BillController {
                         "Bulk bills import completed: " + (saved != null ? saved.size() : 0) + " records");
             } catch (Exception ex) {
                 progressTracker.fail(jobId, ex.getMessage());
+            } finally {
+                FeignAuthForwardingConfig.clearAsyncAuthToken();
             }
         });
 
@@ -136,7 +148,7 @@ public class BillController {
     @GetMapping("/add-multiple/progress/{jobId}")
     public ResponseEntity<ProgressStatus> getAddMultipleBillsProgress(@PathVariable String jobId,
             @RequestHeader("Authorization") String jwt) throws Exception {
-        userService.getuserProfile(jwt);
+        IUserServiceClient.getUserProfile(jwt);
         ProgressStatus status = progressTracker.get(jobId);
         if (status == null)
             return ResponseEntity.notFound().build();
@@ -147,8 +159,8 @@ public class BillController {
     public ResponseEntity<Bill> getBillById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             Bill bill = billService.getByBillId(id, targetUser.getId());
             return ResponseEntity.ok(bill);
         } catch (Exception e) {
@@ -161,8 +173,8 @@ public class BillController {
             @RequestHeader("Authorization") String jwt, @RequestParam(required = false) Integer targetId)
             throws Exception {
 
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
         Bill oldBill = billService.getByBillId(id, targetUser.getId());
 
@@ -170,7 +182,11 @@ public class BillController {
         bill.setId(id);
         Bill updatedBill = billService.updateBill(bill, targetUser.getId());
 
-        unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBillUpdatedEvent(updatedBill, oldBill, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send bill updated event: {}", e.getMessage());
+        }
 
         BillResponseDTO resp = com.jaya.mapper.BillMapper.toDto(updatedBill);
         return ResponseEntity.ok(resp);
@@ -180,8 +196,8 @@ public class BillController {
     public ResponseEntity<Void> deleteBill(@PathVariable Integer id, @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
             Bill bill = billService.getByBillId(id, targetUser.getId());
             String billName = "Bill";
@@ -193,7 +209,11 @@ public class BillController {
 
             billService.deleteBill(id, targetUser.getId());
 
-            unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
+            try {
+                unifiedActivityService.sendBillDeletedEvent(id, billName, billAmount, reqUser, targetUser);
+            } catch (NoSuchMethodError | Exception e) {
+                log.warn("Failed to send bill deleted event: {}", e.getMessage());
+            }
 
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
@@ -205,15 +225,19 @@ public class BillController {
     public ResponseEntity<String> deleteAllBills(@RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
         List<Bill> bills = billService.getAllBillsForUser(targetUser.getId());
         int count = bills != null ? bills.size() : 0;
 
         String message = billService.deleteAllBillsForUser(targetUser.getId());
 
-        unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendAllBillsDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send all bills deleted event: {}", e.getMessage());
+        }
 
         return new ResponseEntity<>(message, HttpStatus.NO_CONTENT);
 
@@ -223,8 +247,8 @@ public class BillController {
     public ResponseEntity<Bill> getExpenseIdByBillId(@RequestHeader("Authorization") String jwt,
             @PathVariable Integer expenseId, @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             Bill bill = billService.getBillIdByExpenseId(targetUser.getId(), expenseId);
             return new ResponseEntity<>(bill, HttpStatus.OK);
         } catch (Exception e) {
@@ -248,8 +272,8 @@ public class BillController {
             @RequestParam(required = false) LocalDate expenseDate, @RequestParam(required = false) Integer targetId)
             throws Exception {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             List<Bill> bills;
 
             if (range != null && offset != null) {
@@ -290,8 +314,8 @@ public class BillController {
     public ResponseEntity<List<String>> getAllUniqueItemNames(@RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        UserDto reqUser = userService.getuserProfile(jwt);
-        UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+        UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+        UserDTO targetUser = getTargetUserWithReadAccess(targetId, reqUser);
         List<String> resp = billService.getUserAndBackupItems(targetUser.getId());
         return ResponseEntity.ok(resp);
 
@@ -302,7 +326,7 @@ public class BillController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false, defaultValue = "C:\\Users\\jayapraj\\Downloads\\") String filePath) {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = IUserServiceClient.getUserProfile(jwt);
         try {
             List<Bill> userBills = billService.getAllBillsForUser(user.getId());
 
@@ -341,8 +365,8 @@ public class BillController {
                         .body("Please upload a valid Excel file (.xlsx or .xls)");
             }
 
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
             List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
 
@@ -391,8 +415,8 @@ public class BillController {
                         .body("Please upload a valid Excel file (.xlsx or .xls)");
             }
 
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser);
 
             List<BillRequestDTO> importedBills = excelExportService.importBillsFromExcel(file);
 
@@ -437,7 +461,7 @@ public class BillController {
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = IUserServiceClient.getUserProfile(jwt);
             log.info("Receipt scan requested by user: {}", user.getEmail());
 
             if (!receiptOcrService.isServiceAvailable()) {
@@ -483,7 +507,7 @@ public class BillController {
             @RequestHeader("Authorization") String jwt) {
 
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = IUserServiceClient.getUserProfile(jwt);
             log.info("Multiple receipt scan requested by user: {}. Files: {}", user.getEmail(), files.length);
 
             if (!receiptOcrService.isServiceAvailable()) {
@@ -535,7 +559,7 @@ public class BillController {
     @GetMapping("/ocr/status")
     public ResponseEntity<?> getOcrStatus(@RequestHeader("Authorization") String jwt) {
         try {
-            userService.getuserProfile(jwt);
+            IUserServiceClient.getUserProfile(jwt);
 
             boolean isAvailable = receiptOcrService.isServiceAvailable();
             String provider = receiptOcrService.getActiveProvider();
@@ -568,8 +592,8 @@ public class BillController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userService.getuserProfile(jwt);
-            UserDto targetUser = getTargetUserWithReadAccess(targetId, reqUser);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
+            UserDTO targetUser = getTargetUserWithReadAccess(targetId, reqUser);
             List<BillSearchDTO> bills = billService.searchBills(targetUser.getId(), query, limit);
             return ResponseEntity.ok(bills);
         } catch (Exception e) {

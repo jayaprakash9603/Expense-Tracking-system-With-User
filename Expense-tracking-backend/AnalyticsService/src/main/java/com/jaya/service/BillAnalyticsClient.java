@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "BILL-SERVICE", url = "http://localhost:6007")
+@FeignClient(name = "BILL-SERVICE", url = "${BILL_SERVICE_URL:http://localhost:6007}", contextId = "analyticsBillClient")
 public interface BillAnalyticsClient {
 
     @GetMapping("/api/bills/{id}")

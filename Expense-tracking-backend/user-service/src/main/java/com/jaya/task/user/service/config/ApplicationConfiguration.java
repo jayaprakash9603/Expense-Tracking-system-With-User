@@ -1,13 +1,19 @@
 package com.jaya.task.user.service.config;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,6 +30,22 @@ import java.util.Collections;
 @EnableMethodSecurity(prePostEnabled = true)
 public class ApplicationConfiguration {
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,6 +53,8 @@ public class ApplicationConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
 
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/user/all").permitAll()
+                        .requestMatchers("/api/user/by-email").permitAll()
 
                         .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -61,7 +85,8 @@ public class ApplicationConfiguration {
                         "https://localhost:*",
                         "http://127.0.0.1:*",
                         "https://127.0.0.1:*",
-                        "https://jayaprakash.netlify.app"));
+                        "https://jayaprakash.netlify.app",
+                        "https://jjayaprakash.netlify.app"));
 
                 cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
                 cfg.setAllowedHeaders(Collections.singletonList("*"));
@@ -80,6 +105,18 @@ public class ApplicationConfiguration {
 
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate template = new RestTemplate();
+        template.getInterceptors().add((request, body, execution) -> {
+            jakarta.servlet.http.HttpServletRequest servletRequest =
+                    ((org.springframework.web.context.request.ServletRequestAttributes)
+                            org.springframework.web.context.request.RequestContextHolder.getRequestAttributes())
+                            .getRequest();
+            String auth = servletRequest.getHeader("Authorization");
+            if (auth != null) {
+                request.getHeaders().set("Authorization", auth);
+            }
+            return execution.execute(request, body);
+        });
+        return template;
     }
 }

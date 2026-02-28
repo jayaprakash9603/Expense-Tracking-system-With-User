@@ -10,13 +10,13 @@ import com.jaya.models.SharedResource;
 import com.jaya.models.SharedResource.ResourceRef;
 import com.jaya.models.SharedResourceType;
 import com.jaya.models.ShareVisibility;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.repository.ShareAccessLogRepository;
 import com.jaya.repository.SharedResourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,8 +41,8 @@ public class SharedResourceService {
     private final ShareAccessLogRepository shareAccessLogRepository;
     private final SecureTokenService secureTokenService;
     private final QrCodeService qrCodeService;
-    private final UserService userService;
-    private final ExpenseService expenseService;
+    private final IUserServiceClient userClient;
+    private final ExpenseClient expenseService;
     private final FriendshipService friendshipService;
 
     @Value("${app.share.rate-limit.max-shares-per-hour:10}")
@@ -123,7 +123,7 @@ public class SharedResourceService {
 
     @Transactional
     public SharedDataResponse accessShare(String token, Integer accessingUserId) {
-        log.debug("Accessing share with token: {}", token.substring(0, 8) + "...");
+        log.debug("Accessing share");
 
         SharedResource share = sharedResourceRepository.findByShareToken(token)
                 .orElseThrow(() -> new ShareNotFoundException("Share not found"));
@@ -190,8 +190,8 @@ public class SharedResourceService {
     @Transactional
     public SharedDataPageResponse accessSharePaginated(String token, Integer accessingUserId,
             String resourceType, int page, int size, String search) {
-        log.debug("Accessing share with pagination: token={}, type={}, page={}, size={}, search={}",
-                token.substring(0, Math.min(8, token.length())) + "...", resourceType, page, size,
+        log.debug("Accessing share with pagination: type={}, page={}, size={}, search={}",
+                resourceType, page, size,
                 search != null ? search : "none");
 
         SharedResource share = sharedResourceRepository.findByShareToken(token)
@@ -366,10 +366,12 @@ public class SharedResourceService {
                 .build();
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    /**
+     * Deactivate expired shares. Called by FriendshipScheduledJobs.
+     */
     @Transactional
-    public void deactivateExpiredShares() {
-        log.info("Running scheduled job to deactivate expired shares");
+    public void deactivateExpiredSharesInternal() {
+        log.info("Running job to deactivate expired shares");
         int count = sharedResourceRepository.deactivateExpiredShares(LocalDateTime.now());
         if (count > 0) {
             log.info("Deactivated {} expired shares", count);
@@ -793,7 +795,7 @@ public class SharedResourceService {
 
     private SharedWithMeItem.OwnerInfo fetchSharedWithMeOwnerInfo(Integer ownerId) {
         try {
-            UserDto owner = userService.getUserProfileById(ownerId);
+            UserDTO owner = userClient.getUserById(ownerId);
             if (owner != null) {
                 return SharedWithMeItem.OwnerInfo.builder()
                         .id(owner.getId())
@@ -861,7 +863,7 @@ public class SharedResourceService {
 
     private PublicShareItem.OwnerInfo fetchPublicOwnerInfo(Integer ownerId) {
         try {
-            UserDto owner = userService.getUserProfileById(ownerId);
+            UserDTO owner = userClient.getUserById(ownerId);
             if (owner != null) {
                 return PublicShareItem.OwnerInfo.builder()
                         .id(owner.getId())

@@ -19,7 +19,6 @@ import java.util.Map;
 @RequestMapping("/api/admin/audit-logs")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AdminAuditController {
 
     private final AuditExpenseService auditExpenseService;

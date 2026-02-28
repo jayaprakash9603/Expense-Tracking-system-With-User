@@ -2,9 +2,9 @@ package com.jaya.controller;
 
 import com.jaya.dto.NotificationPreferencesResponseDTO;
 import com.jaya.dto.UpdateNotificationPreferencesRequest;
-import com.jaya.modal.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.NotificationPreferencesService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,19 +16,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/notification-preferences")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class NotificationPreferencesController {
 
     private final NotificationPreferencesService service;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @GetMapping
     public ResponseEntity<NotificationPreferencesResponseDTO> getPreferences(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.info("GET /api/notification-preferences - User: {}", user.getId());
 
             NotificationPreferencesResponseDTO preferences = service.getPreferences(user.getId());
@@ -44,7 +43,7 @@ public class NotificationPreferencesController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody UpdateNotificationPreferencesRequest request) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.info("PUT /api/notification-preferences - User: {}", user.getId());
 
             NotificationPreferencesResponseDTO updated = service.updatePreferences(user.getId(), request);
@@ -59,7 +58,7 @@ public class NotificationPreferencesController {
     public ResponseEntity<NotificationPreferencesResponseDTO> resetToDefaults(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.info("POST /api/notification-preferences/reset - User: {}", user.getId());
 
             NotificationPreferencesResponseDTO defaults = service.resetToDefaults(user.getId());
@@ -74,7 +73,7 @@ public class NotificationPreferencesController {
     public ResponseEntity<Void> deletePreferences(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.info("DELETE /api/notification-preferences - User: {}", user.getId());
 
             service.deletePreferences(user.getId());
@@ -89,7 +88,7 @@ public class NotificationPreferencesController {
     public ResponseEntity<Boolean> preferencesExist(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.debug("GET /api/notification-preferences/exists - User: {}", user.getId());
 
             boolean exists = service.preferencesExist(user.getId());
@@ -104,7 +103,7 @@ public class NotificationPreferencesController {
     public ResponseEntity<NotificationPreferencesResponseDTO> createDefaults(
             @RequestHeader("Authorization") String jwt) {
         try {
-            UserDto user = userService.getuserProfile(jwt);
+            UserDTO user = userClient.getUserProfile(jwt);
             log.info("POST /api/notification-preferences/default - User: {}", user.getId());
 
             NotificationPreferencesResponseDTO defaults = service.createDefaultPreferences(user.getId());

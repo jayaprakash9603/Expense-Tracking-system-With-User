@@ -7,9 +7,9 @@ import com.jaya.dto.UserSummaryDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.FriendshipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.util.FriendshipMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,15 +30,22 @@ public class FriendshipController {
     private FriendshipService friendshipService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @PostMapping("/request")
     public ResponseEntity<FriendshipResponseDTO> sendFriendRequest(
             @RequestHeader("Authorization") String jwt,
             @RequestParam Integer recipientId) throws Exception {
-        UserDto requester = userService.getuserProfile(jwt);
-        Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
-        return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
+        UserDTO requester = userClient.getUserProfile(jwt);
+        try {
+            Friendship friendship = friendshipService.sendFriendRequest(requester.getId(), recipientId);
+            return new ResponseEntity<>(FriendshipMapper.toDTO(friendship), HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            if (e.getMessage() != null && e.getMessage().contains("already exists")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).build();
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @PutMapping("/{friendshipId}/respond")
@@ -46,7 +53,7 @@ public class FriendshipController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer friendshipId,
             @RequestParam boolean accept) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Friendship friendship = friendshipService.respondToRequest(friendshipId, user.getId(), accept);
         return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
     }
@@ -56,7 +63,7 @@ public class FriendshipController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer friendshipId) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         try {
             Friendship friendship = friendshipService.getFriendshipById(friendshipId, user.getId());
             if (friendship == null) {
@@ -79,7 +86,7 @@ public class FriendshipController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer friendshipId,
             @RequestParam AccessLevel accessLevel) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Friendship friendship = friendshipService.setAccessLevel(friendshipId, user.getId(), accessLevel);
         return ResponseEntity.ok(FriendshipMapper.toDTO(friendship));
     }
@@ -87,7 +94,7 @@ public class FriendshipController {
     @GetMapping("/friends")
     public ResponseEntity<List<FriendshipResponseDTO>> getUserFriendships(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> friendships = friendshipService.getUserFriendships(user.getId());
         List<FriendshipResponseDTO> dtos = FriendshipMapper.toDTOListWithPerspective(friendships, user.getId());
         return ResponseEntity.ok(dtos);
@@ -120,7 +127,7 @@ public class FriendshipController {
     @GetMapping("/pending")
     public ResponseEntity<List<FriendshipResponseDTO>> getPendingRequests(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> pendingRequests = friendshipService.getPendingRequests(user.getId());
         List<FriendshipResponseDTO> dtos = FriendshipMapper.toDTOListWithPerspective(pendingRequests, user.getId());
         return ResponseEntity.ok(dtos);
@@ -129,7 +136,7 @@ public class FriendshipController {
     @GetMapping("/pending/incoming")
     public ResponseEntity<List<FriendshipResponseDTO>> getIncomingRequests(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> incomingRequests = friendshipService.getIncomingRequests(user.getId());
         List<FriendshipResponseDTO> dtos = FriendshipMapper.toDTOList(incomingRequests);
         return ResponseEntity.ok(dtos);
@@ -138,7 +145,7 @@ public class FriendshipController {
     @GetMapping("/pending/outgoing")
     public ResponseEntity<List<FriendshipResponseDTO>> getOutgoingRequests(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> outgoingRequests = friendshipService.getOutgoingRequests(user.getId());
         List<FriendshipResponseDTO> dtos = FriendshipMapper.toDTOList(outgoingRequests);
         return ResponseEntity.ok(dtos);
@@ -148,7 +155,7 @@ public class FriendshipController {
     public ResponseEntity<?> cancelFriendRequest(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer friendshipId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         friendshipService.cancelFriendRequest(friendshipId, user.getId());
         return ResponseEntity.ok(Map.of("message", "Friend request cancelled successfully"));
     }
@@ -157,7 +164,7 @@ public class FriendshipController {
     public ResponseEntity<?> removeFriendship(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer friendshipId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         friendshipService.removeFriendship(friendshipId, user.getId());
         return ResponseEntity.ok(Map.of("message", "Friendship removed successfully"));
     }
@@ -166,7 +173,7 @@ public class FriendshipController {
     public ResponseEntity<?> blockUser(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         friendshipService.blockUser(user.getId(), userId);
         return ResponseEntity.ok(Map.of("message", "User blocked successfully"));
     }
@@ -175,7 +182,7 @@ public class FriendshipController {
     public ResponseEntity<?> unblockUser(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         friendshipService.unblockUser(user.getId(), userId);
         return ResponseEntity.ok(Map.of("message", "User unblocked successfully"));
     }
@@ -183,18 +190,18 @@ public class FriendshipController {
     @GetMapping("/blocked")
     public ResponseEntity<List<UserSummaryDTO>> getBlockedUsers(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
-        List<UserDto> blockedUsers = friendshipService.getBlockedUsers(user.getId());
-        List<UserSummaryDTO> userDTOs = blockedUsers.stream()
+        UserDTO user = userClient.getUserProfile(jwt);
+        List<UserDTO> blockedUsers = friendshipService.getBlockedUsers(user.getId());
+        List<UserSummaryDTO> UserDTOs = blockedUsers.stream()
                 .map(UserSummaryDTO::fromUser)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(userDTOs);
+        return ResponseEntity.ok(UserDTOs);
     }
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getFriendshipStats(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> allFriendships = friendshipService.getAllUserFriendships(user.getId());
         Map<String, Object> stats = FriendshipMapper.createFriendshipSummary(allFriendships, user.getId());
         return ResponseEntity.ok(stats);
@@ -204,7 +211,7 @@ public class FriendshipController {
     public ResponseEntity<Map<String, Object>> checkFriendshipStatus(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Friendship friendship = friendshipService.getFriendship(user.getId(), userId);
         Map<String, Object> result = FriendshipMapper.createFriendshipStatus(friendship, user.getId());
         return ResponseEntity.ok(result);
@@ -214,43 +221,43 @@ public class FriendshipController {
     public ResponseEntity<List<UserSummaryDTO>> getFriendSuggestions(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "10") int limit) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
-        List<UserDto> suggestions = friendshipService.getFriendSuggestions(user.getId(), limit);
-        List<UserSummaryDTO> userDTOs = suggestions.stream()
+        UserDTO user = userClient.getUserProfile(jwt);
+        List<UserDTO> suggestions = friendshipService.getFriendSuggestions(user.getId(), limit);
+        List<UserSummaryDTO> UserDTOs = suggestions.stream()
                 .map(UserSummaryDTO::fromUser)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(userDTOs);
+        return ResponseEntity.ok(UserDTOs);
     }
 
     @GetMapping("/mutual/{userId}")
     public ResponseEntity<List<UserSummaryDTO>> getMutualFriends(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
-        List<UserDto> mutualFriends = friendshipService.getMutualFriends(user.getId(), userId);
-        List<UserSummaryDTO> userDTOs = mutualFriends.stream()
+        UserDTO user = userClient.getUserProfile(jwt);
+        List<UserDTO> mutualFriends = friendshipService.getMutualFriends(user.getId(), userId);
+        List<UserSummaryDTO> UserDTOs = mutualFriends.stream()
                 .map(UserSummaryDTO::fromUser)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(userDTOs);
+        return ResponseEntity.ok(UserDTOs);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<UserSummaryDTO>> searchFriends(
             @RequestHeader("Authorization") String jwt,
             @RequestParam String query) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
-        List<UserDto> friends = friendshipService.searchFriends(user.getId(), query);
-        List<UserSummaryDTO> userDTOs = friends.stream()
+        UserDTO user = userClient.getUserProfile(jwt);
+        List<UserDTO> friends = friendshipService.searchFriends(user.getId(), query);
+        List<UserSummaryDTO> UserDTOs = friends.stream()
                 .map(UserSummaryDTO::fromUser)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(userDTOs);
+        return ResponseEntity.ok(UserDTOs);
     }
 
     @GetMapping("/access-check/{userId}")
     public ResponseEntity<Map<String, Object>> checkExpenseAccess(
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> accessInfo = friendshipService.getExpenseAccessInfo(userId, user.getId());
         return ResponseEntity.ok(accessInfo);
     }
@@ -258,7 +265,7 @@ public class FriendshipController {
     @GetMapping("/shared-with-me")
     public ResponseEntity<List<Map<String, Object>>> getSharedWithMe(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> sharedAccess = friendshipService.getSharedWithMe(user.getId());
         return ResponseEntity.ok(sharedAccess);
     }
@@ -266,7 +273,7 @@ public class FriendshipController {
     @GetMapping("/i-shared-with")
     public ResponseEntity<List<Map<String, Object>>> getISharedWith(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> sharedAccess = friendshipService.getISharedWith(user.getId());
         return ResponseEntity.ok(sharedAccess);
     }
@@ -276,7 +283,7 @@ public class FriendshipController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer userId,
             @RequestParam AccessLevel accessLevel) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         try {
             Map<String, Object> result = friendshipService.quickShareExpenses(user.getId(), userId, accessLevel);
             return ResponseEntity.ok(result);
@@ -293,7 +300,7 @@ public class FriendshipController {
     @GetMapping("/expense-sharing-summary")
     public ResponseEntity<Map<String, Object>> getExpenseSharingSummary(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> summary = friendshipService.getExpenseSharingSummary(user.getId());
         return ResponseEntity.ok(summary);
     }
@@ -302,7 +309,7 @@ public class FriendshipController {
     public ResponseEntity<?> batchShareExpenses(
             @RequestHeader("Authorization") String jwt,
             @RequestBody List<BatchShareRequestItem> requests) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
 
         if (requests == null || requests.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("message", "No user IDs provided"));
@@ -318,7 +325,7 @@ public class FriendshipController {
     @GetMapping("/recommended-to-share")
     public ResponseEntity<List<Map<String, Object>>> getRecommendedToShare(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> recommendations = friendshipService.getRecommendedToShare(user.getId());
         return ResponseEntity.ok(recommendations);
     }
@@ -326,7 +333,7 @@ public class FriendshipController {
     @GetMapping("/friends/detailed")
     public ResponseEntity<List<Map<String, Object>>> getDetailedFriends(
             @RequestHeader("Authorization") String jwt) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         List<Map<String, Object>> friends = friendshipService.getDetailedFriends(user.getId());
         return ResponseEntity.ok(friends);
     }
@@ -335,7 +342,7 @@ public class FriendshipController {
     public ResponseEntity<?> getFriendshipDetails(
             @RequestHeader("Authorization") String jwt,
             @RequestParam Integer friendId) throws Exception {
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         Map<String, Object> details = friendshipService.getFriendshipDetails(user.getId(), friendId);
         if (details == null) {
             return ResponseEntity.notFound().build();
@@ -373,7 +380,7 @@ public class FriendshipController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) throws Exception {
 
-        UserDto user = userService.getuserProfile(jwt);
+        UserDTO user = userClient.getUserProfile(jwt);
         FriendshipReportDTO report = friendshipService.generateFriendshipReport(
                 user.getId(),
                 fromDate,

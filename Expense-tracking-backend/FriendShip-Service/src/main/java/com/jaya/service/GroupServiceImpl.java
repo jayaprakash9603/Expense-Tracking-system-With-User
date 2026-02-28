@@ -2,11 +2,12 @@
 package com.jaya.service;
 
 import com.jaya.dto.*;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.mapper.GroupMapper;
 import com.jaya.models.*;
 import com.jaya.repository.GroupInvitationRepository;
 import com.jaya.repository.GroupRepository;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.FriendshipServiceHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +26,7 @@ public class GroupServiceImpl implements GroupService {
     private GroupMapper groupMapper;
 
     @Autowired
-    private ServiceHelper helper;
+    private FriendshipServiceHelper helper;
 
     @Autowired
     private GroupInvitationRepository groupInvitationRepository;
@@ -36,7 +37,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     public GroupResponseDTO createGroup(GroupRequestDTO groupRequestDTO) throws Exception {
-        UserDto creator = helper.validateUser(groupRequestDTO.getCreatedBy());
+        UserDTO creator = helper.validateUser(groupRequestDTO.getCreatedBy());
 
         if (groupRepository.existsByNameAndCreatedBy(groupRequestDTO.getName(), groupRequestDTO.getCreatedBy())) {
             throw new RuntimeException("Group with this name already exists for this user");
@@ -83,7 +84,9 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupOpt.get();
 
-        if (!group.getMemberIds().contains(userId) && !group.getCreatedBy().equals(userId)) {
+        Set<Integer> members = group.getMemberIds();
+        boolean isMember = members != null && members.contains(userId);
+        if (!isMember && !group.getCreatedBy().equals(userId)) {
             throw new RuntimeException("Access denied: User is not a member of this group");
         }
 
@@ -306,7 +309,7 @@ public class GroupServiceImpl implements GroupService {
         }
 
         Group group = groupOpt.get();
-        return group.getMemberIds().contains(userId);
+        return group.getMemberIds() != null && group.getMemberIds().contains(userId);
     }
 
     @Override
@@ -329,7 +332,8 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupOpt.get();
 
-        if (!group.getMemberIds().contains(userId) && !group.getCreatedBy().equals(userId)) {
+        Set<Integer> memberSet = group.getMemberIds();
+        if ((memberSet == null || !memberSet.contains(userId)) && !group.getCreatedBy().equals(userId)) {
             throw new RuntimeException("Access denied: User is not a member of this group");
         }
 
@@ -424,8 +428,8 @@ public class GroupServiceImpl implements GroupService {
                 Integer addedBy = group.getMemberAddedBy().get(memberId);
 
                 try {
-                    UserDto member = helper.validateUser(memberId);
-                    UserDto adder = helper.validateUser(addedBy);
+                    UserDTO member = helper.validateUser(memberId);
+                    UserDTO adder = helper.validateUser(addedBy);
 
                     Map<String, Object> activity = new HashMap<>();
                     activity.put("type", "MEMBER_JOINED");
@@ -497,7 +501,7 @@ public class GroupServiceImpl implements GroupService {
                 if (entry.getValue() == role) {
                     Integer memberId = entry.getKey();
                     try {
-                        UserDto user = helper.validateUser(memberId);
+                        UserDTO user = helper.validateUser(memberId);
                         GroupMemberDTO memberDTO = new GroupMemberDTO();
                         memberDTO.setUserId(memberId);
                         memberDTO.setUsername(user.getEmail());
@@ -768,7 +772,7 @@ public class GroupServiceImpl implements GroupService {
                             continue;
                         }
 
-                        UserDto friend = helper.validateUser(friendId);
+                        UserDTO friend = helper.validateUser(friendId);
 
                         Map<String, Object> recommendation = new HashMap<>();
                         recommendation.put("groupId", group.getId());
@@ -796,7 +800,7 @@ public class GroupServiceImpl implements GroupService {
                                 if (isMutualFriend) {
                                     mutualFriendsCount++;
                                     try {
-                                        UserDto mutualFriend = helper.validateUser(memberId);
+                                        UserDTO mutualFriend = helper.validateUser(memberId);
                                         mutualFriendsNames
                                                 .add(mutualFriend.getFirstName() + " " + mutualFriend.getLastName());
                                     } catch (Exception e) {
@@ -893,8 +897,8 @@ public class GroupServiceImpl implements GroupService {
             throw new RuntimeException("Access denied: Insufficient permissions to invite members");
         }
 
-        UserDto invitee = helper.validateUser(inviteeId);
-        UserDto inviter = helper.validateUser(inviterId);
+        UserDTO invitee = helper.validateUser(inviteeId);
+        UserDTO inviter = helper.validateUser(inviterId);
 
         if (group.getMemberIds() != null && group.getMemberIds().contains(inviteeId)) {
             throw new RuntimeException("User is already a member of this group");
@@ -942,7 +946,7 @@ public class GroupServiceImpl implements GroupService {
                 if (group == null)
                     continue;
 
-                UserDto inviter = helper.validateUser(invitation.getInviterId());
+                UserDTO inviter = helper.validateUser(invitation.getInviterId());
 
                 Map<String, Object> invitationData = new HashMap<>();
                 invitationData.put("invitationId", invitation.getId());
@@ -1036,7 +1040,7 @@ public class GroupServiceImpl implements GroupService {
                 if (group == null)
                     continue;
 
-                UserDto invitee = helper.validateUser(invitation.getInviteeId());
+                UserDTO invitee = helper.validateUser(invitation.getInviteeId());
 
                 Map<String, Object> invitationData = new HashMap<>();
                 invitationData.put("invitationId", invitation.getId());
@@ -1105,10 +1109,10 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public List<UserDto> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception {
+    public List<UserDTO> getFriendsNotInGroup(Integer userId, Integer groupId) throws Exception {
         helper.validateUser(userId);
 
-        List<UserDto> friends = friendshipService.getFriendsOfUser(userId);
+        List<UserDTO> friends = friendshipService.getFriendsOfUser(userId);
 
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new RuntimeException("Group not found"));
@@ -1120,7 +1124,7 @@ public class GroupServiceImpl implements GroupService {
                 .map(GroupInvitation::getInviteeId)
                 .collect(Collectors.toSet());
 
-        List<UserDto> notInGroupOrInvited = friends.stream()
+        List<UserDTO> notInGroupOrInvited = friends.stream()
                 .filter(friend -> !memberIds.contains(friend.getId()))
                 .filter(friend -> !invitedUserIds.contains(friend.getId()))
                 .collect(Collectors.toList());
@@ -1143,7 +1147,7 @@ public class GroupServiceImpl implements GroupService {
             if (invitation.getStatus() == InvitationStatus.CANCELLED)
                 continue;
             try {
-                UserDto invitee = helper.validateUser(invitation.getInviteeId());
+                UserDTO invitee = helper.validateUser(invitation.getInviteeId());
                 Map<String, Object> invitationData = new HashMap<>();
                 invitationData.put("invitationId", invitation.getId());
                 invitationData.put("groupId", groupId);

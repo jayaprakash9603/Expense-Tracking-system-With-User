@@ -6,9 +6,9 @@
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { NOTIFICATION_WS_URL } from "../config/api";
 
 // Configuration
-const NOTIFICATION_WS_URL = "http://localhost:6003/notifications"; // Notification-Service WebSocket endpoint
 const RECONNECT_DELAY = 5000; // 5 seconds
 
 // Notification topic patterns
@@ -50,10 +50,7 @@ class NotificationWebSocketService {
    * @param {function} options.onDisconnect - Callback on disconnect
    */
   connect({ token, onConnect, onError, onDisconnect } = {}) {
-    if (this.client && this.isConnected) {
-      console.log("NotificationWebSocket: Already connected");
-      return;
-    }
+    if (this.client && this.isConnected) return;
 
     const jwt = token || localStorage.getItem("jwt") || "";
 
@@ -62,49 +59,40 @@ class NotificationWebSocketService {
       connectHeaders: {
         Authorization: `Bearer ${jwt}`,
       },
-      debug: (str) => {
-        console.log("NotificationWebSocket Debug:", str);
-      },
+      debug: () => {},
       reconnectDelay: RECONNECT_DELAY,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
 
-      onConnect: (frame) => {
-        console.log("NotificationWebSocket: Connected successfully");
+      onConnect: (connectFrame) => {
         this.isConnected = true;
 
         // Resubscribe to all previous subscriptions
         this.resubscribeAll();
 
         if (onConnect) {
-          onConnect(frame);
+          onConnect(connectFrame);
         }
       },
 
-      onStompError: (frame) => {
-        console.error("NotificationWebSocket STOMP Error:", frame);
+      onStompError: (errorFrame) => {
         this.isConnected = false;
 
         if (onError) {
-          onError(frame);
+          onError(errorFrame);
         }
       },
 
-      onWebSocketClose: (event) => {
-        console.warn("NotificationWebSocket: Connection closed", event);
+      onWebSocketClose: (closeEvent) => {
         this.isConnected = false;
 
         if (onDisconnect) {
-          onDisconnect(event);
+          onDisconnect(closeEvent);
         }
       },
 
       onWebSocketError: (event) => {
-        console.error("NotificationWebSocket: WebSocket error", event);
-
-        if (onError) {
-          onError(event);
-        }
+        if (onError) onError(event);
       },
     });
 
@@ -116,7 +104,6 @@ class NotificationWebSocketService {
    */
   disconnect() {
     if (this.client) {
-      console.log("NotificationWebSocket: Disconnecting...");
       this.client.deactivate();
       this.subscriptions.clear();
       this.listeners.clear();
@@ -134,8 +121,6 @@ class NotificationWebSocketService {
    */
   subscribe(topic, callback, headers = {}) {
     if (!this.client || !this.isConnected) {
-      console.warn("❌ Not connected. Storing subscription for later.");
-      console.warn("   Will subscribe when connection is established");
       // Store the listener for later subscription
       if (!this.listeners.has(topic)) {
         this.listeners.set(topic, []);
@@ -150,12 +135,8 @@ class NotificationWebSocketService {
         (message) => {
           try {
             const payload = message.body ? JSON.parse(message.body) : null;
-            console.log("✅ Parsed Payload:", JSON.stringify(payload, null, 2));
-            console.log("🔄 Calling callback with payload...\n");
             callback(payload, message);
-          } catch (error) {
-            console.error("❌ Error parsing message:", error);
-            console.error("📦 Raw body:", message.body);
+          } catch {
             callback(message.body, message);
           }
         },
@@ -171,16 +152,12 @@ class NotificationWebSocketService {
       }
       this.listeners.get(topic).push({ callback, headers });
 
-      console.log("✅ Successfully subscribed to:", topic);
-      console.log("🎧 Now listening for messages...\n");
-
       return {
         unsubscribe: () => {
           this.unsubscribe(topic);
         },
       };
-    } catch (error) {
-      console.error("❌ Error subscribing to", topic, ":", error);
+    } catch {
       return null;
     }
   }
@@ -195,7 +172,6 @@ class NotificationWebSocketService {
       subscription.unsubscribe();
       this.subscriptions.delete(topic);
       this.listeners.delete(topic);
-      console.log(`NotificationWebSocket: Unsubscribed from ${topic}`);
     }
   }
 
@@ -203,8 +179,6 @@ class NotificationWebSocketService {
    * Resubscribe to all stored topics (used after reconnection)
    */
   resubscribeAll() {
-    console.log("NotificationWebSocket: Resubscribing to all topics...");
-
     const topicsToResubscribe = Array.from(this.listeners.entries());
     this.listeners.clear();
     this.subscriptions.clear();
@@ -325,12 +299,7 @@ class NotificationWebSocketService {
    * @param {Object} headers - Additional headers
    */
   send(destination, body, headers = {}) {
-    if (!this.client || !this.isConnected) {
-      console.error(
-        "NotificationWebSocket: Cannot send message - not connected"
-      );
-      return;
-    }
+    if (!this.client || !this.isConnected) return;
 
     try {
       this.client.publish({
@@ -338,9 +307,8 @@ class NotificationWebSocketService {
         body: typeof body === "string" ? body : JSON.stringify(body),
         headers,
       });
-      console.log(`NotificationWebSocket: Sent message to ${destination}`);
-    } catch (error) {
-      console.error("NotificationWebSocket: Error sending message:", error);
+    } catch {
+      // Send failed - not connected
     }
   }
 

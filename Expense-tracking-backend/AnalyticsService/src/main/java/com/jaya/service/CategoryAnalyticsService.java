@@ -31,8 +31,8 @@ public class CategoryAnalyticsService {
     private final BudgetAnalyticsClient budgetAnalyticsClient;
     private final PaymentMethodAnalyticsClient paymentMethodAnalyticsClient;
     private final BillAnalyticsClient billAnalyticsClient;
-    private final ExpenseService expenseService;
-    private final BudgetService budgetService;
+    private final AnalyticsExpenseClient expenseService;
+    private final BudgetClient budgetService;
 
     private final ExecutorService asyncExecutor = Executors.newFixedThreadPool(4);
 

@@ -4,12 +4,13 @@ import com.jaya.dto.BudgetReport;
 import com.jaya.dto.BudgetSearchDTO;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.models.Budget;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.client.BudgetFriendshipClient;
 import com.jaya.service.BudgetService;
-import com.jaya.service.FriendshipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.kafka.service.UnifiedActivityService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -22,25 +23,26 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/budgets")
+@Slf4j
 public class BudgetController {
 
     @Autowired
     private BudgetService budgetService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userService;
 
     @Autowired
     private UnifiedActivityService unifiedActivityService;
 
     @Autowired
-    private FriendshipService friendshipService;
+    private BudgetFriendshipClient friendshipService;
 
-    private UserDto getTargetUserWithPermissionCheck(Integer targetId, UserDto reqUser, boolean needWriteAccess)
+    private UserDTO getTargetUserWithPermissionCheck(Integer targetId, UserDTO reqUser, boolean needWriteAccess)
             throws Exception {
         if (targetId == null)
             return reqUser;
-        UserDto targetUser = userService.getUserProfileById(targetId);
+        UserDTO targetUser = userService.getUserById(targetId);
         if (targetUser == null) {
             throw new com.jaya.exceptions.UserNotFoundException("Target user not found");
         }
@@ -55,8 +57,8 @@ public class BudgetController {
         return targetUser;
     }
 
-    private UserDto authenticate(String jwt) {
-        UserDto reqUser = userService.getuserProfile(jwt);
+    private UserDTO authenticate(String jwt) {
+        UserDTO reqUser = userService.getUserProfile(jwt);
         if (reqUser == null) {
             throw new com.jaya.exceptions.UnauthorizedException("Invalid or expired token");
         }
@@ -68,8 +70,8 @@ public class BudgetController {
             @RequestBody @Valid Budget budget,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget createdBudget;
         if (targetId != null && !targetId.equals(reqUser.getId())) {
             createdBudget = budgetService.createBudgetForFriend(budget, reqUser.getId(), targetId);
@@ -77,7 +79,11 @@ public class BudgetController {
             createdBudget = budgetService.createBudget(budget, reqUser.getId());
         }
 
-        unifiedActivityService.sendBudgetCreatedEvent(createdBudget, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetCreatedEvent(createdBudget, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget created event (classpath conflict in monolithic mode?): {}", e.getMessage());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdBudget);
     }
@@ -88,14 +94,18 @@ public class BudgetController {
             @RequestBody @Valid Budget budget,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
 
         Budget oldBudget = budgetService.getBudgetById(budgetId, targetUser.getId());
 
         Budget updatedBudget = budgetService.editBudget(budgetId, budget, targetUser.getId());
 
-        unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetUpdatedEvent(updatedBudget, oldBudget, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget updated event: {}", e.getMessage());
+        }
 
         return ResponseEntity.ok(updatedBudget);
     }
@@ -105,14 +115,18 @@ public class BudgetController {
             @PathVariable Integer budgetId,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         Budget budget = budgetService.getBudgetById(budgetId, targetUser.getId());
         String budgetName = budget.getName();
         Double budgetAmount = budget.getAmount();
         budgetService.deleteBudget(budgetId, targetUser.getId());
 
-        unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendBudgetDeletedEvent(budgetId, budgetName, budgetAmount, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send budget deleted event: {}", e.getMessage());
+        }
 
         return ResponseEntity.noContent().build();
     }
@@ -121,13 +135,17 @@ public class BudgetController {
     public ResponseEntity<?> deleteAllBudget(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
         List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
         int count = budgets != null ? budgets.size() : 0;
         budgetService.deleteAllBudget(targetUser.getId());
 
-        unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
+        try {
+            unifiedActivityService.sendAllBudgetsDeletedEvent(count, reqUser, targetUser);
+        } catch (NoSuchMethodError | Exception e) {
+            log.warn("Failed to send all budgets deleted event: {}", e.getMessage());
+        }
 
         return ResponseEntity.noContent().build();
     }
@@ -138,13 +156,13 @@ public class BudgetController {
             @PathVariable Integer budgetId,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
-        UserDto reqUser = userService.getuserProfile(jwt);
+        UserDTO reqUser = userService.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Invalid or expired token");
         }
 
-        UserDto targetUser;
+        UserDTO targetUser;
 
         targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         Budget budget = budgetService.getBudgetById(budgetId, targetUser.getId());
@@ -172,7 +190,6 @@ public class BudgetController {
     @GetMapping("/user")
     public List<Budget> getAllBudgetForUser(
             @RequestParam Integer userId) throws Exception {
-
         return budgetService.getBudgetsForUser(userId);
 
     }
@@ -181,8 +198,8 @@ public class BudgetController {
     public ResponseEntity<?> getAllBudgetsForUser(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         List<Budget> budgets = budgetService.getAllBudgetForUser(targetUser.getId());
         return ResponseEntity.ok(budgets);
     }
@@ -192,8 +209,8 @@ public class BudgetController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer budgetId,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         List<ExpenseDTO> expenses = budgetService.getExpensesForUserByBudgetId(targetUser.getId(), budgetId);
         return ResponseEntity.ok(expenses);
     }
@@ -203,8 +220,8 @@ public class BudgetController {
             @RequestHeader("Authorization") String jwt,
             @PathVariable Integer budgetId,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         BudgetReport budgetReport = budgetService.calculateBudgetReport(targetUser.getId(), budgetId);
         return ResponseEntity.ok(budgetReport);
     }
@@ -213,8 +230,8 @@ public class BudgetController {
     public ResponseEntity<?> getAllBudgetReportsForUser(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         List<BudgetReport> budgetReports = budgetService.getAllBudgetReportsForUser(targetUser.getId());
         return ResponseEntity.ok(budgetReports);
     }
@@ -229,8 +246,8 @@ public class BudgetController {
             @RequestParam(required = false, defaultValue = "all") String rangeType,
             @RequestParam(required = false, defaultValue = "0") int offset,
             @RequestParam(required = false, defaultValue = "all") String flowType) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         Map<String, Object> groupedBudget = budgetService.getSingleBudgetDetailedReport(
                 targetUser.getId(), budgetId, fromDate, toDate, rangeType, offset, flowType);
         return ResponseEntity.ok(groupedBudget);
@@ -241,8 +258,8 @@ public class BudgetController {
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         List<Budget> budgets = budgetService.getBudgetsByDate(date, targetUser.getId());
         return ResponseEntity.ok(budgets);
     }
@@ -253,8 +270,8 @@ public class BudgetController {
             @RequestParam String date,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         LocalDate expenseDate;
         try {
             expenseDate = LocalDate.parse(date);
@@ -275,8 +292,8 @@ public class BudgetController {
             @RequestParam(required = false) String flowType,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         String effectiveFlowType = (type != null && !type.isBlank()) ? type : flowType;
         Map<String, Object> response = budgetService.getFilteredBudgetsWithExpenses(targetUser.getId(), fromDate,
                 toDate, rangeType, offset, effectiveFlowType);
@@ -289,8 +306,8 @@ public class BudgetController {
             @RequestParam(defaultValue = "20") int limit,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-        UserDto reqUser = authenticate(jwt);
-        UserDto targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, false);
         List<BudgetSearchDTO> budgets = budgetService.searchBudgets(targetUser.getId(), query, limit);
         return ResponseEntity.ok(budgets);
     }

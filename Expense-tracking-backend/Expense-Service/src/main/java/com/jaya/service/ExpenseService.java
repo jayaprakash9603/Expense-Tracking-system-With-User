@@ -70,7 +70,7 @@ public interface ExpenseService {
         Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, String rangeType, int offset,
                         String flowType);
 
-        Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception;
+        Map<ExpenseCategory, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception;
 
         Expense getExpenseById(Integer id, Integer userId);
 
@@ -300,3 +300,5 @@ public interface ExpenseService {
 
         List<ExpenseSearchDTO> searchExpensesFuzzy(Integer userId, String query, int limit);
 }
+
+

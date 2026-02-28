@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
-@Service
+@Service("expenseEmailService")
 public class EmailService {
 
     @Autowired
@@ -207,3 +207,4 @@ public class EmailService {
         return emailLogRepository.findAll();
     }
 }
+

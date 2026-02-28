@@ -20,7 +20,6 @@ import java.util.Map;
 @RequestMapping("/api/admin/reports")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AdminReportsController {
 
     private final AdminReportService reportService;

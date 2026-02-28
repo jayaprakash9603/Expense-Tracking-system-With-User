@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "PAYMENT-SERVICE", url = "http://localhost:6006")
+@FeignClient(name = "PAYMENT-SERVICE", url = "${PAYMENT_SERVICE_URL:http://localhost:6006}", contextId = "analyticsPaymentClient")
 public interface PaymentMethodAnalyticsClient {
 
     @GetMapping("/api/payment-methods/{id}")

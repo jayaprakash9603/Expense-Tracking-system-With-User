@@ -18,7 +18,6 @@ import java.util.List;
 @RequestMapping("/api/admin/analytics")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class AdminAnalyticsController {
 
     private final AdminAnalyticsService adminAnalyticsService;

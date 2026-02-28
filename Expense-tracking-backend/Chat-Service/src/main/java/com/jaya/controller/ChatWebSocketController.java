@@ -1,12 +1,12 @@
 package com.jaya.controller;
 
-import com.jaya.config.WebSocketConfig;
+import com.jaya.config.ChatWebSocketConfig;
 import com.jaya.dto.ChatRequest;
 import com.jaya.dto.ChatResponse;
-import com.jaya.dto.UserDto;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.ChatService;
 import com.jaya.service.PresenceService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -23,7 +23,7 @@ public class ChatWebSocketController {
     private ChatService chatService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient userClient;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -32,7 +32,7 @@ public class ChatWebSocketController {
     private PresenceService presenceService;
 
     @Autowired
-    private WebSocketConfig webSocketConfig;
+    private ChatWebSocketConfig webSocketConfig;
 
     @MessageMapping("/send/one-to-one")
     public void sendOneToOneChat(@Payload ChatRequest request, SimpMessageHeaderAccessor headerAccessor) {
@@ -271,7 +271,7 @@ public class ChatWebSocketController {
 
         if (jwt != null) {
             try {
-                UserDto user = userService.getuserProfile(jwt);
+                UserDTO user = userClient.getUserProfile(jwt);
                 if (user != null) {
                     webSocketConfig.registerUserSession(sessionId, user.getId());
                     return user.getId();

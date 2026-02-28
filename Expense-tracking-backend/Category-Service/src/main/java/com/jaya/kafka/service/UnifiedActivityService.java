@@ -5,7 +5,7 @@ import com.jaya.kafka.events.UnifiedActivityEvent;
 import com.jaya.kafka.events.UnifiedActivityEvent.UserInfo;
 import com.jaya.kafka.producer.UnifiedActivityEventProducer;
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -28,7 +28,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryCreatedEvent(Category category, User actorUser, User targetUser) {
+    public void sendCategoryCreatedEvent(Category category, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -73,7 +73,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesCreatedEvent(List<Category> categories, User actorUser, User targetUser) {
+    public void sendBulkCategoriesCreatedEvent(List<Category> categories, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -114,7 +114,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryUpdatedEvent(Category category, Category oldCategory, User actorUser, User targetUser) {
+    public void sendCategoryUpdatedEvent(Category category, Category oldCategory, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -158,7 +158,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendMultipleCategoriesUpdatedEvent(List<Category> categories, User actorUser, User targetUser) {
+    public void sendMultipleCategoriesUpdatedEvent(List<Category> categories, UserDTO actorUser, UserDTO targetUser) {
         try {
             int count = categories != null ? categories.size() : 0;
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
@@ -202,7 +202,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryDeletedEvent(Integer categoryId, String categoryName, User actorUser, User targetUser) {
+    public void sendCategoryDeletedEvent(Integer categoryId, String categoryName, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -248,7 +248,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendMultipleCategoriesDeletedEvent(int count, User actorUser, User targetUser) {
+    public void sendMultipleCategoriesDeletedEvent(int count, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -289,7 +289,7 @@ public class UnifiedActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendAllCategoriesDeletedEvent(int count, User actorUser, User targetUser) {
+    public void sendAllCategoriesDeletedEvent(int count, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -328,42 +328,42 @@ public class UnifiedActivityService {
         }
     }
 
-    private UserInfo buildUserInfo(User user) {
-        if (user == null)
+    private UserInfo buildUserInfo(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
 
-        String fullName = buildFullName(user);
+        String fullName = buildFullName(UserDTO);
         return UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+                .id(UserDTO.getId())
+                .username(UserDTO.getUsername())
+                .email(UserDTO.getEmail())
+                .firstName(UserDTO.getFirstName())
+                .lastName(UserDTO.getLastName())
                 .fullName(fullName)
-                .image(user.getImage())
+                .image(UserDTO.getImage())
                 .build();
     }
 
-    private String buildFullName(User user) {
-        if (user == null)
+    private String buildFullName(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
-        if (user.getFirstName() != null && user.getLastName() != null) {
-            return user.getFirstName() + " " + user.getLastName();
+        if (UserDTO.getFirstName() != null && UserDTO.getLastName() != null) {
+            return UserDTO.getFirstName() + " " + UserDTO.getLastName();
         }
-        if (user.getFirstName() != null) {
-            return user.getFirstName();
+        if (UserDTO.getFirstName() != null) {
+            return UserDTO.getFirstName();
         }
-        return user.getUsername();
+        return UserDTO.getUsername();
     }
 
-    private String getDisplayName(User user) {
-        if (user == null)
+    private String getDisplayName(UserDTO UserDTO) {
+        if (UserDTO == null)
             return "Unknown";
-        String fullName = buildFullName(user);
+        String fullName = buildFullName(UserDTO);
         if (fullName != null && !fullName.isEmpty()) {
             return fullName;
         }
-        return user.getUsername() != null ? user.getUsername() : user.getEmail();
+        return UserDTO.getUsername() != null ? UserDTO.getUsername() : UserDTO.getEmail();
     }
 
     private Map<String, Object> buildCategoryPayload(Category category) {

@@ -1,14 +1,14 @@
 package com.jaya.controller;
 
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.exceptions.MissingRequestHeaderException;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.MonthlySummary;
 import com.jaya.service.ExpenseService;
 import com.jaya.service.FriendShipService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.UserSettingsService;
 import com.jaya.util.UserPermissionHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import java.util.Map;
 public abstract class BaseExpenseController {
 
     @Autowired
-    protected UserService userService;
+    protected IUserServiceClient IUserServiceClient;
 
     @Autowired
     protected FriendShipService friendshipService;
@@ -39,31 +39,31 @@ public abstract class BaseExpenseController {
     @Autowired
     protected UserSettingsService userSettingsService;
 
-    protected User getAuthenticatedUser(String jwt) throws Exception {
+    protected UserDTO getAuthenticatedUser(String jwt) throws Exception {
         if(jwt==null)
         {
             throw new MissingRequestHeaderException("jwt cant be null");
         }
-        return userService.findUserByJwt(jwt);
+        return IUserServiceClient.getUserProfile(jwt);
     }
 
-    protected User getTargetUserWithPermission(String jwt, Integer targetId, boolean requireWrite) throws Exception  {
-        User reqUser = getAuthenticatedUser(jwt);
+    protected UserDTO getTargetUserWithPermission(String jwt, Integer targetId, boolean requireWrite) throws Exception  {
+        UserDTO reqUser = getAuthenticatedUser(jwt);
         return permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, requireWrite);
     }
 
 
-    protected ResponseEntity<?> handleFriendExpenseAccess(Integer userId, User viewer) throws Exception {
+    protected ResponseEntity<?> handleFriendExpenseAccess(Integer userId, UserDTO viewer) throws Exception {
         if (!friendshipService.canUserAccessExpenses(userId, viewer.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("You don't have permission to view this user's expenses");
+                    .body("You don't have permission to view this UserDTO's expenses");
         }
 
         AccessLevel accessLevel = friendshipService.getUserAccessLevel(userId, viewer.getId());
-        User targetUser = userService.findUserById(userId);
+        UserDTO targetUser = IUserServiceClient.getUserById(userId);
 
         if (targetUser == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("UserDTO not found");
         }
 
         switch (accessLevel) {
@@ -82,11 +82,11 @@ public abstract class BaseExpenseController {
 
             default:
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("You don't have permission to view this user's expenses");
+                        .body("You don't have permission to view this UserDTO's expenses");
         }
     }
 
-    private Map<String, Object> createLimitedExpenseData(User targetUser) {
+    private Map<String, Object> createLimitedExpenseData(UserDTO targetUser) {
         MonthlySummary currentMonthSummary = expenseService.getMonthlySummary(
                 LocalDate.now().getYear(),
                 LocalDate.now().getMonthValue(),

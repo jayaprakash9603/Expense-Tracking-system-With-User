@@ -1,10 +1,12 @@
 package com.jaya.task.user.service.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.util.Set;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SignupRequest {
 
     @NotBlank(message = "First name is mandatory")

@@ -3,7 +3,7 @@ package com.jaya.kafka.service;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.kafka.producer.FriendActivityProducer;
 import com.jaya.models.Bill;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -22,17 +22,17 @@ public class FriendActivityService {
     private final FriendActivityProducer friendActivityProducer;
 
     @Async("friendActivityExecutor")
-    public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
+    public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDTO actorUser) {
         sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+    public void sendBillCreatedByFriend(Bill bill, Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendBillCreatedByFriendInternal(bill, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBillCreatedByFriendInternal(Bill bill, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    private void sendBillCreatedByFriendInternal(Bill bill, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own bill");
@@ -70,18 +70,18 @@ public class FriendActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser) {
+    public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDTO actorUser) {
         sendBulkBillsCreatedByFriendInternal(bills, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    public void sendBulkBillsCreatedByFriend(List<Bill> bills, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBulkBillsCreatedByFriendInternal(bills, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBulkBillsCreatedByFriendInternal(List<Bill> bills, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    private void sendBulkBillsCreatedByFriendInternal(List<Bill> bills, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -121,18 +121,18 @@ public class FriendActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendBillUpdatedByFriend(Bill bill, Integer targetUserId, UserDto actorUser) {
+    public void sendBillUpdatedByFriend(Bill bill, Integer targetUserId, UserDTO actorUser) {
         sendBillUpdatedByFriendInternal(bill, null, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendBillUpdatedByFriend(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    public void sendBillUpdatedByFriend(Bill bill, Bill previousBill, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBillUpdatedByFriendInternal(bill, previousBill, targetUserId, actorUser, targetUser);
     }
 
-    private void sendBillUpdatedByFriendInternal(Bill bill, Bill previousBill, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    private void sendBillUpdatedByFriendInternal(Bill bill, Bill previousBill, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -167,18 +167,18 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount,
-            Integer targetUserId, UserDto actorUser) {
+            Integer targetUserId, UserDTO actorUser) {
         sendBillDeletedByFriendInternal(billId, billName, amount, null, targetUserId, actorUser, null);
     }
 
     @Async("friendActivityExecutor")
     public void sendBillDeletedByFriend(Integer billId, String billName, Double amount, Bill deletedBill,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendBillDeletedByFriendInternal(billId, billName, amount, deletedBill, targetUserId, actorUser, targetUser);
     }
 
     private void sendBillDeletedByFriendInternal(Integer billId, String billName, Double amount, Bill deletedBill,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -212,17 +212,17 @@ public class FriendActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+    public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDTO actorUser, int count) {
         sendAllBillsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     @Async("friendActivityExecutor")
-    public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser, int count,
+    public void sendAllBillsDeletedByFriend(Integer targetUserId, UserDTO actorUser, UserDTO targetUser, int count,
             List<Bill> deletedBills) {
         sendAllBillsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedBills);
     }
 
-    private void sendAllBillsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+    private void sendAllBillsDeletedByFriendInternal(Integer targetUserId, UserDTO actorUser, UserDTO targetUser,
             int count, List<Bill> deletedBills) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -262,7 +262,7 @@ public class FriendActivityService {
         }
     }
 
-    private String getActorDisplayName(UserDto user) {
+    private String getActorDisplayName(UserDTO user) {
         if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
             if (user.getLastName() != null && !user.getLastName().isEmpty()) {
                 return user.getFirstName() + " " + user.getLastName();
@@ -272,7 +272,7 @@ public class FriendActivityService {
         return user.getUsername() != null ? user.getUsername() : "A friend";
     }
 
-    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDTO user) {
         if (user == null)
             return null;
 

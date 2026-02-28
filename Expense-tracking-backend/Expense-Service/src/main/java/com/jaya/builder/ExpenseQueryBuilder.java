@@ -127,7 +127,7 @@ public class ExpenseQueryBuilder {
 
     public ExpenseQuery build() {
         if (userId == null) {
-            throw new IllegalArgumentException("User ID is required");
+            throw new IllegalArgumentException("UserDTO ID is required");
         }
 
         return new ExpenseQuery(userId, startDate, endDate, expenseName, type,
@@ -135,3 +135,4 @@ public class ExpenseQueryBuilder {
                 sortOrder, limit, offset);
     }
 }
+

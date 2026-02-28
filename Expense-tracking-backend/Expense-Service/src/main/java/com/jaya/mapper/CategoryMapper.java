@@ -1,7 +1,7 @@
 package com.jaya.mapper;
 
 import com.jaya.common.dto.CategoryDTO;
-import com.jaya.models.Category;
+import com.jaya.models.ExpenseCategory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @Component
 public class CategoryMapper {
 
-    public Category toEntity(CategoryDTO dto) {
+    public ExpenseCategory toEntity(CategoryDTO dto) {
         if (dto == null) {
             return null;
         }
 
-        Category category = new Category();
+        ExpenseCategory category = new ExpenseCategory();
         category.setId(dto.getId());
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
@@ -33,7 +33,7 @@ public class CategoryMapper {
         return category;
     }
 
-    public List<Category> toEntityList(List<CategoryDTO> dtos) {
+    public List<ExpenseCategory> toEntityList(List<CategoryDTO> dtos) {
         if (dtos == null) {
             return List.of();
         }
@@ -42,7 +42,7 @@ public class CategoryMapper {
                 .collect(Collectors.toList());
     }
 
-    public CategoryDTO toDto(Category entity) {
+    public CategoryDTO toDto(ExpenseCategory entity) {
         if (entity == null) {
             return null;
         }
@@ -62,7 +62,7 @@ public class CategoryMapper {
                 .build();
     }
 
-    public List<CategoryDTO> toDtoList(List<Category> entities) {
+    public List<CategoryDTO> toDtoList(List<ExpenseCategory> entities) {
         if (entities == null) {
             return List.of();
         }
@@ -71,3 +71,4 @@ public class CategoryMapper {
                 .collect(Collectors.toList());
     }
 }
+

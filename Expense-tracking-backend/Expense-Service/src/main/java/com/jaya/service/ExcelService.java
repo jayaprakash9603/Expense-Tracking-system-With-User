@@ -134,7 +134,7 @@ public class ExcelService {
     private void createSummarySection(Sheet sheet, MonthlySummary summary, CellStyle headerStyle) {
         Row headerRow = sheet.createRow(0);
         String[] headers = { "Total Amount", "Balance Remaining", "Current Month Credit Due",
-                "Credit Paid", "Credit Due", "Credit Due Message" };
+                "Credit Paid", "Credit Due", "Credit Due ExpenseMessage" };
 
         for (int i = 0; i < headers.length; i++) {
             ExcelCellWriter.createHeaderCell(headerRow, i, headers[i], headerStyle);
@@ -160,7 +160,7 @@ public class ExcelService {
     private void createCategoryBreakdownSection(Sheet sheet, Map<String, BigDecimal> breakdown, int startRow,
             CellStyle headerStyle) {
         Row categoryHeaderRow = sheet.createRow(startRow);
-        ExcelCellWriter.createHeaderCell(categoryHeaderRow, 0, "Category", headerStyle);
+        ExcelCellWriter.createHeaderCell(categoryHeaderRow, 0, "ExpenseCategory", headerStyle);
         ExcelCellWriter.createHeaderCell(categoryHeaderRow, 1, "Amount", headerStyle);
 
         int rowIdx = startRow + 1;
@@ -208,7 +208,7 @@ public class ExcelService {
             
             Row headerRow = sheet.createRow(0);
             ExcelCellWriter.createHeaderCell(headerRow, 0, "Payment Method", headerStyle);
-            ExcelCellWriter.createHeaderCell(headerRow, 1, "Category", headerStyle);
+            ExcelCellWriter.createHeaderCell(headerRow, 1, "ExpenseCategory", headerStyle);
             ExcelCellWriter.createHeaderCell(headerRow, 2, "Amount", headerStyle);
 
             
@@ -296,7 +296,10 @@ public class ExcelService {
 
 
 
-    public List<Category> parseCategorySummarySheet(MultipartFile file) throws IOException {
+    public List<ExpenseCategory> parseCategorySummarySheet(MultipartFile file) throws IOException {
         return categoryParser.parseCategories(file);
     }
 }
+
+
+

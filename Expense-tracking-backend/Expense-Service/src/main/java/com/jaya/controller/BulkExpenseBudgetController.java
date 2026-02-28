@@ -3,9 +3,9 @@ package com.jaya.controller;
 import com.jaya.dto.BulkExpenseBudgetRequest;
 import com.jaya.dto.BulkExpenseBudgetResponse;
 import com.jaya.dto.ProgressStatus;
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.service.BulkExpenseBudgetService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.util.BulkProgressTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ public class BulkExpenseBudgetController {
     private BulkExpenseBudgetService bulkExpenseBudgetService;
 
     @Autowired
-    private UserService userService;
+    private IUserServiceClient IUserServiceClient;
 
     @Autowired
     private BulkProgressTracker progressTracker;
@@ -37,8 +37,8 @@ public class BulkExpenseBudgetController {
         try {
             log.info("Received bulk expenses and budgets request");
 
-            User user = userService.findUserByJwt(token);
-            if (user == null) {
+            UserDTO UserDTO = IUserServiceClient.getUserProfile(token);
+            if (UserDTO == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(BulkExpenseBudgetResponse.builder()
                                 .success(false)
@@ -56,7 +56,7 @@ public class BulkExpenseBudgetController {
 
             BulkExpenseBudgetResponse response = bulkExpenseBudgetService.processBulkExpensesAndBudgets(
                     request,
-                    user.getId());
+                    UserDTO.getId());
 
             HttpStatus status = response.getSuccess() ? HttpStatus.OK : HttpStatus.PARTIAL_CONTENT;
             return ResponseEntity.status(status).body(response);
@@ -78,8 +78,8 @@ public class BulkExpenseBudgetController {
         try {
             log.info("Received tracked bulk expenses and budgets request");
 
-            User user = userService.findUserByJwt(token);
-            if (user == null) {
+            UserDTO UserDTO = IUserServiceClient.getUserProfile(token);
+            if (UserDTO == null) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Invalid or expired token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
@@ -98,13 +98,13 @@ public class BulkExpenseBudgetController {
             }
 
             String jobId = progressTracker.start(
-                    user.getId(),
+                    UserDTO.getId(),
                     totalItems,
                     String.format("Processing %d expenses and budgets", totalItems));
 
             log.info("Started async bulk processing with jobId: {} for {} items", jobId, totalItems);
 
-            bulkExpenseBudgetService.processBulkExpensesAndBudgetsAsync(request, user.getId(), jobId);
+            bulkExpenseBudgetService.processBulkExpensesAndBudgetsAsync(request, UserDTO.getId(), jobId);
 
             Map<String, String> response = new HashMap<>();
             response.put("jobId", jobId);
@@ -126,8 +126,8 @@ public class BulkExpenseBudgetController {
             @PathVariable String jobId,
             @RequestHeader("Authorization") String token) {
         try {
-            User user = userService.findUserByJwt(token);
-            if (user == null) {
+            UserDTO UserDTO = IUserServiceClient.getUserProfile(token);
+            if (UserDTO == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
@@ -136,7 +136,7 @@ public class BulkExpenseBudgetController {
                 return ResponseEntity.notFound().build();
             }
 
-            if (!status.getUserId().equals(user.getId())) {
+            if (!status.getUserId().equals(UserDTO.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
@@ -155,8 +155,8 @@ public class BulkExpenseBudgetController {
         try {
             log.info("Received recovery request for expenses and budgets");
 
-            User user = userService.findUserByJwt(token);
-            if (user == null) {
+            UserDTO UserDTO = IUserServiceClient.getUserProfile(token);
+            if (UserDTO == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(BulkExpenseBudgetResponse.builder()
                                 .success(false)
@@ -174,7 +174,7 @@ public class BulkExpenseBudgetController {
 
             BulkExpenseBudgetResponse response = bulkExpenseBudgetService.processBulkExpensesAndBudgets(
                     request,
-                    user.getId());
+                    UserDTO.getId());
 
             HttpStatus status = response.getSuccess() ? HttpStatus.OK : HttpStatus.PARTIAL_CONTENT;
             return ResponseEntity.status(status).body(response);
@@ -191,6 +191,6 @@ public class BulkExpenseBudgetController {
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("Bulk Expense-Budget Service is running");
+        return ResponseEntity.ok("Bulk Expense-BudgetModel Service is running");
     }
 }

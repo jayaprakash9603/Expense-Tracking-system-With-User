@@ -22,7 +22,8 @@ import java.util.Set;
         @NamedAttributeNode("editUserIds"),
         @NamedAttributeNode("expenseIds")
 })
-@BatchSize(size = 50) 
+@BatchSize(size = 50)
+@Table(name = "payment_method")
 public class PaymentMethod {
 
     @GeneratedValue(strategy = GenerationType.AUTO)

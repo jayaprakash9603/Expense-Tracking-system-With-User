@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "GROUP-SERVICE", url = "${GROUP_SERVICE_URL:http://localhost:8080}")
+@FeignClient(name = "GROUP-SERVICE", url = "${GROUP_SERVICE_URL:http://localhost:8080}", contextId = "analyticsGroupClient")
 public interface GroupAnalyticsClient {
 
     @GetMapping("/api/groups")

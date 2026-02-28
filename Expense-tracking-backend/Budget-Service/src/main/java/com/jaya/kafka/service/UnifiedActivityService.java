@@ -5,7 +5,7 @@ import com.jaya.kafka.events.UnifiedActivityEvent;
 import com.jaya.kafka.events.UnifiedActivityEvent.UserInfo;
 import com.jaya.kafka.producer.UnifiedActivityEventProducer;
 import com.jaya.models.Budget;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -25,7 +25,7 @@ public class UnifiedActivityService {
     private final ObjectMapper objectMapper;
 
     @Async("friendActivityExecutor")
-    public void sendBudgetCreatedEvent(Budget budget, UserDto actorUser, UserDto targetUser) {
+    public void sendBudgetCreatedEvent(Budget budget, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -71,7 +71,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendBudgetUpdatedEvent(Budget budget, Budget oldBudget, UserDto actorUser, UserDto targetUser) {
+    public void sendBudgetUpdatedEvent(Budget budget, Budget oldBudget, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -115,8 +115,8 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendBudgetDeletedEvent(Integer budgetId, String budgetName, Double amount, UserDto actorUser,
-            UserDto targetUser) {
+    public void sendBudgetDeletedEvent(Integer budgetId, String budgetName, Double amount, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -164,7 +164,7 @@ public class UnifiedActivityService {
     }
 
     @Async("friendActivityExecutor")
-    public void sendAllBudgetsDeletedEvent(int count, UserDto actorUser, UserDto targetUser) {
+    public void sendAllBudgetsDeletedEvent(int count, UserDTO actorUser, UserDTO targetUser) {
         try {
             boolean isOwnAction = actorUser.getId().equals(targetUser.getId());
             String actorName = getDisplayName(actorUser);
@@ -203,7 +203,7 @@ public class UnifiedActivityService {
         }
     }
 
-    private UserInfo buildUserInfo(UserDto user) {
+    private UserInfo buildUserInfo(UserDTO user) {
         if (user == null)
             return null;
 
@@ -219,7 +219,7 @@ public class UnifiedActivityService {
                 .build();
     }
 
-    private String buildFullName(UserDto user) {
+    private String buildFullName(UserDTO user) {
         if (user == null)
             return null;
         if (user.getFirstName() != null && user.getLastName() != null) {
@@ -231,7 +231,7 @@ public class UnifiedActivityService {
         return user.getUsername();
     }
 
-    private String getDisplayName(UserDto user) {
+    private String getDisplayName(UserDTO user) {
         if (user == null)
             return "Unknown";
         String fullName = buildFullName(user);

@@ -33,6 +33,7 @@ public class MonthlySummaryColumnDefinition implements ExcelColumnDefinition<Mon
                         summary -> summary.getCreditPaid() != null ? summary.getCreditPaid().toString() : "0"),
                 new ExcelColumn<>("Credit Due",
                         summary -> summary.getCreditDue() != null ? summary.getCreditDue().toString() : "0"),
-                new ExcelColumn<>("Credit Due Message", MonthlySummary::getCreditDueMessage));
+                new ExcelColumn<>("Credit Due ExpenseMessage", MonthlySummary::getCreditDueMessage));
     }
 }
+

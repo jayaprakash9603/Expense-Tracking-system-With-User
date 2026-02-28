@@ -41,6 +41,7 @@ public class YearlySummaryColumnDefinition implements ExcelColumnDefinition<Map.
                 new ExcelColumn<>("Credit Due",
                         entry -> entry.getValue().getCreditDue() != null ? entry.getValue().getCreditDue().toString()
                                 : "0"),
-                new ExcelColumn<>("Credit Due Message", entry -> entry.getValue().getCreditDueMessage()));
+                new ExcelColumn<>("Credit Due ExpenseMessage", entry -> entry.getValue().getCreditDueMessage()));
     }
 }
+

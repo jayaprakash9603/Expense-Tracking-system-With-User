@@ -3,7 +3,7 @@ package com.jaya.kafka.service;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.kafka.producer.FriendActivityProducer;
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -23,22 +23,22 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser) {
+    public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, UserDTO actorUser) {
         sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, User actorUser, User targetUser) {
+    public void sendCategoryCreatedByFriend(Category category, Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendCategoryCreatedByFriendInternal(category, targetUserId, actorUser, targetUser);
     }
 
     
-    private void sendCategoryCreatedByFriendInternal(Category category, Integer targetUserId, User actorUser,
-            User targetUser) {
+    private void sendCategoryCreatedByFriendInternal(Category category, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
-                log.debug("Skipping friend activity notification - user creating own category");
+                log.debug("Skipping friend activity notification - UserDTO creating own category");
                 return;
             }
 
@@ -63,7 +63,7 @@ public class FriendActivityService {
                     .build();
 
             friendActivityProducer.sendEvent(event);
-            log.info("Friend activity event sent: {} created category {} for user {}",
+            log.info("Friend activity event sent: {} created category {} for UserDTO {}",
                     actorUser.getId(), category.getId(), targetUserId);
 
         } catch (Exception e) {
@@ -73,21 +73,21 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
+    public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, UserDTO actorUser) {
         sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
-            User targetUser) {
+    public void sendBulkCategoriesCreatedByFriend(List<Category> categories, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBulkCategoriesCreatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
     }
 
     
     private void sendBulkCategoriesCreatedByFriendInternal(List<Category> categories, Integer targetUserId,
-            User actorUser,
-            User targetUser) {
+            UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -124,20 +124,20 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendCategoryUpdatedByFriend(Category category, Integer targetUserId, User actorUser) {
+    public void sendCategoryUpdatedByFriend(Category category, Integer targetUserId, UserDTO actorUser) {
         sendCategoryUpdatedByFriendInternal(category, null, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
     public void sendCategoryUpdatedByFriend(Category category, Category previousCategory, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         sendCategoryUpdatedByFriendInternal(category, previousCategory, targetUserId, actorUser, targetUser);
     }
 
     
     private void sendCategoryUpdatedByFriendInternal(Category category, Category previousCategory, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -172,21 +172,21 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser) {
+    public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, UserDTO actorUser) {
         sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, User actorUser,
-            User targetUser) {
+    public void sendBulkCategoriesUpdatedByFriend(List<Category> categories, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendBulkCategoriesUpdatedByFriendInternal(categories, targetUserId, actorUser, targetUser);
     }
 
     
     private void sendBulkCategoriesUpdatedByFriendInternal(List<Category> categories, Integer targetUserId,
-            User actorUser,
-            User targetUser) {
+            UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -224,21 +224,21 @@ public class FriendActivityService {
     
     @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName,
-            Integer targetUserId, User actorUser) {
+            Integer targetUserId, UserDTO actorUser) {
         sendCategoryDeletedByFriendInternal(categoryId, categoryName, null, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
     public void sendCategoryDeletedByFriend(Integer categoryId, String categoryName, Category deletedCategory,
-            Integer targetUserId, User actorUser, User targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendCategoryDeletedByFriendInternal(categoryId, categoryName, deletedCategory, targetUserId, actorUser,
                 targetUser);
     }
 
     
     private void sendCategoryDeletedByFriendInternal(Integer categoryId, String categoryName, Category deletedCategory,
-            Integer targetUserId, User actorUser, User targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -273,21 +273,21 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendBulkCategoriesDeletedByFriend(int count, Integer targetUserId, User actorUser) {
+    public void sendBulkCategoriesDeletedByFriend(int count, Integer targetUserId, UserDTO actorUser) {
         sendBulkCategoriesDeletedByFriendInternal(count, null, targetUserId, actorUser, null);
     }
 
     
     @Async("friendActivityExecutor")
     public void sendBulkCategoriesDeletedByFriend(int count, List<Category> deletedCategories, Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         sendBulkCategoriesDeletedByFriendInternal(count, deletedCategories, targetUserId, actorUser, targetUser);
     }
 
     
     private void sendBulkCategoriesDeletedByFriendInternal(int count, List<Category> deletedCategories,
             Integer targetUserId,
-            User actorUser, User targetUser) {
+            UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -326,19 +326,19 @@ public class FriendActivityService {
 
     
     @Async("friendActivityExecutor")
-    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, int count) {
+    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, UserDTO actorUser, int count) {
         sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
     
     @Async("friendActivityExecutor")
-    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, User actorUser, User targetUser, int count,
+    public void sendAllCategoriesDeletedByFriend(Integer targetUserId, UserDTO actorUser, UserDTO targetUser, int count,
             List<Category> deletedCategories) {
         sendAllCategoriesDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedCategories);
     }
 
     
-    private void sendAllCategoriesDeletedByFriendInternal(Integer targetUserId, User actorUser, User targetUser,
+    private void sendAllCategoriesDeletedByFriendInternal(Integer targetUserId, UserDTO actorUser, UserDTO targetUser,
             int count, List<Category> deletedCategories) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -376,32 +376,32 @@ public class FriendActivityService {
         }
     }
 
-    private String getActorDisplayName(User user) {
-        if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
-            if (user.getLastName() != null && !user.getLastName().isEmpty()) {
-                return user.getFirstName() + " " + user.getLastName();
+    private String getActorDisplayName(UserDTO UserDTO) {
+        if (UserDTO.getFirstName() != null && !UserDTO.getFirstName().isEmpty()) {
+            if (UserDTO.getLastName() != null && !UserDTO.getLastName().isEmpty()) {
+                return UserDTO.getFirstName() + " " + UserDTO.getLastName();
             }
-            return user.getFirstName();
+            return UserDTO.getFirstName();
         }
-        return user.getUsername() != null ? user.getUsername() : "A friend";
+        return UserDTO.getUsername() != null ? UserDTO.getUsername() : "A friend";
     }
 
     
-    private FriendActivityEvent.UserInfo buildUserInfo(User user) {
-        if (user == null)
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDTO UserDTO) {
+        if (UserDTO == null)
             return null;
 
-        String fullName = getActorDisplayName(user);
+        String fullName = getActorDisplayName(UserDTO);
 
         return FriendActivityEvent.UserInfo.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+                .id(UserDTO.getId())
+                .username(UserDTO.getUsername())
+                .email(UserDTO.getEmail())
+                .firstName(UserDTO.getFirstName())
+                .lastName(UserDTO.getLastName())
                 .fullName(fullName)
-                .image(user.getImage())
-                .phoneNumber(user.getMobile())
+                .image(UserDTO.getImage())
+                .phoneNumber(UserDTO.getMobile())
                 .build();
     }
 

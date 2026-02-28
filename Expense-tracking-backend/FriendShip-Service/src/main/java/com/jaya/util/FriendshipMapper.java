@@ -6,8 +6,8 @@ import com.jaya.dto.UserSummaryDTO;
 import com.jaya.models.AccessLevel;
 import com.jaya.models.Friendship;
 import com.jaya.models.FriendshipStatus;
-import com.jaya.models.UserDto;
-import com.jaya.service.UserService;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 public class FriendshipMapper {
 
     private static final Logger log = LoggerFactory.getLogger(FriendshipMapper.class);
-    private static UserService userService;
+    private static IUserServiceClient userClient;
 
-    public static void setUserService(UserService service) {
-        userService = service;
+    public static void setUserClient(IUserServiceClient service) {
+        userClient = service;
     }
 
-    private static UserDto getUserProfileSafely(Integer userId) {
+    private static UserDTO getUserProfileSafely(Integer userId) {
         try {
-            return userService.getUserProfileById(userId);
+            return userClient.getUserById(userId);
         } catch (Exception e) {
             log.warn("User not found or error fetching user profile for userId={}: {}", userId, e.getMessage());
             return null;
@@ -51,12 +51,12 @@ public class FriendshipMapper {
         if (friendship == null)
             return null;
 
-        if (userService == null) {
-            throw new IllegalStateException("UserService is not initialized in FriendshipMapper");
+        if (userClient == null) {
+            throw new IllegalStateException("userClient is not initialized in FriendshipMapper");
         }
 
-        UserDto requester = getUserProfileSafely(friendship.getRequesterId());
-        UserDto recipient = getUserProfileSafely(friendship.getRecipientId());
+        UserDTO requester = getUserProfileSafely(friendship.getRequesterId());
+        UserDTO recipient = getUserProfileSafely(friendship.getRecipientId());
 
         if (requester == null && recipient == null) {
             log.warn("Both users deleted for friendship id={}, skipping", friendship.getId());

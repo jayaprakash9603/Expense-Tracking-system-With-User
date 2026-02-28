@@ -1,6 +1,6 @@
 package com.jaya.repository;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.EmailLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,7 +11,7 @@ import java.util.List;
 public interface EmailLogRepository extends JpaRepository<EmailLog, Integer> {
     List<EmailLog> findBySentAtBetween(LocalDateTime start, LocalDateTime end);
 
-    List<EmailLog>findByUser(User user);
+    List<EmailLog> findByUserId(Integer userId);
 
-    List<EmailLog> findByUserAndSentAtBetween(User user, LocalDateTime startDate, LocalDateTime endDate);
+    List<EmailLog> findByUserIdAndSentAtBetween(Integer userId, LocalDateTime startDate, LocalDateTime endDate);
 }

@@ -57,6 +57,9 @@ public class CacheConfig {
     @Primary
     @ConditionalOnProperty(name = "spring.cache.type", havingValue = "simple", matchIfMissing = true)
     public CacheManager simpleCacheManager() {
-        return new ConcurrentMapCacheManager("searchResults", "categoriesCache", "paymentMethodsCache");
+        // No-arg constructor: dynamically creates caches on demand.
+        // Required for monolithic mode where multiple services reference
+        // different cache names (userSettings, expenses, budgets, friendships, etc.)
+        return new ConcurrentMapCacheManager();
     }
 }

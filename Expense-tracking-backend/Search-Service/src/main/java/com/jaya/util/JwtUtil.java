@@ -12,13 +12,16 @@ import javax.crypto.SecretKey;
 
 
 
-@Component
+@Component("searchServiceJwtUtil")
 public class JwtUtil {
 
     private final SecretKey key;
 
     public JwtUtil(
-            @Value("${jwt.secret:lajlskdjfoqiuweorlasjdfljqweoirulajsdfkqweori,nmnm,zxhcvoasuier}") String secretKey) {
+            @Value("${jwt.secret:your-256-bit-secret-key-for-hs256-algorithm-minimum-32-chars}") String secretKey) {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalArgumentException("jwt.secret must be configured");
+        }
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 

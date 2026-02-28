@@ -1,4 +1,6 @@
 // utils/handleShowExpenses.js
+import { API_BASE_URL } from "../../config/api";
+
 const handleShowExpenses = (
   searchTerm,
   specificYear,
@@ -16,7 +18,7 @@ const handleShowExpenses = (
   setUrl,
   setError
 ) => {
-  let url = "http://localhost:8080/api/expenses"; // Change port to 8080 and add '/api/expenses'
+  let url = `${API_BASE_URL}/api/expenses`;
   let params = {};
 
   switch (searchTerm) {
@@ -115,7 +117,6 @@ const handleShowExpenses = (
     url = `${url}?${queryParams}`;
   }
 
-  console.log("Sending request to:", url, "with params:", params);
   setUrl(url);
 };
 

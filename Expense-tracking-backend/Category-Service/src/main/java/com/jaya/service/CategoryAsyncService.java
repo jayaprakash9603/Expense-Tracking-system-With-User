@@ -1,7 +1,7 @@
 package com.jaya.service;
 
 import com.jaya.models.Category;
-import com.jaya.models.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.CategoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,21 +22,21 @@ public class CategoryAsyncService {
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private ExpenseService expenseService;
+    private ExpenseClient expenseService;
 
     @Async("categoryTaskExecutor")
-    public CompletableFuture<Void> finalizeCategoryCreateAsync(Category initialSavedCategory, Category inputCategory, User user) {
+    public CompletableFuture<Void> finalizeCategoryCreateAsync(Category initialSavedCategory, Category inputCategory, UserDTO UserDTO) {
         try {
             final Integer categoryId = initialSavedCategory.getId();
             Set<Integer> requestedExpenseIds = new HashSet<>();
-            if (inputCategory.getExpenseIds() != null && inputCategory.getExpenseIds().containsKey(user.getId())) {
-                requestedExpenseIds.addAll(inputCategory.getExpenseIds().get(user.getId()));
+            if (inputCategory.getExpenseIds() != null && inputCategory.getExpenseIds().containsKey(UserDTO.getId())) {
+                requestedExpenseIds.addAll(inputCategory.getExpenseIds().get(UserDTO.getId()));
             }
             Set<Integer> validExpenseIds = new HashSet<>();
             for (Integer expenseId : requestedExpenseIds) {
                 try {
-                    var expense = expenseService.getExpenseById(expenseId, user.getId());
-                    if (expense != null && expense.getUserId() != null && expense.getUserId().equals(user.getId())) {
+                    var expense = expenseService.getExpenseById(expenseId, UserDTO.getId());
+                    if (expense != null && expense.getUserId() != null && expense.getUserId().equals(UserDTO.getId())) {
                         expense.setCategoryId(categoryId);
                         expense.setCategoryName(inputCategory.getName());
                         expenseService.save(expense);
@@ -52,13 +52,13 @@ public class CategoryAsyncService {
                         .collect(Collectors.toList());
 
                 for (Category otherCategory : allCategories) {
-                    if (otherCategory.getExpenseIds() != null && otherCategory.getExpenseIds().containsKey(user.getId())) {
-                        Set<Integer> expenseIds = otherCategory.getExpenseIds().get(user.getId());
+                    if (otherCategory.getExpenseIds() != null && otherCategory.getExpenseIds().containsKey(UserDTO.getId())) {
+                        Set<Integer> expenseIds = otherCategory.getExpenseIds().get(UserDTO.getId());
                         if (expenseIds != null && expenseIds.removeAll(validExpenseIds)) {
                             if (expenseIds.isEmpty()) {
-                                otherCategory.getExpenseIds().remove(user.getId());
+                                otherCategory.getExpenseIds().remove(UserDTO.getId());
                             } else {
-                                otherCategory.getExpenseIds().put(user.getId(), expenseIds);
+                                otherCategory.getExpenseIds().put(UserDTO.getId(), expenseIds);
                             }
                             categoryRepository.save(otherCategory);
                         }
@@ -70,7 +70,7 @@ public class CategoryAsyncService {
                 if (finalCategory.getExpenseIds() == null) {
                     finalCategory.setExpenseIds(new HashMap<>());
                 }
-                finalCategory.getExpenseIds().put(user.getId(), validExpenseIds);
+                finalCategory.getExpenseIds().put(UserDTO.getId(), validExpenseIds);
                 categoryRepository.save(finalCategory);
             }
         } catch (Exception e) {

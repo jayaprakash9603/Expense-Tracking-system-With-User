@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
+@Repository("userEmailLogRepository")
 public interface EmailLogRepository extends JpaRepository<EmailLog, Integer> {
     List<EmailLog> findBySentAtBetween(LocalDateTime start, LocalDateTime end);
 

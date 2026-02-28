@@ -1,13 +1,13 @@
 package com.jaya.service.expenses.impl;
 
-import com.jaya.dto.User;
+import com.jaya.common.dto.UserDTO;
 import com.jaya.models.*;
 import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.expenses.ExpenseReportService;
-import com.jaya.util.ServiceHelper;
+import com.jaya.util.ExpenseValidationHelper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.apache.poi.ss.usermodel.Row;
@@ -41,7 +41,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     private final ExpenseReportRepository expenseReportRepository;
 
     @Autowired
-    private ServiceHelper helper;
+    private ExpenseValidationHelper helper;
 
     @Autowired
     private CategoryServiceWrapper categoryService;
@@ -92,15 +92,15 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     public String generateExcelReport(Integer userId) throws Exception {
         List<Expense> expenses = expenseRepository.findByUserId(userId);
 
-        User user = helper.validateUser(userId);
+        UserDTO UserDTO = helper.validateUser(userId);
         try (Workbook workbook = new XSSFWorkbook()) {
             Sheet expensesSheet = workbook.createSheet("Expenses");
-            Map<Integer, Category> categoryCache = preloadCategories(userId);
+            Map<Integer, ExpenseCategory> categoryCache = preloadCategories(userId);
             writeExpensesHeader(expensesSheet);
             writeExpensesRows(expensesSheet, expenses);
             autosizeColumns(expensesSheet, 14);
 
-            Sheet summarySheet = workbook.createSheet("Category Summary");
+            Sheet summarySheet = workbook.createSheet("ExpenseCategory Summary");
             writeCategorySummaryHeader(summarySheet);
             Map<Integer, Double> categoryTotals = computeCategoryTotals(expenses);
             Map<Integer, Integer> categoryCounts = computeCategoryCounts(expenses);
@@ -116,11 +116,11 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
 
             Sheet budgetSheet = workbook.createSheet("Budgets");
             writeBudgetHeader(budgetSheet);
-            List<Budget> budgets = budgetService.getAllBudgetForUser(userId);
+            List<BudgetModel> budgets = budgetService.getAllBudgetForUser(userId);
             writeBudgetRows(budgetSheet, budgets);
             autosizeColumns(budgetSheet, 9);
 
-            String filePath = buildReportPath(user, userId);
+            String filePath = buildReportPath(UserDTO, userId);
             writeWorkbookToFile(workbook, filePath);
             return filePath;
         } catch (IOException e) {
@@ -139,8 +139,8 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         headerRow.createCell(5).setCellValue("Credit Due");
         headerRow.createCell(6).setCellValue("Type");
         headerRow.createCell(7).setCellValue("Date");
-        headerRow.createCell(8).setCellValue("Category ID");
-        headerRow.createCell(9).setCellValue("Category Name");
+        headerRow.createCell(8).setCellValue("ExpenseCategory ID");
+        headerRow.createCell(9).setCellValue("ExpenseCategory Name");
         headerRow.createCell(10).setCellValue("Comments");
     }
 
@@ -170,15 +170,15 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     
     private void writeCategorySummaryHeader(Sheet summarySheet) {
         Row summaryHeader = summarySheet.createRow(0);
-        summaryHeader.createCell(0).setCellValue("Category ID");
-        summaryHeader.createCell(1).setCellValue("Category Name");
-        summaryHeader.createCell(2).setCellValue("Category Color");
-        summaryHeader.createCell(3).setCellValue("Category Icon");
-        summaryHeader.createCell(4).setCellValue("Category Description");
+        summaryHeader.createCell(0).setCellValue("ExpenseCategory ID");
+        summaryHeader.createCell(1).setCellValue("ExpenseCategory Name");
+        summaryHeader.createCell(2).setCellValue("ExpenseCategory Color");
+        summaryHeader.createCell(3).setCellValue("ExpenseCategory Icon");
+        summaryHeader.createCell(4).setCellValue("ExpenseCategory Description");
         summaryHeader.createCell(5).setCellValue("Is Global");
         summaryHeader.createCell(6).setCellValue("Total Amount");
         summaryHeader.createCell(7).setCellValue("Number of Expenses");
-        summaryHeader.createCell(8).setCellValue("User Ids");
+        summaryHeader.createCell(8).setCellValue("UserDTO Ids");
         summaryHeader.createCell(9).setCellValue("Edited UserIds");
     }
 
@@ -206,7 +206,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     }
 
     private void writeCategorySummaryRows(Sheet sheet, Map<Integer, Double> totals, Map<Integer, Integer> counts,
-            Map<Integer, Category> cache) {
+            Map<Integer, ExpenseCategory> cache) {
         int rowNum = 1;
         for (Map.Entry<Integer, Double> entry : totals.entrySet()) {
             Integer categoryId = entry.getKey();
@@ -224,7 +224,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
             Set<Integer> editedUserIds = new HashSet<>();
             Set<Integer> userIds = new HashSet<>();
             if (categoryId != null && categoryId > 0) {
-                Category category = cache.get(categoryId);
+                ExpenseCategory category = cache.get(categoryId);
                 if (category != null) {
                     categoryName = category.getName();
                     categoryColor = category.getColor();
@@ -301,7 +301,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
     
     private void writeBudgetHeader(Sheet sheet) {
         Row header = sheet.createRow(0);
-        header.createCell(0).setCellValue("Budget ID");
+        header.createCell(0).setCellValue("BudgetModel ID");
         header.createCell(1).setCellValue("Name");
         header.createCell(2).setCellValue("Description");
         header.createCell(3).setCellValue("Amount");
@@ -312,28 +312,28 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         header.createCell(8).setCellValue("Expenses Ids");
     }
 
-    private void writeBudgetRows(Sheet sheet, List<Budget> budgets) {
+    private void writeBudgetRows(Sheet sheet, List<BudgetModel> budgets) {
         int rowNum = 1;
-        for (Budget budget : budgets) {
+        for (BudgetModel BudgetModel : budgets) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(budget.getId());
-            row.createCell(1).setCellValue(budget.getName());
-            row.createCell(2).setCellValue(budget.getDescription());
-            row.createCell(3).setCellValue(budget.getAmount());
-            row.createCell(4).setCellValue(budget.getRemainingAmount());
-            row.createCell(5).setCellValue(budget.getStartDate() != null ? budget.getStartDate().toString() : "");
-            row.createCell(6).setCellValue(budget.getEndDate() != null ? budget.getEndDate().toString() : "");
-            row.createCell(7).setCellValue(budget.isBudgetHasExpenses());
-            row.createCell(8).setCellValue(budget.getExpenseIds() != null ? budget.getExpenseIds().toString() : "");
+            row.createCell(0).setCellValue(BudgetModel.getId());
+            row.createCell(1).setCellValue(BudgetModel.getName());
+            row.createCell(2).setCellValue(BudgetModel.getDescription());
+            row.createCell(3).setCellValue(BudgetModel.getAmount());
+            row.createCell(4).setCellValue(BudgetModel.getRemainingAmount());
+            row.createCell(5).setCellValue(BudgetModel.getStartDate() != null ? BudgetModel.getStartDate().toString() : "");
+            row.createCell(6).setCellValue(BudgetModel.getEndDate() != null ? BudgetModel.getEndDate().toString() : "");
+            row.createCell(7).setCellValue(BudgetModel.isBudgetHasExpenses());
+            row.createCell(8).setCellValue(BudgetModel.getExpenseIds() != null ? BudgetModel.getExpenseIds().toString() : "");
         }
     }
 
     
-    private Map<Integer, Category> preloadCategories(Integer userId) throws Exception {
-        Map<Integer, Category> cache = new HashMap<>();
-        List<Category> categories = categoryService.getAllForUser(userId);
+    private Map<Integer, ExpenseCategory> preloadCategories(Integer userId) throws Exception {
+        Map<Integer, ExpenseCategory> cache = new HashMap<>();
+        List<ExpenseCategory> categories = categoryService.getAllForUser(userId);
         if (categories != null) {
-            for (Category c : categories) {
+            for (ExpenseCategory c : categories) {
                 if (c != null && c.getId() != null) {
                     cache.put(c.getId(), c);
                 }
@@ -348,8 +348,8 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
-    private String buildReportPath(User user, Integer userId) {
-        String emailPrefix = user.getEmail().split("@")[0];
+    private String buildReportPath(UserDTO UserDTO, Integer userId) {
+        String emailPrefix = UserDTO.getEmail().split("@")[0];
         String userFolderName = emailPrefix + "_" + userId;
         String userFolderPath = Paths.get(System.getProperty("user.home"), "reports", userFolderName).toString();
         File userFolder = new File(userFolderPath);
@@ -420,3 +420,4 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         mailSender.send(message);
     }
 }
+

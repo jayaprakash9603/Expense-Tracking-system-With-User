@@ -2,7 +2,8 @@ package com.jaya.controller;
 
 import com.jaya.models.AuditExpense;
 
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
+import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class AuditExpenseController {
     private AuditExpenseService auditExpenseService;
 
     @Autowired
-    private UserService userservice;
+    private IUserServiceClient IUserServiceClient;
 
     @Autowired
     private EmailService emailService;
@@ -28,13 +29,13 @@ public class AuditExpenseController {
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
-            UserDto reqUser = userservice.getuserProfile(jwt);
+            UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
             if (reqUser == null) {
                 return ResponseEntity.status(401)
                         .body("Invalid or expired token");
             }
 
-            UserDto targetUser;
+            UserDTO targetUser;
             try {
                 targetUser = reqUser;
             } catch (RuntimeException e) {

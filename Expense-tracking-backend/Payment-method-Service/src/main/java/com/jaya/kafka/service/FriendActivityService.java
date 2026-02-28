@@ -3,7 +3,7 @@ package com.jaya.kafka.service;
 import com.jaya.kafka.events.FriendActivityEvent;
 import com.jaya.kafka.producer.FriendActivityProducer;
 import com.jaya.models.PaymentMethod;
-import com.jaya.models.UserDto;
+import com.jaya.common.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -30,7 +30,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
+    public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDTO actorUser) {
         sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, null);
     }
 
@@ -39,8 +39,8 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser,
-            UserDto targetUser) {
+    public void sendPaymentMethodCreatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser) {
         sendPaymentMethodCreatedByFriendInternal(paymentMethod, targetUserId, actorUser, targetUser);
     }
 
@@ -48,8 +48,8 @@ public class FriendActivityService {
 
 
     private void sendPaymentMethodCreatedByFriendInternal(PaymentMethod paymentMethod, Integer targetUserId,
-            UserDto actorUser,
-            UserDto targetUser) {
+            UserDTO actorUser,
+            UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 log.debug("Skipping friend activity notification - user creating own payment method");
@@ -89,7 +89,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDto actorUser) {
+    public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, Integer targetUserId, UserDTO actorUser) {
         sendPaymentMethodUpdatedByFriendInternal(paymentMethod, null, targetUserId, actorUser, null);
     }
 
@@ -99,7 +99,7 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendPaymentMethodUpdatedByFriend(PaymentMethod paymentMethod, PaymentMethod previousPaymentMethod,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendPaymentMethodUpdatedByFriendInternal(paymentMethod, previousPaymentMethod, targetUserId, actorUser,
                 targetUser);
     }
@@ -109,7 +109,7 @@ public class FriendActivityService {
 
     private void sendPaymentMethodUpdatedByFriendInternal(PaymentMethod paymentMethod,
             PaymentMethod previousPaymentMethod,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -148,7 +148,7 @@ public class FriendActivityService {
 
     @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
-            Integer targetUserId, UserDto actorUser) {
+            Integer targetUserId, UserDTO actorUser) {
         sendPaymentMethodDeletedByFriendInternal(paymentMethodId, paymentMethodName, null, targetUserId, actorUser,
                 null);
     }
@@ -160,7 +160,7 @@ public class FriendActivityService {
     @Async("friendActivityExecutor")
     public void sendPaymentMethodDeletedByFriend(Integer paymentMethodId, String paymentMethodName,
             PaymentMethod deletedPaymentMethod,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         sendPaymentMethodDeletedByFriendInternal(paymentMethodId, paymentMethodName, deletedPaymentMethod, targetUserId,
                 actorUser, targetUser);
     }
@@ -170,7 +170,7 @@ public class FriendActivityService {
 
     private void sendPaymentMethodDeletedByFriendInternal(Integer paymentMethodId, String paymentMethodName,
             PaymentMethod deletedPaymentMethod,
-            Integer targetUserId, UserDto actorUser, UserDto targetUser) {
+            Integer targetUserId, UserDTO actorUser, UserDTO targetUser) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
                 return;
@@ -208,7 +208,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, int count) {
+    public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDTO actorUser, int count) {
         sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, null, count, null);
     }
 
@@ -217,7 +217,7 @@ public class FriendActivityService {
 
 
     @Async("friendActivityExecutor")
-    public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDto actorUser, UserDto targetUser,
+    public void sendAllPaymentMethodsDeletedByFriend(Integer targetUserId, UserDTO actorUser, UserDTO targetUser,
             int count, List<PaymentMethod> deletedPaymentMethods) {
         sendAllPaymentMethodsDeletedByFriendInternal(targetUserId, actorUser, targetUser, count, deletedPaymentMethods);
     }
@@ -225,8 +225,8 @@ public class FriendActivityService {
     
 
 
-    private void sendAllPaymentMethodsDeletedByFriendInternal(Integer targetUserId, UserDto actorUser,
-            UserDto targetUser,
+    private void sendAllPaymentMethodsDeletedByFriendInternal(Integer targetUserId, UserDTO actorUser,
+            UserDTO targetUser,
             int count, List<PaymentMethod> deletedPaymentMethods) {
         try {
             if (targetUserId.equals(actorUser.getId())) {
@@ -268,7 +268,7 @@ public class FriendActivityService {
         }
     }
 
-    private String getActorDisplayName(UserDto user) {
+    private String getActorDisplayName(UserDTO user) {
         if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
             if (user.getLastName() != null && !user.getLastName().isEmpty()) {
                 return user.getFirstName() + " " + user.getLastName();
@@ -281,7 +281,7 @@ public class FriendActivityService {
     
 
 
-    private FriendActivityEvent.UserInfo buildUserInfo(UserDto user) {
+    private FriendActivityEvent.UserInfo buildUserInfo(UserDTO user) {
         if (user == null)
             return null;
 

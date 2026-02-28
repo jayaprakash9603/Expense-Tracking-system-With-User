@@ -16,7 +16,7 @@ public class AnalyticsOverviewService {
 
     private static final Logger log = LoggerFactory.getLogger(AnalyticsOverviewService.class);
 
-    private final ExpenseService expenseService;
+    private final AnalyticsExpenseClient expenseService;
     private final BudgetAnalyticsClient budgetAnalyticsClient;
     private final FriendshipAnalyticsClient friendshipAnalyticsClient;
     private final GroupAnalyticsClient groupAnalyticsClient;

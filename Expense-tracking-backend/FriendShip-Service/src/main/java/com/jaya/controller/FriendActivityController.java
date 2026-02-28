@@ -2,7 +2,7 @@ package com.jaya.controller;
 
 import com.jaya.dto.FriendActivityDTO;
 import com.jaya.service.FriendActivityService;
-import com.jaya.service.UserService;
+import com.jaya.common.service.client.IUserServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,7 +20,7 @@ import java.util.Map;
 public class FriendActivityController {
 
     private final FriendActivityService friendActivityService;
-    private final UserService userService;
+    private final IUserServiceClient userClient;
 
     @GetMapping
     public ResponseEntity<List<FriendActivityDTO>> getActivities(
@@ -135,6 +135,6 @@ public class FriendActivityController {
     }
 
     private Integer getUserIdFromToken(String jwt) throws Exception {
-        return userService.getuserProfile(jwt).getId();
+        return userClient.getUserProfile(jwt).getId();
     }
 }

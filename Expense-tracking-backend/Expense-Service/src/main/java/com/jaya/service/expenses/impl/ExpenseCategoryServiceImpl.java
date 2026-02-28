@@ -1,6 +1,6 @@
 package com.jaya.service.expenses.impl;
 
-import com.jaya.models.Category;
+import com.jaya.models.ExpenseCategory;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseDetails;
 import com.jaya.repository.ExpenseRepository;
@@ -32,9 +32,9 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     public List<Expense> getExpensesByCategoryId(Integer categoryId, Integer userId) {
         try {
 
-            Category category = categoryService.getById(categoryId, userId);
+            ExpenseCategory category = categoryService.getById(categoryId, userId);
             if (category == null) {
-                throw new RuntimeException("Category not found with ID: " + categoryId);
+                throw new RuntimeException("ExpenseCategory not found with ID: " + categoryId);
             }
 
             Set<Integer> expenseIds = new HashSet<>();
@@ -57,20 +57,20 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
     @Override
     @Transactional
-    public Map<Category, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception {
+    public Map<ExpenseCategory, List<Expense>> getAllExpensesByCategories(Integer userId) throws Exception {
 
-        List<Category> userCategories = categoryService.getAllForUser(userId);
+        List<ExpenseCategory> userCategories = categoryService.getAllForUser(userId);
 
         List<Expense> userExpenses = expenseCoreService.getAllExpenses(userId);
 
-        Map<Category, List<Expense>> categoryExpensesMap = new HashMap<>();
+        Map<ExpenseCategory, List<Expense>> categoryExpensesMap = new HashMap<>();
 
-        for (Category category : userCategories) {
+        for (ExpenseCategory category : userCategories) {
             categoryExpensesMap.put(category, new ArrayList<>());
         }
 
         for (Expense expense : userExpenses) {
-            for (Category category : userCategories) {
+            for (ExpenseCategory category : userCategories) {
                 
                 
                 
@@ -118,3 +118,4 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     }
 
 }
+
