@@ -1,3 +1,7 @@
 # IDE configuration directories
 .idea/
 .vscode/**/target/
+
+# Debug log files
+debug-*.log
+*.log

@@ -1,2 +1,0 @@
-{"sessionId":"8f9794","location":"chatWebSocket.js:connect","message":"Chat WS connecting","data":{"WS_URL":"http://localhost:8080/chat","wsUrlWithUserId":"http://localhost:8080/chat?userId=2","userId":2},"timestamp":1772253903622}
-{"sessionId":"8f9794","location":"chatWebSocket.js:connect","message":"Chat WS connecting","data":{"WS_URL":"http://localhost:8080/chat","wsUrlWithUserId":"http://localhost:8080/chat?userId=2","userId":2},"timestamp":1772253903639}
