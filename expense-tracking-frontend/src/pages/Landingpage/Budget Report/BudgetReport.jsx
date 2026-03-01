@@ -239,16 +239,11 @@ const BudgetReport = () => {
         flowType={flowType}
         timeframeOptions={timeframeOptions}
         onBack={() => {
-          if (
-            location?.state?.fromSidebar === true ||
-            location?.state?.fromFlow
-          ) {
-            navigate(-1);
+          if (friendId && friendId !== "undefined") {
+            navigateWithState(`/budget/${friendId}`, { preserve: false });
           } else {
-            const targetPath = friendId ? `/budget/${friendId}` : "/budget";
-            navigate(targetPath, { replace: false });
+            navigateWithState("/budget", { preserve: false });
           }
-         
         }}
         onFilter={openFilters}
         onExport={() => {}}
