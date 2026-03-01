@@ -118,14 +118,15 @@ const Login = () => {
   };
 
   // Function to get the first error message in priority order
-  const getFirstError = (errors, touched) => {
-    // If both fields are touched (formik does this on submit) & both have errors -> show unified message
-    if (touched.email && touched.password && errors.email && errors.password) {
+  const getFirstError = (errors, submitCount) => {
+    if (submitCount === 0 && !error) return null;
+
+    if (submitCount > 0 && errors.email && errors.password) {
       return "Enter all the mandatory fields";
     }
     // Priority order: email, password, then login/server error
-    if (touched.email && errors.email) return errors.email;
-    if (touched.password && errors.password) return errors.password;
+    if (submitCount > 0 && errors.email) return errors.email;
+    if (submitCount > 0 && errors.password) return errors.password;
     if (error) return error;
     return null;
   };
@@ -137,8 +138,8 @@ const Login = () => {
         validationSchema={validationSchema}
         initialValues={initialValues}
       >
-        {({ isSubmitting, values, errors, touched }) => {
-          const currentError = getFirstError(errors, touched);
+        {({ isSubmitting, values, errors, touched, submitCount }) => {
+          const currentError = getFirstError(errors, submitCount);
 
           return (
             <Form className="space-y-4" noValidate>
@@ -170,7 +171,7 @@ const Login = () => {
                       type="text" /* use text to suppress native email tooltip */
                       variant="outlined"
                       fullWidth
-                      error={touched.email && !!errors.email}
+                      error={submitCount > 0 && !!errors.email}
                       onChange={(e) => {
                         field.onChange(e);
                         if (error) setError("");
@@ -210,7 +211,7 @@ const Login = () => {
                       type={showPassword ? "text" : "password"}
                       variant="outlined"
                       fullWidth
-                      error={touched.password && !!errors.password}
+                      error={submitCount > 0 && !!errors.password}
                       onChange={(e) => {
                         field.onChange(e);
                         if (error) setError("");
