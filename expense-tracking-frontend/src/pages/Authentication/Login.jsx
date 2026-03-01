@@ -133,6 +133,7 @@ const Login = () => {
 
   return (
     <div className="p-3">
+      <h2 className="text-2xl font-semibold text-[#d8fffb] mb-6 text-center">Login</h2>
       <Formik
         onSubmit={handleSubmit}
         validationSchema={validationSchema}

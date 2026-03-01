@@ -172,6 +172,7 @@ const Register = () => {
 
   return (
     <>
+      <h2 className="text-2xl font-semibold text-[#d8fffb] mb-2 mt-2 text-center">Register</h2>
       <Formik
         onSubmit={handleSubmit}
         validationSchema={validationSchema}
@@ -340,6 +341,7 @@ const Register = () => {
 
               <div>
                 <RadioGroup
+                  value={gender}
                   onChange={(e) => {
                     setGender(e.target.value);
                     setFieldValue("gender", e.target.value);
@@ -351,13 +353,35 @@ const Register = () => {
                 >
                   <FormControlLabel
                     value="female"
-                    control={<Radio style={{ color: "#14b8a6" }} />}
+                    control={
+                      <Radio 
+                        style={{ color: "#14b8a6" }} 
+                        onClick={(e) => {
+                          if (gender === "female") {
+                            e.preventDefault();
+                            setGender("");
+                            setFieldValue("gender", "");
+                          }
+                        }}
+                      />
+                    }
                     label="Female"
                     className="text-gray-400"
                   />
                   <FormControlLabel
                     value="male"
-                    control={<Radio style={{ color: "#14b8a6" }} />}
+                    control={
+                      <Radio 
+                        style={{ color: "#14b8a6" }} 
+                        onClick={(e) => {
+                          if (gender === "male") {
+                            e.preventDefault();
+                            setGender("");
+                            setFieldValue("gender", "");
+                          }
+                        }}
+                      />
+                    }
                     label="Male"
                     className="text-gray-400"
                   />

@@ -124,7 +124,7 @@ services:
     image: jayaprakash9603/expense-tracker-frontend:latest
     container_name: expense-tracking-frontend
     ports:
-      - "3000:80"
+      - "9999:80"
     networks:
       - expense-net
     depends_on:
