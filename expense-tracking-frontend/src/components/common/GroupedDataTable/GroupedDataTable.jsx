@@ -323,7 +323,14 @@ const GroupedDataTable = ({
               }
 
               return (
-                <tr key={rowKey}>
+                <tr key={rowKey} onClick={(e) => {
+                  // Only toggle if clicking the row, not if clicking the checkbox directly
+                  if (enableSelection && e.target.type !== "checkbox" && e.target.tagName !== "INPUT" && !e.target.closest('.MuiCheckbox-root') && !e.target.closest('.MuiButtonBase-root')) {
+                    if (onRowSelect) {
+                      onRowSelect(row, !isSelected, actualIndex);
+                    }
+                  }
+                }} style={enableSelection ? { cursor: "pointer" } : {}}>
                   {enableSelection ? (
                     <td className="pm-select-cell">
                       <Checkbox
@@ -332,6 +339,7 @@ const GroupedDataTable = ({
                           onRowSelect &&
                           onRowSelect(row, e.target.checked, actualIndex)
                         }
+                        onClick={(e) => e.stopPropagation()}
                         sx={{
                           color: "var(--pm-text-secondary, #aaa)",
                           "&.Mui-checked": { color: "var(--pm-accent-color, #00dac6)" },

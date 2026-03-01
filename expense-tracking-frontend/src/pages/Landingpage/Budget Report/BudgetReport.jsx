@@ -183,7 +183,7 @@ const BudgetReport = () => {
     flowType,
     setTimeframe: setTimeFrame,
     setFlowType,
-    dateRange: customRange || { fromDate: "", toDate: "" },
+    dateRange: customRange || null,
     setCustomDateRange: handleCustomRangeApply,
     resetDateRange: handleResetRange,
     isCustomRange: isCustomRangeActive,
@@ -245,6 +245,7 @@ const BudgetReport = () => {
             const targetPath = friendId ? `/budget/${friendId}` : "/budget";
             navigate(targetPath, { replace: false });
           }
+         
         }}
         onFilter={openFilters}
         onExport={() => {}}
