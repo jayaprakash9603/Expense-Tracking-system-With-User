@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import Checkbox from "@mui/material/Checkbox";
 import { formatAmount as fmt } from "../../../utils/formatAmount";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
@@ -199,18 +200,19 @@ const GroupedDataTable = ({
             <tr>
               {enableSelection && !rowRender ? (
                 <th className="pm-select-col">
-                  <input
-                    type="checkbox"
-                    className="pm-select-checkbox"
+                  <Checkbox
                     checked={!!allRowsSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = !!anyRowsSelected;
-                    }}
+                    indeterminate={!!anyRowsSelected}
                     onChange={(e) => {
                       if (onSelectAll)
                         onSelectAll(sortedRows, e.target.checked);
                     }}
-                    aria-label="Select all rows"
+                    sx={{
+                      color: "var(--pm-text-secondary, #aaa)",
+                      "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: "var(--pm-accent-color, #00dac6)" },
+                      padding: "4px"
+                    }}
+                    inputProps={{ "aria-label": "Select all rows" }}
                   />
                 </th>
               ) : null}
@@ -324,14 +326,17 @@ const GroupedDataTable = ({
                 <tr key={rowKey}>
                   {enableSelection ? (
                     <td className="pm-select-cell">
-                      <input
-                        type="checkbox"
-                        className="pm-select-checkbox"
+                      <Checkbox
                         checked={!!isSelected}
                         onChange={(e) =>
                           onRowSelect &&
                           onRowSelect(row, e.target.checked, actualIndex)
                         }
+                        sx={{
+                          color: "var(--pm-text-secondary, #aaa)",
+                          "&.Mui-checked": { color: "var(--pm-accent-color, #00dac6)" },
+                          padding: "4px"
+                        }}
                       />
                     </td>
                   ) : null}
