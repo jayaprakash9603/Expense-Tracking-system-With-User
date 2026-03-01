@@ -994,12 +994,13 @@ const DailySpendingChart = ({
           bordered={false}
         />
       ) : (
-        <ResponsiveContainer width="100%" height={chartHeight}>
-          <AreaChart
-            data={chartData}
-            key={animationKey}
-            onClick={handleChartClick}
-          >
+        <div style={{ height: chartHeight, width: "100%", position: "relative" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              key={animationKey}
+              onClick={handleChartClick}
+            >
             <defs>
               {!isOverlayAllMode ? (
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -1210,6 +1211,7 @@ const DailySpendingChart = ({
             )}
           </AreaChart>
         </ResponsiveContainer>
+        </div>
       )}
     </div>
   );
