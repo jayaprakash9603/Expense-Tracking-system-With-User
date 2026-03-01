@@ -292,10 +292,10 @@ const NewBudget = () => {
     navigate(-1);
   };
 
-  const handleRowSelect = (id) => {
+  const handleRowSelect = (row, isSelected) => {
     setSelectedExpenseIds((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [row.id]: isSelected,
     }));
   };
 

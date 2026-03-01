@@ -1170,9 +1170,7 @@ const FriendInfoBar = ({
       <NotificationsPanelRedux
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
-        onNotificationRead={(unreadCount) =>
-          setUnreadNotificationsCount(unreadCount)
-        }
+        onNotificationRead={setUnreadNotificationsCount}
       />
     </>
   );

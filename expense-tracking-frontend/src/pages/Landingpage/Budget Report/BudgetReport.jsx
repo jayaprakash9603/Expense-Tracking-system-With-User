@@ -14,10 +14,13 @@ import { getChartColors } from "../../../utils/chartColors";
 import { computeDateRange } from "../../../utils/reportParams";
 import { api } from "../../../config/api";
 
+import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
+
 const BudgetReport = () => {
   // Support both route patterns: /budget/report/:id and /budget-report/:budgetId
   const { budgetId: budgetIdParam, id, friendId } = useParams();
   const budgetId = budgetIdParam || id; // Use budgetId if available, otherwise use id
+  const { navigateWithState, preservedState } = usePreserveNavigationState();
   const navigate = useNavigate();
   const location = useLocation();
   const { colors, mode } = useTheme();
