@@ -383,9 +383,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             maxHeight: "200px",
             overflowY: "auto",
             scrollbarWidth: "thin",
-            scrollbarColor: isDark
-              ? `${accentColor} #1b1b1b`
-              : `${accentColor} #ffffff`,
+            scrollbarColor: `${accentColor} ${isDark ? "#1b1b1b" : "#ffffff"}`,
             "&::-webkit-scrollbar": {
               width: "8px",
             },

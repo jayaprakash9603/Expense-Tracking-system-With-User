@@ -400,7 +400,7 @@ const GroupedDataTable = ({
               className="pm-selection-count"
               style={{
                 fontSize: "14px",
-                color: "var(--pm-primary-accent, #00dac6)",
+                color: "var(--pm-accent-color, #00dac6)",
                 fontWeight: "500",
                 marginLeft: "0",
               }}
@@ -438,10 +438,10 @@ const GroupedDataTable = ({
             >
               ‹
             </button>
-            <span className="pm-page-indicator">
-              {start + 1}-{Math.min(start + pageSize, totalFiltered)} of{" "}
-              {totalFiltered}
-            </span>
+          <span className="pm-page-indicator">
+            {totalFiltered === 0 ? 0 : start + 1}-{Math.min(start + pageSize, totalFiltered)} of{" "}
+            {totalFiltered}
+          </span>
             <button
               type="button"
               className="pm-page-btn"

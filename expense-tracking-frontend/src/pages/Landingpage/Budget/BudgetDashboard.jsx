@@ -1452,16 +1452,17 @@ const BudgetDashboard = () => {
             "&:hover": { bgcolor: "#29282b" },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Checkbox
-              checked={filterOptions.showActive}
-              sx={{
-                color: "#aaa",
-                "&.Mui-checked": { color: "#00DAC6" },
-              }}
-            />
-            <Typography>Active Budgets</Typography>
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Checkbox
+            checked={filterOptions.showActive}
+            onChange={() => handleFilterOptionToggle("showActive")}
+            sx={{
+              color: "#aaa",
+              "&.Mui-checked": { color: "#00DAC6" },
+            }}
+          />
+          <Typography>Active Budgets</Typography>
+        </Box>
         </MenuItem>
 
         <MenuItem
@@ -1471,16 +1472,17 @@ const BudgetDashboard = () => {
             "&:hover": { bgcolor: "#29282b" },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Checkbox
-              checked={filterOptions.showExceeded}
-              sx={{
-                color: "#aaa",
-                "&.Mui-checked": { color: "#CF6679" },
-              }}
-            />
-            <Typography>Exceeded Budgets</Typography>
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Checkbox
+            checked={filterOptions.showExceeded}
+            onChange={() => handleFilterOptionToggle("showExceeded")}
+            sx={{
+              color: "#aaa",
+              "&.Mui-checked": { color: "#CF6679" },
+            }}
+          />
+          <Typography>Exceeded Budgets</Typography>
+        </Box>
         </MenuItem>
 
         <MenuItem
@@ -1490,16 +1492,17 @@ const BudgetDashboard = () => {
             "&:hover": { bgcolor: "#29282b" },
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Checkbox
-              checked={filterOptions.showCompleted}
-              sx={{
-                color: "#aaa",
-                "&.Mui-checked": { color: "#BB86FC" },
-              }}
-            />
-            <Typography>Completed Budgets</Typography>
-          </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Checkbox
+            checked={filterOptions.showCompleted}
+            onChange={() => handleFilterOptionToggle("showCompleted")}
+            sx={{
+              color: "#aaa",
+              "&.Mui-checked": { color: "#BB86FC" },
+            }}
+          />
+          <Typography>Completed Budgets</Typography>
+        </Box>
         </MenuItem>
       </Menu>
 
