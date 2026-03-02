@@ -17,7 +17,6 @@ public class SharedWithMeItem {
 
     private Long shareId;
     private String token;
-    private String shareUrl;
     private SharedResourceType resourceType;
     private SharePermission permission;
     private String shareName;

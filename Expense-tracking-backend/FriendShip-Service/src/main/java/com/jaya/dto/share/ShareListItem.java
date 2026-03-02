@@ -18,7 +18,6 @@ public class ShareListItem {
 
     private Long id;
     private String token;
-    private String shareUrl;
     private SharedResourceType resourceType;
     private SharePermission permission;
     private LocalDateTime expiresAt;

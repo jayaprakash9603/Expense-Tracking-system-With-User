@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+
+dayjs.extend(isoWeek);
 
 /**
  * Safely extract an entity's expenses from either the expenses map or the entity object itself.
@@ -34,7 +37,7 @@ export function filterExpensesForRangeBucket({
   const baseNow = dayjs();
   let start, end;
   if (activeRange === "week") {
-    const baseStart = baseNow.startOf("week").add(offset, "week");
+    const baseStart = baseNow.startOf("isoWeek").add(offset, "week");
     start = baseStart.add(bucketIdx, "day").startOf("day");
     end = start.endOf("day");
   } else if (activeRange === "month") {

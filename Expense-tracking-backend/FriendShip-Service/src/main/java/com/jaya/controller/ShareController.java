@@ -404,7 +404,6 @@ public class ShareController {
                 .message("Share sent successfully! Your friend has been notified.")
                 .friendId(request.getFriendId())
                 .friendName(friendName)
-                .shareUrl(shareUrl)
                 .sharedAt(LocalDateTime.now())
                 .build());
     }

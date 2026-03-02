@@ -18,7 +18,6 @@ public class ShareResponse {
 
     private Long id;
     private String token;
-    private String shareUrl;
     private String qrCodeDataUri;
     private SharedResourceType resourceType;
     private SharePermission permission;

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear";
+import isoWeek from "dayjs/plugin/isoWeek";
 import { IconButton } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import HistoryIcon from "@mui/icons-material/History";
@@ -18,7 +18,7 @@ import ExpenseCard from "./ExpenseCard";
 
 import CashFlowExpenseCardsSkeleton from "../skeletons/CashFlowExpenseCardsSkeleton";
 
-dayjs.extend(weekOfYear);
+dayjs.extend(isoWeek);
 
 /**
  * Reusable expense cards list for CashFlow page.
@@ -400,7 +400,7 @@ function CashFlowExpenseCards({
     // Update header state immediately
     const targetYear = newDate.year().toString();
     const targetMonth = newDate.format("MMMM YYYY");
-    const targetWeek = `Week ${newDate.week()}`;
+    const targetWeek = `Week ${newDate.isoWeek()}`;
 
     setCurrentHeader({
       year: targetYear,
@@ -522,7 +522,7 @@ function CashFlowExpenseCards({
     const formattedDate = targetDate.format(dateFormat);
     const targetYear = targetDate.year().toString();
     const targetMonth = targetDate.format("MMMM YYYY");
-    const targetWeek = `Week ${targetDate.week()}`;
+    const targetWeek = `Week ${targetDate.isoWeek()}`;
 
     // Update header state immediately before scrolling
     setCurrentHeader({

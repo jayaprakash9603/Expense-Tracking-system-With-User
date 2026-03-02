@@ -177,10 +177,7 @@ const SharedWithMePage = () => {
       if (result.success) {
         setSelectedShare({
           ...share,
-          shareUrl:
-            result.data?.shareUrl ||
-            share.shareUrl ||
-            `${window.location.origin}/share/${share.token}`,
+          shareUrl: `${window.location.origin}/share/${share.token}`,
           qrCodeDataUri: result.data?.qrCodeDataUri,
         });
         setShowQrModal(true);
@@ -540,8 +537,7 @@ const SharedWithMePage = () => {
             onClick={(e) => {
               e.stopPropagation();
               copyToClipboard(
-                share.shareUrl ||
-                  `${window.location.origin}/share/${share.token}`,
+                `${window.location.origin}/share/${share.token}`,
                 share.id,
               );
             }}
@@ -558,8 +554,7 @@ const SharedWithMePage = () => {
                 fontSize: "0.7rem",
               }}
             >
-              {share.shareUrl ||
-                `${window.location.origin}/share/${share.token}`}
+              {`${window.location.origin}/share/${share.token}`}
             </Typography>
             {copied === share.id ? (
               <CheckIcon sx={{ fontSize: 12, color: STATUS_COLORS.active }} />
@@ -622,8 +617,7 @@ const SharedWithMePage = () => {
                 onClick={(e) => {
                   e.stopPropagation();
                   copyToClipboard(
-                    share.shareUrl ||
-                      `${window.location.origin}/share/${share.token}`,
+                    `${window.location.origin}/share/${share.token}`,
                     share.id,
                   );
                 }}

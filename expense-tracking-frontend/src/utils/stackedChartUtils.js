@@ -1,5 +1,8 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
 import { yearMonths, weekDays } from "./flowDateUtils"; // assumes these exports exist
+
+dayjs.extend(isoWeek);
 
 // Deterministic pseudo-random color generator based on string input.
 export function deterministicColor(str) {
@@ -70,7 +73,7 @@ export function buildStackedChartData({
     labels,
     xKey = "slot";
   if (activeRange === "week") {
-    baseStart = baseNow.startOf("week").add(offset, "week");
+    baseStart = baseNow.startOf("isoWeek").add(offset, "week");
     bucketCount = 7;
     labels = weekDays;
   } else if (activeRange === "month") {
@@ -138,7 +141,7 @@ export function filterExpensesForBucket({
   const baseNow = dayjs();
   let start, end;
   if (activeRange === "week") {
-    const baseStart = baseNow.startOf("week").add(offset, "week");
+    const baseStart = baseNow.startOf("isoWeek").add(offset, "week");
     start = baseStart.add(bucketIdx, "day").startOf("day");
     end = start.endOf("day");
   } else if (activeRange === "month") {
