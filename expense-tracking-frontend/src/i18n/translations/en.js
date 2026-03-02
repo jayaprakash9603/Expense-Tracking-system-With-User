@@ -951,6 +951,8 @@ export const en = {
       "All your data, including expenses, budgets, and friends, will be permanently deleted.",
 
     // Help & Support
+    restartTour: "Restart Tour",
+    restartTourDescription: "View the application walkthrough again",
     helpCenter: "Help Center",
     helpCenterDescription: "Browse FAQs and help articles",
     contactSupport: "Contact Support",
@@ -970,6 +972,7 @@ export const en = {
     manage: "Manage",
     change: "Change",
     view: "View",
+    start: "Start",
     clear: "Clear",
     export: "Export",
     edit: "Edit",

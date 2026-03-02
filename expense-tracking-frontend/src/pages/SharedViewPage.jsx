@@ -571,9 +571,10 @@ const SharedViewPage = () => {
     if (maskingEnabled) {
       return formatMaskedAmount ? formatMaskedAmount(amount) : "***";
     }
+    const currencySetting = settings.currency || "USD";
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: currencySetting,
     }).format(amount || 0);
   };
 
@@ -1617,7 +1618,7 @@ const SharedViewPage = () => {
                           transition: "all 0.2s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
+                            boxShadow: `0 8px 24px ${colors.accent}15`,
                             borderColor: colors.accent,
                           },
                         }}
@@ -1863,8 +1864,8 @@ const SharedViewPage = () => {
                           transition: "all 0.2s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: `0 8px 24px rgba(139, 92, 246, 0.15)`,
-                            borderColor: "#8b5cf6",
+                            boxShadow: `0 8px 24px ${colors.accent}15`,
+                            borderColor: colors.accent,
                           },
                         }}
                       >
@@ -1954,8 +1955,8 @@ const SharedViewPage = () => {
                           transition: "all 0.2s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: `0 8px 24px rgba(245, 158, 11, 0.15)`,
-                            borderColor: "#f59e0b",
+                            boxShadow: `0 8px 24px ${colors.accent}15`,
+                            borderColor: colors.accent,
                           },
                         }}
                       >
@@ -2093,8 +2094,8 @@ const SharedViewPage = () => {
                           transition: "all 0.2s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: `0 8px 24px rgba(239, 68, 68, 0.15)`,
-                            borderColor: "#ef4444",
+                            boxShadow: `0 8px 24px ${colors.accent}15`,
+                            borderColor: colors.accent,
                           },
                         }}
                       >
@@ -2193,8 +2194,8 @@ const SharedViewPage = () => {
                           transition: "all 0.2s ease",
                           "&:hover": {
                             transform: "translateY(-4px)",
-                            boxShadow: `0 8px 24px rgba(59, 130, 246, 0.15)`,
-                            borderColor: "#3b82f6",
+                            boxShadow: `0 8px 24px ${colors.accent}15`,
+                            borderColor: colors.accent,
                           },
                         }}
                       >

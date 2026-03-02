@@ -17,7 +17,7 @@ public class PaymentMethodSearchDTO {
     private String description;
     private String type;
     private Integer amount;
-    private boolean isGlobal;
+    private Boolean isGlobal;
     private String icon;
     private String color;
     private Integer userId;
