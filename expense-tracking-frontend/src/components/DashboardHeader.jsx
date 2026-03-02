@@ -1,14 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
-import {
-  IconButton,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-} from "@mui/material";
-import { MoreVert, Refresh, Download, Tune } from "@mui/icons-material";
+import ReportActionMenu from "./common/ReportActionMenu";
 
 /**
  * DashboardHeader
@@ -22,127 +15,57 @@ const DashboardHeader = ({
   onExport,
   onFilter,
   onCustomize,
-  menuProps = {},
 }) => {
-  const { colors } = useTheme();
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
-  const handleMenuOpen = (e) => setAnchorEl(e.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-  const handleAndClose = (cb) => () => {
-    handleClose();
-    cb && cb();
-  };
+  const { colors, mode } = useTheme();
 
   return (
-    <div className="dashboard-header">
+    <div 
+      className="dashboard-header"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        padding: "20px 24px",
+        background: mode === "dark" 
+          ? `linear-gradient(135deg, rgba(31,41,55,0.8) 0%, rgba(17,24,39,0.8) 100%)`
+          : `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(243,244,246,0.9) 100%)`,
+        borderBottom: `1px solid ${colors.border_color}`,
+        borderRadius: "16px",
+        marginBottom: "24px",
+        boxShadow: mode === "dark" ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(0,0,0,0.05)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
       <div className="header-left">
         <div className="header-title">
-          <h1 style={{ color: colors.primary_text }}>{title}</h1>
+          <h1 style={{ 
+            color: colors.primary_accent, 
+            margin: 0, 
+            fontSize: "24px", 
+            fontWeight: "700",
+            letterSpacing: "-0.5px"
+          }}>
+            {title}
+          </h1>
           {subtitle && (
-            <p style={{ color: colors.secondary_text }}>{subtitle}</p>
+            <p style={{ 
+              color: colors.secondary_text, 
+              margin: "4px 0 0 0", 
+              fontSize: "14px",
+              fontWeight: "500"
+            }}>
+              {subtitle}
+            </p>
           )}
         </div>
       </div>
-      <div className="header-actions">
-        <IconButton
-          className="action-btn no-lift"
-          aria-label="More actions"
-          aria-controls={open ? "dashboard-menu" : undefined}
-          aria-haspopup="true"
-          aria-expanded={open ? "true" : undefined}
-          onClick={handleMenuOpen}
-          size="small"
-          style={{ color: colors.icon_muted }}
-        >
-          <MoreVert />
-        </IconButton>
-        <Menu
-          id="dashboard-menu"
-          anchorEl={anchorEl}
-          open={open}
-          onClose={handleClose}
-          MenuListProps={{ "aria-labelledby": "dashboard-menu" }}
-          PaperProps={{
-            sx: {
-              backgroundColor: colors.tertiary_bg,
-              color: colors.primary_text,
-              border: `1px solid ${colors.border_color}`,
-              minWidth: 220,
-            },
-            ...menuProps.PaperProps,
-          }}
-        >
-          {onRefresh && (
-            <MenuItem onClick={handleAndClose(onRefresh)}>
-              <ListItemIcon sx={{ color: colors.primary_accent }}>
-                <Refresh fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Refresh"
-                secondary="Reload dashboard data"
-                primaryTypographyProps={{
-                  style: { color: colors.primary_text },
-                }}
-                secondaryTypographyProps={{
-                  style: { color: colors.secondary_text },
-                }}
-              />
-            </MenuItem>
-          )}
-          {onExport && (
-            <MenuItem onClick={handleAndClose(onExport)}>
-              <ListItemIcon sx={{ color: colors.primary_accent }}>
-                <Download fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Export Reports"
-                secondary="Download Excel summaries"
-                primaryTypographyProps={{
-                  style: { color: colors.primary_text },
-                }}
-                secondaryTypographyProps={{
-                  style: { color: colors.secondary_text },
-                }}
-              />
-            </MenuItem>
-          )}
-          {onFilter && (
-            <MenuItem onClick={handleAndClose(onFilter)}>
-              <ListItemIcon sx={{ color: colors.primary_accent }}>
-                {/* Could use a Filter icon here */}
-                <Refresh fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Filter"
-                secondary="Open filter options"
-                primaryTypographyProps={{
-                  style: { color: colors.primary_text },
-                }}
-                secondaryTypographyProps={{
-                  style: { color: colors.secondary_text },
-                }}
-              />
-            </MenuItem>
-          )}
-          {onCustomize && (
-            <MenuItem onClick={handleAndClose(onCustomize)}>
-              <ListItemIcon sx={{ color: colors.primary_accent }}>
-                <Tune fontSize="small" />
-              </ListItemIcon>
-              <ListItemText
-                primary="Customize Dashboard"
-                secondary="Arrange & toggle sections"
-                primaryTypographyProps={{
-                  style: { color: colors.primary_text },
-                }}
-                secondaryTypographyProps={{
-                  style: { color: colors.secondary_text },
-                }}
-              />
-            </MenuItem>
-          )}
-        </Menu>
+      <div className="header-actions" style={{ display: "flex", alignItems: "center" }}>
+        <ReportActionMenu
+          onRefresh={onRefresh}
+          onExport={onExport}
+          onFilter={onFilter}
+          onCustomize={onCustomize}
+        />
       </div>
     </div>
   );
@@ -155,7 +78,6 @@ DashboardHeader.propTypes = {
   onExport: PropTypes.func,
   onFilter: PropTypes.func,
   onCustomize: PropTypes.func,
-  menuProps: PropTypes.object,
 };
 
 export default DashboardHeader;

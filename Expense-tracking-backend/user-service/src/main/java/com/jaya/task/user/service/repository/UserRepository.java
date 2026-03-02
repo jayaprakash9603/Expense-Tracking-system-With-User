@@ -33,4 +33,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
 
     boolean existsByEmail(String email);
+
+    long countByUpdatedAtAfter(LocalDateTime date);
+    
+    long countByUpdatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByCreatedAtAfter(LocalDateTime date);
+    
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

@@ -27,6 +27,7 @@ import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
+import ReportActionMenu from "../../components/common/ReportActionMenu";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -104,9 +105,6 @@ const ReportHeader = ({
   selectedCategory,
   setSelectedCategory,
   uniqueCategories,
-  handleReportActionClick,
-  reportActionAnchorEl,
-  handleReportActionClose,
   handleReportMenuItemClick,
   onBack,
   colors,
@@ -177,108 +175,12 @@ const ReportHeader = ({
         ))}
       </select>
 
-      <IconButton
-        onClick={handleReportActionClick}
-        sx={{ color: colors.primary_accent, ml: 1 }}
-        size="small"
-        aria-label="More actions"
-      >
-        <MoreVertIcon />
-      </IconButton>
-
-      {Boolean(reportActionAnchorEl) && (
-        <>
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999,
-            }}
-            onClick={handleReportActionClose}
-          />
-
-          <div
-            style={{
-              position: "fixed",
-              top:
-                reportActionAnchorEl?.getBoundingClientRect().bottom + 6 || 0,
-              left:
-                reportActionAnchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.primary_accent}`,
-              borderRadius: "8px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-              zIndex: 1000,
-              minWidth: "160px",
-            }}
-          >
-            <div style={{ padding: "8px 0" }}>
-              <div
-                onClick={() => handleReportMenuItemClick("refresh")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>🔄</span>
-                <span style={{ fontSize: 14 }}>Refresh</span>
-              </div>
-
-              <div
-                onClick={() => handleReportMenuItemClick("export")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📤</span>
-                <span style={{ fontSize: 14 }}>Export CSV</span>
-              </div>
-
-              <div
-                onClick={() => handleReportMenuItemClick("pdf")}
-                style={{
-                  color: colors.primary_text,
-                  padding: "10px 18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
-              >
-                <span style={{ marginRight: 10 }}>📥</span>
-                <span style={{ fontSize: 14 }}>Download PDF</span>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ReportActionMenu
+        onRefresh={() => handleReportMenuItemClick("refresh")}
+        onExport={() => handleReportMenuItemClick("export")}
+        onDownloadPdf={() => handleReportMenuItemClick("pdf")}
+        onCustomize={() => console.log("Customize clicked")}
+      />
     </div>
   </div>
 );
@@ -1155,9 +1057,6 @@ const ExpenseReport = () => {
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         uniqueCategories={uniqueCategories}
-        handleReportActionClick={handleReportActionClick}
-        reportActionAnchorEl={reportActionAnchorEl}
-        handleReportActionClose={handleReportActionClose}
         handleReportMenuItemClick={handleReportMenuItemClick}
         onBack={handleBack}
         colors={colors}

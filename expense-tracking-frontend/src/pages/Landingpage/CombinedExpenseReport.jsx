@@ -249,8 +249,8 @@ export default function CombinedExpenseReport() {
             onBack={handleBack}
             flowType={flowType}
             onFlowTypeChange={setFlowType}
-            rightActions={reportHeaderActions}
-            showExportButton={false}
+            onExport={handleExport}
+            onCustomize={() => setCustomizationOpen(true)}
             showFilterButton={false}
           />
         </div>
@@ -462,8 +462,8 @@ export default function CombinedExpenseReport() {
           showFilterButton={expenseFilterSections.length > 0}
           filterButtonLabel="Filter"
           isFilterActive={filtersActive}
-          rightActions={reportHeaderActions}
-          showExportButton={false}
+          onExport={handleExport}
+          onCustomize={() => setCustomizationOpen(true)}
         />
       </div>
 

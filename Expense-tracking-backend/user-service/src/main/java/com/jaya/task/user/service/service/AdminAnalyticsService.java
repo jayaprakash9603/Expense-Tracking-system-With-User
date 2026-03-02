@@ -44,28 +44,15 @@ public class AdminAnalyticsService {
         LocalDateTime startDate = dateRange[0];
         LocalDateTime endDate = dateRange[1];
 
-        
-        List<User> allUsers = userRepository.findAll();
-        long totalUsers = allUsers.size();
+        long totalUsers = userRepository.count();
 
-        
-        long activeUsers = allUsers.stream()
-                .filter(u -> u.getUpdatedAt() != null && u.getUpdatedAt().isAfter(startDate))
-                .count();
+        long activeUsers = userRepository.countByUpdatedAtAfter(startDate);
 
-        
-        long newUsersThisMonth = allUsers.stream()
-                .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(startDate))
-                .count();
+        long newUsersThisMonth = userRepository.countByCreatedAtAfter(startDate);
 
-        
         LocalDateTime previousStart = startDate
                 .minusDays(java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate));
-        long previousPeriodUsers = allUsers.stream()
-                .filter(u -> u.getCreatedAt() != null &&
-                        u.getCreatedAt().isAfter(previousStart) &&
-                        u.getCreatedAt().isBefore(startDate))
-                .count();
+        long previousPeriodUsers = userRepository.countByCreatedAtBetween(previousStart, startDate);
 
         double userGrowth = previousPeriodUsers > 0
                 ? ((double) (newUsersThisMonth - previousPeriodUsers) / previousPeriodUsers) * 100
@@ -81,7 +68,7 @@ public class AdminAnalyticsService {
                 .suspendedUsers(0) 
                 .newUsersThisMonth(newUsersThisMonth)
                 .userGrowthPercentage(Math.round(userGrowth * 10.0) / 10.0)
-                .activeGrowthPercentage(calculateActiveGrowth(allUsers, startDate))
+                .activeGrowthPercentage(calculateActiveGrowth(startDate))
                 .totalExpenses(expenseStats.getTotalCount())
                 .totalExpenseAmount(expenseStats.getTotalAmount())
                 .expenseGrowthPercentage(expenseStats.getGrowthPercentage())
@@ -128,16 +115,14 @@ public class AdminAnalyticsService {
         LocalDateTime since = LocalDateTime.now().minusHours(hours);
 
         
-        List<User> recentUsers = userRepository.findAll().stream()
-                .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(since))
-                .collect(Collectors.toList());
+        long recentUsersCount = userRepository.countByCreatedAtAfter(since);
 
         activities.add(RecentActivityDTO.builder()
                 .type("USER_REGISTRATION")
                 .icon("person")
                 .title("User Registration")
                 .timeLabel("Last " + (hours == 1 ? "hour" : hours + " hours"))
-                .count(recentUsers.size())
+                .count((int) recentUsersCount)
                 .timestamp(LocalDateTime.now())
                 .build());
 
@@ -218,11 +203,27 @@ public class AdminAnalyticsService {
     public UserStatsDTO getUserStats() {
         log.info("Fetching user statistics");
 
-        List<User> allUsers = userRepository.findAll();
+        long totalUsers = userRepository.count();
         LocalDateTime monthStart = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
         LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
 
         
+        long newThisMonth = userRepository.countByCreatedAtAfter(monthStart);
+
+        long newThisWeek = userRepository.countByCreatedAtAfter(weekStart);
+
+        
+        LocalDateTime lastMonthStart = monthStart.minusMonths(1);
+        long lastMonthUsers = userRepository.countByCreatedAtBetween(lastMonthStart, monthStart);
+
+        double growth = lastMonthUsers > 0
+                ? ((double) (newThisMonth - lastMonthUsers) / lastMonthUsers) * 100
+                : (newThisMonth > 0 ? 100 : 0);
+
+        
+        long activeUsers = userRepository.countByUpdatedAtAfter(weekStart);
+
+        List<User> allUsers = userRepository.findAllWithRoles();
         Map<String, Long> byRole = new HashMap<>();
         allUsers.forEach(user -> {
             if (user.getRoles() != null) {
@@ -233,36 +234,10 @@ public class AdminAnalyticsService {
             }
         });
 
-        
-        long newThisMonth = allUsers.stream()
-                .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(monthStart))
-                .count();
-
-        long newThisWeek = allUsers.stream()
-                .filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(weekStart))
-                .count();
-
-        
-        LocalDateTime lastMonthStart = monthStart.minusMonths(1);
-        long lastMonthUsers = allUsers.stream()
-                .filter(u -> u.getCreatedAt() != null &&
-                        u.getCreatedAt().isAfter(lastMonthStart) &&
-                        u.getCreatedAt().isBefore(monthStart))
-                .count();
-
-        double growth = lastMonthUsers > 0
-                ? ((double) (newThisMonth - lastMonthUsers) / lastMonthUsers) * 100
-                : (newThisMonth > 0 ? 100 : 0);
-
-        
-        long activeUsers = allUsers.stream()
-                .filter(u -> u.getUpdatedAt() != null && u.getUpdatedAt().isAfter(weekStart))
-                .count();
-
         return UserStatsDTO.builder()
-                .total(allUsers.size())
+                .total(totalUsers)
                 .active(activeUsers)
-                .inactive(allUsers.size() - activeUsers)
+                .inactive(totalUsers - activeUsers)
                 .suspended(0) 
                 .newThisMonth(newThisMonth)
                 .newThisWeek(newThisWeek)
@@ -300,18 +275,11 @@ public class AdminAnalyticsService {
         return new LocalDateTime[] { startDate, endDate };
     }
 
-    private double calculateActiveGrowth(List<User> allUsers, LocalDateTime startDate) {
+    private double calculateActiveGrowth(LocalDateTime startDate) {
         LocalDateTime previousStart = startDate.minusDays(7);
 
-        long currentActive = allUsers.stream()
-                .filter(u -> u.getUpdatedAt() != null && u.getUpdatedAt().isAfter(startDate))
-                .count();
-
-        long previousActive = allUsers.stream()
-                .filter(u -> u.getUpdatedAt() != null &&
-                        u.getUpdatedAt().isAfter(previousStart) &&
-                        u.getUpdatedAt().isBefore(startDate))
-                .count();
+        long currentActive = userRepository.countByUpdatedAtAfter(startDate);
+        long previousActive = userRepository.countByUpdatedAtBetween(previousStart, startDate);
 
         if (previousActive > 0) {
             return Math.round(((double) (currentActive - previousActive) / previousActive) * 100 * 10.0) / 10.0;
@@ -388,7 +356,8 @@ public class AdminAnalyticsService {
     }
 
     private List<TopUserDTO> generateTopUsersFromDb(int limit) {
-        List<User> users = userRepository.findAll();
+        org.springframework.data.domain.Page<User> usersPage = userRepository.findAll(org.springframework.data.domain.PageRequest.of(0, limit));
+        List<User> users = usersPage.getContent();
         List<TopUserDTO> topUsers = new ArrayList<>();
 
         int count = Math.min(limit, users.size());

@@ -142,8 +142,8 @@ const PaymentMethodsReport = () => {
           onBack={handleBack}
           flowType={flowType}
           onFlowTypeChange={handleFlowTypeChange}
-          rightActions={reportHeaderActions}
-          showExportButton={false}
+          onExport={handleExport}
+          onCustomize={() => setCustomizationOpen(true)}
           showFilterButton={false}
         />
         <div style={{ padding: "24px" }}>
@@ -325,8 +325,8 @@ const PaymentMethodsReport = () => {
         isCustomRangeActive={isCustomRange}
         showFilterButton={paymentFilterSections.length > 0}
         isFilterActive={filtersActive}
-        rightActions={reportHeaderActions}
-        showExportButton={false}
+        onExport={handleExport}
+        onCustomize={() => setCustomizationOpen(true)}
       />
 
       {error ? (

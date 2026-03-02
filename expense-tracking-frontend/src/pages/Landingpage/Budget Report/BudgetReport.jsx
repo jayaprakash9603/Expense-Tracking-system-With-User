@@ -246,7 +246,8 @@ const BudgetReport = () => {
           }
         }}
         onFilter={openFilters}
-        onExport={() => {}}
+        onExport={() => console.log("Export CSV requested")}
+        onRefresh={() => console.log("Refresh requested")}
         showFilterButton={sections.length > 0}
         isFilterActive={filtersActive}
         onTimeframeChange={handleTimeframeChange}

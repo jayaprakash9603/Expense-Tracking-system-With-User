@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
 import { IconButton } from "@mui/material";
-import { Filter, Download } from "lucide-react";
+import { Filter } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import DateRangeBadge from "./common/DateRangeBadge";
+import ReportActionMenu from "./common/ReportActionMenu";
 import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
 import {
   DEFAULT_REPORT_TIMEFRAMES,
@@ -61,6 +62,7 @@ const ReportHeader = ({
   showExportButton = true,
   showBackButton = true,
   stickyBackground = null,
+  onCustomize,
 }) => {
   const { colors } = useTheme();
   const selectStyle = {
@@ -252,8 +254,9 @@ const ReportHeader = ({
             <h1
               style={{
                 margin: 0,
-                fontSize: "28px",
+                fontSize: "24px",
                 fontWeight: 700,
+                letterSpacing: "-0.5px",
                 color: colors.primary_accent,
               }}
             >
@@ -262,9 +265,10 @@ const ReportHeader = ({
             {subtitle ? (
               <p
                 style={{
-                  margin: "6px 0 0 0",
+                  margin: "4px 0 0 0",
                   color: colors.secondary_text,
                   fontSize: "14px",
+                  fontWeight: 500,
                 }}
               >
                 {subtitle}
@@ -431,36 +435,11 @@ const ReportHeader = ({
               ) : null}
             </button>
           ) : null}
-          {showExportButton ? (
-            <button
-              onClick={onExport}
-              className="control-btn"
-              type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                background: colors.primary_bg,
-                border: `1px solid ${colors.border_color}`,
-                color: colors.primary_text,
-                padding: "8px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                fontSize: "14px",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = colors.hover_bg;
-                e.currentTarget.style.borderColor = colors.primary_accent;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = colors.primary_bg;
-                e.currentTarget.style.borderColor = colors.border_color;
-              }}
-            >
-              <Download size={16} />
-              Export
-            </button>
+          {showExportButton || onCustomize ? (
+            <ReportActionMenu 
+              onExport={showExportButton ? onExport : undefined}
+              onCustomize={onCustomize}
+            />
           ) : null}
           {rightActions ? (
             <div

@@ -131,8 +131,8 @@ const CategoryReport = () => {
           onBack={handleBack}
           flowType={flowType}
           onFlowTypeChange={handleFlowTypeChange}
-          rightActions={reportHeaderActions}
-          showExportButton={false}
+          onExport={handleExport}
+          onCustomize={() => setCustomizationOpen(true)}
           showFilterButton={false}
         />
         <div style={{ padding: "24px" }}>
@@ -265,8 +265,8 @@ const CategoryReport = () => {
         isCustomRangeActive={isCustomRange}
         showFilterButton={categoryFilterSections.length > 0}
         isFilterActive={filtersActive}
-        rightActions={reportHeaderActions}
-        showExportButton={false}
+        onExport={handleExport}
+        onCustomize={() => setCustomizationOpen(true)}
       />
 
       {error ? (
