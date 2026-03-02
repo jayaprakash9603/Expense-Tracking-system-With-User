@@ -7,7 +7,8 @@ import GenericFlowPage from "../../components/common/GenericFlowPage";
 import CategoryFlowChart from "../../components/categoryflow/CategoryFlowChart";
 import { formatCompactNumber } from "../../utils/numberFormatters";
 import CreateCategory from "./CreateCategory";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setCategorySelection } from "../../Redux/SharedSelection/sharedSelection.action";
 import { useTranslation } from "../../hooks/useTranslation";
 
 const CategoryFlow = () => {
@@ -53,6 +54,16 @@ const CategoryFlow = () => {
   };
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false);
+
+  const selectedCategories = useSelector((state) => state.sharedSelection?.selectedCategories || []);
+  const handleToggleSelect = (entity, checked) => {
+    const id = entity.categoryId;
+    if (checked) {
+      dispatch(setCategorySelection([...selectedCategories, id]));
+    } else {
+      dispatch(setCategorySelection(selectedCategories.filter(selectedId => selectedId !== id)));
+    }
+  };
 
   return (
     <GenericFlowPage
@@ -151,6 +162,8 @@ const CategoryFlow = () => {
       navigate={navigate}
       showBackButton={showBackButton}
       onPageBack={handlePageBack}
+      selectedIds={selectedCategories}
+      onToggleSelect={handleToggleSelect}
     />
   );
 };

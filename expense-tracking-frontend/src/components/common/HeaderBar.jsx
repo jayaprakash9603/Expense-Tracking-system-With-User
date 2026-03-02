@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Badge } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { Share2 } from "lucide-react";
 import { useMasking } from "../../hooks/useMasking";
 import { useTheme } from "../../hooks/useTheme";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
@@ -13,6 +14,8 @@ import ProfileDropdown from "./ProfileDropdown";
 import { useTranslation } from "../../hooks/useTranslation";
 import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSlot";
 import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
+import ShareModal from "../sharing/ShareModal";
+import { clearAllSelections } from "../../Redux/SharedSelection/sharedSelection.action";
 
 /**
  * HeaderBar Component
@@ -26,9 +29,25 @@ const HeaderBar = () => {
   const maskingEnabled = isMasking();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { t } = useTranslation();
 
   const isDark = mode === "dark";
+
+  // Calculate total selected items for sharing
+  const sharedSelection = useSelector((state) => state.sharedSelection) || {
+    selectedExpenses: [],
+    selectedCategories: [],
+    selectedPaymentMethods: [],
+    selectedBills: [],
+    selectedBudgets: [],
+  };
+  const totalSelectedItems = 
+    sharedSelection.selectedExpenses.length +
+    sharedSelection.selectedCategories.length +
+    sharedSelection.selectedPaymentMethods.length +
+    sharedSelection.selectedBills.length +
+    sharedSelection.selectedBudgets.length;
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
@@ -38,6 +57,51 @@ const HeaderBar = () => {
     dispatch(updateUserSettings({ themeMode: newMode })).catch((error) => {
       console.error("Failed to update theme setting:", error);
     });
+  };
+
+  // Get full lists to map names for ShareModal
+  const expenses = useSelector((state) => state.expenses?.expenses);
+  const categories = useSelector((state) => state.categories?.categories);
+  const budgets = useSelector((state) => state.budgets?.budgets);
+
+  const getPreSelectedItems = () => {
+    const items = [];
+    const expenseList = Array.isArray(expenses) ? expenses : expenses?.content || [];
+    const categoryList = Array.isArray(categories) ? categories : categories?.content || [];
+    const budgetList = Array.isArray(budgets) ? budgets : budgets?.content || [];
+
+    sharedSelection.selectedExpenses.forEach(id => {
+      const exp = expenseList.find(e => e.id === id);
+      items.push({
+        id,
+        type: 'EXPENSE',
+        externalRef: `EXPENSE_${id}`,
+        displayName: exp?.expense?.name || exp?.expense?.expenseName || `Expense #${id}`,
+      });
+    });
+
+    sharedSelection.selectedCategories.forEach(id => {
+      const cat = categoryList.find(c => c.id === id);
+      items.push({
+        id,
+        type: 'CATEGORY',
+        externalRef: `CATEGORY_${id}`,
+        displayName: cat?.name || `Category #${id}`,
+      });
+    });
+
+    sharedSelection.selectedBudgets.forEach(id => {
+      const budget = budgetList.find(b => b.id === id);
+      items.push({
+        id,
+        type: 'BUDGET',
+        externalRef: `BUDGET_${id}`,
+        displayName: budget?.name || `Budget #${id}`,
+      });
+    });
+
+    // We can also handle bills and payment methods if the backend supports them in the future.
+    return items;
   };
 
   return (
@@ -140,6 +204,40 @@ const HeaderBar = () => {
 
           <SystemErrorIndicator isDark={isDark} />
 
+          {/* Share Button */}
+          {totalSelectedItems > 0 && (
+            <div className="relative">
+              <button
+                id="header-share"
+                onClick={() => setIsShareModalOpen(true)}
+                className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                style={{
+                  backgroundColor: colors.button_inactive,
+                }}
+                title={t("header.shareSelected", "Share Selected Items")}
+              >
+                <Badge
+                  badgeContent={totalSelectedItems}
+                  color="primary"
+                  max={99}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.625rem",
+                      height: "16px",
+                      minWidth: "16px",
+                      padding: "0 4px",
+                    },
+                  }}
+                >
+                  <Share2 
+                    className="w-5 h-5" 
+                    style={{ color: colors.icon_default }} 
+                  />
+                </Badge>
+              </button>
+            </div>
+          )}
+
           {/* Notifications Button */}
           <div className="relative">
             <button
@@ -190,6 +288,18 @@ const HeaderBar = () => {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         onNotificationRead={setUnreadNotificationsCount}
+      />
+
+      {/* Share Modal */}
+      <ShareModal
+        open={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        preSelectedType="GROUPED"
+        preSelectedItems={getPreSelectedItems()}
+        onShareCreated={(data) => {
+          setIsShareModalOpen(false);
+          dispatch(clearAllSelections());
+        }}
       />
     </>
   );

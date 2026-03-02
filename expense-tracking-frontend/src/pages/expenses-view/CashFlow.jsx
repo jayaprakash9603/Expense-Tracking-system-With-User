@@ -28,6 +28,7 @@ import GenericFlowLayout from "../../components/common/GenericFlowLayout";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { getExpenseAction } from "../../Redux/Expenses/expense.action";
 import { getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import { setExpenseSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 import {
   fetchFriendship,
   fetchFriendsDetailed,
@@ -156,6 +157,40 @@ const Cashflow = () => {
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
   const { t } = useTranslation();
+
+  const selectedExpensesRedux = useSelector((state) => state.sharedSelection?.selectedExpenses || []);
+
+  // Sync Redux -> Local
+  useEffect(() => {
+    if (sortedCardData.length > 0 && selectedExpensesRedux.length > 0 && selectedCardIdx.length === 0) {
+      const initialIndices = [];
+      sortedCardData.forEach((card, idx) => {
+        const id = card.id || card.expenseId;
+        if (selectedExpensesRedux.includes(id)) {
+          initialIndices.push(idx);
+        }
+      });
+      if (initialIndices.length > 0) {
+        setSelectedCardIdx(initialIndices);
+      }
+    }
+  }, [sortedCardData, selectedExpensesRedux, selectedCardIdx.length, setSelectedCardIdx]);
+
+  // Sync Local -> Redux
+  useEffect(() => {
+    if (sortedCardData.length > 0) {
+      const selectedIds = selectedCardIdx.map(idx => {
+        const card = sortedCardData[idx];
+        return card?.id || card?.expenseId;
+      }).filter(Boolean);
+      
+      const currentReduxStr = [...selectedExpensesRedux].sort().join(',');
+      const newStr = [...selectedIds].sort().join(',');
+      if (currentReduxStr !== newStr) {
+        dispatch(setExpenseSelection(selectedIds));
+      }
+    }
+  }, [selectedCardIdx, sortedCardData, dispatch, selectedExpensesRedux]);
 
   useEffect(() => {
     if (isFriendView) {

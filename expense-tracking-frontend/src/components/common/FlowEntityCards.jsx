@@ -5,6 +5,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Checkbox,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -39,6 +40,8 @@ const FlowEntityCards = ({
   onViewAnalytics, // (entity) => void - NEW: navigate to view/analytics page
   friendId, // NEW: for friend view routing
   isFriendView, // NEW: for friend view routing
+  selectedIds = [], // NEW: for multi-selection
+  onToggleSelect, // NEW: (entity, checked) => void
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -130,7 +133,7 @@ const FlowEntityCards = ({
         }}
       >
         {entities.map((entity, idx) => {
-          const isSelected = selectedEntityId === entity.categoryId;
+          const isSelected = selectedEntityId === entity.categoryId || selectedIds.includes(entity.categoryId);
           return (
             <div
               key={entity.categoryId || idx}
@@ -195,6 +198,17 @@ const FlowEntityCards = ({
                     className="flex items-center gap-2 min-w-0"
                     style={{ maxWidth: "85%" }}
                   >
+                    {onToggleSelect && (
+                      <Checkbox
+                        size="small"
+                        checked={selectedIds.includes(entity.categoryId)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleSelect(entity, !selectedIds.includes(entity.categoryId));
+                        }}
+                        sx={{ padding: 0, color: colors.icon_muted }}
+                      />
+                    )}
                     <span
                       style={{
                         fontSize: "20px",

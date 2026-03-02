@@ -1,12 +1,15 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Grid, Card, Typography } from "@mui/material";
+import { useDispatch } from "react-redux";
 import "./PaymentMethodAccordion.css";
 import GenericAccordionGroup, {
   GenericAccordionGroup as Generic,
 } from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
+import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
+import { useSelector } from "react-redux";
 
 const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
 const getNormalizedType = (row) => {
@@ -69,7 +72,32 @@ export default function PaymentMethodAccordionGroup({
   const settings = useUserSettings();
   const { colors } = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const displayCurrency = currencySymbol || settings.getCurrency().symbol;
+  const selectedGlobalIds = useSelector(state => state.sharedSelection?.selectedExpenses || []);
+
+  // Clear selections on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(setExpenseSelection([]));
+    };
+  }, [dispatch]);
+
+  const handleSelectionChange = useCallback(
+    ({ selectedRowsByGroup }) => {
+      const allSelectedIds = [];
+      Object.values(selectedRowsByGroup).forEach(groupSelection => {
+        Object.keys(groupSelection).forEach(id => {
+          if (groupSelection[id]) {
+            allSelectedIds.push(id);
+          }
+        });
+      });
+      const uniqueIds = Array.from(new Set(allSelectedIds));
+      dispatch(setExpenseSelection(uniqueIds));
+    },
+    [dispatch]
+  );
 
   // Navigate to view expense page
   const handleNameClick = useCallback(
@@ -203,6 +231,8 @@ export default function PaymentMethodAccordionGroup({
         enableRowSearch
         enableRowSortControls
         enableSelection
+        selectedGlobalIds={selectedGlobalIds}
+        onSelectionChange={handleSelectionChange}
         classify={classify}
         onToggle={onToggle}
         rowRender={

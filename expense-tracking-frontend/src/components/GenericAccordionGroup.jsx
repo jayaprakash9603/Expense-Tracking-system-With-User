@@ -43,6 +43,7 @@ export function GenericAccordionGroup({
   getGroupKey,
   getRowKey,
   onSelectionChange,
+  selectedGlobalIds,
   // Group-level pagination configuration
   groupPaginationThreshold = 8,
   defaultGroupsPerPage = 8,
@@ -188,6 +189,35 @@ export function GenericAccordionGroup({
 
   // Selection state: { [groupKey]: { [rowKey]: true } }
   const [selectedRowsByGroup, setSelectedRowsByGroup] = useState({});
+
+  // Sync with global IDs if provided
+  useEffect(() => {
+    if (selectedGlobalIds && Array.isArray(selectedGlobalIds)) {
+      const next = {};
+      normalizedGroups.forEach(({ group, key: groupKey }) => {
+        const items = Array.isArray(group.items || group.expenses)
+          ? group.items || group.expenses
+          : [];
+        const bucket = {};
+        items.forEach((row, i) => {
+          const rowKey = resolveRowKey(row, groupKey, i);
+          const rawId = row?.id ?? row?.details?.id;
+          if (
+            selectedGlobalIds.includes(rowKey) ||
+            selectedGlobalIds.includes(String(rowKey)) ||
+            (rawId && selectedGlobalIds.includes(rawId))
+          ) {
+            bucket[rowKey] = true;
+          }
+        });
+        if (Object.keys(bucket).length > 0) {
+          next[groupKey] = bucket;
+        }
+      });
+      setSelectedRowsByGroup(next);
+    }
+  }, [selectedGlobalIds, normalizedGroups, resolveRowKey]);
+
   // Pagination state
   const [groupsPage, setGroupsPage] = useState(1);
   const [groupsPerPage, setGroupsPerPage] = useState(defaultGroupsPerPage);
@@ -274,7 +304,7 @@ export function GenericAccordionGroup({
     setColumnFiltersByGroup({});
     setGroupsPage(1);
     if (onSelectionChange) {
-      onSelectionChange({ selectedRowsByGroup: {}, selectedCount: 0 });
+      onSelectionChange([]);
     }
   }, [onSelectionChange]);
 
@@ -430,13 +460,14 @@ export function GenericAccordionGroup({
         if (!checked) {
           // Deselect all
           if (onSelectionChange) {
-            onSelectionChange({ selectedRowsByGroup: {}, selectedCount: 0 });
+            onSelectionChange([]);
           }
           return {};
         }
 
         // Select all items across all groups
         const next = {};
+        const allSelectedIds = [];
         filteredSortedGroups.forEach(({ group, key: groupKey }) => {
           const items = Array.isArray(group.items || group.expenses)
             ? group.items || group.expenses
@@ -445,6 +476,7 @@ export function GenericAccordionGroup({
           items.forEach((row, i) => {
             const rowKey = resolveRowKey(row, groupKey, i);
             bucket[rowKey] = true;
+            allSelectedIds.push(rowKey);
           });
           if (Object.keys(bucket).length > 0) {
             next[groupKey] = bucket;
@@ -457,10 +489,7 @@ export function GenericAccordionGroup({
         );
 
         if (onSelectionChange) {
-          onSelectionChange({
-            selectedRowsByGroup: next,
-            selectedCount: newSelectedCount,
-          });
+          onSelectionChange(allSelectedIds);
         }
 
         return next;
@@ -639,8 +668,18 @@ export function GenericAccordionGroup({
                 (acc, m) => acc + Object.keys(m).length,
                 0,
               );
+              
+              // Map the next state to a flat array of selected IDs
               if (onSelectionChange) {
-                onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+                const allSelectedIds = [];
+                Object.values(next).forEach(groupSelected => {
+                  Object.keys(groupSelected).forEach(id => {
+                    if (groupSelected[id]) {
+                      allSelectedIds.push(id);
+                    }
+                  });
+                });
+                onSelectionChange(allSelectedIds);
               }
               return next;
             });
@@ -663,8 +702,18 @@ export function GenericAccordionGroup({
                 (acc, m) => acc + Object.keys(m).length,
                 0,
               );
+              
+              // Map the next state to a flat array of selected IDs
               if (onSelectionChange) {
-                onSelectionChange({ selectedRowsByGroup: next, selectedCount });
+                const allSelectedIds = [];
+                Object.values(next).forEach(groupSelected => {
+                  Object.keys(groupSelected).forEach(id => {
+                    if (groupSelected[id]) {
+                      allSelectedIds.push(id);
+                    }
+                  });
+                });
+                onSelectionChange(allSelectedIds);
               }
               return next;
             });

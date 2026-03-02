@@ -41,6 +41,7 @@ import {
   Grid,
   Popover,
   MenuList,
+  Checkbox,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -71,6 +72,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import SharedOverviewCards from "../../components/charts/SharedOverviewCards";
 import BudgetCardsSkeleton from "../../components/skeletons/BudgetCardsSkeleton";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
+import { setBudgetSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
@@ -92,7 +94,11 @@ const Budget = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [sortModel, setSortModel] = useState([]);
-  const [selectedRows, setSelectedRows] = useState([]);
+  
+  const selectedRows = useSelector(state => state.sharedSelection?.selectedBudgets || []);
+  const setSelectedRows = (newSelection) => {
+    dispatch(setBudgetSelection(newSelection));
+  };
 
   // Menu & Modal States
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -438,17 +444,37 @@ const Budget = () => {
                 }}
               />
             </Box>
-            {hasWriteAccess && (
-              <IconButton
-                onClick={(e) => handleMenuClick(e, budget.id)}
-                sx={{
-                  color: colors.primary_accent,
-                  "&:hover": { bgcolor: colors.hover_bg },
+            <Box sx={{ display: "flex", gap: 0.5 }}>
+              <Checkbox
+                size="small"
+                checked={selectedRows.includes(budget.id)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedRows([...selectedRows, budget.id]);
+                  } else {
+                    setSelectedRows(selectedRows.filter((id) => id !== budget.id));
+                  }
                 }}
-              >
-                <MoreVertIcon fontSize="small" />
-              </IconButton>
-            )}
+                sx={{
+                  color: colors.icon_muted,
+                  '&.Mui-checked': {
+                    color: colors.primary_accent,
+                  },
+                  p: 0.5,
+                }}
+              />
+              {hasWriteAccess && (
+                <IconButton
+                  onClick={(e) => handleMenuClick(e, budget.id)}
+                  sx={{
+                    color: colors.primary_accent,
+                    "&:hover": { bgcolor: colors.hover_bg },
+                  }}
+                >
+                  <MoreVertIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
           </Box>
 
           {/* Description */}

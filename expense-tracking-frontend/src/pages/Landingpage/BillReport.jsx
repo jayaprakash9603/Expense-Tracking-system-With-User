@@ -40,6 +40,7 @@ import useBillReportFilters, {
 import useBillReportLayout from "../../hooks/useBillReportLayout";
 import SectionCustomizationModal from "../../components/common/SectionCustomization/SectionCustomizationModal";
 import { OverviewCardSkeleton } from "../../components/skeletons/CommonSkeletons";
+import { setBillSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -383,6 +384,38 @@ const BillsTable = ({
   selectedType,
   timeframeLabel,
 }) => {
+  const dispatch = useDispatch();
+  
+  // Clear selections on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(setBillSelection([]));
+    };
+  }, [dispatch]);
+
+  const handleCheckboxChange = (billId, checked) => {
+    dispatch((dispatch, getState) => {
+      const state = getState();
+      const currentSelected = state.sharedSelection?.selectedBills || [];
+      if (checked) {
+        dispatch(setBillSelection([...currentSelected, billId]));
+      } else {
+        dispatch(setBillSelection(currentSelected.filter(id => id !== billId)));
+      }
+    });
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      dispatch(setBillSelection(filteredBills.map(b => b.id)));
+    } else {
+      dispatch(setBillSelection([]));
+    }
+  };
+
+  const selectedBills = useSelector(state => state.sharedSelection?.selectedBills || []);
+  const allSelected = filteredBills.length > 0 && selectedBills.length === filteredBills.length;
+  const someSelected = selectedBills.length > 0 && selectedBills.length < filteredBills.length;
   const tableSummaryParts = [];
   if (timeframeLabel) {
     tableSummaryParts.push(timeframeLabel);
@@ -415,6 +448,17 @@ const BillsTable = ({
           <table className="bills-table">
             <thead>
               <tr>
+                <th style={{ width: '40px', textAlign: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={allSelected}
+                    ref={input => {
+                      if (input) input.indeterminate = someSelected;
+                    }}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </th>
                 <th>Date</th>
                 <th>Bill Name</th>
                 <th>Category</th>
@@ -426,6 +470,14 @@ const BillsTable = ({
             <tbody>
               {filteredBills.map((bill) => (
                 <tr key={bill.id}>
+                  <td style={{ textAlign: 'center' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedBills.includes(bill.id)}
+                      onChange={(e) => handleCheckboxChange(bill.id, e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </td>
                   <td>{formatDate(bill.date, dateFormat)}</td>
                   <td>
                     <div className="bill-name">

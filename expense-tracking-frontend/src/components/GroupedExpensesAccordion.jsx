@@ -1,11 +1,13 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
 import { getPaymentMethodIcon } from "../utils/iconMapping";
 import { useStandardExpenseColumns } from "../hooks/useStandardExpenseColumns";
 import { useTranslation } from "../hooks/useTranslation";
+import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 
 /**
  * GroupedExpensesAccordion
@@ -23,6 +25,33 @@ const GroupedExpensesAccordion = ({
 }) => {
   const { colors, mode } = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const selectedGlobalIds = useSelector(state => state.sharedSelection?.selectedExpenses || []);
+
+  // Clear selections on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(setExpenseSelection([]));
+    };
+  }, [dispatch]);
+
+  const handleSelectionChange = useCallback(
+    ({ selectedRowsByGroup }) => {
+      // Flatten the selected keys across all groups
+      const allSelectedIds = [];
+      Object.values(selectedRowsByGroup).forEach(groupSelection => {
+        Object.keys(groupSelection).forEach(id => {
+          if (groupSelection[id]) {
+            allSelectedIds.push(id); // assuming id is string, might need parsing depending on actual id
+          }
+        });
+      });
+      // Deduplicate
+      const uniqueIds = Array.from(new Set(allSelectedIds));
+      dispatch(setExpenseSelection(uniqueIds));
+    },
+    [dispatch]
+  );
 
   // Navigate to view expense page
   const handleNameClick = useCallback(
@@ -164,6 +193,9 @@ const GroupedExpensesAccordion = ({
           enableRowSearch
           enableRowSortControls
           enableSelection
+          selectedGlobalIds={selectedGlobalIds}
+          onSelectionChange={handleSelectionChange}
+          onSelectionChange={handleSelectionChange}
           classify={classify}
           columns={columns}
           defaultPageSize={5}

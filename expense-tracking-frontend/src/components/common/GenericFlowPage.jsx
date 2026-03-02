@@ -43,6 +43,8 @@ const GenericFlowPage = ({
   navigate,
   showBackButton = false,
   onPageBack,
+  selectedIds = [], // NEW: array of selected entity IDs
+  onToggleSelect, // NEW: function to toggle selection
 }) => {
   const {
     activeRange,
@@ -363,6 +365,8 @@ const GenericFlowPage = ({
             isTablet={isTablet}
             flowTab={flowTab}
             selectedEntityId={selectedEntity?.[idKey] || null}
+            selectedIds={selectedIds}
+            onToggleSelect={onToggleSelect}
             hasWriteAccess={hasWriteAccess}
             friendId={friendId}
             isFriendView={isFriendView}

@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import usePaymentMethodFlowData from "../../hooks/usePaymentMethodFlowData";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { deletePaymentMethod } from "../../Redux/Payment Method/paymentMethod.action";
 import { formatCompactNumber } from "../../utils/numberFormatters";
 import CreatePaymentMethod from "./CreatePaymentMethod";
+import { setPaymentMethodSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 import GenericFlowPage from "../../components/common/GenericFlowPage";
 import FlowStackedChart from "../../components/common/FlowStackedChart";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -52,6 +53,16 @@ const PaymentMethodFlow = () => {
   const { hasWriteAccess } = useFriendAccess(friendId);
   const [createPaymentMethodModalOpen, setCreatePaymentMethodModalOpen] =
     useState(false);
+
+  const selectedPaymentMethods = useSelector((state) => state.sharedSelection?.selectedPaymentMethods || []);
+  const handleToggleSelect = (entity, checked) => {
+    const id = entity.categoryId; // FlowEntityCards uses categoryId as idKey for payment methods too
+    if (checked) {
+      dispatch(setPaymentMethodSelection([...selectedPaymentMethods, id]));
+    } else {
+      dispatch(setPaymentMethodSelection(selectedPaymentMethods.filter(selectedId => selectedId !== id)));
+    }
+  };
 
   return (
     <GenericFlowPage
@@ -150,6 +161,8 @@ const PaymentMethodFlow = () => {
       navigate={navigate}
       showBackButton={showBackButton}
       onPageBack={handlePageBack}
+      selectedIds={selectedPaymentMethods}
+      onToggleSelect={handleToggleSelect}
     />
   );
 };

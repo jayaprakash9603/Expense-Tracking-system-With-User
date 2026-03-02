@@ -26,6 +26,8 @@ import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useCategoryReportFilters from "../../../hooks/reportFilters/useCategoryReportFilters";
 import CategoryDailySpendingChart from "../../../components/category/CategoryDailySpendingChart";
+import { useDispatch } from "react-redux";
+import { setCategorySelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 
 const COLORS = getChartColors(10); // limit to first 10 for category distribution
 
@@ -35,6 +37,7 @@ const COLORS = getChartColors(10); // limit to first 10 for category distributio
 const CategoryReport = () => {
   const { friendId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { colors, mode } = useTheme();
 
   // Layout configuration for section customization

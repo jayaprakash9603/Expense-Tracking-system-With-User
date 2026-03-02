@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
 import ReportActionMenu from "../../components/common/ReportActionMenu";
+import { setBillSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -480,25 +481,66 @@ const TopItemsBarChart = ({
 );
 
 // Bills Table Component
-const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => (
-  <div className="bills-table-container mt-[30px]">
-    <h3>📋 Recent Bills</h3>
-    <div className="table-wrapper">
-      <table className="bills-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Bill Name</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Payment Method</th>
-            <th>Items</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredBills.map((bill) => (
-            <tr key={bill.id}>
-              <td>{new Date(bill.date).toLocaleDateString()}</td>
+const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
+  const dispatch = useDispatch();
+  const selectedBills = useSelector(state => state.sharedSelection?.selectedBills || []);
+  const allSelected = filteredBills.length > 0 && selectedBills.length === filteredBills.length;
+  const someSelected = selectedBills.length > 0 && selectedBills.length < filteredBills.length;
+
+  const handleCheckboxChange = (billId, checked) => {
+    if (checked) {
+      dispatch(setBillSelection([...selectedBills, billId]));
+    } else {
+      dispatch(setBillSelection(selectedBills.filter(id => id !== billId)));
+    }
+  };
+
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      dispatch(setBillSelection(filteredBills.map(b => b.id)));
+    } else {
+      dispatch(setBillSelection([]));
+    }
+  };
+
+  return (
+    <div className="bills-table-container mt-[30px]">
+      <h3>📋 Recent Bills</h3>
+      <div className="table-wrapper">
+        <table className="bills-table">
+          <thead>
+            <tr>
+              <th style={{ width: '40px', textAlign: 'center' }}>
+                <input 
+                  type="checkbox" 
+                  checked={allSelected}
+                  ref={input => {
+                    if (input) input.indeterminate = someSelected;
+                  }}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  style={{ cursor: 'pointer' }}
+                />
+              </th>
+              <th>Date</th>
+              <th>Bill Name</th>
+              <th>Category</th>
+              <th>Amount</th>
+              <th>Payment Method</th>
+              <th>Items</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredBills.map((bill) => (
+              <tr key={bill.id}>
+                <td style={{ textAlign: 'center' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedBills.includes(bill.id)}
+                    onChange={(e) => handleCheckboxChange(bill.id, e.target.checked)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                </td>
+                <td>{new Date(bill.date).toLocaleDateString()}</td>
               <td>
                 <div className="bill-name">
                   <strong title={bill.name}>{bill.name}</strong>
@@ -542,7 +584,8 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => (
       </table>
     </div>
   </div>
-);
+  );
+};
 
 // Category Details Component
 const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
