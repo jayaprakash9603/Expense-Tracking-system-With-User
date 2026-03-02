@@ -39,6 +39,7 @@ import useBillReportFilters, {
 } from "../../hooks/reportFilters/useBillReportFilters";
 import useBillReportLayout from "../../hooks/useBillReportLayout";
 import SectionCustomizationModal from "../../components/common/SectionCustomization/SectionCustomizationModal";
+import { OverviewCardSkeleton } from "../../components/skeletons/CommonSkeletons";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -537,15 +538,9 @@ const LoadingSkeleton = () => (
       </div>
     </div>
 
-    <div className="summary-cards">
+    <div className="summary-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="summary-card-skeleton">
-          <div className="skeleton-icon" />
-          <div className="skeleton-content">
-            <div className="skeleton-text" />
-            <div className="skeleton-number" />
-          </div>
-        </div>
+        <OverviewCardSkeleton key={i} />
       ))}
     </div>
 

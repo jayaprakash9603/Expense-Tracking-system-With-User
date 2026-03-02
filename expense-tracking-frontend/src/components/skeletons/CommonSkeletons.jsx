@@ -205,44 +205,43 @@ export const OverviewCardSkeleton = () => {
     <div
       className="overview-card skeleton"
       style={{
-        background: colors.primary_bg,
+        background: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
+        borderRadius: "16px",
+        height: "130px",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
       }}
     >
       <div
         className="skeleton-icon"
         style={{
-          width: "60px",
-          height: "60px",
+          width: "36px",
+          height: "36px",
           ...getSkeletonStyle(mode),
-          borderRadius: "12px",
+          borderRadius: "50%",
         }}
       />
-      <div className="card-content">
+      <div className="skeleton-content" style={{ marginTop: "16px", display: "flex", flexDirection: "column" }}>
         <div
-          className="skeleton-card-title"
+          className="skeleton-title"
           style={{
             height: "14px",
-            width: "100px",
+            width: "50%",
             ...getSkeletonStyle(mode),
             marginBottom: "8px",
+            borderRadius: "4px"
           }}
         />
         <div
-          className="skeleton-card-value"
+          className="skeleton-value"
           style={{
             height: "24px",
-            width: "120px",
+            width: "70%",
             ...getSkeletonStyle(mode),
-            marginBottom: "4px",
-          }}
-        />
-        <div
-          className="skeleton-card-change"
-          style={{
-            height: "12px",
-            width: "140px",
-            ...getSkeletonStyle(mode),
+            borderRadius: "4px"
           }}
         />
       </div>
@@ -1076,7 +1075,7 @@ export const CategoryLoadingSkeleton = () => {
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeaderSkeleton />
-      <div className="category-overview-cards">
+      <div className="category-overview-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[...Array(4)].map((_, i) => (
           <OverviewCardSkeleton key={i} />
         ))}
@@ -1108,7 +1107,7 @@ export const PaymentLoadingSkeleton = () => {
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeaderSkeleton rootClassName="payment-methods-header" />
-      <div className="payment-overview-cards">
+      <div className="payment-overview-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[...Array(4)].map((_, i) => (
           <OverviewCardSkeleton key={i} />
         ))}
@@ -1145,7 +1144,7 @@ export const AllBudgetsLoadingSkeleton = () => {
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeaderSkeleton rootClassName="payment-methods-header" />
-      <div className="payment-overview-cards">
+      <div className="payment-overview-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[...Array(4)].map((_, i) => (
           <OverviewCardSkeleton key={i} />
         ))}
@@ -1238,7 +1237,7 @@ export const BudgetReportLoadingSkeleton = () => {
   return (
     <div className="budget-report" style={{ background: colors.secondary_bg }}>
       <ReportHeaderSkeleton rootClassName="budget-report-header" />
-      <div className="budget-overview-cards">
+      <div className="budget-overview-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[...Array(4)].map((_, i) => (
           <OverviewCardSkeleton key={i} />
         ))}
@@ -1275,7 +1274,7 @@ export const ExpensesLoadingSkeleton = () => {
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeaderSkeleton rootClassName="payment-methods-header" />
-      <div className="payment-overview-cards">
+      <div className="payment-overview-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         {[...Array(4)].map((_, i) => (
           <OverviewCardSkeleton key={i} />
         ))}

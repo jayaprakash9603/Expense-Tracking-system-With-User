@@ -29,7 +29,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/overview")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<AdminAnalyticsOverviewDTO> getAnalyticsOverview(
             @RequestParam(defaultValue = "7d") String timeRange) {
 
@@ -46,7 +46,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/top-categories")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<List<TopCategoryDTO>> getTopCategories(
             @RequestParam(defaultValue = "7d") String timeRange,
             @RequestParam(defaultValue = "5") int limit) {
@@ -63,7 +63,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/recent-activity")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<List<RecentActivityDTO>> getRecentActivity(
             @RequestParam(defaultValue = "24") int hours) {
 
@@ -80,7 +80,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/top-users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<List<TopUserDTO>> getTopUsers(
             @RequestParam(defaultValue = "7d") String timeRange,
             @RequestParam(defaultValue = "10") int limit) {
@@ -96,7 +96,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/user-stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<UserStatsDTO> getUserStats() {
         log.info("Fetching user statistics");
         UserStatsDTO stats = adminAnalyticsService.getUserStats();
@@ -110,7 +110,7 @@ public class AdminAnalyticsController {
 
 
     @GetMapping("/dashboard")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<DashboardAnalyticsDTO> getDashboardAnalytics(
             @RequestParam(defaultValue = "7d") String timeRange) {
 

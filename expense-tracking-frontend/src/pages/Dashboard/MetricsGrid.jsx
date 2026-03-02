@@ -1,137 +1,19 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
-import {
-  TrendingUp,
-  TrendingDown,
-  TrendingFlat,
-  Wallet,
-  CreditCard,
-  CurrencyExchange,
-} from "@mui/icons-material";
+import ModernOverviewCard from "../../components/common/ModernOverviewCard";
+import WalletIcon from "@mui/icons-material/Wallet";
+import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 
-// Zero-decimal formatter (duplicated minimal - can be imported from a shared util later)
+// Zero-decimal formatter
 const formatNumber0 = (v) =>
   Number(v ?? 0).toLocaleString(undefined, {
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   });
 
-// Individual metric card (reusing the structure from ExpenseDashboard)
-const MetricCard = ({
-  title,
-  value,
-  change,
-  changeText,
-  changeDirection,
-  icon,
-  type,
-  trend,
-  currencySymbol = "₹",
-}) => {
-  const { colors } = useTheme();
-
-  const formatValue = (val) => {
-    if (typeof val === "number")
-      return `${currencySymbol}${formatNumber0(val)}`;
-    return val;
-  };
-
-  return (
-    <div
-      className={`metric-card ${type}`}
-      style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
-      }}
-    >
-      <div className="metric-header">
-        <div className="metric-icon" style={{ color: colors.primary_accent }}>
-          {icon}
-        </div>
-        <div className={`trend-indicator ${trend}`}>
-          {trend === "up" ? (
-            <TrendingUp style={{ color: "#10b981" }} />
-          ) : trend === "down" ? (
-            <TrendingDown style={{ color: "#ef4444" }} />
-          ) : (
-            <TrendingFlat style={{ color: colors.secondary_text }} />
-          )}
-        </div>
-      </div>
-      <div className="metric-content">
-        <h3 style={{ color: colors.secondary_text }}>{title}</h3>
-        <div className="metric-value" style={{ color: colors.primary_text }}>
-          {formatValue(value)}
-        </div>
-        {changeText ? (
-          <div
-            className={`metric-change ${changeDirection || "neutral"}`}
-            style={{
-              color:
-                changeDirection === "positive"
-                  ? "#10b981"
-                  : changeDirection === "negative"
-                  ? "#ef4444"
-                  : colors.secondary_text,
-            }}
-          >
-            {changeText}
-          </div>
-        ) : typeof change === "number" ? (
-          <div
-            className={`metric-change ${change > 0 ? "positive" : "negative"}`}
-            style={{
-              color: change > 0 ? "#10b981" : "#ef4444",
-            }}
-          >
-            {change > 0 ? "+" : ""}
-            {change}% from last month
-          </div>
-        ) : null}
-      </div>
-      <div className="metric-sparkline">
-        <div
-          className="sparkline-bar"
-          style={{
-            height: "60%",
-            backgroundColor: colors.hover_bg,
-          }}
-        />
-        <div
-          className="sparkline-bar"
-          style={{
-            height: "80%",
-            backgroundColor: colors.hover_bg,
-          }}
-        />
-        <div
-          className="sparkline-bar"
-          style={{
-            height: "40%",
-            backgroundColor: colors.hover_bg,
-          }}
-        />
-        <div
-          className="sparkline-bar"
-          style={{
-            height: "90%",
-            backgroundColor: colors.hover_bg,
-          }}
-        />
-        <div
-          className="sparkline-bar"
-          style={{
-            height: "70%",
-            backgroundColor: colors.hover_bg,
-          }}
-        />
-      </div>
-    </div>
-  );
-};
-
-// Skeleton for metrics grid (same as previous inline use)
 const MetricCardSkeleton = () => {
   const { colors } = useTheme();
 
@@ -141,24 +23,26 @@ const MetricCardSkeleton = () => {
       style={{
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
+        borderRadius: "16px",
+        height: "130px",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between"
       }}
     >
       <div
         className="skeleton-icon"
-        style={{ backgroundColor: colors.hover_bg }}
+        style={{ backgroundColor: colors.hover_bg, width: "36px", height: "36px", borderRadius: "50%" }}
       />
-      <div className="skeleton-content">
+      <div className="skeleton-content" style={{ marginTop: "16px" }}>
         <div
           className="skeleton-title"
-          style={{ backgroundColor: colors.hover_bg }}
+          style={{ backgroundColor: colors.hover_bg, height: "16px", width: "50%", marginBottom: "8px", borderRadius: "4px" }}
         />
         <div
           className="skeleton-value"
-          style={{ backgroundColor: colors.hover_bg }}
-        />
-        <div
-          className="skeleton-change"
-          style={{ backgroundColor: colors.hover_bg }}
+          style={{ backgroundColor: colors.hover_bg, height: "24px", width: "70%", borderRadius: "4px" }}
         />
       </div>
     </div>
@@ -166,10 +50,6 @@ const MetricCardSkeleton = () => {
 };
 
 // Main MetricsGrid component
-// Props:
-//  analyticsSummary: object from API
-//  loading: boolean
-//  currencySymbol: string (optional, will use user settings if not provided)
 const MetricsGrid = ({
   analyticsSummary,
   loading,
@@ -180,7 +60,7 @@ const MetricsGrid = ({
 
   if (loading) {
     return (
-      <div className="metrics-grid">
+      <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
         {[...Array(4)].map((_, i) => (
           <MetricCardSkeleton key={i} />
         ))}
@@ -188,100 +68,63 @@ const MetricsGrid = ({
     );
   }
 
+  // Parse total balance trend
+  const tbChangeText = analyticsSummary?.remainingBudgetComparison?.percentageChange || null;
+  const tbTrendDirection = (analyticsSummary?.remainingBudgetComparison?.trend || "").toLowerCase();
+  
+  // Parse monthly spending trend
+  const msChangeText = analyticsSummary?.currentMonthLossesComparison?.percentageChange || null;
+  const msTrendDirection = (analyticsSummary?.currentMonthLossesComparison?.trend || "").toLowerCase();
+  
+  // Parse credit due trend
+  const cdChangeText = analyticsSummary?.totalCreditDueComparison?.percentageChange || null;
+  const cdTrendDirection = (analyticsSummary?.totalCreditDueComparison?.trend || "").toLowerCase();
+  
+  // Parse credit card bill trend
+  const ccChangeText = analyticsSummary?.creditBillPaymentComparison?.percentageChange || null;
+  const ccTrendDirection = (analyticsSummary?.creditBillPaymentComparison?.trend || "").toLowerCase();
+
   return (
-    <div className="metrics-grid">
-      <MetricCard
+    <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+      <ModernOverviewCard
         title="Total Balance"
-        value={analyticsSummary?.remainingBudget ?? 0}
-        change={null}
-        changeText={
-          analyticsSummary?.remainingBudgetComparison?.percentageChange || null
-        }
-        changeDirection={(() => {
-          const t = (
-            analyticsSummary?.remainingBudgetComparison?.trend || ""
-          ).toLowerCase();
-          if (t === "increase") return "positive";
-          if (t === "decrease") return "negative";
-          return "neutral";
-        })()}
-        icon={<Wallet />}
-        type="primary"
-        trend="up"
-        currencySymbol={currencySymbol}
+        value={`${currencySymbol}${formatNumber0(analyticsSummary?.remainingBudget ?? 0)}`}
+        icon={<WalletIcon />}
+        percentage={tbChangeText}
+        trend={tbTrendDirection === "decrease" ? "down" : "up"}
+        variant="blue"
+        sparklineData={[5, 6, 8, 9, 12, 11, 15]}
       />
-      <MetricCard
+      <ModernOverviewCard
         title="Monthly Spending"
-        value={analyticsSummary?.currentMonthLosses ?? 0}
-        change={null}
-        changeText={
-          analyticsSummary?.currentMonthLossesComparison?.percentageChange ||
-          null
-        }
-        changeDirection={
-          analyticsSummary?.currentMonthLossesComparison?.trend === "increase"
-            ? "negative"
-            : analyticsSummary?.currentMonthLossesComparison?.trend ===
-              "decrease"
-            ? "positive"
-            : "neutral"
-        }
-        icon={<CurrencyExchange />}
-        type="expense"
-        trend="down"
-        currencySymbol={currencySymbol}
+        value={`${currencySymbol}${formatNumber0(analyticsSummary?.currentMonthLosses ?? 0)}`}
+        icon={<CurrencyExchangeIcon />}
+        percentage={msChangeText}
+        trend={msTrendDirection === "decrease" ? "down" : "up"}
+        variant="purple"
+        sparklineData={[10, 8, 12, 10, 15, 14, 18]}
       />
-      <MetricCard
+      <ModernOverviewCard
         title="Credit Due"
-        value={Math.abs(analyticsSummary?.totalCreditDue ?? 0)}
-        change={null}
-        changeText={
-          analyticsSummary?.totalCreditDueComparison?.percentageChange || null
-        }
-        changeDirection={(() => {
-          const t = (
-            analyticsSummary?.totalCreditDueComparison?.trend || ""
-          ).toLowerCase();
-          if (t === "decrease") return "positive";
-          if (t === "increase") return "negative";
-          return "neutral";
-        })()}
-        icon={<CreditCard />}
-        type="credit"
-        trend="down"
-        currencySymbol={currencySymbol}
+        value={`${currencySymbol}${formatNumber0(Math.abs(analyticsSummary?.totalCreditDue ?? 0))}`}
+        icon={<CreditCardIcon />}
+        percentage={cdChangeText}
+        trend={cdTrendDirection === "decrease" ? "down" : "up"}
+        variant="yellow"
+        sparklineData={[4, 5, 4, 3, 5, 6, 7]}
       />
-      <MetricCard
+      <ModernOverviewCard
         title="Credit Card Bill Paid"
-        value={Math.abs(
+        value={`${currencySymbol}${formatNumber0(Math.abs(
           analyticsSummary?.creditBillPaymentComparison?.currentMonthBillPaid ??
             analyticsSummary?.creditBillPaymentComparison?.lastCreditBillPaid ??
             0
-        )}
-        change={null}
-        changeText={
-          analyticsSummary?.creditBillPaymentComparison?.percentageChange ||
-          null
-        }
-        changeDirection={(() => {
-          const t = (
-            analyticsSummary?.creditBillPaymentComparison?.trend || ""
-          ).toLowerCase();
-          if (t === "increase") return "positive";
-          if (t === "decrease") return "negative";
-          return "neutral";
-        })()}
-        icon={<CreditCard />}
-        type="budget"
-        trend={(() => {
-          const t = (
-            analyticsSummary?.creditBillPaymentComparison?.trend || ""
-          ).toLowerCase();
-          if (t === "increase") return "up";
-          if (t === "decrease") return "down";
-          return "neutral";
-        })()}
-        currencySymbol={currencySymbol}
+        ))}`}
+        icon={<ReceiptLongIcon />}
+        percentage={ccChangeText}
+        trend={ccTrendDirection === "decrease" ? "down" : "up"}
+        variant="red"
+        sparklineData={[8, 9, 11, 10, 13, 14, 16]}
       />
     </div>
   );

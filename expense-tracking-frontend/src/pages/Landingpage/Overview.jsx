@@ -1,6 +1,11 @@
 import React from "react";
 import useApplicationOverview from "../../hooks/useApplicationOverview";
-import { Skeleton, useTheme, useMediaQuery } from "@mui/material";
+import { Skeleton, useTheme as useMuiTheme, useMediaQuery } from "@mui/material";
+import ModernOverviewCard from "../../components/common/ModernOverviewCard";
+import WalletIcon from "@mui/icons-material/Wallet";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 
 const Overview = () => {
   const { data, loading, error } = useApplicationOverview();
@@ -10,8 +15,8 @@ const Overview = () => {
   const creditDue = -(data?.totalCreditDue || 0);
   const remainingBudget = data?.remainingBudget || 0;
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
 
   const shimmerKeyframes = {
     "@keyframes shimmer": {
@@ -27,7 +32,7 @@ const Overview = () => {
       "linear-gradient(90deg, rgb(27, 27, 27) 0%, rgb(51, 51, 51) 50%, rgb(27, 27, 27) 100%)",
     backgroundSize: "1000px 100%",
     animation: "shimmer 2s infinite linear",
-    borderRadius: "8px",
+    borderRadius: "16px",
   };
 
   return (
@@ -37,13 +42,10 @@ const Overview = () => {
         flexDirection: "column",
         alignItems: "center",
         width: isMobile ? "100%" : "640px",
-        backgroundColor: "rgb(27, 27, 27)",
-        borderRadius: "8px",
-        boxShadow: "rgba(0, 0, 0, 0.08) 0 0 0",
-        border: "1px solid rgb(80, 80, 80)",
-        padding: "20px",
+        backgroundColor: "transparent",
+        padding: "0",
         color: "#ffffff",
-        height: isMobile ? "auto" : "300px",
+        height: "auto",
         boxSizing: "border-box",
       }}
     >
@@ -53,19 +55,12 @@ const Overview = () => {
           style={{
             fontWeight: "bold",
             fontSize: "18px",
-            marginBottom: "4px",
-            color: "#ffffff",
+            marginBottom: "8px",
+            color: "var(--primary-text)",
           }}
         >
           Financial Overview
         </p>
-        <hr
-          style={{
-            border: "none",
-            borderTop: "1px solid rgb(80, 80, 80)",
-            width: "100%",
-          }}
-        />
       </div>
 
       {/* Error message */}
@@ -90,7 +85,7 @@ const Overview = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
             gap: "16px",
             width: "100%",
           }}
@@ -100,7 +95,7 @@ const Overview = () => {
               key={i}
               variant="rectangular"
               width="100%"
-              height={85}
+              height={130}
               sx={skeletonStyle}
             />
           ))}
@@ -109,55 +104,52 @@ const Overview = () => {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
+            gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
             gap: "16px",
             width: "100%",
             height: "auto",
           }}
         >
-          <OverviewCard label="Total Expenses" value={`${totalExpenses}`} />
-          <OverviewCard label="Remaining" value={`${remainingBudget}`} />
-          <OverviewCard label="Today's Expenses" value={`${todayExpenses}`} />
-          <OverviewCard label="Credit Due" value={`${creditDue}`} />
+          <ModernOverviewCard 
+            title="Total Expenses" 
+            value={`₹${totalExpenses}`} 
+            icon={<WalletIcon fontSize="small" />}
+            variant="blue"
+            percentage="+5.2%"
+            trend="up"
+            sparklineData={[5, 6, 4, 7, 8, 5, 9]}
+          />
+          <ModernOverviewCard 
+            title="Remaining" 
+            value={`₹${remainingBudget}`} 
+            icon={<AccountBalanceWalletIcon fontSize="small" />}
+            variant="purple"
+            percentage="-1.5%"
+            trend="down"
+            sparklineData={[9, 8, 7, 9, 6, 5, 4]}
+          />
+          <ModernOverviewCard 
+            title="Today's Expenses" 
+            value={`₹${todayExpenses}`} 
+            icon={<ReceiptIcon fontSize="small" />}
+            variant="yellow"
+            percentage="+2.1%"
+            trend="up"
+            sparklineData={[2, 3, 2, 4, 3, 5, 6]}
+          />
+          <ModernOverviewCard 
+            title="Credit Due" 
+            value={`₹${creditDue}`} 
+            icon={<CreditCardIcon fontSize="small" />}
+            variant="red"
+            percentage="+8.4%"
+            trend="up"
+            sparklineData={[4, 3, 5, 7, 6, 8, 9]}
+          />
         </div>
       )}
     </div>
   );
 };
-
-const OverviewCard = ({ label, value }) => (
-  <div
-    style={{
-      backgroundColor: "#333",
-      padding: "10px",
-      borderRadius: "8px",
-      textAlign: "center",
-      height: "85px",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-    }}
-  >
-    <p
-      style={{
-        fontSize: "12px",
-        marginBottom: "4px",
-        color: "#ffffff",
-      }}
-    >
-      {label}
-    </p>
-    <p
-      style={{
-        fontSize: "16px",
-        fontWeight: "bold",
-        margin: 0,
-        color: "#ffffff",
-      }}
-    >
-      {value}
-    </p>
-  </div>
-);
 
 export default Overview;

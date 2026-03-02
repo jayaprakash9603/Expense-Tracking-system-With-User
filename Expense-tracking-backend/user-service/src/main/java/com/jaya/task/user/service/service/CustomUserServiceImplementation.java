@@ -36,7 +36,11 @@ public class CustomUserServiceImplementation implements UserDetailsService {
         Set<String> userRoles = user.getRoles();
         if (userRoles != null && !userRoles.isEmpty()) {
             for (String roleName : userRoles) {
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + roleName.toUpperCase().trim()));
+                String normalized = roleName.toUpperCase().trim();
+                if (!normalized.startsWith("ROLE_")) {
+                    normalized = "ROLE_" + normalized;
+                }
+                authorities.add(new SimpleGrantedAuthority(normalized));
             }
         } else {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));

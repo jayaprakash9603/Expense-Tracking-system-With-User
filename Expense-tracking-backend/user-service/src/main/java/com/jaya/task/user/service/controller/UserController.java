@@ -199,7 +199,7 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/roles/{roleId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Object> addRoleToUser(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
             @PathVariable @NotNull @Positive(message = "Role ID must be positive") Integer roleId,
@@ -275,7 +275,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}/roles/{roleId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Object> removeRoleFromUser(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
             @PathVariable @NotNull @Positive(message = "Role ID must be positive") Integer roleId,
