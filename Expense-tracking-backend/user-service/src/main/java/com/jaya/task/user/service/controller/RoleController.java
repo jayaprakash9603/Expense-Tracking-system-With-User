@@ -22,7 +22,7 @@ public class RoleController {
     private RoleService roleService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> createRole(
             @Valid @RequestBody RoleRequest roleRequest,
             @RequestHeader("Authorization") String jwt) {
@@ -46,14 +46,14 @@ public class RoleController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<List<Role>> getAllRoles(@RequestHeader("Authorization") String jwt) {
         List<Role> roles = roleService.getAllRoles();
         return new ResponseEntity<>(roles, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Role> getRoleById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) {
         Optional<Role> role = roleService.getRoleById(id);
         return role.map(r -> new ResponseEntity<>(r, HttpStatus.OK))
@@ -61,7 +61,7 @@ public class RoleController {
     }
 
     @GetMapping("/name/{name}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Role> getRoleByName(@PathVariable String name, @RequestHeader("Authorization") String jwt) {
         Optional<Role> role = roleService.getRoleByName(name);
         return role.map(r -> new ResponseEntity<>(r, HttpStatus.OK))
@@ -69,7 +69,7 @@ public class RoleController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> updateRole(
             @PathVariable Integer id,
             @Valid @RequestBody RoleRequest roleRequest,
@@ -88,7 +88,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<String> deleteRole(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) {
         try {
             roleService.deleteRole(id);

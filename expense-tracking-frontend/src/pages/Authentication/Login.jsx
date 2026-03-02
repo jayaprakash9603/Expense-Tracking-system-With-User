@@ -56,7 +56,11 @@ const Login = () => {
       return;
     }
 
-    if (currentMode === "ADMIN" || role === "ADMIN" || user?.role === "ADMIN") {
+    const isActuallyAdminMode = 
+      currentMode === "ADMIN" || 
+      (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
+
+    if (isActuallyAdminMode) {
       console.log("Navigating to ADMIN dashboard");
       navigate("/admin/dashboard");
     } else {

@@ -161,11 +161,11 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
       }
 
       const { currentMode, role, user } = loginResult;
-      if (
-        currentMode === "ADMIN" ||
-        role === "ADMIN" ||
-        user?.role === "ADMIN"
-      ) {
+      const isActuallyAdminMode = 
+        currentMode === "ADMIN" || 
+        (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
+
+      if (isActuallyAdminMode) {
         navigate("/admin/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });

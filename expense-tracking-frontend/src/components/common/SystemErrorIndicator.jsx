@@ -242,15 +242,12 @@ const SystemErrorIndicator = ({ isDark }) => {
       {/* Enhanced trigger button with smooth transitions */}
       <button
         onClick={() => setIsPanelOpen((prev) => !prev)}
-        className="p-2 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 shadow-sm"
+        className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
         title="System alerts"
         aria-label="System alerts"
         aria-expanded={isPanelOpen}
         style={{
-          backgroundColor:
-            colors.secondary_bg || (resolvedIsDark ? "#1f2937" : "#f3f4f6"),
-          color: accentColor,
-          boxShadow: "0 8px 18px rgba(15,23,42,0.12)",
+          backgroundColor: colors.button_inactive,
         }}
       >
         <Badge
@@ -260,18 +257,15 @@ const SystemErrorIndicator = ({ isDark }) => {
           sx={{
             "& .MuiBadge-badge": {
               fontSize: "0.625rem",
-              height: "17px",
-              minWidth: "17px",
-              padding: "0 5px",
-              fontWeight: 600,
-              boxShadow: "0 2px 8px rgba(239, 68, 68, 0.4)",
+              height: "16px",
+              minWidth: "16px",
+              padding: "0 4px",
             },
           }}
         >
           <InfoOutlinedIcon
-            className="transition-colors"
-            fontSize="small"
-            style={{ color: resolvedIsDark ? "#f87171" : "#b91c1c" }}
+            className="w-5 h-5 transition-colors"
+            style={{ color: errors.length > 0 ? (resolvedIsDark ? "#f87171" : "#b91c1c") : colors.icon_default }}
           />
         </Badge>
       </button>

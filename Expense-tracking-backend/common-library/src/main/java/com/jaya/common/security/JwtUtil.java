@@ -20,7 +20,7 @@ import java.util.Date;
 @Slf4j
 public class JwtUtil {
 
-    @Value("${jwt.secret:your-256-bit-secret-key-for-hs256-algorithm-minimum-32-chars}")
+    @Value("${jwt.secret:your-secret-key-for-jwt-token-generation-min-256-bits}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}")

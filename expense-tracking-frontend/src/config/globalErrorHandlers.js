@@ -4,22 +4,33 @@ import {
   AXIOS_ERROR_FLAG,
 } from "../utils/systemErrorEvents";
 
-const shouldHandleAxiosError = (error) => {
+const shouldHandleError = (error) => {
   if (!error) {
     return false;
   }
   if (error[AXIOS_ERROR_FLAG]) {
     return false;
   }
-  return Boolean(error.isAxiosError || error.response || error.config);
+  return true;
 };
 
-const handleAxiosLikeError = (error) => {
-  if (!shouldHandleAxiosError(error)) {
+const handleAnyError = (error) => {
+  if (!shouldHandleError(error)) {
     return false;
   }
 
-  attachSystemErrorPayload(error, buildSystemErrorPayloadFromAxios(error));
+  let payload = {};
+  if (error.isAxiosError || error.response || error.config) {
+    payload = buildSystemErrorPayloadFromAxios(error);
+  } else {
+    payload = {
+      message: error.message || String(error),
+      status: "APP_ERROR",
+      path: error.stack ? "Frontend Error" : undefined,
+    };
+  }
+
+  attachSystemErrorPayload(error, payload);
   return true;
 };
 
@@ -28,10 +39,7 @@ const suppressEvent = (event) => {
     return;
   }
   if (typeof event.preventDefault === "function") {
-    event.preventDefault();
-  }
-  if (typeof event.stopImmediatePropagation === "function") {
-    event.stopImmediatePropagation();
+    // We might not want to suppress all non-axios errors, but user requested to capture all
   }
 };
 
@@ -41,18 +49,14 @@ if (typeof window !== "undefined") {
       return;
     }
     const reason = event.reason;
-    if (handleAxiosLikeError(reason)) {
-      suppressEvent(event);
-    }
+    handleAnyError(reason);
   });
 
   window.addEventListener("error", (event) => {
     if (!event) {
       return;
     }
-    const error = event.error;
-    if (handleAxiosLikeError(error)) {
-      suppressEvent(event);
-    }
+    const error = event.error || event.message;
+    handleAnyError(error);
   });
 }

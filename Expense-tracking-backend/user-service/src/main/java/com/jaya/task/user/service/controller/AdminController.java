@@ -26,7 +26,7 @@ public class AdminController {
     private final AdminAnalyticsService adminAnalyticsService;
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> getAllUsers(
             @RequestHeader("Authorization") String jwt,
             @RequestParam(defaultValue = "0") int page,
@@ -86,7 +86,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> getUserById(
             @PathVariable Integer userId,
             @RequestHeader("Authorization") String jwt) {
@@ -104,7 +104,7 @@ public class AdminController {
     }
 
     @PutMapping("/users/{userId}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> updateUserStatus(
             @PathVariable Integer userId,
             @RequestBody Map<String, String> request,
@@ -133,7 +133,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(
             @PathVariable Integer userId,
             @RequestHeader("Authorization") String jwt) {
@@ -158,7 +158,7 @@ public class AdminController {
     }
 
     @PostMapping("/users/bulk-action")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> bulkUserAction(
             @RequestBody BulkActionRequest request,
             @RequestHeader("Authorization") String jwt) {
@@ -202,7 +202,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<UserStatsDTO> getUserStats(@RequestHeader("Authorization") String jwt) {
         log.info("Fetching user statistics");
         UserStatsDTO stats = adminAnalyticsService.getUserStats();
@@ -210,7 +210,7 @@ public class AdminController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> getAllUsersAlternative(@RequestHeader("Authorization") String jwt) {
         return getAllUsers(jwt, 0, 1000, null, null, null);
     }
