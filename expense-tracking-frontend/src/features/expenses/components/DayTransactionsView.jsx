@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import DayUnifiedView from "../../../components/DayUnifiedView/DayUnifiedView";
 import {
   getExpensesByParticularDate,

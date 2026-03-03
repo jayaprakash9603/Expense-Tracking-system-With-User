@@ -8,7 +8,7 @@ import DashboardCustomizationModal from "../../components/DashboardCustomization
 import DailySpendingContainer from "../../components/DailySpendingContainer";
 import SummaryOverview from "../../components/SummaryOverview";
 import SummaryOverviewSkeleton from "../../components/SummaryOverviewSkeleton";
-import useApplicationOverview from "../../hooks/useApplicationOverview";
+import useApplicationOverview from "../analytics/hooks/useApplicationOverview";
 import MonthlyTrendContainer from "../../components/MonthlyTrendContainer";
 import {
   CategoryBreakdownChart,

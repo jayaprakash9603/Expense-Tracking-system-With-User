@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import GroupedDataTable from "../GroupedDataTable/GroupedDataTable";
-import { useBudgetTableConfig } from "../../../hooks/useBudgetTableConfig";
+import { useBudgetTableConfig } from "../../../features/budgets/hooks/useBudgetTableConfig";
 import { FilterPopover } from "../../ui"; // Adjust import based on where FilterPopover is located
 
 const BudgetSelectionTable = ({

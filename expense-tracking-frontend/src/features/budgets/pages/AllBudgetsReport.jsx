@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
-import useBudgetReportData from "../../../hooks/useBudgetReportData";
-import useBudgetReportLayout from "../../../hooks/useBudgetReportLayout";
-import useBudgetReportFilters from "../../../hooks/reportFilters/useBudgetReportFilters";
+import useBudgetReportData from "../hooks/useBudgetReportData";
+import useBudgetReportLayout from "../hooks/useBudgetReportLayout";
+import useBudgetReportFilters from "../../reports/hooks/reportFilters/useBudgetReportFilters";
 import ReportHeader from "../../../components/ReportHeader";
 import BudgetAccordionGroup from "../../../components/BudgetAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";

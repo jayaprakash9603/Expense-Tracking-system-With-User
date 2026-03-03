@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useFriendAccess from "./useFriendAccess";
+import useFriendAccess from "../features/friends/hooks/useFriendAccess";
 
 /**
  * Generic read-only redirect hook to enforce write permissions.

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useChat } from "../../../hooks/useChat";
+import { useChat } from "../../chat/hooks/useChat";
 import {
   ChatSidebar,
   ChatHeader,

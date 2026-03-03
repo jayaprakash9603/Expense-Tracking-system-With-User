@@ -31,9 +31,9 @@ import PreviousExpenseIndicator from "../../../components/PreviousExpenseIndicat
 import PageHeader from "../../../components/PageHeader";
 import { normalizePaymentMethod } from "../../../utils/paymentMethodUtils";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess"; // still used for hasWriteAccess gating below
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
-import usePreviousExpense from "../../../hooks/usePreviousExpense";
+import usePreviousExpense from "../../expenses/hooks/usePreviousExpense";
 import { createBill } from "../../../Redux/Bill/bill.action";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";

@@ -21,7 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
 import PageHeader from "../../../components/PageHeader";
 import { useTheme } from "../../../hooks/useTheme";

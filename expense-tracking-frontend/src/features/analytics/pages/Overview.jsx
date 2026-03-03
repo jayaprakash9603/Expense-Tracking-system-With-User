@@ -1,5 +1,5 @@
 import React from "react";
-import useApplicationOverview from "../../../hooks/useApplicationOverview";
+import useApplicationOverview from "../hooks/useApplicationOverview";
 import { Skeleton, useTheme as useMuiTheme, useMediaQuery } from "@mui/material";
 import ModernOverviewCard from "../../../components/common/ModernOverviewCard";
 import WalletIcon from "@mui/icons-material/Wallet";

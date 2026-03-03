@@ -2,7 +2,7 @@ import React, { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import DayUnifiedView from "../../../components/DayUnifiedView/DayUnifiedView";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import {
   getBillsByParticularDate,
   getBillByExpenseId,

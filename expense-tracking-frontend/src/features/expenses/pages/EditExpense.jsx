@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
 import { useTheme } from "../../../hooks/useTheme";
 import PageHeader from "../../../components/PageHeader";

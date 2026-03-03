@@ -44,7 +44,7 @@ import useShareData, {
   DATA_TYPE_OPTIONS,
   EXPIRY_OPTIONS,
   VISIBILITY_OPTIONS,
-} from "../../../hooks/useShareData";
+} from "../hooks/useShareData";
 import ShareDataSelector from "../../../components/sharing/ShareDataSelector";
 import ShareConfigStep from "../../../components/sharing/ShareConfigStep";
 import ShareReviewStep from "../../../components/sharing/ShareReviewStep";

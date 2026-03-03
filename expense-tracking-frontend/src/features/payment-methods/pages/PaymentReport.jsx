@@ -4,8 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 // (Removed direct icon imports; header component encapsulates icons internally)
 import "../styles/PaymentReport.css";
-import usePaymentReportData from "../../../hooks/usePaymentReportData";
-import usePaymentReportLayout from "../../../hooks/usePaymentReportLayout";
+import usePaymentReportData from "../hooks/usePaymentReportData";
+import usePaymentReportLayout from "../hooks/usePaymentReportLayout";
 import ReportHeader from "../../../components/ReportHeader";
 import PaymentMethodAccordionGroup from "../../../components/PaymentMethodAccordion";
 import {
@@ -29,7 +29,7 @@ import ReportActionsMenu, {
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
-import usePaymentReportFilters from "../../../hooks/reportFilters/usePaymentReportFilters";
+import usePaymentReportFilters from "../../reports/hooks/reportFilters/usePaymentReportFilters";
 import PaymentDailySpendingChart from "../../../components/payment/PaymentDailySpendingChart";
 
 const COLORS = getChartColors();

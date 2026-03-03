@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
-import { IconButton } from "@mui/material";
 import { Filter } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
+import BackButton from "./common/BackButton";
 import DateRangeBadge from "./common/DateRangeBadge";
 import ReportActionMenu from "./common/ReportActionMenu";
 import { ReportHeaderSkeleton } from "./skeletons/CommonSkeletons";
@@ -222,33 +222,12 @@ const ReportHeader = ({
           }}
         >
           {showBackButton && (
-            <IconButton
+            <BackButton
               sx={{
-                color: colors.secondary_accent,
-                backgroundColor: colors.primary_bg,
-                "&:hover": { backgroundColor: colors.hover_bg },
-                zIndex: 10,
                 transform: "translateY(-15px)",
               }}
               onClick={onBack}
-              aria-label="Back"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M15 18L9 12L15 6"
-                  stroke={colors.secondary_accent}
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </IconButton>
+            />
           )}
           <div>
             <h1

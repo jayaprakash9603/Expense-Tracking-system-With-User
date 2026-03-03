@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
-import useCategoryFlowData from "../../../hooks/useCategoryFlowData";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
+import useCategoryFlowData from "../hooks/useCategoryFlowData";
 import { deleteCategory } from "../../../Redux/Category/categoryActions";
 import GenericFlowPage from "../../../components/common/GenericFlowPage";
 import CategoryFlowChart from "../../../components/categoryflow/CategoryFlowChart";

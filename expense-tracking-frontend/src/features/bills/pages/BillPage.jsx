@@ -27,7 +27,7 @@ import BillSummary from "../components/BillSummary";
 import EmptyBillState from "../components/EmptyBillState";
 import Modal from "../../../shared/components/Modal";
 import BillAccordion from "../components/BillAccordion";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import BillSkeleton from "../components/BillSkeleton";
 
 const Bill = () => {

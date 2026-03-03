@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
-import usePaymentMethodFlowData from "../../../hooks/usePaymentMethodFlowData";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
+import usePaymentMethodFlowData from "../hooks/usePaymentMethodFlowData";
 import { useDispatch, useSelector } from "react-redux";
 import { deletePaymentMethod } from "../../../Redux/Payment Method/paymentMethod.action";
 import { formatCompactNumber } from "../../../utils/numberFormatters";

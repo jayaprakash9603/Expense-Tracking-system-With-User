@@ -13,7 +13,7 @@ import useUserSettings from "../../../hooks/useUserSettings";
 import PageHeader from "../../../components/PageHeader";
 import { useTranslation } from "../../../hooks/useTranslation";
 import GroupedDataTable from "../../../components/common/GroupedDataTable/GroupedDataTable";
-import { useExpenseTableConfig } from "../../../hooks/useExpenseTableConfig";
+import { useExpenseTableConfig } from "../../expenses/hooks/useExpenseTableConfig";
 import { FilterPopover } from "../../../components/ui";
 
 const NewBudget = () => {

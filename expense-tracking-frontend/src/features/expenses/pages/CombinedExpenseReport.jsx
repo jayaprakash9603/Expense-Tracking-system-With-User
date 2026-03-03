@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import useGroupedCashflow from "../../../hooks/useGroupedCashflow";
-import useCategoryDistributionData from "../../../hooks/useCategoryDistributionData";
-import usePaymentMethodsData from "../../../hooks/usePaymentMethodsData";
-import useExpenseReportLayout from "../../../hooks/useExpenseReportLayout";
+import useGroupedCashflow from "../hooks/useGroupedCashflow";
+import useCategoryDistributionData from "../../categories/hooks/useCategoryDistributionData";
+import usePaymentMethodsData from "../../payment-methods/hooks/usePaymentMethodsData";
+import useExpenseReportLayout from "../hooks/useExpenseReportLayout";
 import ReportHeader from "../../../components/ReportHeader";
 import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
@@ -27,7 +27,7 @@ import { DailySpendingSkeleton } from "../../../pages/Dashboard";
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
-import useExpenseReportFilters from "../../../hooks/reportFilters/useExpenseReportFilters";
+import useExpenseReportFilters from "../../reports/hooks/reportFilters/useExpenseReportFilters";
 import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenCard";
 import ReportActionsMenu, {
   createDefaultReportMenuItems,

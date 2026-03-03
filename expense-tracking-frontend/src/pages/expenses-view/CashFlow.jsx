@@ -6,12 +6,12 @@ import React, {
   useCallback,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import useFriendAccess from "../../hooks/useFriendAccess";
+import useFriendAccess from "../../features/friends/hooks/useFriendAccess";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useCashflowData from "../../hooks/useCashflowData";
+import useCashflowData from "../../features/expenses/hooks/useCashflowData";
 import useSelectionManager from "../../hooks/useSelectionManager";
-import useExpenseSorting from "../../hooks/useExpenseSorting";
-import useExpenseDeletion from "../../hooks/useExpenseDeletion";
+import useExpenseSorting from "../../features/expenses/hooks/useExpenseSorting";
+import useExpenseDeletion from "../../features/expenses/hooks/useExpenseDeletion";
 import { useDebouncedSearch } from "../../hooks/useDebounce";
 import {
   formatCompactNumber,

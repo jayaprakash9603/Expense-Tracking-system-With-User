@@ -66,7 +66,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import Modal from "../../../shared/components/Modal";
 import ToastNotification from "../../../shared/components/ToastNotification";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";

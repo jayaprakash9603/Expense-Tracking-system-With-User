@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams, useLocation } from "react-router-dom";
-import useFriendAccess from "../../hooks/useFriendAccess";
+import useFriendAccess from "../../features/friends/hooks/useFriendAccess";
 import ExpenseFormLogic from "./ExpenseFormLogic";
 import { useDispatch } from "react-redux";
 import {

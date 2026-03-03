@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { Box } from "@mui/material";
 import AppAutocomplete from "../AppAutocomplete";
-import useCategories from "../../../../hooks/useCategories";
+import useCategories from "../../../../features/categories/hooks/useCategories";
 import { useTheme } from "../../../../hooks/useTheme";
 import {
   findCategoryById,

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
 import { getPaymentMethodIcon } from "../utils/iconMapping";
-import { useStandardExpenseColumns } from "../hooks/useStandardExpenseColumns";
+import { useStandardExpenseColumns } from "../features/expenses/hooks/useStandardExpenseColumns";
 import { useTranslation } from "../hooks/useTranslation";
 import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 

@@ -29,7 +29,7 @@ import {
 } from "@mui/icons-material";
 import { getListOfBudgetsById } from "../../../Redux/Budget/budget.action";
 import { useLocation, useParams } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess"; // retains gating
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
 import {
   updateBill,

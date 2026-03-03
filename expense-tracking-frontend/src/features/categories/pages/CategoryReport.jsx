@@ -9,8 +9,8 @@ import {
 } from "../../../components/skeletons/CommonSkeletons";
 import { DailySpendingSkeleton } from "../../../pages/Dashboard";
 import "../styles/CategoryReport.css";
-import useCategoryReportData from "../../../hooks/useCategoryReportData";
-import useCategoryReportLayout from "../../../hooks/useCategoryReportLayout";
+import useCategoryReportData from "../hooks/useCategoryReportData";
+import useCategoryReportLayout from "../hooks/useCategoryReportLayout";
 import CategoryExpensesAccordion from "../../../components/CategoryExpensesAccordion";
 import ReportHeader from "../../../components/ReportHeader";
 import PaymentUsageChart from "../../../components/charts/PaymentUsageChart";
@@ -24,7 +24,7 @@ import ReportActionsMenu, {
 import { getChartColors } from "../../../utils/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
-import useCategoryReportFilters from "../../../hooks/reportFilters/useCategoryReportFilters";
+import useCategoryReportFilters from "../../reports/hooks/reportFilters/useCategoryReportFilters";
 import CategoryDailySpendingChart from "../../../components/category/CategoryDailySpendingChart";
 import { useDispatch } from "react-redux";
 import { setCategorySelection } from "../../../Redux/SharedSelection/sharedSelection.action";

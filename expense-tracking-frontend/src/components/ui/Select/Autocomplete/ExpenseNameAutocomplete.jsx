@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import AppAutocomplete from "../AppAutocomplete";
-import useExpenseNames from "../../../../hooks/useExpenseNames";
+import useExpenseNames from "../../../../features/expenses/hooks/useExpenseNames";
 import { useTheme } from "../../../../hooks/useTheme";
 import {
   findExactNameMatch,

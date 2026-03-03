@@ -22,13 +22,13 @@ import AddIcon from "@mui/icons-material/Add";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import useFriendAccess from "../../../hooks/useFriendAccess";
+import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
 import PageHeader from "../../../components/PageHeader";
 import Autocomplete from "@mui/material/Autocomplete";
 import { DataGrid } from "@mui/x-data-grid";
 import { ExpenseListTable } from "../../../components/common/ExpenseListTable/ExpenseListTable";
-import { useStandardExpenseColumns } from "../../../hooks/useStandardExpenseColumns";
+import { useStandardExpenseColumns } from "../../expenses/hooks/useStandardExpenseColumns";
 import {
   DEFAULT_CATEGORY_COLOR,
   CATEGORY_COLORS,

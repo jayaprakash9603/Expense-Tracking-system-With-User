@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../../hooks/useTranslation";
-import { useStandardExpenseColumns } from "../../../hooks/useStandardExpenseColumns";
+import { useStandardExpenseColumns } from "../../../features/expenses/hooks/useStandardExpenseColumns";
 import GroupedDataTable from "../GroupedDataTable/GroupedDataTable";
 import { FilterPopover } from "../../ui";
 

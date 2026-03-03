@@ -28,8 +28,8 @@ import useFriendshipReportFilters, {
   FRIENDSHIP_STATUS_OPTIONS,
   ACCESS_LEVEL_OPTIONS,
   FRIENDSHIP_TIMEFRAME_OPTIONS,
-} from "../../../hooks/reportFilters/useFriendshipReportFilters";
-import useFriendshipReportLayout from "../../../hooks/useFriendshipReportLayout";
+} from "../../reports/hooks/reportFilters/useFriendshipReportFilters";
+import useFriendshipReportLayout from "../hooks/useFriendshipReportLayout";
 import FriendshipReportCustomizationModal from "../../../components/FriendshipReportCustomizationModal";
 import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenCard";
 import ReportActionsMenu, {
