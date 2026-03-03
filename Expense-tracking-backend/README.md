@@ -2,6 +2,33 @@
 
 This backend supports two deployment modes: **microservices** (separate services behind an API Gateway) and **monolithic** (single application). The same codebase is used for both; choose the mode via Maven profiles and run configuration.
 
+## Service Documentation Index
+
+### Infrastructure and shared modules
+
+- [Gateway](./Gateway/README.md)
+- [Eureka Server](./eureka-server/README.md)
+- [Common Library](./common-library/README.md)
+- [Monolithic Service](./monolithic-service/README.md)
+- [README Template](./docs/README_TEMPLATE.md)
+
+### Domain microservices
+
+- [User Service](./user-service/README.md)
+- [Expense Service](./Expense-Service/README.md)
+- [Budget Service](./Budget-Service/README.md)
+- [Category Service](./Category-Service/README.md)
+- [Bill Service](./Bill-Service/README.md)
+- [Payment Method Service](./Payment-method-Service/README.md)
+- [Friendship Service](./FriendShip-Service/README.md)
+- [Notification Service](./Notification-Service/README.md)
+- [Chat Service](./Chat-Service/README.md)
+- [Audit Service](./Audit-Service/README.md)
+- [Analytics Service](./AnalyticsService/README.md)
+- [Search Service](./Search-Service/README.md)
+- [Story Service](./Story-Service/README.md)
+- [Event Service](./Event-Service/README.md)
+
 ## Build
 
 | Mode | Command | What gets built |
