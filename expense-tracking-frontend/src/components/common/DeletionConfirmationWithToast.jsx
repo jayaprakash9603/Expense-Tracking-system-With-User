@@ -1,6 +1,6 @@
 import React from "react";
-import ToastNotification from "../../pages/Landingpage/ToastNotification";
-import Modal from "../../pages/Landingpage/Modal";
+import ToastNotification from "../../shared/components/ToastNotification";
+import Modal from "../../shared/components/Modal";
 import { useTranslation } from "../../hooks/useTranslation";
 
 /**

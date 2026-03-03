@@ -13,7 +13,7 @@ import {
   convertToNewFormat,
   convertToOldFormat,
 } from "../../components/conversions/formatUtils";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 function EditExpense() {
   const dispatch = useDispatch();

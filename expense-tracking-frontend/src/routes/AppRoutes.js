@@ -1,79 +1,79 @@
 import { Route, Navigate } from "react-router-dom";
 import Authentication from "../pages/Authentication/Authentication";
-import Home from "../pages/Landingpage/Home";
-import ExpenseDashboard from "../features/dashboard/ExpenseDashboard";
-import Chat from "../services/Chat";
-import AdminDashboard from "../pages/Landingpage/Admin/AdminDashboard";
-import InvestmentDashboard from "../pages/Landingpage/Investement/InvestementDashboard";
-import Groups from "../pages/Landingpage/Groups";
-import CreateGroup from "../pages/Landingpage/CreateGroup";
-import GroupDetail from "../pages/Landingpage/GroupDetail";
-import Profile from "../pages/Landingpage/Profile";
-import Settings from "../pages/Landingpage/Settings";
-import NotificationSettings from "../pages/Landingpage/NotificationSettings";
-import MfaSetup from "../pages/Landingpage/Settings/MfaSetup";
-import Friends from "../pages/Landingpage/Friends";
-import FriendshipReport from "../pages/Landingpage/FriendshipReport";
-import { FriendActivityPage } from "../pages/Landingpage/FriendActivity";
-import PaymentMethodFlow from "../pages/Landingpage/PaymentMethodFlow";
-import CreatePaymentMethod from "../pages/Landingpage/CreatePaymentMethod";
-import EditPaymentMethod from "../pages/Landingpage/EditPaymentMethod";
-import PaymentMethodsReport from "../pages/Landingpage/Payment Report/PaymentReport";
-import Bill from "../pages/Landingpage/Bills/Bill";
-import BillReport from "../pages/Landingpage/BillReport";
-import UploadBills from "../pages/Fileupload/UploadBills";
-import CreateBill from "../pages/Landingpage/CreateBill";
-import EditBill from "../pages/Landingpage/EditBill";
-import BillCalendarView from "../pages/Landingpage/BillCalendarView";
-import Cashflow from "../pages/expenses-view/CashFlow";
-import Utilities from "../pages/Landingpage/Utilities";
-import Upload from "../pages/Fileupload/Upload";
-import NewExpense from "../pages/Landingpage/NewExpense";
-import EditExpense from "../pages/Landingpage/EditExpense";
-import ViewExpense from "../pages/Landingpage/ViewExpense";
-import CombinedExpenseReport from "../pages/Landingpage/CombinedExpenseReport";
-import CategoryFlow from "../pages/Landingpage/CategoryFlow";
-import CreateCategory from "../pages/Landingpage/CreateCategory";
-import CategoryReport from "../pages/Landingpage/Category Report/CategoryReport";
-import EditCategory from "../pages/Landingpage/EditCategory";
-import CategoryAnalyticsView from "../pages/CategoryAnalytics";
-import PaymentMethodAnalyticsView from "../pages/PaymentMethodAnalytics";
-import TransactionsContent from "../pages/Landingpage/TransactionsContent";
-import CreditDueContent from "../pages/Landingpage/CreditDueContent";
-import Reports from "../pages/Landingpage/Reports";
-import ExpensesView from "../pages/Landingpage/ExpensesView";
-import Budget from "../pages/Landingpage/Budget";
-import NewBudget from "../pages/Landingpage/NewBudget";
-import EditBudget from "../pages/Landingpage/EditBudget";
-import BudgetReport from "../pages/Landingpage/Budget Report/BudgetReport";
-import AllBudgetsReport from "../pages/Landingpage/Budget Report/AllBudgetsReport";
-import CalendarView from "../pages/Landingpage/CalendarView";
-import CategoryCalendarView from "../pages/Landingpage/CategoryCalendarView";
-import PaymentMethodCalendarView from "../pages/Landingpage/PaymentMethodCalendarView";
-import DayTransactionsView from "../pages/Landingpage/DayTransactionsView";
-import DayBillsView from "../pages/Landingpage/DayBillsView";
-import SystemAnalytics from "../pages/Landingpage/Admin/SystemAnalytics";
-import UserManagement from "../pages/Landingpage/Admin/UserManagement";
-import RoleManagement from "../pages/Landingpage/Admin/RoleManagement";
-import AuditLogsAdmin from "../pages/Landingpage/Admin/AuditLogs";
-import ReportsAdmin from "../pages/Landingpage/Admin/Reports";
-import AdminSettings from "../pages/Landingpage/Admin/AdminSettings";
-import AdminStoryManagement from "../pages/Admin/AdminStoryManagement";
-import CreateStory from "../pages/Admin/CreateStory";
-import EditStory from "../pages/Admin/EditStory";
-import NotFound from "../pages/Landingpage/Errors/NotFound";
+import Home from "../shared/layout/HomeShell";
+import { ExpenseDashboard } from "../features/dashboard";
+import { ChatPage } from "../features/chat";
+import { AdminDashboard } from "../features/admin";
+import { InvestmentDashboard } from "../features/investment";
+import { Groups, CreateGroup, GroupDetail } from "../features/groups";
 import {
-  HelpCenter,
-  ContactSupport,
-  TermsOfService,
-  PrivacyPolicy,
-} from "../pages/Landingpage/HelpSupport";
+  Profile,
+  Settings,
+  NotificationSettings,
+  MfaSetup,
+} from "../features/settings";
+import {
+  Friends,
+  FriendshipReport,
+  FriendActivityPage,
+  FriendChat,
+} from "../features/friends";
+import {
+  PaymentMethodFlow,
+  CreatePaymentMethod,
+  EditPaymentMethod,
+  PaymentMethodsReport,
+  PaymentMethodCalendarView,
+  PaymentMethodAnalyticsView,
+} from "../features/payment-methods";
+import { Bill, BillReport, CreateBill, EditBill, BillCalendarView } from "../features/bills";
+import { UploadBills, Upload } from "../features/upload";
+import {
+  Cashflow,
+  NewExpense,
+  EditExpense,
+  ViewExpense,
+  CombinedExpenseReport,
+  ExpensesView,
+} from "../features/expenses";
+import {
+  CategoryFlow,
+  CreateCategory,
+  CategoryReport,
+  EditCategory,
+  CategoryAnalyticsView,
+  CategoryCalendarView,
+} from "../features/categories";
+import { TransactionsContent, CreditDueContent, Reports } from "../features/reports";
+import { Utilities } from "../features/utilities";
+import {
+  Budget,
+  NewBudget,
+  EditBudget,
+  BudgetReport,
+  AllBudgetsReport,
+} from "../features/budgets";
+import { CalendarView, DayTransactionsView, DayBillsView } from "../features/calendar";
+import {
+  SystemAnalytics,
+  UserManagement,
+  RoleManagement,
+  AuditLogsAdmin,
+  ReportsAdmin,
+  AdminSettings,
+  AdminStoryManagement,
+  CreateStory,
+  EditStory,
+} from "../features/admin";
+import { NotFound } from "../features/errors";
+import { HelpCenter, ContactSupport, TermsOfService, PrivacyPolicy } from "../features/help-support";
 import SharedViewPage from "../pages/SharedViewPage";
-import MySharesPage from "../pages/Landingpage/MySharesPage";
-import CreateSharePage from "../pages/Landingpage/CreateSharePage";
-import PublicSharesPage from "../pages/Landingpage/PublicSharesPage";
-import SharedWithMePage from "../pages/Landingpage/SharedWithMePage";
-import FriendChat from "../pages/Landingpage/FriendChat";
+import {
+  MySharesPage,
+  CreateSharePage,
+  PublicSharesPage,
+  SharedWithMePage,
+} from "../features/sharing";
 
 /**
  * Authentication Routes - Returns Route element directly
@@ -98,7 +98,7 @@ export const getAppRoutes = () => (
 
     <Route path="/" element={<Home />}>
       <Route index element={<Navigate to="/dashboard" />} />
-      <Route path="/chats" element={<Chat />} />
+      <Route path="/chats" element={<ChatPage />} />
       <Route path="/component1" element={<AdminDashboard />} />
       <Route path="/component2" element={<InvestmentDashboard />} />
       <Route path="dashboard" element={<ExpenseDashboard />} />

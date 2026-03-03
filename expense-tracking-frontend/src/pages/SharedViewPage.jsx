@@ -70,7 +70,7 @@ import { createExpenseAction } from "../Redux/Expenses/expense.action";
 import { toggleTheme } from "../Redux/Theme/theme.actions";
 import { updateUserSettings } from "../Redux/UserSettings/userSettings.action";
 import { BRAND_GRADIENT_COLORS } from "../config/themeConfig";
-import Modal from "./Landingpage/Modal";
+import Modal from "../shared/components/Modal";
 import {
   InlineSearchBar,
   UniversalSearchModal,

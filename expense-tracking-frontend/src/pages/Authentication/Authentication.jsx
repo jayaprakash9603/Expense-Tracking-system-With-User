@@ -7,7 +7,7 @@ import OtpVerification from "./OtpVerification";
 import MfaVerification from "../AuthPage/MfaVerification";
 import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import OAuthCallback from "../OAuthCallback";
-import createAppTheme from "../Landingpage/theme";
+import createAppTheme from "../../shared/theme/createAppTheme";
 
 const Authentication = () => {
   const location = useLocation();

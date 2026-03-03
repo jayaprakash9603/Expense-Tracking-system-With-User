@@ -5,7 +5,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
 import { useDispatch } from "react-redux";
 import { verifyTwoFactorOtpAction } from "../../Redux/Auth/auth.action";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 30; // 30 seconds

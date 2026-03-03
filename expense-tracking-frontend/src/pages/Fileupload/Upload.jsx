@@ -23,7 +23,7 @@ import {
   startTrackedSaveExpenses,
   uploadCategoriesFile,
 } from "../../Redux/Expenses/expense.action";
-import ExpensesTable from "../Landingpage/ExpensesTable";
+import ExpensesTable from "../../features/expenses/components/ExpensesTable";
 import { useNavigate, useParams, useLocation } from "react-router";
 import useFriendAccess from "../../hooks/useFriendAccess";
 import useRedirectIfReadOnly from "../../hooks/useRedirectIfReadOnly";

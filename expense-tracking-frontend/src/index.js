@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
-import createAppTheme from "./pages/Landingpage/theme";
+import createAppTheme from "./shared/theme/createAppTheme";
 import { getStore, setStore } from "./utils/store";
 import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";

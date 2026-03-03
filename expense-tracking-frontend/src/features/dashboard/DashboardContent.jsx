@@ -20,7 +20,7 @@ import {
   MetricsGrid,
   ChartSkeleton,
 } from "../../pages/Dashboard";
-import QuickAccess from "../../pages/Landingpage/QuickAccess";
+import QuickAccess from "./QuickAccess";
 import { useDashboardContext } from "./DashboardProvider";
 import { createDashboardActions } from "./dashboardActions";
 import EmptyStateCard from "../../components/EmptyStateCard";

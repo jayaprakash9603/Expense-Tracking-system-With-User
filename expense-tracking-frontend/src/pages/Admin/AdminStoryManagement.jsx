@@ -51,8 +51,8 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
-import AdminPanelContainer from "../Landingpage/Admin/components/AdminPanelContainer";
-import ToastNotification from "../Landingpage/ToastNotification";
+import { AdminPanelContainer } from "../../features/admin";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 // Story types and severity options
 const STORY_TYPES = [

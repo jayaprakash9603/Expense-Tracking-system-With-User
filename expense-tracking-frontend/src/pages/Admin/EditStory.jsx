@@ -10,7 +10,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useStoryForm } from "../../hooks/useStoryForm";
 import PageHeader from "../../components/PageHeader";
 import StoryFormFields from "../../components/Stories/StoryFormFields";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 const EditStory = () => {
   const { colors } = useTheme();

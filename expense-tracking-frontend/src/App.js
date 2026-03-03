@@ -2,7 +2,7 @@ import { Routes } from "react-router-dom";
 import "./App.css";
 import { useSelector } from "react-redux";
 import Loader from "./components/Loaders/Loader";
-import GlobalErrorHandler from "./pages/Landingpage/Errors/GlobalErrorHandler";
+import { GlobalErrorHandler } from "./features/errors";
 import { useAppInitialization } from "./hooks/useAppInitialization";
 import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
 import { LanguageProvider } from "./i18n/LanguageContext";
