@@ -116,6 +116,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     @Autowired
     private org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Autowired
+    private com.jaya.service.MomentumService momentumService;
+
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
 
     public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository,
@@ -172,6 +175,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         publishExpenseAuditEvent("CREATE", savedExpense, UserDTO, null, expenseToMap(savedExpense), "Expense created",
                 "SUCCESS");
+
+        momentumService.invalidateAndRecompute(userId);
 
         com.jaya.dto.UserSettingsDTO userSettings = userSettingsService.getUserSettings(userId);
         Boolean maskSensitiveData = userSettings != null ? userSettings.getMaskSensitiveData() : false;
@@ -240,6 +245,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         publishExpenseAuditEvent("UPDATE", refreshedExpense, UserDTO, oldValues, expenseToMap(refreshedExpense),
                 "Expense updated",
                 "SUCCESS");
+
+        momentumService.invalidateAndRecompute(userId);
+
         return refreshedExpense;
     }
 
@@ -263,6 +271,9 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         publishExpenseAuditEvent("UPDATE", refreshedExpense, UserDTO, oldValues, expenseToMap(refreshedExpense),
                 "Expense (bill service) updated", "SUCCESS");
+
+        momentumService.invalidateAndRecompute(userId);
+
         return refreshedExpense;
     }
 
@@ -379,6 +390,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         String expenseJson = jsonConverter.toJson(getExpenseById(id, userId));
         expenseRepository.deleteById(id);
         publishExpenseAuditEvent("DELETE", expense, UserDTO, oldValues, null, "Expense deleted", "SUCCESS");
+
+        momentumService.invalidateAndRecompute(userId);
     }
 
     @Override

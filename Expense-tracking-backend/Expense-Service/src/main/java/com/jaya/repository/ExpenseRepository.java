@@ -337,6 +337,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE, value = "100"),
                         @QueryHint(name = org.hibernate.jpa.HibernateHints.HINT_READ_ONLY, value = "true")
         })
+        @Query("SELECT DISTINCT e.userId FROM Expense e")
+        List<Integer> findDistinctUserIds();
+
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.id IN :expenseIds")
         List<Expense> findAllByUserIdAndIdIn(@Param("userId") Integer userId,
                         @Param("expenseIds") Set<Integer> expenseIds);

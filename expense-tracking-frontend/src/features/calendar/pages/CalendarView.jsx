@@ -7,7 +7,6 @@ import MonthlyCalendarView from "../../../components/calendar/MonthlyCalendarVie
 import { getFinanceCalendarColors } from "../../../config/financeColorTokens";
 import { useTheme } from "../../../hooks/useTheme";
 import { api } from "../../../config/api";
-import { getSpendingMomentumInsight } from "../../../utils/spendingMomentum/spendingMomentum";
 
 const CalendarView = () => {
   const dispatch = useDispatch();
@@ -18,7 +17,7 @@ const CalendarView = () => {
   const { mode } = useTheme();
   const financeColors = getFinanceCalendarColors(mode);
 
-  const [momentumExpenses, setMomentumExpenses] = React.useState([]);
+  const [momentumInsight, setMomentumInsight] = React.useState(null);
 
   // Fetch cashflow expenses for the selected month
   React.useEffect(() => {
@@ -33,28 +32,23 @@ const CalendarView = () => {
     );
   }, [dispatch, monthOffset, friendId]);
 
-  // Fetch last two weeks of expenses for Spending Momentum (always anchored to today).
+  // Fetch pre-computed momentum insight from backend
   React.useEffect(() => {
     let cancelled = false;
 
     const fetchMomentum = async () => {
       try {
-        const to = dayjs().format("YYYY-MM-DD");
-        const from = dayjs().subtract(20, "day").format("YYYY-MM-DD");
-
-        const { data } = await api.get("/api/expenses/fetch-expenses-by-date", {
+        const { data } = await api.get("/api/expenses/momentum-insight", {
           params: {
-            from,
-            to,
             targetId: friendId || undefined,
           },
         });
 
         if (!cancelled) {
-          setMomentumExpenses(Array.isArray(data) ? data : []);
+          setMomentumInsight(data);
         }
       } catch (e) {
-        if (!cancelled) setMomentumExpenses([]);
+        if (!cancelled) setMomentumInsight(null);
       }
     };
 
@@ -63,13 +57,6 @@ const CalendarView = () => {
       cancelled = true;
     };
   }, [friendId]);
-
-  const momentumInsight = useMemo(() => {
-    return getSpendingMomentumInsight({
-      items: momentumExpenses,
-      now: dayjs(),
-    });
-  }, [momentumExpenses]);
 
   // Group expenses by day and calculate spending/income
   const daysData = useMemo(() => {
