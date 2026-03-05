@@ -18,7 +18,7 @@ import useUserSettings from "../../hooks/useUserSettings";
 import CalendarDayCell from "./CalendarDayCell";
 import HeatmapModeToggle from "./HeatmapModeToggle";
 import SpendingMomentumInsight from "./SpendingMomentumInsight";
-import { FINANCE_COLOR_TOKENS } from "../../config/financeColorTokens";
+import { getFinanceCalendarColors } from "../../config/financeColorTokens";
 import {
   getDaysArray,
   getSalaryDateLastWorkingDay,
@@ -258,19 +258,8 @@ const MonthlyCalendarView = ({
   onMonthChange,
   onBack,
 
-  // Configuration
-  summaryConfig = {
-    spendingLabel: "Spending",
-    incomeLabel: "Income",
-    spendingKey: "spending",
-    incomeKey: "income",
-    spendingColor: FINANCE_COLOR_TOKENS.calendar.spending.base,
-    incomeColor: FINANCE_COLOR_TOKENS.calendar.income.base,
-    spendingIconColor: FINANCE_COLOR_TOKENS.calendar.spending.icon,
-    incomeIconColor: FINANCE_COLOR_TOKENS.calendar.income.icon,
-    spendingTextColor: FINANCE_COLOR_TOKENS.calendar.spending.text,
-    incomeTextColor: FINANCE_COLOR_TOKENS.calendar.income.text,
-  },
+  // Configuration (colors resolved from theme in component)
+  summaryConfig = {},
 
   // Initial state
   initialDate = dayjs(),
@@ -317,9 +306,30 @@ const MonthlyCalendarView = ({
 }) => {
   const muiTheme = useMuiTheme();
   const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
+
+  const financeColors = useMemo(
+    () => getFinanceCalendarColors(mode),
+    [mode],
+  );
+
+  const resolvedSummaryConfig = useMemo(
+    () => ({
+      spendingLabel: summaryConfig?.spendingLabel ?? "Spending",
+      incomeLabel: summaryConfig?.incomeLabel ?? "Income",
+      spendingKey: summaryConfig?.spendingKey ?? "spending",
+      incomeKey: summaryConfig?.incomeKey ?? "income",
+      spendingColor: summaryConfig?.spendingColor ?? financeColors.spending.base,
+      incomeColor: summaryConfig?.incomeColor ?? financeColors.income.base,
+      spendingIconColor: summaryConfig?.spendingIconColor ?? financeColors.spending.icon,
+      incomeIconColor: summaryConfig?.incomeIconColor ?? financeColors.income.icon,
+      spendingTextColor: summaryConfig?.spendingTextColor ?? financeColors.spending.text,
+      incomeTextColor: summaryConfig?.incomeTextColor ?? financeColors.income.text,
+    }),
+    [summaryConfig, financeColors],
+  );
 
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [monthOffset, setMonthOffset] = useState(initialOffset);
@@ -365,10 +375,10 @@ const MonthlyCalendarView = ({
       computeMonthCalendarStats({
         data,
         monthDate: selectedDate,
-        spendingKey: summaryConfig.spendingKey,
-        incomeKey: summaryConfig.incomeKey,
+        spendingKey: resolvedSummaryConfig.spendingKey,
+        incomeKey: resolvedSummaryConfig.incomeKey,
       }),
-    [data, selectedDate, summaryConfig.spendingKey, summaryConfig.incomeKey],
+    [data, selectedDate, resolvedSummaryConfig.spendingKey, resolvedSummaryConfig.incomeKey],
   );
 
   const { totalSpending, totalIncome, avgDailySpend, maxSpending, maxIncome } =
@@ -544,8 +554,8 @@ const MonthlyCalendarView = ({
             <SpendingMomentumInsight
               insight={momentumInsight}
               colors={colors}
-              spendingColor={summaryConfig.spendingColor}
-              incomeColor={summaryConfig.incomeColor}
+              spendingColor={resolvedSummaryConfig.spendingColor}
+              incomeColor={resolvedSummaryConfig.incomeColor}
             />
           </Box>
         )}
@@ -553,11 +563,11 @@ const MonthlyCalendarView = ({
         {/* Spending card */}
         {showSummaryCards && (
           <SummaryCard
-            label={summaryConfig.spendingLabel}
+            label={resolvedSummaryConfig.spendingLabel}
             amount={totalSpending}
-            backgroundColor={summaryConfig.spendingColor}
-            iconColor={summaryConfig.spendingIconColor}
-            textColor={summaryConfig.spendingTextColor}
+            backgroundColor={resolvedSummaryConfig.spendingColor}
+            iconColor={resolvedSummaryConfig.spendingIconColor}
+            textColor={resolvedSummaryConfig.spendingTextColor}
             iconType="down"
             isSmallScreen={isSmallScreen}
             currencySymbol={currencySymbol}
@@ -577,11 +587,11 @@ const MonthlyCalendarView = ({
         {/* Income card */}
         {showSummaryCards && (
           <SummaryCard
-            label={summaryConfig.incomeLabel}
+            label={resolvedSummaryConfig.incomeLabel}
             amount={totalIncome}
-            backgroundColor={summaryConfig.incomeColor}
-            iconColor={summaryConfig.incomeIconColor}
-            textColor={summaryConfig.incomeTextColor}
+            backgroundColor={resolvedSummaryConfig.incomeColor}
+            iconColor={resolvedSummaryConfig.incomeIconColor}
+            textColor={resolvedSummaryConfig.incomeTextColor}
             iconType="up"
             isSmallScreen={isSmallScreen}
             currencySymbol={currencySymbol}
@@ -609,11 +619,12 @@ const MonthlyCalendarView = ({
             <HeatmapModeToggle
               value={heatmapMode}
               onChange={setHeatmapMode}
-              lossColor={summaryConfig.spendingColor}
-              gainColor={summaryConfig.incomeColor}
-              background="rgba(255,255,255,0.9)"
-              borderColor="rgba(0,0,0,0.12)"
-              textColor="rgba(0,0,0,0.75)"
+              lossColor={resolvedSummaryConfig.spendingColor}
+              gainColor={resolvedSummaryConfig.incomeColor}
+              background={colors.card_bg}
+              borderColor={colors.border_color}
+              textColor={colors.secondary_text}
+              selectedTextColor={colors.button_text}
             />
           )}
 
@@ -622,7 +633,7 @@ const MonthlyCalendarView = ({
               onClick={handleJumpToToday}
               isToday={isViewingCurrentMonth}
               visible={true}
-              hideWhenActive={false}
+              hideWhenActive={true}
               position="static"
               customPosition={{}}
               viewType="month"
@@ -694,7 +705,7 @@ const MonthlyCalendarView = ({
                           if (total === 0)
                             return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
                           const incomePercent = (totalIncome / total) * 100;
-                          return `linear-gradient(90deg, ${summaryConfig.incomeColor} ${incomePercent}%, ${summaryConfig.spendingColor} ${incomePercent}%, ${summaryConfig.spendingColor} 100%)`;
+                          return `linear-gradient(90deg, ${resolvedSummaryConfig.incomeColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} 100%)`;
                         })(),
                         zIndex: 1,
                       },
@@ -763,8 +774,8 @@ const MonthlyCalendarView = ({
                   : "";
 
                 const spending =
-                  Number(dayData?.[summaryConfig.spendingKey]) || 0;
-                const income = Number(dayData?.[summaryConfig.incomeKey]) || 0;
+                  Number(dayData?.[resolvedSummaryConfig.spendingKey]) || 0;
+                const income = Number(dayData?.[resolvedSummaryConfig.incomeKey]) || 0;
 
                 const hasIcons = (() => {
                   const iconsKey = dayCellConfig?.iconsKey;
@@ -805,8 +816,8 @@ const MonthlyCalendarView = ({
                       income: effectiveIncome,
                       maxSpending: effectiveMaxSpending,
                       maxIncome: effectiveMaxIncome,
-                      spendingColor: summaryConfig.spendingColor,
-                      incomeColor: summaryConfig.incomeColor,
+                      spendingColor: resolvedSummaryConfig.spendingColor,
+                      incomeColor: resolvedSummaryConfig.incomeColor,
                     })
                   : null;
 
@@ -834,10 +845,10 @@ const MonthlyCalendarView = ({
                       onClick={handleDayClick}
                       disabled={isDayDisabled}
                       isSmallScreen={isSmallScreen}
-                      spendingKey={summaryConfig.spendingKey}
-                      incomeKey={summaryConfig.incomeKey}
-                      spendingColor={summaryConfig.spendingColor}
-                      incomeColor={summaryConfig.incomeColor}
+                      spendingKey={resolvedSummaryConfig.spendingKey}
+                      incomeKey={resolvedSummaryConfig.incomeKey}
+                      spendingColor={resolvedSummaryConfig.spendingColor}
+                      incomeColor={resolvedSummaryConfig.incomeColor}
                       colors={colors}
                       currencySymbol={currencySymbol}
                       heatmapBackground={heatmapBackground}

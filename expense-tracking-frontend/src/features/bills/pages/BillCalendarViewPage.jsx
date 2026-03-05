@@ -76,8 +76,8 @@ const BillCalendarView = () => {
       onBack={handleBack}
       showHeatmapModeToggle={true}
       summaryConfig={{
-        spendingLabel: "Bill Spending",
-        incomeLabel: "Bill Income",
+        spendingLabel: "Spending",
+        incomeLabel: "Income",
         spendingKey: "spending",
         incomeKey: "income",
         spendingColor: financeColors.spending.base,

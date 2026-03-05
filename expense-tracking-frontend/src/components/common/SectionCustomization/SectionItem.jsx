@@ -58,11 +58,9 @@ const SectionItem = ({
             sx={{
               padding: 0,
               color: isActive
-                ? isDark
-                  ? "rgba(20, 184, 166, 0.5)"
-                  : "rgba(20, 184, 166, 0.7)"
+                ? (colors.primary_accent || "#14b8a6")
                 : colors.secondary_text,
-              "&.Mui-checked": { color: "#14b8a6" },
+              "&.Mui-checked": { color: colors.primary_accent || "#14b8a6" },
             }}
           />
           <Box
@@ -73,7 +71,7 @@ const SectionItem = ({
           >
             <DragIcon
               fontSize="small"
-              sx={{ color: isActive ? "#14b8a6" : colors.secondary_text }}
+              sx={{ color: isActive ? (colors.primary_accent || "#14b8a6") : colors.secondary_text }}
             />
           </Box>
           <Box sx={{ flex: 1, minWidth: 0, mr: 1 }}>
@@ -92,7 +90,7 @@ const SectionItem = ({
           <Chip
             label={getTypeLabel(section.type)}
             size="small"
-            sx={getChipStyles(isDark, "type")}
+            sx={getChipStyles(colors, isDark, "type")}
           />
           <Tooltip
             title={isActive ? "Deactivate section" : "Activate section"}
@@ -108,16 +106,12 @@ const SectionItem = ({
               sx={{
                 padding: 0.5,
                 color: isActive
-                  ? isDark
-                    ? "#4ade80"
-                    : "#16a34a"
+                  ? (colors.success || "#4ade80")
                   : colors.secondary_text,
                 "&:hover": {
                   color: isActive
                     ? colors.secondary_text
-                    : isDark
-                    ? "#4ade80"
-                    : "#16a34a",
+                    : (colors.success || "#4ade80"),
                   backgroundColor: isActive
                     ? isDark
                       ? "rgba(156, 163, 175, 0.1)"

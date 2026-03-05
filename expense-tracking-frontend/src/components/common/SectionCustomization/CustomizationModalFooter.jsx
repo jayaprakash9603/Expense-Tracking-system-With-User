@@ -33,9 +33,11 @@ const CustomizationModalFooter = ({
           gap: isMobile ? 1 : 1.5,
           flexDirection: isMobile ? "column" : "row",
           alignItems: isMobile ? "stretch" : "center",
-          background: isDark
-            ? "linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.03) 100%)"
-            : "linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.02) 100%)",
+          background: (() => {
+          const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colors.primary_accent || "#14b8a6");
+          const rgb = r ? `${parseInt(r[1], 16)}, ${parseInt(r[2], 16)}, ${parseInt(r[3], 16)}` : "20, 184, 166";
+          return `linear-gradient(180deg, transparent 0%, rgba(${rgb}, ${isDark ? 0.03 : 0.02}) 100%)`;
+        })(),
         }}
       >
         {/* On mobile, primary actions first */}

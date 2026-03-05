@@ -21,6 +21,7 @@ import DatePickerPopover from "../common/DatePickerPopover";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { getFinanceCalendarColors } from "../../config/financeColorTokens";
 import { formatAmount } from "../../utils/formatAmount";
 import { getCategoryIcon } from "../../utils/iconMapping";
 
@@ -60,8 +61,9 @@ const CalendarDayDetailsSidebar = ({
   leadingIconTooltipType = "auto", // 'auto' | 'category' | 'paymentMethod'
   titleMode = "expense", // 'expense' | 'category'
 }) => {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const settings = useUserSettings();
+  const financeColors = getFinanceCalendarColors(mode);
   const currencySymbol = settings.getCurrency().symbol;
 
   const displayDateFormat = "ddd, MMM D, YYYY";
@@ -432,7 +434,7 @@ const CalendarDayDetailsSidebar = ({
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
               <Typography
                 variant="body2"
-                sx={{ color: "#ff4d4f", fontWeight: 800 }}
+                sx={{ color: financeColors.spending.base, fontWeight: 800 }}
               >
                 {formatAmount(totals.spending, {
                   currencySymbol,
@@ -440,7 +442,7 @@ const CalendarDayDetailsSidebar = ({
                 })}
               </Typography>
               <ArrowDownwardRoundedIcon
-                sx={{ color: "#ff4d4f", fontSize: 16 }}
+                sx={{ color: financeColors.spending.base, fontSize: 16 }}
               />
             </Box>
           </Box>
@@ -460,14 +462,14 @@ const CalendarDayDetailsSidebar = ({
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
               <Typography
                 variant="body2"
-                sx={{ color: "#06d6a0", fontWeight: 800 }}
+                sx={{ color: financeColors.income.base, fontWeight: 800 }}
               >
                 {formatAmount(totals.income, {
                   currencySymbol,
                   maximumFractionDigits: 0,
                 })}
               </Typography>
-              <ArrowUpwardRoundedIcon sx={{ color: "#06d6a0", fontSize: 16 }} />
+              <ArrowUpwardRoundedIcon sx={{ color: financeColors.income.base, fontSize: 16 }} />
             </Box>
           </Box>
         </Box>
@@ -772,7 +774,7 @@ const CalendarDayDetailsSidebar = ({
                   <Typography
                     variant="subtitle2"
                     sx={{
-                      color: isLoss ? "#ff4d4f" : "#06d6a0",
+                      color: isLoss ? financeColors.spending.base : financeColors.income.base,
                       fontWeight: 900,
                       whiteSpace: "nowrap",
                       display: "flex",
@@ -782,11 +784,11 @@ const CalendarDayDetailsSidebar = ({
                   >
                     {isLoss ? (
                       <ArrowDownwardRoundedIcon
-                        sx={{ color: "#ff4d4f", fontSize: 16 }}
+                        sx={{ color: financeColors.spending.base, fontSize: 16 }}
                       />
                     ) : (
                       <ArrowUpwardRoundedIcon
-                        sx={{ color: "#06d6a0", fontSize: 16 }}
+                        sx={{ color: financeColors.income.base, fontSize: 16 }}
                       />
                     )}
                     {formatAmount(Math.abs(amount), {

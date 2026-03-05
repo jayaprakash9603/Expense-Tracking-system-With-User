@@ -13,6 +13,7 @@ import { getChipStyles } from "./customizationStyles";
 const StatisticsChips = ({
   activeCount,
   availableCount,
+  colors,
   isDark,
   isMobile = false,
   labels = { active: "Active", available: "Available" },
@@ -35,7 +36,7 @@ const StatisticsChips = ({
         label={`${activeCount} ${labels.active}`}
         size="small"
         sx={{
-          ...getChipStyles(isDark, "active"),
+          ...getChipStyles(colors, isDark, "active"),
           fontSize: isMobile ? '0.7rem' : '0.75rem',
           height: isMobile ? 24 : 28,
         }}
@@ -45,7 +46,7 @@ const StatisticsChips = ({
         label={`${availableCount} ${labels.available}`}
         size="small"
         sx={{
-          ...getChipStyles(isDark, "available"),
+          ...getChipStyles(colors, isDark, "available"),
           fontSize: isMobile ? '0.7rem' : '0.75rem',
           height: isMobile ? 24 : 28,
         }}

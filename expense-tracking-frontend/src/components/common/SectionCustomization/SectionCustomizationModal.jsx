@@ -61,7 +61,8 @@ const SectionCustomizationModal = ({
   availableEmptyMessage = "All sections are active!",
   activeEmptyMessage = "Drag sections here to activate",
 }) => {
-  const { colors, isDark } = useTheme();
+  const { colors, mode } = useTheme();
+  const isDark = mode === "dark";
   const muiTheme = useMuiTheme();
 
   // Responsive breakpoints
@@ -140,11 +141,14 @@ const SectionCustomizationModal = ({
           height: isMobile ? "calc(100vh - 180px)" : "calc(70vh - 120px)",
           minHeight: { xs: 300, sm: 400, md: 450 },
           maxHeight: { xs: "none", sm: 550, md: 600 },
+          backgroundColor: colors.card_bg || colors.secondary_bg,
+          color: colors.primary_text,
         }}
       >
         <StatisticsChips
           activeCount={activeSections.length}
           availableCount={availableSections.length}
+          colors={colors}
           isDark={isDark}
           isMobile={isMobile}
           labels={{

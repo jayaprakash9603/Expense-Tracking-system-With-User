@@ -52,10 +52,11 @@ const DroppableColumn = ({
   isTablet = false,
 }) => {
   const variant = isActive ? "active" : "available";
+  const accentHex = colors.primary_accent || "#14b8a6";
   const borderColor = isActive
     ? isDark
-      ? "rgba(20, 184, 166, 0.4)"
-      : "rgba(20, 184, 166, 0.3)"
+      ? `${accentHex}40`
+      : `${accentHex}4d`
     : colors.border_color;
 
   return (
@@ -85,9 +86,7 @@ const DroppableColumn = ({
           fontWeight="700"
           sx={{
             color: isActive
-              ? isDark
-                ? "#14b8a6"
-                : "#0d9488"
+              ? (colors.primary_accent || "#14b8a6")
               : colors.primary_text,
             fontSize: isMobile ? "0.8rem" : "0.9rem",
             letterSpacing: 0.5,
@@ -111,7 +110,7 @@ const DroppableColumn = ({
           <Box
             {...provided.droppableProps}
             ref={provided.innerRef}
-            sx={getDroppableStyles(isDark, snapshot.isDraggingOver, variant)}
+            sx={getDroppableStyles(colors, isDark, snapshot.isDraggingOver, variant)}
           >
             {sections.length === 0 ? (
               <Box

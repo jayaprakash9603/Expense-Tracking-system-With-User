@@ -18,6 +18,7 @@ import DayViewSkeleton from "../DayViewSkeleton";
 import JumpToTodayButton from "../JumpToTodayButton";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
+import { getFinanceCalendarColors } from "../../config/financeColorTokens";
 import "./DayUnifiedView.css";
 
 /**
@@ -54,8 +55,9 @@ const DayUnifiedView = ({
   fetchAfterDelete,
   emptyTitle = "No data!",
 }) => {
-  const { colors } = useAppTheme();
+  const { colors, mode } = useAppTheme();
   const settings = useUserSettings();
+  const financeColors = getFinanceCalendarColors(mode);
   const currencySymbol = settings.getCurrency().symbol;
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const [selectedCardIdx, setSelectedCardIdx] = useState(null);
@@ -214,24 +216,24 @@ const DayUnifiedView = ({
     backgroundColor: colors.tertiary_bg,
   };
 
-  // Summary card configuration (Spending & Income)
+  // Summary card configuration (Spending & Income) - uses calendar color tokens for theme support
   const summaryCards = [
     {
       key: "losses",
       label: "Spending",
       amount: totalLosses,
-      outerColor: "#cf667a",
-      iconBg: "#e2a4af",
-      valueColor: "#e6a2af",
+      outerColor: financeColors.spending.base,
+      iconBg: financeColors.spending.icon,
+      valueColor: financeColors.spending.text,
       svgPath: "M16 8v16M16 24l7-7M16 24l-7-7",
     },
     {
       key: "gains",
       label: "Income",
       amount: totalGains,
-      outerColor: "#437746",
-      iconBg: "#84ba86",
-      valueColor: "#83b985",
+      outerColor: financeColors.income.base,
+      iconBg: financeColors.income.icon,
+      valueColor: financeColors.income.text,
       svgPath: "M16 24V8M16 8L9 15M16 8L23 15",
     },
   ];
@@ -245,22 +247,22 @@ const DayUnifiedView = ({
 
   const typeStyles = {
     gain: {
-      text: "#06d6a0",
-      border: "#06d6a0",
+      text: financeColors.income.base,
+      border: financeColors.income.base,
       bgSelected: "rgba(6,214,160,0.07)",
       iconPath: "M8 14V2M8 2L3 7M8 2L13 7",
-      iconStroke: "#06d6a0",
+      iconStroke: financeColors.income.base,
     },
     loss: {
-      text: "#ff4d4f",
-      border: "#ff4d4f",
+      text: financeColors.spending.base,
+      border: financeColors.spending.base,
       bgSelected: "rgba(255,77,79,0.07)",
       iconPath: "M8 2V14M8 14L3 9M8 14L13 9",
-      iconStroke: "#ff4d4f",
+      iconStroke: financeColors.spending.base,
     },
     neutral: {
-      text: "#b0b6c3",
-      border: "#06d6a0", // fallback accent
+      text: colors.placeholder_text,
+      border: colors.primary_accent,
       bgSelected: "rgba(6,214,160,0.07)",
     },
   };
@@ -451,7 +453,7 @@ const DayUnifiedView = ({
                   </Typography>
                   <Typography
                     variant="h6"
-                    color={colors.button_text}
+                    color="#fff"
                     fontWeight={700}
                     sx={{
                       lineHeight: 1.2,
@@ -636,7 +638,7 @@ const DayUnifiedView = ({
                   </Typography>
                   <Typography
                     variant="h6"
-                    color={colors.button_text}
+                    color="#fff"
                     fontWeight={700}
                     sx={{
                       lineHeight: 1.2,
