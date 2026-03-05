@@ -75,6 +75,7 @@ import {
   GET_EXPENSE_DETAILED_VIEW_SUCCESS,
   GET_EXPENSE_DETAILED_VIEW_FAILURE,
   CLEAR_EXPENSE_DETAILED_VIEW,
+  INVALIDATE_CASHFLOW,
 } from "./expense.actionType";
 import {
   getCashflowCacheDescriptor,
@@ -839,4 +840,11 @@ export const getExpenseDetailedView =
  */
 export const clearExpenseDetailedView = () => ({
   type: CLEAR_EXPENSE_DETAILED_VIEW,
+});
+
+/**
+ * Invalidate cashflow cache to trigger refetch (e.g. after bill delete).
+ */
+export const invalidateCashflow = () => ({
+  type: INVALIDATE_CASHFLOW,
 });

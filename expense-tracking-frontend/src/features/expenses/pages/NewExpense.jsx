@@ -1148,7 +1148,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           }
         />
 
-        <div className="flex flex-col gap-3 lg:gap-4">
+        <div className="flex flex-col gap-3 lg:gap-4 mt-2">
           <div className="flex flex-col lg:flex-row flex-1 gap-3 lg:gap-4 lg:items-center">
             {renderExpenseNameWithSuggestions()}
             {renderAmountInput()}

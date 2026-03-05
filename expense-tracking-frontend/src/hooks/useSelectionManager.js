@@ -90,7 +90,10 @@ export default function useSelectionManager({ chartData, activeRange }) {
         setLastSelectedIdx(idx);
       } else {
         setSelectedCardIdx((prev) => {
-          if (prev.length === 1 && prev[0] === idx) return [];
+          if (prev.includes(idx)) {
+            // Toggle off - deselect when clicking already selected card
+            return prev.filter((i) => i !== idx);
+          }
           return [idx];
         });
         setLastSelectedIdx(idx);
@@ -132,6 +135,7 @@ export default function useSelectionManager({ chartData, activeRange }) {
     setSelectedBars([]);
     setSelectedBar(null);
     setLastBarSelectedIdx(null);
+    setSelectedCardIdx([]);
   }, []);
 
   return {

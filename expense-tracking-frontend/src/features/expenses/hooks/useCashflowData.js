@@ -135,7 +135,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     initialViewState.rangeOffsets || createDefaultRangeOffsets(),
   );
   const [flowTab, setFlowTab] = useState(initialViewState.flowTab);
-  const { cashflowExpenses, cashflowDashboard, cashflowOwnerId, loading } =
+  const { cashflowExpenses, cashflowDashboard, cashflowOwnerId, loading, lastExpenseMutationAt } =
     useSelector((s) => s.expenses || {});
   const { settings } = useSelector((s) => s.userSettings || {});
   const maskSensitiveData = settings?.maskSensitiveData;
@@ -238,6 +238,7 @@ export default function useCashflowData({ friendId, isFriendView, search }) {
     maskSensitiveData,
     ownerId,
     searchQuery,
+    lastExpenseMutationAt, // Refetch when expense is added, edited, or deleted
   ]);
 
   const isMismatchedOwner =

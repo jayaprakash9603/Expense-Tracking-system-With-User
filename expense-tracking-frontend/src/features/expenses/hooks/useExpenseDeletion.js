@@ -4,9 +4,9 @@ import {
   deleteExpenseAction,
   getExpenseAction,
   deleteMultiExpenses,
+  invalidateCashflow,
 } from "../../../Redux/Expenses/expense.action";
 import { deleteBill, getBillByExpenseId } from "../../../Redux/Bill/bill.action";
-import { fetchCashflowExpenses } from "../../../Redux/Expenses/expense.action";
 
 // Handles single & multi deletion flow, toast messaging, and reset
 export default function useExpenseDeletion({
@@ -83,15 +83,7 @@ export default function useExpenseDeletion({
             isFriendView ? friendId : undefined
           )
         );
-        dispatch(
-          fetchCashflowExpenses({
-            range: activeRange,
-            offset,
-            flowType: flowTab === "all" ? null : flowTab,
-            targetId: isFriendView ? friendId : undefined,
-            groupBy: false,
-          })
-        );
+        // CashFlow refetches automatically via lastExpenseMutationAt in reducer
         setToastMessage("Selected expenses deleted successfully.");
         setToastOpen(true);
       } catch (err) {
@@ -120,15 +112,8 @@ export default function useExpenseDeletion({
           ? deleteBill(bill.id, friendId || "")
           : deleteExpenseAction(expenseToDelete, friendId || "")
       );
-      dispatch(
-        fetchCashflowExpenses({
-          range: activeRange,
-          offset,
-          flowType: flowTab === "all" ? null : flowTab,
-          targetId: isFriendView ? friendId : undefined,
-          groupBy: false,
-        })
-      );
+      // Bill delete doesn't trigger DELETE_EXPENSE_SUCCESS, so invalidate manually
+      if (bill) dispatch(invalidateCashflow());
       setToastMessage(
         bill ? "Bill deleted successfully" : "Expense deleted successfully."
       );
