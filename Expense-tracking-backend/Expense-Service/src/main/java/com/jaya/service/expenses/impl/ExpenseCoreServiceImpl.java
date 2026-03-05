@@ -2,6 +2,7 @@ package com.jaya.service.expenses.impl;
 
 import ch.qos.logback.classic.Logger;
 import com.jaya.async.AsyncExpensePostProcessor;
+import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.dto.PaymentMethodEvent;
@@ -111,6 +112,11 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Autowired
     private UserSettingsService userSettingsService;
+
+    @Autowired
+    private org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
 
     public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository,
             ExpenseReportRepository expenseReportRepository) {
@@ -273,15 +279,22 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
 
         Set<Integer> budgetIds = expense.getBudgetIds();
-        if (budgetIds != null) {
-            for (Integer budgetId : budgetIds) {
-                BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
-                if (BudgetModel != null && BudgetModel.getExpenseIds() != null) {
-                    BudgetModel.getExpenseIds().remove(expense.getId());
-                    BudgetModel.setBudgetHasExpenses(!BudgetModel.getExpenseIds().isEmpty());
-                    budgetService.save(BudgetModel);
-                }
-            }
+        if (budgetIds != null && !budgetIds.isEmpty()) {
+            List<Long> budgetIdsToRemove = budgetIds.stream()
+                    .map(Integer::longValue)
+                    .collect(Collectors.toList());
+
+            ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                    .eventType(ExpenseBudgetLinkingEvent.EventType.EXPENSE_EDITED_REMOVE_FROM_BUDGETS)
+                    .userId(userId.longValue())
+                    .newExpenseId(expense.getId().longValue())
+                    .budgetIdsToRemove(budgetIdsToRemove)
+                    .timestamp(java.time.LocalDateTime.now().toString())
+                    .build();
+
+            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            logger.info("Published EXPENSE_EDITED_REMOVE_FROM_BUDGETS on delete: expense={}, budgets={}",
+                    expense.getId(), budgetIdsToRemove);
         }
 
         Integer categoryId = expense.getCategoryId();
@@ -1661,50 +1674,57 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         return verified;
     }
 
-    private Set<Integer> extractValidBudgetIds(Expense updatedExpense, Integer userId) throws Exception {
-        Set<Integer> validBudgetIds = new HashSet<>();
-        if (updatedExpense.getBudgetIds() != null) {
-            for (Integer budgetId : updatedExpense.getBudgetIds()) {
-                BudgetModel budgetOpt = budgetService.getBudgetById(budgetId, userId);
-                if (budgetOpt != null) {
-                    BudgetModel BudgetModel = budgetOpt;
-                    LocalDate expenseDate = updatedExpense.getDate();
-                    if (!expenseDate.isBefore(BudgetModel.getStartDate()) && !expenseDate.isAfter(BudgetModel.getEndDate())) {
-                        validBudgetIds.add(budgetId);
-                    }
-                }
-            }
+    private Set<Integer> extractValidBudgetIds(Expense updatedExpense, Integer userId) {
+        if (updatedExpense.getBudgetIds() == null) {
+            return new HashSet<>();
         }
-        return validBudgetIds;
+        return new HashSet<>(updatedExpense.getBudgetIds());
     }
 
-    private void updateBudgetLinks(Expense savedExpense, Set<Integer> validBudgetIds, Integer userId) throws Exception {
-        for (Integer budgetId : validBudgetIds) {
-            BudgetModel BudgetModel = budgetService.getBudgetById(budgetId, userId);
-            if (BudgetModel != null) {
-                if (BudgetModel.getExpenseIds() == null) {
-                    BudgetModel.setExpenseIds(new HashSet<>());
-                }
-                BudgetModel.getExpenseIds().add(savedExpense.getId());
-                BudgetModel.setBudgetHasExpenses(true);
-                budgetService.save(BudgetModel);
-            }
+    private void updateBudgetLinks(Expense savedExpense, Set<Integer> validBudgetIds, Integer userId) {
+        if (validBudgetIds == null || validBudgetIds.isEmpty()) {
+            return;
         }
+
+        List<Long> budgetIdsToAdd = validBudgetIds.stream()
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
+
+        ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                .eventType(ExpenseBudgetLinkingEvent.EventType.EXPENSE_EDITED_ADD_TO_BUDGETS)
+                .userId(userId.longValue())
+                .newExpenseId(savedExpense.getId().longValue())
+                .newBudgetIds(budgetIdsToAdd)
+                .timestamp(java.time.LocalDateTime.now().toString())
+                .build();
+
+        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        logger.info("Published EXPENSE_EDITED_ADD_TO_BUDGETS event: expense={}, budgets={}",
+                savedExpense.getId(), budgetIdsToAdd);
     }
 
-    private void removeOldBudgetLinks(Expense existingExpense, Set<Integer> validBudgetIds, Integer userId)
-            throws Exception {
-        if (existingExpense.getBudgetIds() != null) {
-            for (Integer oldBudgetId : existingExpense.getBudgetIds()) {
-                if (!validBudgetIds.contains(oldBudgetId)) {
-                    BudgetModel oldBudget = budgetService.getBudgetById(oldBudgetId, userId);
-                    if (oldBudget != null && oldBudget.getExpenseIds() != null) {
-                        oldBudget.getExpenseIds().remove(existingExpense.getId());
-                        oldBudget.setBudgetHasExpenses(!oldBudget.getExpenseIds().isEmpty());
-                        budgetService.save(oldBudget);
-                    }
-                }
-            }
+    private void removeOldBudgetLinks(Expense existingExpense, Set<Integer> validBudgetIds, Integer userId) {
+        if (existingExpense.getBudgetIds() == null || existingExpense.getBudgetIds().isEmpty()) {
+            return;
+        }
+
+        List<Long> budgetIdsToRemove = existingExpense.getBudgetIds().stream()
+                .filter(oldBudgetId -> !validBudgetIds.contains(oldBudgetId))
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
+
+        if (!budgetIdsToRemove.isEmpty()) {
+            ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                    .eventType(ExpenseBudgetLinkingEvent.EventType.EXPENSE_EDITED_REMOVE_FROM_BUDGETS)
+                    .userId(userId.longValue())
+                    .newExpenseId(existingExpense.getId().longValue())
+                    .budgetIdsToRemove(budgetIdsToRemove)
+                    .timestamp(java.time.LocalDateTime.now().toString())
+                    .build();
+
+            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            logger.info("Published EXPENSE_EDITED_REMOVE_FROM_BUDGETS event: expense={}, budgets={}",
+                    existingExpense.getId(), budgetIdsToRemove);
         }
     }
 

@@ -69,6 +69,7 @@ spring:
         order_updates: true
         jdbc.batch_versioned_data: true
         generate_statistics: false
+        default_batch_fetch_size: 100
         cache:
           use_second_level_cache: false
           use_query_cache: false

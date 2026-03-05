@@ -29,6 +29,7 @@ public class BulkBudgetLinkingService {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
+    private static final String EXPENSE_SERVICE_LINKING_TOPIC = "expense-BudgetModel-linking-events";
 
     private Map<Long, Long> budgetIdMappings = new HashMap<>();
 
@@ -92,15 +93,7 @@ public class BulkBudgetLinkingService {
         if (!newExpenseIdsSet.isEmpty()) {
             log.info("Notifying Expense Service to link {} expenses to budget {}",
                     newExpenseIdsSet.size(), newBudgetId);
-            for (Integer expenseId : newExpenseIdsSet) {
-                try {
-                    publishExpenseBudgetLinkUpdate(expenseId.longValue(), newBudgetId, userId);
-                    log.debug("Published link update for expense {} to budget {}", expenseId, newBudgetId);
-                } catch (Exception e) {
-                    log.error("Failed to publish link update for expense {} to budget {}",
-                            expenseId, newBudgetId, e);
-                }
-            }
+            publishBatchExpenseBudgetLink(newExpenseIdsSet, newBudgetId, userId);
         } else {
             log.info("No mapped expenses to link for budget {}", newBudgetId);
         }
@@ -147,8 +140,8 @@ public class BulkBudgetLinkingService {
 
         log.info("Updated budget {} with {} new expense IDs", newBudgetId, newExpenseIdsSet.size());
 
-        for (Integer expenseId : newExpenseIdsSet) {
-            publishExpenseBudgetLinkUpdate(expenseId.longValue(), newBudgetId, userId);
+        if (!newExpenseIdsSet.isEmpty()) {
+            publishBatchExpenseBudgetLink(newExpenseIdsSet, newBudgetId, userId);
         }
     }
 
@@ -199,6 +192,24 @@ public class BulkBudgetLinkingService {
 
         kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         log.info("Published expense-budget link update: expense={}, budget={}", expenseId, budgetId);
+    }
+
+    private void publishBatchExpenseBudgetLink(Set<Integer> expenseIds, Long budgetId, Integer userId) {
+        List<Long> expenseIdList = expenseIds.stream()
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
+
+        ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_LINK_UPDATE)
+                .userId(userId.longValue())
+                .expenseIds(expenseIdList)
+                .newBudgetId(budgetId)
+                .timestamp(LocalDateTime.now().toString())
+                .build();
+
+        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        log.info("Published batch expense-budget link update: {} expenses, budget={}", expenseIds.size(), budgetId);
     }
 
     public Long getNewBudgetId(Long oldBudgetId) {
@@ -312,12 +323,79 @@ public class BulkBudgetLinkingService {
 
             log.info("Added {} expenses to existing budget {}", newExpenseIds.size(), budgetId);
 
-            for (Long expenseId : newExpenseIds) {
-                publishExpenseBudgetLinkUpdate(expenseId, budgetId, userId);
+            if (!newExpenseIds.isEmpty()) {
+                Set<Integer> expenseIdsAsIntegers = newExpenseIds.stream()
+                        .map(Long::intValue)
+                        .collect(Collectors.toSet());
+                publishBatchExpenseBudgetLink(expenseIdsAsIntegers, budgetId, userId);
             }
 
         } catch (Exception e) {
             log.error("Error adding expenses to budget {}", budgetId, e);
         }
+    }
+
+    @Transactional
+    public void addExpenseToMultipleBudgets(Long expenseId, List<Long> budgetIds, Integer userId) {
+        log.info("Adding expense {} to {} budgets for user {}", expenseId, budgetIds.size(), userId);
+
+        List<Integer> budgetIdInts = budgetIds.stream()
+                .map(Long::intValue)
+                .collect(Collectors.toList());
+
+        List<Budget> budgets = budgetRepository.findAllById(budgetIdInts);
+
+        int updatedCount = 0;
+        for (Budget budget : budgets) {
+            if (!budget.getUserId().equals(userId)) {
+                log.warn("Skipping budget {} - userId mismatch", budget.getId());
+                continue;
+            }
+
+            if (budget.getExpenseIds() == null) {
+                budget.setExpenseIds(new java.util.HashSet<>());
+            }
+
+            if (budget.getExpenseIds().add(expenseId.intValue())) {
+                budget.setBudgetHasExpenses(true);
+                updatedCount++;
+            }
+        }
+
+        if (updatedCount > 0) {
+            budgetRepository.saveAll(budgets);
+        }
+
+        log.info("Added expense {} to {} of {} budgets", expenseId, updatedCount, budgetIds.size());
+    }
+
+    @Transactional
+    public void removeExpenseFromMultipleBudgets(Long expenseId, List<Long> budgetIds, Integer userId) {
+        log.info("Removing expense {} from {} budgets for user {}", expenseId, budgetIds.size(), userId);
+
+        List<Integer> budgetIdInts = budgetIds.stream()
+                .map(Long::intValue)
+                .collect(Collectors.toList());
+
+        List<Budget> budgets = budgetRepository.findAllById(budgetIdInts);
+
+        int updatedCount = 0;
+        for (Budget budget : budgets) {
+            if (!budget.getUserId().equals(userId)) {
+                log.warn("Skipping budget {} - userId mismatch", budget.getId());
+                continue;
+            }
+
+            if (budget.getExpenseIds() != null && budget.getExpenseIds().remove(expenseId.intValue())) {
+                budget.setBudgetHasExpenses(!budget.getExpenseIds().isEmpty());
+                updatedCount++;
+            }
+        }
+
+        if (updatedCount > 0) {
+            budgetRepository.saveAll(budgets);
+        }
+
+        log.info("Removed expense {} from {} of {} budgets", expenseId, updatedCount, budgetIds.size());
     }
 }

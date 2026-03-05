@@ -21,6 +21,7 @@ public class ExpenseBudgetLinkingEvent {
     private Long newBudgetId;
     private Long oldBudgetId;
     private List<Long> budgetIdsToRemove;
+    private List<Long> expenseIds;
     private String timestamp;
 
     private BudgetDetails budgetDetails;
@@ -31,7 +32,11 @@ public class ExpenseBudgetLinkingEvent {
         EXPENSE_CREATED_WITH_EXISTING_BUDGETS,
         EXPENSE_BUDGET_LINK_UPDATE,
         BUDGET_EXPENSE_LINK_UPDATE,
-        BUDGET_DELETED_REMOVE_FROM_EXPENSES
+        BUDGET_DELETED_REMOVE_FROM_EXPENSES,
+        BUDGET_EXPENSE_BATCH_LINK_UPDATE,
+        BUDGET_EXPENSE_BATCH_REMOVE,
+        EXPENSE_EDITED_ADD_TO_BUDGETS,
+        EXPENSE_EDITED_REMOVE_FROM_BUDGETS
     }
 
     @Data

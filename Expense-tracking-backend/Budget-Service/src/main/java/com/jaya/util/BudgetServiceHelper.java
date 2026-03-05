@@ -15,10 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +33,7 @@ public class BudgetServiceHelper {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
+    private static final String EXPENSE_SERVICE_LINKING_TOPIC = "expense-BudgetModel-linking-events";
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
@@ -87,73 +85,87 @@ public class BudgetServiceHelper {
 
     public Set<Integer> getValidBudgetIds(Budget budget, Integer userId, ExpenseClient expenseService) {
         Set<Integer> validExpenseIds = new HashSet<>();
+        Set<Integer> requestedIds = budget.getExpenseIds();
 
-        for (Integer expenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense;
-            try {
-                expense = expenseService.getExpenseById(expenseId, userId);
-            } catch (Exception e) {
-                log.warn("Expense with ID {} not found or error occurred, excluding from budget: {}",
-                        expenseId, e.getMessage());
-                continue;
-            }
+        if (requestedIds == null || requestedIds.isEmpty()) {
+            return validExpenseIds;
+        }
 
-            if (expense != null) {
-                LocalDate expenseDate = expense.getDate() != null ? LocalDate.parse(expense.getDate()) : null;
-                boolean isWithinDateRange = expenseDate != null
-                        && !expenseDate.isBefore(budget.getStartDate())
-                        && !expenseDate.isAfter(budget.getEndDate());
+        List<ExpenseDTO> expenses;
+        try {
+            expenses = expenseService.getExpensesByIds(userId, requestedIds);
+        } catch (Exception e) {
+            log.error("Failed to batch fetch expenses for validation: {}", e.getMessage());
+            return validExpenseIds;
+        }
 
-                if (isWithinDateRange) {
-                    validExpenseIds.add(expenseId);
-                } else {
-                    log.debug("Expense {} is outside budget date range, excluding", expenseId);
-                }
+        if (expenses == null) {
+            return validExpenseIds;
+        }
+
+        for (ExpenseDTO expense : expenses) {
+            LocalDate expenseDate = expense.getDate() != null ? LocalDate.parse(expense.getDate()) : null;
+            boolean isWithinDateRange = expenseDate != null
+                    && !expenseDate.isBefore(budget.getStartDate())
+                    && !expenseDate.isAfter(budget.getEndDate());
+
+            if (isWithinDateRange) {
+                validExpenseIds.add(expense.getId());
+            } else {
+                log.debug("Expense {} is outside budget date range, excluding", expense.getId());
             }
         }
+
         log.info("Validated {} out of {} expense IDs for budget",
-                validExpenseIds.size(), budget.getExpenseIds().size());
+                validExpenseIds.size(), requestedIds.size());
         return validExpenseIds;
     }
 
     public void addBudgetIdInExpenses(Budget budget, ExpenseClient expenseService, Integer userId) {
-        for (Integer expenseId : budget.getExpenseIds()) {
-            try {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                if (expense != null) {
-                    if (expense.getBudgetIds() == null) {
-                        expense.setBudgetIds(new HashSet<>());
-                    }
-
-                    if (!expense.getBudgetIds().contains(budget.getId())) {
-                        expense.getBudgetIds().add(budget.getId());
-                        expenseService.save(expense);
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Expense with ID {} not found, skipping budget link", expenseId);
-                continue;
-            }
+        Set<Integer> expenseIds = budget.getExpenseIds();
+        if (expenseIds == null || expenseIds.isEmpty()) {
+            return;
         }
+
+        List<Long> expenseIdList = expenseIds.stream()
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
+
+        ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_LINK_UPDATE)
+                .userId(userId.longValue())
+                .expenseIds(expenseIdList)
+                .newBudgetId(budget.getId().longValue())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .build();
+
+        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        log.info("Published batch link event for {} expenses to budget {}", expenseIds.size(), budget.getId());
     }
 
     public void deleteBudgetIdInExpenses(Budget budget, ExpenseClient expenseService, Integer userId,
             Integer budgetId) {
         Set<Integer> expenseIds = budget.getExpenseIds();
-        if (expenseIds != null) {
-            for (Integer expenseId : expenseIds) {
-                try {
-                    ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                    if (expense != null && expense.getBudgetIds() != null) {
-                        expense.getBudgetIds().remove(budgetId);
-                        expenseService.save(expense);
-                    }
-                } catch (Exception e) {
-                    log.warn("Expense with ID {} not found, skipping budget unlink", expenseId);
-                    continue;
-                }
-            }
+        if (expenseIds == null || expenseIds.isEmpty()) {
+            return;
         }
+
+        List<Long> expenseIdList = expenseIds.stream()
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
+
+        ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_REMOVE)
+                .userId(userId.longValue())
+                .expenseIds(expenseIdList)
+                .budgetIdsToRemove(Collections.singletonList(budgetId.longValue()))
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
+                .build();
+
+        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        log.info("Published batch remove event for {} expenses from budget {}", expenseIds.size(), budgetId);
     }
 
     public void removeBudgetsIdsInAllExpenses(List<Budget> budgets, ExpenseClient expenseService, Integer userId) {
@@ -167,49 +179,41 @@ public class BudgetServiceHelper {
         log.info("====== Async Budget Removal Started ======");
         log.info("Removing {} budgets from all expenses for userId={}", budgets.size(), userId);
 
-        List<Long> budgetIdsToRemove = budgets.stream()
-                .map(budget -> budget.getId().longValue())
-                .collect(Collectors.toList());
-
-        Set<Integer> allExpenseIds = new HashSet<>();
-        for (Budget budget : budgets) {
-            if (budget.getExpenseIds() != null && !budget.getExpenseIds().isEmpty()) {
-                allExpenseIds.addAll(budget.getExpenseIds());
-            }
-        }
-
-        log.info("Found {} unique expenses to update with budget removal", allExpenseIds.size());
-
-        if (allExpenseIds.isEmpty()) {
-            log.info("No expenses to update, skipping event publishing");
-            return;
-        }
-
         int eventCount = 0;
-        for (Integer expenseId : allExpenseIds) {
+        for (Budget budget : budgets) {
+            Set<Integer> expenseIds = budget.getExpenseIds();
+            if (expenseIds == null || expenseIds.isEmpty()) {
+                continue;
+            }
+
+            List<Long> expenseIdList = expenseIds.stream()
+                    .map(Integer::longValue)
+                    .collect(Collectors.toList());
+
             try {
                 ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
-                        .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_DELETED_REMOVE_FROM_EXPENSES)
+                        .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_REMOVE)
                         .userId(userId.longValue())
-                        .newExpenseId(expenseId.longValue())
-                        .budgetIdsToRemove(budgetIdsToRemove)
+                        .expenseIds(expenseIdList)
+                        .budgetIdsToRemove(Collections.singletonList(budget.getId().longValue()))
                         .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                         .build();
 
                 kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+                kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
                 eventCount++;
 
-                log.debug("Published budget removal event for expenseId={}, budgetsToRemove={}",
-                        expenseId, budgetIdsToRemove.size());
+                log.debug("Published batch removal event for budget={}, expenses={}",
+                        budget.getId(), expenseIds.size());
 
             } catch (Exception e) {
-                log.error("Failed to publish budget removal event for expenseId={}: {}",
-                        expenseId, e.getMessage());
+                log.error("Failed to publish batch removal event for budget={}: {}",
+                        budget.getId(), e.getMessage());
             }
         }
 
         log.info("====== Async Budget Removal Completed ======");
-        log.info("Published {} events to remove {} budgets from {} expenses",
-                eventCount, budgetIdsToRemove.size(), allExpenseIds.size());
+        log.info("Published {} batch events to remove {} budgets' expenses",
+                eventCount, budgets.size());
     }
 }
