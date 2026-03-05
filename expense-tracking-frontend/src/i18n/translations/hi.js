@@ -627,6 +627,7 @@ export const hi = {
       expandAria: "चयन आँकड़े विस्तारित करें",
       clear: "साफ़ करें",
       clearSelection: "चयन साफ़ करें",
+      clearAll: "सभी साफ़ करें",
     },
     deletion: {
       header: "हटाने की पुष्टि",

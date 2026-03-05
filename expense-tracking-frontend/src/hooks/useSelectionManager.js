@@ -135,6 +135,7 @@ export default function useSelectionManager({ chartData, activeRange }) {
     setSelectedBars([]);
     setSelectedBar(null);
     setLastBarSelectedIdx(null);
+    setLastSelectedIdx(null);
     setSelectedCardIdx([]);
   }, []);
 

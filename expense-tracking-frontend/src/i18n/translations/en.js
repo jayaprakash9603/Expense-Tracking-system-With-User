@@ -197,6 +197,7 @@ export const en = {
       expandAria: "Expand selection stats",
       clear: "Clear",
       clearSelection: "Clear selection",
+      clearAll: "Clear All",
     },
     deletion: {
       header: "Deletion Confirmation",

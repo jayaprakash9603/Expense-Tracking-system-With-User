@@ -28,7 +28,10 @@ import GenericFlowLayout from "../../components/common/GenericFlowLayout";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { getExpenseAction } from "../../Redux/Expenses/expense.action";
 import { getBillByExpenseId } from "../../Redux/Bill/bill.action";
-import { setExpenseSelection } from "../../Redux/SharedSelection/sharedSelection.action";
+import {
+  setExpenseSelection,
+  clearAllSelections,
+} from "../../Redux/SharedSelection/sharedSelection.action";
 import {
   fetchFriendship,
   fetchFriendsDetailed,
@@ -159,6 +162,12 @@ const Cashflow = () => {
   const { t } = useTranslation();
 
   const selectedExpensesRedux = useSelector((state) => state.sharedSelection?.selectedExpenses || []);
+
+  // Wrapped clearSelection: clears both local state AND Redux so Redux->Local sync doesn't re-populate
+  const handleClearSelection = useCallback(() => {
+    clearSelection();
+    dispatch(clearAllSelections());
+  }, [clearSelection, dispatch]);
 
   // Sync Redux -> Local
   useEffect(() => {
@@ -328,7 +337,7 @@ const Cashflow = () => {
         setHoverBarIndex,
         handleBarClick,
         handleCardClick,
-        clearSelection,
+        clearSelection: handleClearSelection,
         selectionStats,
       }}
       deletion={{

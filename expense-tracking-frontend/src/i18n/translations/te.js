@@ -631,6 +631,7 @@ export const te = {
       expandAria: "ఎంపిక గణాంకాలను విస్తరించండి",
       clear: "క్లియర్ చేయండి",
       clearSelection: "ఎంపికను క్లియర్ చేయండి",
+      clearAll: "అన్నీ క్లియర్ చేయండి",
     },
     deletion: {
       header: "తొలగింపు నిర్ధారణ",

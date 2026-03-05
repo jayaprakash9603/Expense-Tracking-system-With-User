@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
@@ -14,8 +15,6 @@ import ProfileDropdown from "./ProfileDropdown";
 import { useTranslation } from "../../hooks/useTranslation";
 import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSlot";
 import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
-import ShareModal from "../sharing/ShareModal";
-import { clearAllSelections } from "../../Redux/SharedSelection/sharedSelection.action";
 
 /**
  * HeaderBar Component
@@ -24,12 +23,13 @@ import { clearAllSelections } from "../../Redux/SharedSelection/sharedSelection.
  */
 const HeaderBar = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { mode, colors } = useTheme();
   const { isMasking, toggleMasking } = useMasking();
   const maskingEnabled = isMasking();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const { t } = useTranslation();
 
   const isDark = mode === "dark";
@@ -42,7 +42,7 @@ const HeaderBar = () => {
     selectedBills: [],
     selectedBudgets: [],
   };
-  const totalSelectedItems = 
+  const totalSelectedItems =
     sharedSelection.selectedExpenses.length +
     sharedSelection.selectedCategories.length +
     sharedSelection.selectedPaymentMethods.length +
@@ -59,49 +59,80 @@ const HeaderBar = () => {
     });
   };
 
-  // Get full lists to map names for ShareModal
+  // Get full lists to map names for CreateSharePage
   const expenses = useSelector((state) => state.expenses?.expenses);
   const categories = useSelector((state) => state.categories?.categories);
   const budgets = useSelector((state) => state.budgets?.budgets);
 
-  const getPreSelectedItems = () => {
-    const items = [];
+  const handleShareClick = () => {
+    if (totalSelectedItems === 0) return;
+
     const expenseList = Array.isArray(expenses) ? expenses : expenses?.content || [];
     const categoryList = Array.isArray(categories) ? categories : categories?.content || [];
     const budgetList = Array.isArray(budgets) ? budgets : budgets?.content || [];
 
-    sharedSelection.selectedExpenses.forEach(id => {
-      const exp = expenseList.find(e => e.id === id);
-      items.push({
+    const expenseItems = sharedSelection.selectedExpenses.map((id) => {
+      const exp = expenseList.find((e) => e.id === id);
+      const details = exp?.expense || exp;
+      return {
+        internalId: id,
         id,
-        type: 'EXPENSE',
         externalRef: `EXPENSE_${id}`,
-        displayName: exp?.expense?.name || exp?.expense?.expenseName || `Expense #${id}`,
-      });
+        displayName: details?.name || details?.expenseName || `Expense #${id}`,
+        subtitle: details?.categoryName || details?.category?.name || "",
+        amount: details?.amount,
+        date: details?.date || details?.createdAt,
+      };
     });
 
-    sharedSelection.selectedCategories.forEach(id => {
-      const cat = categoryList.find(c => c.id === id);
-      items.push({
+    const categoryItems = sharedSelection.selectedCategories.map((id) => {
+      const cat = categoryList.find((c) => c.id === id);
+      return {
+        internalId: id,
         id,
-        type: 'CATEGORY',
         externalRef: `CATEGORY_${id}`,
         displayName: cat?.name || `Category #${id}`,
-      });
+      };
     });
 
-    sharedSelection.selectedBudgets.forEach(id => {
-      const budget = budgetList.find(b => b.id === id);
-      items.push({
+    const budgetItems = sharedSelection.selectedBudgets.map((id) => {
+      const budget = budgetList.find((b) => b.id === id);
+      return {
+        internalId: id,
         id,
-        type: 'BUDGET',
         externalRef: `BUDGET_${id}`,
         displayName: budget?.name || `Budget #${id}`,
-      });
+      };
     });
 
-    // We can also handle bills and payment methods if the backend supports them in the future.
-    return items;
+    // CreateSharePage supports one type at a time - use the type with most items
+    const typeCounts = {
+      EXPENSE: expenseItems.length,
+      CATEGORY: categoryItems.length,
+      BUDGET: budgetItems.length,
+    };
+    const preSelectedType =
+      typeCounts.EXPENSE >= typeCounts.CATEGORY && typeCounts.EXPENSE >= typeCounts.BUDGET
+        ? "EXPENSE"
+        : typeCounts.CATEGORY >= typeCounts.BUDGET
+          ? "CATEGORY"
+          : "BUDGET";
+
+    const preSelectedItems =
+      preSelectedType === "EXPENSE"
+        ? expenseItems
+        : preSelectedType === "CATEGORY"
+          ? categoryItems
+          : budgetItems;
+
+    navigate("/my-shares/create", {
+      state: {
+        preSelectedType,
+        preSelectedItems,
+        returnRoute: location.pathname,
+        returnRouteState: location.state,
+      },
+    });
   };
 
   return (
@@ -209,7 +240,7 @@ const HeaderBar = () => {
             <div className="relative">
               <button
                 id="header-share"
-                onClick={() => setIsShareModalOpen(true)}
+                onClick={handleShareClick}
                 className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
                 style={{
                   backgroundColor: colors.button_inactive,
@@ -288,18 +319,6 @@ const HeaderBar = () => {
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         onNotificationRead={setUnreadNotificationsCount}
-      />
-
-      {/* Share Modal */}
-      <ShareModal
-        open={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        preSelectedType="GROUPED"
-        preSelectedItems={getPreSelectedItems()}
-        onShareCreated={(data) => {
-          setIsShareModalOpen(false);
-          dispatch(clearAllSelections());
-        }}
       />
     </>
   );

@@ -262,6 +262,8 @@ const GenericFlowLayout = ({
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
         autocompleteOptions={autocompleteOptions}
+        clearSelection={clearSelection}
+        hasSelections={selectedCardIdx.length > 0 || selectedBars.length > 0}
       />
       <SortPopover
         open={popoverOpen}
