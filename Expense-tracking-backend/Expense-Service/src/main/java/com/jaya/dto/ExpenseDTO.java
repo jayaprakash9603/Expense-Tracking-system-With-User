@@ -16,6 +16,7 @@ public class ExpenseDTO {
     private String categoryColor;
     private String paymentMethodIcon;
     private String paymentMethodColor;
+    private Integer paymentMethodId;
     private ExpenseDetailsDTO expense;
     private boolean includeInBudget = false;
     private boolean isBill = false;
@@ -40,6 +41,8 @@ public class ExpenseDTO {
     public void setPaymentMethodIcon(String paymentMethodIcon) { this.paymentMethodIcon = paymentMethodIcon; }
     public String getPaymentMethodColor() { return paymentMethodColor; }
     public void setPaymentMethodColor(String paymentMethodColor) { this.paymentMethodColor = paymentMethodColor; }
+    public Integer getPaymentMethodId() { return paymentMethodId; }
+    public void setPaymentMethodId(Integer paymentMethodId) { this.paymentMethodId = paymentMethodId; }
     public ExpenseDetailsDTO getExpense() { return expense; }
     public void setExpense(ExpenseDetailsDTO expense) { this.expense = expense; }
     public boolean isIncludeInBudget() { return includeInBudget; }

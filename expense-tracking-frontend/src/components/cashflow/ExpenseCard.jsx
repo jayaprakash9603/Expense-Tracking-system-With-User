@@ -184,6 +184,44 @@ const ExpenseCard = React.memo(
       return `${window.location.origin}${routePath}`;
     }, [row, friendId, isFriendView]);
 
+    // Navigate to payment method analytics page (or payment method list if ID not available)
+    const handlePaymentMethodClick = useCallback(
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const paymentMethodId =
+          row.paymentMethodId ||
+          row.paymentMethod?.id ||
+          row.expense?.paymentMethodId;
+        if (paymentMethodId) {
+          const paymentPath = isFriendView
+            ? `/payment-method/view/${paymentMethodId}/friend/${friendId}`
+            : `/payment-method/view/${paymentMethodId}`;
+          navigate(paymentPath);
+        } else if (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment")) {
+          // Fallback: navigate to payment method list when ID not available
+          const listPath = isFriendView
+            ? `/payment-method/${friendId}`
+            : "/payment-method";
+          navigate(listPath);
+        }
+      },
+      [row, friendId, isFriendView, navigate, rawPaymentMethod, t],
+    );
+
+    // Generate full URL for payment method tooltip
+    const getPaymentMethodUrl = useCallback(() => {
+      const paymentMethodId =
+        row.paymentMethodId ||
+        row.paymentMethod?.id ||
+        row.expense?.paymentMethodId;
+      if (!paymentMethodId) return "";
+      const routePath = isFriendView
+        ? `/payment-method/view/${paymentMethodId}/friend/${friendId}`
+        : `/payment-method/view/${paymentMethodId}`;
+      return `${window.location.origin}${routePath}`;
+    }, [row, friendId, isFriendView]);
+
     return (
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
@@ -370,10 +408,36 @@ const ExpenseCard = React.memo(
               </span>
             </div>
             <div
-              className="flex items-center gap-1 min-w-0 flex-1"
-              title={t("cashflow.tooltips.paymentMethod", {
-                method: paymentMethodName,
-              })}
+              className="flex items-center gap-1 min-w-0 flex-1 category-link"
+              title={
+                getPaymentMethodUrl() ||
+                t("cashflow.tooltips.paymentMethod", {
+                  method: paymentMethodName,
+                })
+              }
+              onClick={handlePaymentMethodClick}
+              style={{
+                cursor:
+                  row.paymentMethodId ||
+                  row.paymentMethod?.id ||
+                  row.expense?.paymentMethodId ||
+                  (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment"))
+                    ? "pointer"
+                    : "default",
+              }}
+              onMouseEnter={(e) => {
+                if (
+                  row.paymentMethodId ||
+                  row.paymentMethod?.id ||
+                  row.expense?.paymentMethodId ||
+                  (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment"))
+                ) {
+                  e.currentTarget.style.textDecoration = "underline";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.textDecoration = "none";
+              }}
             >
               {getPaymentMethodIcon(paymentMethodIconKey, {
                 sx: { fontSize: 13, color: colors.secondary_accent },
