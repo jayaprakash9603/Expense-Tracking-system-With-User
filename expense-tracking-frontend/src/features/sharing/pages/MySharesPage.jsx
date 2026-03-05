@@ -88,6 +88,7 @@ import {
   regenerateQr,
 } from "../../../Redux/Shares/shares.actions";
 import QrDisplayScreen from "../../../components/sharing/QrDisplayScreen";
+import BackButton from "../../../components/common/BackButton";
 // ShareModal removed - now using CreateSharePage route
 
 // =============================================================================
@@ -747,6 +748,7 @@ const MySharesPage = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <BackButton onClick={() => navigate(-1)} />
           <Typography
             variant="h3"
             sx={{

@@ -74,6 +74,7 @@ import {
   getShareQr,
 } from "../../../Redux/Shares/shares.actions";
 import QrDisplayScreen from "../../../components/sharing/QrDisplayScreen";
+import BackButton from "../../../components/common/BackButton";
 
 // =============================================================================
 // Constants
@@ -767,6 +768,7 @@ const PublicSharesPage = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <BackButton onClick={() => navigate(-1)} />
           <PublicIcon sx={{ fontSize: 28, color: colors.accent }} />
           <Typography
             variant="h3"
