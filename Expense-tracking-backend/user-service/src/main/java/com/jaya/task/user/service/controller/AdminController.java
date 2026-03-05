@@ -1,5 +1,6 @@
 package com.jaya.task.user.service.controller;
 
+import com.jaya.task.user.service.dto.AdminUserSearchDTO;
 import com.jaya.task.user.service.dto.UserStatsDTO;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.UserRepository;
@@ -207,6 +208,48 @@ public class AdminController {
         log.info("Fetching user statistics");
         UserStatsDTO stats = adminAnalyticsService.getUserStats();
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/users/search")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
+    public ResponseEntity<List<AdminUserSearchDTO>> searchUsers(
+            @RequestParam("query") String query,
+            @RequestParam(value = "limit", defaultValue = "20") int limit,
+            @RequestHeader("Authorization") String jwt) {
+        try {
+            if (query == null || query.trim().length() < 2) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            String queryLower = query.trim().toLowerCase();
+            log.info("Admin user search: query='{}', limit={}", queryLower, limit);
+
+            List<AdminUserSearchDTO> results = userService.getAllUsers().stream()
+                    .filter(user -> {
+                        String fullName = user.getFullName() != null ? user.getFullName().toLowerCase() : "";
+                        String email = user.getEmail() != null ? user.getEmail().toLowerCase() : "";
+                        String username = user.getUsername() != null ? user.getUsername().toLowerCase() : "";
+                        return fullName.contains(queryLower)
+                                || email.contains(queryLower)
+                                || username.contains(queryLower);
+                    })
+                    .limit(limit)
+                    .map(user -> AdminUserSearchDTO.builder()
+                            .id(user.getId())
+                            .fullName(user.getFullName())
+                            .email(user.getEmail())
+                            .profileImage(user.getProfileImage())
+                            .roles(user.getRoles())
+                            .currentMode(user.getCurrentMode())
+                            .createdAt(user.getCreatedAt())
+                            .build())
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            log.error("Failed to search users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(List.of());
+        }
     }
 
     @GetMapping("/all")

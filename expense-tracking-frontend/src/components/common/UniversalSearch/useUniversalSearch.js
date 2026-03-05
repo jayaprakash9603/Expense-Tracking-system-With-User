@@ -91,6 +91,7 @@ export const useUniversalSearch = () => {
     bills: [],
     paymentMethods: [],
     friends: [],
+    users: [],
   });
 
   // Refs for debouncing and request management
@@ -175,6 +176,7 @@ export const useUniversalSearch = () => {
       bills: [],
       paymentMethods: [],
       friends: [],
+      users: [],
     });
 
     // Cancel any pending requests
@@ -190,15 +192,22 @@ export const useUniversalSearch = () => {
    */
   const performLocalSearch = useCallback(
     (searchQuery) => {
+      const emptyResults = {
+        expenses: [],
+        budgets: [],
+        categories: [],
+        bills: [],
+        paymentMethods: [],
+        friends: [],
+        users: [],
+      };
+
       if (!searchQuery || searchQuery.length < 2) {
-        return {
-          expenses: [],
-          budgets: [],
-          categories: [],
-          bills: [],
-          paymentMethods: [],
-          friends: [],
-        };
+        return emptyResults;
+      }
+
+      if (currentMode === SEARCH_MODES.ADMIN) {
+        return emptyResults;
       }
 
       const queryLower = searchQuery.toLowerCase();
@@ -370,6 +379,7 @@ export const useUniversalSearch = () => {
         bills: matchedBills,
         paymentMethods: matchedPaymentMethods,
         friends: matchedFriends,
+        users: [],
       };
     },
     [
@@ -381,6 +391,7 @@ export const useUniversalSearch = () => {
       friends,
       formatAmount,
       formatDateForSearch,
+      currentMode,
     ],
   );
 
@@ -407,7 +418,8 @@ export const useUniversalSearch = () => {
         const response = await api.get(SEARCH_API_ENDPOINT, {
           params: {
             q: searchQuery,
-            limit: 20, // Limit per section - increased for comprehensive results
+            limit: 20,
+            mode: currentMode,
           },
           signal: abortControllerRef.current.signal,
         });
@@ -497,6 +509,15 @@ export const useUniversalSearch = () => {
               metadata: friend.metadata || {},
               route: getRouteForResult(SEARCH_TYPES.FRIEND, friend.id),
             })),
+            users: (response.data.users || []).map((user) => ({
+              id: user.id,
+              type: SEARCH_TYPES.USER,
+              title: user.title || user.metadata?.fullName || "User",
+              subtitle: user.subtitle || user.metadata?.email || "",
+              icon: user.icon || user.metadata?.profileImage,
+              metadata: user.metadata || {},
+              route: getRouteForResult(SEARCH_TYPES.USER, user.id),
+            })),
           };
 
           setApiResults(transformedResults);
@@ -511,7 +532,7 @@ export const useUniversalSearch = () => {
         setApiLoading(false);
       }
     },
-    [formatAmount, formatDateForSearch],
+    [formatAmount, formatDateForSearch, currentMode],
   );
 
   /**
@@ -579,6 +600,7 @@ export const useUniversalSearch = () => {
       }
     };
 
+    addSortedResults(apiResults.users, "users");
     addSortedResults(apiResults.expenses, "expenses");
     addSortedResults(apiResults.budgets, "budgets");
     addSortedResults(apiResults.categories, "categories");

@@ -49,6 +49,7 @@ public class SearchController {
             @RequestParam(value = "minAmount", required = false) Double minAmount,
             @RequestParam(value = "maxAmount", required = false) Double maxAmount,
             @RequestParam(value = "targetId", required = false) Integer targetId,
+            @RequestParam(value = "mode", defaultValue = "USER") String mode,
             @RequestHeader("Authorization") String authToken) {
 
         
@@ -72,10 +73,11 @@ public class SearchController {
                 .minAmount(minAmount)
                 .maxAmount(maxAmount)
                 .targetId(targetId)
+                .mode(mode != null ? mode.toUpperCase() : "USER")
                 .build();
 
-        log.info("Search request received: query='{}', limit={}, sections={}",
-                query, limit, sections);
+        log.info("Search request received: query='{}', limit={}, sections={}, mode={}",
+                query, limit, sections, mode);
 
         
         UniversalSearchResponse response = searchService.search(request, authToken);

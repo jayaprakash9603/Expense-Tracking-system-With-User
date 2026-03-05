@@ -19,6 +19,7 @@ import {
   SECTION_ORDER,
   SECTION_LABELS,
   SEARCH_TYPES,
+  SEARCH_MODES,
 } from "./quickActions.config";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
 import { formatDate } from "../../../utils/dateFormatter";
@@ -39,6 +40,9 @@ const InlineSearchBar = () => {
   );
   const dateFormat = useSelector(
     (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
+  const currentMode = useSelector(
+    (state) => state.auth?.currentMode || SEARCH_MODES.USER,
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -319,7 +323,12 @@ const InlineSearchBar = () => {
               onFocus={handleFocus}
               onBlur={handleBlur}
               onKeyDown={handleLocalKeyDown}
-              placeholder={t("search.placeholder") || "Search..."}
+              placeholder={
+                currentMode === SEARCH_MODES.ADMIN
+                  ? t("search.placeholderAdmin") ||
+                    "Search users, admin actions..."
+                  : t("search.placeholder") || "Search..."
+              }
               sx={{
                 flex: 1,
                 fontSize: "13px",

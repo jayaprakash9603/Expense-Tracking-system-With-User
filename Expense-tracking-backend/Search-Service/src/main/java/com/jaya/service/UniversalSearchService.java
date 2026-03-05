@@ -44,6 +44,9 @@ public class UniversalSearchService {
     @Value("${services.friendship.url:http://localhost:6009}")
     private String friendshipServiceUrl;
 
+    @Value("${services.user.url:http://localhost:6001}")
+    private String userServiceUrl;
+
     @Value("${search.timeout-ms:3000}")
     private long searchTimeoutMs;
 
@@ -55,44 +58,50 @@ public class UniversalSearchService {
 
         String query = request.getQuery();
         int limit = request.getLimit() != null ? request.getLimit() : defaultLimit;
+        String mode = request.getMode() != null ? request.getMode() : "USER";
 
-        log.info("Starting universal search for query: '{}', limit: {}", query, limit);
-
-        Set<String> sectionsToSearch = parseSections(request.getSections());
+        log.info("Starting universal search for query: '{}', limit: {}, mode: {}", query, limit, mode);
 
         UniversalSearchResponse.UniversalSearchResponseBuilder responseBuilder = UniversalSearchResponse.builder()
                 .query(query);
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        if (sectionsToSearch.contains("expenses") || sectionsToSearch.isEmpty()) {
-            futures.add(searchExpenses(query, limit, authToken, request.getTargetId())
-                    .thenAccept(results -> responseBuilder.expenses(results)));
-        }
+        if ("ADMIN".equalsIgnoreCase(mode)) {
+            futures.add(searchUsers(query, limit, authToken)
+                    .thenAccept(results -> responseBuilder.users(results)));
+        } else {
+            Set<String> sectionsToSearch = parseSections(request.getSections());
 
-        if (sectionsToSearch.contains("budgets") || sectionsToSearch.isEmpty()) {
-            futures.add(searchBudgets(query, limit, authToken, request.getTargetId())
-                    .thenAccept(results -> responseBuilder.budgets(results)));
-        }
+            if (sectionsToSearch.contains("expenses") || sectionsToSearch.isEmpty()) {
+                futures.add(searchExpenses(query, limit, authToken, request.getTargetId())
+                        .thenAccept(results -> responseBuilder.expenses(results)));
+            }
 
-        if (sectionsToSearch.contains("categories") || sectionsToSearch.isEmpty()) {
-            futures.add(searchCategories(query, limit, authToken, request.getTargetId())
-                    .thenAccept(results -> responseBuilder.categories(results)));
-        }
+            if (sectionsToSearch.contains("budgets") || sectionsToSearch.isEmpty()) {
+                futures.add(searchBudgets(query, limit, authToken, request.getTargetId())
+                        .thenAccept(results -> responseBuilder.budgets(results)));
+            }
 
-        if (sectionsToSearch.contains("bills") || sectionsToSearch.isEmpty()) {
-            futures.add(searchBills(query, limit, authToken, request.getTargetId())
-                    .thenAccept(results -> responseBuilder.bills(results)));
-        }
+            if (sectionsToSearch.contains("categories") || sectionsToSearch.isEmpty()) {
+                futures.add(searchCategories(query, limit, authToken, request.getTargetId())
+                        .thenAccept(results -> responseBuilder.categories(results)));
+            }
 
-        if (sectionsToSearch.contains("payment_methods") || sectionsToSearch.isEmpty()) {
-            futures.add(searchPaymentMethods(query, limit, authToken, request.getTargetId())
-                    .thenAccept(results -> responseBuilder.paymentMethods(results)));
-        }
+            if (sectionsToSearch.contains("bills") || sectionsToSearch.isEmpty()) {
+                futures.add(searchBills(query, limit, authToken, request.getTargetId())
+                        .thenAccept(results -> responseBuilder.bills(results)));
+            }
 
-        if (sectionsToSearch.contains("friends") || sectionsToSearch.isEmpty()) {
-            futures.add(searchFriends(query, limit, authToken)
-                    .thenAccept(results -> responseBuilder.friends(results)));
+            if (sectionsToSearch.contains("payment_methods") || sectionsToSearch.isEmpty()) {
+                futures.add(searchPaymentMethods(query, limit, authToken, request.getTargetId())
+                        .thenAccept(results -> responseBuilder.paymentMethods(results)));
+            }
+
+            if (sectionsToSearch.contains("friends") || sectionsToSearch.isEmpty()) {
+                futures.add(searchFriends(query, limit, authToken)
+                        .thenAccept(results -> responseBuilder.friends(results)));
+            }
         }
 
         try {
@@ -295,6 +304,57 @@ public class UniversalSearchService {
                     return Mono.just(Collections.emptyList());
                 })
                 .toFuture();
+    }
+
+    private CompletableFuture<List<SearchResultDTO>> searchUsers(
+            String query, int limit, String authToken) {
+
+        return webClient.get()
+                .uri(userServiceUrl + "/api/admin/users/search", uriBuilder ->
+                        uriBuilder.queryParam("query", query)
+                                .queryParam("limit", limit)
+                                .build())
+                .header(HttpHeaders.AUTHORIZATION, authToken)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                })
+                .timeout(Duration.ofMillis(searchTimeoutMs))
+                .map(users -> mapUserResults(users, limit))
+                .onErrorResume(e -> {
+                    log.error("Error searching users: {}", e.getMessage());
+                    return Mono.just(Collections.emptyList());
+                })
+                .toFuture();
+    }
+
+    private List<SearchResultDTO> mapUserResults(List<Map<String, Object>> users, int limit) {
+        return users.stream()
+                .limit(limit)
+                .map(user -> {
+                    String fullName = (String) user.getOrDefault("fullName", "");
+                    String email = (String) user.getOrDefault("email", "");
+
+                    if (fullName == null || fullName.isEmpty()) {
+                        fullName = email.isEmpty() ? "User" : email;
+                    }
+
+                    Map<String, Object> metadata = new HashMap<>();
+                    metadata.put("email", email);
+                    metadata.put("profileImage", user.get("profileImage"));
+                    metadata.put("roles", user.get("roles"));
+                    metadata.put("currentMode", user.get("currentMode"));
+                    metadata.put("createdAt", user.get("createdAt"));
+
+                    return SearchResultDTO.builder()
+                            .id(String.valueOf(user.get("id")))
+                            .type(SearchResultType.USER)
+                            .title(fullName)
+                            .subtitle(email)
+                            .icon((String) user.get("profileImage"))
+                            .metadata(metadata)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     private List<SearchResultDTO> mapExpenseResultsWithCategories(

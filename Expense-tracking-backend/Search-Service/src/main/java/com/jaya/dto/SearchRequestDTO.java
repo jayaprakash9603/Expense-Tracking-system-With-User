@@ -63,4 +63,7 @@ public class SearchRequestDTO {
 
 
     private Integer targetId;
+
+    @Builder.Default
+    private String mode = "USER";
 }

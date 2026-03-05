@@ -69,6 +69,7 @@ public class SearchResultDTO {
         BILL,
         PAYMENT_METHOD,
         FRIEND,
+        USER,
         ACTION,
         REPORT,
         SETTING
