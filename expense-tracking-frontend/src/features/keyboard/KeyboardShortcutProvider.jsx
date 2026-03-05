@@ -61,7 +61,7 @@ export function useKeyboardShortcuts() {
 export function KeyboardShortcutProvider({ children }) {
   // User settings from Redux
   const userSettings = useSelector((state) => state.userSettings?.settings);
-  const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? true;
+  const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? false;
 
   // Registry instance
   const registryRef = useRef(new ShortcutRegistry());

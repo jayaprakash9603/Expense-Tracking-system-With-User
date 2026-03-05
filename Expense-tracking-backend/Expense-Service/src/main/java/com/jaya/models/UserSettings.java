@@ -151,11 +151,11 @@ public class UserSettings {
 
     @Column(name = "keyboard_shortcuts", nullable = false)
     @Builder.Default
-    private Boolean keyboardShortcuts = true;
+    private Boolean keyboardShortcuts = false;
 
     @Column(name = "show_shortcut_indicators", nullable = false)
     @Builder.Default
-    private Boolean showShortcutIndicators = true; 
+    private Boolean showShortcutIndicators = false; 
 
     @Column(name = "reduce_motion", nullable = false)
     @Builder.Default
@@ -218,8 +218,8 @@ public class UserSettings {
                 .predictiveAnalytics(false)
                 
                 .screenReader(false)
-                .keyboardShortcuts(true)
-                .showShortcutIndicators(true)
+                .keyboardShortcuts(false)
+                .showShortcutIndicators(false)
                 .reduceMotion(false)
                 .focusIndicators(false)
                 .build();

@@ -51,8 +51,8 @@ export const useSettingsState = (userSettings, showSnackbar) => {
 
     // Accessibility
     screenReader: false,
-    keyboardShortcuts: true,
-    showShortcutIndicators: true,
+    keyboardShortcuts: false,
+    showShortcutIndicators: false,
     reduceMotion: false,
     focusIndicators: false,
   });
@@ -100,8 +100,8 @@ export const useSettingsState = (userSettings, showSnackbar) => {
 
         // Accessibility
         screenReader: userSettings.screenReader ?? false,
-        keyboardShortcuts: userSettings.keyboardShortcuts ?? true,
-        showShortcutIndicators: userSettings.showShortcutIndicators ?? true,
+        keyboardShortcuts: userSettings.keyboardShortcuts ?? false,
+        showShortcutIndicators: userSettings.showShortcutIndicators ?? false,
         reduceMotion: userSettings.reduceMotion ?? false,
         focusIndicators: userSettings.focusIndicators ?? false,
       });
