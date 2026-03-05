@@ -23,7 +23,6 @@ import CashFlowChart from "../../components/CashFlowChart";
 import CashFlowExpenseCards from "../../components/cashflow/CashFlowExpenseCards";
 import SelectionSummaryBar from "../../components/cashflow/SelectionSummaryBar";
 import DeleteSelectedButton from "../../components/cashflow/DeleteSelectedButton";
-import ShareSelectedButton from "../../components/cashflow/ShareSelectedButton";
 import GenericFlowLayout from "../../components/common/GenericFlowLayout";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { getExpenseAction } from "../../Redux/Expenses/expense.action";
@@ -424,7 +423,7 @@ const Cashflow = () => {
         CardsComponent: MemoizedCashFlowExpenseCards,
         SummaryBar: SelectionSummaryBar,
         DeleteSelectedButton: DeleteSelectedButton,
-        ShareSelectedButton: ShareSelectedButton,
+        ShareSelectedButton: null,
       }}
       // Extra props for CardsComponent (passed through GenericFlowLayout)
       cardsExtraProps={{
@@ -454,35 +453,6 @@ const Cashflow = () => {
             ),
             selectedCardIdx.length,
           ),
-      }}
-      // Extra props for ShareSelectedButton
-      shareButtonExtraProps={{
-        count: selectedCardIdx.length,
-        selectedItems: selectedCardIdx.map((idx) => {
-          const expense = sortedCardData[idx];
-          return {
-            internalId: expense?.id || expense?.expenseId,
-            externalRef:
-              expense?.externalRef ||
-              `EXP-${expense?.id || expense?.expenseId}`,
-            displayName:
-              expense?.name ||
-              expense?.description ||
-              `Expense #${expense?.id || expense?.expenseId}`,
-            subtitle: expense?.categoryName || expense?.category?.name || "",
-            amount: expense?.amount,
-            date: expense?.date || expense?.createdAt,
-          };
-        }),
-        resourceType: "EXPENSE",
-        // Pass current flow state for return navigation
-        returnRouteState: {
-          activeRange,
-          offset,
-          flowTab,
-          search: searchInput,
-          selectedCardIdx,
-        },
       }}
       formatters={{
         formatCompactNumber,

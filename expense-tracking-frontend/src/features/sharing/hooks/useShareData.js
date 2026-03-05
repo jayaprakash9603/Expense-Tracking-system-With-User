@@ -22,6 +22,8 @@ import {
 } from "../../../Redux/Expenses/expense.action";
 import { fetchCategories } from "../../../Redux/Category/categoryActions";
 import { getBudgetData } from "../../../Redux/Budget/budget.action";
+import { fetchAllPaymentMethods } from "../../../Redux/Payment Method/paymentMethod.action";
+import { fetchAllBills } from "../../../Redux/Bill/bill.action";
 import { createShare, clearShareError } from "../../../Redux/Shares/shares.actions";
 import { fetchFriends } from "../../../Redux/Friends/friendsActions";
 
@@ -30,21 +32,15 @@ import { fetchFriends } from "../../../Redux/Friends/friendsActions";
 // =============================================================================
 
 export const DATA_TYPE_OPTIONS = [
+  { value: "EXPENSE", label: "Expenses", description: "Share expense records" },
+  { value: "CATEGORY", label: "Categories", description: "Share categories" },
   {
-    value: "EXPENSE",
-    label: "Expenses",
-    description: "Share expense records",
+    value: "PAYMENT_METHOD",
+    label: "Payment Methods",
+    description: "Share payment methods",
   },
-  {
-    value: "CATEGORY",
-    label: "Categories",
-    description: "Share categories",
-  },
-  {
-    value: "BUDGET",
-    label: "Budgets",
-    description: "Share budget plans",
-  },
+  { value: "BILL", label: "Bills", description: "Share bills" },
+  { value: "BUDGET", label: "Budgets", description: "Share budget plans" },
 ];
 
 export const EXPIRY_OPTIONS = [
@@ -111,6 +107,10 @@ const useShareData = () => {
   } = useSelector((state) => state.expenses);
   const { categories = [] } = useSelector((state) => state.categories);
   const { budgets = [] } = useSelector((state) => state.budgets);
+  const { paymentMethods = [] } = useSelector(
+    (state) => state.paymentMethod || {},
+  );
+  const { bills = [] } = useSelector((state) => state.bill || {});
   const { createShareLoading, createShareError, currentShare } = useSelector(
     (state) => state.shares,
   );
@@ -153,21 +153,21 @@ const useShareData = () => {
   useEffect(() => {
     // Only fetch data if we're NOT in pre-selected mode
     if (!hasPreSelectedItems) {
-      // Reset and fetch first page of expenses
       dispatch(resetPaginatedExpenses());
       dispatch(getPaginatedExpensesAction(0, 100, "desc"));
       dispatch(fetchCategories());
       dispatch(getBudgetData());
+      dispatch(fetchAllPaymentMethods());
+      dispatch(fetchAllBills());
     } else {
-      // Still fetch categories and budgets for other tabs
       dispatch(fetchCategories());
       dispatch(getBudgetData());
+      dispatch(fetchAllPaymentMethods());
+      dispatch(fetchAllBills());
     }
 
-    // Fetch friends for visibility selection
     dispatch(fetchFriends());
 
-    // Cleanup on unmount
     return () => {
       dispatch(resetPaginatedExpenses());
     };
@@ -242,8 +242,14 @@ const useShareData = () => {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    const types = ["EXPENSE", "CATEGORY", "BUDGET"];
-    setResourceType(types[activeTab]);
+    const types = [
+      "EXPENSE",
+      "CATEGORY",
+      "PAYMENT_METHOD",
+      "BILL",
+      "BUDGET",
+    ];
+    setResourceType(types[activeTab] || "EXPENSE");
     // Only clear selection when switching tabs manually (not in pre-selected mode)
     if (initialLoadDone && !hasPreSelectedItems) {
       setSelectedItems([]);
@@ -300,6 +306,10 @@ const useShareData = () => {
     const budgetList = Array.isArray(budgets)
       ? budgets
       : budgets?.content || [];
+    const pmList = Array.isArray(paymentMethods)
+      ? paymentMethods
+      : paymentMethods?.content || [];
+    const billList = Array.isArray(bills) ? bills : bills?.content || [];
 
     switch (resourceType) {
       case "EXPENSE":
@@ -325,12 +335,39 @@ const useShareData = () => {
           subtitle: `${cat.expenseCount || 0} expenses`,
           type: "CATEGORY",
         }));
+      case "PAYMENT_METHOD":
+        return pmList.map((pm) => ({
+          id: pm.id,
+          externalRef: pm.externalRef || `PM_${pm.id}_${pm.name}`,
+          displayName: pm.name || pm.paymentMethodName || `Payment #${pm.id}`,
+          subtitle: pm.categoryId
+            ? `Category ID: ${pm.categoryId}`
+            : "Payment method",
+          type: "PAYMENT_METHOD",
+        }));
+      case "BILL":
+        return billList.map((bill) => {
+          const details = bill.expense || bill.details || bill;
+          return {
+            id: bill.id,
+            externalRef: bill.externalRef || `BILL_${bill.id}`,
+            displayName:
+              details?.name ||
+              details?.expenseName ||
+              bill?.billName ||
+              `Bill #${bill.id}`,
+            subtitle: `${bill.date || details?.date || ""} - ₹${bill.amount ?? details?.amount ?? 0}`,
+            amount: bill.amount ?? details?.amount,
+            date: bill.date || details?.date,
+            type: "BILL",
+          };
+        });
       case "BUDGET":
         return budgetList.map((budget) => ({
           id: budget.id,
           externalRef: budget.externalRef || `BUD_${budget.id}_${budget.name}`,
           displayName: budget.name,
-          subtitle: `$${budget.amount} - ${budget.period || "Monthly"}`,
+          subtitle: `₹${budget.amount} - ${budget.period || "Monthly"}`,
           type: "BUDGET",
         }));
       default:
@@ -341,6 +378,8 @@ const useShareData = () => {
     paginatedExpenses,
     categories,
     budgets,
+    paymentMethods,
+    bills,
     hasPreSelectedItems,
     preSelectedItems,
     preSelectedType,

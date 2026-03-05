@@ -39,6 +39,7 @@ import {
   Check as CheckIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
+import BackButton from "../../../components/common/BackButton";
 import useShareData, {
   STEPS,
   DATA_TYPE_OPTIONS,
@@ -148,6 +149,7 @@ const CreateSharePage = () => {
           <ShareDataSelector
             activeTab={activeTab}
             resourceType={resourceType}
+            filterOptions={resourceType === "EXPENSE"}
             selectedItems={selectedItems}
             searchTerm={searchTerm}
             filteredItems={filteredItems}
@@ -238,38 +240,18 @@ const CreateSharePage = () => {
           }}
         >
           {/* Left: Back button */}
-          <IconButton
+          <BackButton
+            onClick={navigateToReturnRoute}
             sx={{
-              color: colors.primary_accent,
-              backgroundColor: colors.primary_bg,
+              width: 40,
+              height: 40,
+              flexShrink: 0,
               border: `1px solid ${colors.border_color}`,
               "&:hover": {
-                backgroundColor: colors.hover_bg,
                 borderColor: colors.primary_accent,
               },
-              width: 32,
-              height: 32,
-              flexShrink: 0,
             }}
-            onClick={navigateToReturnRoute}
-            aria-label="Back"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15 18L9 12L15 6"
-                stroke={colors.primary_accent}
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </IconButton>
+          />
 
           {/* Center: Full-Width Stepper - Equally Distributed */}
           <Box

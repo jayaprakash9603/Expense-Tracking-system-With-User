@@ -8,8 +8,13 @@
  * - See selected items summary
  * - Generate the QR code
  *
+ * UI/UX Improvements:
+ * - Structured, visually appealing detail cards
+ * - Scrollable, clean list of selected items
+ * - High-contrast summaries for better readability
+ *
  * @author Expense Tracking System
- * @version 1.1
+ * @version 2.0
  * =============================================================================
  */
 
@@ -19,14 +24,20 @@ import {
   Typography,
   Paper,
   Grid,
-  Chip,
   Alert,
   Avatar,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Receipt as ReceiptIcon,
   Category as CategoryIcon,
   AccountBalance as BudgetIcon,
+  CreditCard as PaymentMethodIcon,
+  Description as BillIcon,
   Lock as LockIcon,
   LockOpen as LockOpenIcon,
   Schedule as ScheduleIcon,
@@ -34,6 +45,7 @@ import {
   Public as PublicIcon,
   People as PeopleIcon,
   PersonAdd as PersonAddIcon,
+  Badge as BadgeIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -44,6 +56,8 @@ import { useTheme } from "../../hooks/useTheme";
 const ICONS = {
   EXPENSE: <ReceiptIcon />,
   CATEGORY: <CategoryIcon />,
+  PAYMENT_METHOD: <PaymentMethodIcon />,
+  BILL: <BillIcon />,
   BUDGET: <BudgetIcon />,
 };
 
@@ -60,6 +74,67 @@ const VISIBILITY_LABELS = {
   FRIENDS_ONLY: "Friends Only",
   SPECIFIC_USERS: "Specific Friends",
 };
+
+// =============================================================================
+// Helper Component for Details
+// =============================================================================
+
+const DetailCard = ({ icon, title, value, valueColor, isDark, colors }) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 2,
+      p: 2,
+      borderRadius: "16px",
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}`,
+      height: "100%",
+    }}
+  >
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 40,
+        height: 40,
+        borderRadius: "12px",
+        backgroundColor: `${colors.primary_accent}15`,
+        color: colors.primary_accent,
+        flexShrink: 0,
+        "& svg": { fontSize: 20 },
+      }}
+    >
+      {icon}
+    </Box>
+    <Box>
+      <Typography
+        variant="caption"
+        sx={{
+          color: colors.secondary_text,
+          textTransform: "uppercase",
+          fontWeight: 600,
+          letterSpacing: "0.5px",
+          display: "block",
+          mb: 0.5,
+        }}
+      >
+        {title}
+      </Typography>
+      <Typography
+        variant="body1"
+        sx={{
+          color: valueColor || colors.primary_text,
+          fontWeight: 600,
+          lineHeight: 1.3,
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  </Box>
+);
 
 // =============================================================================
 // Component
@@ -83,247 +158,205 @@ const ShareReviewStep = ({
   const { colors, isDark } = useTheme();
 
   const dataTypeLabel =
-    dataTypeOptions.find((o) => o.value === resourceType)?.label ||
-    resourceType;
+    dataTypeOptions.find((o) => o.value === resourceType)?.label || resourceType;
 
   const expiryLabel =
     expiryOption === "custom"
       ? customExpiry
-        ? new Date(customExpiry).toLocaleDateString()
+        ? new Date(customExpiry).toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
         : "Custom date"
       : expiryOption === "never"
         ? "Never expires"
-        : expiryOptions.find((o) => o.value === expiryOption)?.label ||
-          expiryOption;
+        : expiryOptions.find((o) => o.value === expiryOption)?.label || expiryOption;
 
   return (
-    <Box>
-      <Typography
-        variant="h6"
-        gutterBottom
-        sx={{ color: colors.primary_text, mb: 1 }}
-      >
-        Review Your Share
-      </Typography>
-      <Typography sx={{ mb: 3, color: colors.secondary_text }}>
-        Confirm the details below and generate your QR code.
-      </Typography>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ color: colors.primary_text, fontWeight: 700, mb: 1 }}>
+          Review & Generate
+        </Typography>
+        <Typography sx={{ color: colors.secondary_text, fontSize: "0.95rem" }}>
+          Please review your share configurations before generating the QR code.
+        </Typography>
+      </Box>
 
-      {/* Summary Card */}
-      <Paper
-        variant="outlined"
-        sx={{
-          p: 3,
-          backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
-          borderColor: isDark ? "#333333" : colors.border,
-          borderRadius: 2,
-          mb: 3,
-        }}
-      >
-        <Grid container spacing={3}>
-          {/* Share Name */}
-          {shareName && (
-            <Grid item xs={12} sm={6}>
-              <Typography
-                variant="caption"
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        {/* Share Name */}
+        {shareName && (
+          <Grid item xs={12} sm={6} md={4}>
+            <DetailCard
+              icon={<BadgeIcon />}
+              title="Share Name"
+              value={shareName}
+              isDark={isDark}
+              colors={colors}
+            />
+          </Grid>
+        )}
+
+        {/* Data Type */}
+        <Grid item xs={12} sm={6} md={4}>
+          <DetailCard
+            icon={ICONS[resourceType] || ICONS.EXPENSE}
+            title="Data Type"
+            value={dataTypeLabel}
+            isDark={isDark}
+            colors={colors}
+          />
+        </Grid>
+
+        {/* Permission */}
+        <Grid item xs={12} sm={6} md={4}>
+          <DetailCard
+            icon={permission === "VIEW" ? <LockIcon /> : <LockOpenIcon />}
+            title="Permission"
+            value={permission === "VIEW" ? "View Only" : "Edit Access"}
+            valueColor={permission === "VIEW" ? undefined : colors.primary_accent}
+            isDark={isDark}
+            colors={colors}
+          />
+        </Grid>
+
+        {/* Expiry */}
+        <Grid item xs={12} sm={6} md={4}>
+          <DetailCard
+            icon={<ScheduleIcon />}
+            title="Expires In"
+            value={expiryLabel}
+            isDark={isDark}
+            colors={colors}
+          />
+        </Grid>
+
+        {/* Visibility */}
+        <Grid item xs={12} sm={6} md={4}>
+          <DetailCard
+            icon={VISIBILITY_ICONS[visibility] || <LinkIcon />}
+            title="Visibility"
+            value={VISIBILITY_LABELS[visibility] || visibility}
+            isDark={isDark}
+            colors={colors}
+          />
+        </Grid>
+      </Grid>
+
+      {/* Specific Friends Section */}
+      {visibility === "SPECIFIC_USERS" && selectedFriends?.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ color: colors.primary_text, fontWeight: 600, mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}
+          >
+            Shared With ({selectedFriends.length} friend{selectedFriends.length > 1 ? "s" : ""})
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+            {selectedFriends.map((friend) => (
+              <Box
+                key={friend.id}
                 sx={{
-                  color: colors.secondary_text,
-                  textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  p: 1,
+                  pr: 2,
+                  borderRadius: "50px",
+                  backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
+                  border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
                 }}
               >
-                Share Name
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
-              >
-                {shareName}
-              </Typography>
-            </Grid>
-          )}
-
-          {/* Data Type */}
-          <Grid item xs={12} sm={6}>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
-            >
-              Data Type
-            </Typography>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
-            >
-              <Box sx={{ color: colors.primary, "& svg": { fontSize: 20 } }}>
-                {ICONS[resourceType]}
+                <Avatar src={friend.image} sx={{ width: 28, height: 28, fontSize: "0.8rem", bgcolor: colors.primary_accent }}>
+                  {friend.firstName?.[0] || friend.email?.[0]}
+                </Avatar>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: colors.primary_text }}>
+                  {`${friend.firstName || ""} ${friend.lastName || ""}`.trim() || friend.email}
+                </Typography>
               </Box>
-              <Typography
-                variant="body1"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
-              >
-                {dataTypeLabel}
-              </Typography>
-            </Box>
-          </Grid>
+            ))}
+          </Box>
+        </Box>
+      )}
 
-          {/* Items Count */}
-          <Grid item xs={12} sm={6}>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
-            >
-              Selected Items
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: colors.primary_text, fontWeight: 500 }}
-            >
-              {selectedItems.length} item{selectedItems.length !== 1 ? "s" : ""}
-            </Typography>
-          </Grid>
-
-          {/* Permission */}
-          <Grid item xs={12} sm={6}>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
-            >
-              Permission
-            </Typography>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
-            >
-              {permission === "VIEW" ? (
-                <LockIcon sx={{ fontSize: 20, color: colors.primary }} />
-              ) : (
-                <LockOpenIcon sx={{ fontSize: 20, color: colors.primary }} />
-              )}
-              <Typography
-                variant="body1"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
-              >
-                {permission === "VIEW" ? "View Only" : "Edit Access"}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Expiry */}
-          <Grid item xs={12} sm={6}>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
-            >
-              Expires In
-            </Typography>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
-            >
-              <ScheduleIcon sx={{ fontSize: 20, color: colors.primary }} />
-              <Typography
-                variant="body1"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
-              >
-                {expiryLabel}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Visibility */}
-          <Grid item xs={12} sm={6}>
-            <Typography
-              variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase" }}
-            >
-              Visibility
-            </Typography>
-            <Box
-              sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}
-            >
-              <Box sx={{ color: colors.primary, "& svg": { fontSize: 20 } }}>
-                {VISIBILITY_ICONS[visibility] || <LinkIcon />}
-              </Box>
-              <Typography
-                variant="body1"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
-              >
-                {VISIBILITY_LABELS[visibility] || visibility}
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Selected Friends (if SPECIFIC_USERS) */}
-          {visibility === "SPECIFIC_USERS" && selectedFriends?.length > 0 && (
-            <Grid item xs={12}>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: colors.secondary_text,
-                  textTransform: "uppercase",
-                }}
-              >
-                Shared With
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                {selectedFriends.map((friend) => (
-                  <Chip
-                    key={friend.id}
-                    avatar={
-                      <Avatar src={friend.image} sx={{ width: 24, height: 24 }}>
-                        {friend.firstName?.[0] || friend.email?.[0]}
-                      </Avatar>
-                    }
-                    label={
-                      `${friend.firstName || ""} ${friend.lastName || ""}`.trim() ||
-                      friend.email
-                    }
-                    size="small"
-                    sx={{
-                      backgroundColor: isDark ? "#2a2a2a" : colors.card_bg,
+      {/* Selected Items List */}
+      <Box sx={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            color: colors.primary_text,
+            fontWeight: 600,
+            mb: 1.5,
+            textTransform: "uppercase",
+            letterSpacing: "0.5px",
+          }}
+        >
+          Selected Items to Share ({selectedItems.length})
+        </Typography>
+        <Paper
+          variant="outlined"
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            backgroundColor: isDark ? "rgba(0,0,0,0.2)" : "#ffffff",
+            borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.1)",
+            borderRadius: "16px",
+            "&::-webkit-scrollbar": { width: "6px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+            "&::-webkit-scrollbar-thumb": {
+              background: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
+              borderRadius: "3px",
+            },
+          }}
+        >
+          <List disablePadding>
+            {selectedItems.map((item, index) => (
+              <React.Fragment key={item.externalRef}>
+                <ListItem sx={{ px: 2.5, py: 1.5 }}>
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "8px",
+                        backgroundColor: `${colors.primary_accent}15`,
+                        color: colors.primary_accent,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        "& svg": { fontSize: 18 },
+                      }}
+                    >
+                      {ICONS[resourceType] || ICONS.EXPENSE}
+                    </Box>
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.displayName}
+                    secondary={item.subtitle}
+                    primaryTypographyProps={{
+                      variant: "body2",
+                      fontWeight: 600,
                       color: colors.primary_text,
-                      border: `1px solid ${isDark ? "#444" : colors.border}`,
+                    }}
+                    secondaryTypographyProps={{
+                      variant: "caption",
+                      color: colors.secondary_text,
                     }}
                   />
-                ))}
-              </Box>
-            </Grid>
-          )}
-        </Grid>
-      </Paper>
-
-      {/* Selected Items Preview */}
-      <Typography
-        variant="subtitle1"
-        sx={{ color: colors.primary_text, mb: 2, fontWeight: 600 }}
-      >
-        Items to Share:
-      </Typography>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-        {selectedItems.slice(0, 10).map((item) => (
-          <Chip
-            key={item.externalRef}
-            label={item.displayName}
-            size="small"
-            sx={{
-              backgroundColor: colors.primary,
-              color: "#fff",
-            }}
-          />
-        ))}
-        {selectedItems.length > 10 && (
-          <Chip
-            label={`+${selectedItems.length - 10} more`}
-            size="small"
-            sx={{
-              backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
-              color: colors.primary_text,
-              border: `1px solid ${isDark ? "#333333" : colors.border}`,
-            }}
-          />
-        )}
+                </ListItem>
+                {index < selectedItems.length - 1 && (
+                  <Divider sx={{ borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)" }} />
+                )}
+              </React.Fragment>
+            ))}
+          </List>
+        </Paper>
       </Box>
 
       {/* Error Display */}
       {(error || createShareError) && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity="error" sx={{ mt: 3, borderRadius: "12px", flexShrink: 0 }}>
           {error || createShareError}
         </Alert>
       )}
