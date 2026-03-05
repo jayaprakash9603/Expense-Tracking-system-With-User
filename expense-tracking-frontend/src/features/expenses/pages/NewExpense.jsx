@@ -48,12 +48,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const noOptionsText = t("newExpense.autocomplete.noOptions");
   const closeLabel = t("common.close");
 
-  // Dynamic styles based on theme
-  const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2`;
+  // Dynamic styles based on theme (responsive: full width on mobile/tablet, 300px on large)
+  const fieldStyles = `px-3 py-2 rounded w-full text-base max-w-full lg:max-w-[300px] border-0 focus:outline-none focus:ring-2`;
   const fieldHeight = "48px"; // Consistent height for all form fields
   const inputWrapper = {
-    width: "150px",
-    minWidth: "150px",
     display: "flex",
     alignItems: "center",
   };
@@ -451,10 +449,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
     const placeholderText = getPlaceholderForField(id, labelText);
 
     return (
-      <div className="flex flex-col flex-1">
-        <div className="flex items-start relative">
+      <div className="flex flex-col flex-1 w-full">
+        <div className="flex flex-col lg:flex-row lg:items-start relative gap-2 lg:gap-0">
           <label
             htmlFor={id}
+            className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
             style={{
               ...inputWrapper,
               color: colors.primary_text,
@@ -469,12 +468,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
             ) && <span className="text-red-500"> *</span>}
           </label>
           <div
-            className="relative flex-1"
-            style={{ maxWidth: isTextarea ? "100%" : "300px" }}
+            className="relative flex-1 w-full max-w-full lg:max-w-[300px]"
           >
             {id === "comments" && autoFilledFields.comments && (
               <div
-                className="absolute top-[-20px] left-[300px]"
+                className="absolute top-[-20px] right-0 lg:right-auto lg:left-[300px]"
                 style={{
                   background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
                   color: colors.button_text,
@@ -549,10 +547,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const renderSelect = (id, options) => {
     const labelText = getFieldLabel(id);
     return (
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center">
+      <div className="flex flex-col flex-1 w-full">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
           <label
             htmlFor={id}
+            className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
             style={{
               ...inputWrapper,
               color: colors.primary_text,
@@ -562,6 +561,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           >
             {labelText}
           </label>
+          <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
           <select
             id={id}
             name={id}
@@ -582,9 +582,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
               </option>
             ))}
           </select>
+          </div>
         </div>
         {errors[id] && (
-          <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+          <span className="text-red-500 text-sm mt-1 lg:mt-0 lg:ml-[150px]">
             {errors[id]}
           </span>
         )}
@@ -593,10 +594,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
   };
 
   const renderAmountInput = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
         <label
           htmlFor="amount"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -607,6 +609,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {fieldLabels.amount}
           <span className="text-red-500"> *</span>
         </label>
+        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
         <TextField
           id="amount"
           name="amount"
@@ -635,7 +638,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
           }}
           sx={{
             width: "100%",
-            maxWidth: "300px",
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
                 borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
@@ -662,15 +664,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
             },
           }}
         />
+        </div>
       </div>
     </div>
   );
 
   const renderDateInput = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
         <label
           htmlFor="date"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -681,6 +685,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {fieldLabels.date}
           <span className="text-red-500"> *</span>
         </label>
+        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             value={expenseData.date ? dayjs(expenseData.date) : null}
@@ -700,7 +705,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
                 fontSize: 15,
               },
               ".MuiSvgIcon-root": { color: colors.primary_accent },
-              width: 300,
+              width: "100%",
+              minWidth: 0,
               height: 48,
               minHeight: 48,
               maxHeight: 48,
@@ -715,7 +721,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
                   height: 48,
                   minHeight: 48,
                   maxHeight: 48,
-                  width: 300,
+                  width: "100%",
                   fontSize: 15,
                   "& .MuiInputBase-root": {
                     height: 48,
@@ -774,9 +780,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
             format={dateFormat}
           />
         </LocalizationProvider>
+        </div>
       </div>
       {errors.date && (
-        <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
+        <span className="text-red-500 text-sm mt-1 lg:mt-0 lg:ml-[150px]">
           {errors.date}
         </span>
       )}
@@ -784,10 +791,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
   );
 
   const renderExpenseNameWithSuggestions = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
         <label
           htmlFor="expenseName"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -798,6 +806,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {fieldLabels.expenseName}
           <span className="text-red-500"> *</span>
         </label>
+        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
         <ExpenseNameAutocomplete
           value={expenseData.expenseName}
           onChange={(val) => {
@@ -810,15 +819,17 @@ const NewExpense = ({ onClose, onSuccess }) => {
           error={errors.expenseName}
           size="medium"
         />
+        </div>
       </div>
     </div>
   );
 
   const renderCategoryAutocomplete = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center relative">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
         <label
           htmlFor="category"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -828,7 +839,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           {fieldLabels.category}
         </label>
-        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
           <CategoryAutocomplete
             value={expenseData.category}
             onChange={(categoryId) => {
@@ -869,10 +880,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
   );
 
   const renderPaymentMethodAutocomplete = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center relative">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
         <label
           htmlFor="paymentMethod"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -882,7 +894,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         >
           {fieldLabels.paymentMethod}
         </label>
-        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
           <PaymentMethodAutocomplete
             value={expenseData.paymentMethod}
             onChange={(paymentMethodValue) => {
@@ -929,10 +941,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
     </div>
   );
   const renderTransactionTypeAutocomplete = () => (
-    <div className="flex flex-col flex-1">
-      <div className="flex items-center relative">
+    <div className="flex flex-col flex-1 w-full">
+      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
         <label
           htmlFor="transactionType"
+          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
           style={{
             ...inputWrapper,
             color: colors.primary_text,
@@ -943,7 +956,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           {fieldLabels.transactionType}
           <span className="text-red-500"> *</span>
         </label>
-        <div className="relative flex-1" style={{ maxWidth: "300px" }}>
+        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
           <Autocomplete
             autoHighlight
             options={typeOptions}
@@ -988,7 +1001,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
             noOptionsText={noOptionsText}
             sx={{
               width: "100%",
-              maxWidth: "300px",
               "& .MuiAutocomplete-option": {
                 fontSize: "0.92rem",
                 paddingTop: "4px",
@@ -1091,15 +1103,11 @@ const NewExpense = ({ onClose, onSuccess }) => {
     <>
       {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
       <div
-        className="flex flex-col relative new-expense-container"
+        className="flex flex-col relative new-expense-container w-full lg:w-[calc(100vw-370px)] min-h-0 lg:h-[calc(100vh-100px)] p-3 lg:p-5 lg:mr-5"
         style={{
-          width: "calc(100vw - 370px)",
-          height: "calc(100vh - 100px)",
           backgroundColor: colors.secondary_bg,
           borderRadius: "8px",
-          marginRight: "20px",
           border: `1px solid ${colors.border_color}`,
-          padding: "20px",
         }}
       >
         <PageHeader
@@ -1140,23 +1148,23 @@ const NewExpense = ({ onClose, onSuccess }) => {
           }
         />
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-1 gap-4 items-center">
+        <div className="flex flex-col gap-3 lg:gap-4">
+          <div className="flex flex-col lg:flex-row flex-1 gap-3 lg:gap-4 lg:items-center">
             {renderExpenseNameWithSuggestions()}
             {renderAmountInput()}
             {renderDateInput()}
           </div>
-          <div className="flex flex-1 gap-4 items-center">
+          <div className="flex flex-col lg:flex-row flex-1 gap-3 lg:gap-4 lg:items-center">
             {renderTransactionTypeAutocomplete()}
             {renderCategoryAutocomplete()}
             {renderPaymentMethodAutocomplete()}
           </div>
-          <div className="flex flex-1 items-center">
+          <div className="flex flex-1 items-start lg:items-center">
             {renderInput("comments", "text", true)}
           </div>
         </div>
 
-        <div className="mt-4 sm:mt-6 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="mt-2 lg:mt-3 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
           <button
             onClick={handleLinkBudgets}
             className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
@@ -1191,7 +1199,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
         </div>
         {showTable && (
           <div
-            className="mt-4 sm:mt-6 w-full relative"
+            className="mt-2 sm:mt-3 w-full relative overflow-x-auto overflow-y-hidden mb-20 lg:mb-0"
             style={{
               "--pm-text-primary": colors.primary_text,
               "--pm-text-secondary": colors.secondary_text,
@@ -1244,11 +1252,16 @@ const NewExpense = ({ onClose, onSuccess }) => {
           </div>
         )}
 
-        <div className="w-full flex justify-end mt-4 sm:mt-8">
+        <div
+          className="w-full flex justify-end mt-2 lg:mt-3 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
+          style={{
+            backgroundColor: colors.secondary_bg,
+          }}
+        >
           {hasWriteAccess && (
             <button
               onClick={handleSubmit}
-              className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
+              className="px-6 py-2.5 font-semibold rounded w-full sm:w-auto"
               style={{
                 backgroundColor: colors.button_bg,
                 color: colors.button_text,
@@ -1273,7 +1286,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
             background-size: 18px;
             filter: invert(1) brightness(100) contrast(100);
           }
-        
           input[type="number"]::-webkit-outer-spin-button,
           input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -1309,73 +1321,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
           .overflow-x-auto::-webkit-scrollbar-thumb:hover {
             background: #00b8a0;
           }
-            @media (max-width: 640px) {
-         .new-expense-container {
-        width: 100vw !important;
-        height: auto !important;
-        padding: 16px;
-      }
-      .form-row {
-        flex-direction: column !important;
-        gap: 12px;
-      }
-      .field-styles {
-        max-width: 100% !important;
-        width: 100% !important;
-        padding: 8px;
-        font-size: 0.875rem;
-      }
-      .label-style {
-        width: 100% !important;
-        font-size: 0.875rem;
-      }
-      .input-wrapper {
-        width: 100% !important;
-      }
-      .error-message {
-        margin-left: 0 !important;
-        text-align: left;
-      }
-      .budget-card {
-        padding: 12px;
-        font-size: 0.875rem;
-      }
-      .table-container {
-        display: none !important;
-      }
-      .mobile-card-container {
-        display: block !important;
-      }
-      .submit-button {
-        bottom: 16px !important;
-        right: 16px !important;
-        width: 100% !important;
-        max-width: 120px;
-      }
-      .link-budget-button,
-      .close-table-button {
-        width: 100% !important;
-        padding: 8px 16px;
-        font-size: 0.875rem;
-      }
-      .autocomplete-container {
-        max-width: 100% !important;
-      }
-      .textarea-field {
-        rows: 2 !important;
-        font-size: 0.875rem;
-      }
-      .overflow-y-auto::-webkit-scrollbar {
-        width: 6px;
-      }      .overflow-x-auto::-webkit-scrollbar {
-        height: 6px;
-
-    }
-    /* Existing scrollbar styles */
-    .overflow-y-auto::-webkit-scrollbar {
-      width: 8px;
-    }
-        `}
+          `}
         </style>
       </div>
     </>

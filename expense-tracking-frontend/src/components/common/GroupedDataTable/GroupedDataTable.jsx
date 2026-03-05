@@ -157,6 +157,9 @@ const GroupedDataTable = ({
   const ROW_HEIGHT = 48;
   const headerHeight = 48;
   const useScroll = pageSize > BASE_VISIBLE_ROWS;
+  // Only show scroll when we actually have more rows than visible area
+  const hasMoreRowsThanVisible = pageSlice.length > BASE_VISIBLE_ROWS;
+  const needsScrollContainer = useScroll && hasMoreRowsThanVisible;
   // If pageSlice is smaller than pageSize (e.g. last page), do we fill?
   // GenericAccordionGroup logic:
   const effectiveRows = pageSlice.length + (pageSlice.length === 0 ? 1 : 0);
@@ -169,14 +172,14 @@ const GroupedDataTable = ({
       <div
         className="pm-expense-table-wrapper"
         style={
-          useScroll
+          needsScrollContainer
             ? {
                 maxHeight: headerHeight + BASE_VISIBLE_ROWS * ROW_HEIGHT,
                 overflowY: "auto",
               }
             : {
-                maxHeight: headerHeight + pageSize * ROW_HEIGHT,
                 overflow: "hidden",
+                maxHeight: "none",
               }
         }
       >
@@ -399,39 +402,38 @@ const GroupedDataTable = ({
         <div
           className="pm-pagination-bar bottom"
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
-            justifyContent: "space-between",
-            position: "relative",
             borderTop: "1px solid var(--pm-border-color, #e5e7eb)",
-            padding: "16px 20px",
-            backgroundColor: "var(--pm-bg-secondary, transparent)", // Ensure background matches/is consistent
+            padding: "8px 20px",
+            marginTop: "0px",
+            backgroundColor: "var(--pm-bg-secondary, transparent)",
+            gap: "12px",
           }}
         >
-          {enableSelection && selectedCount > 0 && (
-            <div
-              className="pm-selection-count"
-              style={{
-                fontSize: "14px",
-                color: "var(--pm-accent-color, #00dac6)",
-                fontWeight: "500",
-                marginLeft: "0",
-              }}
-            >
-              {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
-            </div>
-          )}
-          {(!enableSelection || selectedCount === 0) && (
-            <div style={{ width: "1px", minHeight: "21px" }}></div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+            {enableSelection && selectedCount > 0 && (
+              <div
+                className="pm-selection-count"
+                style={{
+                  fontSize: "14px",
+                  color: "var(--pm-accent-color, #00dac6)",
+                  fontWeight: "500",
+                  marginLeft: "0",
+                }}
+              >
+                {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
+              </div>
+            )}
+          </div>
           <div
             className="pm-page-controls pm-centered"
             style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
+              minWidth: 0,
             }}
           >
             <button
@@ -473,7 +475,7 @@ const GroupedDataTable = ({
               ›
             </button>
           </div>
-          <div className="pm-page-size pm-right">
+          <div className="pm-page-size pm-right" style={{ display: "flex", justifyContent: "flex-end", position: "relative" }}>
             <label>
               <span className="pm-page-size-label">Rows per page:</span>
               <select value={pageSize} onChange={handlePageSizeChange}>
