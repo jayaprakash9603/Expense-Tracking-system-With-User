@@ -22,6 +22,7 @@ export const SEARCH_TYPES = {
   REPORT: "REPORT",
   SETTING: "SETTING",
   NOTIFICATION: "NOTIFICATION",
+  HELP: "HELP",
 };
 
 // Mode constants for filtering actions by user context
@@ -44,6 +45,7 @@ export const TYPE_ICONS = {
   [SEARCH_TYPES.REPORT]: "📈",
   [SEARCH_TYPES.SETTING]: "⚙️",
   [SEARCH_TYPES.NOTIFICATION]: "🔔",
+  [SEARCH_TYPES.HELP]: "❓",
 };
 
 // Section display order (admin section appears first in admin mode)
@@ -60,6 +62,7 @@ export const SECTION_ORDER = [
   "reports",
   "settings",
   "notifications",
+  "help",
 ];
 
 // Section labels (translation keys)
@@ -76,6 +79,7 @@ export const SECTION_LABELS = {
   reports: "search.sections.reports",
   settings: "search.sections.settings",
   notifications: "search.sections.notifications",
+  help: "Help & FAQ",
 };
 
 /**

@@ -200,20 +200,31 @@ const StoryViewer = ({ userId }) => {
         alignItems: "center",
         justifyContent: "center",
       }}
+      slotProps={{
+        backdrop: {
+          sx: {
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(10px)",
+          },
+        },
+      }}
     >
       <Box
         ref={containerRef}
         sx={{
-          width: { xs: "100%", sm: "100%", md: 420 },
-          maxWidth: { xs: "100%", sm: "100%", md: 420 },
-          height: { xs: "100%", sm: "100%", md: "85vh" },
-          maxHeight: { xs: "100%", sm: "100%", md: "85vh" },
+          width: { xs: "100%", sm: "100%", md: 400 },
+          height: { xs: "100%", sm: "100%", md: "90vh" },
+          maxHeight: { xs: "100%", sm: "100%", md: 800 },
+          aspectRatio: { md: "9/16" },
           backgroundColor: currentStory.backgroundColor || "#1a1a2e",
           backgroundImage: currentStory.backgroundGradient,
-          borderRadius: { xs: 0, md: 2 },
+          borderRadius: { xs: 0, md: 4 },
+          boxShadow: { xs: "none", md: "0 8px 32px rgba(0,0,0,0.5)" },
           position: "relative",
           overflow: "hidden",
           outline: "none",
+          display: "flex",
+          flexDirection: "column",
         }}
         onMouseDown={() => setIsPaused(true)}
         onMouseUp={() => setIsPaused(false)}
@@ -234,52 +245,70 @@ const StoryViewer = ({ userId }) => {
             alignItems: "center",
             justifyContent: "space-between",
             p: 2,
-            pt: 4,
+            pt: 3,
+            zIndex: 10,
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Box
               sx={{
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 borderRadius: "50%",
                 backgroundColor: currentStory.severityColor || colors.primary,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                border: "2px solid rgba(255,255,255,0.8)",
               }}
             >
-              <Typography sx={{ color: "#fff", fontSize: 14 }}>
+              <Typography sx={{ color: "#fff", fontSize: 16, fontWeight: 700 }}>
                 {currentStory.title?.charAt(0) || "!"}
               </Typography>
             </Box>
             <Box>
               <Typography
                 variant="subtitle2"
-                sx={{ color: "#fff", fontWeight: 600 }}
+                sx={{ 
+                  color: "#fff", 
+                  fontWeight: 700, 
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                  fontSize: "15px"
+                }}
               >
                 {currentStory.storyType?.replace(/_/g, " ") || "Update"}
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: "rgba(255,255,255,0.7)" }}
+                sx={{ 
+                  color: "rgba(255,255,255,0.9)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.8)",
+                  fontWeight: 500
+                }}
               >
                 {formatTimeAgo(currentStory.createdAt)}
               </Typography>
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             <IconButton
               onClick={() => setIsPaused((p) => !p)}
-              sx={{ color: "#fff" }}
+              sx={{ 
+                color: "#fff", 
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+              }}
               size="small"
             >
               {isPaused ? <PlayArrow /> : <Pause />}
             </IconButton>
             <IconButton
               onClick={handleClose}
-              sx={{ color: "#fff" }}
+              sx={{ 
+                color: "#fff",
+                filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))"
+              }}
               size="small"
             >
               <Close />
@@ -291,26 +320,32 @@ const StoryViewer = ({ userId }) => {
         <Box
           sx={{
             position: "absolute",
-            top: 80,
+            top: 0,
             left: 0,
             width: "30%",
-            height: "calc(100% - 180px)",
+            height: "100%",
             cursor: "pointer",
             zIndex: 1,
           }}
-          onClick={() => handleTapZone("left")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTapZone("left");
+          }}
         />
         <Box
           sx={{
             position: "absolute",
-            top: 80,
+            top: 0,
             right: 0,
             width: "30%",
-            height: "calc(100% - 180px)",
+            height: "100%",
             cursor: "pointer",
             zIndex: 1,
           }}
-          onClick={() => handleTapZone("right")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTapZone("right");
+          }}
         />
 
         {/* Story Content */}
@@ -344,6 +379,7 @@ const StoryViewer = ({ userId }) => {
               }}
             >
               <video
+                key={currentStory.id || currentStoryIndex}
                 ref={videoRef}
                 src={currentStory.videoUrl}
                 autoPlay
@@ -354,7 +390,7 @@ const StoryViewer = ({ userId }) => {
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "contain",
+                  objectFit: "cover",
                 }}
                 onLoadedMetadata={() => {
                   if (!isPaused && videoRef.current) {
@@ -372,6 +408,17 @@ const StoryViewer = ({ userId }) => {
                 }}
               />
               {/* Gradient overlay for text readability */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "20%",
+                  background: "linear-gradient(rgba(0,0,0,0.6), transparent)",
+                  pointerEvents: "none",
+                }}
+              />
               <Box
                 sx={{
                   position: "absolute",
@@ -408,10 +455,21 @@ const StoryViewer = ({ userId }) => {
                 sx={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "contain",
+                  objectFit: "cover",
                 }}
               />
               {/* Gradient overlay for text readability */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "20%",
+                  background: "linear-gradient(rgba(0,0,0,0.6), transparent)",
+                  pointerEvents: "none",
+                }}
+              />
               <Box
                 sx={{
                   position: "absolute",
@@ -430,20 +488,24 @@ const StoryViewer = ({ userId }) => {
           <Box
             sx={{
               position: hasMedia ? "absolute" : "relative",
-              bottom: hasMedia ? 80 : "auto",
+              bottom: hasMedia ? 90 : "auto",
               left: hasMedia ? 0 : "auto",
               right: hasMedia ? 0 : "auto",
-              p: hasMedia ? 3 : 0,
+              p: hasMedia ? 4 : 4,
               zIndex: 2,
+              width: "100%",
+              boxSizing: "border-box",
             }}
           >
             <Typography
-              variant="h5"
+              variant="h4"
               sx={{
                 color: "#fff",
-                fontWeight: 700,
+                fontWeight: 800,
                 mb: 2,
-                textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+                letterSpacing: "-0.5px",
+                lineHeight: 1.2,
               }}
             >
               {currentStory.title}
@@ -452,9 +514,11 @@ const StoryViewer = ({ userId }) => {
             <Typography
               variant="body1"
               sx={{
-                color: "rgba(255,255,255,0.9)",
-                lineHeight: 1.6,
-                textShadow: "0 1px 2px rgba(0,0,0,0.4)",
+                color: "rgba(255,255,255,0.95)",
+                lineHeight: 1.5,
+                textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                fontSize: "1.1rem",
+                fontWeight: 500,
               }}
             >
               {currentStory.content}

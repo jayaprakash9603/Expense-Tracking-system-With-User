@@ -11,6 +11,9 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -297,64 +300,79 @@ const TermsOfService = () => {
             </Typography>
           </Paper>
 
-          {/* Sections */}
-          {SECTIONS.map((section, index) => {
-            const SectionIcon = section.icon;
-            return (
-              <Paper
-                key={section.id}
-                id={section.id}
-                sx={{
-                  p: 3,
-                  mb: 2,
-                  bgcolor: colors.secondary_bg,
-                  borderRadius: 2,
-                  border: `1px solid ${colors.border_color}`,
-                  scrollMarginTop: 16,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    mb: 2,
-                  }}
-                >
-                  <Box
+          {/* Sections Grid */}
+          <Grid container spacing={3}>
+            {SECTIONS.map((section, index) => {
+              const SectionIcon = section.icon;
+              return (
+                <Grid item xs={12} md={6} key={section.id}>
+                  <Card
+                    id={section.id}
+                    elevation={0}
                     sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      bgcolor: `${colors.primary_accent}20`,
+                      height: "100%",
+                      bgcolor: colors.secondary_bg,
+                      borderRadius: 3,
+                      border: `1px solid ${colors.border_color}`,
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: `0 8px 24px -4px ${colors.primary_accent}30`,
+                        borderColor: colors.primary_accent,
+                      },
+                      scrollMarginTop: 16,
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      flexDirection: "column",
                     }}
                   >
-                    <SectionIcon sx={{ color: colors.primary_accent }} />
-                  </Box>
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 600, color: colors.primary_text }}
-                  >
-                    {section.title}
-                  </Typography>
-                </Box>
-                <Divider sx={{ mb: 2, borderColor: colors.border_color }} />
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: colors.secondary_text,
-                    lineHeight: 1.8,
-                    whiteSpace: "pre-line",
-                  }}
-                >
-                  {section.content}
-                </Typography>
-              </Paper>
-            );
-          })}
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          mb: 2,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: "12px",
+                            bgcolor: `${colors.primary_accent}15`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <SectionIcon sx={{ color: colors.primary_accent }} />
+                        </Box>
+                        <Typography
+                          variant="h6"
+                          sx={{ fontWeight: 600, color: colors.primary_text }}
+                        >
+                          {section.title}
+                        </Typography>
+                      </Box>
+                      <Divider
+                        sx={{ mb: 2, borderColor: colors.border_color }}
+                      />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: colors.secondary_text,
+                          lineHeight: 1.8,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {section.content}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
         </Box>
       </Box>
     </Box>

@@ -1,0 +1,66 @@
+---
+description: Task decomposition and planning patterns for multi-agent workflows
+alwaysApply: true
+---
+
+# Planning Rules
+
+## When to Use Plan Mode
+
+Activate Plan Mode (Shift+Tab) before coding when:
+- The task touches 3 or more files
+- The change spans both frontend and backend
+- Architecture decisions are needed (new service, new Redux slice, new API)
+- The requirement is ambiguous or has multiple valid approaches
+
+## Plan Structure
+
+Every plan must include:
+- List of files to create or modify (full paths)
+- Order of changes (dependencies first)
+- Which layer each change belongs to (frontend / backend / shared)
+- Testing strategy (what tests to add or update)
+
+## Task Decomposition by Type
+
+### Full-Stack Feature
+1. Backend: Entity + Repository + Service + Controller + DTO
+2. Frontend: API service + Redux slice/actions + UI component + route
+3. Tests: Backend unit + integration tests, frontend component tests
+4. Security: Auth guards, input validation, role checks
+
+### Frontend-Only Feature
+1. Component hierarchy (parent + child components)
+2. State management (local state vs Redux)
+3. API integration (new service methods or existing)
+4. i18n keys in all three language files
+
+### Backend-Only Feature
+1. Database changes (entity, migration)
+2. Service logic + interface contract
+3. Controller endpoint + DTO mapping
+4. Kafka events if cross-service communication needed
+5. OpenAPI documentation
+
+### Bug Fix
+1. Reproduce: identify the failing behavior
+2. Root cause: trace through the relevant layer
+3. Fix: minimal change to correct the behavior
+4. Test: add a test that would have caught the bug
+
+## Parallel Agent Strategy
+
+When using multiple agents simultaneously:
+- Assign each agent a distinct layer or module (never overlap files)
+- Frontend agent works in `expense-tracking-frontend/`
+- Backend agent works in `expense-tracking-backend/`
+- QA agent writes tests in both `test/` directories
+- Review the aggregated diffs before applying any changes
+
+## Model Selection Guidance
+
+- Planning and architecture: use a capable model for deep reasoning
+- UI component work: use Composer for fast iteration
+- Test generation: use fast model via subagents for speed
+- Security review: use a capable model for thoroughness
+- Bug fixes: consider Best-of-N (2-3 agents, same prompt, pick best)

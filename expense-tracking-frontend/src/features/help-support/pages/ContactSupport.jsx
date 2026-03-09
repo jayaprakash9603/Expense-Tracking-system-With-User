@@ -186,310 +186,338 @@ const ContactSupport = () => {
           overflow: "auto",
           p: 2,
           "&::-webkit-scrollbar": {
-            width: "6px",
+            display: "none",
           },
-          "&::-webkit-scrollbar-thumb": {
-            backgroundColor: colors.border_color,
-            borderRadius: "3px",
-          },
+          scrollbarWidth: "none",
         }}
       >
-        {/* Contact Methods */}
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
-        >
-          Contact Methods
-        </Typography>
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {CONTACT_METHODS.map((method) => {
-            const MethodIcon = method.icon;
-            return (
-              <Grid item xs={12} sm={4} key={method.id}>
-                <Card
-                  sx={{
-                    bgcolor: colors.secondary_bg,
-                    border: `1px solid ${colors.border_color}`,
-                    borderRadius: 2,
-                    height: "100%",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                      borderColor: method.color,
-                      transform: "translateY(-2px)",
-                      boxShadow: `0 4px 12px ${method.color}20`,
-                    },
-                  }}
-                >
-                  <CardContent sx={{ textAlign: "center", p: 3 }}>
-                    <Box
-                      sx={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: "50%",
-                        bgcolor: `${method.color}20`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        mx: "auto",
-                        mb: 2,
-                      }}
-                    >
-                      <MethodIcon sx={{ fontSize: 28, color: method.color }} />
-                    </Box>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: 600,
-                        color: colors.primary_text,
-                        mb: 0.5,
-                      }}
-                    >
-                      {method.title}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: colors.secondary_text,
-                        mb: 2,
-                        minHeight: 40,
-                      }}
-                    >
-                      {method.description}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 500, color: method.color }}
-                    >
-                      {method.action}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
-
-        <Divider sx={{ my: 3, borderColor: colors.border_color }} />
-
-        {/* Support Form */}
-        <Typography
-          variant="h6"
-          sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
-        >
-          Submit a Support Ticket
-        </Typography>
-
-        {submitted ? (
-          <Paper
-            sx={{
-              p: 4,
-              textAlign: "center",
-              bgcolor: colors.secondary_bg,
-              borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
-            }}
+        <Grid container spacing={3} sx={{ height: "100%" }}>
+          {/* Contact Methods - Left Column */}
+          <Grid
+            item
+            xs={12}
+            md={4}
+            sx={{ display: "flex", flexDirection: "column" }}
           >
-            <CheckCircleIcon sx={{ fontSize: 64, color: "#4CAF50", mb: 2 }} />
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, color: colors.primary_text, mb: 1 }}
+              sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
             >
-              Ticket Submitted Successfully!
+              Contact Methods
             </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: colors.secondary_text, mb: 3 }}
-            >
-              We've received your support request and will respond within 24
-              hours. Check your email for updates.
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ color: colors.secondary_text, mb: 3 }}
-            >
-              Ticket ID:{" "}
-              <strong style={{ color: colors.primary_accent }}>
-                #TKT-{Date.now().toString().slice(-6)}
-              </strong>
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={handleNewTicket}
-              sx={{
-                bgcolor: colors.primary_accent,
-                "&:hover": { bgcolor: colors.primary_accent_hover },
-              }}
-            >
-              Submit Another Ticket
-            </Button>
-          </Paper>
-        ) : (
-          <Paper
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{
-              p: 3,
-              bgcolor: colors.secondary_bg,
-              borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
-            }}
-          >
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+            <Grid container spacing={2} sx={{ flex: 1 }}>
+              {CONTACT_METHODS.map((method) => {
+                const MethodIcon = method.icon;
+                return (
+                  <Grid item xs={12} key={method.id}>
+                    <Card
+                      sx={{
+                        bgcolor: colors.secondary_bg,
+                        border: `1px solid ${colors.border_color}`,
+                        borderRadius: 2,
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          borderColor: method.color,
+                          transform: "translateY(-2px)",
+                          boxShadow: `0 4px 12px ${method.color}20`,
+                        },
+                      }}
+                    >
+                      <CardContent
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          p: 2,
+                          "&:last-child": { pb: 2 },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: "50%",
+                            bgcolor: `${method.color}20`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            mr: 2,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <MethodIcon
+                            sx={{ fontSize: 24, color: method.color }}
+                          />
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="subtitle1"
+                            sx={{
+                              fontWeight: 600,
+                              color: colors.primary_text,
+                              lineHeight: 1.2,
+                              mb: 0.5,
+                            }}
+                          >
+                            {method.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: colors.secondary_text,
+                              mb: 0.5,
+                            }}
+                          >
+                            {method.description}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: 500, color: method.color }}
+                          >
+                            {method.action}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </Grid>
 
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Your Name"
-                  value={formData.name}
-                  onChange={handleInputChange("name")}
-                  required
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: colors.primary_bg,
-                      "& fieldset": { borderColor: colors.border_color },
-                      "&:hover fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                    },
-                    "& .MuiInputLabel-root": { color: colors.secondary_text },
-                    "& .MuiInputBase-input": { color: colors.primary_text },
-                  }}
+          {/* Support Form - Right Column */}
+          <Grid item xs={12} md={8}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
+            >
+              Submit a Support Ticket
+            </Typography>
+
+            {submitted ? (
+              <Paper
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  bgcolor: colors.secondary_bg,
+                  borderRadius: 2,
+                  border: `1px solid ${colors.border_color}`,
+                }}
+              >
+                <CheckCircleIcon
+                  sx={{ fontSize: 64, color: "#4CAF50", mb: 2 }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Email Address"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange("email")}
-                  required
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: colors.primary_bg,
-                      "& fieldset": { borderColor: colors.border_color },
-                      "&:hover fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                    },
-                    "& .MuiInputLabel-root": { color: colors.secondary_text },
-                    "& .MuiInputBase-input": { color: colors.primary_text },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  select
-                  label="Category"
-                  value={formData.category}
-                  onChange={handleInputChange("category")}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: colors.primary_bg,
-                      "& fieldset": { borderColor: colors.border_color },
-                      "&:hover fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                    },
-                    "& .MuiInputLabel-root": { color: colors.secondary_text },
-                    "& .MuiSelect-select": { color: colors.primary_text },
-                  }}
+                <Typography
+                  variant="h6"
+                  sx={{ fontWeight: 600, color: colors.primary_text, mb: 1 }}
                 >
-                  {SUPPORT_CATEGORIES.map((cat) => (
-                    <MenuItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Subject"
-                  value={formData.subject}
-                  onChange={handleInputChange("subject")}
-                  required
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: colors.primary_bg,
-                      "& fieldset": { borderColor: colors.border_color },
-                      "&:hover fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                    },
-                    "& .MuiInputLabel-root": { color: colors.secondary_text },
-                    "& .MuiInputBase-input": { color: colors.primary_text },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={5}
-                  label="Describe your issue"
-                  value={formData.message}
-                  onChange={handleInputChange("message")}
-                  required
-                  placeholder="Please provide as much detail as possible about your issue..."
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      bgcolor: colors.primary_bg,
-                      "& fieldset": { borderColor: colors.border_color },
-                      "&:hover fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                      "&.Mui-focused fieldset": {
-                        borderColor: colors.primary_accent,
-                      },
-                    },
-                    "& .MuiInputLabel-root": { color: colors.secondary_text },
-                    "& .MuiInputBase-input": { color: colors.primary_text },
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
+                  Ticket Submitted Successfully!
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{ color: colors.secondary_text, mb: 3 }}
+                >
+                  We've received your support request and will respond within 24
+                  hours. Check your email for updates.
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: colors.secondary_text, mb: 3 }}
+                >
+                  Ticket ID:{" "}
+                  <strong style={{ color: colors.primary_accent }}>
+                    #TKT-{Date.now().toString().slice(-6)}
+                  </strong>
+                </Typography>
                 <Button
-                  type="submit"
                   variant="contained"
-                  disabled={loading}
-                  startIcon={
-                    loading ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <SendIcon />
-                    )
-                  }
+                  onClick={handleNewTicket}
                   sx={{
                     bgcolor: colors.primary_accent,
                     "&:hover": { bgcolor: colors.primary_accent_hover },
-                    "&:disabled": { bgcolor: colors.border_color },
                   }}
                 >
-                  {loading ? "Submitting..." : "Submit Ticket"}
+                  Submit Another Ticket
                 </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        )}
+              </Paper>
+            ) : (
+              <Paper
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                  p: 3,
+                  bgcolor: colors.secondary_bg,
+                  borderRadius: 2,
+                  border: `1px solid ${colors.border_color}`,
+                }}
+              >
+                {error && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {error}
+                  </Alert>
+                )}
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Your Name"
+                      value={formData.name}
+                      onChange={handleInputChange("name")}
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: colors.primary_bg,
+                          "& fieldset": { borderColor: colors.border_color },
+                          "&:hover fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: colors.secondary_text,
+                        },
+                        "& .MuiInputBase-input": { color: colors.primary_text },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange("email")}
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: colors.primary_bg,
+                          "& fieldset": { borderColor: colors.border_color },
+                          "&:hover fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: colors.secondary_text,
+                        },
+                        "& .MuiInputBase-input": { color: colors.primary_text },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      select
+                      label="Category"
+                      value={formData.category}
+                      onChange={handleInputChange("category")}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: colors.primary_bg,
+                          "& fieldset": { borderColor: colors.border_color },
+                          "&:hover fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: colors.secondary_text,
+                        },
+                        "& .MuiSelect-select": { color: colors.primary_text },
+                      }}
+                    >
+                      {SUPPORT_CATEGORIES.map((cat) => (
+                        <MenuItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Subject"
+                      value={formData.subject}
+                      onChange={handleInputChange("subject")}
+                      required
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: colors.primary_bg,
+                          "& fieldset": { borderColor: colors.border_color },
+                          "&:hover fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: colors.secondary_text,
+                        },
+                        "& .MuiInputBase-input": { color: colors.primary_text },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={5}
+                      label="Describe your issue"
+                      value={formData.message}
+                      onChange={handleInputChange("message")}
+                      required
+                      placeholder="Please provide as much detail as possible about your issue..."
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          bgcolor: colors.primary_bg,
+                          "& fieldset": { borderColor: colors.border_color },
+                          "&:hover fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor: colors.primary_accent,
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: colors.secondary_text,
+                        },
+                        "& .MuiInputBase-input": { color: colors.primary_text },
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={loading}
+                      startIcon={
+                        loading ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          <SendIcon />
+                        )
+                      }
+                      sx={{
+                        bgcolor: colors.primary_accent,
+                        "&:hover": { bgcolor: colors.primary_accent_hover },
+                        "&:disabled": { bgcolor: colors.border_color },
+                      }}
+                    >
+                      {loading ? "Submitting..." : "Submit Ticket"}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

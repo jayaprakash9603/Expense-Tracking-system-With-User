@@ -1,0 +1,133 @@
+---
+description: Multi-agent orchestration system -- routes tasks to specialized agents based on context
+alwaysApply: true
+---
+
+# Multi-Agent System
+
+This project uses specialized agent personas in `.cursor/agents/`. Each agent has deep knowledge of its domain, follows specific rules, and coordinates with other agents via a clear protocol.
+
+## Agent Roster
+
+| Agent | File | Role | Domain |
+|-------|------|------|--------|
+| Orchestrator | `.cursor/agents/orchestrator.md` | Decomposes tasks, delegates, merges results | All |
+| Planner | `.cursor/agents/planner-agent.md` | Architecture, research, implementation plans | All |
+| Frontend | `.cursor/agents/frontend-agent.md` | React, MUI, Redux, i18n code | `expense-tracking-frontend/` |
+| Backend | `.cursor/agents/backend-agent.md` | Spring Boot, JPA, Kafka, API code | `expense-tracking-backend/` |
+| Database | `.cursor/agents/database-agent.md` | Schema design, JPA entities, migrations, query optimization | `expense-tracking-backend/**/model/`, `**/entity/` |
+| QA | `.cursor/agents/qa-agent.md` | Test generation and coverage | `**/*.test.*`, `**/test/**` |
+| Security | `.cursor/agents/security-agent.md` | Vulnerability audit, auth review | All (read-only) |
+| Reviewer | `.cursor/agents/reviewer-agent.md` | Code review, quality gates | All (read-only) |
+| Refactor | `.cursor/agents/refactor-agent.md` | Code cleanup, DRY extraction, tech debt | All (structural changes) |
+| Debug | `.cursor/agents/debug-agent.md` | Root cause analysis, systematic troubleshooting | All (diagnostic) |
+| DevOps | `.cursor/agents/devops-agent.md` | Docker, CI/CD, environment config, deployment | `Dockerfile`, `docker-compose*`, `Jenkinsfile`, `.env*` |
+| Documentation | `.cursor/agents/documentation-agent.md` | API docs, README, OpenAPI, changelog | `*.md`, `**/swagger/**`, `.env.example` |
+| i18n & A11y | `.cursor/agents/i18n-accessibility-agent.md` | Translations, WCAG compliance, keyboard nav | `**/i18n/**`, `**/translations/**`, `*.jsx` (a11y audit) |
+
+## How to Use Agents
+
+### Single-Agent Mode (default)
+
+For focused tasks in one domain, read the relevant agent file and adopt its persona:
+
+- Working on frontend? Read `.cursor/agents/frontend-agent.md` and follow its rules
+- Working on backend? Read `.cursor/agents/backend-agent.md` and follow its rules
+- Writing tests? Read `.cursor/agents/qa-agent.md` and follow its rules
+- Security review? Read `.cursor/agents/security-agent.md` and follow its workflow
+
+### Multi-Agent Mode (complex tasks)
+
+For tasks spanning multiple domains, read `.cursor/agents/orchestrator.md` first, then:
+
+1. **Plan**: Read `planner-agent.md`, produce an implementation plan
+2. **Build**: Read `frontend-agent.md` and/or `backend-agent.md`, implement the plan
+3. **Test**: Read `qa-agent.md`, generate tests for all changes
+4. **Secure**: Read `security-agent.md`, audit the changes
+5. **Review**: Read `reviewer-agent.md`, final quality gate
+
+### Parallel Agent Mode (Cursor 2.0)
+
+When running parallel agents via worktrees, each agent should:
+1. Read its agent file from `.cursor/agents/`
+2. Read the `.agent-id` file to know its assigned role
+3. Work only within its designated file scope
+4. Never modify files owned by another agent
+
+## Agent Selection Guide
+
+| User Request Contains | Primary Agent | Support Agents |
+|----------------------|---------------|----------------|
+| "add component", "UI", "page", "form" | Frontend | i18n & A11y, QA |
+| "add endpoint", "API", "service" | Backend | Database, QA, Security, Documentation |
+| "entity", "table", "schema", "migration", "column" | Database | Backend |
+| "full-stack", "feature", spans both layers | Orchestrator | All |
+| "write tests", "add coverage", "test" | QA | -- |
+| "security", "audit", "vulnerability", "auth" | Security | -- |
+| "review", "check quality", "PR review" | Reviewer | -- |
+| "plan", "design", "architecture", "how should" | Planner | -- |
+| "fix bug", "broken", "not working", "error" | Debug | Frontend or Backend, QA |
+| "refactor", "clean up", "extract", "tech debt" | Refactor | Reviewer, QA |
+| "deploy", "docker", "CI/CD", "pipeline", "environment" | DevOps | Security |
+| "translate", "i18n", "language", "localize" | i18n & A11y | Frontend |
+| "accessibility", "a11y", "screen reader", "keyboard nav" | i18n & A11y | Frontend, QA |
+| "document", "readme", "changelog", "API docs" | Documentation | Backend, DevOps |
+| "slow", "performance", "optimize", "N+1", "re-render" | Debug (diagnose) then Refactor (fix) | Backend or Frontend |
+
+## Rules Registry
+
+| Rule File | Scope | What It Enforces |
+|-----------|-------|-----------------|
+| `frontend.mdc` | `expense-tracking-frontend/**/*.{js,jsx,css}` | Folder structure, DRY, design patterns, Redux, build readiness |
+| `backend.mdc` | `expense-tracking-backend/**/*.java` | SOLID, folder structure, DRY, Kafka, API standards, build readiness |
+| `testing.mdc` | `**/*.test.*`, `**/test/**/*.java` | Jest + RTL, JUnit + Mockito, naming, coverage |
+| `security.mdc` | Always | JWT, OWASP, input validation, CORS, error handling |
+| `planning.mdc` | Always | Task decomposition, Plan Mode triggers, parallel strategy |
+| `deployment.mdc` | Always | 12-factor compliance, Docker, CI/CD, env management, pre-deploy checks |
+
+## Coordination Rules
+
+- Agents never modify files outside their scope
+- Frontend agent owns `expense-tracking-frontend/**` (except i18n files and test files)
+- Backend agent owns `expense-tracking-backend/**` (except entity/model classes and test files)
+- Database agent owns entity/model classes, migration scripts, and repository interfaces
+- QA agent owns test files in both directories
+- i18n & A11y agent owns `**/i18n/**` and `**/translations/**`
+- DevOps agent owns `Dockerfile*`, `docker-compose*`, `Jenkinsfile`, `.env*`, `nginx.conf`
+- Documentation agent owns `*.md` files and OpenAPI config
+- Security, Reviewer, Debug, and Refactor agents are read-only analysts (propose changes, domain agents apply)
+- When in doubt about ownership, the Orchestrator decides
+
+## Rule Maintenance Protocol
+
+Rules and agent definitions must stay in sync with the codebase. After completing significant code changes:
+
+1. **Orchestrator** checks: did this change introduce a new pattern, folder, library, or convention?
+2. If yes, the Orchestrator identifies which rule file(s) need updating
+3. The relevant agent (Frontend/Backend/QA) proposes the rule update
+4. The update is applied to `.cursor/rules/{rule}.mdc` or `.cursor/agents/{agent}.md`
+
+### Triggers for Rule Updates
+
+| Code Change | Rule to Update |
+|-------------|---------------|
+| New npm package added | `frontend.mdc` -- add to tech stack and usage patterns |
+| New Maven dependency | `backend.mdc` -- add to tech stack or design patterns table |
+| New feature folder created | `frontend.mdc` or `backend.mdc` -- verify folder structure section |
+| New microservice module added | `backend.mdc` -- add to module structure |
+| New Redux slice/feature | `frontend.mdc` -- verify state management section |
+| New Kafka topic | `backend.mdc` -- verify messaging standards |
+| New environment variable | `deployment.mdc` -- add to env var documentation |
+| New Docker service | `deployment.mdc` -- update Docker standards |
+| New design pattern introduced | `backend.mdc` or `frontend.mdc` -- add to design patterns table |
+| New shared component created | `frontend.mdc` -- verify DRY section |
+| New common-library class | `backend.mdc` -- verify DRY section |
+
+### How to Update Rules
+
+When updating a rule file:
+- Keep the YAML frontmatter intact (description, globs, alwaysApply)
+- Add the new pattern to the relevant section, not as a new section
+- If a section exceeds 15 items, consider splitting it
+- Include a concrete example (code snippet or file path) for new patterns
+- Never remove existing rules unless the pattern is deprecated in the codebase

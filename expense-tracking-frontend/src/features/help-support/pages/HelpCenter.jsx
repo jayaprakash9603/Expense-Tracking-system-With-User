@@ -43,7 +43,7 @@ import { useTranslation } from "../../../hooks/useTranslation";
  */
 
 // FAQ Categories with questions
-const FAQ_CATEGORIES = [
+export const FAQ_CATEGORIES = [
   {
     id: "getting-started",
     title: "Getting Started",
@@ -63,6 +63,11 @@ const FAQ_CATEGORIES = [
         question: "What currencies are supported?",
         answer:
           "We support multiple currencies including USD, EUR, GBP, INR, JPY, and many more. You can change your preferred currency in Settings > Preferences.",
+      },
+      {
+        question: "Is there a dark mode?",
+        answer:
+          "Yes! You can toggle between light and dark mode by clicking the sun/moon icon in the top right corner of the screen, or change it permanently in Settings > Appearance.",
       },
     ],
   },
@@ -90,6 +95,11 @@ const FAQ_CATEGORIES = [
         question: "Can I add recurring expenses?",
         answer:
           "Yes, when creating an expense, toggle the 'Recurring' option and set the frequency (daily, weekly, monthly, yearly). The system will automatically create entries based on your schedule.",
+      },
+      {
+        question: "How to split an expense with a friend?",
+        answer:
+          "Create a new expense, select 'Split with Friend', choose the friend, and enter the split amount. They will receive a notification and it will reflect in your shared dashboard.",
       },
     ],
   },
@@ -226,9 +236,31 @@ const FAQ_CATEGORIES = [
           "In Settings > Data Management, click 'Export Data'. You can download all your expenses, budgets, and categories in various formats (CSV, JSON, PDF).",
       },
       {
+        question: "How do I update my email address?",
+        answer:
+          "Go to Profile > Edit, and enter your new email address. You will receive a verification email to confirm the change.",
+      },
+      {
         question: "How do I delete my account?",
         answer:
           "Go to Settings > Data Management and click 'Delete Account'. This action is permanent and will delete all your data. You'll need to confirm with your password.",
+      },
+    ],
+  },
+  {
+    id: "reports",
+    title: "Reports & Analytics",
+    icon: ArticleIcon,
+    faqs: [
+      {
+        question: "Where can I view my spending habits?",
+        answer:
+          "Go to the Reports section from the sidebar. You'll find detailed charts and graphs breaking down your expenses by category, time, and payment method.",
+      },
+      {
+        question: "Can I filter reports by date?",
+        answer:
+          "Yes! Use the date range picker at the top of the Reports page to view data for specific days, weeks, months, or custom date ranges.",
       },
     ],
   },

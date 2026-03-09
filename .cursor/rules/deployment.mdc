@@ -1,0 +1,151 @@
+---
+description: 12-factor app compliance, Docker, CI/CD, environment management, and pre-deployment checks
+alwaysApply: true
+---
+
+# Deployment & Build Standards
+
+## 12-Factor App Compliance
+
+### I. Codebase
+- One repo, many deploys (microservice mode and monolith mode from same repo)
+- Feature branches for development; `release-*` branches for releases
+- Never deploy uncommitted code
+
+### II. Dependencies
+- Backend: all dependencies declared in `pom.xml` with explicit versions; no system-scope JARs
+- Frontend: all dependencies in `package.json` with locked versions in `package-lock.json`
+- Never install global packages that the build depends on
+- Run `npm ci` (not `npm install`) in CI/CD for reproducible builds
+
+### III. Config
+- Store config in environment variables, not in code
+- Backend: `application.yml` uses `${ENV_VAR:default}` syntax for all external values
+- Frontend: `process.env.REACT_APP_*` for all environment-specific values
+- Secrets (DB passwords, JWT secrets, API keys) MUST come from env vars at runtime
+- Never commit `.env.local`, `.env.production`, or any file containing real secrets
+- Document all required env vars in `.env.example` with placeholder values
+
+### IV. Backing Services
+- Treat MySQL, Redis, Kafka, Eureka as attached resources configured via URLs
+- Connection strings via env vars: `SPRING_DATASOURCE_URL`, `SPRING_KAFKA_BOOTSTRAP_SERVERS`
+- Service URLs via env vars: `USER_SERVICE_URL`, `EXPENSE_SERVICE_URL`, etc.
+- Swap backing services by changing env vars, not code
+
+### V. Build, Release, Run
+- Build: `mvn clean package` (backend), `npm run build` (frontend) -- produces artifacts
+- Release: Docker image with config injected at runtime, not baked in
+- Run: `docker-compose up` or Kubernetes deployment
+- Never modify code in a running container
+
+### VI. Processes
+- Each microservice is a stateless process
+- Session state in Redis, not in-process memory
+- File uploads stored externally (S3 or equivalent), not on local disk
+- WebSocket connections managed by Spring + SockJS/STOMP with external session store
+
+### VII. Port Binding
+- Each service binds its own port via `server.port` in `application.yml`
+- Ports are environment-configurable: `${SERVER_PORT:6000}`
+- Frontend served by Nginx on port 80 inside container
+
+### VIII. Concurrency
+- Scale horizontally by running multiple instances behind Gateway/load balancer
+- Kafka consumers support concurrency via `concurrency` property in `@KafkaListener`
+- No in-memory shared state between instances
+
+### IX. Disposability
+- Services start fast (Spring Boot startup < 30s target)
+- Graceful shutdown: handle SIGTERM, finish in-flight requests
+- Kafka consumers commit offsets cleanly on shutdown
+
+### X. Dev/Prod Parity
+- `docker-compose.yml` replicates production topology locally
+- `monolithic-service` + `docker-compose.monolith.yml` for simplified local dev
+- Same JDK version (17) in dev and production
+- Same MySQL version in dev Docker and production
+
+### XI. Logs
+- Treat logs as event streams -- write to stdout/stderr
+- No file-based logging in production containers
+- Use `@Slf4j` everywhere; log format includes timestamp, level, service name
+- Log aggregation handled by infrastructure (ELK/CloudWatch), not application
+
+### XII. Admin Processes
+- Database migrations as part of deployment pipeline, not manual scripts
+- One-off tasks via Spring `@Scheduled` or dedicated admin endpoints behind auth
+- Admin panel (`features/admin/`) protected by `ROLE_ADMIN`
+
+## Docker Standards
+
+### Backend Dockerfile Pattern
+
+```dockerfile
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+COPY target/*.jar app.jar
+EXPOSE ${PORT}
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
+
+Rules:
+- Use `jre-alpine` (not full JDK) for smaller images
+- Never copy source code into production image
+- Never bake secrets into image layers
+- Set `ENTRYPOINT`, not `CMD`, for proper signal handling
+
+### Frontend Dockerfile Pattern
+
+```dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+```
+
+Rules:
+- Multi-stage build: node for build, nginx for serve
+- `npm ci` for deterministic installs
+- SPA routing: `try_files $uri $uri/ /index.html` in nginx.conf
+- Static assets: long cache (`1y`), `index.html`: no-cache
+
+## CI/CD Standards (Jenkins)
+
+- `mvn clean package` with parallel service builds
+- Skip tests in build stage only if running tests in a separate stage
+- Tag Docker images with git commit SHA or build number, not `latest`
+- Automated artifact collection to known location
+
+## Pre-Deployment Checks
+
+### Backend
+- [ ] `mvn clean package` succeeds without errors
+- [ ] No `System.out.println` in codebase
+- [ ] All `application.yml` values use `${ENV_VAR:default}` for external resources
+- [ ] No hard-coded localhost URLs in non-default profiles
+- [ ] Kafka topic names are constants, not string literals scattered in code
+- [ ] Actuator endpoints disabled or secured
+- [ ] CORS origins configured, no wildcard in production profile
+- [ ] Health check endpoint (`/actuator/health`) enabled and returns 200
+
+### Frontend
+- [ ] `npm run build` succeeds without errors or warnings
+- [ ] No `console.log` or `debugger` in committed code
+- [ ] All env vars documented in `.env.example`
+- [ ] No `http://localhost:*` URLs in committed code (only in env defaults)
+- [ ] Bundle size checked (no unexpected large dependencies)
+- [ ] nginx.conf has proper SPA routing and cache headers
+- [ ] Source maps disabled or not shipped to production
+
+### Both
+- [ ] `.gitignore` excludes: `node_modules/`, `target/`, `.env.local`, `*.log`, `.idea/`
+- [ ] No secrets in committed code (grep for passwords, tokens, keys)
+- [ ] Docker images build successfully
+- [ ] `docker-compose up` starts all services without errors

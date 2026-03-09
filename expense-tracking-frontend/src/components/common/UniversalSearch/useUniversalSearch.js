@@ -20,6 +20,7 @@ import {
 import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
 import { formatDate } from "../../../utils/dateFormatter";
+import { FAQ_CATEGORIES } from "../../../features/help-support/pages/HelpCenter";
 
 // Debounce delay in ms - Reduced for better UX
 const DEBOUNCE_DELAY = 150;
@@ -92,6 +93,7 @@ export const useUniversalSearch = () => {
     paymentMethods: [],
     friends: [],
     users: [],
+    help: [],
   });
 
   // Refs for debouncing and request management
@@ -177,6 +179,7 @@ export const useUniversalSearch = () => {
       paymentMethods: [],
       friends: [],
       users: [],
+      help: [],
     });
 
     // Cancel any pending requests
@@ -200,6 +203,7 @@ export const useUniversalSearch = () => {
         paymentMethods: [],
         friends: [],
         users: [],
+        help: [],
       };
 
       if (!searchQuery || searchQuery.length < 2) {
@@ -372,6 +376,27 @@ export const useUniversalSearch = () => {
           route: getRouteForResult(SEARCH_TYPES.FRIEND, friend.id),
         }));
 
+      // Search Help / FAQs
+      const matchedHelp = [];
+      FAQ_CATEGORIES.forEach((category) => {
+        category.faqs.forEach((faq, index) => {
+          if (
+            faq.question.toLowerCase().includes(queryLower) ||
+            faq.answer.toLowerCase().includes(queryLower) ||
+            category.title.toLowerCase().includes(queryLower)
+          ) {
+            matchedHelp.push({
+              id: `help-${category.id}-${index}`,
+              type: SEARCH_TYPES.HELP,
+              title: faq.question,
+              subtitle: category.title,
+              metadata: { answer: faq.answer },
+              route: `/support/help-center?q=${encodeURIComponent(faq.question)}`,
+            });
+          }
+        });
+      });
+
       return {
         expenses: matchedExpenses,
         budgets: matchedBudgets,
@@ -380,6 +405,7 @@ export const useUniversalSearch = () => {
         paymentMethods: matchedPaymentMethods,
         friends: matchedFriends,
         users: [],
+        help: matchedHelp.slice(0, MAX_RESULTS_PER_SECTION),
       };
     },
     [
@@ -607,6 +633,7 @@ export const useUniversalSearch = () => {
     addSortedResults(apiResults.bills, "bills");
     addSortedResults(apiResults.paymentMethods, "payment_methods");
     addSortedResults(apiResults.friends, "friends");
+    addSortedResults(apiResults.help, "help");
 
     return results;
   }, [quickActionResults, apiResults, query]);

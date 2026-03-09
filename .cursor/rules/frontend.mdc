@@ -1,0 +1,166 @@
+---
+description: Production-grade frontend coding standards, folder structure, design patterns, DRY principles, and build readiness for React 18 + MUI + Redux
+globs: expense-tracking-frontend/**/*.{js,jsx,css}
+alwaysApply: false
+---
+
+# Frontend Production Standards
+
+## Folder Structure (enforced)
+
+```
+expense-tracking-frontend/src/
+  config/                 # api.js, googleOAuth.js -- app-level configuration
+  components/
+    common/               # Cross-feature reusable components (NotificationsPanel, UniversalSearch)
+    ui/                   # Primitive UI wrappers (Button, Dialog, Modal, Select, Table)
+    layout/               # App shell, sidebars, navigation bars
+  features/
+    {feature}/
+      components/         # Feature-scoped components
+      pages/              # Route-level pages (one per route)
+      hooks/              # Feature-scoped custom hooks
+      services/           # Feature-scoped API calls (if not in Redux actions)
+  pages/                  # Legacy top-level pages (AuthPage, Dashboard) -- do not add new ones here
+  Redux/
+    {Feature}/
+      {feature}.actionType.js   # Action type constants
+      {feature}.action.js       # Thunk action creators
+      {feature}.reducer.js      # Reducer with switch/case
+    store.js              # combineReducers + createStore + thunk middleware
+  hooks/                  # Shared custom hooks (useTheme, useTranslation, useUserSettings)
+  services/               # Shared API services (itemService, etc.)
+  i18n/translations/      # en.js, hi.js, te.js
+  shared/                 # Theme, EmojiPicker
+  utils/                  # Pure utility functions (formatters, validators, fuzzyMatch)
+```
+
+Rules:
+- New features go in `features/{name}/` -- never add new top-level pages to `pages/`
+- Shared components go in `components/common/` or `components/ui/`
+- One component per file, one page per route
+- Never create a file without knowing which folder it belongs to
+
+## Component Standards
+
+- Functional components only; no class components (except ErrorBoundary)
+- One exported component per file (Single Responsibility)
+- Keep components under 80 lines; extract sub-components at that threshold
+- PascalCase filenames for components (`ExpenseCard.jsx`)
+- camelCase filenames for hooks, utils, services (`useExpenses.js`, `formatCurrency.js`)
+- Props destructured in function parameters with defaults where sensible
+
+## Design Patterns
+
+### Container/Presenter
+
+Separate data-fetching from rendering:
+
+```
+FeaturePage.jsx          # Container: useDispatch, useSelector, useEffect for data
+  └── FeatureList.jsx    # Presenter: receives props, renders UI, no Redux
+        └── FeatureRow   # Presenter: single item rendering
+```
+
+### Custom Hook Extraction
+
+Extract reusable logic into hooks when:
+- The same `useEffect` + `useState` pattern appears in 2+ components
+- A component has more than 3 hooks -- group related ones into a custom hook
+- Side effects (API calls, subscriptions, timers) can be isolated
+
+### Render Props / Composition
+
+Prefer composition over prop drilling:
+- Wrap children in provider components for cross-cutting concerns
+- Use `React.lazy` + `Suspense` at route boundaries for code splitting
+
+## DRY Principles
+
+- Extract shared UI patterns into `components/ui/` (buttons, dialogs, tables)
+- Extract shared business logic into `hooks/` (auth checks, permission guards, formatting)
+- Extract shared API call patterns into `services/` or Redux actions -- never duplicate Axios calls
+- Extract shared Yup validation schemas into `utils/validation.js` when used by 2+ forms
+- Translation keys: reuse `common.*` keys for shared text; feature-specific keys for unique text
+
+### DRY Violations to Watch For
+
+| Smell | Fix |
+|-------|-----|
+| Same API call in multiple components | Extract to Redux action or shared service |
+| Same form validation in multiple forms | Extract to `utils/validation.js` |
+| Same loading/error UI in multiple pages | Extract to `components/common/AsyncWrapper.jsx` |
+| Same date/currency formatting in multiple places | Extract to `utils/formatters.js` |
+| Same auth guard logic in multiple routes | Extract to `components/common/ProtectedRoute.jsx` |
+
+## State Management Rules
+
+- Redux + Thunk for server state and global app state (auth, expenses, budgets)
+- `useState` for local component UI state only (modals open/close, form dirty state)
+- Never put derived data in Redux -- compute it with `useMemo` in the component
+- Never mutate Redux state directly; always return new objects in reducers
+- Action types follow the pattern: `{VERB}_{NOUN}_{STATUS}` (e.g., `CREATE_EXPENSE_SUCCESS`)
+
+## Environment Configuration
+
+- All environment variables prefixed with `REACT_APP_`
+- Define in `.env.local` (dev), `.env.production` (prod) -- never commit `.env.local`
+- Access via `process.env.REACT_APP_*` -- never hard-code URLs or secrets
+- Provide fallback defaults in `config/api.js`: `process.env.REACT_APP_API_BASE_URL || "http://localhost:8080"`
+- Document every env var in `.env.example` with placeholder values
+
+## Build Readiness Checklist
+
+Before any feature is considered complete:
+
+- [ ] No `console.log`, `debugger`, or `alert()` statements
+- [ ] No unused imports or variables (will fail lint)
+- [ ] No hard-coded strings -- all user-facing text uses `t()`
+- [ ] No hard-coded colors -- all use MUI theme tokens
+- [ ] No hard-coded URLs -- all use `config/api.js` constants
+- [ ] Loading state shown for all async operations
+- [ ] Error state shown with retry option for all async operations
+- [ ] New translation keys added to all 3 files (en, hi, te)
+- [ ] Component under 80 lines
+- [ ] No prop drilling deeper than 2 levels -- use Redux or context
+- [ ] `useEffect` has proper cleanup and correct dependency array
+- [ ] Route is lazy-loaded with `React.lazy` + `Suspense`
+- [ ] No secrets or API keys in committed code
+- [ ] JWT stored in memory or httpOnly cookie, not `localStorage` (migration in progress)
+- [ ] `npm run build` completes without errors or warnings
+
+## Import Order
+
+```jsx
+// 1. React and core libraries
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+
+// 2. MUI components
+import { Box, Typography, Button, CircularProgress, Alert } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+
+// 3. Project components
+import PageHeader from "../../../components/PageHeader";
+import DataCard from "../../../components/common/DataCard";
+
+// 4. Hooks
+import { useTheme } from "../../../hooks/useTheme";
+import { useTranslation } from "../../../hooks/useTranslation";
+
+// 5. Redux actions
+import { fetchExpensesAction } from "../../../Redux/Expenses/expense.action";
+
+// 6. Utils and services
+import { formatCurrency } from "../../../utils/formatters";
+```
+
+## Performance Rules
+
+- `useMemo` for expensive computations (sorting, filtering large arrays)
+- `useCallback` for handlers passed to memoized children
+- `React.memo` on pure presentational components receiving object/array props
+- Virtualize lists with 100+ items (`react-window` or `react-virtualized`)
+- Lazy-load routes; never import all pages eagerly
+- Import MUI components individually, not from barrel exports

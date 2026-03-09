@@ -1,0 +1,64 @@
+---
+description: Security guardrails for JWT, Spring Security, input validation, and OWASP compliance
+alwaysApply: true
+---
+
+# Security Rules
+
+## Authentication (JWT)
+
+- JWT tokens validated in `JwtAuthFilter` on every protected request
+- Token signing uses a secret from environment variables, never hard-coded
+- Set short token expiry (15-30 min access, 7 day refresh)
+- Refresh tokens stored securely; revoke on logout
+- Never log JWT tokens or include them in error responses
+
+## Authorization
+
+- Use method-level security with `@PreAuthorize("hasRole('ROLE_X')")` on service methods
+- Controllers should not contain authorization logic
+- Validate resource ownership: users can only access their own data
+- Admin endpoints must require `ROLE_ADMIN`
+
+## Input Validation
+
+- Validate all request bodies with `@Valid` + Bean Validation annotations
+- Sanitize user input to prevent XSS (escape HTML in text fields)
+- Use parameterized queries exclusively; never concatenate user input into SQL
+- Validate file uploads: check MIME type, enforce size limits, scan content
+- Reject unexpected fields in API requests (use `@JsonIgnoreProperties(ignoreUnknown = false)`)
+
+## Data Protection
+
+- Hash passwords with BCrypt (`BCryptPasswordEncoder`); never store plain text
+- Never return passwords, tokens, or secrets in API responses
+- Mask sensitive data in logs (email, phone, financial amounts)
+- Use HTTPS in production; reject HTTP connections
+- Encrypt sensitive data at rest where required
+
+## Error Handling
+
+- Never expose stack traces, SQL errors, or internal paths to clients
+- Return generic error messages for 500 errors: "An internal error occurred"
+- Log full error details server-side with correlation IDs
+- Use standardized error response format with error code, message, and timestamp
+
+## CORS
+
+- Configure allowed origins explicitly in `CorsConfig`; no wildcard (`*`) in production
+- Restrict allowed methods to those actually used (GET, POST, PUT, DELETE)
+- Set `allowCredentials: true` only when needed for cookie/auth header flows
+
+## API Security
+
+- Rate limit public endpoints (login, registration, password reset)
+- Implement CSRF protection for cookie-based auth flows
+- Set security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`
+- Disable Spring Boot Actuator endpoints in production or protect with authentication
+
+## Frontend Security
+
+- Store JWT in memory or httpOnly cookies; never in localStorage
+- Sanitize any user-generated content before rendering (prevent XSS)
+- Validate redirect URLs to prevent open redirect attacks
+- Do not expose API keys or secrets in frontend code or environment files committed to git
