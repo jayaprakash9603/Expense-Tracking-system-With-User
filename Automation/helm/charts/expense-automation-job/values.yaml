@@ -1,0 +1,41 @@
+image:
+  repository: expense-automation-job
+  tag: latest
+  pullPolicy: IfNotPresent
+
+job:
+  name: expense-automation-job
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 300
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+runner:
+  runMode: run-only
+  engine: playwright
+  testEnv: qa
+  runnerType: spring
+  suite: smoke
+  tags: "@smoke"
+  rerunFailures: "false"
+  featuresPath: ""
+  additionalMavenArgs: ""
+
+app:
+  startCommand: ""
+  stopCommand: ""
+  readyUrl: ""
+  readyTimeoutSec: "180"
+
+reports:
+  hostPath: /var/automation/expense-tracking/reports
+
+secrets:
+  create: false
+  name: expense-automation-secrets
+  data: {}

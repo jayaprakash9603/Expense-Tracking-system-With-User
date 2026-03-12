@@ -1,0 +1,5 @@
+{
+  "recipientId": "${suite.friends.default.recipientId}",
+  "message": "${suite.chat.default.message}",
+  "type": "TEXT"
+}

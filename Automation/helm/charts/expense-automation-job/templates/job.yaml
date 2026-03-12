@@ -1,0 +1,68 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.job.name }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.job.name }}
+spec:
+  backoffLimit: {{ .Values.job.backoffLimit }}
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.job.name }}
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: {{ .Values.job.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: RUN_MODE
+              value: "{{ .Values.runner.runMode }}"
+            - name: AUTOMATION_ENGINE
+              value: "{{ .Values.runner.engine }}"
+            - name: TEST_ENV
+              value: "{{ .Values.runner.testEnv }}"
+            - name: AUTOMATION_RUNNER
+              value: "{{ .Values.runner.runnerType }}"
+            - name: AUTOMATION_SUITE
+              value: "{{ .Values.runner.suite }}"
+            - name: CUCUMBER_FILTER_TAGS
+              value: "{{ .Values.runner.tags }}"
+            - name: RERUN_FAILURES
+              value: "{{ .Values.runner.rerunFailures }}"
+            - name: FEATURES_PATH
+              value: "{{ .Values.runner.featuresPath }}"
+            - name: ADDITIONAL_MAVEN_ARGS
+              value: "{{ .Values.runner.additionalMavenArgs }}"
+            - name: APP_START_CMD
+              value: "{{ .Values.app.startCommand }}"
+            - name: APP_STOP_CMD
+              value: "{{ .Values.app.stopCommand }}"
+            - name: APP_READY_URL
+              value: "{{ .Values.app.readyUrl }}"
+            - name: APP_READY_TIMEOUT_SEC
+              value: "{{ .Values.app.readyTimeoutSec }}"
+            - name: TEST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: TEST_USERNAME
+                  optional: true
+            - name: TEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: TEST_PASSWORD
+                  optional: true
+          resources:
+{{ toYaml .Values.job.resources | indent 12 }}
+          volumeMounts:
+            - name: report-volume
+              mountPath: /opt/automation/automation-bdd/target/reports
+      volumes:
+        - name: report-volume
+          hostPath:
+            path: {{ .Values.reports.hostPath | quote }}
+            type: DirectoryOrCreate

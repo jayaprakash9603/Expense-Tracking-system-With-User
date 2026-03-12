@@ -1,0 +1,4 @@
+{
+  "name": "${suite.groups.default.name} ${random.number:3}",
+  "description": "Created by hybrid DSL template"
+}
