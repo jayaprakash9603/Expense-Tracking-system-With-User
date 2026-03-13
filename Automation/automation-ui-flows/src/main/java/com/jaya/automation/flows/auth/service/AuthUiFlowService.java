@@ -2,7 +2,9 @@ package com.jaya.automation.flows.auth.service;
 
 import com.jaya.automation.core.ui.UiEngine;
 import com.jaya.automation.flows.auth.model.LoginCredentials;
+import com.jaya.automation.flows.auth.model.SignupData;
 import com.jaya.automation.flows.auth.page.LoginPage;
+import com.jaya.automation.flows.auth.page.SignupPage;
 import com.jaya.automation.flows.auth.provider.MfaProvider;
 import com.jaya.automation.flows.auth.provider.NoOpMfaProvider;
 import com.jaya.automation.flows.auth.provider.NoOpOtpProvider;
@@ -13,6 +15,7 @@ import java.util.Optional;
 public final class AuthUiFlowService {
     private final UiEngine uiEngine;
     private final LoginPage loginPage;
+    private final SignupPage signupPage;
     private final OtpProvider otpProvider;
     private final MfaProvider mfaProvider;
 
@@ -23,6 +26,7 @@ public final class AuthUiFlowService {
     public AuthUiFlowService(UiEngine uiEngine, OtpProvider otpProvider, MfaProvider mfaProvider) {
         this.uiEngine = uiEngine;
         this.loginPage = new LoginPage(uiEngine);
+        this.signupPage = new SignupPage(uiEngine);
         this.otpProvider = otpProvider;
         this.mfaProvider = mfaProvider;
     }
@@ -38,6 +42,21 @@ public final class AuthUiFlowService {
         loginPage.open(baseUrl);
         loginPage.submitCredentials(credentials);
         String errorMessage = loginPage.readErrorMessage();
+        validateErrorContains(errorMessage, expectedMessage);
+        return errorMessage;
+    }
+
+    public String registerSuccessfully(String baseUrl, SignupData signupData) {
+        signupPage.open(baseUrl);
+        signupPage.submitSignup(signupData);
+        uiEngine.waits().forUrlContains("/login");
+        return uiEngine.currentUrl();
+    }
+
+    public String registerExpectingValidationError(String baseUrl, SignupData signupData, String expectedMessage) {
+        signupPage.open(baseUrl);
+        signupPage.submitSignup(signupData);
+        String errorMessage = signupPage.readErrorMessage();
         validateErrorContains(errorMessage, expectedMessage);
         return errorMessage;
     }

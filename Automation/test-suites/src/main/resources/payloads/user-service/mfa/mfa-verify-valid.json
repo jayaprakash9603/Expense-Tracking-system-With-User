@@ -1,0 +1,5 @@
+{
+  "mfaToken": "sample-mfa-token",
+  "otp": "123456",
+  "rememberDevice": true
+}

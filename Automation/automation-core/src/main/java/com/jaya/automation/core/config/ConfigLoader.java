@@ -67,7 +67,8 @@ public final class ConfigLoader {
     private RunnerSettings buildRunnerSettings(int parallelThreads) {
         String cucumberTags = readValue("cucumber.filter.tags", "@smoke");
         String cucumberFeatures = readValue("cucumber.features", "");
-        return new RunnerSettings(cucumberTags, cucumberFeatures, parallelThreads);
+        boolean reuseBrowserSession = readBoolean("REUSE_BROWSER_SESSION", false);
+        return new RunnerSettings(cucumberTags, cucumberFeatures, parallelThreads, reuseBrowserSession);
     }
 
     private ArtifactSettings buildArtifactSettings(String runId) {

@@ -6,6 +6,10 @@ import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
 import io.cucumber.java.en.Given;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -74,6 +78,18 @@ public class UserApiSteps extends StepDataSupport {
         storeAlias(roleIdAlias, resolveRoleId("USER"));
     }
 
+    @Given("store response field {string} as mfa secret alias {string}")
+    public void storeResponseFieldAsMfaSecretAlias(String jsonPath, String secretAlias) {
+        String secret = stringValue(BddWorld.apiExecutionResult(), jsonPath, "MFA secret is missing");
+        storeAlias(secretAlias, secret);
+    }
+
+    @Given("generate mfa otp from alias {string} as {string}")
+    public void generateMfaOtpFromAlias(String secretAlias, String otpAlias) {
+        String secret = String.valueOf(aliasValue(secretAlias));
+        storeAlias(otpAlias, generateOtp(secret));
+    }
+
     private CreatedUser createDisposableUser() {
         String email = "automation.user+" + UUID.randomUUID().toString().substring(0, 8) + "@example.test";
         Map<String, Object> signupPayload = Map.of(
@@ -89,6 +105,7 @@ public class UserApiSteps extends StepDataSupport {
         });
         ensureStatus(profile, 200);
         Integer id = intValue(profile, "id", "Disposable user id is missing");
+        trackCleanupId("cleanup.disposableUserIds", id);
         return new CreatedUser(id, email, token);
     }
 
@@ -127,6 +144,7 @@ public class UserApiSteps extends StepDataSupport {
         ensureStatus(created, 200, 201, 409);
         Integer id = intValue(created, "id", "");
         if (id != null) {
+            trackCleanupId("cleanup.disposableRoleIds", id);
             return id;
         }
         Integer resolved = roleIdFromList(execute("roles.list", adminToken(), builder -> {
@@ -228,6 +246,32 @@ public class UserApiSteps extends StepDataSupport {
     private void storeAlias(String alias, Object value) {
         BddWorld.apiScenarioContext().putAlias(alias, value);
         BddWorld.putAliasValue(alias, value);
+    }
+
+    private void trackCleanupId(String alias, Integer value) {
+        String current = BddWorld.aliasValue(alias).map(String::valueOf).orElse("");
+        String updated = current.isBlank() ? String.valueOf(value) : current + "," + value;
+        storeAlias(alias, updated);
+    }
+
+    private String generateOtp(String secret) {
+        long epochWindow = System.currentTimeMillis() / 30000L;
+        byte[] counter = ByteBuffer.allocate(8).putLong(epochWindow).array();
+        byte[] key = secret.getBytes(StandardCharsets.UTF_8);
+        try {
+            Mac mac = Mac.getInstance("HmacSHA1");
+            mac.init(new SecretKeySpec(key, "HmacSHA1"));
+            byte[] hash = mac.doFinal(counter);
+            int offset = hash[hash.length - 1] & 0x0F;
+            int binary = ((hash[offset] & 0x7F) << 24)
+                    | ((hash[offset + 1] & 0xFF) << 16)
+                    | ((hash[offset + 2] & 0xFF) << 8)
+                    | (hash[offset + 3] & 0xFF);
+            int otp = binary % 1_000_000;
+            return String.format("%06d", otp);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to generate MFA OTP", exception);
+        }
     }
 
     private record CreatedUser(Integer id, String email, String token) {

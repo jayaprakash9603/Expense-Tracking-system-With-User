@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "anyOf": [
+    { "required": ["exists"] },
+    { "required": ["isAvailable"] }
+  ],
+  "properties": {
+    "exists": {
+      "type": "boolean"
+    },
+    "isAvailable": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

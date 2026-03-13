@@ -34,6 +34,7 @@
         <testng.version>7.11.0</testng.version>
         <cucumber.version>7.21.1</cucumber.version>
         <allure.version>2.24.0</allure.version>
+        <allure.cucumber.version>2.29.1</allure.cucumber.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.18</logback.version>
         <jackson.version>2.19.2</jackson.version>
@@ -70,6 +71,7 @@
         <APP_WORKDIR></APP_WORKDIR>
         <APP_READY_URL></APP_READY_URL>
         <APP_READY_TIMEOUT_SEC>180</APP_READY_TIMEOUT_SEC>
+        <REUSE_BROWSER_SESSION>false</REUSE_BROWSER_SESSION>
         <cucumber.features></cucumber.features>
         <cucumber.filter.tags>@smoke</cucumber.filter.tags>
         <cucumber.thread.count>1</cucumber.thread.count>
@@ -131,6 +133,11 @@
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-testng</artifactId>
                 <version>${allure.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-cucumber7-jvm</artifactId>
+                <version>${allure.cucumber.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -215,6 +222,7 @@
                             <APP_WORKDIR>${APP_WORKDIR}</APP_WORKDIR>
                             <APP_READY_URL>${APP_READY_URL}</APP_READY_URL>
                             <APP_READY_TIMEOUT_SEC>${APP_READY_TIMEOUT_SEC}</APP_READY_TIMEOUT_SEC>
+                            <REUSE_BROWSER_SESSION>${REUSE_BROWSER_SESSION}</REUSE_BROWSER_SESSION>
                             <cucumber.features>${cucumber.features}</cucumber.features>
                             <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                         </systemPropertyVariables>
@@ -256,6 +264,7 @@
                             <APP_WORKDIR>${APP_WORKDIR}</APP_WORKDIR>
                             <APP_READY_URL>${APP_READY_URL}</APP_READY_URL>
                             <APP_READY_TIMEOUT_SEC>${APP_READY_TIMEOUT_SEC}</APP_READY_TIMEOUT_SEC>
+                            <REUSE_BROWSER_SESSION>${REUSE_BROWSER_SESSION}</REUSE_BROWSER_SESSION>
                             <cucumber.features>${cucumber.features}</cucumber.features>
                             <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
                         </systemPropertyVariables>

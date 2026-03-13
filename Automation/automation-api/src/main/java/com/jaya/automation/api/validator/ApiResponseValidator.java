@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.Objects;
 
 public final class ApiResponseValidator {
+    private final JsonPathAssertionUtil jsonPathAssertionUtil = new JsonPathAssertionUtil();
+
     public void assertStatus(ApiExecutionResult result, int expectedStatus) {
         int actualStatus = result.statusCode();
         if (actualStatus != expectedStatus) {
@@ -29,28 +31,15 @@ public final class ApiResponseValidator {
     }
 
     public void assertJsonPathEquals(ApiExecutionResult result, String jsonPath, String expectedValue) {
-        Object actualValue = result.jsonPathValue(jsonPath)
-                .orElseThrow(() -> new AssertionError("Missing json path: " + jsonPath));
-        if (!Objects.equals(String.valueOf(actualValue), expectedValue)) {
-            throw new AssertionError("Expected " + jsonPath + " to equal " + expectedValue + " but was " + actualValue);
-        }
+        jsonPathAssertionUtil.assertValueEquals(result, jsonPath, expectedValue);
     }
 
     public void assertJsonPathContains(ApiExecutionResult result, String jsonPath, String expectedFragment) {
-        Object actualValue = result.jsonPathValue(jsonPath)
-                .orElseThrow(() -> new AssertionError("Missing json path: " + jsonPath));
-        String actualText = String.valueOf(actualValue);
-        if (!actualText.contains(expectedFragment)) {
-            throw new AssertionError("Expected " + jsonPath + " to contain " + expectedFragment + " but was " + actualText);
-        }
+        jsonPathAssertionUtil.assertValueContains(result, jsonPath, expectedFragment);
     }
 
     public void assertJsonPathNotNull(ApiExecutionResult result, String jsonPath) {
-        Object actualValue = result.jsonPathValue(jsonPath)
-                .orElseThrow(() -> new AssertionError("Missing json path: " + jsonPath));
-        if (actualValue == null) {
-            throw new AssertionError("Expected non-null json path value: " + jsonPath);
-        }
+        jsonPathAssertionUtil.assertValuePresent(result, jsonPath);
     }
 
     public void assertJsonArraySize(ApiExecutionResult result, String jsonPath, int expectedSize) {

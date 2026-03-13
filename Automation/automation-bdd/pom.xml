@@ -13,6 +13,9 @@
 
     <artifactId>automation-bdd</artifactId>
     <name>automation-bdd</name>
+    <properties>
+        <cucumber.filter.tags></cucumber.filter.tags>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -83,6 +86,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-cucumber7-jvm</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <scope>test</scope>
@@ -103,9 +111,51 @@
                     <includes>
                         <include>**/*CucumberTest.java</include>
                     </includes>
+                    <systemPropertyVariables>
+                        <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
+                    </systemPropertyVariables>
                     <rerunFailingTestsCount>${RERUN_FAILED_COUNT}</rerunFailingTestsCount>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>smoke</id>
+            <properties>
+                <cucumber.filter.tags>@api and @smoke</cucumber.filter.tags>
+            </properties>
+        </profile>
+        <profile>
+            <id>phase1</id>
+            <properties>
+                <cucumber.filter.tags>@Phase1</cucumber.filter.tags>
+            </properties>
+        </profile>
+        <profile>
+            <id>phase2</id>
+            <properties>
+                <cucumber.filter.tags>@Phase2</cucumber.filter.tags>
+            </properties>
+        </profile>
+        <profile>
+            <id>phase3</id>
+            <properties>
+                <cucumber.filter.tags>@Phase3</cucumber.filter.tags>
+            </properties>
+        </profile>
+        <profile>
+            <id>phase4</id>
+            <properties>
+                <cucumber.filter.tags>@Phase4</cucumber.filter.tags>
+            </properties>
+        </profile>
+        <profile>
+            <id>regression</id>
+            <properties>
+                <cucumber.filter.tags>@api and @regression</cucumber.filter.tags>
+            </properties>
+        </profile>
+    </profiles>
 </project>

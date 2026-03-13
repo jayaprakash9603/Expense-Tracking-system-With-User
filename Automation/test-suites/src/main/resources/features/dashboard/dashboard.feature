@@ -10,4 +10,4 @@ Feature: Dashboard testing flows
   Scenario: Dashboard page is displayed with generic UI steps
     Given ui testing is ready
     When the user opens the "dashboard" page
-    Then the "dashboard" page should be displayed
+    Then the user should be on "Dashboard" page

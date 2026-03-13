@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "secret",
+    "qrCodeDataUri",
+    "otpAuthUri"
+  ],
+  "properties": {
+    "secret": {
+      "type": "string"
+    },
+    "qrCodeDataUri": {
+      "type": "string"
+    },
+    "otpAuthUri": {
+      "type": "string"
+    },
+    "issuer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

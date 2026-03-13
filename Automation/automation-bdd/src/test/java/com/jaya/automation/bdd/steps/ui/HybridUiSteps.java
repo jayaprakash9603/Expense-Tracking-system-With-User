@@ -21,12 +21,7 @@ public class HybridUiSteps extends StepDataSupport {
     public void userNavigatesToDomainPage(String domainKey) {
         BddWorld.uiActionExecutor().navigateToDomain(domainKey, BddWorld.config().baseUrl());
         BddWorld.putUiValue("currentDomain", domainKey);
-    }
-
-    @Then("the {string} page should be displayed")
-    public void domainPageShouldBeLoaded(String domainKey) {
-        boolean loaded = BddWorld.uiActionExecutor().isDomainLoaded(domainKey);
-        Assertions.assertThat(loaded).isTrue();
+        BddWorld.setCurrentUrl(BddWorld.config().baseUrl() + "/" + domainKey);
     }
 
     @When("the user fills the form with data")

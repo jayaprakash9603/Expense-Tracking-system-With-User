@@ -20,6 +20,8 @@ import org.testng.annotations.Listeners;
         plugin = {
                 "pretty",
                 "summary",
+                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm",
+                "com.jaya.automation.bdd.runner.StepExecutionLoggerPlugin",
                 "json:target/reports/cucumber/spring-cucumber.json",
                 "html:target/reports/cucumber/spring-cucumber.html",
                 "rerun:target/reports/rerun/rerun.txt"

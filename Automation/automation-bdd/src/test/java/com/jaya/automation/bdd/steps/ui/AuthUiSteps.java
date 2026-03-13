@@ -10,8 +10,8 @@ import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
 public class AuthUiSteps extends StepDataSupport {
-    @Given("the login flow is ready")
-    public void uiAuthFlowIsReady() {
+    @Given("the user is on {string} page")
+    public void userIsOnPage(String page) {
         BddWorld.authUiFlowService();
     }
 
@@ -25,9 +25,24 @@ public class AuthUiSteps extends StepDataSupport {
         BddWorld.setCurrentUrl(currentUrl);
     }
 
-    @Then("the user should see the dashboard")
-    public void userIsRedirectedToDashboard() {
-        Assertions.assertThat(BddWorld.currentUrl()).contains("/dashboard");
+    @When("the user logs in with the registered credentials")
+    public void userLogsInWithTheRegisteredCredentials() {
+        String email = BddWorld.scenarioState()
+                .sessionValue("signupEmail")
+                .orElseThrow(() -> new IllegalStateException("No signup email found in session"));
+        String password = BddWorld.scenarioState()
+                .sessionValue("signupPassword")
+                .orElseThrow(() -> new IllegalStateException("No signup password found in session"));
+        LoginCredentials credentials = new LoginCredentials(email, password);
+        String currentUrl = BddWorld.authUiFlowService()
+                .loginSuccessfully(BddWorld.config().baseUrl(), credentials);
+        BddWorld.setCurrentUrl(currentUrl);
+    }
+
+    @Then("the user should be on {string} page")
+    public void userShouldBeOnPage(String page) {
+        Assertions.assertThat(BddWorld.currentUrl())
+                .containsIgnoringCase("/" + page.toLowerCase());
     }
 
     @When("the user tries to log in with invalid credentials")
