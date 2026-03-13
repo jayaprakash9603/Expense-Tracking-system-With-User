@@ -1,8 +1,9 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.CategoryReportPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.service.CategoryReportPreferenceService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -52,11 +53,11 @@ public class CategoryReportPreferenceController {
     @PostMapping
     public ResponseEntity<Object> saveCategoryReportPreference(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody @NotBlank(message = "Layout configuration is required") String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         try {
             CategoryReportPreferenceDTO saved = categoryReportPreferenceService.saveCategoryReportPreference(jwt,
-                    layoutConfig);
+                    request.getLayoutConfig());
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "Category report preference saved successfully",

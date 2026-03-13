@@ -2,8 +2,10 @@ package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.dto.BillReportPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.service.BillReportPreferenceService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,14 +59,14 @@ public class BillReportPreferenceController {
     @PostMapping
     public ResponseEntity<BillReportPreferenceDTO> savePreferences(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         Integer userId = extractUserId(authHeader);
         if (userId == null) {
             return ResponseEntity.status(401).build();
         }
 
-        BillReportPreferenceDTO saved = preferenceService.savePreferences(userId, layoutConfig);
+        BillReportPreferenceDTO saved = preferenceService.savePreferences(userId, request.getLayoutConfig());
         return ResponseEntity.ok(saved);
     }
 

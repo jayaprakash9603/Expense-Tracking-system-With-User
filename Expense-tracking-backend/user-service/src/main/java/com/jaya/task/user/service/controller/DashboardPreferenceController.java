@@ -1,8 +1,9 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.DashboardPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.service.DashboardPreferenceService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -52,10 +53,11 @@ public class DashboardPreferenceController {
     @PostMapping
     public ResponseEntity<Object> saveDashboardPreference(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody @NotBlank(message = "Layout configuration is required") String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         try {
-            DashboardPreferenceDTO saved = dashboardPreferenceService.saveDashboardPreference(jwt, layoutConfig);
+            DashboardPreferenceDTO saved = dashboardPreferenceService
+                    .saveDashboardPreference(jwt, request.getLayoutConfig());
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "Dashboard preference saved successfully",

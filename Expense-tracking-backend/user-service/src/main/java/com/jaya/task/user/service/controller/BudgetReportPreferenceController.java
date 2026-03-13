@@ -2,8 +2,10 @@ package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.BudgetReportPreferenceDTO;
 import com.jaya.task.user.service.modal.User;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.service.BudgetReportPreferenceService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,14 +59,14 @@ public class BudgetReportPreferenceController {
     @PostMapping
     public ResponseEntity<BudgetReportPreferenceDTO> savePreferences(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         Integer userId = extractUserId(authHeader);
         if (userId == null) {
             return ResponseEntity.status(401).build();
         }
 
-        BudgetReportPreferenceDTO saved = preferenceService.savePreferences(userId, layoutConfig);
+        BudgetReportPreferenceDTO saved = preferenceService.savePreferences(userId, request.getLayoutConfig());
         return ResponseEntity.ok(saved);
     }
 

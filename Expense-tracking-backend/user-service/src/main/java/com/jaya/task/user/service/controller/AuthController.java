@@ -3,13 +3,12 @@ package com.jaya.task.user.service.controller;
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.UserRepository;
-import com.jaya.task.user.service.repository.RoleRepository;
 import com.jaya.task.user.service.request.LoginRequest;
+import com.jaya.task.user.service.request.ResetPasswordRequest;
 import com.jaya.task.user.service.request.SignupRequest;
 import com.jaya.task.user.service.request.VerifyLoginOtpRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
-import com.jaya.task.user.service.exceptions.MissingRequestHeaderException;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.service.OtpService;
 import com.jaya.task.user.service.service.TotpService;
@@ -61,29 +60,32 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        try {
+            User savedUser = userService.signup(signupRequest);
 
-        User savedUser = userService.signup(signupRequest);
+            UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
+            Authentication authentication = new UsernamePasswordAuthenticationToken(
+                    userDetails.getUsername(),
+                    null,
+                    userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        UserDetails userDetails = customUserService.loadUserByUsername(savedUser.getEmail());
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails.getUsername(),
-                null,
-                userDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            String token = JwtProvider.generateToken(authentication);
 
-        String token = JwtProvider.generateToken(authentication);
+            AuthResponse authResponse = new AuthResponse();
+            authResponse.setStatus(true);
+            authResponse.setMessage("Registration Success");
+            authResponse.setJwt(token);
 
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setStatus(true);
-        authResponse.setMessage("Registration Success");
-        authResponse.setJwt(token);
-
-        return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+            return new ResponseEntity<>(authResponse, HttpStatus.CREATED);
+        } catch (UserAlreadyExistsException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+        }
 
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<AuthResponse> signin(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> signin(@Valid @RequestBody LoginRequest loginRequest) {
         String username = loginRequest.getEmail();
         String password = loginRequest.getPassword();
 
@@ -215,10 +217,10 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestHeader("Authorization") String jwt) {
+    public ResponseEntity<?> refreshToken(@RequestHeader(value = "Authorization", required = false) String jwt) {
 
-        if (jwt == null) {
-            throw new MissingRequestHeaderException("Jwt is missing");
+        if (jwt == null || jwt.isBlank()) {
+            throw new IllegalArgumentException("Authorization header is required");
         }
         
         String email = JwtProvider.getEmailFromJwt(jwt);
@@ -318,12 +320,12 @@ public class AuthController {
                     .body(Map.of("error", "Email not found"));
         }
         try {
-            String otp = otpService.generateAndSendOtp(email);
+            otpService.generateAndSendOtp(email);
             Map<String, String> response = new HashMap<>();
             response.put("message", "OTP sent successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to send OTP for email={}", email, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to send OTP"));
         }
@@ -347,7 +349,7 @@ public class AuthController {
             otpService.generateAndSendLoginOtp(email);
             return ResponseEntity.ok(Map.of("message", "Login OTP resent successfully"));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to resend login OTP for email={}", email, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to resend login OTP"));
         }
@@ -367,9 +369,9 @@ public class AuthController {
     }
 
     @PatchMapping("/reset-password")
-    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String newPassword = request.get("password");
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        String email = request.getEmail();
+        String newPassword = request.getPassword();
         User userOptional = userService.findByEmail(email);
         if (userOptional == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

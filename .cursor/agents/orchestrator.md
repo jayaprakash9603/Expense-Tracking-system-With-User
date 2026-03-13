@@ -45,7 +45,6 @@ Each agent has access to skills that teach production-grade coding patterns:
 | Debug | `@debug-agent.md` | Root cause analysis, systematic troubleshooting |
 | DevOps | `@devops-agent.md` | Docker, CI/CD, environment config, deployment |
 | Documentation | `@documentation-agent.md` | API docs, README, OpenAPI, changelog |
-| i18n & A11y | `@i18n-accessibility-agent.md` | Translations, WCAG compliance, keyboard navigation |
 
 ## Delegation Protocol
 

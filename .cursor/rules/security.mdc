@@ -1,8 +1,7 @@
 ---
 description: Security guardrails for JWT, Spring Security, input validation, and OWASP compliance
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Security Rules
 
 ## Authentication (JWT)

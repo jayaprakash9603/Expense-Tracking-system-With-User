@@ -10,6 +10,13 @@ import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/iconMapping";
 
+const sanitizeAttributeValue = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "");
+
 /**
  * Memoized individual expense card component for performance.
  * Renders only when its specific props change.
@@ -120,6 +127,12 @@ const ExpenseCard = React.memo(
       row.paymentMethod?.icon ||
       row.expense?.paymentMethodIcon ||
       paymentMethodName;
+    const expenseId = row.id || row.expenseId || "";
+    const expenseName = row.name || "";
+    const expenseNameKey = sanitizeAttributeValue(expenseName);
+    const expenseKey = expenseId
+      ? `expense-${expenseId}`
+      : `expense-name-${expenseNameKey || sourceIndex}`;
 
     const isBill = row.bill === true;
 
@@ -227,6 +240,12 @@ const ExpenseCard = React.memo(
         key={row.id || row.expenseId || `expense-${idx}`}
         className="rounded-lg shadow-md flex flex-col justify-between relative group"
         data-card-index={sourceIndex}
+        data-testid="expense-card"
+        data-expense-key={expenseKey}
+        data-expense-id={expenseId}
+        data-expense-name={expenseName}
+        data-expense-name-key={expenseNameKey}
+        data-expense-amount={row.amount ?? ""}
         style={{
           minHeight: "155px",
           maxHeight: "155px",
@@ -490,6 +509,10 @@ const ExpenseCard = React.memo(
             >
               <IconButton
                 size="small"
+                data-testid="expense-card-edit"
+                data-expense-key={expenseKey}
+                data-expense-id={expenseId}
+                data-expense-name-key={expenseNameKey}
                 sx={{
                   color: "#5b7fff",
                   p: "4px",
@@ -505,6 +528,10 @@ const ExpenseCard = React.memo(
               </IconButton>
               <IconButton
                 size="small"
+                data-testid="expense-card-delete"
+                data-expense-key={expenseKey}
+                data-expense-id={expenseId}
+                data-expense-name-key={expenseNameKey}
                 sx={{
                   color: "#ff4d4f",
                   p: "4px",

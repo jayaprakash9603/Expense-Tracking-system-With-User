@@ -1,8 +1,9 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.PaymentReportPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.service.PaymentReportPreferenceService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -57,11 +58,11 @@ public class PaymentReportPreferenceController {
     @PostMapping
     public ResponseEntity<Object> savePaymentReportPreference(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody @NotBlank(message = "Layout configuration is required") String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         try {
             PaymentReportPreferenceDTO saved = paymentReportPreferenceService.savePaymentReportPreference(jwt,
-                    layoutConfig);
+                    request.getLayoutConfig());
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "Payment report preference saved successfully",

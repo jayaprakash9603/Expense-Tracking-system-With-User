@@ -1,8 +1,7 @@
 ---
 description: Task decomposition and planning patterns for multi-agent workflows
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Planning Rules
 
 ## When to Use Plan Mode

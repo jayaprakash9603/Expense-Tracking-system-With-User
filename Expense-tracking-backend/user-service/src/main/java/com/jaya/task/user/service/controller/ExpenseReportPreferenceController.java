@@ -1,8 +1,9 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.ExpenseReportPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.service.ExpenseReportPreferenceService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -51,11 +52,11 @@ public class ExpenseReportPreferenceController {
     @PostMapping
     public ResponseEntity<Object> saveExpenseReportPreference(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody @NotBlank(message = "Layout configuration is required") String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         try {
             ExpenseReportPreferenceDTO saved = expenseReportPreferenceService.saveExpenseReportPreference(jwt,
-                    layoutConfig);
+                    request.getLayoutConfig());
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "Expense report preference saved successfully",

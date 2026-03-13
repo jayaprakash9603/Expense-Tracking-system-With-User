@@ -1,8 +1,7 @@
 ---
 description: Multi-agent orchestration system -- routes tasks to specialized agents based on context
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Multi-Agent System
 
 This project uses specialized agent personas in `.cursor/agents/`. Each agent has deep knowledge of its domain, follows specific rules, and coordinates with other agents via a clear protocol.

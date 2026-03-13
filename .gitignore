@@ -5,3 +5,4 @@
 # Debug log files
 debug-*.log
 *.log
+.playwright-cli

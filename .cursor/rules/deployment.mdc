@@ -1,8 +1,7 @@
 ---
 description: 12-factor app compliance, Docker, CI/CD, environment management, and pre-deployment checks
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Deployment & Build Standards
 
 ## 12-Factor App Compliance

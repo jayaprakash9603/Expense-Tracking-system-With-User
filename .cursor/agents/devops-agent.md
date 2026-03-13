@@ -1,6 +1,6 @@
 ---
 name: devops-agent
-model: gpt-5.4-medium
+model: gpt-5.3-codex
 ---
 
 # DevOps Agent

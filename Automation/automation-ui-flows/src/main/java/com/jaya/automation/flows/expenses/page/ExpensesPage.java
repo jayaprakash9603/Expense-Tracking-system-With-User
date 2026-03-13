@@ -15,18 +15,50 @@ public final class ExpensesPage extends BaseDomainPage {
         return "/expenses";
     }
 
-    public void clickExpenseRowByName(String expenseName) {
-        Locator row = expenseRow(expenseName);
-        uiEngine().waits().forClickable(row);
-        uiEngine().elements().click(row);
+    public void clickExpenseCardByName(String expenseName) {
+        Locator card = expenseCard(expenseName);
+        uiEngine().waits().forClickable(card);
+        uiEngine().elements().click(card);
     }
 
-    public boolean isExpenseRowVisible(String expenseName) {
-        return uiEngine().elements().isVisible(expenseRow(expenseName));
+    public boolean isExpenseCardVisible(String expenseName) {
+        return uiEngine().elements().isVisible(expenseCard(expenseName));
     }
 
-    private Locator expenseRow(String expenseName) {
-        String sanitizedName = expenseName.replace("'", "\\'");
-        return Locator.xpath("//*[contains(normalize-space(),'" + sanitizedName + "')]");
+    public void clickEditForExpense(String expenseName) {
+        clickExpenseCardByName(expenseName);
+        Locator editAction = expenseEditAction(expenseName);
+        uiEngine().waits().forClickable(editAction);
+        uiEngine().elements().click(editAction);
+    }
+
+    public void clickDeleteForExpense(String expenseName) {
+        clickExpenseCardByName(expenseName);
+        Locator deleteAction = expenseDeleteAction(expenseName);
+        uiEngine().waits().forClickable(deleteAction);
+        uiEngine().elements().click(deleteAction);
+    }
+
+    private Locator expenseCard(String expenseName) {
+        String nameKey = toNameKey(expenseName);
+        return Locator.css("[data-testid='expense-card'][data-expense-name-key='" + nameKey + "']");
+    }
+
+    private Locator expenseEditAction(String expenseName) {
+        String nameKey = toNameKey(expenseName);
+        return Locator.css("[data-testid='expense-card-edit'][data-expense-name-key='" + nameKey + "']");
+    }
+
+    private Locator expenseDeleteAction(String expenseName) {
+        String nameKey = toNameKey(expenseName);
+        return Locator.css("[data-testid='expense-card-delete'][data-expense-name-key='" + nameKey + "']");
+    }
+
+    private String toNameKey(String expenseName) {
+        return expenseName
+                .toLowerCase()
+                .trim()
+                .replaceAll("\\s+", "-")
+                .replaceAll("[^a-z0-9-_]", "");
     }
 }
