@@ -90,4 +90,33 @@ public final class ApiResponseValidator {
             throw new AssertionError("Expected collection at " + jsonPath + " to contain " + expectedFragment);
         }
     }
+
+    public void assertBodyEquals(ApiExecutionResult result, String expectedBody) {
+        String actualBody = result.bodyAsString();
+        if (!Objects.equals(actualBody, expectedBody)) {
+            throw new AssertionError("Expected body to equal '" + expectedBody + "' but was '" + actualBody + "'");
+        }
+    }
+
+    public void assertBodyContains(ApiExecutionResult result, String expectedFragment) {
+        String actualBody = result.bodyAsString();
+        if (!actualBody.contains(expectedFragment)) {
+            throw new AssertionError("Expected body to contain '" + expectedFragment + "' but was '" + actualBody + "'");
+        }
+    }
+
+    public void assertJsonPathOrBodyEquals(ApiExecutionResult result, String jsonPath, String expectedValue) {
+        Object value = result.jsonPathValue(jsonPath).orElse(result.bodyAsString());
+        if (!Objects.equals(String.valueOf(value), expectedValue)) {
+            throw new AssertionError("Expected " + jsonPath + " or body to equal " + expectedValue + " but was " + value);
+        }
+    }
+
+    public void assertJsonPathOrBodyContains(ApiExecutionResult result, String jsonPath, String expectedFragment) {
+        Object value = result.jsonPathValue(jsonPath).orElse(result.bodyAsString());
+        String actual = String.valueOf(value);
+        if (!actual.contains(expectedFragment)) {
+            throw new AssertionError("Expected " + jsonPath + " or body to contain " + expectedFragment + " but was " + actual);
+        }
+    }
 }

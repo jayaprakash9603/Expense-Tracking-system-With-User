@@ -2,10 +2,10 @@ package com.jaya.automation.bdd.context;
 
 import com.jaya.automation.core.context.ScenarioContext;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class ScenarioState {
     private static final String DATA_ROW_KEY = "state.data.row";
@@ -46,7 +46,7 @@ public final class ScenarioState {
         if (!(value instanceof Map<?, ?> values)) {
             return Optional.empty();
         }
-        return Optional.of(Map.copyOf(copyToObjectMap(values)));
+        return Optional.of(Collections.unmodifiableMap(copyToObjectMap(values)));
     }
 
     public void putResponseAlias(String alias, Object responseValue) {
@@ -116,13 +116,13 @@ public final class ScenarioState {
     private Map<String, Object> mutableBucket(String key) {
         Map<String, Object> bucket = scenarioContext.get(key, Map.class)
                 .map(ScenarioState::copyToObjectMap)
-                .orElseGet(ConcurrentHashMap::new);
+                .orElseGet(LinkedHashMap::new);
         scenarioContext.put(key, bucket);
         return bucket;
     }
 
     private static Map<String, Object> copyToObjectMap(Map<?, ?> source) {
-        Map<String, Object> copy = new ConcurrentHashMap<>();
+        Map<String, Object> copy = new LinkedHashMap<>();
         source.forEach((mapKey, mapValue) -> copy.put(String.valueOf(mapKey), mapValue));
         return copy;
     }

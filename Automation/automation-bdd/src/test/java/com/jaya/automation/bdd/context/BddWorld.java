@@ -15,7 +15,9 @@ import com.jaya.automation.api.execution.ApiExecutionResult;
 import com.jaya.automation.api.execution.ApiRequestExecutor;
 import com.jaya.automation.api.model.AuthSigninResponse;
 import com.jaya.automation.api.model.UserProfileResponse;
+import com.jaya.automation.api.util.JsonSchemaValidator;
 import com.jaya.automation.api.util.SessionTokenHelper;
+import com.jaya.automation.api.util.TokenProvider;
 import com.jaya.automation.api.validator.ApiResponseValidator;
 import com.jaya.automation.core.config.AutomationConfig;
 import com.jaya.automation.core.context.TestContext;
@@ -32,9 +34,11 @@ public final class BddWorld {
     private static final ThreadLocal<ScenarioState> SCENARIO_STATE = new ThreadLocal<>();
     private static final ThreadLocal<SuiteDataCatalog> SUITE_DATA_CATALOG = new ThreadLocal<>();
     private static final ThreadLocal<ScenarioDataBinder> SCENARIO_DATA_BINDER = new ThreadLocal<>();
+    private static final ThreadLocal<ApiScenarioContext> API_SCENARIO_CONTEXT = new ThreadLocal<>();
     private static final ThreadLocal<ApiEndpointRegistry> API_ENDPOINT_REGISTRY = new ThreadLocal<>();
     private static final ThreadLocal<ApiRequestExecutor> API_REQUEST_EXECUTOR = new ThreadLocal<>();
     private static final ThreadLocal<ApiResponseValidator> API_RESPONSE_VALIDATOR = new ThreadLocal<>();
+    private static final ThreadLocal<JsonSchemaValidator> JSON_SCHEMA_VALIDATOR = new ThreadLocal<>();
     private static final ThreadLocal<ApiExecutionResult> API_EXECUTION_RESULT = new ThreadLocal<>();
     private static final ThreadLocal<UiActionExecutor> UI_ACTION_EXECUTOR = new ThreadLocal<>();
     private static final ThreadLocal<AuthUiFlowService> AUTH_UI_FLOW_SERVICE = new ThreadLocal<>();
@@ -49,6 +53,7 @@ public final class BddWorld {
     private static final ThreadLocal<ChatApiClient> CHAT_API_CLIENT = new ThreadLocal<>();
     private static final ThreadLocal<PresenceApiClient> PRESENCE_API_CLIENT = new ThreadLocal<>();
     private static final ThreadLocal<SessionTokenHelper> SESSION_TOKEN_HELPER = new ThreadLocal<>();
+    private static final ThreadLocal<TokenProvider> TOKEN_PROVIDER = new ThreadLocal<>();
     private static final ThreadLocal<DomainNavigationFlowService> DOMAIN_NAVIGATION_FLOW = new ThreadLocal<>();
     private static final ThreadLocal<AuthSigninResponse> SIGNIN_RESPONSE = new ThreadLocal<>();
     private static final ThreadLocal<UserProfileResponse> PROFILE_RESPONSE = new ThreadLocal<>();
@@ -95,6 +100,14 @@ public final class BddWorld {
         return require(SCENARIO_DATA_BINDER, "ScenarioDataBinder");
     }
 
+    public static void setApiScenarioContext(ApiScenarioContext apiScenarioContext) {
+        API_SCENARIO_CONTEXT.set(apiScenarioContext);
+    }
+
+    public static ApiScenarioContext apiScenarioContext() {
+        return require(API_SCENARIO_CONTEXT, "ApiScenarioContext");
+    }
+
     public static void setApiEndpointRegistry(ApiEndpointRegistry endpointRegistry) {
         API_ENDPOINT_REGISTRY.set(endpointRegistry);
     }
@@ -117,6 +130,14 @@ public final class BddWorld {
 
     public static ApiResponseValidator apiResponseValidator() {
         return require(API_RESPONSE_VALIDATOR, "ApiResponseValidator");
+    }
+
+    public static void setJsonSchemaValidator(JsonSchemaValidator jsonSchemaValidator) {
+        JSON_SCHEMA_VALIDATOR.set(jsonSchemaValidator);
+    }
+
+    public static JsonSchemaValidator jsonSchemaValidator() {
+        return require(JSON_SCHEMA_VALIDATOR, "JsonSchemaValidator");
     }
 
     public static void setApiExecutionResult(ApiExecutionResult apiExecutionResult) {
@@ -231,6 +252,14 @@ public final class BddWorld {
         return require(SESSION_TOKEN_HELPER, "SessionTokenHelper");
     }
 
+    public static void setTokenProvider(TokenProvider tokenProvider) {
+        TOKEN_PROVIDER.set(tokenProvider);
+    }
+
+    public static TokenProvider tokenProvider() {
+        return require(TOKEN_PROVIDER, "TokenProvider");
+    }
+
     public static void setDomainNavigationFlow(DomainNavigationFlowService flowService) {
         DOMAIN_NAVIGATION_FLOW.set(flowService);
     }
@@ -339,9 +368,11 @@ public final class BddWorld {
         SCENARIO_STATE.remove();
         SUITE_DATA_CATALOG.remove();
         SCENARIO_DATA_BINDER.remove();
+        API_SCENARIO_CONTEXT.remove();
         API_ENDPOINT_REGISTRY.remove();
         API_REQUEST_EXECUTOR.remove();
         API_RESPONSE_VALIDATOR.remove();
+        JSON_SCHEMA_VALIDATOR.remove();
         API_EXECUTION_RESULT.remove();
         UI_ACTION_EXECUTOR.remove();
         AUTH_UI_FLOW_SERVICE.remove();
@@ -356,6 +387,7 @@ public final class BddWorld {
         CHAT_API_CLIENT.remove();
         PRESENCE_API_CLIENT.remove();
         SESSION_TOKEN_HELPER.remove();
+        TOKEN_PROVIDER.remove();
         DOMAIN_NAVIGATION_FLOW.remove();
         SIGNIN_RESPONSE.remove();
         PROFILE_RESPONSE.remove();

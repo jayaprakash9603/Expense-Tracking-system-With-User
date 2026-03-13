@@ -12,8 +12,11 @@ import com.jaya.automation.api.client.SharingApiClient;
 import com.jaya.automation.api.client.UserProfileApiClient;
 import com.jaya.automation.api.contract.ApiEndpointRegistry;
 import com.jaya.automation.api.execution.ApiRequestExecutor;
+import com.jaya.automation.api.util.DefaultTokenProvider;
+import com.jaya.automation.api.util.JsonSchemaValidator;
 import com.jaya.automation.api.util.SessionTokenHelper;
 import com.jaya.automation.api.validator.ApiResponseValidator;
+import com.jaya.automation.bdd.context.ApiScenarioContext;
 import com.jaya.automation.bdd.context.AuthProviderFactory;
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.context.DependencyGuard;
@@ -103,10 +106,13 @@ public class ScenarioHooks {
         BddWorld.setChatApiClient(chatApiClient);
         BddWorld.setPresenceApiClient(presenceApiClient);
         BddWorld.setSessionTokenHelper(sessionTokenHelper);
+        BddWorld.setTokenProvider(new DefaultTokenProvider(config, sessionTokenHelper));
         ApiEndpointRegistry endpointRegistry = new ApiEndpointRegistry();
         BddWorld.setApiEndpointRegistry(endpointRegistry);
         BddWorld.setApiRequestExecutor(new ApiRequestExecutor(config, endpointRegistry));
         BddWorld.setApiResponseValidator(new ApiResponseValidator());
+        BddWorld.setJsonSchemaValidator(new JsonSchemaValidator());
+        BddWorld.setApiScenarioContext(new ApiScenarioContext(BddWorld.scenarioState()));
     }
 
     private void initializeUiFlow(AutomationConfig config) {

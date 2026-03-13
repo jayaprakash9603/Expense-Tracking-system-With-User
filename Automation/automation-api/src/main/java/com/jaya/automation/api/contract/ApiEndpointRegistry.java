@@ -41,9 +41,12 @@ public final class ApiEndpointRegistry {
         register(defaults, "auth.mfa.disable", ApiHttpMethod.POST, "/auth/mfa/disable", true);
         register(defaults, "auth.oauth2.google", ApiHttpMethod.POST, "/auth/oauth2/google", false);
         register(defaults, "user.profile", ApiHttpMethod.GET, "/api/user/profile", true);
+        register(defaults, "user.by-email", ApiHttpMethod.GET, "/api/user/email", true);
+        register(defaults, "user.all", ApiHttpMethod.GET, "/api/user/all", false);
         register(defaults, "user.by-id", ApiHttpMethod.GET, "/api/user/{id}", true);
         register(defaults, "user.update", ApiHttpMethod.PUT, "/api/user", true);
         register(defaults, "user.two-factor", ApiHttpMethod.PUT, "/api/user/two-factor", true);
+        register(defaults, "user.delete", ApiHttpMethod.DELETE, "/api/user/{id}", true);
         register(defaults, "user.assign-role", ApiHttpMethod.POST, "/api/user/{userId}/roles/{roleId}", true);
         register(defaults, "user.remove-role", ApiHttpMethod.DELETE, "/api/user/{userId}/roles/{roleId}", true);
         register(defaults, "user.switch-mode", ApiHttpMethod.PUT, "/api/user/switch-mode", true);

@@ -23,3 +23,22 @@ This module packages reusable suite resources for local, CI, and Kubernetes exec
    - `${ctx.<alias>}`, `${suite.<key>}`, `${random.*}`, `${now...}`
 
 `@template` scenarios are intentionally skipped at runtime and serve as reusable authoring references.
+
+## User API Suite
+
+Run only User API scenarios with tag filtering:
+
+- Automation app entrypoint:
+  - `mvn -f pom.xml -pl automation-app -am exec:java -Dexec.args="--run-only --runner=spring --suite=api --tags=@user-api"`
+- Direct Cucumber runner:
+  - `mvn -f pom.xml -pl automation-bdd -am test -Dtest=SpringBootCucumberTest -Dcucumber.filter.tags="@user-api"`
+
+## Extending For New Controllers
+
+Use the same reusable API pattern for each new controller:
+
+1. Register endpoint keys in `automation-api` (`ApiEndpointRegistry`).
+2. Add payload fixtures under `payloads/<domain>/`.
+3. Add JSON schemas under `schemas/<domain>/`.
+4. Author feature scenarios under `features/api/<domain>/` using generic request/assert steps.
+5. Keep `<Domain>ApiSteps` thin and limited to data aliases, IDs, and domain setup.
