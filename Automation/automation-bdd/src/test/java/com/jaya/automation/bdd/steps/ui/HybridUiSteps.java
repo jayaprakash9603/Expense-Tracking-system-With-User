@@ -2,19 +2,31 @@ package com.jaya.automation.bdd.steps.ui;
 
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
+import com.jaya.automation.bdd.steps.ui.support.UiDataRowMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class HybridUiSteps extends StepDataSupport {
+    private final UiDataRowMapper uiDataRowMapper = new UiDataRowMapper();
+
     @Given("ui testing is ready")
     public void genericUiExecutorIsReady() {
         BddWorld.uiActionExecutor();
+    }
+
+    @Given("the user is on {string} page")
+    public void userIsOnPage(String pageLabel) {
+        String resolvedLabel = resolveDynamic(pageLabel);
+        String pagePath = BddWorld.uiActionExecutor()
+                .navigateToTab(resolvedLabel, BddWorld.config().baseUrl());
+        BddWorld.putUiValue("currentTabLabel", resolvedLabel);
+        BddWorld.putUiValue("currentTabPath", pagePath);
+        BddWorld.setCurrentUrl(BddWorld.uiActionExecutor().currentUrl());
     }
 
     @When("the user opens the {string} page")
@@ -33,13 +45,30 @@ public class HybridUiSteps extends StepDataSupport {
     @When("the user fills the form from the current data row")
     public void userFillsUiFormFromCurrentDataRow() {
         Map<String, String> allValues = BddWorld.scenarioDataBinder().resolveMap(BddWorld.dataRow());
-        Map<String, String> uiValues = extractUiValues(allValues);
+        Map<String, String> uiValues = uiDataRowMapper.extractUiValues(allValues);
         BddWorld.uiActionExecutor().fillFields(uiValues);
     }
 
     @When("the user clicks {string}")
     public void userClicksUiAction(String actionKey) {
         BddWorld.uiActionExecutor().clickAction(actionKey);
+    }
+
+    @When("the user redirects to the {string} tab")
+    public void userRedirectsToTheTab(String tabLabel) {
+        String resolvedLabel = resolveDynamic(tabLabel);
+        String tabPath = BddWorld.uiActionExecutor()
+                .navigateToTab(resolvedLabel, BddWorld.config().baseUrl());
+        String currentUrl = BddWorld.uiActionExecutor().currentUrl();
+        BddWorld.putUiValue("currentTabLabel", resolvedLabel);
+        BddWorld.putUiValue("currentTabPath", tabPath);
+        BddWorld.setCurrentUrl(currentUrl);
+    }
+
+    @Then("the {string} tab page should be opened")
+    public void theTabPageShouldBeOpened(String tabLabel) {
+        String expectedPath = BddWorld.uiActionExecutor().resolveTabPath(resolveDynamic(tabLabel));
+        Assertions.assertThat(BddWorld.currentUrl()).contains(expectedPath);
     }
 
     @Then("the text at {string} should contain {string}")
@@ -59,18 +88,5 @@ public class HybridUiSteps extends StepDataSupport {
         String value = BddWorld.uiActionExecutor().textOf(textKey);
         BddWorld.putAliasValue(alias, value);
         BddWorld.putUiValue(alias, value);
-    }
-
-    private Map<String, String> extractUiValues(Map<String, String> allValues) {
-        Map<String, String> uiValues = new LinkedHashMap<>();
-        allValues.forEach((key, value) -> {
-            if (key.startsWith("ui.")) {
-                uiValues.put(key.substring(3), value);
-            }
-        });
-        if (!uiValues.isEmpty()) {
-            return uiValues;
-        }
-        return allValues;
     }
 }

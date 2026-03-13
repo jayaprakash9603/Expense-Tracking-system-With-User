@@ -2,6 +2,8 @@ package com.jaya.automation.bdd.steps.ui;
 
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
+import com.jaya.automation.bdd.steps.ui.support.AuthSessionCoordinator;
+import com.jaya.automation.bdd.steps.ui.support.SignupPayloadFactory;
 import com.jaya.automation.core.config.AutomationConfig;
 import com.jaya.automation.flows.auth.model.LoginCredentials;
 import io.cucumber.java.en.Given;
@@ -10,9 +12,14 @@ import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
 public class AuthUiSteps extends StepDataSupport {
-    @Given("the user is on {string} page")
-    public void userIsOnPage(String page) {
-        BddWorld.authUiFlowService();
+    private final AuthSessionCoordinator authSessionCoordinator = new AuthSessionCoordinator();
+    private final SignupPayloadFactory signupPayloadFactory = new SignupPayloadFactory();
+
+    @Given("an authenticated dashboard session is ready")
+    public void authenticatedDashboardSessionIsReady() {
+        authSessionCoordinator.ensureAuthenticatedDashboardSession(
+                signupPayloadFactory.valid(BddWorld.dataRow(), this::resolveDynamic)
+        );
     }
 
     @When("the user logs in with test credentials")
@@ -27,22 +34,14 @@ public class AuthUiSteps extends StepDataSupport {
 
     @When("the user logs in with the registered credentials")
     public void userLogsInWithTheRegisteredCredentials() {
-        String email = BddWorld.scenarioState()
-                .sessionValue("signupEmail")
-                .orElseThrow(() -> new IllegalStateException("No signup email found in session"));
-        String password = BddWorld.scenarioState()
-                .sessionValue("signupPassword")
-                .orElseThrow(() -> new IllegalStateException("No signup password found in session"));
-        LoginCredentials credentials = new LoginCredentials(email, password);
-        String currentUrl = BddWorld.authUiFlowService()
-                .loginSuccessfully(BddWorld.config().baseUrl(), credentials);
-        BddWorld.setCurrentUrl(currentUrl);
+        authSessionCoordinator.loginWithRegisteredCredentials();
     }
 
     @Then("the user should be on {string} page")
     public void userShouldBeOnPage(String page) {
-        Assertions.assertThat(BddWorld.currentUrl())
-                .containsIgnoringCase("/" + page.toLowerCase());
+        String resolvedPage = resolveDynamic(page);
+        String expectedPath = authSessionCoordinator.resolveExpectedPath(resolvedPage);
+        Assertions.assertThat(BddWorld.currentUrl()).containsIgnoringCase(expectedPath);
     }
 
     @When("the user tries to log in with invalid credentials")
