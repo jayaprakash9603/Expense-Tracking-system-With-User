@@ -51,4 +51,4 @@ Feature: MFA APIs
     When the user sends a GET request to "auth.mfa.status" with data
       | key                  | value |
       | header.Authorization |       |
-    Then the response status should be one of "400,401,403,500"
+    Then the response status should be one of "400,401,403"

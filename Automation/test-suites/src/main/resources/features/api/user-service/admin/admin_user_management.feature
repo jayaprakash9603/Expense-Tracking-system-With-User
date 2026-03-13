@@ -69,7 +69,7 @@ Feature: Admin user management APIs
       | key         | value |
       | query.query | auto  |
       | query.limit | 10    |
-    Then the response status should be one of "200,400"
+    Then the response status should be 200
 
   @regression
   Scenario: Admin all endpoint responds

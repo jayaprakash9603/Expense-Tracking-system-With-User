@@ -14,7 +14,7 @@ Feature: Auth signup API
       | email     | ${ctx.signupEmail} |
       | password  | ChangeMe123!      |
     When the user sends a POST request to "auth.signup" using request body "signupPayload"
-    Then the response status should be one of "200,201"
+    Then the response status should be 201
     And the response should match schema "schemas/user-service/auth/signup-success.schema.json"
     And store response token field "jwt" as token alias "signupUser"
 
@@ -35,6 +35,6 @@ Feature: Auth signup API
       | email     | ${ctx.signupEmail} |
       | password  | ChangeMe123!      |
     When the user sends a POST request to "auth.signup" using request body "signupFirstPayload"
-    Then the response status should be one of "200,201"
+    Then the response status should be 201
     When the user sends a POST request to "auth.signup" using request body "signupFirstPayload"
-    Then the response status should be one of "409,500"
+    Then the response status should be 409

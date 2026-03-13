@@ -8,7 +8,7 @@ Feature: User report preference APIs
   @smoke @regression
   Scenario Outline: Get preference for <controller>
     When the user sends a GET request to "<getEndpoint>"
-    Then the response status should be one of "200,204,404"
+    Then the response status should be one of "200,204"
 
     Examples:
       | controller | getEndpoint          |
@@ -24,7 +24,7 @@ Feature: User report preference APIs
   Scenario Outline: Save preference for <controller>
     And request body "prefSavePayload" is loaded from payload file "payloads/user-service/preferences/preference-save-valid.json"
     When the user sends a POST request to "<saveEndpoint>" using request body "prefSavePayload"
-    Then the response status should be one of "200,201"
+    Then the response status should be 200
     And the response should match schema "schemas/user-service/preferences/preference-response.schema.json"
 
     Examples:
@@ -56,7 +56,7 @@ Feature: User report preference APIs
   Scenario Outline: Validation failure on blank layoutConfig for <controller>
     And request body "prefInvalidPayload" is loaded from payload file "payloads/user-service/preferences/preference-save-invalid.json"
     When the user sends a POST request to "<saveEndpoint>" using request body "prefInvalidPayload"
-    Then the response status should be one of "200,400,422"
+    Then the response status should be 400
 
     Examples:
       | controller | saveEndpoint         |
