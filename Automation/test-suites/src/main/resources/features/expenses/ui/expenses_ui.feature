@@ -12,9 +12,10 @@ Feature: Expenses UI flows
       | key           | value                                 |
       | expenseName   | UI Expense ${random.number:5}         |
       | amount        | 120                                   |
+      | transactionType | Gain                                |
       | comments      | UI add flow                           |
       | category      | Others                                |
-      | paymentMethod | Credit Due                            |
+      | paymentMethod | Credit Paid                           |
     Then the added expense should be visible
 
   @regression @dsl @data-optional
@@ -23,14 +24,16 @@ Feature: Expenses UI flows
       | key           | value                                 |
       | expenseName   | UI Expense ${random.number:5}         |
       | amount        | 120                                   |
+      | transactionType | Gain                                |
       | comments      | UI add flow                           |
       | category      | Others                                |
-      | paymentMethod | Credit Due                            |
+      | paymentMethod | Credit Paid                           |
     Then the added expense should be visible
     When the user edits the expense with details
       | key           | value                                 |
       | expenseName   | UI Expense Edit ${random.number:5}    |
       | amount        | 200                                   |
+      | transactionType | Gain                                |
       | comments      | UI edit flow                          |
       | category      | Others                                |
       | paymentMethod | Cash                                  |
@@ -42,14 +45,16 @@ Feature: Expenses UI flows
       | key           | value                                 |
       | expenseName   | UI Expense ${random.number:5}         |
       | amount        | 120                                   |
+      | transactionType | Gain                                |
       | comments      | UI add flow                           |
       | category      | Others                                |
-      | paymentMethod | Credit Due                            |
+      | paymentMethod | Credit Paid                           |
     Then the added expense should be visible
     When the user edits the expense with details
       | key           | value                                 |
       | expenseName   | UI Expense Edit ${random.number:5}    |
       | amount        | 200                                   |
+      | transactionType | Gain                                |
       | comments      | UI edit flow                          |
       | category      | Others                                |
       | paymentMethod | Cash                                  |

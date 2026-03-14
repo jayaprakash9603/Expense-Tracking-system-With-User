@@ -818,6 +818,8 @@ const NewExpense = ({ onClose, onSuccess }) => {
           placeholder={fieldPlaceholders.expenseName}
           error={errors.expenseName}
           size="medium"
+          maxSuggestions={500}
+          noDataText="No expense names found"
         />
         </div>
       </div>

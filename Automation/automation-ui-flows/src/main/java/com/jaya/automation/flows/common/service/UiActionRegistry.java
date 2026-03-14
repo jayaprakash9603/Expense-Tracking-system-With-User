@@ -127,6 +127,12 @@ public final class UiActionRegistry {
                     Locator.css("#date"),
                     Locator.css("input[name='date']")
             );
+            case "expense-transaction-type" -> LocatorSet.of(
+                    "expense-transaction-type-field",
+                    Locator.css("input[aria-label='Select transaction type']"),
+                    Locator.css("#transactionType"),
+                    Locator.css("input[name='transactionType']")
+            );
             default -> null;
         };
     }

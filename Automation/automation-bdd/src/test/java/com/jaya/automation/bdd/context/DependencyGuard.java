@@ -12,6 +12,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 
 public final class DependencyGuard {
+    private static final int REACHABILITY_ATTEMPTS = 4;
+    private static final long RETRY_DELAY_MS = 1500;
     private final HttpClient httpClient;
 
     public DependencyGuard() {
@@ -21,7 +23,7 @@ public final class DependencyGuard {
     }
 
     public void requireReachable(String endpointName, String url) {
-        if (isReachable(url)) {
+        if (isReachableWithRetry(url)) {
             return;
         }
         String message = endpointName + " is not reachable at " + url + ". Start target service and retry.";
@@ -57,6 +59,44 @@ public final class DependencyGuard {
             return response.statusCode() > 0;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    private boolean isReachableWithRetry(String url) {
+        for (int attempt = 1; attempt <= REACHABILITY_ATTEMPTS; attempt++) {
+            if (isReachableCandidate(url)) {
+                return true;
+            }
+            if (attempt < REACHABILITY_ATTEMPTS) {
+                sleepBeforeRetry();
+            }
+        }
+        return false;
+    }
+
+    private boolean isReachableCandidate(String url) {
+        if (isReachable(url)) {
+            return true;
+        }
+        String fallbackUrl = fallbackUrl(url);
+        return fallbackUrl != null && isReachable(fallbackUrl);
+    }
+
+    private String fallbackUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        if (url.contains("/login")) {
+            return null;
+        }
+        return url.endsWith("/") ? url + "login" : url + "/login";
+    }
+
+    private void sleepBeforeRetry() {
+        try {
+            Thread.sleep(RETRY_DELAY_MS);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
         }
     }
 }

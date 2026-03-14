@@ -103,7 +103,7 @@ function CreateExpenses() {
   }, []);
 
   const fetchSuggestions = () => {
-    getSuggestions(token, setSuggestions);
+    getSuggestions(setSuggestions, friendId || "");
   };
   {
     // console.log(formState);

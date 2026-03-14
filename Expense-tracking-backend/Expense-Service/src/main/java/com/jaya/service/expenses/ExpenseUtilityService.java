@@ -20,6 +20,7 @@ public interface ExpenseUtilityService {
     List<String> findTopExpenseNames(List<ExpenseDTO> expenses, int topN);
     String findTopPaymentMethod(List<ExpenseDTO> expenses);
     List<String> getTopExpenseNames(int topN, Integer userId);
+    List<Map<String, String>> getTopExpenseNamesAsMap(int topN, Integer userId);
     List<String> getTopPaymentMethods(Integer userId);
     List<String> getUniqueTopExpensesByGain(Integer userId, int limit);
     List<String> getUniqueTopExpensesByLoss(Integer userId, int limit);

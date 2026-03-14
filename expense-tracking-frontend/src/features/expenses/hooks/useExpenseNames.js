@@ -17,7 +17,6 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getExpensesSuggestions } from "../../../Redux/Expenses/expense.action";
 import {
-  processNameData,
   deduplicateNames,
   getSuggestions,
 } from "../../../utils/nameUtils";
@@ -51,7 +50,12 @@ const useExpenseNames = (
    */
   const fetchNames = useCallback(() => {
     if (!hasFetched) {
-      dispatch(getExpensesSuggestions(friendId || ""));
+      dispatch(
+        getExpensesSuggestions({
+          topN: 500,
+          targetId: friendId || "",
+        }),
+      );
       setHasFetched(true);
     }
   }, [dispatch, friendId, hasFetched]);
@@ -61,9 +65,18 @@ const useExpenseNames = (
    */
   const refetch = useCallback(() => {
     setHasFetched(false);
-    dispatch(getExpensesSuggestions(friendId || ""));
+    dispatch(
+      getExpensesSuggestions({
+        topN: 500,
+        targetId: friendId || "",
+      }),
+    );
     setHasFetched(true);
   }, [dispatch, friendId]);
+
+  useEffect(() => {
+    setHasFetched(false);
+  }, [friendId]);
 
   /**
    * Auto-fetch on mount if enabled

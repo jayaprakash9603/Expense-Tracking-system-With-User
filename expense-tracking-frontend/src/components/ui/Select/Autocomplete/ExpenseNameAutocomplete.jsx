@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import AppAutocomplete from "../AppAutocomplete";
 import useExpenseNames from "../../../../features/expenses/hooks/useExpenseNames";
@@ -10,6 +10,9 @@ import {
   sanitizeName,
 } from "../../../../utils/nameUtils";
 import HighlightedText from "../../../common/HighlightedText";
+
+const isNoDataOption = (option) =>
+  Boolean(option && typeof option === "object" && option.__isNoDataOption);
 
 /**
  * ExpenseNameAutocomplete - A reusable expense/bill name selection component
@@ -62,8 +65,10 @@ const ExpenseNameAutocomplete = ({
   maxSuggestions = 50,
   autoHighlight = true,
   clearOnEscape = true,
+  noDataText = "No expense names found",
 }) => {
   const { colors } = useTheme();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Use custom hook for name management
   const {
@@ -136,9 +141,12 @@ const ExpenseNameAutocomplete = ({
     ? "Loading names..."
     : namesError
       ? "Error loading names"
-      : freeSolo
-        ? "Type to add new"
-        : "No options available";
+      : noDataText;
+  const shouldInjectNoDataOption =
+    freeSolo && isDropdownOpen && !namesLoading && !namesError && suggestions.length === 0;
+  const renderedOptions = shouldInjectNoDataOption
+    ? [{ __isNoDataOption: true, label: noOptionsText }]
+    : suggestions;
 
   return (
     <div style={{ width: "100%", maxWidth: "300px" }}>
@@ -157,14 +165,43 @@ const ExpenseNameAutocomplete = ({
         </label>
       )}
       <AppAutocomplete
-        options={suggestions}
+        options={renderedOptions}
         value={value}
-        onChange={handleChange}
+        onChange={(event, newValue) => {
+          if (isNoDataOption(newValue)) {
+            return;
+          }
+          handleChange(event, newValue);
+        }}
         onInputChange={handleInputChange}
-        onOpen={fetchNames} // Lazy load on open
+        onOpen={() => {
+          setIsDropdownOpen(true);
+          fetchNames();
+        }}
+        onClose={() => {
+          setIsDropdownOpen(false);
+        }}
         getOptionLabel={getNameDisplayLabel}
         isOptionEqualToValue={(option, val) => areNamesEqual(option, val)}
-        renderOption={renderOption}
+        renderOption={(props, option, state) => {
+          if (isNoDataOption(option)) {
+            return (
+              <li
+                {...props}
+                style={{
+                  fontSize: size === "small" ? "0.875rem" : "0.95rem",
+                  color: colors.primary_text,
+                  paddingTop: 10,
+                  paddingBottom: 10,
+                }}
+              >
+                {option.label}
+              </li>
+            );
+          }
+          return renderOption(props, option, state);
+        }}
+        filterOptions={shouldInjectNoDataOption ? (options) => options : undefined}
         placeholder={placeholder}
         error={error}
         helperText={helperText}
@@ -212,6 +249,7 @@ ExpenseNameAutocomplete.propTypes = {
   maxSuggestions: PropTypes.number,
   autoHighlight: PropTypes.bool,
   clearOnEscape: PropTypes.bool,
+  noDataText: PropTypes.string,
 };
 
 export default ExpenseNameAutocomplete;

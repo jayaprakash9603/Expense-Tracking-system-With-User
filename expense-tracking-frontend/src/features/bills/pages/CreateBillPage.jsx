@@ -735,6 +735,8 @@ const CreateBill = ({ onClose, onSuccess }) => {
           placeholder={t("billCommon.placeholders.searchBillName")}
           error={errors.name}
           size="medium"
+          maxSuggestions={500}
+          noDataText="No expense names found"
         />
       </div>
     </div>

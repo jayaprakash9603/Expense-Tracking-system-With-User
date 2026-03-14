@@ -150,18 +150,74 @@ export const resetPaginatedExpenses = () => ({
   type: "RESET_PAGINATED_EXPENSES",
 });
 
-export const getExpensesSuggestions = (targetId) => async (dispatch) => {
+const buildSuggestionRequestPayload = (targetIdOrPayload) => {
+  if (targetIdOrPayload && typeof targetIdOrPayload === "object") {
+    return {
+      topN: Number(targetIdOrPayload.topN) || 500,
+      targetId: targetIdOrPayload.targetId || "",
+    };
+  }
+  return {
+    topN: 500,
+    targetId: targetIdOrPayload || "",
+  };
+};
+
+const extractSuggestionNames = (data) => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+  if (Array.isArray(data?.items)) {
+    return data.items;
+  }
+  if (Array.isArray(data?.topExpenses)) {
+    return data.topExpenses;
+  }
+  return [];
+};
+
+export const getExpensesSuggestions = (targetIdOrPayload) => async (dispatch) => {
   dispatch({ type: GET_EXPENSES_SUGGESTIONS_REQUEST });
 
   try {
-    const { data } = await api.get(
-      `/api/expenses/top-expense-names?topN=500&targetId=${targetId}`,
-    );
-
-    dispatch({ type: GET_EXPENSES_SUGGESTIONS_SUCCESS, payload: data });
+    const payload = buildSuggestionRequestPayload(targetIdOrPayload);
+    let responseData;
+    try {
+      const { data } = await api.post(
+        `/api/expenses/top-expense-names`,
+        payload,
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      responseData = data;
+    } catch (postError) {
+      const statusCode = postError?.response?.status;
+      if (statusCode && ![404, 405, 415].includes(statusCode)) {
+        throw postError;
+      }
+      const { data } = await api.get(`/api/expenses/top-expense-names`, {
+        params: payload,
+      });
+      responseData = data;
+    }
+    const extractedNames = extractSuggestionNames(responseData);
+    dispatch({
+      type: GET_EXPENSES_SUGGESTIONS_SUCCESS,
+      payload: extractedNames,
+    });
   } catch (error) {
     console.log("Error fetching expenses names ", error);
-    dispatch({ type: GET_EXPENSES_SUGGESTIONS_FAILURE, payload: error });
+    dispatch({
+      type: GET_EXPENSES_SUGGESTIONS_FAILURE,
+      payload:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch expense names",
+    });
   }
 };
 

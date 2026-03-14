@@ -631,6 +631,8 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
             friendId={friendId}
             placeholder={t("billCommon.placeholders.searchBillName")}
             error={errors.name}
+            maxSuggestions={500}
+            noDataText="No expense names found"
           />
         </div>
       </div>

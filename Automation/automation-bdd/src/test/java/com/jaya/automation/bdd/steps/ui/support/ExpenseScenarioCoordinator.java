@@ -26,29 +26,28 @@ public final class ExpenseScenarioCoordinator {
 
     public void editExpense(Map<String, String> rawValues, Function<String, String> resolver) {
         Map<String, String> values = resolveValues(rawValues, resolver);
-        expensesPage().clickExpenseRowByName(currentExpenseName());
-        BddWorld.uiActionExecutor().clickAction("expense.edit");
+        expensesPage().clickEditForExpense(currentExpenseName());
+        ensureExpenseFormReady();
         fillExpenseForm(values);
         submitExpense();
         rememberUpdatedAliases(values);
     }
 
     public void deleteCurrentExpense() {
-        expensesPage().clickExpenseRowByName(currentExpenseName());
-        BddWorld.uiActionExecutor().clickAction("expense.delete");
+        expensesPage().clickDeleteForExpense(currentExpenseName());
         BddWorld.uiActionExecutor().clickAction("expense.delete.confirm");
     }
 
     public boolean isOriginalExpenseVisible() {
-        return expensesPage().isExpenseRowVisible(aliasValue(ORIGINAL_NAME_ALIAS));
+        return expensesPage().isExpenseCardVisible(aliasValue(ORIGINAL_NAME_ALIAS));
     }
 
     public boolean isUpdatedExpenseVisible() {
-        return expensesPage().isExpenseRowVisible(aliasValue(UPDATED_NAME_ALIAS));
+        return expensesPage().isExpenseCardVisible(aliasValue(UPDATED_NAME_ALIAS));
     }
 
     public boolean isExpenseDeleted() {
-        return !expensesPage().isExpenseRowVisible(currentExpenseName());
+        return !expensesPage().isExpenseCardVisible(currentExpenseName());
     }
 
     private void openCreateExpenseForm() {
@@ -91,6 +90,7 @@ public final class ExpenseScenarioCoordinator {
         putField(fieldValues, "expense.amount", values.get("amount"));
         putField(fieldValues, "expense.comments", values.get("comments"));
         putField(fieldValues, "expense.date", values.get("date"));
+        putField(fieldValues, "expense.transaction.type", values.get("transactionType"));
         return fieldValues;
     }
 

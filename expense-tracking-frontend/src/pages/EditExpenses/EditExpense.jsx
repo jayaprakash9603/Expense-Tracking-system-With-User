@@ -25,14 +25,13 @@ function EditExpense() {
   const { id } = useParams();
   const suggestionsContainerRef = useRef(null);
   const [newFormatData, setNewFormatData] = useState({});
-  const token = localStorage.getItem("jwt");
   const [toast, setToast] = useState({
     open: false,
     message: "",
     severity: "success",
   });
   const fetchSuggestions = () => {
-    getSuggestions(token, setSuggestions);
+    getSuggestions(setSuggestions);
   };
 
   const [expenses, setExpenses] = useState({
