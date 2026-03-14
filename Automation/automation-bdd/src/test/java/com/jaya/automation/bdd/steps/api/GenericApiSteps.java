@@ -7,6 +7,7 @@ import com.jaya.automation.api.execution.ApiExecutionResult;
 import com.jaya.automation.api.execution.ApiRequest;
 import com.jaya.automation.api.execution.ApiRequestBuilder;
 import com.jaya.automation.bdd.context.BddWorld;
+import com.jaya.automation.bdd.steps.common.ResourceResolver;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
@@ -22,6 +23,22 @@ import java.util.Optional;
 
 public class GenericApiSteps extends StepDataSupport {
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Map<String, Integer> STATUS_LABELS = Map.ofEntries(
+            Map.entry("success", 200),
+            Map.entry("resource created", 201),
+            Map.entry("no content", 204),
+            Map.entry("a bad request", 400),
+            Map.entry("bad request", 400),
+            Map.entry("unauthorized access", 401),
+            Map.entry("unauthorized", 401),
+            Map.entry("forbidden access", 403),
+            Map.entry("forbidden", 403),
+            Map.entry("not found", 404),
+            Map.entry("a conflict", 409),
+            Map.entry("conflict", 409),
+            Map.entry("server error", 500)
+    );
 
     @Given("api testing is ready")
     public void genericApiExecutorIsReady() {
@@ -49,6 +66,12 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.putAliasValue(alias, payload);
     }
 
+    @Given("request body {string} uses the {string} payload")
+    public void apiPayloadAliasUsesNamedPayload(String alias, String payloadKey) {
+        String resolvedPath = ResourceResolver.resolvePayload(payloadKey);
+        apiPayloadAliasIsLoadedFromFile(alias, resolvedPath);
+    }
+
     @Given("value {string} is set to {string}")
     public void apiAliasIsSetTo(String alias, String value) {
         String resolvedValue = resolveDynamic(value);
@@ -73,16 +96,6 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiScenarioContext().setActiveTokenAlias(alias);
         BddWorld.setJwtToken(token);
         BddWorld.putAliasValue("jwt", token);
-    }
-
-    @Given("the user uses an invalid token")
-    public void apiInvalidTokenIsSelected() {
-        apiTokenAliasIsSelected("invalid");
-    }
-
-    @Given("the user uses an expired token")
-    public void apiExpiredTokenIsSelected() {
-        apiTokenAliasIsSelected("expired");
     }
 
     @When("the user sends a {word} request to {string}")
@@ -126,19 +139,14 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertStatusBetween(BddWorld.apiExecutionResult(), 200, 299);
     }
 
-    @Then("the response should indicate unauthorized access")
-    public void apiResponseShouldBeUnauthorized() {
-        BddWorld.apiResponseValidator().assertStatus(BddWorld.apiExecutionResult(), 401);
-    }
-
-    @Then("the response should indicate forbidden access")
-    public void apiResponseShouldBeForbidden() {
-        BddWorld.apiResponseValidator().assertStatus(BddWorld.apiExecutionResult(), 403);
-    }
-
-    @Then("the response should indicate a bad request")
-    public void apiResponseShouldBeBadRequest() {
-        BddWorld.apiResponseValidator().assertStatus(BddWorld.apiExecutionResult(), 400);
+    @Then("the response should indicate {string}")
+    public void apiResponseShouldIndicateStatus(String statusLabel) {
+        int code = STATUS_LABELS.getOrDefault(statusLabel.toLowerCase().trim(), -1);
+        if (code == -1) {
+            throw new IllegalArgumentException(
+                    "Unknown status label: \"" + statusLabel + "\". Valid labels: " + STATUS_LABELS.keySet());
+        }
+        BddWorld.apiResponseValidator().assertStatus(BddWorld.apiExecutionResult(), code);
     }
 
     @Then("the response status should be one of {string}")
@@ -223,6 +231,12 @@ public class GenericApiSteps extends StepDataSupport {
     @Then("the response should match schema {string}")
     public void apiResponseShouldMatchSchema(String schemaPath) {
         BddWorld.jsonSchemaValidator().assertSchema(BddWorld.apiExecutionResult(), resolveDynamic(schemaPath));
+    }
+
+    @Then("the response should match the {string} schema")
+    public void apiResponseShouldMatchNamedSchema(String schemaKey) {
+        String resolvedPath = ResourceResolver.resolveSchema(schemaKey);
+        apiResponseShouldMatchSchema(resolvedPath);
     }
 
     @Then("store response field {string} as {string}")

@@ -11,12 +11,12 @@ Feature: OAuth2 APIs
 
   @regression
   Scenario: Google auth endpoint returns contract response
-    And request body "googleAuthPayload" is loaded from payload file "payloads/user-service/auth/google-auth-valid.json"
+    And request body "googleAuthPayload" uses the "google-auth-valid" payload
     When the user sends a POST request to "auth.oauth2.google" using request body "googleAuthPayload"
     Then the response status should be one of "200,201,400,401"
 
   @validation @negative @regression
   Scenario: Google auth rejects invalid payload
-    And request body "googleAuthInvalidPayload" is loaded from payload file "payloads/user-service/auth/google-auth-invalid.json"
+    And request body "googleAuthInvalidPayload" uses the "google-auth-invalid" payload
     When the user sends a POST request to "auth.oauth2.google" using request body "googleAuthInvalidPayload"
     Then the response status should be one of "400,401"

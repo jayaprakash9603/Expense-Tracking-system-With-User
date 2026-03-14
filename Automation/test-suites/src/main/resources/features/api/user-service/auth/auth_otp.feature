@@ -40,21 +40,21 @@ Feature: Auth OTP APIs
     When the user sends a POST request to "auth.check-email" with data
       | key   | value         |
       | email | ${ctx.otpEmail} |
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/auth/check-email-response.schema.json"
+    Then the request should succeed
+    And the response should match the "check-email-response" schema
 
   @regression @email-endpoint
   Scenario: Check auth method returns a method payload
     When the user sends a GET request to "auth.check-method" with data
       | key         | value         |
       | query.email | ${ctx.otpEmail} |
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/auth/check-auth-method-response.schema.json"
+    Then the request should succeed
+    And the response should match the "check-auth-method-response" schema
 
   @regression @email-endpoint
   Scenario: Auth email endpoint returns a user for email query
     When the user sends a GET request to "auth.email" with data
       | key         | value         |
       | query.email | ${ctx.otpEmail} |
-    Then the response status should be 200
+    Then the request should succeed
     And the response field "email" should equal "${ctx.otpEmail}"

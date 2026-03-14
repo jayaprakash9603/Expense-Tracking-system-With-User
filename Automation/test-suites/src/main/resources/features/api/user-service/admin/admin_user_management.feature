@@ -11,8 +11,8 @@ Feature: Admin user management APIs
       | key        | value |
       | query.page | 0     |
       | query.size | 10    |
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/admin/admin-user-list.schema.json"
+    Then the request should succeed
+    And the response should match the "admin-user-list" schema
 
   @regression
   Scenario: Admin get user by id returns user detail
@@ -23,13 +23,13 @@ Feature: Admin user management APIs
     When the user sends a GET request to "admin.users.by-id" with data
       | key         | value               |
       | path.userId | ${ctx.lookupUserId} |
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/admin/admin-user-detail.schema.json"
+    Then the request should succeed
+    And the response should match the "admin-user-detail" schema
 
   @regression
   Scenario: Admin status update endpoint responds
     Given the user uses token alias "admin"
-    And request body "statusPayload" is loaded from payload file "payloads/user-service/admin/update-user-status.json"
+    And request body "statusPayload" uses the "update-user-status" payload
     And the user uses token alias "user"
     And the current user id is stored as "statusUserId"
     And the user uses token alias "admin"
@@ -50,17 +50,17 @@ Feature: Admin user management APIs
   @regression
   Scenario: Admin bulk action endpoint responds
     Given the user uses token alias "admin"
-    And request body "bulkActionPayload" is loaded from payload file "payloads/user-service/admin/bulk-action-activate.json"
+    And request body "bulkActionPayload" uses the "bulk-action-activate" payload
     When the user sends a POST request to "admin.users.bulk-action" using request body "bulkActionPayload"
     Then the response status should be one of "200,400"
-    And the response should match schema "schemas/user-service/admin/admin-bulk-action-response.schema.json"
+    And the response should match the "admin-bulk-action-response" schema
 
   @regression
   Scenario: Admin users stats endpoint returns data
     Given the user uses token alias "admin"
     When the user sends a GET request to "admin.users.stats"
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/admin/admin-user-stats.schema.json"
+    Then the request should succeed
+    And the response should match the "admin-user-stats" schema
 
   @regression
   Scenario: Admin users search endpoint returns data
@@ -69,16 +69,16 @@ Feature: Admin user management APIs
       | key         | value |
       | query.query | auto  |
       | query.limit | 10    |
-    Then the response status should be 200
+    Then the request should succeed
 
   @regression
   Scenario: Admin all endpoint responds
     Given the user uses token alias "admin"
     When the user sends a GET request to "admin.all"
-    Then the response status should be 200
+    Then the request should succeed
 
   @auth @negative @regression
   Scenario: Non-admin token is forbidden for admin users list
     Given the user uses token alias "user"
     When the user sends a GET request to "admin.users.list"
-    Then the response status should be 403
+    Then the response should indicate "forbidden access"

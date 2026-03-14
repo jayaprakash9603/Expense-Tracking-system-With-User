@@ -8,36 +8,36 @@ Feature: User role mapping APIs
   Scenario: Add role to user succeeds
     Given the user uses token alias "admin"
     And a disposable user is created with aliases "roleManagedUserId", "roleManagedUserEmail", "roleManagedUserToken"
-    And the ADMIN role id is stored as "adminRoleId"
+    And the "ADMIN" role id is stored as "adminRoleId"
     When the user sends a POST request to "user.assign-role" with data
       | key         | value                    |
       | path.userId | ${ctx.roleManagedUserId} |
       | path.roleId | ${ctx.adminRoleId}       |
-    Then the response status should be 200
-    And the response should match schema "schemas/user/user-add-role-success.schema.json"
+    Then the request should succeed
+    And the response should match the "user-add-role-success" schema
 
   @smoke @regression
   Scenario: Remove role from user succeeds
     Given the user uses token alias "admin"
     And a disposable user is created with aliases "removableRoleUserId", "removableRoleUserEmail", "removableRoleUserToken"
-    And the ADMIN role id is stored as "adminRoleId"
+    And the "ADMIN" role id is stored as "adminRoleId"
     When the user sends a POST request to "user.assign-role" with data
       | key         | value                       |
       | path.userId | ${ctx.removableRoleUserId}  |
       | path.roleId | ${ctx.adminRoleId}          |
-    Then the response status should be 200
+    Then the request should succeed
     When the user sends a DELETE request to "user.remove-role" with data
       | key         | value                       |
       | path.userId | ${ctx.removableRoleUserId}  |
       | path.roleId | ${ctx.adminRoleId}          |
-    Then the response status should be 200
-    And the response should match schema "schemas/user/user-remove-role-success.schema.json"
+    Then the request should succeed
+    And the response should match the "user-remove-role-success" schema
 
   @auth @negative @regression
   Scenario: Non admin cannot add role
     Given the user uses token alias "user"
     And the current user id is stored as "currentUserId"
-    And the ADMIN role id is stored as "adminRoleId"
+    And the "ADMIN" role id is stored as "adminRoleId"
     When the user sends a POST request to "user.assign-role" with data
       | key         | value                |
       | path.userId | ${ctx.currentUserId} |
@@ -52,5 +52,5 @@ Feature: User role mapping APIs
       | key         | value                 |
       | path.userId | ${ctx.conflictUserId} |
       | path.roleId | ${ctx.conflictRoleId} |
-    Then the response status should be 409
-    And the response should match schema "schemas/user/error-map.schema.json"
+    Then the response should indicate "conflict"
+    And the response should match the "error-map" schema

@@ -22,10 +22,10 @@ Feature: User report preference APIs
 
   @regression
   Scenario Outline: Save preference for <controller>
-    And request body "prefSavePayload" is loaded from payload file "payloads/user-service/preferences/preference-save-valid.json"
+    And request body "prefSavePayload" uses the "preference-save-valid" payload
     When the user sends a POST request to "<saveEndpoint>" using request body "prefSavePayload"
-    Then the response status should be 200
-    And the response should match schema "schemas/user-service/preferences/preference-response.schema.json"
+    Then the request should succeed
+    And the response should match the "preference-response" schema
 
     Examples:
       | controller | saveEndpoint          |
@@ -54,9 +54,9 @@ Feature: User report preference APIs
 
   @validation @negative @regression
   Scenario Outline: Validation failure on blank layoutConfig for <controller>
-    And request body "prefInvalidPayload" is loaded from payload file "payloads/user-service/preferences/preference-save-invalid.json"
+    And request body "prefInvalidPayload" uses the "preference-save-invalid" payload
     When the user sends a POST request to "<saveEndpoint>" using request body "prefInvalidPayload"
-    Then the response status should be 400
+    Then the response should indicate "bad request"
 
     Examples:
       | controller | saveEndpoint         |

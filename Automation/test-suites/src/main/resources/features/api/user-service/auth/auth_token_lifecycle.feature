@@ -12,13 +12,13 @@ Feature: Auth token lifecycle
 
   @negative @regression
   Scenario: Refresh token with invalid token fails
-    Given the user uses an invalid token
+    Given the user uses token alias "invalid"
     When the user sends a POST request to "auth.refresh-token"
     Then the response status should be one of "400,401,403"
 
   @negative @regression
   Scenario: Refresh token with expired token fails
-    Given the user uses an expired token
+    Given the user uses token alias "expired"
     When the user sends a POST request to "auth.refresh-token"
     Then the response status should be one of "400,401,403"
 
@@ -29,7 +29,7 @@ Feature: Auth token lifecycle
     When the user sends a GET request to "auth.user-by-id" with data
       | key         | value                |
       | path.userId | ${ctx.currentUserId} |
-    Then the response status should be 200
+    Then the request should succeed
     And the response field "id" should equal "${ctx.currentUserId}"
 
   @regression
@@ -39,11 +39,11 @@ Feature: Auth token lifecycle
     When the user sends a GET request to "auth.user-by-id-short" with data
       | key         | value                |
       | path.userId | ${ctx.currentUserId} |
-    Then the response status should be 200
+    Then the request should succeed
     And the response field "id" should equal "${ctx.currentUserId}"
 
   @regression
   Scenario: Public auth users list endpoint responds
     When the user sends a GET request to "auth.all-users"
-    Then the response status should be 200
+    Then the request should succeed
     And the response list "$" should have at least 0 items

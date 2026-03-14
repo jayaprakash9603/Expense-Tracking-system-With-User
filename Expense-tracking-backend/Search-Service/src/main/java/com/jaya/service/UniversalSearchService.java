@@ -17,6 +17,8 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +52,9 @@ public class UniversalSearchService {
     @Value("${search.timeout-ms:3000}")
     private long searchTimeoutMs;
 
+    @Value("${search.aggregate-timeout-ms:9000}")
+    private long aggregateTimeoutMs;
+
     @Value("${search.default-limit:20}")
     private int defaultLimit;
 
@@ -63,7 +68,14 @@ public class UniversalSearchService {
         log.info("Starting universal search for query: '{}', limit: {}, mode: {}", query, limit, mode);
 
         UniversalSearchResponse.UniversalSearchResponseBuilder responseBuilder = UniversalSearchResponse.builder()
-                .query(query);
+                .query(query)
+                .expenses(Collections.emptyList())
+                .budgets(Collections.emptyList())
+                .categories(Collections.emptyList())
+                .bills(Collections.emptyList())
+                .paymentMethods(Collections.emptyList())
+                .friends(Collections.emptyList())
+                .users(Collections.emptyList());
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
@@ -106,9 +118,14 @@ public class UniversalSearchService {
 
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                    .get(searchTimeoutMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    .get(resolveAggregateTimeoutMs(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            futures.stream()
+                    .filter(future -> !future.isDone())
+                    .forEach(future -> future.cancel(true));
+            log.warn("Search aggregation timed out after {}ms for query='{}'", resolveAggregateTimeoutMs(), query);
         } catch (Exception e) {
-            log.warn("Some search operations timed out or failed: {}", e.getMessage());
+            log.warn("Some search operations failed for query='{}': {}", query, e.toString());
         }
 
         UniversalSearchResponse response = responseBuilder.build();
@@ -119,6 +136,10 @@ public class UniversalSearchService {
                 response.getExecutionTimeMs(), response.getTotalResults());
 
         return response;
+    }
+
+    private long resolveAggregateTimeoutMs() {
+        return Math.max(aggregateTimeoutMs, searchTimeoutMs);
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(

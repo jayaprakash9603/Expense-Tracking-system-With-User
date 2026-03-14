@@ -217,7 +217,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestHeader(value = "Authorization", required = false) String jwt) {
+    public ResponseEntity<AuthResponse> refreshToken(@RequestHeader(value = "Authorization", required = true) String jwt) {
 
         if (jwt == null || jwt.isBlank()) {
             throw new IllegalArgumentException("Authorization header is required");

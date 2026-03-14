@@ -1,6 +1,6 @@
 import { createTheme } from "@mui/material/styles";
 import { keyframes } from "@mui/system";
-import { getExpandedPalette, COLOR_PALETTES } from "../../config/colorPalettes";
+import { getExpandedPalette, getSurfaceColors } from "../../config/colorPalettes";
 import { alpha as alphaUtil } from "../../utils/colorUtils";
 
 const shimmerKeyframes = keyframes({
@@ -8,16 +8,15 @@ const shimmerKeyframes = keyframes({
   "100%": { backgroundPosition: "0 0" },
 });
 
-// Function to create theme based on mode and color palette
 const createAppTheme = (mode = "dark", paletteId = "teal") => {
   const isDark = mode === "dark";
 
-  // Get expanded palette colors based on palette ID
   const palette = getExpandedPalette(paletteId);
-  const accentColor = palette.primaryShades[500] || palette.primary; // Main accent color (e.g., #00dac6 for teal)
+  const surfaces = getSurfaceColors(palette, mode);
+  const accentColor = palette.primaryShades[500] || palette.primary;
   const accentLight = palette.primaryShades[400] || palette.primary;
   const accentDark = palette.primaryShades[600] || palette.primary;
-  const accentHover = alphaUtil(accentColor, 0.1); // For hover backgrounds
+  const accentHover = alphaUtil(accentColor, 0.1);
 
   return createTheme({
     palette: {
@@ -28,16 +27,16 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
         dark: accentDark,
       },
       secondary: {
-        main: isDark ? "#ffffff" : "#1a1a1a", // White for dark mode, dark for light mode
+        main: surfaces.text.primary,
       },
       background: {
-        default: isDark ? "#121212" : "#ffffff", // Main container background
-        paper: isDark ? "#1b1b1b" : "#f5f5f5", // Paper, cards, menus
+        default: surfaces.background.default,
+        paper: surfaces.background.paper,
       },
       text: {
-        primary: isDark ? "#ffffff" : "#1a1a1a", // Primary text
-        secondary: accentColor, // Secondary text (headers, accents)
-        disabled: isDark ? "#666666" : "#9e9e9e", // Disabled text
+        primary: surfaces.text.primary,
+        secondary: accentColor,
+        disabled: isDark ? "#666666" : "#9e9e9e",
       },
       error: {
         main: "#f44336", // Red for errors
@@ -55,7 +54,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
     typography: {
       fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
       allVariants: {
-        color: isDark ? "#ffffff" : "#1a1a1a",
+        color: surfaces.text.primary,
       },
       h1: { fontSize: "2.5rem", fontWeight: 500 },
       h2: { fontSize: "2rem", fontWeight: 500 },
@@ -74,7 +73,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiBox: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#121212" : "#ffffff",
+            backgroundColor: surfaces.background.default,
             padding: "10px",
           },
         },
@@ -82,7 +81,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#f5f5f5",
+            backgroundColor: surfaces.background.paper,
             padding: "10px",
             borderRadius: "8px",
             boxShadow: isDark
@@ -94,7 +93,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiContainer: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#121212" : "#ffffff",
+            backgroundColor: surfaces.background.default,
             padding: "16px",
           },
         },
@@ -107,17 +106,17 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             border: 0,
           },
           columnHeaders: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
+            backgroundColor: isDark ? "#0b0b0b" : surfaces.surface.level2,
             color: accentColor,
             fontWeight: "bold",
           },
           cell: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
           row: {
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
           },
           checkbox: {
@@ -129,7 +128,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             },
           },
           footerContainer: {
-            backgroundColor: isDark ? "#1b1b1b" : "#f5f5f5",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.background.paper,
             color: accentColor,
           },
           footerContainerTypography: {
@@ -173,18 +172,18 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiTable: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
           },
         },
       },
       MuiTableCell: {
         styleOverrides: {
           root: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
-            borderBottom: isDark ? "1px solid #28282a" : "1px solid #e0e0e0",
+            color: surfaces.text.primary,
+            borderBottom: `1px solid ${surfaces.border.light}`,
           },
           head: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
+            backgroundColor: isDark ? "#0b0b0b" : surfaces.surface.level2,
             color: accentColor,
             fontWeight: "bold",
           },
@@ -194,7 +193,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
         styleOverrides: {
           root: {
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
           },
         },
@@ -202,7 +201,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiTypography: {
         styleOverrides: {
           root: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
           },
         },
       },
@@ -217,10 +216,10 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiChip: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#28282a" : "#e0e0e0",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#28282a" : surfaces.surface.level3,
+            color: surfaces.text.primary,
             "&:hover": {
-              backgroundColor: isDark ? "#333333" : "#d0d0d0",
+              backgroundColor: isDark ? "#333333" : surfaces.border.default,
             },
           },
           deleteIcon: {
@@ -276,12 +275,12 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
         styleOverrides: {
           root: {
             "& .MuiInputBase-root": {
-              backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+              color: surfaces.text.primary,
               borderRadius: "8px",
             },
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: isDark ? "#666666" : "#e0e0e0",
+              borderColor: isDark ? "#666666" : surfaces.border.default,
               borderWidth: "1px",
               borderStyle: "solid",
             },
@@ -312,8 +311,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiSelect: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             "& .MuiSvgIcon-root": {
               color: accentColor,
             },
@@ -332,8 +331,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             width: "100%",
             maxWidth: "350px",
             "& .MuiInputBase-root": {
-              backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+              color: surfaces.text.primary,
               borderRadius: "8px",
               padding: "8px 12px",
               fontSize: "1rem",
@@ -341,7 +340,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
               transition: "border-color 0.2s ease-in-out",
             },
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: isDark ? "#666666" : "#e0e0e0",
+              borderColor: isDark ? "#666666" : surfaces.border.default,
               borderWidth: "1px",
               borderStyle: "solid",
             },
@@ -367,8 +366,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             },
           },
           paper: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
             boxShadow: isDark
               ? "0px 4px 12px rgba(0, 0, 0, 0.5)"
@@ -377,18 +376,18 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             marginBottom: "4px",
           },
           listbox: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             padding: "8px 0",
             maxHeight: "200px",
             overflowY: "auto",
             scrollbarWidth: "thin",
-            scrollbarColor: `${accentColor} ${isDark ? "#1b1b1b" : "#ffffff"}`,
+            scrollbarColor: `${accentColor} ${isDark ? "#1b1b1b" : surfaces.surface.level0}`,
             "&::-webkit-scrollbar": {
               width: "8px",
             },
             "&::-webkit-scrollbar-track": {
-              background: isDark ? "#1b1b1b" : "#ffffff",
+              background: isDark ? "#1b1b1b" : surfaces.surface.level0,
             },
             "&::-webkit-scrollbar-thumb": {
               background: accentColor,
@@ -406,29 +405,29 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             padding: "8px 16px",
             fontSize: "1rem",
             lineHeight: "1.5",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
             backgroundColor: "transparent",
             transition:
               "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
+              color: surfaces.text.primary,
             },
             '&[aria-selected="true"]': {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
+              color: surfaces.text.primary,
               fontWeight: 600,
             },
             "&:active": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
           },
           noOptions: {
             padding: "8px 16px",
             fontSize: "1rem",
             lineHeight: "1.5",
-            color: isDark ? "#ffffff" : "#1a1a1a",
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            color: surfaces.text.primary,
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
           },
           clearIndicator: {
             color: isDark ? "#666666" : "#9e9e9e",
@@ -450,11 +449,11 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
             padding: "8px 16px",
             fontSize: "1rem",
             lineHeight: "1.5",
-            color: isDark ? "#ffffff" : "#1a1a1a",
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            color: surfaces.text.primary,
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
           },
           input: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
             fontSize: "1rem",
             lineHeight: "1.5",
             "&::placeholder": {
@@ -528,8 +527,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiMenu: {
         styleOverrides: {
           paper: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
             boxShadow: isDark
               ? "0px 4px 12px rgba(0, 0, 0, 0.5)"
@@ -540,12 +539,12 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiMenuItem: {
         styleOverrides: {
           root: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
             "&.Mui-selected": {
-              backgroundColor: isDark ? "#333333" : "#e0e0e0",
+              backgroundColor: isDark ? "#333333" : surfaces.surface.level3,
             },
           },
         },
@@ -553,7 +552,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiTabs: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#f5f5f5",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.background.paper,
           },
           indicator: {
             backgroundColor: accentColor,
@@ -577,7 +576,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
           },
           li: {
             "& .MuiTypography-root": {
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              color: surfaces.text.primary,
             },
             "&:hover .MuiTypography-root": {
               color: accentColor,
@@ -590,7 +589,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiCard: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
             borderRadius: "8px",
             boxShadow: isDark
               ? "0px 4px 12px rgba(0, 0, 0, 0.5)"
@@ -601,7 +600,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiCardHeader: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
+            backgroundColor: isDark ? "#0b0b0b" : surfaces.surface.level2,
             color: accentColor,
           },
         },
@@ -609,15 +608,15 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiCardContent: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
         },
       },
       MuiCardActions: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
             padding: "8px",
           },
         },
@@ -625,10 +624,10 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiAccordion: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             "&:before": {
-              backgroundColor: isDark ? "#28282a" : "#e0e0e0",
+              backgroundColor: isDark ? "#28282a" : surfaces.border.default,
             },
           },
         },
@@ -636,7 +635,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiAccordionSummary: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
+            backgroundColor: isDark ? "#0b0b0b" : surfaces.surface.level2,
             color: accentColor,
           },
         },
@@ -644,8 +643,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiAccordionDetails: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
         },
       },
@@ -654,8 +653,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiDialog: {
         styleOverrides: {
           paper: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
           },
         },
@@ -663,7 +662,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiDialogTitle: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#0b0b0b" : "#e6e6e6",
+            backgroundColor: isDark ? "#0b0b0b" : surfaces.surface.level2,
             color: accentColor,
           },
         },
@@ -671,15 +670,15 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiDialogContent: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
         },
       },
       MuiDialogActions: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
             padding: "8px",
           },
         },
@@ -687,8 +686,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiSnackbar: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
             boxShadow: isDark
               ? "0px 4px 12px rgba(0, 0, 0, 0.5)"
@@ -699,8 +698,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiAlert: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
           },
           standardSuccess: {
@@ -745,10 +744,10 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
           root: {
             backgroundColor: isDark
               ? "rgb(27, 27, 27) !important"
-              : "rgb(224, 224, 224) !important",
+              : `${surfaces.surface.level3} !important`,
             backgroundImage: isDark
               ? "linear-gradient(90deg, rgb(27, 27, 27) 0%, rgb(51, 51, 51) 50%, rgb(27, 27, 27) 100%) !important"
-              : "linear-gradient(90deg, rgb(224, 224, 224) 0%, rgb(245, 245, 245) 50%, rgb(224, 224, 224) 100%) !important",
+              : `linear-gradient(90deg, ${surfaces.surface.level3} 0%, ${surfaces.surface.hover} 50%, ${surfaces.surface.level3} 100%) !important`,
             backgroundSize: "1000px 100%",
             animation: `${shimmerKeyframes} 2s infinite linear`,
             borderRadius: "8px",
@@ -788,8 +787,8 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiPopover: {
         styleOverrides: {
           paper: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
             borderRadius: "8px",
             boxShadow: isDark
               ? "0px 4px 12px rgba(0, 0, 0, 0.5)"
@@ -800,24 +799,24 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiDivider: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#28282a" : "#e0e0e0",
+            backgroundColor: isDark ? "#28282a" : surfaces.border.default,
           },
         },
       },
       MuiList: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
         },
       },
       MuiListItem: {
         styleOverrides: {
           root: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
           },
         },
@@ -825,7 +824,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiListItemText: {
         styleOverrides: {
           primary: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
           },
           secondary: {
             color: isDark ? "#666666" : "#737373",
@@ -847,7 +846,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
               color: accentColor,
             },
             "&.Mui-completed": {
-              color: isDark ? "#ffffff" : "#1a1a1a",
+              color: surfaces.text.primary,
             },
           },
         },
@@ -892,7 +891,7 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
         styleOverrides: {
           root: {
             color: isDark ? "#666666" : "#737373",
-            borderColor: isDark ? "#666666" : "#e0e0e0",
+            borderColor: isDark ? "#666666" : surfaces.border.default,
             "&.Mui-selected": {
               backgroundColor: accentColor,
               color: isDark ? "#1b1b1b" : "#ffffff",
@@ -906,17 +905,17 @@ const createAppTheme = (mode = "dark", paletteId = "teal") => {
       MuiTreeView: {
         styleOverrides: {
           root: {
-            backgroundColor: isDark ? "#1b1b1b" : "#ffffff",
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            backgroundColor: isDark ? "#1b1b1b" : surfaces.surface.level0,
+            color: surfaces.text.primary,
           },
         },
       },
       MuiTreeItem: {
         styleOverrides: {
           root: {
-            color: isDark ? "#ffffff" : "#1a1a1a",
+            color: surfaces.text.primary,
             "&:hover": {
-              backgroundColor: isDark ? "#28282a" : "#f0f0f0",
+              backgroundColor: isDark ? "#28282a" : surfaces.surface.hover,
             },
           },
         },

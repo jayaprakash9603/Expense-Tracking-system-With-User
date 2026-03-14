@@ -16,5 +16,5 @@ Feature: Authentication API flows
       | email    | ${suite.auth.username} |
       | password | ${suite.auth.password} |
     When the user sends a POST request to "auth.signin" using request body "signinPayload"
-    Then the response status should be one of "200,202,401,403"
+    Then the response status should be one of "200"
     And store response field "jwt" as "jwt"

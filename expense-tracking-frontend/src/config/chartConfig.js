@@ -3,7 +3,11 @@
  * Centralized configuration for all chart components
  */
 
-// Default timeframe options - easily extendable
+import { SEMANTIC_COLORS, COLOR_PALETTES } from "./colorPalettes";
+
+const CHART_LOSS_COLOR = SEMANTIC_COLORS.error.main;
+const CHART_GAIN_COLOR = COLOR_PALETTES.teal.primary;
+
 export const DEFAULT_TIMEFRAME_OPTIONS = [
   {
     value: "this_month",
@@ -33,20 +37,17 @@ export const DEFAULT_TIMEFRAME_OPTIONS = [
   // { value: "this_week", label: "This Week" },
 ];
 
-// Default type options - easily extendable or can be disabled
 export const DEFAULT_TYPE_OPTIONS = [
   {
     value: "loss",
     labelKey: "dashboard.charts.typeOptions.loss",
-    color: "#ff5252",
+    color: CHART_LOSS_COLOR,
   },
   {
     value: "gain",
     labelKey: "dashboard.charts.typeOptions.gain",
-    color: "#14b8a6",
+    color: CHART_GAIN_COLOR,
   },
-  // Add more types as needed:
-  // { value: "all", label: "All", color: "#888" },
 ];
 
 // Tooltip configuration
@@ -99,17 +100,16 @@ export const TOOLTIP_STYLE_PRESETS = {
   },
 };
 
-// Chart theme colors
 export const CHART_THEME = {
   loss: {
-    color: "#ff5252",
-    border: "#ff5252",
-    divider: "#ff525233",
+    color: CHART_LOSS_COLOR,
+    border: CHART_LOSS_COLOR,
+    divider: `${CHART_LOSS_COLOR}33`,
   },
   gain: {
-    color: "#14b8a6",
-    border: "#14b8a6",
-    divider: "#14b8a633",
+    color: CHART_GAIN_COLOR,
+    border: CHART_GAIN_COLOR,
+    divider: `${CHART_GAIN_COLOR}33`,
   },
 };
 

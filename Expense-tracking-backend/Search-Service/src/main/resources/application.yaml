@@ -71,7 +71,8 @@ services:
 search:
   default-limit: 5
   max-limit: 20
-  timeout-ms: 3000
+  timeout-ms: 6000
+  aggregate-timeout-ms: 9000
   cache:
     enabled: true
     ttl-seconds: 300

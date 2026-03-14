@@ -15,12 +15,4 @@ public class AuthTokenSteps {
         BddWorld.putAliasValue("token." + tokenAlias, token);
     }
 
-    @Given("the active token alias is {string}")
-    public void setActiveTokenAlias(String tokenAlias) {
-        String token = BddWorld.apiScenarioContext().tokenAlias(tokenAlias)
-                .orElseGet(() -> BddWorld.tokenProvider().token(tokenAlias));
-        BddWorld.apiScenarioContext().putTokenAlias(tokenAlias, token);
-        BddWorld.apiScenarioContext().setActiveTokenAlias(tokenAlias);
-        BddWorld.setJwtToken(token);
-    }
 }

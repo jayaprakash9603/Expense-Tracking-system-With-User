@@ -7,35 +7,35 @@ Feature: User update and delete APIs
   @smoke @regression
   Scenario: Update user profile succeeds
     Given the user uses token alias "user"
-    And request body "validUpdatePayload" is loaded from payload file "payloads/user/update-user-valid.json"
+    And request body "validUpdatePayload" uses the "update-user-valid" payload
     When the user sends a PUT request to "user.update" using request body "validUpdatePayload"
-    Then the response status should be 200
-    And the response should match schema "schemas/user/user-update-success.schema.json"
+    Then the request should succeed
+    And the response should match the "user-update-success" schema
 
   @validation @negative @regression
   Scenario: Invalid fields in update payload return field errors
     Given the user uses token alias "user"
-    And request body "invalidUpdatePayload" is loaded from payload file "payloads/user/update-user-invalid.json"
+    And request body "invalidUpdatePayload" uses the "update-user-invalid" payload
     When the user sends a PUT request to "user.update" using request body "invalidUpdatePayload"
-    Then the response status should be 400
-    And the response should match schema "schemas/user/error-api.schema.json"
+    Then the response should indicate "bad request"
+    And the response should match the "error-api" schema
     And the response field "fieldErrors" should be present
 
   @smoke @regression
   Scenario: Update two factor flag succeeds
     Given the user uses token alias "user"
-    And request body "twoFactorEnabledPayload" is loaded from payload file "payloads/user/two-factor-enabled.json"
+    And request body "twoFactorEnabledPayload" uses the "two-factor-enabled" payload
     When the user sends a PUT request to "user.two-factor" using request body "twoFactorEnabledPayload"
-    Then the response status should be 200
-    And the response should match schema "schemas/user/user-two-factor-success.schema.json"
+    Then the request should succeed
+    And the response should match the "user-two-factor-success" schema
 
   @validation @negative @regression
   Scenario: Null enabled value in two factor update returns bad request
     Given the user uses token alias "user"
-    And request body "invalidTwoFactorPayload" is loaded from payload file "payloads/user/two-factor-null.json"
+    And request body "invalidTwoFactorPayload" uses the "two-factor-null" payload
     When the user sends a PUT request to "user.two-factor" using request body "invalidTwoFactorPayload"
-    Then the response status should be 400
-    And the response should match schema "schemas/user/error-api.schema.json"
+    Then the response should indicate "bad request"
+    And the response should match the "error-api" schema
 
   @smoke @regression
   Scenario: Delete user by id returns plain success text
@@ -44,5 +44,5 @@ Feature: User update and delete APIs
     When the user sends a DELETE request to "user.delete" with data
       | key     | value                  |
       | path.id | ${ctx.deletableUserId} |
-    Then the response status should be 200
+    Then the request should succeed
     And the response body should contain "User deleted successfully"

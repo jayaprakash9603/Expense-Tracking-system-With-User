@@ -2,8 +2,7 @@
  * Theme Tokens Generator
  * 
  * Generates semantic design tokens from a color palette and mode.
- * These tokens map directly to the existing THEME_COLORS structure
- * to ensure backward compatibility while enabling dynamic theming.
+ * All values derive from colorPalettes.js surfaces -- no hardcoded hex.
  */
 
 import { 
@@ -18,19 +17,11 @@ import {
   getContrastText 
 } from "../utils/colorUtils";
 
-/**
- * Generate complete theme tokens for a palette and mode combination
- * This produces the same structure as the existing THEME_COLORS
- * @param {string} paletteId - Palette ID (e.g., "teal", "blue")
- * @param {string} mode - "dark" or "light"
- * @returns {Object} Theme tokens object
- */
 export const generateThemeTokens = (paletteId = "teal", mode = "dark") => {
   const palette = COLOR_PALETTES[paletteId] || COLOR_PALETTES.teal;
   const surfaces = getSurfaceColors(palette, mode);
   const isDark = mode === "dark";
 
-  // Primary accent variations based on mode
   const primaryAccent = palette.primary;
   const secondaryAccent = isDark 
     ? lighten(palette.primary, 10) 
@@ -40,60 +31,50 @@ export const generateThemeTokens = (paletteId = "teal", mode = "dark") => {
     : darken(palette.primary, 20);
 
   return {
-    // === Main Backgrounds ===
     primary_bg: surfaces.background.paper,
     secondary_bg: surfaces.background.default,
-    tertiary_bg: isDark ? "#0b0b0b" : "#e6e6e6",
+    tertiary_bg: isDark ? "#0b0b0b" : surfaces.surface.level2,
     card_bg: surfaces.background.paper,
     input_bg: surfaces.surface.level2,
 
-    // === Active/Hover States ===
     active_bg: isDark 
       ? alpha(palette.primary, 0.15) 
       : alpha(palette.primary, 0.12),
     hover_bg: surfaces.action.hover,
     overlay_bg: surfaces.background.paper,
 
-    // === Text Colors ===
     primary_text: surfaces.text.primary,
     secondary_text: isDark ? "#ffffff" : "#2a2a2a",
     placeholder_text: "#9ca3af",
     active_text: palette.accent,
     brand_text: palette.primary,
 
-    // === Accent Colors (Palette-driven) ===
     primary_accent: primaryAccent,
     secondary_accent: secondaryAccent,
     tertiary_accent: tertiaryAccent,
     accent: primaryAccent,
 
-    // === Border Colors ===
     border_color: surfaces.border.default,
     border_light: surfaces.border.light,
     border: surfaces.border.default,
 
-    // === Icon Colors ===
     icon_default: surfaces.text.primary,
     icon_active: palette.accent,
     icon_muted: isDark ? "#666666" : "#2a2a2a",
 
-    // === Button Colors ===
-    button_inactive: isDark ? "#28282a" : "#e8e8e8",
+    button_inactive: isDark ? "#28282a" : surfaces.border.light,
     button_bg: palette.accent,
     button_text: getContrastText(palette.accent),
     button_hover: tertiaryAccent,
 
-    // === Avatar Colors ===
     avatar_bg: palette.primary,
     avatar_text: getContrastText(palette.primary),
 
-    // === Modal/Dialog ===
     modal_bg: surfaces.background.paper,
     modal_overlay: isDark 
       ? "rgba(0, 0, 0, 0.95)" 
       : "rgba(0, 0, 0, 0.5)",
 
-    // === Semantic Colors ===
     success: SEMANTIC_COLORS.success.main,
     success_light: SEMANTIC_COLORS.success.light,
     success_dark: SEMANTIC_COLORS.success.dark,
@@ -107,43 +88,35 @@ export const generateThemeTokens = (paletteId = "teal", mode = "dark") => {
     info_light: SEMANTIC_COLORS.info.light,
     info_dark: SEMANTIC_COLORS.info.dark,
 
-    // === Chart Colors (derived from palette) ===
     chart_primary: palette.primary,
     chart_secondary: palette.secondary,
     chart_accent: palette.accent,
-    chart_grid: isDark ? "#333333" : "#e0e0e0",
+    chart_grid: isDark ? "#333333" : surfaces.surface.level3,
     chart_tooltip_bg: isDark ? "#2a2a2a" : "#ffffff",
     chart_tooltip_text: surfaces.text.primary,
 
-    // === Gradient Backgrounds ===
     gradient_start: palette.primary,
     gradient_end: palette.secondary,
     gradient_bg: `linear-gradient(135deg, ${palette.primary} 0%, ${palette.secondary} 100%)`,
 
-    // === Shadow Colors ===
     shadow_color: isDark 
       ? "rgba(0, 0, 0, 0.5)" 
       : "rgba(0, 0, 0, 0.15)",
     shadow_colored: alpha(palette.primary, isDark ? 0.3 : 0.2),
 
-    // === Focus Ring ===
     focus_ring: alpha(palette.primary, 0.5),
     focus_visible: palette.primary,
 
-    // === Selection ===
     selection_bg: alpha(palette.primary, isDark ? 0.3 : 0.2),
     selection_text: surfaces.text.primary,
 
-    // === Scrollbar ===
     scrollbar_thumb: isDark ? "#555555" : "#c0c0c0",
-    scrollbar_track: isDark ? "#2a2a2a" : "#f0f0f0",
+    scrollbar_track: isDark ? "#2a2a2a" : surfaces.surface.hover,
     scrollbar_hover: isDark ? "#777777" : "#a0a0a0",
 
-    // === Skeleton Loading ===
-    skeleton_base: isDark ? "#2a2a2a" : "#e0e0e0",
-    skeleton_highlight: isDark ? "#3a3a3a" : "#f0f0f0",
+    skeleton_base: isDark ? "#2a2a2a" : surfaces.surface.level3,
+    skeleton_highlight: isDark ? "#3a3a3a" : surfaces.surface.hover,
 
-    // === Metadata ===
     _palette: paletteId,
     _mode: mode,
   };

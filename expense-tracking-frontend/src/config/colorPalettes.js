@@ -213,38 +213,32 @@ export const getExpandedPalette = (paletteId) => {
  * @returns {Object} Dark mode surface colors
  */
 export const getDarkSurfaces = (palette) => {
-  const primary = palette.primary;
-  
   return {
-    // Backgrounds - pure dark with subtle hints of primary
     background: {
       default: "#121212",
       paper: "#1b1b1b",
       elevated: "#242424",
     },
-    // Surfaces with increasing elevation
     surface: {
       level0: "#121212",
       level1: "#1b1b1b",
       level2: "#222222",
       level3: "#282828",
       level4: "#2e2e2e",
+      hover: "#28282a",
     },
-    // Text colors
     text: {
       primary: "#ffffff",
       secondary: "rgba(255, 255, 255, 0.7)",
       disabled: "rgba(255, 255, 255, 0.5)",
       hint: "rgba(255, 255, 255, 0.5)",
     },
-    // Dividers and borders
     divider: "rgba(255, 255, 255, 0.12)",
     border: {
       default: "#333333",
       light: "#28282a",
       focus: palette.primary,
     },
-    // Action colors
     action: {
       active: "rgba(255, 255, 255, 0.56)",
       hover: "rgba(255, 255, 255, 0.08)",
@@ -262,38 +256,32 @@ export const getDarkSurfaces = (palette) => {
  * @returns {Object} Light mode surface colors
  */
 export const getLightSurfaces = (palette) => {
-  const primaryLight = lighten(palette.primary, 45);
-  
   return {
-    // Backgrounds
     background: {
       default: "#ffffff",
-      paper: "#f5f5f5",
+      paper: "#F8FAFC",
       elevated: "#fafafa",
     },
-    // Surfaces with increasing elevation
     surface: {
       level0: "#ffffff",
-      level1: "#f5f5f5",
-      level2: "#eeeeee",
-      level3: "#e0e0e0",
-      level4: "#d6d6d6",
+      level1: "#F8FAFC",
+      level2: "#F1F5F9",
+      level3: "#E2E8F0",
+      level4: "#DDE3EA",
+      hover: "#EEF2F7",
     },
-    // Text colors
     text: {
       primary: "#1a1a1a",
       secondary: "rgba(0, 0, 0, 0.6)",
       disabled: "rgba(0, 0, 0, 0.38)",
       hint: "rgba(0, 0, 0, 0.38)",
     },
-    // Dividers and borders
     divider: "rgba(0, 0, 0, 0.12)",
     border: {
-      default: "#d0d0d0",
-      light: "#e8e8e8",
+      default: "#DDE3EA",
+      light: "#EEF2F7",
       focus: palette.primary,
     },
-    // Action colors
     action: {
       active: "rgba(0, 0, 0, 0.54)",
       hover: "rgba(0, 0, 0, 0.04)",

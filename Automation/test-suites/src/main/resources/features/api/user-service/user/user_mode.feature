@@ -10,8 +10,8 @@ Feature: User mode switch API
     When the user sends a PUT request to "user.switch-mode" with data
       | key        | value  |
       | query.mode | <mode> |
-    Then the response status should be 200
-    And the response should match schema "schemas/user/user-switch-mode-success.schema.json"
+    Then the request should succeed
+    And the response should match the "user-switch-mode-success" schema
 
     Examples:
       | mode |
@@ -23,8 +23,8 @@ Feature: User mode switch API
     When the user sends a PUT request to "user.switch-mode" with data
       | key        | value       |
       | query.mode | SUPER_ADMIN |
-    Then the response status should be 400
-    And the response should match schema "schemas/user/error-map.schema.json"
+    Then the response should indicate "bad request"
+    And the response should match the "error-map" schema
 
   @auth @negative @regression
   Scenario: Missing authorization token on switch mode is rejected

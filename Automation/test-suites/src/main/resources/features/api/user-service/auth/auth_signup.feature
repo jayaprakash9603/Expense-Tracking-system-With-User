@@ -14,16 +14,16 @@ Feature: Auth signup API
       | email     | ${ctx.signupEmail} |
       | password  | ChangeMe123!      |
     When the user sends a POST request to "auth.signup" using request body "signupPayload"
-    Then the response status should be 201
-    And the response should match schema "schemas/user-service/auth/signup-success.schema.json"
+    Then the response should indicate "resource created"
+    And the response should match the "signup-success" schema
     And store response token field "jwt" as token alias "signupUser"
 
   @validation @negative @regression
   Scenario: Signup validation errors are returned
-    And request body "signupInvalidPayload" is loaded from payload file "payloads/user-service/auth/signup-invalid.json"
+    And request body "signupInvalidPayload" uses the "signup-invalid" payload
     When the user sends a POST request to "auth.signup" using request body "signupInvalidPayload"
-    Then the response status should be 400
-    And the response should match schema "schemas/user-service/common/validation-error.schema.json"
+    Then the response should indicate "bad request"
+    And the response should match the "validation-error" schema
 
   @negative @regression
   Scenario: Duplicate signup request is rejected
@@ -35,6 +35,6 @@ Feature: Auth signup API
       | email     | ${ctx.signupEmail} |
       | password  | ChangeMe123!      |
     When the user sends a POST request to "auth.signup" using request body "signupFirstPayload"
-    Then the response status should be 201
+    Then the response should indicate "resource created"
     When the user sends a POST request to "auth.signup" using request body "signupFirstPayload"
-    Then the response status should be 409
+    Then the response should indicate "conflict"

@@ -47,11 +47,6 @@ public class UserApiSteps extends StepDataSupport {
         storeAlias(alias, resolveRoleId(roleName));
     }
 
-    @Given("the ADMIN role id is stored as {string}")
-    public void adminRoleIdIsStoredAs(String alias) {
-        roleIdIsStoredAs("ADMIN", alias);
-    }
-
     @Given("role add conflict aliases are prepared as {string} and {string}")
     public void roleAddConflictAliasesArePrepared(String userIdAlias, String roleIdAlias) {
         CreatedUser createdUser = createDisposableUser();

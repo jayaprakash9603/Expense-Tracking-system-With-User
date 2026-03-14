@@ -9,32 +9,32 @@ Feature: MFA APIs
     Given the user uses token alias "user"
     When the user sends a GET request to "auth.mfa.status"
     Then the response status should be 200
-    And the response should match schema "schemas/user-service/mfa/mfa-status-response.schema.json"
+    And the response should match the "mfa-status-response" schema
 
   @regression
   Scenario: MFA setup endpoint returns setup payload
     Given the user uses token alias "user"
     When the user sends a POST request to "auth.mfa.setup"
     Then the response status should be 200
-    And the response should match schema "schemas/user-service/mfa/mfa-setup-response.schema.json"
+    And the response should match the "mfa-setup-response" schema
 
   @regression
   Scenario: MFA enable endpoint accepts request
     Given the user uses token alias "user"
-    And request body "mfaEnablePayload" is loaded from payload file "payloads/user-service/mfa/mfa-enable-valid.json"
+    And request body "mfaEnablePayload" uses the "mfa-enable-valid" payload
     When the user sends a POST request to "auth.mfa.enable" using request body "mfaEnablePayload"
     Then the response status should be one of "200,400,401"
 
   @regression
   Scenario: MFA verify endpoint responds for provided token and otp
-    And request body "mfaVerifyPayload" is loaded from payload file "payloads/user-service/mfa/mfa-verify-valid.json"
+    And request body "mfaVerifyPayload" uses the "mfa-verify-valid" payload
     When the user sends a POST request to "auth.mfa.verify" using request body "mfaVerifyPayload"
     Then the response status should be one of "200,400,401"
 
   @regression
   Scenario: MFA disable endpoint responds
     Given the user uses token alias "user"
-    And request body "mfaDisablePayload" is loaded from payload file "payloads/user-service/mfa/mfa-disable-valid.json"
+    And request body "mfaDisablePayload" uses the "mfa-disable-valid" payload
     When the user sends a POST request to "auth.mfa.disable" using request body "mfaDisablePayload"
     Then the response status should be one of "200,400,401"
 
