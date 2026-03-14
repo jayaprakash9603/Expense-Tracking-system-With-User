@@ -52,7 +52,7 @@ public class RoleController {
         return new ResponseEntity<>(roles, HttpStatus.OK);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Role> getRoleById(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) {
         Optional<Role> role = roleService.getRoleById(id);
@@ -68,7 +68,7 @@ public class RoleController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> updateRole(
             @PathVariable Integer id,
@@ -87,7 +87,7 @@ public class RoleController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<String> deleteRole(@PathVariable Integer id, @RequestHeader("Authorization") String jwt) {
         try {

@@ -246,7 +246,7 @@ public class AuthController {
 
     }
 
-    @GetMapping("user/{userId}")
+    @GetMapping("user/{userId:\\d+}")
     public User findUserById(@PathVariable("userId") Integer id) throws Exception {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {
@@ -256,7 +256,7 @@ public class AuthController {
         }
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/{userId:\\d+}")
     public User findUserByIds(@PathVariable("userId") Integer id) throws Exception {
         Optional<User> userOptional = userRepository.findById(id);
         if (userOptional.isPresent()) {

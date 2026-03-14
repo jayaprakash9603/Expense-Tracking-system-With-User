@@ -86,7 +86,7 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/users/{userId}")
+    @GetMapping("/users/{userId:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> getUserById(
             @PathVariable Integer userId,
@@ -104,7 +104,7 @@ public class AdminController {
         }
     }
 
-    @PutMapping("/users/{userId}/status")
+    @PutMapping("/users/{userId:\\d+}/status")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> updateUserStatus(
             @PathVariable Integer userId,
@@ -133,7 +133,7 @@ public class AdminController {
         }
     }
 
-    @DeleteMapping("/users/{userId}")
+    @DeleteMapping("/users/{userId:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(
             @PathVariable Integer userId,

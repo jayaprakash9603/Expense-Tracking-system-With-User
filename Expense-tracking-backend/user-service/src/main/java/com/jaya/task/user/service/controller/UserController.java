@@ -75,7 +75,7 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<Object> getUserById(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) {
@@ -136,7 +136,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<String> deleteUser(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
             @RequestHeader("Authorization") String jwt) throws AccessDeniedException {
@@ -198,7 +198,7 @@ public class UserController {
         }
     }
 
-    @PostMapping("/{userId}/roles/{roleId}")
+    @PostMapping("/{userId:\\d+}/roles/{roleId:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Object> addRoleToUser(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
@@ -274,7 +274,7 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{userId}/roles/{roleId}")
+    @DeleteMapping("/{userId:\\d+}/roles/{roleId:\\d+}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<Object> removeRoleFromUser(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer userId,
