@@ -33,6 +33,10 @@ const HeaderBar = () => {
   const { t } = useTranslation();
 
   const isDark = mode === "dark";
+  const headerActionButtonStyle = {
+    backgroundColor: colors.button_inactive,
+    color: colors.icon_default,
+  };
 
   // Calculate total selected items for sharing
   const sharedSelection = useSelector((state) => state.sharedSelection) || {
@@ -159,7 +163,10 @@ const HeaderBar = () => {
         </div>
 
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div
+          className="flex items-center gap-3 sm:gap-4"
+          style={{ color: colors.icon_default }}
+        >
           {/* Inline Search Bar */}
           <div id="header-search">
             <InlineSearchBar />
@@ -171,23 +178,15 @@ const HeaderBar = () => {
             onClick={toggleMasking}
             data-shortcut="masking"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-            style={{
-              backgroundColor: colors.button_inactive,
-            }}
+            style={headerActionButtonStyle}
             title={
               maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
             }
           >
             {maskingEnabled ? (
-              <VisibilityOffIcon
-                className="w-5 h-5"
-                style={{ color: colors.icon_default }}
-              />
+              <VisibilityOffIcon className="w-5 h-5" />
             ) : (
-              <VisibilityIcon
-                className="w-5 h-5"
-                style={{ color: colors.icon_default }}
-              />
+              <VisibilityIcon className="w-5 h-5" />
             )}
           </button>
 
@@ -197,9 +196,7 @@ const HeaderBar = () => {
             onClick={handleThemeToggle}
             data-shortcut="theme"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-            style={{
-              backgroundColor: colors.button_inactive,
-            }}
+            style={headerActionButtonStyle}
             title={
               isDark ? t("header.switchToLight") : t("header.switchToDark")
             }
@@ -208,7 +205,6 @@ const HeaderBar = () => {
               // Sun Icon (Light Mode)
               <svg
                 className="w-5 h-5"
-                style={{ color: "#facc15" }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -223,7 +219,6 @@ const HeaderBar = () => {
               // Moon Icon (Dark Mode)
               <svg
                 className="w-5 h-5"
-                style={{ color: colors.icon_default }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -242,9 +237,7 @@ const HeaderBar = () => {
                 id="header-share"
                 onClick={handleShareClick}
                 className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-                style={{
-                  backgroundColor: colors.button_inactive,
-                }}
+                style={headerActionButtonStyle}
                 title={t("header.shareSelected", "Share Selected Items")}
               >
                 <Badge
@@ -260,10 +253,7 @@ const HeaderBar = () => {
                     },
                   }}
                 >
-                  <Share2 
-                    className="w-5 h-5" 
-                    style={{ color: colors.icon_default }} 
-                  />
+                  <Share2 className="w-5 h-5" />
                 </Badge>
               </button>
             </div>
@@ -276,9 +266,7 @@ const HeaderBar = () => {
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               data-shortcut="notifications"
               className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-              style={{
-                backgroundColor: colors.button_inactive,
-              }}
+              style={headerActionButtonStyle}
               title={t("header.notifications")}
             >
               <Badge
@@ -296,7 +284,6 @@ const HeaderBar = () => {
               >
                 <svg
                   className="w-5 h-5"
-                  style={{ color: colors.icon_default }}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"

@@ -34,6 +34,29 @@ const MAX_RESULTS_PER_SECTION = 20;
 // API endpoint for unified search
 const SEARCH_API_ENDPOINT = "/api/search";
 
+const normalizeCollection = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (Array.isArray(value?.content)) {
+    return value.content;
+  }
+  if (Array.isArray(value?.data)) {
+    return value.data;
+  }
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+  const objectValues = Object.values(value);
+  if (!objectValues.length) {
+    return [];
+  }
+  if (objectValues.every(Array.isArray)) {
+    return objectValues.flat();
+  }
+  return objectValues.filter((item) => item && typeof item === "object");
+};
+
 // Create a memoization key that includes both query and mode
 const createMemoizedSearchQuickActions = () => {
   const cache = new Map();
@@ -103,14 +126,22 @@ export const useUniversalSearch = () => {
   const debouncerRef = useRef(createDebouncer(DEBOUNCE_DELAY));
 
   // Get existing data from Redux for local search with shallow comparison
-  const expenses = useSelector((state) => state.expenses?.expenses || []);
-  const budgets = useSelector((state) => state.budgets?.budgets || []);
-  const categories = useSelector((state) => state.categories?.categories || []);
-  const bills = useSelector((state) => state.bill?.bills || []);
-  const paymentMethods = useSelector(
-    (state) => state.paymentMethod?.paymentMethods || [],
+  const expenses = useSelector((state) =>
+    normalizeCollection(state.expenses?.expenses),
   );
-  const friends = useSelector((state) => state.friends?.friends || []);
+  const budgets = useSelector((state) =>
+    normalizeCollection(state.budgets?.budgets),
+  );
+  const categories = useSelector((state) =>
+    normalizeCollection(state.categories?.categories),
+  );
+  const bills = useSelector((state) => normalizeCollection(state.bill?.bills));
+  const paymentMethods = useSelector(
+    (state) => normalizeCollection(state.paymentMethod?.paymentMethods),
+  );
+  const friends = useSelector((state) =>
+    normalizeCollection(state.friends?.friends),
+  );
 
   // Get user's currency preference
   const userCurrency = useSelector(
@@ -544,6 +575,7 @@ export const useUniversalSearch = () => {
               metadata: user.metadata || {},
               route: getRouteForResult(SEARCH_TYPES.USER, user.id),
             })),
+            help: [],
           };
 
           setApiResults(transformedResults);
@@ -620,8 +652,11 @@ export const useUniversalSearch = () => {
     // Add API/local results by section
     // Sort each section by relevance when there's a query
     const addSortedResults = (items, section) => {
-      if (items.length > 0) {
-        const sortedItems = query ? sortByRelevance(items, query) : items;
+      const safeItems = Array.isArray(items) ? items : [];
+      if (safeItems.length > 0) {
+        const sortedItems = query
+          ? sortByRelevance(safeItems, query)
+          : safeItems;
         sortedItems.forEach((item) => results.push({ ...item, section }));
       }
     };
