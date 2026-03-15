@@ -202,6 +202,61 @@ npm start
 | `REACT_APP_CHAT_WS_URL` | `${REACT_APP_API_BASE_URL}/chat` | Chat WS endpoint |
 | `REACT_APP_STORY_WS_URL` | `${REACT_APP_API_BASE_URL}/ws-stories` | Story WS endpoint |
 
+## Deploying to Vercel (step-by-step)
+
+1. **Push your code**  
+   Commit and push your repo (including `expense-tracking-frontend` and its `vercel.json`) to GitHub, GitLab, or Bitbucket.
+
+2. **Sign in to Vercel**  
+   Go to [vercel.com](https://vercel.com) and sign in (e.g. with GitHub).
+
+3. **Create a new project**  
+   - Click **Add New…** → **Project**.  
+   - Import your repository (e.g. select the repo that contains this frontend).  
+   - Click **Import**.
+
+4. **Set the root directory**  
+   - In **Configure Project**, find **Root Directory**.  
+   - Click **Edit**, choose **`expense-tracking-frontend`**, then **Continue**.  
+   (This makes Vercel use the frontend’s `package.json` and `vercel.json`.)
+
+5. **Add environment variables**  
+   In the same screen, under **Environment Variables**:
+   - **Name:** `REACT_APP_API_BASE_URL`  
+     **Value:** Your backend API URL (e.g. `https://your-backend.herokuapp.com` or `https://api.yourdomain.com`).  
+     No trailing slash.  
+   - (Optional) **Name:** `REACT_APP_GOOGLE_CLIENT_ID`  
+     **Value:** Your Google OAuth client ID for production.  
+   - Leave **Environment** as **Production** (or add the same vars for Preview if you want).  
+   Then click **Deploy**.
+
+6. **Wait for the build**  
+   Vercel runs `npm run build` and deploys the `build` folder. When the build finishes, you’ll get a **Visit** link (e.g. `https://your-project.vercel.app`).
+
+7. **Open your site**  
+   Click **Visit** or open the URL. You should see the login page; after login, `/dashboard` will load correctly thanks to the rewrites in `vercel.json`.
+
+8. **Optional – custom domain**  
+   In the project: **Settings** → **Domains** → add your domain and follow the DNS instructions.
+
+**If you change env vars later:** Project → **Settings** → **Environment Variables** → edit/add → then **Deployments** → ⋮ on the latest deployment → **Redeploy**.
+
+---
+
+## Deploying to Netlify
+
+1. **Build settings** (or use the repo’s `netlify.toml`):
+   - Build command: `npm run build`
+   - Publish directory: `build`
+
+2. **Required environment variable** (Site settings → Environment variables):
+   - **`REACT_APP_API_BASE_URL`** – Your backend API URL (e.g. `https://your-api.herokuapp.com` or your own domain).  
+   If this is not set, the app uses `http://localhost:8080`, so after login the profile request fails and you can get a blank or broken screen.
+
+3. **Optional**: Set `REACT_APP_GOOGLE_CLIENT_ID` if you use Google sign-in in production.
+
+4. Redeploy after changing environment variables so the build picks them up.
+
 ## Scripts
 
 | Command | Description |

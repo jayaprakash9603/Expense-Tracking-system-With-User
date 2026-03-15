@@ -1,0 +1,7 @@
+com\jaya\dto\ApplicationOverviewDTO.class
+com\jaya\dto\TopExpenseDTO.class
+com\jaya\service\GroupAnalyticsClient.class
+com\jaya\controller\AnalyticsController.class
+com\jaya\service\BudgetAnalyticsClient.class
+com\jaya\service\FriendshipAnalyticsClient.class
+com\jaya\service\AnalyticsOverviewService.class
