@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.FriendActivityEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -16,9 +16,9 @@ public class FriendActivityProducer extends NotificationEventProducer<FriendActi
     @Value("${kafka.topics.friend-activity-events:friend-activity-events}")
     private String topicName;
 
-    public FriendActivityProducer(KafkaTemplate<String, Object> kafkaTemplate,
+    public FriendActivityProducer(MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
         log.info("FriendActivityProducer initialized for Budget Service");
     }
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.CategoryNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,9 +17,9 @@ public class CategoryNotificationProducer extends NotificationEventProducer<Cate
     private String topicName;
 
     public CategoryNotificationProducer(
-            KafkaTemplate<String, Object> kafkaTemplate,
+            MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
     }
 
     @Override

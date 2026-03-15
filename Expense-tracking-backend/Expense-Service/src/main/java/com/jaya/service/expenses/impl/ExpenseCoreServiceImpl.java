@@ -114,7 +114,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
     private UserSettingsService userSettingsService;
 
     @Autowired
-    private org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
+    private com.jaya.common.messaging.MessagingPort messagingPort;
 
     @Autowired
     private com.jaya.service.MomentumService momentumService;
@@ -303,7 +303,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     .timestamp(java.time.LocalDateTime.now().toString())
                     .build();
 
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
             logger.info("Published EXPENSE_EDITED_REMOVE_FROM_BUDGETS on delete: expense={}, budgets={}",
                     expense.getId(), budgetIdsToRemove);
         }
@@ -1711,7 +1711,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 .timestamp(java.time.LocalDateTime.now().toString())
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         logger.info("Published EXPENSE_EDITED_ADD_TO_BUDGETS event: expense={}, budgets={}",
                 savedExpense.getId(), budgetIdsToAdd);
     }
@@ -1735,7 +1735,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     .timestamp(java.time.LocalDateTime.now().toString())
                     .build();
 
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
             logger.info("Published EXPENSE_EDITED_REMOVE_FROM_BUDGETS event: expense={}, budgets={}",
                     existingExpense.getId(), budgetIdsToRemove);
         }

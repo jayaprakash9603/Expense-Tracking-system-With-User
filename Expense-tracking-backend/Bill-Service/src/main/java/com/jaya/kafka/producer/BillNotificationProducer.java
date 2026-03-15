@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.BillNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,9 +16,9 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
     @Value("${kafka.topics.bill-events:bill-events}")
     private String billEventsTopic;
 
-    public BillNotificationProducer(KafkaTemplate<String, Object> kafkaTemplate,
+    public BillNotificationProducer(MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
     }
 
     @Override
@@ -61,12 +60,11 @@ public class BillNotificationProducer extends NotificationEventProducer<BillNoti
     }
 
     @Override
-    protected void afterSendSuccess(BillNotificationEvent event, SendResult<String, Object> result) {
-        log.info("Bill notification sent successfully: action={}, billId={}, userId={}, partition={}",
+    protected void afterSendSuccess(BillNotificationEvent event) {
+        log.info("Bill notification sent successfully: action={}, billId={}, userId={}",
                 event.getAction(),
                 event.getBillId(),
-                event.getUserId(),
-                result.getRecordMetadata().partition());
+                event.getUserId());
     }
 
     @Override

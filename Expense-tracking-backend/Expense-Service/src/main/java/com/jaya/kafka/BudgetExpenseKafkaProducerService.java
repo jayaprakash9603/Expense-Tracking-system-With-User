@@ -1,10 +1,10 @@
 package com.jaya.kafka;
 
+import com.jaya.common.messaging.MessagingPort;
 import com.jaya.events.BudgetExpenseEvent;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,14 +14,11 @@ public class BudgetExpenseKafkaProducerService {
     private static final Logger logger = LoggerFactory.getLogger(BudgetExpenseKafkaProducerService.class);
     private static final String BUDGET_EXPENSE_TOPIC = "BudgetModel-expense-events";
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final MessagingPort messagingPort;
 
     public void sendBudgetExpenseEvent(BudgetExpenseEvent event) {
-
-
-        System.out.println("Expense ids"+event.getBudgetIds()+"action"+event.getAction());
         try {
-            kafkaTemplate.send(BUDGET_EXPENSE_TOPIC, event);
+            messagingPort.send(BUDGET_EXPENSE_TOPIC, event);
             logger.info("BudgetModel expense event sent for expense ID: {} and UserDTO: {}",
                     event.getExpenseId(), event.getUserId());
         } catch (Exception e) {

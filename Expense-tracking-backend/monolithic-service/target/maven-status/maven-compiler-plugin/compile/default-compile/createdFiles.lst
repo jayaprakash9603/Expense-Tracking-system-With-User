@@ -1,3 +1,9 @@
+com\jaya\monolith\config\InMemoryEventRouter$1.class
+com\jaya\monolith\config\MonolithicInfraConfig$RedisEnabled.class
 com\jaya\monolith\config\MonolithicWebConfig.class
 com\jaya\monolith\MonolithicApplication.class
+com\jaya\monolith\config\MonolithicCacheConfig.class
+com\jaya\monolith\config\InMemoryEventRouter.class
 com\jaya\monolith\config\MonolithicBeanConfig.class
+com\jaya\monolith\config\MonolithicInfraConfig.class
+com\jaya\monolith\config\MonolithicInfraConfig$KafkaEnabled.class

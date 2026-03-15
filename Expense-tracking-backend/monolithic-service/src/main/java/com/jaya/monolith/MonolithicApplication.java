@@ -2,26 +2,21 @@ package com.jaya.monolith;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * Monolithic entry point for the Expense Tracking System.
- * This application combines all microservices into a single deployable unit.
- * 
- * Run with profile: -Dspring.profiles.active=monolithic
- * 
- * Features:
- * - Single database schema (expense_tracker_monolith)
- * - No Eureka service discovery required
- * - All services communicate via direct method calls
- * - Kafka can be optional (use in-memory events)
- */
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+                KafkaAutoConfiguration.class,
+                RedisAutoConfiguration.class,
+                RedisRepositoriesAutoConfiguration.class
+})
 @EnableAsync
 @EnableScheduling
 @EnableFeignClients(basePackages = {

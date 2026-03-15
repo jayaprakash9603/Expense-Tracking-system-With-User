@@ -4,10 +4,11 @@ import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.jaya.common.cache.KeyValueStorePort;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +30,7 @@ public class UserCacheService {
     private IUserServiceClient userClient;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private KeyValueStorePort keyValueStore;
 
     // Thread-local cache for batch operations within a single request
     private final ThreadLocal<Map<Integer, UserDTO>> requestScopeCache = ThreadLocal.withInitial(ConcurrentHashMap::new);
@@ -51,14 +52,12 @@ public class UserCacheService {
             return localCache.get(userId);
         }
 
-        // Check Redis cache
         String cacheKey = USER_CACHE_PREFIX + userId;
         try {
-            Object cached = redisTemplate.opsForValue().get(cacheKey);
-            if (cached instanceof UserDTO) {
-                UserDTO UserDTO = (UserDTO) cached;
-                localCache.put(userId, UserDTO);
-                return UserDTO;
+            UserDTO cached = keyValueStore.get(cacheKey, UserDTO.class).orElse(null);
+            if (cached != null) {
+                localCache.put(userId, cached);
+                return cached;
             }
         } catch (Exception e) {
             logger.debug("Redis cache miss for user {}: {}", userId, e.getMessage());
@@ -96,16 +95,14 @@ public class UserCacheService {
         // Find which users we need to fetch
         for (Integer userId : userIds) {
             if (userId != null && !localCache.containsKey(userId)) {
-                // Check Redis cache
                 String cacheKey = USER_CACHE_PREFIX + userId;
                 try {
-                    Object cached = redisTemplate.opsForValue().get(cacheKey);
-                    if (cached instanceof UserDTO) {
-                        localCache.put(userId, (UserDTO) cached);
+                    UserDTO cached = keyValueStore.get(cacheKey, UserDTO.class).orElse(null);
+                    if (cached != null) {
+                        localCache.put(userId, cached);
                         continue;
                     }
                 } catch (Exception e) {
-                    // Redis miss, need to fetch
                 }
                 toFetch.add(userId);
             }
@@ -177,7 +174,7 @@ public class UserCacheService {
     private void cacheUser(Integer userId, UserDTO user) {
         String cacheKey = USER_CACHE_PREFIX + userId;
         try {
-            redisTemplate.opsForValue().set(cacheKey, user, USER_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+            keyValueStore.set(cacheKey, user, Duration.ofMinutes(USER_CACHE_TTL_MINUTES));
         } catch (Exception e) {
             logger.debug("Failed to cache user {}: {}", userId, e.getMessage());
         }
@@ -193,7 +190,7 @@ public class UserCacheService {
         }
         String cacheKey = USER_CACHE_PREFIX + userId;
         try {
-            redisTemplate.delete(cacheKey);
+            keyValueStore.delete(cacheKey);
             requestScopeCache.get().remove(userId);
         } catch (Exception e) {
             logger.debug("Failed to invalidate user cache {}: {}", userId, e.getMessage());

@@ -81,6 +81,10 @@ spring:
           starttls:
             enable: true
 
+# Redis toggle (set REDIS_ENABLED=true to use Redis, false for in-memory)
+redis:
+  enabled: ${REDIS_ENABLED:false}
+
 # Google OAuth2 Configuration
 google:
   oauth2:
@@ -88,7 +92,7 @@ google:
 
 # Kafka Topics (aligned with microservices; same names for producers/consumers)
 kafka:
-  enabled: true
+  enabled: ${KAFKA_ENABLED:false}
   bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   consumer:
     group-id: monolith-consumer-group

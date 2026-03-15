@@ -6,7 +6,6 @@ import com.jaya.models.Budget;
 import com.jaya.repository.BudgetRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +25,7 @@ public class BulkBudgetLinkingService {
     private BudgetService budgetService;
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private com.jaya.common.messaging.MessagingPort messagingPort;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
     private static final String EXPENSE_SERVICE_LINKING_TOPIC = "expense-BudgetModel-linking-events";
@@ -190,7 +189,7 @@ public class BulkBudgetLinkingService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         log.info("Published expense-budget link update: expense={}, budget={}", expenseId, budgetId);
     }
 
@@ -207,8 +206,8 @@ public class BulkBudgetLinkingService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
         log.info("Published batch expense-budget link update: {} expenses, budget={}", expenseIds.size(), budgetId);
     }
 

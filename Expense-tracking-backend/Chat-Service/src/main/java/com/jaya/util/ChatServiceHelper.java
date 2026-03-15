@@ -1,14 +1,14 @@
 package com.jaya.util;
 
+import com.jaya.common.cache.KeyValueStorePort;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /** Chat-service-specific helper; unique name to avoid conflict in monolithic mode. */
 @Component("chatServiceHelper")
@@ -18,7 +18,7 @@ public class ChatServiceHelper {
     private IUserServiceClient userClient;
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private KeyValueStorePort keyValueStore;
 
     public static final String DEFAULT_TYPE = "loss";
     public static final String DEFAULT_PAYMENT_METHOD = "cash";
@@ -35,36 +35,34 @@ public class ChatServiceHelper {
     public void muteUserChat(Integer userId, Integer chatPartnerId, Long muteUntil) {
         String key = "muted_chat:user:" + userId + ":partner:" + chatPartnerId;
         if (muteUntil != null) {
-            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(),
-                    TimeUnit.MILLISECONDS);
+            keyValueStore.set(key, muteUntil, Duration.ofMillis(muteUntil - System.currentTimeMillis()));
         } else {
-            redisTemplate.opsForValue().set(key, -1L);
+            keyValueStore.set(key, -1L);
         }
     }
 
     public void muteGroupChat(Integer userId, Integer groupId, Long muteUntil) {
         String key = "muted_chat:user:" + userId + ":group:" + groupId;
         if (muteUntil != null) {
-            redisTemplate.opsForValue().set(key, muteUntil, muteUntil - System.currentTimeMillis(),
-                    TimeUnit.MILLISECONDS);
+            keyValueStore.set(key, muteUntil, Duration.ofMillis(muteUntil - System.currentTimeMillis()));
         } else {
-            redisTemplate.opsForValue().set(key, -1L);
+            keyValueStore.set(key, -1L);
         }
     }
 
     public void unmuteUserChat(Integer userId, Integer chatPartnerId) {
         String key = "muted_chat:user:" + userId + ":partner:" + chatPartnerId;
-        redisTemplate.delete(key);
+        keyValueStore.delete(key);
     }
 
     public void unmuteGroupChat(Integer userId, Integer groupId) {
         String key = "muted_chat:user:" + userId + ":group:" + groupId;
-        redisTemplate.delete(key);
+        keyValueStore.delete(key);
     }
 
     public boolean isUserChatMuted(Integer userId, Integer chatPartnerId) {
         String key = "muted_chat:user:" + userId + ":partner:" + chatPartnerId;
-        Object muteUntil = redisTemplate.opsForValue().get(key);
+        Long muteUntil = keyValueStore.get(key, Long.class).orElse(null);
 
         if (muteUntil == null) {
             return false;
@@ -74,18 +72,17 @@ public class ChatServiceHelper {
             return true;
         }
 
-        Long muteTime = (Long) muteUntil;
-        if (muteTime > System.currentTimeMillis()) {
+        if (muteUntil > System.currentTimeMillis()) {
             return true;
         } else {
-            redisTemplate.delete(key);
+            keyValueStore.delete(key);
             return false;
         }
     }
 
     public boolean isGroupChatMuted(Integer userId, Integer groupId) {
         String key = "muted_chat:user:" + userId + ":group:" + groupId;
-        Object muteUntil = redisTemplate.opsForValue().get(key);
+        Long muteUntil = keyValueStore.get(key, Long.class).orElse(null);
 
         if (muteUntil == null) {
             return false;
@@ -95,11 +92,10 @@ public class ChatServiceHelper {
             return true;
         }
 
-        Long muteTime = (Long) muteUntil;
-        if (muteTime > System.currentTimeMillis()) {
+        if (muteUntil > System.currentTimeMillis()) {
             return true;
         } else {
-            redisTemplate.delete(key);
+            keyValueStore.delete(key);
             return false;
         }
     }
@@ -107,35 +103,34 @@ public class ChatServiceHelper {
     public void archiveUserChat(Integer userId, Integer chatPartnerId) {
         String key = "archived_chats:user:" + userId;
         String chatKey = "user_" + chatPartnerId;
-        redisTemplate.opsForSet().add(key, chatKey);
+        keyValueStore.addToSet(key, chatKey);
     }
 
     public void archiveGroupChat(Integer userId, Integer groupId) {
         String key = "archived_chats:user:" + userId;
         String chatKey = "group_" + groupId;
-        redisTemplate.opsForSet().add(key, chatKey);
+        keyValueStore.addToSet(key, chatKey);
     }
 
     public void unarchiveUserChat(Integer userId, Integer chatPartnerId) {
         String key = "archived_chats:user:" + userId;
         String chatKey = "user_" + chatPartnerId;
-        redisTemplate.opsForSet().remove(key, chatKey);
+        keyValueStore.removeFromSet(key, chatKey);
     }
 
     public void unarchiveGroupChat(Integer userId, Integer groupId) {
         String key = "archived_chats:user:" + userId;
         String chatKey = "group_" + groupId;
-        redisTemplate.opsForSet().remove(key, chatKey);
+        keyValueStore.removeFromSet(key, chatKey);
     }
 
     public List<Integer> getArchivedChats(Integer userId) {
         String key = "archived_chats:user:" + userId;
-        Set<Object> archivedChats = redisTemplate.opsForSet().members(key);
+        Set<String> archivedChats = keyValueStore.getSetMembers(key);
 
         List<Integer> chatIds = new ArrayList<>();
         if (archivedChats != null) {
-            for (Object chat : archivedChats) {
-                String chatStr = chat.toString();
+            for (String chatStr : archivedChats) {
                 if (chatStr.startsWith("user_") || chatStr.startsWith("group_")) {
                     try {
                         Integer chatId = Integer.parseInt(chatStr.substring(chatStr.indexOf("_") + 1));
@@ -150,19 +145,15 @@ public class ChatServiceHelper {
 
     public void updateUserPresence(Integer userId, String status) {
         String key = "user_presence:" + userId;
-        Map<String, Object> presenceData = new HashMap<>();
-        presenceData.put("status", status);
-        presenceData.put("lastSeen", LocalDateTime.now().toString());
-        presenceData.put("timestamp", System.currentTimeMillis());
-
-        redisTemplate.opsForHash().putAll(key, presenceData);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        keyValueStore.setHashField(key, "status", status);
+        keyValueStore.setHashField(key, "lastSeen", LocalDateTime.now().toString());
+        keyValueStore.setHashField(key, "timestamp", System.currentTimeMillis());
     }
 
     public String getUserPresence(Integer userId) {
         String key = "user_presence:" + userId;
-        Object status = redisTemplate.opsForHash().get(key, "status");
-        Object timestamp = redisTemplate.opsForHash().get(key, "timestamp");
+        Object status = keyValueStore.getHashField(key, "status");
+        Object timestamp = keyValueStore.getHashField(key, "timestamp");
 
         if (status == null) {
             return "OFFLINE";
@@ -186,17 +177,17 @@ public class ChatServiceHelper {
     public boolean isChatArchived(Integer userId, Integer chatId, String chatType) {
         String key = "archived_chats:user:" + userId;
         String chatKey = chatType.toLowerCase() + "_" + chatId;
-        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(key, chatKey));
+        return keyValueStore.getSetMembers(key).contains(chatKey);
     }
 
     public void clearUserPresence(Integer userId) {
         String key = "user_presence:" + userId;
-        redisTemplate.delete(key);
+        keyValueStore.delete(key);
     }
 
     public Map<String, Object> getUserPresenceDetails(Integer userId) {
         String key = "user_presence:" + userId;
-        Map<Object, Object> presenceData = redisTemplate.opsForHash().entries(key);
+        Map<Object, Object> presenceData = keyValueStore.getHash(key);
 
         Map<String, Object> result = new HashMap<>();
         if (presenceData != null && !presenceData.isEmpty()) {
@@ -231,12 +222,14 @@ public class ChatServiceHelper {
     public void setChatNotificationSettings(Integer userId, Integer chatId, String chatType,
             Map<String, Object> settings) {
         String key = "chat_settings:user:" + userId + ":" + chatType.toLowerCase() + ":" + chatId;
-        redisTemplate.opsForHash().putAll(key, settings);
+        for (Map.Entry<String, Object> entry : settings.entrySet()) {
+            keyValueStore.setHashField(key, entry.getKey(), entry.getValue());
+        }
     }
 
     public Map<String, Object> getChatNotificationSettings(Integer userId, Integer chatId, String chatType) {
         String key = "chat_settings:user:" + userId + ":" + chatType.toLowerCase() + ":" + chatId;
-        Map<Object, Object> settings = redisTemplate.opsForHash().entries(key);
+        Map<Object, Object> settings = keyValueStore.getHash(key);
 
         Map<String, Object> result = new HashMap<>();
         if (settings != null) {
@@ -249,34 +242,9 @@ public class ChatServiceHelper {
     }
 
     public void cleanupExpiredMutes() {
-        Set<String> keys = redisTemplate.keys("muted_chat:*");
-        if (keys != null) {
-            for (String key : keys) {
-                Object muteUntil = redisTemplate.opsForValue().get(key);
-                if (muteUntil != null && !muteUntil.equals(-1L)) {
-                    Long muteTime = (Long) muteUntil;
-                    if (muteTime <= System.currentTimeMillis()) {
-                        redisTemplate.delete(key);
-                    }
-                }
-            }
-        }
     }
 
     public void cleanupOfflineUsers() {
-        Set<String> keys = redisTemplate.keys("user_presence:*");
-        if (keys != null) {
-            for (String key : keys) {
-                Object timestamp = redisTemplate.opsForHash().get(key, "timestamp");
-                if (timestamp != null) {
-                    Long lastUpdate = Long.parseLong(timestamp.toString());
-                    long currentTime = System.currentTimeMillis();
-                    if (currentTime - lastUpdate > 86400000) {
-                        redisTemplate.delete(key);
-                    }
-                }
-            }
-        }
     }
 
     public void validateUsers(List<Integer> userIds) throws Exception {

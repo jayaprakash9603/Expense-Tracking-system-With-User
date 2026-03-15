@@ -66,6 +66,13 @@
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 
+        <!-- Spring Data Redis (optional, for RedisKeyValueAdapter) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Spring Data JPA (optional, for database exception handling) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

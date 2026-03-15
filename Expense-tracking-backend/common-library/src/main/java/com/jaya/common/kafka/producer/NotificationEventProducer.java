@@ -2,67 +2,50 @@ package com.jaya.common.kafka.producer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jaya.common.messaging.MessagingPort;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
-
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 public abstract class NotificationEventProducer<T> {
 
-    protected final KafkaTemplate<String, Object> kafkaTemplate;
+    protected final MessagingPort messagingPort;
     protected final ObjectMapper objectMapper;
 
-    protected NotificationEventProducer(KafkaTemplate<String, Object> kafkaTemplate,
+    protected NotificationEventProducer(MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        this.kafkaTemplate = kafkaTemplate;
+        this.messagingPort = messagingPort;
         this.objectMapper = objectMapper;
     }
 
     public void sendEvent(T event) {
         try {
             validateEvent(event);
-
             String topic = getTopicName();
-
             String key = generatePartitionKey(event);
-
             beforeSend(event);
-
             logEventDetails(event);
 
-            CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, event);
-
-            future.whenComplete((result, ex) -> {
-                if (ex == null) {
-                    afterSendSuccess(event, result);
-                    log.debug("Successfully sent {} event to topic {}",
-                            getEventTypeName(), topic);
-                } else {
-                    afterSendFailure(event, ex);
-                    log.error("Failed to send {} event to topic {}: {}",
-                            getEventTypeName(), topic, ex.getMessage());
-                }
-            });
+            messagingPort.send(topic, key, event);
+            afterSendSuccess(event);
+            log.debug("Successfully sent {} event to topic {}", getEventTypeName(), topic);
 
         } catch (Exception e) {
+            afterSendFailure(event, e);
             log.error("Error preparing {} event: {}", getEventTypeName(), e.getMessage(), e);
             throw new RuntimeException("Failed to send notification event", e);
         }
     }
 
-    public SendResult<String, Object> sendEventSync(T event) {
+    public void sendEventSync(T event) {
         try {
             validateEvent(event);
             String topic = getTopicName();
             String key = generatePartitionKey(event);
             beforeSend(event);
 
-            SendResult<String, Object> result = kafkaTemplate.send(topic, key, event).get();
-            afterSendSuccess(event, result);
+            messagingPort.sendAsync(topic, key, event).get();
+            afterSendSuccess(event);
             log.info("Synchronously sent {} event to topic {}", getEventTypeName(), topic);
-            return result;
         } catch (Exception e) {
             log.error("Failed to send {} event to topic synchronously: {}",
                     getEventTypeName(), e.getMessage(), e);
@@ -73,7 +56,7 @@ public abstract class NotificationEventProducer<T> {
     protected abstract String getTopicName();
 
     protected String getEventTypeName() {
-        return this.getClass().getSimpleName(); // Default/Fallback
+        return this.getClass().getSimpleName();
     }
 
     protected void validateEvent(T event) {
@@ -89,7 +72,7 @@ public abstract class NotificationEventProducer<T> {
     protected void beforeSend(T event) {
     }
 
-    protected void afterSendSuccess(T event, SendResult<String, Object> result) {
+    protected void afterSendSuccess(T event) {
     }
 
     protected void afterSendFailure(T event, Throwable exception) {

@@ -16,7 +16,6 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -52,7 +51,7 @@ public class BudgetServiceImpl implements BudgetService {
     private BudgetNotificationService budgetNotificationService;
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private com.jaya.common.messaging.MessagingPort messagingPort;
 
     @Override
     public Budget createBudget(Budget budget, Integer userId) throws Exception {
@@ -2021,7 +2020,7 @@ public class BudgetServiceImpl implements BudgetService {
                     .timestamp(LocalDateTime.now().toString())
                     .build();
 
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
             log.info("Published expense-budget link update via Kafka: expense={}, budget={}", expenseId, budgetId);
         } catch (Exception e) {
             log.error("Failed to publish expense-budget link update for expense {} and budget {}",
@@ -2043,8 +2042,8 @@ public class BudgetServiceImpl implements BudgetService {
                     .timestamp(LocalDateTime.now().toString())
                     .build();
 
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-            kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
             log.info("Published batch expense-budget link update via Kafka: {} expenses, budget={}",
                     expenseIds.size(), budgetId);
         } catch (Exception e) {
@@ -2066,8 +2065,8 @@ public class BudgetServiceImpl implements BudgetService {
                     .timestamp(LocalDateTime.now().toString())
                     .build();
 
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-            kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
             log.info("Published batch expense-budget remove via Kafka: {} expenses, budget={}",
                     expenseIds.size(), budgetId);
         } catch (Exception e) {

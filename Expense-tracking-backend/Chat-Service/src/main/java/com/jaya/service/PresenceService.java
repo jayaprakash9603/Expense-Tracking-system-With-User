@@ -1,7 +1,7 @@
 package com.jaya.service;
 
+import com.jaya.common.cache.KeyValueStorePort;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class PresenceService {
     private static final Duration ONLINE_TIMEOUT = Duration.ofMinutes(5);
 
     @Autowired(required = false)
-    private RedisTemplate<String, String> redisTemplate;
+    private KeyValueStorePort keyValueStore;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
@@ -35,12 +35,10 @@ public class PresenceService {
         userSessions.computeIfAbsent(userId, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
         onlineUsers.put(userId, LocalDateTime.now());
 
-        if (redisTemplate != null) {
+        if (keyValueStore != null) {
             try {
-                redisTemplate.opsForSet().add(ONLINE_USERS_KEY, userId.toString());
-                redisTemplate.expire(ONLINE_USERS_KEY, ONLINE_TIMEOUT);
+                keyValueStore.addToSet(ONLINE_USERS_KEY, userId.toString());
             } catch (Exception e) {
-                // Redis unavailable, use in-memory only
             }
         }
 
@@ -58,15 +56,14 @@ public class PresenceService {
                 onlineUsers.remove(userId);
                 lastSeenMap.put(userId, LocalDateTime.now());
 
-                if (redisTemplate != null) {
+                if (keyValueStore != null) {
                     try {
-                        redisTemplate.opsForSet().remove(ONLINE_USERS_KEY, userId.toString());
-                        redisTemplate.opsForValue().set(
+                        keyValueStore.removeFromSet(ONLINE_USERS_KEY, userId.toString());
+                        keyValueStore.set(
                             LAST_SEEN_PREFIX + userId,
                             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                         );
                     } catch (Exception e) {
-                        // Redis unavailable
                     }
                 }
 
@@ -82,12 +79,10 @@ public class PresenceService {
             return true;
         }
 
-        if (redisTemplate != null) {
+        if (keyValueStore != null) {
             try {
-                Boolean isMember = redisTemplate.opsForSet().isMember(ONLINE_USERS_KEY, userId.toString());
-                return Boolean.TRUE.equals(isMember);
+                return keyValueStore.getSetMembers(ONLINE_USERS_KEY).contains(userId.toString());
             } catch (Exception e) {
-                // Redis unavailable
             }
         }
 
@@ -106,14 +101,13 @@ public class PresenceService {
             return lastSeen;
         }
 
-        if (redisTemplate != null) {
+        if (keyValueStore != null) {
             try {
-                String stored = redisTemplate.opsForValue().get(LAST_SEEN_PREFIX + userId);
+                String stored = keyValueStore.get(LAST_SEEN_PREFIX + userId, String.class).orElse(null);
                 if (stored != null) {
                     return LocalDateTime.parse(stored, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                 }
             } catch (Exception e) {
-                // Redis unavailable
             }
         }
 
@@ -148,16 +142,15 @@ public class PresenceService {
     public Set<Integer> getAllOnlineUsers() {
         Set<Integer> result = new HashSet<>(onlineUsers.keySet());
 
-        if (redisTemplate != null) {
+        if (keyValueStore != null) {
             try {
-                Set<String> redisOnline = redisTemplate.opsForSet().members(ONLINE_USERS_KEY);
+                Set<String> redisOnline = keyValueStore.getSetMembers(ONLINE_USERS_KEY);
                 if (redisOnline != null) {
                     result.addAll(redisOnline.stream()
                         .map(Integer::parseInt)
                         .collect(Collectors.toSet()));
                 }
             } catch (Exception e) {
-                // Redis unavailable
             }
         }
 
@@ -168,11 +161,10 @@ public class PresenceService {
         if (userId == null) return;
         onlineUsers.put(userId, LocalDateTime.now());
 
-        if (redisTemplate != null) {
+        if (keyValueStore != null) {
             try {
-                redisTemplate.opsForSet().add(ONLINE_USERS_KEY, userId.toString());
+                keyValueStore.addToSet(ONLINE_USERS_KEY, userId.toString());
             } catch (Exception e) {
-                // Redis unavailable
             }
         }
     }

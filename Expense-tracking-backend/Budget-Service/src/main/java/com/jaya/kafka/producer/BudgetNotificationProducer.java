@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.dto.BudgetNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,9 +16,9 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
     @Value("${kafka.topics.budget-events:budget-events}")
     private String topicName;
 
-    public BudgetNotificationProducer(KafkaTemplate<String, Object> kafkaTemplate,
+    public BudgetNotificationProducer(MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
         log.info("BudgetNotificationProducer initialized");
     }
 
@@ -53,13 +52,11 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
     }
 
     @Override
-    protected void afterSendSuccess(BudgetNotificationEvent event, SendResult<String, Object> result) {
-        log.info("Budget {} notification sent successfully for user {} (Budget: {}, Topic: {}, Partition: {})",
+    protected void afterSendSuccess(BudgetNotificationEvent event) {
+        log.info("Budget {} notification sent successfully for user {} (Budget: {})",
                 event.getAction(),
                 event.getUserId(),
-                event.getBudgetName(),
-                result.getRecordMetadata().topic(),
-                result.getRecordMetadata().partition());
+                event.getBudgetName());
     }
 
     @Override
