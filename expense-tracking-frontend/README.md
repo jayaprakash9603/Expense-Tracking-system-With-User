@@ -250,8 +250,9 @@ npm start
    - Publish directory: `build`
 
 2. **Required environment variable** (Site settings → Environment variables):
-   - **`REACT_APP_API_BASE_URL`** – Your backend API URL (e.g. `https://your-api.herokuapp.com` or your own domain).  
-   If this is not set, the app uses `http://localhost:8080`, so after login the profile request fails and you can get a blank or broken screen.
+   - **`REACT_APP_API_BASE_URL`** – Your backend API URL. **Use `https://`** (e.g. `https://your-api.herokuapp.com`).  
+   If this is not set, the app uses `http://localhost:8080`, so after login the profile request fails and you can get a blank or broken screen.  
+   The site is served over HTTPS, so the backend must be reachable over HTTPS too (otherwise WebSockets will be blocked with "insecure SockJS connection").
 
 3. **Optional**: Set `REACT_APP_GOOGLE_CLIENT_ID` if you use Google sign-in in production.
 

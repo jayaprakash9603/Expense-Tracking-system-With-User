@@ -14,27 +14,34 @@ const isCanceledError = (error) =>
 export const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
-// WebSocket URL for notifications — defaults to API_BASE_URL so it works in both
-// monolithic (single host) and microservice (gateway-proxied) modes.
-// Override with REACT_APP_NOTIFICATION_WS_URL for direct-to-service connections
-// (e.g. http://localhost:6003/notifications in microservice mode without gateway WS proxy).
-export const NOTIFICATION_WS_URL =
+// When the app is loaded over HTTPS (e.g. Netlify), browsers block insecure WebSocket (ws://).
+// SockJS requires the same protocol: use https:// so it uses wss:// under the hood.
+const ensureSecureWsUrl = (url) => {
+  if (typeof window === "undefined") return url;
+  if (window.location.protocol !== "https:") return url;
+  if (!url || url.startsWith("https://")) return url;
+  return url.replace(/^http:\/\//i, "https://");
+};
+
+const rawNotificationWs =
   process.env.REACT_APP_NOTIFICATION_WS_URL ||
   `${API_BASE_URL}/notifications`;
+const rawChatWs =
+  process.env.REACT_APP_CHAT_WS_URL || `${API_BASE_URL}/chat`;
+const rawStoryWs =
+  process.env.REACT_APP_STORY_WS_URL || `${API_BASE_URL}/ws-stories`;
+
+// WebSocket URL for notifications — defaults to API_BASE_URL so it works in both
+// monolithic (single host) and microservice (gateway-proxied) modes.
+export const NOTIFICATION_WS_URL = ensureSecureWsUrl(rawNotificationWs);
 
 // Chat WebSocket URL — defaults to API_BASE_URL so it works in both
 // monolithic (single host) and microservice (gateway-proxied) modes.
-// Override with REACT_APP_CHAT_WS_URL for direct-to-service connections
-// (e.g. http://localhost:7001/chat in microservice mode without gateway WS proxy).
-export const CHAT_WS_URL =
-  process.env.REACT_APP_CHAT_WS_URL || `${API_BASE_URL}/chat`;
+export const CHAT_WS_URL = ensureSecureWsUrl(rawChatWs);
 
 // Story WebSocket URL — defaults to API_BASE_URL so it works in both
 // monolithic (single host) and microservice (gateway-proxied) modes.
-// Override with REACT_APP_STORY_WS_URL for direct-to-service connections
-// (e.g. http://localhost:6010/ws-stories in microservice mode without gateway WS proxy).
-export const STORY_WS_URL =
-  process.env.REACT_APP_STORY_WS_URL || `${API_BASE_URL}/ws-stories`;
+export const STORY_WS_URL = ensureSecureWsUrl(rawStoryWs);
 
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
