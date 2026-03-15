@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+
+dayjs.extend(isoWeek);
 
 // Range types used for navigation between week/month/year views
 export const rangeTypes = [
@@ -86,8 +89,8 @@ export function getRangeLabel(range, offset, mode = "generic", options = {}) {
     return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;
   }
   if (range === "week") {
-    const start = base.startOf("week").add(offset, "week");
-    const end = base.endOf("week").add(offset, "week");
+    const start = base.startOf("isoWeek").add(offset, "week");
+    const end = base.endOf("isoWeek").add(offset, "week");
     if (start.year() === end.year())
       return `${start.format("D MMM")} - ${end.format("D MMM YYYY")}`;
     return `${start.format("D MMM YYYY")} - ${end.format("D MMM YYYY")}`;

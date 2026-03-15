@@ -29,6 +29,13 @@ export const NOTIFICATION_WS_URL =
 export const CHAT_WS_URL =
   process.env.REACT_APP_CHAT_WS_URL || `${API_BASE_URL}/chat`;
 
+// Story WebSocket URL — defaults to API_BASE_URL so it works in both
+// monolithic (single host) and microservice (gateway-proxied) modes.
+// Override with REACT_APP_STORY_WS_URL for direct-to-service connections
+// (e.g. http://localhost:6010/ws-stories in microservice mode without gateway WS proxy).
+export const STORY_WS_URL =
+  process.env.REACT_APP_STORY_WS_URL || `${API_BASE_URL}/ws-stories`;
+
 // Function to get the JWT token from localStorage
 // NOTE: For enhanced security, consider using HttpOnly cookies instead of localStorage
 const getJwtToken = () => localStorage.getItem("jwt");

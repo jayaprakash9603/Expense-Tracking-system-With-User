@@ -1,0 +1,172 @@
+---
+description: Production-grade backend coding standards, SOLID principles, folder structure, 12-factor compliance, DRY patterns, and deployment readiness for Spring Boot 3.4 microservices
+globs: expense-tracking-backend/**/*.java
+alwaysApply: false
+---
+
+# Backend Production Standards
+
+## Module Structure (enforced)
+
+```
+expense-tracking-backend/
+  common-library/               # Shared: DTOs, exceptions, security, event system, Feign interfaces
+    com.jaya.common.
+      config/                   # Auto-config, Kafka, Eureka, Feign, Async, Mail
+      dto/                      # Shared DTOs (UserDTO, CategoryDTO)
+      dto/response/             # ApiResponse, ApiError, PaginationInfo
+      event/                    # EventPublisher, KafkaEventPublisher, InMemoryEventPublisher
+      exception/handler/        # GlobalExceptionHandler, JpaExceptionHandler, FeignExceptionHandler
+      security/                 # JwtUtil, JwtAuthenticationFilter
+      service/client/           # I*ServiceClient interfaces
+      service/client/feign/     # @FeignClient implementations
+      service/client/local/     # Monolith-mode implementations
+  {ServiceName}/                # Each microservice module
+    com.jaya.
+      controller/               # REST controllers (one per domain aggregate)
+      dto/                      # Service-specific DTOs (Request, Response, Event)
+      mapper/                   # Entity <-> DTO mapping
+      models/                   # JPA entities
+      repository/               # Spring Data JPA interfaces
+      service/                  # Service interfaces
+      service/impl/             # Service implementations
+      service/helper/           # Complex business logic helpers
+      service/strategy/         # Strategy pattern implementations
+      kafka/                    # Kafka producers
+      kafka/consumer/           # Kafka consumers
+      util/                     # Service-specific utilities
+      config/                   # Service-specific configuration
+  eureka-server/                # Service discovery
+  Gateway/                      # API Gateway + routing
+  monolithic-service/           # All-in-one for local development
+```
+
+Rules:
+- Every new class goes in the correct package -- no dumping code in root package
+- Shared code goes in `common-library` -- never duplicate across services
+- Each service is a self-contained Maven module with its own `pom.xml`
+- No circular dependencies between modules
+
+## SOLID Principles (enforced)
+
+### Single Responsibility
+- Controllers: HTTP mapping and input validation only
+- Services: Business logic only (no HTTP, no direct DB queries outside repository)
+- Repositories: Data access only (no business logic)
+- Each class has one reason to change
+
+### Open/Closed
+- Use Strategy pattern for varying business rules (e.g., `ExpenseCalculationStrategy`)
+- Use interfaces for service contracts -- add new implementations without modifying existing code
+- Use `@ConditionalOnProperty` / `@Profile` to swap implementations by environment
+
+### Liskov Substitution
+- Feign clients and local clients both implement the same `I*ServiceClient` interface
+- `@Profile("!monolithic")` for Feign; `@Profile("monolithic")` for local -- interchangeable
+
+### Interface Segregation
+- Define focused service interfaces (e.g., `ExpenseCoreService`, `ExpenseQueryService`, `ExpenseReportService`)
+- Do not create bloated god-interfaces with 20+ methods -- split by concern
+
+### Dependency Inversion
+- Depend on abstractions (interfaces), not concrete classes
+- Constructor injection only -- no field injection with `@Autowired` for new code
+- Existing `@Autowired` fields are legacy; migrate when touching the class
+
+## Design Patterns in Use
+
+| Pattern | Where | Example |
+|---------|-------|---------|
+| Strategy | Expense calculation | `ExpenseCalculationStrategy` + `StandardExpenseCalculationStrategy` |
+| Repository | Data access | `ExpenseRepository extends JpaRepository` |
+| DTO/Mapper | API boundary | `ExpenseMapper` converts Entity <-> DTO |
+| Observer | Cross-service events | `EventPublisher` + Kafka/InMemory implementations |
+| Builder | Object creation | Lombok `@Builder` on DTOs and entities |
+| Template Method | Exception handling | `BaseException` hierarchy + `GlobalExceptionHandler` |
+| Facade | Complex operations | `ExpenseMainService` delegates to `CoreService`, `QueryService`, etc. |
+| Adapter | Dual-mode deployment | `FeignClient` (microservice) / `Local` (monolith) adapters |
+
+## DRY Principles
+
+### What Goes in `common-library`
+
+| Artifact | Location | When |
+|----------|----------|------|
+| Shared DTOs | `common.dto` | Used by 2+ services |
+| Domain events | `common.event` | Published by one service, consumed by another |
+| Exception classes | `common.exception` | Thrown by any service |
+| Security filters | `common.security` | Applied to all services |
+| Service client interfaces | `common.service.client` | Called across services |
+| Configuration beans | `common.config` | Shared config (Kafka, Eureka, Async) |
+
+### DRY Violations to Watch For
+
+| Smell | Fix |
+|-------|-----|
+| Same DTO in 2+ services | Move to `common-library/dto/` |
+| Same exception handling in controllers | Use `GlobalExceptionHandler` from common-library |
+| Same Kafka config in multiple services | Use `CommonKafkaConfig` from common-library |
+| Same validation logic in 2+ services | Extract to `common-library/util/` |
+| Copy-pasted entity mapping code | Create a `@Component` mapper class |
+
+## API Standards
+
+- All endpoints return `ApiResponse<T>` wrapper (success, data, message, timestamp)
+- All request bodies validated with `@Valid` + Bean Validation annotations
+- All endpoints documented with `@Operation` + `@ApiResponse` (SpringDoc OpenAPI)
+- HTTP status codes: 200 read, 201 create, 204 delete, 400 validation, 401 unauth, 403 forbidden, 404 not found, 500 internal
+- Error responses use `ApiError` with errorCode, message, status, path, serviceName
+
+## Kafka Messaging Standards
+
+- Topic names as constants in the service class or a shared constants file
+- Event classes in `common-library` for producer/consumer contract
+- Producer: serialize to JSON with `ObjectMapper`, log on success and failure
+- Consumer: `@KafkaListener` with explicit `groupId` including service name, `containerFactory`
+- Consumers must be idempotent -- handle duplicate events gracefully
+- Never put full entity objects in events -- use IDs + event type only
+
+## Exception Handling
+
+- All exceptions extend `BaseException` from common-library
+- Never catch and swallow exceptions silently -- at minimum, log them
+- Never throw generic `RuntimeException` -- use domain-specific exceptions
+- `GlobalExceptionHandler` handles everything -- controllers never catch exceptions
+- Validation errors return field-level detail from `MethodArgumentNotValidException`
+
+## Logging Standards
+
+- Use `@Slf4j` (Lombok) -- never `System.out.println` or raw `Logger` instantiation
+- INFO: State changes (created, updated, deleted, published event)
+- WARN: Recoverable issues (cache miss, retry, degraded response)
+- ERROR: Failures requiring attention (exception, Kafka failure, DB connection error)
+- Never log: passwords, JWT tokens, full credit card numbers, PII without masking
+- Include context: `log.info("Created expense id={} for user={}", id, userId)`
+
+## Environment Configuration (12-Factor Compliance)
+
+- All config via environment variables or Spring `application.yml` with `${}` placeholders
+- Never hard-code: database URLs, Kafka brokers, service URLs, secrets, ports
+- Default fallbacks for local development: `${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/expense_tracker}`
+- Profiles: `microservices` (default), `monolithic` (single JAR), `test` (H2 + embedded Kafka)
+- Secrets via env vars at deployment time, never in `application.yml` or committed `.properties`
+
+## Build Readiness Checklist
+
+Before any backend feature is considered complete:
+
+- [ ] No `System.out.println` -- use `@Slf4j`
+- [ ] All methods under 20 lines
+- [ ] All public service methods have an interface contract
+- [ ] `@Valid` on every `@RequestBody`
+- [ ] `@Transactional` on writes, `@Transactional(readOnly = true)` on reads
+- [ ] DTOs used in responses -- never raw entities
+- [ ] Exceptions flow to `GlobalExceptionHandler` -- no catch blocks in controllers
+- [ ] OpenAPI annotations on every endpoint
+- [ ] No hard-coded secrets, URLs, or ports
+- [ ] Kafka events are idempotent with minimal payload
+- [ ] Constructor injection for new code
+- [ ] `mvn clean package -DskipTests` builds without errors
+- [ ] No circular dependencies between modules
+- [ ] Shared code lives in `common-library`, not duplicated
+- [ ] Entity has audit fields (createdAt, updatedAt) with `@PrePersist` / `@PreUpdate`

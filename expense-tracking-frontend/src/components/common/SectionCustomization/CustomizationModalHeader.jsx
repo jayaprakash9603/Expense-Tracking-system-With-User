@@ -49,7 +49,7 @@ const CustomizationModalHeader = ({
             }}
           >
             <IconComponent
-              sx={{ color: "#14b8a6", fontSize: isMobile ? 22 : 28 }}
+              sx={{ color: colors.primary_accent || "#14b8a6", fontSize: isMobile ? 22 : 28 }}
             />
           </Box>
         )}

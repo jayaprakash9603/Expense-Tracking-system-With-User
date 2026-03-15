@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "total": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "active": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "inactive": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "suspended": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "growthPercentage": {
+      "type": [
+        "number",
+        "integer",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

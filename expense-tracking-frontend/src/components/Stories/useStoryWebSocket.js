@@ -6,6 +6,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
+import { STORY_WS_URL } from "../../config/api";
 import {
   storyReceived,
   storyUpdated,
@@ -14,8 +15,6 @@ import {
   wsConnected,
   wsDisconnected,
 } from "../../Redux/Stories/story.action";
-
-const STORY_WS_URL = "http://localhost:6010/ws-stories";
 
 const useStoryWebSocket = (userId) => {
   const dispatch = useDispatch();

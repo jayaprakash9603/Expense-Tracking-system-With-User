@@ -33,6 +33,7 @@ public class BudgetServiceImpl implements BudgetService {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BudgetServiceImpl.class);
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
+    private static final String EXPENSE_SERVICE_LINKING_TOPIC = "expense-BudgetModel-linking-events";
 
     @Autowired
     private BudgetRepository budgetRepository;
@@ -68,10 +69,8 @@ public class BudgetServiceImpl implements BudgetService {
         Budget savedBudget = budgetRepository.save(budget);
 
         if (!validExpenseIds.isEmpty()) {
-            log.info("Publishing budget-expense link updates via Kafka for {} expenses", validExpenseIds.size());
-            for (Integer expenseId : validExpenseIds) {
-                publishExpenseBudgetLinkUpdate(expenseId.longValue(), savedBudget.getId().longValue(), userId);
-            }
+            log.info("Publishing batch budget-expense link update via Kafka for {} expenses", validExpenseIds.size());
+            publishBatchExpenseBudgetLink(validExpenseIds, savedBudget.getId().longValue(), userId);
         }
 
         if (!validExpenseIds.isEmpty()) {
@@ -178,40 +177,26 @@ public class BudgetServiceImpl implements BudgetService {
                 ? new HashSet<>(existingBudget.getExpenseIds())
                 : new HashSet<>();
 
-        for (Integer oldExpenseId : oldExpenseIds) {
-            ExpenseDTO oldExpense = expenseService.getExpenseById(oldExpenseId, userId);
-            if (oldExpense != null && oldExpense.getBudgetIds() != null) {
-                oldExpense.getBudgetIds().remove(budgetId);
-                expenseService.save(oldExpense);
-            }
-        }
+        Set<Integer> validExpenseIds = helper.getValidBudgetIds(budget, userId, expenseService);
 
-        Set<Integer> validExpenseIds = new HashSet<>();
-        for (Integer newExpenseId : budget.getExpenseIds()) {
-            ExpenseDTO expense = expenseService.getExpenseById(newExpenseId, userId);
-            if (expense != null) {
-                LocalDate expenseDate = expense.getDate() != null ? LocalDate.parse(expense.getDate()) : null;
-                boolean isWithinRange = expenseDate != null
-                        && !expenseDate.isBefore(budget.getStartDate())
-                        && !expenseDate.isAfter(budget.getEndDate());
+        Set<Integer> expenseIdsToRemove = new HashSet<>(oldExpenseIds);
+        expenseIdsToRemove.removeAll(validExpenseIds);
 
-                if (isWithinRange) {
-                    validExpenseIds.add(newExpenseId);
-
-                    if (expense.getBudgetIds() == null) {
-                        expense.setBudgetIds(new HashSet<>());
-                    }
-
-                    if (!expense.getBudgetIds().contains(budgetId)) {
-                        expense.getBudgetIds().add(budgetId);
-                        expenseService.save(expense);
-                    }
-                }
-            }
-        }
+        Set<Integer> expenseIdsToAdd = new HashSet<>(validExpenseIds);
+        expenseIdsToAdd.removeAll(oldExpenseIds);
 
         existingBudget.setExpenseIds(validExpenseIds);
         existingBudget.setBudgetHasExpenses(!validExpenseIds.isEmpty());
+
+        if (!expenseIdsToRemove.isEmpty()) {
+            log.info("Publishing batch remove for {} expenses from budget {}", expenseIdsToRemove.size(), budgetId);
+            publishBatchExpenseBudgetRemove(expenseIdsToRemove, budgetId.longValue(), userId);
+        }
+
+        if (!expenseIdsToAdd.isEmpty()) {
+            log.info("Publishing batch link for {} expenses to budget {}", expenseIdsToAdd.size(), budgetId);
+            publishBatchExpenseBudgetLink(expenseIdsToAdd, budgetId.longValue(), userId);
+        }
 
         BudgetReport budgetReport = calculateBudgetReport(userId, budgetId);
         existingBudget.setRemainingAmount(budgetReport.getRemainingAmount());
@@ -572,11 +557,18 @@ public class BudgetServiceImpl implements BudgetService {
             return BigDecimal.ZERO;
         }
 
+        List<ExpenseDTO> expenses;
+        try {
+            expenses = expenseService.getExpensesByIds(userId, budget.getExpenseIds());
+        } catch (Exception e) {
+            log.error("Failed to batch fetch expenses for total calculation: {}", e.getMessage());
+            return BigDecimal.ZERO;
+        }
+
         double total = 0.0;
-        for (Integer expenseId : budget.getExpenseIds()) {
-            try {
-                ExpenseDTO expense = expenseService.getExpenseById(expenseId, userId);
-                if (expense != null && expense.getExpense() != null) {
+        if (expenses != null) {
+            for (ExpenseDTO expense : expenses) {
+                if (expense.getExpense() != null) {
                     String type = expense.getExpense().getType();
                     String paymentMethod = expense.getExpense().getPaymentMethod();
 
@@ -586,8 +578,6 @@ public class BudgetServiceImpl implements BudgetService {
                         total += expense.getExpense().getAmountAsDouble();
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("Error fetching expense " + expenseId + ": " + e.getMessage());
             }
         }
 
@@ -2036,6 +2026,52 @@ public class BudgetServiceImpl implements BudgetService {
         } catch (Exception e) {
             log.error("Failed to publish expense-budget link update for expense {} and budget {}",
                     expenseId, budgetId, e);
+        }
+    }
+
+    private void publishBatchExpenseBudgetLink(Set<Integer> expenseIds, Long budgetId, Integer userId) {
+        try {
+            List<Long> expenseIdList = expenseIds.stream()
+                    .map(Integer::longValue)
+                    .collect(Collectors.toList());
+
+            ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                    .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_LINK_UPDATE)
+                    .userId(userId.longValue())
+                    .expenseIds(expenseIdList)
+                    .newBudgetId(budgetId)
+                    .timestamp(LocalDateTime.now().toString())
+                    .build();
+
+            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+            log.info("Published batch expense-budget link update via Kafka: {} expenses, budget={}",
+                    expenseIds.size(), budgetId);
+        } catch (Exception e) {
+            log.error("Failed to publish batch expense-budget link update for budget {}", budgetId, e);
+        }
+    }
+
+    private void publishBatchExpenseBudgetRemove(Set<Integer> expenseIds, Long budgetId, Integer userId) {
+        try {
+            List<Long> expenseIdList = expenseIds.stream()
+                    .map(Integer::longValue)
+                    .collect(Collectors.toList());
+
+            ExpenseBudgetLinkingEvent event = ExpenseBudgetLinkingEvent.builder()
+                    .eventType(ExpenseBudgetLinkingEvent.EventType.BUDGET_EXPENSE_BATCH_REMOVE)
+                    .userId(userId.longValue())
+                    .expenseIds(expenseIdList)
+                    .budgetIdsToRemove(Collections.singletonList(budgetId))
+                    .timestamp(LocalDateTime.now().toString())
+                    .build();
+
+            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+            log.info("Published batch expense-budget remove via Kafka: {} expenses, budget={}",
+                    expenseIds.size(), budgetId);
+        } catch (Exception e) {
+            log.error("Failed to publish batch expense-budget remove for budget {}", budgetId, e);
         }
     }
 

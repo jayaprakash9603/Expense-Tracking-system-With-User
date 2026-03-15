@@ -18,7 +18,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "../../hooks/useTheme";
 import Loader from "../../components/Loaders/Loader";
-import Modal from "../../pages/Landingpage/Modal"; // Updated import path for Modal component
+import Modal from "../../shared/components/Modal";
 import { useParams } from "react-router";
 
 const FileUploadModal = ({

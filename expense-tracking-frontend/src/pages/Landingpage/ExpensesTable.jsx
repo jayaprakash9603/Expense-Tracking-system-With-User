@@ -34,6 +34,7 @@ import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
 import { useTheme } from "../../hooks/useTheme";
+import { setExpenseSelection } from "../../Redux/SharedSelection/sharedSelection.action";
 
 const ExpensesTable = ({
   expenses: propExpenses,
@@ -146,6 +147,7 @@ const ExpensesTable = ({
   const handleSelectionChange = (newSelection) => {
     if (!apiRef.current) {
       setSelectedIds(newSelection);
+      dispatch(setExpenseSelection(newSelection));
       return;
     }
 
@@ -154,7 +156,9 @@ const ExpensesTable = ({
       visibleRowIds.every((id) => newSelection.includes(id)) &&
       newSelection.length >= visibleRowIds.length;
 
-    setSelectedIds(isSelectAll ? visibleRowIds : newSelection);
+    const finalSelection = isSelectAll ? visibleRowIds : newSelection;
+    setSelectedIds(finalSelection);
+    dispatch(setExpenseSelection(finalSelection));
   };
 
   const ActionMenu = ({ expenseId }) => {

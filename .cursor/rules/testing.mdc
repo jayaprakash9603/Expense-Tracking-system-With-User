@@ -1,0 +1,102 @@
+---
+description: Testing standards for Jest + RTL (frontend) and JUnit 5 + Spring Boot Test (backend)
+globs:
+  - expense-tracking-frontend/**/*.test.{js,jsx}
+  - expense-tracking-backend/**/test/**/*.java
+alwaysApply: false
+---
+
+# Testing Standards
+
+## General Principles
+
+- Every test follows Arrange-Act-Assert structure
+- Test behavior, not implementation details
+- One logical assertion per test (multiple related asserts are fine)
+- Test names describe the scenario and expected outcome
+
+## Frontend Testing (Jest + React Testing Library)
+
+### File Placement
+
+- Test files live next to the component: `ExpenseCard.test.jsx` beside `ExpenseCard.jsx`
+- Test utilities and mocks in `src/__tests__/helpers/`
+
+### Naming
+
+- Describe blocks mirror component name: `describe('ExpenseCard', ...)`
+- Test names use "should" pattern: `it('should display expense amount', ...)`
+
+### Patterns
+
+```jsx
+// Query by role/text, never by test-id unless no semantic alternative
+screen.getByRole('button', { name: /submit/i })
+screen.getByText(/total expenses/i)
+
+// User interactions via userEvent, not fireEvent
+await userEvent.click(submitButton)
+await userEvent.type(input, 'Coffee')
+
+// Async assertions with findBy
+expect(await screen.findByText(/saved/i)).toBeInTheDocument()
+```
+
+### Mocking
+
+- Mock API calls with `jest.mock()` on the service module
+- Mock Redux store with a test utility that wraps components in `<Provider>`
+- Mock `react-router-dom` navigation with `MemoryRouter`
+- Reset mocks in `beforeEach` to prevent test pollution
+
+## Backend Testing (JUnit 5 + Spring Boot Test)
+
+### File Placement
+
+- Tests mirror source structure: `src/test/java/com/expense/service/ExpenseServiceTest.java`
+- Integration tests use `@SpringBootTest`; unit tests use plain JUnit + Mockito
+
+### Naming
+
+- Test classes: `{ClassName}Test.java` for unit, `{ClassName}IntegrationTest.java` for integration
+- Test methods: `shouldReturnExpenseWhenIdExists()`
+
+### Patterns
+
+```java
+// Unit test with Mockito
+@ExtendWith(MockitoExtension.class)
+class ExpenseServiceTest {
+    @Mock ExpenseRepository repository;
+    @InjectMocks ExpenseServiceImpl service;
+
+    @Test
+    void shouldReturnExpenseWhenIdExists() {
+        when(repository.findById(1L)).thenReturn(Optional.of(expense));
+        ExpenseResponse result = service.findById(1L);
+        assertThat(result.getAmount()).isEqualTo(expected);
+    }
+}
+
+// Integration test
+@SpringBootTest
+@AutoConfigureMockMvc
+class ExpenseControllerIntegrationTest {
+    @Autowired MockMvc mockMvc;
+
+    @Test
+    void shouldCreateExpense() throws Exception {
+        mockMvc.perform(post("/api/expenses")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(json))
+            .andExpect(status().isCreated());
+    }
+}
+```
+
+### Mocking
+
+- Use `@MockBean` to replace Spring beans in integration tests
+- Use `@Mock` + `@InjectMocks` for pure unit tests
+- Use `@DataJpaTest` for repository layer tests with H2
+- Never mock the class under test

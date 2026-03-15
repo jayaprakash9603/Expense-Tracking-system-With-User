@@ -6,12 +6,12 @@ import React, {
   useCallback,
 } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import useFriendAccess from "../../hooks/useFriendAccess";
+import useFriendAccess from "../../features/friends/hooks/useFriendAccess";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useCashflowData from "../../hooks/useCashflowData";
+import useCashflowData from "../../features/expenses/hooks/useCashflowData";
 import useSelectionManager from "../../hooks/useSelectionManager";
-import useExpenseSorting from "../../hooks/useExpenseSorting";
-import useExpenseDeletion from "../../hooks/useExpenseDeletion";
+import useExpenseSorting from "../../features/expenses/hooks/useExpenseSorting";
+import useExpenseDeletion from "../../features/expenses/hooks/useExpenseDeletion";
 import { useDebouncedSearch } from "../../hooks/useDebounce";
 import {
   formatCompactNumber,
@@ -23,11 +23,14 @@ import CashFlowChart from "../../components/CashFlowChart";
 import CashFlowExpenseCards from "../../components/cashflow/CashFlowExpenseCards";
 import SelectionSummaryBar from "../../components/cashflow/SelectionSummaryBar";
 import DeleteSelectedButton from "../../components/cashflow/DeleteSelectedButton";
-import ShareSelectedButton from "../../components/cashflow/ShareSelectedButton";
 import GenericFlowLayout from "../../components/common/GenericFlowLayout";
 import { getListOfBudgetsByExpenseId } from "../../Redux/Budget/budget.action";
 import { getExpenseAction } from "../../Redux/Expenses/expense.action";
 import { getBillByExpenseId } from "../../Redux/Bill/bill.action";
+import {
+  setExpenseSelection,
+  clearAllSelections,
+} from "../../Redux/SharedSelection/sharedSelection.action";
 import {
   fetchFriendship,
   fetchFriendsDetailed,
@@ -156,6 +159,46 @@ const Cashflow = () => {
   const [addNewBtnRef, setAddNewBtnRef] = useState(null);
   const [shrinkFlowBtn, setShrinkFlowBtn] = useState(false);
   const { t } = useTranslation();
+
+  const selectedExpensesRedux = useSelector((state) => state.sharedSelection?.selectedExpenses || []);
+
+  // Wrapped clearSelection: clears both local state AND Redux so Redux->Local sync doesn't re-populate
+  const handleClearSelection = useCallback(() => {
+    clearSelection();
+    dispatch(clearAllSelections());
+  }, [clearSelection, dispatch]);
+
+  // Sync Redux -> Local
+  useEffect(() => {
+    if (sortedCardData.length > 0 && selectedExpensesRedux.length > 0 && selectedCardIdx.length === 0) {
+      const initialIndices = [];
+      sortedCardData.forEach((card, idx) => {
+        const id = card.id || card.expenseId;
+        if (selectedExpensesRedux.includes(id)) {
+          initialIndices.push(idx);
+        }
+      });
+      if (initialIndices.length > 0) {
+        setSelectedCardIdx(initialIndices);
+      }
+    }
+  }, [sortedCardData, selectedExpensesRedux, selectedCardIdx.length, setSelectedCardIdx]);
+
+  // Sync Local -> Redux
+  useEffect(() => {
+    if (sortedCardData.length > 0) {
+      const selectedIds = selectedCardIdx.map(idx => {
+        const card = sortedCardData[idx];
+        return card?.id || card?.expenseId;
+      }).filter(Boolean);
+      
+      const currentReduxStr = [...selectedExpensesRedux].sort().join(',');
+      const newStr = [...selectedIds].sort().join(',');
+      if (currentReduxStr !== newStr) {
+        dispatch(setExpenseSelection(selectedIds));
+      }
+    }
+  }, [selectedCardIdx, sortedCardData, dispatch, selectedExpensesRedux]);
 
   useEffect(() => {
     if (isFriendView) {
@@ -293,7 +336,7 @@ const Cashflow = () => {
         setHoverBarIndex,
         handleBarClick,
         handleCardClick,
-        clearSelection,
+        clearSelection: handleClearSelection,
         selectionStats,
       }}
       deletion={{
@@ -380,7 +423,7 @@ const Cashflow = () => {
         CardsComponent: MemoizedCashFlowExpenseCards,
         SummaryBar: SelectionSummaryBar,
         DeleteSelectedButton: DeleteSelectedButton,
-        ShareSelectedButton: ShareSelectedButton,
+        ShareSelectedButton: null,
       }}
       // Extra props for CardsComponent (passed through GenericFlowLayout)
       cardsExtraProps={{
@@ -410,35 +453,6 @@ const Cashflow = () => {
             ),
             selectedCardIdx.length,
           ),
-      }}
-      // Extra props for ShareSelectedButton
-      shareButtonExtraProps={{
-        count: selectedCardIdx.length,
-        selectedItems: selectedCardIdx.map((idx) => {
-          const expense = sortedCardData[idx];
-          return {
-            internalId: expense?.id || expense?.expenseId,
-            externalRef:
-              expense?.externalRef ||
-              `EXP-${expense?.id || expense?.expenseId}`,
-            displayName:
-              expense?.name ||
-              expense?.description ||
-              `Expense #${expense?.id || expense?.expenseId}`,
-            subtitle: expense?.categoryName || expense?.category?.name || "",
-            amount: expense?.amount,
-            date: expense?.date || expense?.createdAt,
-          };
-        }),
-        resourceType: "EXPENSE",
-        // Pass current flow state for return navigation
-        returnRouteState: {
-          activeRange,
-          offset,
-          flowTab,
-          search: searchInput,
-          selectedCardIdx,
-        },
       }}
       formatters={{
         formatCompactNumber,

@@ -8,36 +8,46 @@
  * - Search and filter items
  * - Select multiple items to share
  *
+ * UI/UX Improvements:
+ * - Segmented control style tabs
+ * - Sleek search bar
+ * - Selectable tile design for cards without bulky checkboxes
+ *
  * @author Expense Tracking System
- * @version 1.0
+ * @version 2.0
  * =============================================================================
  */
 
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useState } from "react";
 import {
   Box,
   Typography,
   Paper,
   Grid,
   Card,
-  CardContent,
   TextField,
   InputAdornment,
   Tabs,
   Tab,
-  Checkbox,
-  FormControlLabel,
+  Button,
   Alert,
   IconButton,
   CircularProgress,
+  Fade,
+  Zoom,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Receipt as ReceiptIcon,
   Category as CategoryIcon,
   AccountBalance as BudgetIcon,
-  Check as CheckIcon,
+  CreditCard as PaymentMethodIcon,
+  Description as BillIcon,
+  CheckCircle as CheckCircleIcon,
   Close as CloseIcon,
+  FilterList as FilterIcon,
+  SelectAll as SelectAllIcon,
+  Deselect as DeselectIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -48,6 +58,8 @@ import { useTheme } from "../../hooks/useTheme";
 const ICONS = {
   EXPENSE: <ReceiptIcon />,
   CATEGORY: <CategoryIcon />,
+  PAYMENT_METHOD: <PaymentMethodIcon />,
+  BILL: <BillIcon />,
   BUDGET: <BudgetIcon />,
 };
 
@@ -75,9 +87,14 @@ const ShareDataSelector = ({
   isLoadingMore = false,
   hasMore = false,
   totalItems = 0,
+  // Filter props (optional)
+  filterOptions,
+  activeFilters,
+  onFilterChange,
 }) => {
   const { colors, isDark } = useTheme();
   const scrollContainerRef = useRef(null);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
 
   // Handle scroll for infinite loading
   const handleScroll = useCallback(
@@ -100,89 +117,137 @@ const ShareDataSelector = ({
         preSelectedType
       : "";
 
+  const allSelected =
+    selectedItems.length === filteredItems.length && filteredItems.length > 0;
+
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {/* Tabs for Data Type Selection - Hide if pre-selected */}
+      {/* Segmented Control Tabs */}
       {!hasPreSelectedItems ? (
         <Paper
-          elevation={0}
           sx={{
-            mb: 2,
-            backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
-            borderRadius: 2,
-            border: `1px solid ${isDark ? "#333333" : colors.border}`,
+            mb: 3,
+            borderRadius: 3,
+            overflow: "hidden",
+            boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 10px rgba(0,0,0,0.05)",
+            backgroundColor: colors.primary_bg,
+            border: "none",
             flexShrink: 0,
           }}
         >
           <Tabs
             value={activeTab}
             onChange={onTabChange}
-            variant={isSmallScreen ? "fullWidth" : "standard"}
+            variant="fullWidth"
             sx={{
-              minHeight: 48,
-              "& .MuiTabs-indicator": {
-                backgroundColor: colors.primary,
+              "& .MuiTabs-scroller": {
+                overflow: "hidden !important",
+                scrollbarWidth: "none",
+                "&::-webkit-scrollbar": {
+                  display: "none",
+                },
               },
+              "& .MuiTab-root": {
+                fontWeight: 600,
+                fontSize: { xs: "0.8rem", sm: "0.95rem" },
+                textTransform: "none",
+                py: { xs: 1.5, sm: 2 },
+                minHeight: { xs: 50, sm: 60 },
+                minWidth: 0,
+                padding: { xs: "8px", sm: "12px 16px" },
+                whiteSpace: "nowrap",
+                color: colors.secondary_text,
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&.Mui-selected": {
+                  color: colors.primary_accent,
+                  transform: "scale(1.02)",
+                },
+                "&:hover": {
+                  color: colors.primary_accent,
+                  backgroundColor: `${colors.primary_accent}14`,
+                },
+              },
+              "& .MuiTabs-indicator": {
+                height: 3,
+                borderRadius: "3px 3px 0 0",
+                backgroundColor: colors.primary_accent,
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              },
+              "& .MuiTabs-flexContainer": {
+                position: "relative",
+              },
+              transition: "background-color 0.3s ease",
             }}
           >
-            {dataTypeOptions.map((option, index) => (
-              <Tab
-                key={option.value}
-                icon={ICONS[option.value]}
-                label={option.label}
-                iconPosition="start"
-                sx={{
-                  color:
-                    activeTab === index
-                      ? colors.primary
-                      : colors.secondary_text,
-                  fontWeight: activeTab === index ? 600 : 400,
-                  minHeight: 48,
-                  textTransform: "none",
-                  "&.Mui-selected": {
-                    color: colors.primary,
-                  },
-                }}
-              />
-            ))}
+            {dataTypeOptions.map((option, index) => {
+              return (
+                <Tab
+                  key={option.value}
+                  icon={ICONS[option.value] || ICONS.EXPENSE}
+                  iconPosition="start"
+                  label={option.label}
+                  sx={{
+                    "& .MuiSvgIcon-root": {
+                      transition: "transform 0.2s ease",
+                    },
+                    "&.Mui-selected .MuiSvgIcon-root": {
+                      transform: option.value === "EXPENSE" ? "translateY(2px)" 
+                                : option.value === "BUDGET" ? "translateY(-2px)" 
+                                : "rotate(360deg)",
+                    },
+                  }}
+                />
+              );
+            })}
           </Tabs>
         </Paper>
       ) : (
-        // Show a simple header when in pre-selected mode
+        // Pre-selected mode header
         <Paper
           elevation={0}
           sx={{
-            mb: 2,
+            mb: 3,
             p: 2,
-            backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
-            borderRadius: 2,
-            border: `1px solid ${isDark ? "#333333" : colors.border}`,
+            backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
+            borderRadius: "16px",
+            border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"}`,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: 1.5,
           }}
         >
-          {ICONS[preSelectedType]}
-          <Typography
-            variant="subtitle1"
-            sx={{ color: colors.primary, fontWeight: 600 }}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 40,
+              height: 40,
+              borderRadius: "10px",
+              backgroundColor: `${colors.primary_accent}20`,
+              color: colors.primary_accent,
+            }}
           >
-            Selected {preSelectedTypeLabel}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            ({filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}{" "}
-            from CashFlow)
-          </Typography>
+            {ICONS[preSelectedType] || ICONS.EXPENSE}
+          </Box>
+          <Box>
+            <Typography variant="subtitle1" sx={{ color: colors.primary_text, fontWeight: 600 }}>
+              Selected {preSelectedTypeLabel}
+            </Typography>
+            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} from CashFlow
+            </Typography>
+          </Box>
         </Paper>
       )}
 
-      {/* Search and Select All */}
+      {/* Toolbar: Search & Select All */}
       <Box
         sx={{
           display: "flex",
           gap: 2,
-          mb: 2,
+          mb: 3,
           alignItems: "center",
           flexWrap: "wrap",
           flexShrink: 0,
@@ -196,9 +261,7 @@ const ShareDataSelector = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon
-                  sx={{ color: colors.secondary_text, fontSize: 20 }}
-                />
+                <SearchIcon sx={{ color: colors.secondary_text, fontSize: 20 }} />
               </InputAdornment>
             ),
             endAdornment: searchTerm && (
@@ -209,49 +272,83 @@ const ShareDataSelector = ({
               </InputAdornment>
             ),
             sx: {
+              borderRadius: "12px",
               color: colors.primary_text,
-              backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
+              backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+              "& fieldset": {
+                borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+              },
+              "&:hover fieldset": {
+                borderColor: colors.primary_accent,
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: colors.primary_accent,
+              },
             },
           }}
           sx={{ flex: 1, minWidth: 200 }}
         />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={
-                selectedItems.length === filteredItems.length &&
-                filteredItems.length > 0
-              }
-              indeterminate={
-                selectedItems.length > 0 &&
-                selectedItems.length < filteredItems.length
-              }
-              onChange={onSelectAll}
-              size="small"
-              sx={{ color: colors.primary }}
-            />
-          }
-          label={
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-              Select All ({filteredItems.length})
-            </Typography>
-          }
-        />
+
+        {filterOptions && (
+          <IconButton
+            size="small"
+            onClick={() => setFilterPanelOpen((v) => !v)}
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: "12px",
+              color: filterPanelOpen ? colors.primary_accent : colors.secondary_text,
+              backgroundColor: filterPanelOpen
+                ? `${colors.primary_accent}15`
+                : isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+              border: `1px solid ${filterPanelOpen ? colors.primary_accent : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+              transition: "all 0.2s ease",
+              "&:hover": {
+                backgroundColor: filterPanelOpen
+                  ? `${colors.primary_accent}25`
+                  : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
+              },
+            }}
+            title="Filter"
+          >
+            <FilterIcon sx={{ fontSize: 20 }} />
+          </IconButton>
+        )}
+
+        <Button
+          variant="outlined"
+          size="medium"
+          startIcon={allSelected ? <DeselectIcon /> : <SelectAllIcon />}
+          onClick={onSelectAll}
+          sx={{
+            height: 40,
+            borderRadius: "12px",
+            textTransform: "none",
+            fontWeight: 600,
+            color: allSelected ? colors.primary_accent : colors.secondary_text,
+            borderColor: allSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            backgroundColor: allSelected ? `${colors.primary_accent}10` : isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+            "&:hover": {
+              backgroundColor: allSelected ? `${colors.primary_accent}20` : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
+              borderColor: allSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.2)" : colors.primary_text,
+            },
+          }}
+        >
+          {allSelected ? "Deselect All" : `Select All (${filteredItems.length})`}
+        </Button>
       </Box>
 
       {/* Items Grid */}
-      <Paper
+      <Box
         ref={scrollContainerRef}
-        variant="outlined"
         onScroll={handleScroll}
         sx={{
           flex: 1,
           overflow: "auto",
-          backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
-          borderColor: isDark ? "#333333" : colors.border,
-          borderRadius: 2,
+          mx: -1, // Negative margin to allow card shadows to display without clipping
+          px: 1,
+          pb: 2,
           minHeight: 300,
-          maxHeight: "calc(100vh - 450px)",
           "&::-webkit-scrollbar": {
             width: "6px",
           },
@@ -259,101 +356,148 @@ const ShareDataSelector = ({
             background: "transparent",
           },
           "&::-webkit-scrollbar-thumb": {
-            background: isDark ? "#333333" : colors.border,
+            background: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.15)",
             borderRadius: "3px",
           },
         }}
       >
         {filteredItems.length === 0 ? (
-          <Box sx={{ p: 6, textAlign: "center" }}>
-            <Typography sx={{ color: colors.secondary_text }}>
-              {searchTerm
-                ? `No ${resourceType.toLowerCase()}s match your search`
-                : `No ${resourceType.toLowerCase()}s available to share`}
-            </Typography>
-          </Box>
+          <Fade in timeout={500}>
+            <Box sx={{ p: 6, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: colors.secondary_text,
+                }}
+              >
+                <SearchIcon sx={{ fontSize: 40, opacity: 0.5 }} />
+              </Box>
+              <Typography sx={{ color: colors.secondary_text, fontSize: "1.1rem" }}>
+                {searchTerm
+                  ? `No ${resourceType.toLowerCase()}s match "${searchTerm}"`
+                  : `No ${resourceType.toLowerCase()}s available to share`}
+              </Typography>
+            </Box>
+          </Fade>
         ) : (
-          <Grid container spacing={0} sx={{ p: 1 }}>
-            {filteredItems.map((item) => {
-              const isSelected = selectedItems.some(
-                (i) => i.externalRef === item.externalRef,
-              );
+          <Grid container spacing={2}>
+            {filteredItems.map((item, idx) => {
+              const isSelected = selectedItems.some((i) => i.externalRef === item.externalRef);
               return (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={item.externalRef}>
-                  <Card
-                    onClick={() => onToggleItem(item)}
-                    sx={{
-                      m: 0.5,
-                      cursor: "pointer",
-                      border: `2px solid ${isSelected ? colors.primary : "transparent"}`,
-                      backgroundColor: isSelected
-                        ? `${colors.primary}15`
-                        : isDark
-                          ? "#1b1b1b"
-                          : colors.card_bg,
-                      transition: "all 0.2s ease",
-                      "&:hover": {
+                  <Zoom in style={{ transitionDelay: `${Math.min(idx * 20, 300)}ms` }}>
+                    <Card
+                      onClick={() => onToggleItem(item)}
+                      elevation={0}
+                      sx={{
+                        position: "relative",
+                        cursor: "pointer",
+                        height: "100%",
+                        borderRadius: "16px",
+                        border: `2px solid ${isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
                         backgroundColor: isSelected
-                          ? `${colors.primary}20`
-                          : `${colors.primary}08`,
-                        borderColor: colors.primary,
-                      },
-                    }}
-                  >
-                    <CardContent sx={{ p: 1.5, "&:last-child": { pb: 1.5 } }}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 1,
-                        }}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          size="small"
-                          sx={{ p: 0, mr: 0.5 }}
-                        />
+                          ? `${colors.primary_accent}15`
+                          : isDark
+                            ? "rgba(255,255,255,0.05)"
+                            : colors.card_bg || "#ffffff",
+                        transition: "all 0.2s ease-in-out",
+                        boxShadow: isSelected
+                          ? `0 4px 12px ${colors.primary_accent}20`
+                          : isDark
+                            ? "0 4px 12px rgba(0,0,0,0.5)"
+                            : "0 2px 10px rgba(0,0,0,0.05)",
+                        "&:hover": {
+                          transform: "translateY(-2px)",
+                          boxShadow: isSelected
+                            ? `0 6px 16px ${colors.primary_accent}30`
+                            : isDark
+                              ? "0 6px 16px rgba(0,0,0,0.7)"
+                              : "0 6px 16px rgba(0,0,0,0.1)",
+                          borderColor: isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
+                          backgroundColor: isSelected
+                            ? `${colors.primary_accent}20`
+                            : isDark
+                              ? "rgba(255,255,255,0.08)"
+                              : colors.card_bg || "#ffffff",
+                        },
+                      }}
+                    >
+                      {/* Selection Badge */}
+                      {isSelected && (
                         <Box
                           sx={{
-                            color: colors.primary,
+                            position: "absolute",
+                            top: 12,
+                            right: 12,
+                            color: colors.primary_accent,
+                            backgroundColor: isDark ? "#000" : "#fff",
+                            borderRadius: "50%",
                             display: "flex",
-                            alignItems: "center",
-                            "& svg": { fontSize: 18 },
                           }}
                         >
-                          {ICONS[resourceType]}
+                          <CheckCircleIcon sx={{ fontSize: 22 }} />
                         </Box>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                      )}
+
+                      <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
+                        <Box
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: "12px",
+                            backgroundColor: isSelected
+                              ? `${colors.primary_accent}20`
+                              : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                            color: isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.7)" : colors.secondary_text,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "all 0.2s ease-in-out",
+                            "& svg": { fontSize: 24 },
+                          }}
+                        >
+                          {ICONS[resourceType] || ICONS.EXPENSE}
+                        </Box>
+                        <Box sx={{ flex: 1, pr: isSelected ? 3 : 0 }}>
                           <Typography
-                            variant="body2"
+                            variant="subtitle2"
                             sx={{
-                              color: colors.primary_text,
-                              fontWeight: 500,
-                              fontSize: "0.85rem",
+                              color: isDark ? "#ffffff" : colors.primary_text,
+                              fontWeight: 600,
+                              fontSize: "0.95rem",
+                              lineHeight: 1.3,
+                              mb: 0.5,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
                             }}
                           >
                             {item.displayName}
                           </Typography>
                           <Typography
-                            variant="caption"
+                            variant="body2"
                             sx={{
-                              color: colors.secondary_text,
-                              display: "block",
+                              color: isDark ? "rgba(255,255,255,0.7)" : colors.secondary_text,
+                              fontSize: "0.8rem",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
-                              fontSize: "0.75rem",
                             }}
                           >
                             {item.subtitle}
                           </Typography>
                         </Box>
                       </Box>
-                    </CardContent>
-                  </Card>
+                    </Card>
+                  </Zoom>
                 </Grid>
               );
             })}
@@ -362,65 +506,70 @@ const ShareDataSelector = ({
 
         {/* Loading indicator for infinite scroll */}
         {isLoadingMore && (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              py: 2,
-              gap: 1,
-            }}
-          >
-            <CircularProgress size={20} sx={{ color: colors.primary }} />
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 3, gap: 1.5 }}>
+            <CircularProgress size={20} sx={{ color: colors.primary_accent }} />
+            <Typography variant="body2" sx={{ color: colors.secondary_text, fontWeight: 500 }}>
               Loading more...
             </Typography>
           </Box>
         )}
-      </Paper>
+      </Box>
 
-      {/* Selection Count */}
-      <Box
+      {/* Selection Footer */}
+      <Paper
+        elevation={0}
         sx={{
           mt: 2,
+          p: 2,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexShrink: 0,
+          borderRadius: "16px",
+          backgroundColor: selectedItems.length > 0 
+            ? `${colors.primary_accent}10` 
+            : isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+          border: `1px solid ${selectedItems.length > 0 ? `${colors.primary_accent}30` : "transparent"}`,
+          transition: "all 0.3s ease",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <CheckIcon
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
             sx={{
-              color:
-                selectedItems.length > 0
-                  ? colors.primary
-                  : colors.secondary_text,
-              fontSize: 20,
-            }}
-          />
-          <Typography
-            variant="body2"
-            sx={{
-              color:
-                selectedItems.length > 0
-                  ? colors.primary_text
-                  : colors.secondary_text,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              backgroundColor: selectedItems.length > 0 ? colors.primary_accent : colors.secondary_text,
+              color: "#fff",
+              transition: "all 0.3s ease",
             }}
           >
-            {selectedItems.length} item{selectedItems.length !== 1 ? "s" : ""}{" "}
-            selected
+            <Typography sx={{ fontWeight: 700, fontSize: "0.9rem" }}>
+              {selectedItems.length}
+            </Typography>
+          </Box>
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 600,
+              color: selectedItems.length > 0 ? colors.primary_text : colors.secondary_text,
+            }}
+          >
+            Item{selectedItems.length !== 1 ? "s" : ""} selected
           </Typography>
         </Box>
         {totalItems > 0 && !hasPreSelectedItems && (
-          <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+          <Typography variant="body2" sx={{ color: colors.secondary_text, fontWeight: 500 }}>
             Showing {filteredItems.length} of {totalItems} total
           </Typography>
         )}
-      </Box>
+      </Paper>
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2, flexShrink: 0 }}>
+        <Alert severity="error" sx={{ mt: 2, borderRadius: "12px", flexShrink: 0 }}>
           {error}
         </Alert>
       )}

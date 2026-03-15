@@ -365,8 +365,8 @@ export function AltKeyOverlay() {
   const { t } = useTranslation();
   const { mode } = useSelector((state) => state.theme || {});
   const userSettings = useSelector((state) => state.userSettings?.settings);
-  const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? true;
-  const showShortcutIndicators = userSettings?.showShortcutIndicators ?? true; // Control badge display
+  const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? false;
+  const showShortcutIndicators = userSettings?.showShortcutIndicators ?? false;
   const isDark = mode === "dark";
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [elements, setElements] = useState({});

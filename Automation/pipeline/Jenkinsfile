@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '10'))
+    }
+
+    parameters {
+        choice(name: 'RUNNER_TYPE', choices: ['spring', 'plain'], description: 'Automation runner type')
+        choice(name: 'AUTOMATION_ENGINE', choices: ['playwright', 'selenium'], description: 'UI engine')
+        choice(name: 'TEST_ENV', choices: ['local', 'qa', 'stage', 'prod'], description: 'Execution environment')
+        string(name: 'SUITE', defaultValue: 'smoke', description: 'Suite: smoke/regression/api/ui')
+        string(name: 'CUCUMBER_TAGS', defaultValue: '@smoke', description: 'Cucumber tag expression')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'expense-automation-job', description: 'Docker image name')
+        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Docker image tag')
+        booleanParam(name: 'RUN_HELM_DEPLOY', defaultValue: false, description: 'Deploy Job via Helm')
+    }
+
+    environment {
+        IMAGE_REF = "${params.DOCKER_IMAGE}:${params.DOCKER_TAG}"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn -f pom.xml clean compile -DskipTests'
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                sh 'mvn -f pom.xml -pl automation-bdd -am test-compile -DskipTests'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                sh 'mvn -f pom.xml package -DskipTests'
+            }
+        }
+
+        stage('Docker Build And Push') {
+            steps {
+                sh "docker build -f docker/automation-job/Dockerfile -t ${IMAGE_REF} ."
+                sh "docker push ${IMAGE_REF}"
+            }
+        }
+
+        stage('Helm Deploy') {
+            when {
+                expression { return params.RUN_HELM_DEPLOY }
+            }
+            steps {
+                sh """
+                    helm upgrade --install expense-automation-job helm/charts/expense-automation-job \
+                      --set image.repository=${params.DOCKER_IMAGE} \
+                      --set image.tag=${params.DOCKER_TAG} \
+                      --set runner.runnerType=${params.RUNNER_TYPE} \
+                      --set runner.engine=${params.AUTOMATION_ENGINE} \
+                      --set runner.testEnv=${params.TEST_ENV} \
+                      --set runner.suite=${params.SUITE} \
+                      --set runner.tags='${params.CUCUMBER_TAGS}'
+                """
+            }
+        }
+
+        stage('Smoke Test') {
+            steps {
+                sh """
+                    mvn -f pom.xml -pl automation-app -am exec:java \
+                      -Dexec.args='--run-only --runner=${params.RUNNER_TYPE} --suite=${params.SUITE} --env=${params.TEST_ENV} --engine=${params.AUTOMATION_ENGINE} --tags=${params.CUCUMBER_TAGS}'
+                """
+            }
+        }
+
+        stage('Publish Reports') {
+            steps {
+                archiveArtifacts artifacts: 'automation-bdd/target/reports/**/*', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'target/artifacts/**/*', allowEmptyArchive: true
+            }
+        }
+    }
+}

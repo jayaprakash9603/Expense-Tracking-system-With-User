@@ -4,6 +4,7 @@ import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
 import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.dto.ProgressStatus;
+import com.jaya.dto.TopExpenseNamesRequest;
 import com.jaya.exceptions.UserException;
 import com.jaya.kafka.service.UnifiedActivityService;
 import com.jaya.models.*;
@@ -520,14 +521,38 @@ public class ExpenseController extends BaseExpenseController {
     }
 
     @GetMapping("/top-expense-names")
-    public ResponseEntity<List<String>> getTopExpenseNames(
+    public ResponseEntity<Map<String, Object>> getTopExpenseNames(
             @RequestParam int topN,
             @RequestHeader("Authorization") String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
-
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
-        List<String> topExpenseNames = expenseService.getTopExpenseNames(topN, targetUser.getId());
-        return ResponseEntity.ok(topExpenseNames);
+        List<Map<String, String>> topExpenseNames = expenseService.getTopExpenseNamesAsMap(topN, targetUser.getId());
+        return ResponseEntity.ok(toTopExpenseNamesResponse(topExpenseNames));
+    }
+
+    @PostMapping("/top-expense-names")
+    public ResponseEntity<Map<String, Object>> getTopExpenseNamesByPayload(
+            @RequestBody TopExpenseNamesRequest request,
+            @RequestHeader("Authorization") String jwt) throws Exception {
+        Integer targetId = request == null ? null : request.getTargetId();
+        int topN = resolveTopN(request);
+        UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
+        List<Map<String, String>> topExpenseNames = expenseService.getTopExpenseNamesAsMap(topN, targetUser.getId());
+        return ResponseEntity.ok(toTopExpenseNamesResponse(topExpenseNames));
+    }
+
+    private int resolveTopN(TopExpenseNamesRequest request) {
+        if (request == null || request.getTopN() == null || request.getTopN() <= 0) {
+            return 500;
+        }
+        return request.getTopN();
+    }
+
+    private Map<String, Object> toTopExpenseNamesResponse(List<Map<String, String>> topExpenseNames) {
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("topExpenses", topExpenseNames);
+        response.put("count", topExpenseNames.size());
+        return response;
     }
 
     @GetMapping("/insights/monthly")

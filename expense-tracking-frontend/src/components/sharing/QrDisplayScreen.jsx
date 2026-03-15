@@ -57,9 +57,10 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
 
   // Copy share URL to clipboard
   const handleCopyLink = useCallback(async () => {
-    if (share?.shareUrl) {
+    const linkToCopy = share?.token ? `${window.location.origin}/share/${share.token}` : share?.shareUrl;
+    if (linkToCopy) {
       try {
-        await navigator.clipboard.writeText(share.shareUrl);
+        await navigator.clipboard.writeText(linkToCopy);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
@@ -319,7 +320,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         {/* Share URL */}
         <TextField
           fullWidth
-          value={share.shareUrl || ""}
+          value={share?.token ? `${window.location.origin}/share/${share.token}` : share?.shareUrl || ""}
           InputProps={{
             readOnly: true,
             sx: {

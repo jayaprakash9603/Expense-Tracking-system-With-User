@@ -17,10 +17,12 @@ export const SEARCH_TYPES = {
   BILL: "BILL",
   PAYMENT_METHOD: "PAYMENT_METHOD",
   FRIEND: "FRIEND",
+  USER: "USER",
   ACTION: "ACTION",
   REPORT: "REPORT",
   SETTING: "SETTING",
   NOTIFICATION: "NOTIFICATION",
+  HELP: "HELP",
 };
 
 // Mode constants for filtering actions by user context
@@ -38,15 +40,18 @@ export const TYPE_ICONS = {
   [SEARCH_TYPES.BILL]: "📄",
   [SEARCH_TYPES.PAYMENT_METHOD]: "💳",
   [SEARCH_TYPES.FRIEND]: "👥",
+  [SEARCH_TYPES.USER]: "👤",
   [SEARCH_TYPES.ACTION]: "⚡",
   [SEARCH_TYPES.REPORT]: "📈",
   [SEARCH_TYPES.SETTING]: "⚙️",
   [SEARCH_TYPES.NOTIFICATION]: "🔔",
+  [SEARCH_TYPES.HELP]: "❓",
 };
 
 // Section display order (admin section appears first in admin mode)
 export const SECTION_ORDER = [
   "admin",
+  "users",
   "actions",
   "expenses",
   "budgets",
@@ -57,11 +62,13 @@ export const SECTION_ORDER = [
   "reports",
   "settings",
   "notifications",
+  "help",
 ];
 
 // Section labels (translation keys)
 export const SECTION_LABELS = {
   admin: "search.sections.admin",
+  users: "search.sections.users",
   actions: "search.sections.quickActions",
   expenses: "search.sections.expenses",
   budgets: "search.sections.budgets",
@@ -72,6 +79,7 @@ export const SECTION_LABELS = {
   reports: "search.sections.reports",
   settings: "search.sections.settings",
   notifications: "search.sections.notifications",
+  help: "Help & FAQ",
 };
 
 /**
@@ -2220,6 +2228,7 @@ export const getRouteForResult = (type, id) => {
     [SEARCH_TYPES.BILL]: `/bill/edit/${id}`,
     [SEARCH_TYPES.PAYMENT_METHOD]: `/payment-method/edit/${id}`,
     [SEARCH_TYPES.FRIEND]: `/friends/expenses/${id}`,
+    [SEARCH_TYPES.USER]: `/admin/users`,
   };
   return routes[type] || "/dashboard";
 };

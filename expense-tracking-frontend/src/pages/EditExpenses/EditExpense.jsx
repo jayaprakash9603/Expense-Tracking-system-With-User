@@ -13,7 +13,7 @@ import {
   convertToNewFormat,
   convertToOldFormat,
 } from "../../components/conversions/formatUtils";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 function EditExpense() {
   const dispatch = useDispatch();
@@ -25,14 +25,13 @@ function EditExpense() {
   const { id } = useParams();
   const suggestionsContainerRef = useRef(null);
   const [newFormatData, setNewFormatData] = useState({});
-  const token = localStorage.getItem("jwt");
   const [toast, setToast] = useState({
     open: false,
     message: "",
     severity: "success",
   });
   const fetchSuggestions = () => {
-    getSuggestions(token, setSuggestions);
+    getSuggestions(setSuggestions);
   };
 
   const [expenses, setExpenses] = useState({

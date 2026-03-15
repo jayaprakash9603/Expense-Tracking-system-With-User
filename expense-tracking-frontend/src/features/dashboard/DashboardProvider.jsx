@@ -5,12 +5,12 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import useAnalyticsSummary from "../../hooks/useAnalyticsSummary";
-import useCategoryDistributionData from "../../hooks/useCategoryDistributionData";
-import usePaymentMethodsData from "../../hooks/usePaymentMethodsData";
+import useAnalyticsSummary from "../analytics/hooks/useAnalyticsSummary";
+import useCategoryDistributionData from "../categories/hooks/useCategoryDistributionData";
+import usePaymentMethodsData from "../payment-methods/hooks/usePaymentMethodsData";
 import useMonthlyTrendData from "../../hooks/useMonthlyTrendData";
 import useDailySpendingData from "../../hooks/useDailySpendingData";
-import { useDashboardLayout } from "../../hooks/useDashboardLayout";
+import { useDashboardLayout } from "./hooks/useDashboardLayout";
 
 // Dashboard context holds UI selection state + aggregated hook outputs.
 const DashboardContext = createContext(null);

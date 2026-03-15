@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "message",
+    "user",
+    "currentMode"
+  ],
+  "properties": {
+    "message": {
+      "type": "string"
+    },
+    "currentMode": {
+      "type": "string",
+      "enum": [
+        "USER",
+        "ADMIN"
+      ]
+    },
+    "user": {
+      "type": "object",
+      "required": [
+        "id",
+        "currentMode"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "currentMode": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

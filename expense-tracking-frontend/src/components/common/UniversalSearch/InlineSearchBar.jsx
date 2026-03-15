@@ -19,6 +19,7 @@ import {
   SECTION_ORDER,
   SECTION_LABELS,
   SEARCH_TYPES,
+  SEARCH_MODES,
 } from "./quickActions.config";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
 import { formatDate } from "../../../utils/dateFormatter";
@@ -39,6 +40,9 @@ const InlineSearchBar = () => {
   );
   const dateFormat = useSelector(
     (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
+  const currentMode = useSelector(
+    (state) => state.auth?.currentMode || SEARCH_MODES.USER,
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -222,14 +226,10 @@ const InlineSearchBar = () => {
           borderRadius: "8px",
           backgroundColor: isExpanded
             ? "transparent"
-            : isDark
-              ? "#1f2937" // bg-gray-800 - matches other header buttons
-              : "#f3f4f6", // bg-gray-100 - matches other header buttons
+            : colors.button_inactive,
           border: `1px solid ${
             isExpanded
-              ? isDark
-                ? "rgba(255, 255, 255, 0.2)"
-                : "rgba(0, 0, 0, 0.15)"
+              ? colors.border_color
               : "transparent"
           }`,
           cursor: isExpanded ? "text" : "pointer",
@@ -241,9 +241,7 @@ const InlineSearchBar = () => {
           "&:hover": {
             backgroundColor: isExpanded
               ? "transparent"
-              : isDark
-                ? "#374151" // bg-gray-700 - matches other header buttons hover
-                : "#e5e7eb", // bg-gray-200 - matches other header buttons hover
+              : colors.hover_bg,
             transform: isExpanded ? "none" : "scale(1.1)", // Match hover scale effect
           },
         }}
@@ -263,7 +261,7 @@ const InlineSearchBar = () => {
           <SearchIcon
             sx={{
               fontSize: "20px",
-              color: isDark ? "#d1d5db" : "#374151", // text-gray-300 / text-gray-700 - matches other header icons
+              color: colors.icon_default,
             }}
           />
           {/* Ctrl+K hint - only shown when collapsed */}
@@ -280,11 +278,11 @@ const InlineSearchBar = () => {
                   padding: "2px 4px",
                   borderRadius: "4px",
                   backgroundColor: isDark
-                    ? "rgba(255, 255, 255, 0.1)"
-                    : "rgba(0, 0, 0, 0.08)",
+                    ? colors.hover_bg
+                    : colors.hover_bg,
                   fontSize: "10px",
                   fontWeight: 500,
-                  color: isDark ? "#9ca3af" : "#6b7280",
+                  color: colors.secondary_text,
                   lineHeight: 1,
                 }}
               >
@@ -295,11 +293,11 @@ const InlineSearchBar = () => {
                   padding: "2px 4px",
                   borderRadius: "4px",
                   backgroundColor: isDark
-                    ? "rgba(255, 255, 255, 0.1)"
-                    : "rgba(0, 0, 0, 0.08)",
+                    ? colors.hover_bg
+                    : colors.hover_bg,
                   fontSize: "10px",
                   fontWeight: 500,
-                  color: isDark ? "#9ca3af" : "#6b7280",
+                  color: colors.secondary_text,
                   lineHeight: 1,
                 }}
               >
@@ -319,15 +317,20 @@ const InlineSearchBar = () => {
               onFocus={handleFocus}
               onBlur={handleBlur}
               onKeyDown={handleLocalKeyDown}
-              placeholder={t("search.placeholder") || "Search..."}
+              placeholder={
+                currentMode === SEARCH_MODES.ADMIN
+                  ? t("search.placeholderAdmin") ||
+                    "Search users, admin actions..."
+                  : t("search.placeholder") || "Search..."
+              }
               sx={{
                 flex: 1,
                 fontSize: "13px",
-                color: isDark ? "#fff" : "#333",
+                color: colors.primary_text,
                 "& input": {
                   padding: 0,
                   "&::placeholder": {
-                    color: isDark ? "rgba(255, 255, 255, 0.5)" : "#999",
+                    color: colors.placeholder_text,
                     opacity: 1,
                   },
                 },
@@ -338,7 +341,7 @@ const InlineSearchBar = () => {
             {loading && (
               <CircularProgress
                 size={16}
-                sx={{ mr: 0.5, color: isDark ? "#888" : "#666" }}
+                sx={{ mr: 0.5, color: colors.icon_muted }}
               />
             )}
 
@@ -350,11 +353,9 @@ const InlineSearchBar = () => {
                 sx={{
                   mr: 0.5,
                   p: 0.5,
-                  color: isDark ? "#888" : "#666",
+                  color: colors.icon_muted,
                   "&:hover": {
-                    backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.08)",
+                    backgroundColor: colors.hover_bg,
                   },
                 }}
               >
@@ -374,12 +375,10 @@ const InlineSearchBar = () => {
                   sx={{
                     padding: "1px 4px",
                     borderRadius: "3px",
-                    backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.08)",
+                    backgroundColor: colors.hover_bg,
                     fontSize: "10px",
                     fontWeight: 500,
-                    color: isDark ? "#888" : "#666",
+                    color: colors.secondary_text,
                   }}
                 >
                   {isMac ? "⌘" : "Ctrl"}
@@ -388,12 +387,10 @@ const InlineSearchBar = () => {
                   sx={{
                     padding: "1px 4px",
                     borderRadius: "3px",
-                    backgroundColor: isDark
-                      ? "rgba(255, 255, 255, 0.1)"
-                      : "rgba(0, 0, 0, 0.08)",
+                    backgroundColor: colors.hover_bg,
                     fontSize: "10px",
                     fontWeight: 500,
-                    color: isDark ? "#888" : "#666",
+                    color: colors.secondary_text,
                   }}
                 >
                   K

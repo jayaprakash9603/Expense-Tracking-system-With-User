@@ -148,6 +148,13 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
     }
 
     @Override
+    public List<Map<String, String>> getTopExpenseNamesAsMap(int topN, Integer userId) {
+        return getTopExpenseNames(topN, userId).stream()
+                .map(name -> Map.of("name", name, "value", name))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<String> getTopPaymentMethods(Integer userId) {
         List<Object[]> results = expenseRepository.findTopPaymentMethodsByUser(userId);
         List<String> topPaymentMethods = new ArrayList<>();

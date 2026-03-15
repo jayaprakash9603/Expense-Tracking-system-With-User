@@ -10,6 +10,13 @@ import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/iconMapping";
 
+const sanitizeAttributeValue = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-_]/g, "");
+
 /**
  * Memoized individual expense card component for performance.
  * Renders only when its specific props change.
@@ -120,6 +127,12 @@ const ExpenseCard = React.memo(
       row.paymentMethod?.icon ||
       row.expense?.paymentMethodIcon ||
       paymentMethodName;
+    const expenseId = row.id || row.expenseId || "";
+    const expenseName = row.name || "";
+    const expenseNameKey = sanitizeAttributeValue(expenseName);
+    const expenseKey = expenseId
+      ? `expense-${expenseId}`
+      : `expense-name-${expenseNameKey || sourceIndex}`;
 
     const isBill = row.bill === true;
 
@@ -184,11 +197,55 @@ const ExpenseCard = React.memo(
       return `${window.location.origin}${routePath}`;
     }, [row, friendId, isFriendView]);
 
+    // Navigate to payment method analytics page (or payment method list if ID not available)
+    const handlePaymentMethodClick = useCallback(
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const paymentMethodId =
+          row.paymentMethodId ||
+          row.paymentMethod?.id ||
+          row.expense?.paymentMethodId;
+        if (paymentMethodId) {
+          const paymentPath = isFriendView
+            ? `/payment-method/view/${paymentMethodId}/friend/${friendId}`
+            : `/payment-method/view/${paymentMethodId}`;
+          navigate(paymentPath);
+        } else if (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment")) {
+          // Fallback: navigate to payment method list when ID not available
+          const listPath = isFriendView
+            ? `/payment-method/${friendId}`
+            : "/payment-method";
+          navigate(listPath);
+        }
+      },
+      [row, friendId, isFriendView, navigate, rawPaymentMethod, t],
+    );
+
+    // Generate full URL for payment method tooltip
+    const getPaymentMethodUrl = useCallback(() => {
+      const paymentMethodId =
+        row.paymentMethodId ||
+        row.paymentMethod?.id ||
+        row.expense?.paymentMethodId;
+      if (!paymentMethodId) return "";
+      const routePath = isFriendView
+        ? `/payment-method/view/${paymentMethodId}/friend/${friendId}`
+        : `/payment-method/view/${paymentMethodId}`;
+      return `${window.location.origin}${routePath}`;
+    }, [row, friendId, isFriendView]);
+
     return (
       <div
         key={row.id || row.expenseId || `expense-${idx}`}
         className="rounded-lg shadow-md flex flex-col justify-between relative group"
         data-card-index={sourceIndex}
+        data-testid="expense-card"
+        data-expense-key={expenseKey}
+        data-expense-id={expenseId}
+        data-expense-name={expenseName}
+        data-expense-name-key={expenseNameKey}
+        data-expense-amount={row.amount ?? ""}
         style={{
           minHeight: "155px",
           maxHeight: "155px",
@@ -370,10 +427,36 @@ const ExpenseCard = React.memo(
               </span>
             </div>
             <div
-              className="flex items-center gap-1 min-w-0 flex-1"
-              title={t("cashflow.tooltips.paymentMethod", {
-                method: paymentMethodName,
-              })}
+              className="flex items-center gap-1 min-w-0 flex-1 category-link"
+              title={
+                getPaymentMethodUrl() ||
+                t("cashflow.tooltips.paymentMethod", {
+                  method: paymentMethodName,
+                })
+              }
+              onClick={handlePaymentMethodClick}
+              style={{
+                cursor:
+                  row.paymentMethodId ||
+                  row.paymentMethod?.id ||
+                  row.expense?.paymentMethodId ||
+                  (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment"))
+                    ? "pointer"
+                    : "default",
+              }}
+              onMouseEnter={(e) => {
+                if (
+                  row.paymentMethodId ||
+                  row.paymentMethod?.id ||
+                  row.expense?.paymentMethodId ||
+                  (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment"))
+                ) {
+                  e.currentTarget.style.textDecoration = "underline";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.textDecoration = "none";
+              }}
             >
               {getPaymentMethodIcon(paymentMethodIconKey, {
                 sx: { fontSize: 13, color: colors.secondary_accent },
@@ -426,6 +509,10 @@ const ExpenseCard = React.memo(
             >
               <IconButton
                 size="small"
+                data-testid="expense-card-edit"
+                data-expense-key={expenseKey}
+                data-expense-id={expenseId}
+                data-expense-name-key={expenseNameKey}
                 sx={{
                   color: "#5b7fff",
                   p: "4px",
@@ -441,6 +528,10 @@ const ExpenseCard = React.memo(
               </IconButton>
               <IconButton
                 size="small"
+                data-testid="expense-card-delete"
+                data-expense-key={expenseKey}
+                data-expense-id={expenseId}
+                data-expense-name-key={expenseNameKey}
                 sx={{
                   color: "#ff4d4f",
                   p: "4px",

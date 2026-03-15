@@ -46,6 +46,9 @@ const StoryCTA = ({ ctaButtons, onCtaClick }) => {
         gap: 1.5,
         p: 3,
         pt: 2,
+        pb: 4,
+        zIndex: 10,
+        position: "relative",
       }}
     >
       {sortedButtons.map((cta) => {
@@ -56,27 +59,38 @@ const StoryCTA = ({ ctaButtons, onCtaClick }) => {
           <Button
             key={cta.id}
             variant={isPrimary ? "contained" : "outlined"}
-            onClick={() => onCtaClick(cta)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCtaClick(cta);
+            }}
             startIcon={IconComponent && <IconComponent />}
             sx={{
-              borderRadius: 3,
+              borderRadius: 8,
               textTransform: "none",
-              fontWeight: 600,
-              py: 1.25,
+              fontWeight: 700,
+              fontSize: "1rem",
+              py: 1.5,
+              boxShadow: isPrimary ? "0 4px 14px rgba(0,0,0,0.4)" : "none",
               ...(isPrimary
                 ? {
                     backgroundColor: cta.buttonColor || "#fff",
-                    color: cta.textColor || "#1a1a2e",
+                    color: cta.textColor || "#000",
                     "&:hover": {
                       backgroundColor: "rgba(255,255,255,0.9)",
+                      transform: "translateY(-1px)",
+                      boxShadow: "0 6px 16px rgba(0,0,0,0.5)",
                     },
+                    transition: "all 0.2s ease",
                   }
                 : {
-                    borderColor: "rgba(255,255,255,0.5)",
+                    borderColor: "rgba(255,255,255,0.7)",
                     color: "#fff",
+                    borderWidth: 2,
+                    backdropFilter: "blur(4px)",
                     "&:hover": {
                       borderColor: "#fff",
-                      backgroundColor: "rgba(255,255,255,0.1)",
+                      backgroundColor: "rgba(255,255,255,0.15)",
+                      borderWidth: 2,
                     },
                   }),
             }}

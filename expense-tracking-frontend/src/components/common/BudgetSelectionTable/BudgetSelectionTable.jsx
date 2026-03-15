@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import GroupedDataTable from "../GroupedDataTable/GroupedDataTable";
-import { useBudgetTableConfig } from "../../../hooks/useBudgetTableConfig";
+import { useBudgetTableConfig } from "../../../features/budgets/hooks/useBudgetTableConfig";
 import { FilterPopover } from "../../ui"; // Adjust import based on where FilterPopover is located
 
 const BudgetSelectionTable = ({
@@ -110,21 +110,21 @@ const BudgetSelectionTable = ({
         "--pm-scrollbar-track": colors.secondary_bg,
       }}
     >
-      <GroupedDataTable
-        rows={filteredRows}
-        columns={columns}
-        sort={sort}
-        onSortChange={setSort}
-        columnFilters={columnFilters}
-        onFilterClick={handleFilterClick}
-        enableSelection={true}
-        selectedRows={selectedRowsMap}
-        onRowSelect={handleRowSelect}
-        onSelectAll={handleSelectAll}
-        resolveRowKey={(row) => row.id}
-        className="w-full"
-        defaultPageSize={5}
-      />
+        <GroupedDataTable
+          rows={filteredRows}
+          columns={columns}
+          sort={sort}
+          onSortChange={setSort}
+          columnFilters={columnFilters}
+          onFilterClick={handleFilterClick}
+          enableSelection={true}
+          selectedRows={selectedRowsMap}
+          onRowSelect={handleRowSelect}
+          onSelectAll={handleSelectAll}
+          resolveRowKey={(row) => row.id}
+          className="w-full"
+          defaultPageSize={5}
+        />
       <FilterPopover
         open={Boolean(filterAnchorEl)}
         anchorEl={filterAnchorEl}

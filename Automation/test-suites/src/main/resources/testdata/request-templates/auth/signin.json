@@ -1,0 +1,4 @@
+{
+  "email": "${suite.auth.username}",
+  "password": "${suite.auth.password}"
+}

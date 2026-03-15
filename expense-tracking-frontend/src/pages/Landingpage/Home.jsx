@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Left from "./Left.jsx";
 import { Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import FriendInfoBar from "./FriendInfoBar";
+import FriendInfoBar from "../../features/friends/components/FriendInfoBar";
 import HeaderBar from "../../components/common/HeaderBar";
 import {
   fetchFriendship,
@@ -10,7 +10,7 @@ import {
 } from "../../Redux/Friends/friendsActions";
 import { useTheme } from "../../hooks/useTheme";
 import { FloatingNotificationContainer } from "../../components/common/FloatingNotifications";
-import NotFound from "./Errors/NotFound";
+import NotFound from "../../features/errors/pages/NotFoundPage";
 import Loader from "../../components/Loaders/Loader";
 import { GlobalShortcuts, RecommendationToast } from "../../features/keyboard";
 import StoryViewer from "../../components/Stories/StoryViewer";

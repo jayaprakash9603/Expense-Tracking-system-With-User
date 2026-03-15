@@ -1,0 +1,6 @@
+{
+  "name": "${suite.budgets.default.name} ${random.number:3}",
+  "amount": 1500,
+  "startDate": "${now:yyyy-MM-dd}",
+  "endDate": "${now+30d:yyyy-MM-dd}"
+}

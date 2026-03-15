@@ -12,6 +12,7 @@ import {
   SECTION_LABELS,
   TYPE_ICONS,
   SEARCH_TYPES,
+  SEARCH_MODES,
 } from "./quickActions.config";
 import UserSettingsHelper from "../../../utils/UserSettingsHelper";
 import { formatDate } from "../../../utils/dateFormatter";
@@ -32,6 +33,9 @@ const UniversalSearchModal = () => {
   );
   const dateFormat = useSelector(
     (state) => state.userSettings?.settings?.dateFormat || "DD/MM/YYYY",
+  );
+  const currentMode = useSelector(
+    (state) => state.auth?.currentMode || SEARCH_MODES.USER,
   );
 
   const {
@@ -206,8 +210,11 @@ const UniversalSearchModal = () => {
               onChange={(e) => handleQueryChange(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={
-                t("search.placeholder") ||
-                "Search expenses, budgets, actions..."
+                currentMode === SEARCH_MODES.ADMIN
+                  ? t("search.placeholderAdmin") ||
+                    "Search users, admin actions..."
+                  : t("search.placeholder") ||
+                    "Search expenses, budgets, actions..."
               }
               style={{
                 flex: 1,

@@ -1,8 +1,9 @@
 package com.jaya.task.user.service.controller;
 
 import com.jaya.task.user.service.dto.FriendshipReportPreferenceDTO;
+import com.jaya.task.user.service.request.PreferenceSaveRequest;
 import com.jaya.task.user.service.service.FriendshipReportPreferenceService;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -56,11 +57,11 @@ public class FriendshipReportPreferenceController {
     @PostMapping
     public ResponseEntity<Object> saveFriendshipReportPreference(
             @RequestHeader("Authorization") String jwt,
-            @RequestBody @NotBlank(message = "Layout configuration is required") String layoutConfig) {
+            @Valid @RequestBody PreferenceSaveRequest request) {
 
         try {
             FriendshipReportPreferenceDTO saved = friendshipReportPreferenceService.saveFriendshipReportPreference(jwt,
-                    layoutConfig);
+                    request.getLayoutConfig());
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "Friendship report preference saved successfully",

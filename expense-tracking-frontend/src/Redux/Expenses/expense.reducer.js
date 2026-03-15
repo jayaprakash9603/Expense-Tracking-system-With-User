@@ -73,6 +73,7 @@ import {
   GET_EXPENSE_DETAILED_VIEW_SUCCESS,
   GET_EXPENSE_DETAILED_VIEW_FAILURE,
   CLEAR_EXPENSE_DETAILED_VIEW,
+  INVALIDATE_CASHFLOW,
 } from "./expense.actionType";
 
 const initialState = {
@@ -112,6 +113,8 @@ const initialState = {
   paginatedExpensesTotalPages: 0,
   paginatedExpensesTotalElements: 0,
   paginatedExpensesHasMore: false,
+  // Timestamp set on create/edit/delete success - triggers CashFlow refetch
+  lastExpenseMutationAt: null,
 };
 
 const clearExpenseFlowCaches = (state) => ({
@@ -123,6 +126,7 @@ const clearExpenseFlowCaches = (state) => ({
   categoryFlowCache: {},
   categoryFlowLastFetchedSignature: null,
   categoryFlowOwnerId: null,
+  lastExpenseMutationAt: Date.now(),
 });
 
 export const expenseReducer = (state = initialState, action) => {
@@ -442,6 +446,11 @@ export const expenseReducer = (state = initialState, action) => {
         expenseDetailedView: null,
         expenseDetailedViewLoading: false,
         expenseDetailedViewError: null,
+      };
+    case INVALIDATE_CASHFLOW:
+      return {
+        ...state,
+        lastExpenseMutationAt: Date.now(),
       };
 
     // Default case

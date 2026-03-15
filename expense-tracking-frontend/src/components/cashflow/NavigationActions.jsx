@@ -46,6 +46,8 @@ const NavigationActions = ({
   isMobile,
   addIcon,
   currentFlow, // e.g. 'category-flow', 'payment-method', 'cashflow'
+  clearSelection,
+  hasSelections = false,
 }) => {
   const { open, setOpen, btnRef } = useAddNewPopover();
   const { colors, getIconFilter } = useTheme();
@@ -145,6 +147,39 @@ const NavigationActions = ({
             }}
           />
           {!isMobile && <span>{t("cashflow.addNew.label")}</span>}
+        </button>
+      )}
+      {hasSelections && clearSelection && (
+        <button
+          onClick={clearSelection}
+          className="nav-button"
+          title={t("cashflow.summary.clearAll")}
+          aria-label={t("cashflow.summary.clearAll")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: isMobile ? "6px" : "6px",
+            padding: isMobile ? "6px 8px" : "8px 10px",
+            backgroundColor: colors.primary_bg,
+            border: `1px solid ${colors.border_color}`,
+            borderRadius: "8px",
+            color: colors.active_text,
+            fontSize: isMobile ? "12px" : "14px",
+            fontWeight: "500",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            minWidth: "fit-content",
+          }}
+        >
+          {!isMobile && <span>{t("cashflow.summary.clearAll")}</span>}
+          <span
+            // style={{
+            //   fontSize: isMobile ? 16 : 18,
+            //   lineHeight: 1,
+            // }}
+          >
+            ✕
+          </span>
         </button>
       )}
       {open &&

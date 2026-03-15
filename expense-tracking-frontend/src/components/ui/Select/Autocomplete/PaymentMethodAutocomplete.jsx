@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { Box } from "@mui/material";
 import AppAutocomplete from "../AppAutocomplete";
-import usePaymentMethods from "../../../../hooks/usePaymentMethods";
+import usePaymentMethods from "../../../../features/payment-methods/hooks/usePaymentMethods";
 import { useTheme } from "../../../../hooks/useTheme";
 import {
   findPaymentMethodByValue,

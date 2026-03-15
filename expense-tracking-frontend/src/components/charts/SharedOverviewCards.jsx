@@ -1,28 +1,42 @@
 import React from "react";
 import useUserSettings from "../../hooks/useUserSettings";
-import { useTheme } from "../../hooks/useTheme";
+import ModernOverviewCard from "../common/ModernOverviewCard";
+import WalletIcon from "@mui/icons-material/Wallet";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import TagIcon from "@mui/icons-material/Tag";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import TimerOffIcon from "@mui/icons-material/TimerOff";
+import PeopleIcon from "@mui/icons-material/People";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import SecurityIcon from "@mui/icons-material/Security";
+import FiberNewIcon from "@mui/icons-material/FiberNew";
+import ListAltIcon from "@mui/icons-material/ListAlt";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import LockIcon from "@mui/icons-material/Lock";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import AssessmentIcon from "@mui/icons-material/Assessment";
+import SaveIcon from "@mui/icons-material/Save";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import ForwardToInboxIcon from "@mui/icons-material/ForwardToInbox";
+import MoveToInboxIcon from "@mui/icons-material/MoveToInbox";
 
-/**
- * SharedOverviewCards
- * Modes: payment | category | expenses | budget | friendship | admin-analytics | admin-users | admin-audit | admin-reports
- * For expenses mode we show: Total Spending, Top Expense Name, Avg Transaction, Total Transactions
- * For budget mode we show: Total Budgets, Active Budgets, Total Spent, Total Remaining
- * For friendship mode we show: Total Friends, Pending Requests, I Shared With, Shared With Me
- * For admin-analytics mode we show: Total Users, Active Users, Total Expenses, Total Revenue
- * For admin-users mode we show: Total Users, Active Users, Admins, New This Month
- * For admin-audit mode we show: Total Logs, User Management, Data Changes, Authentication
- * For admin-reports mode we show: Report Types, Generated This Month, Total Reports, Avg Size
- * For shares mode we show: Total Shares, Active Shares, Total Views, Expired Shares
- */
 const SharedOverviewCards = ({
   data = [],
   mode = "payment",
   currencySymbol,
 }) => {
   const settings = useUserSettings();
-  const { colors, mode: themeMode } = useTheme();
   const displayCurrency = currencySymbol || settings.getCurrency().symbol;
   const safe = Array.isArray(data) ? data : [];
+  
   const isPayment = mode === "payment";
   const isCategory = mode === "category";
   const isExpenses = mode === "expenses";
@@ -35,23 +49,12 @@ const SharedOverviewCards = ({
   const isAdminReports = mode === "admin-reports";
 
   const amountKey = isPayment || isExpenses ? "totalAmount" : "amount";
-  const nameKey = isPayment ? "method" : isCategory ? "name" : "method"; // expenses receives payment-method style objects
-  const getExpenseDetails = (expense) =>
-    expense?.details || expense?.expense || {};
+  const nameKey = isPayment ? "method" : isCategory ? "name" : "method";
+  const getExpenseDetails = (expense) => expense?.details || expense?.expense || {};
 
-  // Total amount
-  const totalAmount = safe.reduce(
-    (sum, item) => sum + Number(item?.[amountKey] || 0),
-    0,
-  );
+  const totalAmount = safe.reduce((sum, item) => sum + Number(item?.[amountKey] || 0), 0);
+  const totalTransactions = safe.reduce((sum, item) => sum + Number(item?.transactions || item?.count || 0), 0);
 
-  // Total transactions count (expenses & payment share logic)
-  const totalTransactions = safe.reduce(
-    (sum, item) => sum + Number(item?.transactions || item?.count || 0),
-    0,
-  );
-
-  // Build expense name aggregation only for expenses mode
   let topExpenseName = "-";
   let topExpenseAmount = 0;
   if (isExpenses) {
@@ -65,7 +68,6 @@ const SharedOverviewCards = ({
         expenseMap.set(name, prev + amt);
       });
     });
-    // Determine top expense by aggregated amount
     expenseMap.forEach((amt, name) => {
       if (amt > topExpenseAmount) {
         topExpenseAmount = amt;
@@ -74,1076 +76,143 @@ const SharedOverviewCards = ({
     });
   }
 
-  // Fallback top item for non-expenses modes (assume data already sorted)
-  const topItem = !isExpenses
-    ? safe[0] || { [nameKey]: "-", [amountKey]: 0, percentage: 0 }
-    : null;
-
-  const avgTransactionValue =
-    totalTransactions > 0 ? totalAmount / totalTransactions : 0;
-
-  // Percentage for top item (payment/category) or top expense (expenses)
+  const topItem = !isExpenses ? safe[0] || { [nameKey]: "-", [amountKey]: 0, percentage: 0 } : null;
+  const avgTransactionValue = totalTransactions > 0 ? totalAmount / totalTransactions : 0;
   const topPercentage = (() => {
     if (totalAmount <= 0) return 0;
     if (isExpenses) return ((topExpenseAmount || 0) / totalAmount) * 100;
-    const amt = Number(topItem?.[amountKey] || 0);
-    return (amt / totalAmount) * 100;
+    return (Number(topItem?.[amountKey] || 0) / totalAmount) * 100;
   })().toFixed(2);
 
-  // Theme-aware styles
-  const cardStyle = {
-    background:
-      themeMode === "dark"
-        ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
-        : "linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)",
-    border: `1px solid ${colors.border_color}`,
-    borderRadius: "12px",
-    padding: "24px",
-    display: "flex",
-    alignItems: "center",
-    gap: "16px",
-    transition: "transform 0.2s, box-shadow 0.2s",
-    minHeight: "120px",
+  const containerStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "20px",
+    marginBottom: "32px",
   };
 
-  const cardIconStyle = {
-    fontSize: "32px",
-    width: "60px",
-    height: "60px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background:
-      themeMode === "dark"
-        ? "rgba(20, 184, 166, 0.1)"
-        : "rgba(20, 184, 166, 0.15)",
-    borderRadius: "12px",
-  };
-
-  const cardTitleStyle = {
-    margin: "0 0 8px 0",
-    fontSize: "14px",
-    color: themeMode === "dark" ? "#888" : "#666",
-    fontWeight: 500,
-  };
-
-  const cardValueStyle = {
-    fontSize: "24px",
-    fontWeight: 700,
-    color: colors.primary_text,
-    marginBottom: "4px",
-  };
-
-  const cardChangeStyle = {
-    fontSize: "12px",
-    fontWeight: 500,
-  };
-
-  const borderColors = {
-    primary: "#14b8a6",
-    secondary: "#06d6a0",
-    tertiary: "#118ab2",
-    quaternary: "#ffd166",
-  };
-
-  const getCardStyleWithBorder = (borderColor) => ({
-    ...cardStyle,
-    borderLeft: `4px solid ${borderColor}`,
-  });
-
-  const hoverEffect = (e) => {
-    e.currentTarget.style.transform = "translateY(-2px)";
-    e.currentTarget.style.boxShadow = "0 8px 25px rgba(20, 184, 166, 0.15)";
-  };
-
-  const removeHoverEffect = (e) => {
-    e.currentTarget.style.transform = "translateY(0)";
-    e.currentTarget.style.boxShadow = "none";
-  };
-
-  // Budget mode renders different cards entirely
   if (isBudget) {
-    // Extract budget stats from the parent component
-    // Expecting data to contain budget statistics
     const budgetData = safe[0] || {};
-    const totalBudgets = budgetData.totalBudgets || 0;
-    const activeBudgets = budgetData.activeBudgets || 0;
-    const totalSpent = budgetData.totalSpent || 0;
-    const totalRemaining = budgetData.totalRemaining || 0;
-
     return (
-      <div
-        className="shared-overview-cards budget-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        {/* Total Budgets */}
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📊
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Budgets</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {totalBudgets}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#10b981" }}
-            >
-              All budgets created
-            </div>
-          </div>
-        </div>
-
-        {/* Active Budgets */}
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ✅
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Active Budgets</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {activeBudgets}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              Currently active
-            </div>
-          </div>
-        </div>
-
-        {/* Total Spent */}
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            💸
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Spent</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {displayCurrency}
-              {Number(totalSpent).toLocaleString()}
-            </div>
-            <div
-              className="card-change negative"
-              style={{ ...cardChangeStyle, color: "#ef4444" }}
-            >
-              From all budgets
-            </div>
-          </div>
-        </div>
-
-        {/* Total Remaining */}
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            💰
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Remaining</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {displayCurrency}
-              {Number(totalRemaining).toLocaleString()}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#10b981" }}
-            >
-              Available budget
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Total Budgets" value={budgetData.totalBudgets || 0} icon={<BarChartIcon />} variant="blue" percentage="+10%" trend="up" sparklineData={[2, 3, 5, 4, 6]} />
+        <ModernOverviewCard title="Active Budgets" value={budgetData.activeBudgets || 0} icon={<CheckCircleIcon />} variant="purple" percentage="All time" trend="up" sparklineData={[4, 5, 4, 5, 4]} />
+        <ModernOverviewCard title="Total Spent" value={`${displayCurrency}${Number(budgetData.totalSpent || 0).toLocaleString()}`} icon={<MoneyOffIcon />} variant="yellow" percentage="-5.2%" trend="down" sparklineData={[8, 7, 5, 6, 4]} />
+        <ModernOverviewCard title="Total Remaining" value={`${displayCurrency}${Number(budgetData.totalRemaining || 0).toLocaleString()}`} icon={<AccountBalanceIcon />} variant="red" percentage="+12.5%" trend="up" sparklineData={[3, 5, 6, 8, 9]} />
       </div>
     );
   }
 
-  // Shares mode renders different cards
   if (isShares) {
     const sharesData = safe[0] || {};
-    const totalShares = sharesData.totalShares || 0;
-    const activeShares = sharesData.activeShares || 0;
-    const totalViews = sharesData.totalViews || 0;
-    const expiredShares = sharesData.expiredShares || 0;
-
     return (
-      <div
-        className="shared-overview-cards shares-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "16px",
-          marginBottom: "16px",
-        }}
-      >
-        {/* Total Shares */}
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📤
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Shares</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {totalShares}
-            </div>
-            <div
-              className="card-change"
-              style={{ ...cardChangeStyle, color: "#14b8a6" }}
-            >
-              All shares created
-            </div>
-          </div>
-        </div>
-
-        {/* Active Shares */}
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ✅
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Active Shares</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {activeShares}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#10b981" }}
-            >
-              Currently active
-            </div>
-          </div>
-        </div>
-
-        {/* Total Views */}
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            👁️
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Views</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {totalViews}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              Share accesses
-            </div>
-          </div>
-        </div>
-
-        {/* Expired Shares */}
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ⏱️
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Expired Shares</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {expiredShares}
-            </div>
-            <div
-              className="card-change"
-              style={{ ...cardChangeStyle, color: "#f59e0b" }}
-            >
-              No longer valid
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Total Shares" value={sharesData.totalShares || 0} icon={<IosShareIcon />} variant="blue" percentage="+2.4%" trend="up" sparklineData={[1, 2, 4, 3, 5]} />
+        <ModernOverviewCard title="Active Shares" value={sharesData.activeShares || 0} icon={<CheckCircleIcon />} variant="purple" percentage="+1.1%" trend="up" sparklineData={[3, 4, 4, 5, 6]} />
+        <ModernOverviewCard title="Total Views" value={sharesData.totalViews || 0} icon={<VisibilityIcon />} variant="yellow" percentage="+8.5%" trend="up" sparklineData={[2, 5, 6, 9, 12]} />
+        <ModernOverviewCard title="Expired Shares" value={sharesData.expiredShares || 0} icon={<TimerOffIcon />} variant="red" percentage="-0.5%" trend="down" sparklineData={[5, 4, 3, 2, 1]} />
       </div>
     );
   }
 
-  // Admin Analytics mode
   if (isAdminAnalytics) {
-    const analyticsData = safe[0] || {};
-    const totalUsers = analyticsData.totalUsers || 0;
-    const activeUsers = analyticsData.activeUsers || 0;
-    const totalExpenses = analyticsData.totalExpenses || 0;
-    const totalRevenue = analyticsData.totalRevenue || 0;
-    const userGrowth = analyticsData.userGrowth || 0;
-    const activeGrowth = analyticsData.activeGrowth || 0;
-    const expenseGrowth = analyticsData.expenseGrowth || 0;
-    const revenueGrowth = analyticsData.revenueGrowth || 0;
-
+    const d = safe[0] || {};
     return (
-      <div
-        className="shared-overview-cards admin-analytics-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            👥
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Users</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(totalUsers).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: userGrowth >= 0 ? "#10b981" : "#ef4444",
-              }}
-            >
-              {userGrowth >= 0 ? "+" : ""}
-              {userGrowth}% vs last period
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ✅
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Active Users</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(activeUsers).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: activeGrowth >= 0 ? "#10b981" : "#ef4444",
-              }}
-            >
-              {activeGrowth >= 0 ? "+" : ""}
-              {activeGrowth}% vs last period
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            💰
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Expenses</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(totalExpenses).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: expenseGrowth >= 0 ? "#10b981" : "#ef4444",
-              }}
-            >
-              {expenseGrowth >= 0 ? "+" : ""}
-              {expenseGrowth}% vs last period
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            💵
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Revenue</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {displayCurrency}
-              {Number(totalRevenue).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: revenueGrowth >= 0 ? "#10b981" : "#ef4444",
-              }}
-            >
-              {revenueGrowth >= 0 ? "+" : ""}
-              {revenueGrowth}% vs last period
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Total Users" value={Number(d.totalUsers || 0).toLocaleString()} icon={<PeopleIcon />} variant="blue" percentage={`${d.userGrowth >= 0 ? "+" : ""}${d.userGrowth || 0}%`} trend={d.userGrowth >= 0 ? "up" : "down"} sparklineData={[5, 6, 7, 9, 10]} />
+        <ModernOverviewCard title="Active Users" value={Number(d.activeUsers || 0).toLocaleString()} icon={<CheckCircleIcon />} variant="purple" percentage={`${d.activeGrowth >= 0 ? "+" : ""}${d.activeGrowth || 0}%`} trend={d.activeGrowth >= 0 ? "up" : "down"} sparklineData={[4, 5, 7, 6, 8]} />
+        <ModernOverviewCard title="Total Expenses" value={`${displayCurrency}${Number(d.totalExpenses || 0).toLocaleString()}`} icon={<ReceiptIcon />} variant="yellow" percentage={`${d.expenseGrowth >= 0 ? "+" : ""}${d.expenseGrowth || 0}%`} trend={d.expenseGrowth >= 0 ? "up" : "down"} sparklineData={[8, 7, 9, 8, 10]} />
+        <ModernOverviewCard title="Total Revenue" value={`${displayCurrency}${Number(d.totalRevenue || 0).toLocaleString()}`} icon={<MonetizationOnIcon />} variant="red" percentage={`${d.revenueGrowth >= 0 ? "+" : ""}${d.revenueGrowth || 0}%`} trend={d.revenueGrowth >= 0 ? "up" : "down"} sparklineData={[5, 7, 8, 10, 12]} />
       </div>
     );
   }
 
-  // Admin Users mode
   if (isAdminUsers) {
-    const usersData = safe[0] || {};
-    const totalUsers = usersData.totalUsers || usersData.total || 0;
-    const activeUsers = usersData.activeUsers || usersData.active || 0;
-    const admins = usersData.admins || 0;
-    const newThisMonth = usersData.newThisMonth || 0;
-
+    const d = safe[0] || {};
     return (
-      <div
-        className="shared-overview-cards admin-users-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            👥
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Users</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(totalUsers).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              All registered users
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ✅
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Active Users</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(activeUsers).toLocaleString()}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#10b981" }}
-            >
-              Currently active
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            🛡️
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Admins</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(admins).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{ ...cardChangeStyle, color: "#e91e63" }}
-            >
-              Admin privileges
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            🆕
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>New This Month</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(newThisMonth).toLocaleString()}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#2196f3" }}
-            >
-              Recent registrations
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Total Users" value={Number(d.totalUsers || d.total || 0).toLocaleString()} icon={<PeopleIcon />} variant="blue" percentage="+5.4%" trend="up" sparklineData={[10, 12, 15, 18, 22]} />
+        <ModernOverviewCard title="Active Users" value={Number(d.activeUsers || d.active || 0).toLocaleString()} icon={<CheckCircleIcon />} variant="purple" percentage="+2.1%" trend="up" sparklineData={[8, 9, 11, 14, 16]} />
+        <ModernOverviewCard title="Admins" value={Number(d.admins || 0).toLocaleString()} icon={<SecurityIcon />} variant="yellow" percentage="0.0%" trend="up" sparklineData={[2, 2, 2, 2, 2]} />
+        <ModernOverviewCard title="New This Month" value={Number(d.newThisMonth || 0).toLocaleString()} icon={<FiberNewIcon />} variant="red" percentage="+12.4%" trend="up" sparklineData={[1, 3, 5, 8, 12]} />
       </div>
     );
   }
 
-  // Admin Audit mode
   if (isAdminAudit) {
-    const auditData = safe[0] || {};
-    const totalLogs = auditData.totalLogs || 0;
-    const userManagement = auditData.userManagement || 0;
-    const dataChanges =
-      auditData.dataChanges || auditData.dataModification || 0;
-    const authentication = auditData.authentication || 0;
-    const reports = auditData.reports || auditData.reportGeneration || 0;
-
+    const d = safe[0] || {};
     return (
-      <div
-        className="shared-overview-cards admin-audit-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📋
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Logs</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(totalLogs).toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder("#2196f3")}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            👤
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>User Management</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(userManagement).toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder("#ff9800")}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📝
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Data Changes</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(dataChanges).toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder("#4caf50")}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            🔐
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Authentication</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(authentication).toLocaleString()}
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card quinary"
-          style={getCardStyleWithBorder("#00bcd4")}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📊
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Reports</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(reports).toLocaleString()}
-            </div>
-          </div>
-        </div>
+      <div style={{ ...containerStyle, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+        <ModernOverviewCard title="Total Logs" value={Number(d.totalLogs || 0).toLocaleString()} icon={<ListAltIcon />} variant="blue" percentage="+15%" trend="up" sparklineData={[20, 25, 30, 40, 50]} />
+        <ModernOverviewCard title="User Management" value={Number(d.userManagement || 0).toLocaleString()} icon={<ManageAccountsIcon />} variant="purple" percentage="+5%" trend="up" sparklineData={[5, 8, 7, 10, 12]} />
+        <ModernOverviewCard title="Data Changes" value={Number(d.dataChanges || d.dataModification || 0).toLocaleString()} icon={<EditNoteIcon />} variant="yellow" percentage="-2%" trend="down" sparklineData={[15, 12, 14, 10, 8]} />
+        <ModernOverviewCard title="Authentication" value={Number(d.authentication || 0).toLocaleString()} icon={<LockIcon />} variant="red" percentage="+8%" trend="up" sparklineData={[30, 35, 32, 38, 42]} />
       </div>
     );
   }
 
-  // Admin Reports mode
   if (isAdminReports) {
-    const reportsData = safe[0] || {};
-    const reportTypes = reportsData.reportTypes || 5;
-    const generatedThisMonth = reportsData.generatedThisMonth || 0;
-    const totalReports = reportsData.totalReports || 0;
-    const avgSize = reportsData.avgSize || "0";
-
+    const d = safe[0] || {};
     return (
-      <div
-        className="shared-overview-cards admin-reports-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📑
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Report Types</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {reportTypes}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              Available templates
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📅
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Generated This Month</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(generatedThisMonth).toLocaleString()}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#4caf50" }}
-            >
-              This month
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📊
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Reports</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {Number(totalReports).toLocaleString()}
-            </div>
-            <div
-              className="card-change"
-              style={{ ...cardChangeStyle, color: "#2196f3" }}
-            >
-              All time
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            💾
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Avg Size</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {avgSize} MB
-            </div>
-            <div
-              className="card-change"
-              style={{ ...cardChangeStyle, color: "#9c27b0" }}
-            >
-              Per report
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Report Types" value={d.reportTypes || 5} icon={<InsertDriveFileIcon />} variant="blue" percentage="0%" trend="up" sparklineData={[5, 5, 5, 5, 5]} />
+        <ModernOverviewCard title="Generated This Month" value={Number(d.generatedThisMonth || 0).toLocaleString()} icon={<CalendarMonthIcon />} variant="purple" percentage="+18%" trend="up" sparklineData={[2, 5, 8, 12, 20]} />
+        <ModernOverviewCard title="Total Reports" value={Number(d.totalReports || 0).toLocaleString()} icon={<AssessmentIcon />} variant="yellow" percentage="+4.5%" trend="up" sparklineData={[40, 45, 50, 55, 62]} />
+        <ModernOverviewCard title="Avg Size" value={`${d.avgSize || "0"} MB`} icon={<SaveIcon />} variant="red" percentage="-1.2%" trend="down" sparklineData={[2.5, 2.4, 2.6, 2.3, 2.1]} />
       </div>
     );
   }
 
-  // Friendship mode renders friendship-specific cards
   if (isFriendship) {
-    const friendshipData = safe[0] || {};
-    const totalFriends = friendshipData.totalFriends || 0;
-    const pendingRequests = friendshipData.pendingRequests || 0;
-    const iSharedWithCount = friendshipData.iSharedWithCount || 0;
-    const sharedWithMeCount = friendshipData.sharedWithMeCount || 0;
-
+    const d = safe[0] || {};
     return (
-      <div
-        className="shared-overview-cards friendship-overview-cards"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
-        {/* Total Friends */}
-        <div
-          className="overview-card primary"
-          style={getCardStyleWithBorder(borderColors.primary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            👥
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Total Friends</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {totalFriends}
-            </div>
-            <div
-              className="card-change positive"
-              style={{ ...cardChangeStyle, color: "#10b981" }}
-            >
-              Active connections
-            </div>
-          </div>
-        </div>
-
-        {/* Pending Requests */}
-        <div
-          className="overview-card secondary"
-          style={getCardStyleWithBorder(borderColors.secondary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            ⏳
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Pending Requests</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {pendingRequests}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color:
-                  pendingRequests > 0
-                    ? "#f59e0b"
-                    : themeMode === "dark"
-                      ? "#888"
-                      : "#666",
-              }}
-            >
-              {pendingRequests > 0
-                ? "Awaiting response"
-                : "No pending requests"}
-            </div>
-          </div>
-        </div>
-
-        {/* I Shared With */}
-        <div
-          className="overview-card tertiary"
-          style={getCardStyleWithBorder(borderColors.tertiary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📤
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>I Shared With</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {iSharedWithCount}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              Friends I share data with
-            </div>
-          </div>
-        </div>
-
-        {/* Shared With Me */}
-        <div
-          className="overview-card quaternary"
-          style={getCardStyleWithBorder(borderColors.quaternary)}
-          onMouseEnter={hoverEffect}
-          onMouseLeave={removeHoverEffect}
-        >
-          <div className="card-icon" style={cardIconStyle}>
-            📥
-          </div>
-          <div className="card-content">
-            <h3 style={cardTitleStyle}>Shared With Me</h3>
-            <div className="card-value" style={cardValueStyle}>
-              {sharedWithMeCount}
-            </div>
-            <div
-              className="card-change"
-              style={{
-                ...cardChangeStyle,
-                color: themeMode === "dark" ? "#888" : "#666",
-              }}
-            >
-              Friends sharing with me
-            </div>
-          </div>
-        </div>
+      <div style={containerStyle}>
+        <ModernOverviewCard title="Total Friends" value={d.totalFriends || 0} icon={<PeopleIcon />} variant="blue" percentage="+10.2%" trend="up" sparklineData={[5, 6, 8, 10, 12]} />
+        <ModernOverviewCard title="Pending Requests" value={d.pendingRequests || 0} icon={<HourglassEmptyIcon />} variant="purple" percentage="-5.0%" trend="down" sparklineData={[4, 3, 5, 2, 1]} />
+        <ModernOverviewCard title="I Shared With" value={d.iSharedWithCount || 0} icon={<ForwardToInboxIcon />} variant="yellow" percentage="+3.5%" trend="up" sparklineData={[2, 3, 3, 5, 6]} />
+        <ModernOverviewCard title="Shared With Me" value={d.sharedWithMeCount || 0} icon={<MoveToInboxIcon />} variant="red" percentage="+8.1%" trend="up" sparklineData={[1, 3, 4, 6, 8]} />
       </div>
     );
   }
 
   return (
-    <div
-      className={`shared-overview-cards ${mode}-overview-cards`}
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-        gap: "20px",
-        marginBottom: "32px",
-      }}
-    >
-      {/* Total Spending */}
-      <div
-        className="overview-card primary"
-        style={getCardStyleWithBorder(borderColors.primary)}
-        onMouseEnter={hoverEffect}
-        onMouseLeave={removeHoverEffect}
-      >
-        <div className="card-icon" style={cardIconStyle}>
-          💰
-        </div>
-        <div className="card-content">
-          <h3 style={cardTitleStyle}>Total Spending</h3>
-          <div className="card-value" style={cardValueStyle}>
-            {displayCurrency}
-            {Number(totalAmount).toLocaleString()}
-          </div>
-          <div
-            className="card-change positive"
-            style={{ ...cardChangeStyle, color: "#10b981" }}
-          >
-            +{isPayment ? "15.2" : isCategory ? "12.5" : "10.0"}% vs last period
-          </div>
-        </div>
-      </div>
-
-      {/* Top Item / Top Expense Name */}
-      <div
-        className="overview-card secondary"
-        style={getCardStyleWithBorder(borderColors.secondary)}
-        onMouseEnter={hoverEffect}
-        onMouseLeave={removeHoverEffect}
-      >
-        <div className="card-icon" style={cardIconStyle}>
-          🏆
-        </div>
-        <div className="card-content">
-          <h3 style={cardTitleStyle}>
-            {isExpenses
-              ? "Top Expense Name"
-              : isPayment
-                ? "Top Payment Method"
-                : "Top Category"}
-          </h3>
-          <div
-            className="card-value"
-            title={isExpenses ? topExpenseName : topItem?.[nameKey]}
-            style={{
-              ...cardValueStyle,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              maxWidth: "200px",
-              cursor: "pointer",
-            }}
-          >
-            {isExpenses ? topExpenseName : topItem?.[nameKey]}
-          </div>
-          <div
-            className="card-change"
-            style={{
-              ...cardChangeStyle,
-              color: themeMode === "dark" ? "#888" : "#666",
-            }}
-          >
-            {displayCurrency}
-            {(isExpenses
-              ? Number(topExpenseAmount || 0)
-              : Number(topItem?.[amountKey] || 0)
-            ).toLocaleString()}{" "}
-            ({topPercentage}%)
-          </div>
-        </div>
-      </div>
-
-      {/* Avg Transaction */}
-      <div
-        className="overview-card tertiary"
-        style={getCardStyleWithBorder(borderColors.tertiary)}
-        onMouseEnter={hoverEffect}
-        onMouseLeave={removeHoverEffect}
-      >
-        <div className="card-icon" style={cardIconStyle}>
-          {isPayment || isExpenses ? "📊" : "📈"}
-        </div>
-        <div className="card-content">
-          <h3 style={cardTitleStyle}>Avg Transaction</h3>
-          <div className="card-value" style={cardValueStyle}>
-            {displayCurrency}
-            {Math.round(avgTransactionValue)}
-          </div>
-          <div
-            className="card-change negative"
-            style={{ ...cardChangeStyle, color: "#ef4444" }}
-          >
-            -{isPayment ? "3.1" : isCategory ? "5.2" : "4.0"}% vs last period
-          </div>
-        </div>
-      </div>
-
-      {/* Total Transactions */}
-      <div
-        className="overview-card quaternary"
-        style={getCardStyleWithBorder(borderColors.quaternary)}
-        onMouseEnter={hoverEffect}
-        onMouseLeave={removeHoverEffect}
-      >
-        <div className="card-icon" style={cardIconStyle}>
-          🔢
-        </div>
-        <div className="card-content">
-          <h3 style={cardTitleStyle}>Total Transactions</h3>
-          <div className="card-value" style={cardValueStyle}>
-            {totalTransactions}
-          </div>
-          <div
-            className="card-change positive"
-            style={{ ...cardChangeStyle, color: "#10b981" }}
-          >
-            +{isPayment ? "12.8" : isCategory ? "8.7" : "9.3"}% vs last period
-          </div>
-        </div>
-      </div>
+    <div style={containerStyle}>
+      <ModernOverviewCard 
+        title="Total Spending" 
+        value={`${displayCurrency}${Number(totalAmount).toLocaleString()}`} 
+        icon={<WalletIcon />} 
+        variant="blue" 
+        percentage={`+${isPayment ? "15.2" : isCategory ? "12.5" : "10.0"}%`} 
+        trend="up" 
+        sparklineData={[10, 15, 12, 18, 25]} 
+      />
+      <ModernOverviewCard 
+        title={isExpenses ? "Top Expense Name" : isPayment ? "Top Payment Method" : "Top Category"} 
+        value={isExpenses ? topExpenseName : topItem?.[nameKey]} 
+        icon={<EmojiEventsIcon />} 
+        variant="purple" 
+        percentage={`${topPercentage}%`} 
+        trend="up" 
+        sparklineData={[5, 6, 8, 9, 12]} 
+      />
+      <ModernOverviewCard 
+        title="Avg Transaction" 
+        value={`${displayCurrency}${Math.round(avgTransactionValue)}`} 
+        icon={<BarChartIcon />} 
+        variant="yellow" 
+        percentage={`-${isPayment ? "3.1" : isCategory ? "5.2" : "4.0"}%`} 
+        trend="down" 
+        sparklineData={[20, 18, 15, 16, 12]} 
+      />
+      <ModernOverviewCard 
+        title="Total Transactions" 
+        value={totalTransactions} 
+        icon={<TagIcon />} 
+        variant="red" 
+        percentage={`+${isPayment ? "12.8" : isCategory ? "8.7" : "9.3"}%`} 
+        trend="up" 
+        sparklineData={[30, 35, 40, 48, 60]} 
+      />
     </div>
   );
 };
