@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.job.name }}-config
+  labels:
+    app.kubernetes.io/name: {{ .Values.job.name }}
+data:
+  automation-runner.properties: |
+    RUN_MODE={{ .Values.runner.runMode }}
+    AUTOMATION_RUNNER={{ .Values.runner.runnerType }}
+    AUTOMATION_SUITE={{ .Values.runner.suite }}
+    CUCUMBER_FILTER_TAGS={{ .Values.runner.tags }}
+    TEST_ENV={{ .Values.runner.testEnv }}
+    AUTOMATION_ENGINE={{ .Values.runner.engine }}

@@ -23,7 +23,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
 
     Optional<Event> findByIdAndUserId(Integer id, Integer userId);
 
-    @Query("SELECT e FROM Event e WHERE e.userId = :userId AND e.eventName LIKE %:eventName%")
+    @Query("SELECT e FROM Event e WHERE e.userId = :userId AND e.eventName LIKE CONCAT('%', :eventName, '%')")
     List<Event> findByUserIdAndEventNameContaining(@Param("userId") Integer userId, @Param("eventName") String eventName);
 
     @Query("SELECT e FROM Event e WHERE e.userId = :userId AND e.startDate <= :date AND e.endDate >= :date")

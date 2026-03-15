@@ -1,0 +1,5 @@
+{
+  "shareName": "Automation Share ${random.number:3}",
+  "isPublic": "${suite.sharing.default.public}",
+  "resourceRefs": []
+}

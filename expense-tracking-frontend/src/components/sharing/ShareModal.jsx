@@ -91,6 +91,12 @@ const DATA_TYPE_OPTIONS = [
     icon: <BudgetIcon />,
     description: "Share budget information",
   },
+  {
+    value: "GROUPED",
+    label: "Multiple Types",
+    icon: <SearchIcon />,
+    description: "Share a mix of different items",
+  },
 ];
 
 const EXPIRY_OPTIONS = [
@@ -162,6 +168,7 @@ const ShareModal = ({
       if (preSelectedItems && preSelectedItems.length > 0) {
         const formattedItems = preSelectedItems.map((item) => ({
           id: item.internalId || item.id,
+          type: item.type,
           externalRef:
             item.externalRef ||
             `${preSelectedType || "EXPENSE"}_${item.internalId || item.id}`,
@@ -210,7 +217,7 @@ const ShareModal = ({
       case "EXPENSE":
         return expenseList.map((exp) => ({
           id: exp.id,
-          externalRef: exp.externalRef || `EXP_${exp.id}_${exp.date}`,
+          externalRef: exp.externalRef || `EXPENSE_${exp.id}`,
           displayName:
             exp.expense?.name ||
             exp.expense?.expenseName ||
@@ -221,7 +228,7 @@ const ShareModal = ({
       case "CATEGORY":
         return categoryList.map((cat) => ({
           id: cat.id,
-          externalRef: cat.externalRef || `CAT_${cat.id}_${cat.name}`,
+          externalRef: cat.externalRef || `CATEGORY_${cat.id}`,
           displayName: cat.name,
           subtitle: `${cat.expenseCount || 0} expenses`,
           icon: <CategoryIcon />,
@@ -229,11 +236,48 @@ const ShareModal = ({
       case "BUDGET":
         return budgetList.map((budget) => ({
           id: budget.id,
-          externalRef: budget.externalRef || `BUD_${budget.id}_${budget.name}`,
+          externalRef: budget.externalRef || `BUDGET_${budget.id}`,
           displayName: budget.name,
           subtitle: `$${budget.amount} - ${budget.period || "Monthly"}`,
           icon: <BudgetIcon />,
         }));
+      case "GROUPED": {
+        const allItems = [];
+        expenseList.forEach((exp) =>
+          allItems.push({
+            id: exp.id,
+            type: "EXPENSE",
+            externalRef: exp.externalRef || `EXPENSE_${exp.id}`,
+            displayName:
+              exp.expense?.name ||
+              exp.expense?.expenseName ||
+              `Expense #${exp.id}`,
+            subtitle: `Expense • ${exp.date}`,
+            icon: <ReceiptIcon />,
+          })
+        );
+        categoryList.forEach((cat) =>
+          allItems.push({
+            id: cat.id,
+            type: "CATEGORY",
+            externalRef: cat.externalRef || `CATEGORY_${cat.id}`,
+            displayName: cat.name,
+            subtitle: `Category • ${cat.expenseCount || 0} expenses`,
+            icon: <CategoryIcon />,
+          })
+        );
+        budgetList.forEach((budget) =>
+          allItems.push({
+            id: budget.id,
+            type: "BUDGET",
+            externalRef: budget.externalRef || `BUDGET_${budget.id}`,
+            displayName: budget.name,
+            subtitle: `Budget • $${budget.amount}`,
+            icon: <BudgetIcon />,
+          })
+        );
+        return allItems;
+      }
       default:
         return [];
     }
@@ -301,7 +345,7 @@ const ShareModal = ({
     const shareData = {
       resourceType,
       resourceRefs: selectedItems.map((item) => ({
-        type: resourceType,
+        type: item.type || resourceType,
         internalId: item.id,
         externalRef: item.externalRef,
         displayName: item.displayName,

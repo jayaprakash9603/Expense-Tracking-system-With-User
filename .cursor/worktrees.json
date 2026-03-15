@@ -1,0 +1,4 @@
+{
+  "setup-worktree-windows": "cd expense-tracking-frontend && npm install",
+  "setup-worktree-unix": "cd expense-tracking-frontend && npm install"
+}

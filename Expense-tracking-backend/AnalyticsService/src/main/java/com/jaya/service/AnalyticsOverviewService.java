@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 @RequiredArgsConstructor
 public class AnalyticsOverviewService {
@@ -22,7 +24,56 @@ public class AnalyticsOverviewService {
     private final GroupAnalyticsClient groupAnalyticsClient;
 
     public ApplicationOverviewDTO getOverview(String jwt, Integer targetId) {
-        Map<String, Object> summary = expenseService.getExpenseSummary(jwt, targetId);
+        CompletableFuture<Map<String, Object>> summaryFuture = CompletableFuture.supplyAsync(() -> expenseService.getExpenseSummary(jwt, targetId));
+        
+        CompletableFuture<List<Map<String, Object>>> budgetReportsFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return budgetAnalyticsClient.getAllBudgetReportsForUser(jwt, targetId);
+            } catch (Exception ex) {
+                log.warn("Failed to fetch budget reports for analytics overview", ex);
+                return null;
+            }
+        });
+
+        CompletableFuture<Map<String, Object>> friendshipStatsFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return friendshipAnalyticsClient.getFriendshipStats(jwt);
+            } catch (Exception ex) {
+                log.warn("Failed to fetch friendship stats for analytics overview", ex);
+                return null;
+            }
+        });
+
+        CompletableFuture<List<Map<String, Object>>> allGroupsFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return groupAnalyticsClient.getAllUserGroups(jwt);
+            } catch (Exception ex) {
+                log.warn("Failed to fetch group stats for analytics overview", ex);
+                return null;
+            }
+        });
+
+        CompletableFuture<List<Map<String, Object>>> createdGroupsFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return groupAnalyticsClient.getGroupsCreatedByUser(jwt);
+            } catch (Exception ex) {
+                log.warn("Failed to fetch created groups stats for analytics overview", ex);
+                return null;
+            }
+        });
+
+        CompletableFuture<List<Map<String, Object>>> memberGroupsFuture = CompletableFuture.supplyAsync(() -> {
+            try {
+                return groupAnalyticsClient.getGroupsWhereUserIsMember(jwt);
+            } catch (Exception ex) {
+                log.warn("Failed to fetch member groups stats for analytics overview", ex);
+                return null;
+            }
+        });
+
+        CompletableFuture.allOf(summaryFuture, budgetReportsFuture, friendshipStatsFuture, allGroupsFuture, createdGroupsFuture, memberGroupsFuture).join();
+
+        Map<String, Object> summary = summaryFuture.join();
 
         double totalExpenses = extractDouble(summary, "currentMonthLosses");
         double todayExpenses = extractDouble(summary, "todayExpenses");
@@ -35,43 +86,35 @@ public class AnalyticsOverviewService {
 
         int totalBudgets = 0;
         int activeBudgets = 0;
+        List<Map<String, Object>> budgetReports = budgetReportsFuture.join();
+        if (budgetReports != null) {
+            totalBudgets = budgetReports.size();
+            activeBudgets = totalBudgets;
+        }
+
+        int friendsCount = 0;
+        int pendingFriendRequests = 0;
+        Map<String, Object> friendshipStats = friendshipStatsFuture.join();
+        if (friendshipStats != null) {
+            friendsCount = extractInt(friendshipStats, "totalFriends");
+            pendingFriendRequests = extractInt(friendshipStats, "incomingRequests");
+        }
+
         int totalGroups = 0;
         int groupsCreated = 0;
         int groupsMember = 0;
-        int friendsCount = 0;
-        int pendingFriendRequests = 0;
-        try {
-            List<Map<String, Object>> budgetReports = budgetAnalyticsClient.getAllBudgetReportsForUser(jwt, targetId);
-            if (budgetReports != null) {
-                totalBudgets = budgetReports.size();
-                activeBudgets = totalBudgets;
-            }
-        } catch (Exception ex) {
-            log.warn("Failed to fetch budget reports for analytics overview", ex);
-        }
-        try {
-            Map<String, Object> friendshipStats = friendshipAnalyticsClient.getFriendshipStats(jwt);
-            friendsCount = extractInt(friendshipStats, "totalFriends");
-            pendingFriendRequests = extractInt(friendshipStats, "incomingRequests");
-        } catch (Exception ex) {
-            log.warn("Failed to fetch friendship stats for analytics overview", ex);
-        }
-        try {
-            List<Map<String, Object>> allGroups = groupAnalyticsClient.getAllUserGroups(jwt);
-            List<Map<String, Object>> createdGroups = groupAnalyticsClient.getGroupsCreatedByUser(jwt);
-            List<Map<String, Object>> memberGroups = groupAnalyticsClient.getGroupsWhereUserIsMember(jwt);
+        List<Map<String, Object>> allGroups = allGroupsFuture.join();
+        List<Map<String, Object>> createdGroups = createdGroupsFuture.join();
+        List<Map<String, Object>> memberGroups = memberGroupsFuture.join();
 
-            if (allGroups != null) {
-                totalGroups = allGroups.size();
-            }
-            if (createdGroups != null) {
-                groupsCreated = createdGroups.size();
-            }
-            if (memberGroups != null) {
-                groupsMember = memberGroups.size();
-            }
-        } catch (Exception ex) {
-            log.warn("Failed to fetch group stats for analytics overview", ex);
+        if (allGroups != null) {
+            totalGroups = allGroups.size();
+        }
+        if (createdGroups != null) {
+            groupsCreated = createdGroups.size();
+        }
+        if (memberGroups != null) {
+            groupsMember = memberGroups.size();
         }
 
         log.debug(

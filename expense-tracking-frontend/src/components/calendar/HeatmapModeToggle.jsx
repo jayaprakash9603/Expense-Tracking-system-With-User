@@ -3,8 +3,8 @@ import PropTypes from "prop-types";
 import { Box, ButtonBase, Typography } from "@mui/material";
 
 const modes = [
-  { key: "loss", label: "Loss" },
-  { key: "gain", label: "Gain" },
+  { key: "loss", label: "Spending" },
+  { key: "gain", label: "Income" },
   { key: "both", label: "Both" },
 ];
 
@@ -21,6 +21,7 @@ export default function HeatmapModeToggle({
   background,
   borderColor,
   textColor,
+  selectedTextColor = "#fff",
 }) {
   const selectedIndex = getIndex(value);
 
@@ -95,9 +96,9 @@ export default function HeatmapModeToggle({
               sx={{
                 fontWeight: 800,
                 letterSpacing: 0.2,
-                color: selected ? "#0b1220" : textColor,
+                color: selected ? selectedTextColor : textColor,
                 transition: "color 200ms ease",
-                textShadow: selected ? "none" : "0 1px 0 rgba(0,0,0,0.35)",
+                textShadow: selected ? "none" : "0 1px 0 rgba(0,0,0,0.2)",
                 userSelect: "none",
               }}
             >
@@ -118,4 +119,5 @@ HeatmapModeToggle.propTypes = {
   background: PropTypes.string.isRequired,
   borderColor: PropTypes.string.isRequired,
   textColor: PropTypes.string.isRequired,
+  selectedTextColor: PropTypes.string,
 };

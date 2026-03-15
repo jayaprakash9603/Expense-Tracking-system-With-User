@@ -17,7 +17,6 @@ public class ShareWithFriendResponse {
     private String message;
     private Integer friendId;
     private String friendName;
-    private String shareUrl;
     private LocalDateTime sharedAt;
     private String notificationId;
 }

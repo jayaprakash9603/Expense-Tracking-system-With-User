@@ -7,7 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
-import createAppTheme from "./pages/Landingpage/theme";
+import createAppTheme from "./shared/theme/createAppTheme";
 import { getStore, setStore } from "./utils/store";
 import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -28,15 +28,18 @@ setStore(store);
 // Create a wrapper component to access Redux state
 const ThemedApp = () => {
   const mode = store.getState()?.theme?.mode || "dark";
-  const theme = React.useMemo(() => createAppTheme(mode), [mode]);
+  const palette = store.getState()?.theme?.palette || "teal";
+  const theme = React.useMemo(() => createAppTheme(mode, palette), [mode, palette]);
 
   // Subscribe to store changes to update theme
   const [currentTheme, setCurrentTheme] = React.useState(theme);
 
   React.useEffect(() => {
     const unsubscribe = store.subscribe(() => {
-      const newMode = store.getState()?.theme?.mode || "dark";
-      setCurrentTheme(createAppTheme(newMode));
+      const themeState = store.getState()?.theme;
+      const newMode = themeState?.mode || "dark";
+      const newPalette = themeState?.palette || "teal";
+      setCurrentTheme(createAppTheme(newMode, newPalette));
     });
     return unsubscribe;
   }, []);

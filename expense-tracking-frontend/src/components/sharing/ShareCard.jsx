@@ -352,8 +352,7 @@ const ShareCard = ({
           onClick={(e) => {
             e.stopPropagation();
             onCopyLink?.(
-              share.shareUrl ||
-                `${window.location.origin}/share/${share.token}`,
+              `${window.location.origin}/share/${share.token}`,
               share.id,
             );
           }}
@@ -370,7 +369,7 @@ const ShareCard = ({
               fontSize: "0.7rem",
             }}
           >
-            {share.shareUrl || `${window.location.origin}/share/${share.token}`}
+            {`${window.location.origin}/share/${share.token}`}
           </Typography>
           {copied === share.id ? (
             <CheckIcon sx={{ fontSize: 12, color: STATUS_COLORS.active }} />
@@ -414,8 +413,7 @@ const ShareCard = ({
               onClick={(e) => {
                 e.stopPropagation();
                 onCopyLink?.(
-                  share.shareUrl ||
-                    `${window.location.origin}/share/${share.token}`,
+                  `${window.location.origin}/share/${share.token}`,
                   share.id,
                 );
               }}

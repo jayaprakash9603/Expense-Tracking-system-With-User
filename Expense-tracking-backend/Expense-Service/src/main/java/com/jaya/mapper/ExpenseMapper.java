@@ -133,6 +133,7 @@ public class ExpenseMapper {
             if (paymentMethod != null) {
                 dto.setPaymentMethodIcon(paymentMethod.getIcon());
                 dto.setPaymentMethodColor(paymentMethod.getColor());
+                dto.setPaymentMethodId(paymentMethod.getId());
             }
         } catch (Exception e) {
             log.debug("Could not fetch payment method details for name={}, userId={}: {}",
@@ -209,6 +210,7 @@ public class ExpenseMapper {
                 if (paymentMethod != null) {
                     dto.setPaymentMethodIcon(paymentMethod.getIcon());
                     dto.setPaymentMethodColor(paymentMethod.getColor());
+                    dto.setPaymentMethodId(paymentMethod.getId());
                 }
             }
         }

@@ -56,8 +56,8 @@ public class ApplicationConfiguration {
                         .requestMatchers("/api/user/all").permitAll()
                         .requestMatchers("/api/user/by-email").permitAll()
 
-                        .requestMatchers("/api/user/*/roles").hasRole("ADMIN")
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/user/*/roles").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                        .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
 
                         .requestMatchers("/api/user/profile").authenticated()
                         .requestMatchers("/api/user/debug").authenticated()

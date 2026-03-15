@@ -2,11 +2,13 @@ import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Typography, Box, Chip } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
 import { formatDate } from "../utils/dateFormatter";
 import { formatAmount as fmt } from "../utils/formatAmount";
 import { GenericAccordionGroup } from "./GenericAccordionGroup";
+import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 
 /**
  * Budget Accordion Group - uses GenericAccordionGroup for consistent UI
@@ -18,6 +20,24 @@ const BudgetAccordionGroup = ({ budgets }) => {
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
   const isDarkMode = mode === "dark";
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const selectedGlobalIds = useSelector(state => state.sharedSelection?.selectedExpenses || []);
+
+  const handleSelectionChange = useCallback(
+    ({ selectedRowsByGroup }) => {
+      const allSelectedIds = [];
+      Object.values(selectedRowsByGroup).forEach(groupSelection => {
+        Object.keys(groupSelection).forEach(id => {
+          if (groupSelection[id]) {
+            allSelectedIds.push(id);
+          }
+        });
+      });
+      const uniqueIds = Array.from(new Set(allSelectedIds));
+      dispatch(setExpenseSelection(uniqueIds));
+    },
+    [dispatch]
+  );
 
   // Handle expense name click - navigate to view expense page
   const handleNameClick = useCallback(
@@ -347,6 +367,8 @@ const BudgetAccordionGroup = ({ budgets }) => {
         enableRowSearch
         enableRowSortControls
         enableSelection
+        selectedGlobalIds={selectedGlobalIds}
+        onSelectionChange={handleSelectionChange}
         defaultPageSize={5}
         pageSizeOptions={[5, 10, 20, 50]}
         groupPaginationThreshold={5}

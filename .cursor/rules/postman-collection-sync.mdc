@@ -1,0 +1,101 @@
+---
+description: Auto-update Postman collection when backend controller endpoints change
+globs: expense-tracking-backend/**/controller/**/*.java
+alwaysApply: false
+---
+
+# Postman Collection Sync
+
+When any controller file is modified (endpoint added, removed, updated, or renamed), you MUST update the Postman collection.
+
+## What to update
+
+1. **Generator script**: `expense-tracking-backend/generate-postman-collection.py` -- add/remove/modify the endpoint entry in the correct service function
+2. **Regenerate JSON**: Run `python generate-postman-collection.py` from `expense-tracking-backend/` to produce an updated `postman-collection.json`
+
+## How to detect changes
+
+When editing a controller file, check for:
+- New `@GetMapping`, `@PostMapping`, `@PutMapping`, `@PatchMapping`, `@DeleteMapping` methods -- ADD to collection
+- Removed handler methods -- REMOVE from collection
+- Changed paths, HTTP methods, or parameters -- UPDATE in collection
+- Changed `@RequestBody` types -- UPDATE the sample body JSON
+
+## Mapping controller to generator function
+
+| Controller location | Generator function |
+|---|---|
+| `user-service/**/AuthController.java` | `user_service_auth()` |
+| `user-service/**/OAuth2Controller.java` | `user_service_oauth2()` |
+| `user-service/**/MfaController.java` | `user_service_mfa()` |
+| `user-service/**/UserController.java` | `user_service_user()` |
+| `user-service/**/RoleController.java` | `user_service_roles()` |
+| `user-service/**/AdminController.java` | `user_service_admin()` |
+| `user-service/**/AdminAnalyticsController.java` | `user_service_admin_analytics()` |
+| `user-service/**/*PreferenceController.java` | `user_service_report_prefs()` |
+| `Expense-Service/**/ExpenseController.java` | `expense_service_crud()`, `expense_service_summaries()`, `expense_service_filters()`, `expense_service_payment()`, `expense_service_category_budget()`, `expense_service_reports()`, `expense_service_email()`, `expense_service_utilities()` |
+| `Expense-Service/**/UserSettingsController.java` | `expense_service_settings()` |
+| `Expense-Service/**/DailySummaryController.java` | `expense_service_daily_summary()` |
+| `Expense-Service/**/BulkExpenseBudgetController.java` | `expense_service_bulk()` |
+| `Expense-Service/**/EmailLogController.java` | `expense_service_email_logs()` |
+| `Expense-Service/**/ProducerController.java` | `expense_service_kafka()` |
+| `Budget-Service/**/BudgetController.java` | `budget_service()` |
+| `Category-Service/**/CategoryController.java` | `category_service()` |
+| `Bill-Service/**/BillController.java` | `bill_service()` |
+| `Payment-method-Service/**/PaymentMethodController.java` | `payment_service()` |
+| `FriendShip-Service/**/FriendshipController.java` | `friendship_service()` |
+| `FriendShip-Service/**/GroupController.java` | `group_service()` |
+| `FriendShip-Service/**/FriendActivityController.java` | `friend_activity_service()` |
+| `FriendShip-Service/**/ShareController.java` | `share_service()` |
+| `Notification-Service/**/NotificationController.java` | `notification_service()` |
+| `Notification-Service/**/NotificationPreferencesController.java` | `notification_preferences_service()` |
+| `Chat-Service/**/ChatController.java` | `chat_service()` |
+| `Chat-Service/**/PresenceController.java` | `presence_service()` |
+| `Audit-Service/**/*Controller.java` | `audit_service()` |
+| `AnalyticsService/**/AnalyticsController.java` | `analytics_service()` |
+| `Search-Service/**/SearchController.java` | `search_service()` |
+| `Search-Service/**/KeyboardShortcutController.java` | `shortcut_service()` |
+| `Story-Service/**/StoryController.java` | `story_service()` |
+| `Story-Service/**/AdminStoryController.java` | `admin_story_service()` |
+| `Event-Service/**/EventController.java` | `event_service()` |
+
+## Entry format
+
+Use the `req()` helper in the generator script:
+
+```python
+req("Endpoint Name", "METHOD", f"{BASE}/api/path", ["api","path"],
+    query=[q("param","value")],           # optional query params
+    body=body_json({"key": "value"}),      # optional request body
+    auth=noauth(),                         # only for public endpoints
+    events=id_extract_test("varName"))     # only for create endpoints
+```
+
+## Auto-generated test scripts
+
+Every endpoint gets test scripts automatically via the `auto_test(method, name)` function when no custom `events` are passed to `req()`. The auto-tests include:
+
+| HTTP Method | Auto-generated tests |
+|---|---|
+| GET | Status 200, Content-Type JSON, Response body not empty, No server error (500/502/503) |
+| POST (create) | Status 200 or 201, Content-Type JSON, Body not empty, No server error |
+| POST (auth/login) | Status 200, Content-Type JSON, Body not empty, No server error |
+| POST (other) | Status 200, Content-Type JSON, Body not empty, No server error |
+| PUT / PATCH | Status 200, Content-Type JSON, No server error |
+| DELETE | Status 200 or 204, Content-Type JSON (if body present) |
+
+Custom test events override auto-tests. Use these helpers for special endpoints:
+
+| Helper | When to use |
+|---|---|
+| `jwt_extract_test()` | Auth endpoints that return a JWT (signin, signup, refresh, verify-login-otp) |
+| `id_extract_test("varName")` | Create endpoints that return a resource ID to chain into subsequent requests |
+| `status_test(code)` | Simple single status code assertion |
+
+## Rules
+
+- Public endpoints (no JWT required) must have `auth=noauth()`
+- Create endpoints should use `events=id_extract_test("variableName")` to auto-store the created ID
+- Auth endpoints (signin/signup) should use `events=jwt_extract_test()` to auto-store JWT
+- Endpoints without custom `events` automatically get method-appropriate test scripts
+- Always regenerate the JSON after updating the script -- never edit `postman-collection.json` directly

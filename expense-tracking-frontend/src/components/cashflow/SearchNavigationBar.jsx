@@ -25,6 +25,8 @@ const SearchNavigationBar = ({
   placeholder,
   currentFlow,
   autocompleteOptions = [],
+  clearSelection,
+  hasSelections = false,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -60,6 +62,8 @@ const SearchNavigationBar = ({
         addNewOptions={addNewOptions}
         isMobile={isMobile}
         currentFlow={currentFlow}
+        clearSelection={clearSelection}
+        hasSelections={hasSelections}
       />
 
       <style>{`

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Badge } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import { Share2 } from "lucide-react";
 import { useMasking } from "../../hooks/useMasking";
 import { useTheme } from "../../hooks/useTheme";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
@@ -21,6 +23,8 @@ import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
  */
 const HeaderBar = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { mode, colors } = useTheme();
   const { isMasking, toggleMasking } = useMasking();
   const maskingEnabled = isMasking();
@@ -29,6 +33,25 @@ const HeaderBar = () => {
   const { t } = useTranslation();
 
   const isDark = mode === "dark";
+  const headerActionButtonStyle = {
+    backgroundColor: colors.button_inactive,
+    color: colors.icon_default,
+  };
+
+  // Calculate total selected items for sharing
+  const sharedSelection = useSelector((state) => state.sharedSelection) || {
+    selectedExpenses: [],
+    selectedCategories: [],
+    selectedPaymentMethods: [],
+    selectedBills: [],
+    selectedBudgets: [],
+  };
+  const totalSelectedItems =
+    sharedSelection.selectedExpenses.length +
+    sharedSelection.selectedCategories.length +
+    sharedSelection.selectedPaymentMethods.length +
+    sharedSelection.selectedBills.length +
+    sharedSelection.selectedBudgets.length;
 
   const handleThemeToggle = () => {
     dispatch(toggleTheme());
@@ -37,6 +60,82 @@ const HeaderBar = () => {
     const newMode = isDark ? "light" : "dark";
     dispatch(updateUserSettings({ themeMode: newMode })).catch((error) => {
       console.error("Failed to update theme setting:", error);
+    });
+  };
+
+  // Get full lists to map names for CreateSharePage
+  const expenses = useSelector((state) => state.expenses?.expenses);
+  const categories = useSelector((state) => state.categories?.categories);
+  const budgets = useSelector((state) => state.budgets?.budgets);
+
+  const handleShareClick = () => {
+    if (totalSelectedItems === 0) return;
+
+    const expenseList = Array.isArray(expenses) ? expenses : expenses?.content || [];
+    const categoryList = Array.isArray(categories) ? categories : categories?.content || [];
+    const budgetList = Array.isArray(budgets) ? budgets : budgets?.content || [];
+
+    const expenseItems = sharedSelection.selectedExpenses.map((id) => {
+      const exp = expenseList.find((e) => e.id === id);
+      const details = exp?.expense || exp;
+      return {
+        internalId: id,
+        id,
+        externalRef: `EXPENSE_${id}`,
+        displayName: details?.name || details?.expenseName || `Expense #${id}`,
+        subtitle: details?.categoryName || details?.category?.name || "",
+        amount: details?.amount,
+        date: details?.date || details?.createdAt,
+      };
+    });
+
+    const categoryItems = sharedSelection.selectedCategories.map((id) => {
+      const cat = categoryList.find((c) => c.id === id);
+      return {
+        internalId: id,
+        id,
+        externalRef: `CATEGORY_${id}`,
+        displayName: cat?.name || `Category #${id}`,
+      };
+    });
+
+    const budgetItems = sharedSelection.selectedBudgets.map((id) => {
+      const budget = budgetList.find((b) => b.id === id);
+      return {
+        internalId: id,
+        id,
+        externalRef: `BUDGET_${id}`,
+        displayName: budget?.name || `Budget #${id}`,
+      };
+    });
+
+    // CreateSharePage supports one type at a time - use the type with most items
+    const typeCounts = {
+      EXPENSE: expenseItems.length,
+      CATEGORY: categoryItems.length,
+      BUDGET: budgetItems.length,
+    };
+    const preSelectedType =
+      typeCounts.EXPENSE >= typeCounts.CATEGORY && typeCounts.EXPENSE >= typeCounts.BUDGET
+        ? "EXPENSE"
+        : typeCounts.CATEGORY >= typeCounts.BUDGET
+          ? "CATEGORY"
+          : "BUDGET";
+
+    const preSelectedItems =
+      preSelectedType === "EXPENSE"
+        ? expenseItems
+        : preSelectedType === "CATEGORY"
+          ? categoryItems
+          : budgetItems;
+
+    navigate("/my-shares/create", {
+      state: {
+        preSelectedType,
+        preSelectedItems,
+        returnRoute: location.pathname,
+        returnRouteState: location.state,
+      },
     });
   };
 
@@ -64,7 +163,10 @@ const HeaderBar = () => {
         </div>
 
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div
+          className="flex items-center gap-3 sm:gap-4"
+          style={{ color: colors.icon_default }}
+        >
           {/* Inline Search Bar */}
           <div id="header-search">
             <InlineSearchBar />
@@ -76,23 +178,15 @@ const HeaderBar = () => {
             onClick={toggleMasking}
             data-shortcut="masking"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-            style={{
-              backgroundColor: colors.button_inactive,
-            }}
+            style={headerActionButtonStyle}
             title={
               maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
             }
           >
             {maskingEnabled ? (
-              <VisibilityOffIcon
-                className="w-5 h-5"
-                style={{ color: colors.icon_default }}
-              />
+              <VisibilityOffIcon className="w-5 h-5" />
             ) : (
-              <VisibilityIcon
-                className="w-5 h-5"
-                style={{ color: colors.icon_default }}
-              />
+              <VisibilityIcon className="w-5 h-5" />
             )}
           </button>
 
@@ -102,9 +196,7 @@ const HeaderBar = () => {
             onClick={handleThemeToggle}
             data-shortcut="theme"
             className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-            style={{
-              backgroundColor: colors.button_inactive,
-            }}
+            style={headerActionButtonStyle}
             title={
               isDark ? t("header.switchToLight") : t("header.switchToDark")
             }
@@ -113,7 +205,6 @@ const HeaderBar = () => {
               // Sun Icon (Light Mode)
               <svg
                 className="w-5 h-5"
-                style={{ color: "#facc15" }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +219,6 @@ const HeaderBar = () => {
               // Moon Icon (Dark Mode)
               <svg
                 className="w-5 h-5"
-                style={{ color: colors.icon_default }}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -140,6 +230,35 @@ const HeaderBar = () => {
 
           <SystemErrorIndicator isDark={isDark} />
 
+          {/* Share Button */}
+          {totalSelectedItems > 0 && (
+            <div className="relative">
+              <button
+                id="header-share"
+                onClick={handleShareClick}
+                className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                style={headerActionButtonStyle}
+                title={t("header.shareSelected", "Share Selected Items")}
+              >
+                <Badge
+                  badgeContent={totalSelectedItems}
+                  color="primary"
+                  max={99}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.625rem",
+                      height: "16px",
+                      minWidth: "16px",
+                      padding: "0 4px",
+                    },
+                  }}
+                >
+                  <Share2 className="w-5 h-5" />
+                </Badge>
+              </button>
+            </div>
+          )}
+
           {/* Notifications Button */}
           <div className="relative">
             <button
@@ -147,9 +266,7 @@ const HeaderBar = () => {
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               data-shortcut="notifications"
               className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-              style={{
-                backgroundColor: colors.button_inactive,
-              }}
+              style={headerActionButtonStyle}
               title={t("header.notifications")}
             >
               <Badge
@@ -167,7 +284,6 @@ const HeaderBar = () => {
               >
                 <svg
                   className="w-5 h-5"
-                  style={{ color: colors.icon_default }}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
@@ -189,9 +305,7 @@ const HeaderBar = () => {
       <NotificationsPanelRedux
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
-        onNotificationRead={(unreadCount) =>
-          setUnreadNotificationsCount(unreadCount)
-        }
+        onNotificationRead={setUnreadNotificationsCount}
       />
     </>
   );

@@ -65,7 +65,7 @@ const DailySpendingContainer = ({
     return (
       <DailySpendingSkeleton
         timeframe={timeframe}
-        height={height + 20 || skeletonHeight + 20}
+        height={height || skeletonHeight}
       />
     );
   }
@@ -79,6 +79,7 @@ const DailySpendingContainer = ({
       onTypeToggle={handleType}
       loading={loading}
       fillMissingDays={fillMissingDays}
+      height={height}
     />
   );
 };

@@ -1,8 +1,17 @@
 /**
  * Centralized styling functions for Section Customization components.
  * Follows DRY: All theme-aware styles defined once and reused.
+ * Supports dark, light, and multiple palette themes via colors from useTheme().
  * Responsive breakpoints: xs (<600px), sm (600-900px), md (900px+)
  */
+
+// Helper to parse hex to rgb for rgba usage
+const hexToRgb = (hex) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+    : "20, 184, 166";
+};
 
 // Breakpoint values for responsive design
 export const breakpoints = {
@@ -11,84 +20,97 @@ export const breakpoints = {
   md: 1200, // Desktop
 };
 
-export const getDialogStyles = (colors, isDark) => ({
-  paper: {
-    backgroundColor: colors.cardBackground || colors.secondary_bg,
-    color: colors.primary_text,
-    borderRadius: { xs: 0, sm: 3, md: 4 },
-    border: { xs: "none", sm: `1px solid ${colors.border_color}` },
-    boxShadow: isDark
-      ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
-      : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-    backgroundImage: isDark
-      ? "linear-gradient(135deg, rgba(20, 184, 166, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%)"
-      : "linear-gradient(135deg, rgba(20, 184, 166, 0.02) 0%, rgba(6, 182, 212, 0.02) 100%)",
-    maxWidth: { xs: "100%", sm: "95%", md: "1400px", lg: "1600px" },
-    width: { xs: "100%", sm: "auto", md: "98%" },
-    height: { xs: "100%", sm: "auto" },
-    maxHeight: { xs: "100%", sm: "90vh" },
-    margin: { xs: 0, sm: 2 },
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    MozUserSelect: "none",
-    msUserSelect: "none",
-  },
-  backdrop: {
-    backgroundColor: isDark ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
-    backdropFilter: "blur(4px)",
-  },
-});
-
-export const getHeaderStyles = (colors, isDark) => ({
-  container: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    pb: 2.5,
-    pt: 3,
-    px: 3,
-    borderBottom: `1px solid ${colors.border_color}`,
-    background: isDark
-      ? "linear-gradient(180deg, rgba(20, 184, 166, 0.05) 0%, transparent 100%)"
-      : "linear-gradient(180deg, rgba(20, 184, 166, 0.03) 0%, transparent 100%)",
-  },
-  iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 2.5,
-    background: isDark
-      ? "linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)"
-      : "linear-gradient(135deg, rgba(20, 184, 166, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    border: `1px solid ${
-      isDark ? "rgba(20, 184, 166, 0.3)" : "rgba(20, 184, 166, 0.2)"
-    }`,
-  },
-  closeButton: {
-    color: colors.secondary_text,
-    width: 36,
-    height: 36,
-    backgroundColor: isDark
-      ? "rgba(255, 255, 255, 0.05)"
-      : "rgba(0, 0, 0, 0.04)",
-    "&:hover": {
-      backgroundColor: isDark
-        ? "rgba(255, 255, 255, 0.1)"
-        : "rgba(0, 0, 0, 0.08)",
+export const getDialogStyles = (colors, isDark) => {
+  const accentRgb = hexToRgb(colors.primary_accent || "#14b8a6");
+  const secondaryRgb = colors.secondary_accent
+    ? hexToRgb(colors.secondary_accent)
+    : "6, 182, 212";
+  return {
+    paper: {
+      backgroundColor: colors.card_bg || colors.secondary_bg,
       color: colors.primary_text,
+      borderRadius: { xs: 0, sm: 3, md: 4 },
+      border: { xs: "none", sm: `1px solid ${colors.border_color}` },
+      boxShadow: isDark
+        ? "0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+        : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+      backgroundImage: isDark
+        ? `linear-gradient(135deg, rgba(${accentRgb}, 0.03) 0%, rgba(${secondaryRgb}, 0.03) 100%)`
+        : `linear-gradient(135deg, rgba(${accentRgb}, 0.02) 0%, rgba(${secondaryRgb}, 0.02) 100%)`,
+      maxWidth: { xs: "100%", sm: "95%", md: "1400px", lg: "1600px" },
+      width: { xs: "100%", sm: "auto", md: "98%" },
+      height: { xs: "100%", sm: "auto" },
+      maxHeight: { xs: "100%", sm: "90vh" },
+      margin: { xs: 0, sm: 2 },
+      userSelect: "none",
+      WebkitUserSelect: "none",
+      MozUserSelect: "none",
+      msUserSelect: "none",
     },
-  },
-});
+    backdrop: {
+      backgroundColor: isDark ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.5)",
+      backdropFilter: "blur(4px)",
+    },
+  };
+};
+
+export const getHeaderStyles = (colors, isDark) => {
+  const accentRgb = hexToRgb(colors.primary_accent || "#14b8a6");
+  const secondaryRgb = colors.secondary_accent
+    ? hexToRgb(colors.secondary_accent)
+    : "6, 182, 212";
+  return {
+    container: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      pb: 2.5,
+      pt: 3,
+      px: 3,
+      borderBottom: `1px solid ${colors.border_color}`,
+      background: isDark
+        ? `linear-gradient(180deg, rgba(${accentRgb}, 0.05) 0%, transparent 100%)`
+        : `linear-gradient(180deg, rgba(${accentRgb}, 0.03) 0%, transparent 100%)`,
+    },
+    iconBox: {
+      width: 48,
+      height: 48,
+      borderRadius: 2.5,
+      background: isDark
+        ? `linear-gradient(135deg, rgba(${accentRgb}, 0.2) 0%, rgba(${secondaryRgb}, 0.2) 100%)`
+        : `linear-gradient(135deg, rgba(${accentRgb}, 0.15) 0%, rgba(${secondaryRgb}, 0.15) 100%)`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      border: `1px solid rgba(${accentRgb}, ${isDark ? 0.3 : 0.2})`,
+    },
+    closeButton: {
+      color: colors.secondary_text,
+      width: 36,
+      height: 36,
+      backgroundColor: isDark
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(0, 0, 0, 0.04)",
+      "&:hover": {
+        backgroundColor: isDark
+          ? "rgba(255, 255, 255, 0.1)"
+          : "rgba(0, 0, 0, 0.08)",
+        color: colors.primary_text,
+      },
+    },
+  };
+};
 
 export const getDroppableStyles = (
+  colors,
   isDark,
   isDraggingOver,
   variant = "active"
 ) => {
   const isActive = variant === "active";
-  const baseColor = isActive ? "20, 184, 166" : "156, 163, 175";
+  const accentRgb = hexToRgb(colors.primary_accent || "#14b8a6");
+  const baseColor = isActive ? accentRgb : "156, 163, 175";
+  const accentHex = colors.primary_accent || "#14b8a6";
 
   return {
     display: "flex",
@@ -109,7 +131,7 @@ export const getDroppableStyles = (
     padding: isDraggingOver ? 2 : 1.5,
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     border: isDraggingOver
-      ? `3px dashed ${isActive ? "#14b8a6" : isDark ? "#9ca3af" : "#6b7280"}`
+      ? `3px dashed ${isActive ? accentHex : isDark ? "#9ca3af" : "#6b7280"}`
       : `2px dashed ${
           isDark
             ? `rgba(${baseColor}, ${isActive ? "0.25" : "0.2"})`
@@ -151,8 +173,10 @@ export const getDraggableItemStyles = (
   isDragging,
   isActive = true
 ) => {
-  const baseColor = isActive ? "20, 184, 166" : "156, 163, 175";
-  const borderColor = isActive ? "#14b8a6" : isDark ? "#9ca3af" : "#6b7280";
+  const accentRgb = hexToRgb(colors.primary_accent || "#14b8a6");
+  const baseColor = isActive ? accentRgb : "156, 163, 175";
+  const accentHex = colors.primary_accent || "#14b8a6";
+  const borderColor = isActive ? accentHex : isDark ? "#9ca3af" : "#6b7280";
 
   return {
     display: "flex",
@@ -163,7 +187,7 @@ export const getDraggableItemStyles = (
       ? isDark
         ? `rgba(${baseColor}, 0.12)`
         : `rgba(${baseColor}, 0.08)`
-      : colors.cardBackground || colors.secondary_bg,
+      : colors.card_bg || colors.secondary_bg,
     border: `1.5px solid ${
       isDragging
         ? borderColor
@@ -177,10 +201,10 @@ export const getDraggableItemStyles = (
     boxShadow: isDragging
       ? isDark
         ? `0 8px 16px -4px rgba(0, 0, 0, 0.4)${
-            isActive ? ", 0 0 0 1px rgba(20, 184, 166, 0.3)" : ""
+            isActive ? `, 0 0 0 1px rgba(${accentRgb}, 0.3)` : ""
           }`
         : `0 8px 16px -4px rgba(0, 0, 0, 0.2)${
-            isActive ? ", 0 0 0 1px rgba(20, 184, 166, 0.2)" : ""
+            isActive ? `, 0 0 0 1px rgba(${accentRgb}, 0.2)` : ""
           }`
       : "none",
     transform: "scale(1)",
@@ -203,20 +227,20 @@ export const getDraggableItemStyles = (
   };
 };
 
-export const getChipStyles = (isDark, variant = "type") => {
+export const getChipStyles = (colors, isDark, variant = "type") => {
+  const successColor = colors.success || "#4ade80";
+  const successRgb = hexToRgb(successColor);
   if (variant === "active") {
     return {
       backgroundColor: isDark
-        ? "rgba(74, 222, 128, 0.15)"
-        : "rgba(34, 197, 94, 0.12)",
-      color: isDark ? "#4ade80" : "#16a34a",
+        ? `rgba(${successRgb}, 0.15)`
+        : `rgba(${successRgb}, 0.12)`,
+      color: successColor,
       fontWeight: 600,
       fontSize: "0.75rem",
       height: 28,
-      border: `1px solid ${
-        isDark ? "rgba(74, 222, 128, 0.3)" : "rgba(34, 197, 94, 0.2)"
-      }`,
-      "& .MuiChip-icon": { color: isDark ? "#4ade80" : "#16a34a" },
+      border: `1px solid rgba(${successRgb}, ${isDark ? 0.3 : 0.2})`,
+      "& .MuiChip-icon": { color: successColor },
     };
   }
 
@@ -236,37 +260,43 @@ export const getChipStyles = (isDark, variant = "type") => {
     };
   }
 
-  // Type chip (Full, Half, Bottom)
+  // Type chip (Full, Half, Bottom) - uses primary accent for consistency
+  const accentHex = colors.primary_accent || "#6366f1";
+  const accentRgb = hexToRgb(accentHex);
   return {
     height: 18,
     fontSize: "0.6rem",
     fontWeight: 600,
     backgroundColor: isDark
-      ? "rgba(99, 102, 241, 0.15)"
-      : "rgba(99, 102, 241, 0.1)",
-    color: isDark ? "#a5b4fc" : "#6366f1",
+      ? `rgba(${accentRgb}, 0.15)`
+      : `rgba(${accentRgb}, 0.1)`,
+    color: accentHex,
     "& .MuiChip-label": { px: 0.8 },
   };
 };
 
 export const getButtonStyles = (isDark, colors, variant = "primary") => {
+  const accentHex = colors.primary_accent || "#14b8a6";
+  const accentRgb = hexToRgb(accentHex);
+  const gradientBg = colors.gradient_bg || `linear-gradient(135deg, ${accentHex} 0%, ${colors.secondary_accent || "#0891b2"} 100%)`;
   if (variant === "primary") {
     return {
-      background: "linear-gradient(135deg, #14b8a6 0%, #0891b2 100%)",
-      color: "#fff",
+      background: gradientBg,
+      color: colors.button_text || "#fff",
       textTransform: "none",
       fontWeight: 700,
       px: 3.5,
       py: 1,
       borderRadius: 2,
       boxShadow: isDark
-        ? "0 4px 12px -2px rgba(20, 184, 166, 0.4)"
-        : "0 4px 12px -2px rgba(20, 184, 166, 0.3)",
+        ? `0 4px 12px -2px rgba(${accentRgb}, 0.4)`
+        : `0 4px 12px -2px rgba(${accentRgb}, 0.3)`,
       "&:hover": {
-        background: "linear-gradient(135deg, #0d9488 0%, #06748c 100%)",
+        background: gradientBg,
+        filter: "brightness(0.95)",
         boxShadow: isDark
-          ? "0 6px 16px -4px rgba(20, 184, 166, 0.5)"
-          : "0 6px 16px -4px rgba(20, 184, 166, 0.4)",
+          ? `0 6px 16px -4px rgba(${accentRgb}, 0.5)`
+          : `0 6px 16px -4px rgba(${accentRgb}, 0.4)`,
         transform: "translateY(-1px)",
       },
       "&:active": { transform: "translateY(0)" },
@@ -329,14 +359,15 @@ export const getMoveButtonStyles = (
   direction = "right"
 ) => {
   const isRight = direction === "right";
-  const baseColor = isRight ? "20, 184, 166" : "156, 163, 175";
-  const accentColor = isRight ? "#14b8a6" : isDark ? "#9ca3af" : "#6b7280";
+  const accentRgb = hexToRgb(colors.primary_accent || "#14b8a6");
+  const baseColor = isRight ? accentRgb : "156, 163, 175";
+  const accentColor = isRight ? (colors.primary_accent || "#14b8a6") : isDark ? "#9ca3af" : "#6b7280";
 
   return {
     backgroundColor: isDark
       ? `rgba(${baseColor}, 0.1)`
       : `rgba(${baseColor}, 0.08)`,
-    color: isRight ? "#14b8a6" : `${accentColor} !important`,
+    color: isRight ? (colors.primary_accent || "#14b8a6") : `${accentColor} !important`,
     width: 40,
     height: 40,
     border: isEnabled ? `2px solid ${accentColor}` : "none",
@@ -345,7 +376,7 @@ export const getMoveButtonStyles = (
         ? `rgba(${baseColor}, 0.2)`
         : `rgba(${baseColor}, 0.15)`,
       transform: "scale(1.1)",
-      color: isRight ? "#14b8a6" : `${accentColor} !important`,
+      color: isRight ? (colors.primary_accent || "#14b8a6") : `${accentColor} !important`,
     },
     "&:disabled": {
       backgroundColor: "transparent",

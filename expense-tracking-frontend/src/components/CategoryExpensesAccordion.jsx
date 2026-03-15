@@ -1,10 +1,12 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 import { getCategoryIcon } from "../utils/iconMapping";
+import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 
 const getExpenseDetails = (row) => row?.expense || row?.details || row || {};
 const getNormalizedType = (row) => {
@@ -31,6 +33,33 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
   const settings = useUserSettings();
   const { colors, mode } = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const selectedGlobalIds = useSelector(state => state.sharedSelection?.selectedExpenses || []);
+
+  // Clear selections on unmount (optional, but good practice if leaving the report)
+  useEffect(() => {
+    return () => {
+      dispatch(setExpenseSelection([]));
+    };
+  }, [dispatch]);
+
+  const handleSelectionChange = useCallback(
+    ({ selectedRowsByGroup }) => {
+      // Flatten the selected keys across all groups
+      const allSelectedIds = [];
+      Object.values(selectedRowsByGroup).forEach(groupSelection => {
+        Object.keys(groupSelection).forEach(id => {
+          if (groupSelection[id]) {
+            allSelectedIds.push(id);
+          }
+        });
+      });
+      // Deduplicate
+      const uniqueIds = Array.from(new Set(allSelectedIds));
+      dispatch(setExpenseSelection(uniqueIds));
+    },
+    [dispatch]
+  );
 
   // Navigate to view expense page
   const handleNameClick = useCallback(
@@ -188,6 +217,8 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
           enableRowSearch
           enableRowSortControls
           enableSelection
+          selectedGlobalIds={selectedGlobalIds}
+          onSelectionChange={handleSelectionChange}
           classify={classify}
           columns={columns}
           defaultPageSize={5}

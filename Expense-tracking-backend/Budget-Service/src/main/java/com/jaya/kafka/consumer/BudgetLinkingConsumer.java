@@ -40,7 +40,33 @@ public class BudgetLinkingConsumer {
                     break;
 
                 case BUDGET_EXPENSE_LINK_UPDATE:
-                    log.info("Budget-Expense link update (internal handling)");
+                    log.debug("Budget-Expense link update (internal handling)");
+                    break;
+
+                case EXPENSE_BUDGET_LINK_UPDATE:
+                    log.debug("Expense-Budget link update (handled by Expense Service): expense={}", event.getNewExpenseId());
+                    break;
+
+                case BUDGET_DELETED_REMOVE_FROM_EXPENSES:
+                    log.debug("Budget deleted remove from expenses (handled by Expense Service): expense={}", event.getNewExpenseId());
+                    break;
+
+                case BUDGET_EXPENSE_BATCH_LINK_UPDATE:
+                    log.debug("Batch link update (handled by Expense Service): {} expenses, budget={}", 
+                        event.getExpenseIds() != null ? event.getExpenseIds().size() : 0, event.getNewBudgetId());
+                    break;
+
+                case BUDGET_EXPENSE_BATCH_REMOVE:
+                    log.debug("Batch remove (handled by Expense Service): {} expenses", 
+                        event.getExpenseIds() != null ? event.getExpenseIds().size() : 0);
+                    break;
+
+                case EXPENSE_EDITED_ADD_TO_BUDGETS:
+                    handleExpenseEditedAddToBudgets(event);
+                    break;
+
+                case EXPENSE_EDITED_REMOVE_FROM_BUDGETS:
+                    handleExpenseEditedRemoveFromBudgets(event);
                     break;
 
                 default:
@@ -158,5 +184,45 @@ public class BudgetLinkingConsumer {
 
     public Long getNewExpenseId(Long oldExpenseId) {
         return oldToNewExpenseIds.get(oldExpenseId);
+    }
+
+    private void handleExpenseEditedAddToBudgets(ExpenseBudgetLinkingEvent event) {
+        try {
+            log.info("Handling EXPENSE_EDITED_ADD_TO_BUDGETS: expense={}, budgets={}",
+                    event.getNewExpenseId(), event.getNewBudgetIds());
+
+            if (event.getNewExpenseId() == null || event.getNewBudgetIds() == null || event.getNewBudgetIds().isEmpty()) {
+                log.warn("Invalid EXPENSE_EDITED_ADD_TO_BUDGETS event - missing expense ID or budget IDs");
+                return;
+            }
+
+            bulkBudgetLinkingService.addExpenseToMultipleBudgets(
+                    event.getNewExpenseId(),
+                    event.getNewBudgetIds(),
+                    event.getUserId().intValue());
+
+        } catch (Exception e) {
+            log.error("Error handling EXPENSE_EDITED_ADD_TO_BUDGETS", e);
+        }
+    }
+
+    private void handleExpenseEditedRemoveFromBudgets(ExpenseBudgetLinkingEvent event) {
+        try {
+            log.info("Handling EXPENSE_EDITED_REMOVE_FROM_BUDGETS: expense={}, budgets={}",
+                    event.getNewExpenseId(), event.getBudgetIdsToRemove());
+
+            if (event.getNewExpenseId() == null || event.getBudgetIdsToRemove() == null || event.getBudgetIdsToRemove().isEmpty()) {
+                log.warn("Invalid EXPENSE_EDITED_REMOVE_FROM_BUDGETS event - missing expense ID or budget IDs");
+                return;
+            }
+
+            bulkBudgetLinkingService.removeExpenseFromMultipleBudgets(
+                    event.getNewExpenseId(),
+                    event.getBudgetIdsToRemove(),
+                    event.getUserId().intValue());
+
+        } catch (Exception e) {
+            log.error("Error handling EXPENSE_EDITED_REMOVE_FROM_BUDGETS", e);
+        }
     }
 }

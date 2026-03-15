@@ -1,4 +1,7 @@
 import dayjs from "dayjs";
+import isoWeek from "dayjs/plugin/isoWeek";
+
+dayjs.extend(isoWeek);
 
 function safeNumber(value) {
   const num = Number(value);
@@ -87,8 +90,8 @@ export function computeWeekOverWeekSpendingVelocity({
     return { percentChange: null, currentWeekTotal: 0, previousWeekTotal: 0 };
   }
 
-  const weekStart = anchor.startOf("week");
-  const weekEnd = anchor.endOf("week");
+  const weekStart = anchor.startOf("isoWeek");
+  const weekEnd = anchor.endOf("isoWeek");
   const prevWeekStart = weekStart.subtract(7, "day");
   const prevWeekEnd = weekEnd.subtract(7, "day");
 

@@ -35,16 +35,16 @@ public class StoryWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         registry.addEndpoint("/ws-stories")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
-                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app", "https://jjayaprakash.netlify.app")
                 .withSockJS();
 
         registry.addEndpoint("/stories-ws")
                 .setAllowedOriginPatterns("http://localhost:*", "https://localhost:*", "http://127.0.0.1:*",
-                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app")
+                        "https://127.0.0.1:*", "https://jayaprakash.netlify.app", "https://jjayaprakash.netlify.app")
                 .withSockJS();
     }
 
-    @Bean
+    @Bean("storyCorsConfigurationSource")
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(Arrays.asList(
@@ -52,7 +52,8 @@ public class StoryWebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 "https://localhost:*",
                 "http://127.0.0.1:*",
                 "https://127.0.0.1:*",
-                "https://jayaprakash.netlify.app"));
+                "https://jayaprakash.netlify.app",
+                "https://jjayaprakash.netlify.app"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);

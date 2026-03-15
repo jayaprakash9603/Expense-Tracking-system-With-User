@@ -115,6 +115,7 @@ public interface ExpenseService {
         void deleteExpense(Integer id, Integer userId) throws Exception;
 
         List<String> getTopExpenseNames(int topN, Integer userId);
+        List<Map<String, String>> getTopExpenseNamesAsMap(int topN, Integer userId);
 
         Map<String, Object> getMonthlySpendingInsights(int year, int month, Integer userId);
 

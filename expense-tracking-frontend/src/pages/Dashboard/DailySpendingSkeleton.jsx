@@ -30,7 +30,7 @@ const DailySpendingSkeleton = ({
   const isTablet = useMediaQuery("(max-width:1024px)");
 
   // Responsive height calculation matching actual chart
-  const computed = isMobile ? 180 : isTablet ? 220 : 260;
+  const computed = isMobile ? 220 : isTablet ? 260 : 300;
   const chartHeight = overrideHeight || computed;
 
   // Skeleton shimmer style
@@ -69,10 +69,9 @@ const DailySpendingSkeleton = ({
     <div
       className="chart-container daily-spending-chart skeleton"
       style={{
+        position: "relative",
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
-        borderRadius: "12px",
-        padding: isMobile ? "16px" : "20px",
       }}
     >
       {/* Header */}

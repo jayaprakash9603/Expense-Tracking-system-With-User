@@ -1,0 +1,8 @@
+**/target/
+**/allure-results/
+**/allure-report/
+**/reports/
+**/artifacts/
+*.log
+*.tmp
+*.allure

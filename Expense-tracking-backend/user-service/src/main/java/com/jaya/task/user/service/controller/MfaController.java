@@ -78,7 +78,13 @@ public class MfaController {
     @GetMapping("/status")
     public ResponseEntity<?> getMfaStatus(@RequestHeader("Authorization") String jwt) {
         try {
-            String email = JwtProvider.getEmailFromJwt(jwt);
+            String email;
+            try {
+                email = JwtProvider.getEmailFromJwt(jwt);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or missing token"));
+            }
             User user = userRepository.findByEmail(email);
 
             if (user == null) {
@@ -125,7 +131,13 @@ public class MfaController {
     @PostMapping("/setup")
     public ResponseEntity<?> setupMfa(@RequestHeader("Authorization") String jwt) {
         try {
-            String email = JwtProvider.getEmailFromJwt(jwt);
+            String email;
+            try {
+                email = JwtProvider.getEmailFromJwt(jwt);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or missing token"));
+            }
             User user = userRepository.findByEmail(email);
 
             if (user == null) {
@@ -172,7 +184,13 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody MfaEnableRequest request) {
         try {
-            String email = JwtProvider.getEmailFromJwt(jwt);
+            String email;
+            try {
+                email = JwtProvider.getEmailFromJwt(jwt);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or missing token"));
+            }
             User user = userRepository.findByEmail(email);
 
             if (user == null) {
@@ -350,7 +368,13 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody MfaDisableRequest request) {
         try {
-            String email = JwtProvider.getEmailFromJwt(jwt);
+            String email;
+            try {
+                email = JwtProvider.getEmailFromJwt(jwt);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or missing token"));
+            }
             User user = userRepository.findByEmail(email);
 
             if (user == null) {
@@ -424,7 +448,13 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody Map<String, String> request) {
         try {
-            String email = JwtProvider.getEmailFromJwt(jwt);
+            String email;
+            try {
+                email = JwtProvider.getEmailFromJwt(jwt);
+            } catch (Exception ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Invalid or missing token"));
+            }
             User user = userRepository.findByEmail(email);
 
             if (user == null) {

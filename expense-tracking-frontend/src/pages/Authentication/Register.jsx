@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { registerUserAction } from "../../Redux/Auth/auth.action";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { API_BASE_URL } from "../../config/api";
@@ -145,39 +145,41 @@ const Register = () => {
   };
 
   // Function to get the first error message in priority order
-  const getFirstError = (errors, touched, values) => {
+  const getFirstError = (errors, values, submitCount) => {
+    if (submitCount === 0 && !emailError) return null;
+
     const requiredFields = [
-      { name: "firstName", label: errors.firstName },
-      { name: "lastName", label: errors.lastName },
-      { name: "email", label: errors.email },
-      { name: "password", label: errors.password },
-      // gender removed from required list
+      { name: "firstName" },
+      { name: "lastName" },
+      { name: "email" },
+      { name: "password" },
     ];
-    const emptyTouchedErrors = requiredFields.filter(
-      (f) => touched[f.name] && !values[f.name] && errors[f.name],
+    const emptyErrors = requiredFields.filter(
+      (f) => !values[f.name] && errors[f.name],
     );
-    if (emptyTouchedErrors.length >= 2) {
+    if (submitCount > 0 && emptyErrors.length >= 2) {
       return "Enter all the mandatory fields";
     }
     // Single field error precedence (same original priority)
-    if (touched.firstName && errors.firstName) return errors.firstName;
-    if (touched.lastName && errors.lastName) return errors.lastName;
-    if (touched.email && errors.email) return errors.email;
+    if (submitCount > 0 && errors.firstName) return errors.firstName;
+    if (submitCount > 0 && errors.lastName) return errors.lastName;
+    if (submitCount > 0 && errors.email) return errors.email;
     if (emailError) return emailError;
-    if (touched.password && errors.password) return errors.password;
+    if (submitCount > 0 && errors.password) return errors.password;
     // gender no longer required
     return null;
   };
 
   return (
     <>
+      <h2 className="text-2xl font-semibold text-[#d8fffb] mb-2 mt-2 text-center">Register</h2>
       <Formik
         onSubmit={handleSubmit}
         validationSchema={validationSchema}
         initialValues={initialValues}
       >
-        {({ values, setFieldValue, errors, touched }) => {
-          const currentError = getFirstError(errors, touched, values);
+        {({ values, setFieldValue, errors, touched, submitCount }) => {
+          const currentError = getFirstError(errors, values, submitCount);
 
           return (
             <Form className="space-y-4 p-4" noValidate>
@@ -208,7 +210,7 @@ const Register = () => {
                   variant="outlined"
                   fullWidth
                   error={
-                    touched.firstName && !!errors.firstName && !values.firstName
+                    submitCount > 0 && !!errors.firstName && !values.firstName
                   }
                   InputProps={{
                     style: {
@@ -236,7 +238,7 @@ const Register = () => {
                   variant="outlined"
                   fullWidth
                   error={
-                    touched.lastName && !!errors.lastName && !values.lastName
+                    submitCount > 0 && !!errors.lastName && !values.lastName
                   }
                   InputProps={{
                     style: {
@@ -264,7 +266,7 @@ const Register = () => {
                   variant="outlined"
                   fullWidth
                   error={
-                    ((touched.email && !!errors.email) || !!emailError) &&
+                    ((submitCount > 0 && !!errors.email) || !!emailError) &&
                     !values.email
                   }
                   onBlur={() => checkEmailAvailability(values.email)}
@@ -297,7 +299,7 @@ const Register = () => {
                       variant="outlined"
                       fullWidth
                       error={
-                        touched.password &&
+                        submitCount > 0 &&
                         !!errors.password &&
                         !values.password
                       }
@@ -339,6 +341,7 @@ const Register = () => {
 
               <div>
                 <RadioGroup
+                  value={gender}
                   onChange={(e) => {
                     setGender(e.target.value);
                     setFieldValue("gender", e.target.value);
@@ -350,13 +353,35 @@ const Register = () => {
                 >
                   <FormControlLabel
                     value="female"
-                    control={<Radio style={{ color: "#14b8a6" }} />}
+                    control={
+                      <Radio 
+                        style={{ color: "#14b8a6" }} 
+                        onClick={(e) => {
+                          if (gender === "female") {
+                            e.preventDefault();
+                            setGender("");
+                            setFieldValue("gender", "");
+                          }
+                        }}
+                      />
+                    }
                     label="Female"
                     className="text-gray-400"
                   />
                   <FormControlLabel
                     value="male"
-                    control={<Radio style={{ color: "#14b8a6" }} />}
+                    control={
+                      <Radio 
+                        style={{ color: "#14b8a6" }} 
+                        onClick={(e) => {
+                          if (gender === "male") {
+                            e.preventDefault();
+                            setGender("");
+                            setFieldValue("gender", "");
+                          }
+                        }}
+                      />
+                    }
                     label="Male"
                     className="text-gray-400"
                   />

@@ -429,7 +429,10 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
               </button>
             )}
             <button
-              onClick={clearAll}
+              onClick={() => {
+                clearAll();
+                onClose();
+              }}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
               style={{
                 backgroundColor: `${colors.primary_accent}20`,
@@ -532,6 +535,9 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     deleteNotification(notification.id);
+                                    if (displayedNotifications.length <= 1) {
+                                      onClose();
+                                    }
                                   }}
                                   className="p-1 rounded hover:bg-opacity-10 transition-colors"
                                   style={{ color: colors.secondary_text }}

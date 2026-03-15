@@ -533,6 +533,11 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public List<Map<String, String>> getTopExpenseNamesAsMap(int topN, Integer userId) {
+        return expenseUtilityService.getTopExpenseNamesAsMap(topN, userId);
+    }
+
+    @Override
     public List<String> getTopPaymentMethods(Integer userId) {
         return expenseUtilityService.getTopPaymentMethods(userId);
     }

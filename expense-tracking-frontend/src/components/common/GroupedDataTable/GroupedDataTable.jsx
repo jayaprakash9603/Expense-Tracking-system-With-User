@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import Checkbox from "@mui/material/Checkbox";
 import { formatAmount as fmt } from "../../../utils/formatAmount";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
@@ -156,6 +157,9 @@ const GroupedDataTable = ({
   const ROW_HEIGHT = 48;
   const headerHeight = 48;
   const useScroll = pageSize > BASE_VISIBLE_ROWS;
+  // Only show scroll when we actually have more rows than visible area
+  const hasMoreRowsThanVisible = pageSlice.length > BASE_VISIBLE_ROWS;
+  const needsScrollContainer = useScroll && hasMoreRowsThanVisible;
   // If pageSlice is smaller than pageSize (e.g. last page), do we fill?
   // GenericAccordionGroup logic:
   const effectiveRows = pageSlice.length + (pageSlice.length === 0 ? 1 : 0);
@@ -168,14 +172,14 @@ const GroupedDataTable = ({
       <div
         className="pm-expense-table-wrapper"
         style={
-          useScroll
+          needsScrollContainer
             ? {
                 maxHeight: headerHeight + BASE_VISIBLE_ROWS * ROW_HEIGHT,
                 overflowY: "auto",
               }
             : {
-                maxHeight: headerHeight + pageSize * ROW_HEIGHT,
                 overflow: "hidden",
+                maxHeight: "none",
               }
         }
       >
@@ -199,18 +203,19 @@ const GroupedDataTable = ({
             <tr>
               {enableSelection && !rowRender ? (
                 <th className="pm-select-col">
-                  <input
-                    type="checkbox"
-                    className="pm-select-checkbox"
+                  <Checkbox
                     checked={!!allRowsSelected}
-                    ref={(el) => {
-                      if (el) el.indeterminate = !!anyRowsSelected;
-                    }}
+                    indeterminate={!!anyRowsSelected}
                     onChange={(e) => {
                       if (onSelectAll)
                         onSelectAll(sortedRows, e.target.checked);
                     }}
-                    aria-label="Select all rows"
+                    sx={{
+                      color: "var(--pm-text-secondary, #aaa)",
+                      "&.Mui-checked, &.MuiCheckbox-indeterminate": { color: "var(--pm-accent-color, #00dac6)" },
+                      padding: "4px"
+                    }}
+                    inputProps={{ "aria-label": "Select all rows" }}
                   />
                 </th>
               ) : null}
@@ -321,17 +326,28 @@ const GroupedDataTable = ({
               }
 
               return (
-                <tr key={rowKey}>
+                <tr key={rowKey} onClick={(e) => {
+                  // Only toggle if clicking the row, not if clicking the checkbox directly
+                  if (enableSelection && e.target.type !== "checkbox" && e.target.tagName !== "INPUT" && !e.target.closest('.MuiCheckbox-root') && !e.target.closest('.MuiButtonBase-root')) {
+                    if (onRowSelect) {
+                      onRowSelect(row, !isSelected, actualIndex);
+                    }
+                  }
+                }} style={enableSelection ? { cursor: "pointer" } : {}}>
                   {enableSelection ? (
                     <td className="pm-select-cell">
-                      <input
-                        type="checkbox"
-                        className="pm-select-checkbox"
+                      <Checkbox
                         checked={!!isSelected}
                         onChange={(e) =>
                           onRowSelect &&
                           onRowSelect(row, e.target.checked, actualIndex)
                         }
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{
+                          color: "var(--pm-text-secondary, #aaa)",
+                          "&.Mui-checked": { color: "var(--pm-accent-color, #00dac6)" },
+                          padding: "4px"
+                        }}
                       />
                     </td>
                   ) : null}
@@ -386,39 +402,38 @@ const GroupedDataTable = ({
         <div
           className="pm-pagination-bar bottom"
           style={{
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
             alignItems: "center",
-            justifyContent: "space-between",
-            position: "relative",
             borderTop: "1px solid var(--pm-border-color, #e5e7eb)",
-            padding: "16px 20px",
-            backgroundColor: "var(--pm-bg-secondary, transparent)", // Ensure background matches/is consistent
+            padding: "8px 20px",
+            marginTop: "0px",
+            backgroundColor: "var(--pm-bg-secondary, transparent)",
+            gap: "12px",
           }}
         >
-          {enableSelection && selectedCount > 0 && (
-            <div
-              className="pm-selection-count"
-              style={{
-                fontSize: "14px",
-                color: "var(--pm-primary-accent, #00dac6)",
-                fontWeight: "500",
-                marginLeft: "0",
-              }}
-            >
-              {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
-            </div>
-          )}
-          {(!enableSelection || selectedCount === 0) && (
-            <div style={{ width: "1px", minHeight: "21px" }}></div>
-          )}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
+            {enableSelection && selectedCount > 0 && (
+              <div
+                className="pm-selection-count"
+                style={{
+                  fontSize: "14px",
+                  color: "var(--pm-accent-color, #00dac6)",
+                  fontWeight: "500",
+                  marginLeft: "0",
+                }}
+              >
+                {selectedCount} row{selectedCount !== 1 ? "s" : ""} selected
+              </div>
+            )}
+          </div>
           <div
             className="pm-page-controls pm-centered"
             style={{
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
+              minWidth: 0,
             }}
           >
             <button
@@ -438,10 +453,10 @@ const GroupedDataTable = ({
             >
               ‹
             </button>
-            <span className="pm-page-indicator">
-              {start + 1}-{Math.min(start + pageSize, totalFiltered)} of{" "}
-              {totalFiltered}
-            </span>
+          <span className="pm-page-indicator">
+            {totalFiltered === 0 ? 0 : start + 1}-{Math.min(start + pageSize, totalFiltered)} of{" "}
+            {totalFiltered}
+          </span>
             <button
               type="button"
               className="pm-page-btn"
@@ -460,7 +475,7 @@ const GroupedDataTable = ({
               ›
             </button>
           </div>
-          <div className="pm-page-size pm-right">
+          <div className="pm-page-size pm-right" style={{ display: "flex", justifyContent: "flex-end", position: "relative" }}>
             <label>
               <span className="pm-page-size-label">Rows per page:</span>
               <select value={pageSize} onChange={handlePageSizeChange}>

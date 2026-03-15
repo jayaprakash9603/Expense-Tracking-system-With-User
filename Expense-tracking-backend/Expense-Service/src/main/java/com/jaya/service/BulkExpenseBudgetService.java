@@ -763,6 +763,87 @@ public class BulkExpenseBudgetService {
         log.info("Published expense-BudgetModel link update event for expense: {}, BudgetModel: {}", expenseId, budgetId);
     }
 
+    @Transactional
+    public void batchAddBudgetIdToExpenses(List<Long> expenseIds, Long budgetId, Long userId) {
+        log.info("Batch adding budgetId={} to {} expenses for userId={}", budgetId, expenseIds.size(), userId);
+
+        List<Integer> expenseIdInts = expenseIds.stream()
+                .map(Long::intValue)
+                .collect(Collectors.toList());
+
+        List<Expense> expenses = expenseRepository.findAllById(expenseIdInts);
+
+        if (expenses.isEmpty()) {
+            log.warn("No expenses found for the given IDs: {}", expenseIds);
+            return;
+        }
+
+        int updatedCount = 0;
+        for (Expense expense : expenses) {
+            if (!expense.getUserId().equals(userId.intValue())) {
+                log.warn("Skipping expense {} - userId mismatch (expected={}, actual={})",
+                        expense.getId(), userId, expense.getUserId());
+                continue;
+            }
+
+            if (expense.getBudgetIds() == null) {
+                expense.setBudgetIds(new HashSet<>());
+            }
+
+            if (expense.getBudgetIds().add(budgetId.intValue())) {
+                updatedCount++;
+            }
+        }
+
+        if (updatedCount > 0) {
+            expenseRepository.saveAll(expenses);
+        }
+
+        log.info("Batch add complete: updated {} of {} expenses with budgetId={}",
+                updatedCount, expenses.size(), budgetId);
+    }
+
+    @Transactional
+    public void batchRemoveBudgetIdFromExpenses(List<Long> expenseIds, List<Long> budgetIdsToRemove, Long userId) {
+        log.info("Batch removing {} budgetIds from {} expenses for userId={}",
+                budgetIdsToRemove.size(), expenseIds.size(), userId);
+
+        List<Integer> expenseIdInts = expenseIds.stream()
+                .map(Long::intValue)
+                .collect(Collectors.toList());
+
+        List<Expense> expenses = expenseRepository.findAllById(expenseIdInts);
+
+        if (expenses.isEmpty()) {
+            log.warn("No expenses found for the given IDs: {}", expenseIds);
+            return;
+        }
+
+        Set<Integer> budgetIdIntsToRemove = budgetIdsToRemove.stream()
+                .map(Long::intValue)
+                .collect(Collectors.toSet());
+
+        int updatedCount = 0;
+        for (Expense expense : expenses) {
+            if (!expense.getUserId().equals(userId.intValue())) {
+                log.warn("Skipping expense {} - userId mismatch (expected={}, actual={})",
+                        expense.getId(), userId, expense.getUserId());
+                continue;
+            }
+
+            if (expense.getBudgetIds() != null && expense.getBudgetIds().removeAll(budgetIdIntsToRemove)) {
+                updatedCount++;
+            }
+        }
+
+        if (updatedCount > 0) {
+            expenseRepository.saveAll(expenses);
+        }
+
+        log.info("Batch remove complete: updated {} of {} expenses, removed {} budgetIds",
+                updatedCount, expenses.size(), budgetIdsToRemove.size());
+    }
+
     public void removeBudgetIdsFromExpense(Long expenseId, List<Long> budgetIdsToRemove, Integer userId) {
         int maxRetries = 3;
         int retryDelayMs = 1000;

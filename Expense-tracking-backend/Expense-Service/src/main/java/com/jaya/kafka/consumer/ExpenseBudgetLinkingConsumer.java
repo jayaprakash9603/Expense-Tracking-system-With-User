@@ -70,6 +70,24 @@ public class ExpenseBudgetLinkingConsumer {
                     log.debug("BUDGET_CREATED_WITH_OLD_EXPENSES event (handled by BudgetModel Service): BudgetModel={}", 
                         event.getOldBudgetId());
                     break;
+
+                case BUDGET_EXPENSE_BATCH_LINK_UPDATE:
+                    handleBatchExpenseBudgetLink(event);
+                    break;
+
+                case BUDGET_EXPENSE_BATCH_REMOVE:
+                    handleBatchExpenseBudgetRemove(event);
+                    break;
+
+                case EXPENSE_EDITED_ADD_TO_BUDGETS:
+                    log.debug("EXPENSE_EDITED_ADD_TO_BUDGETS event (handled by Budget Service): expense={}",
+                        event.getNewExpenseId());
+                    break;
+
+                case EXPENSE_EDITED_REMOVE_FROM_BUDGETS:
+                    log.debug("EXPENSE_EDITED_REMOVE_FROM_BUDGETS event (handled by Budget Service): expense={}",
+                        event.getNewExpenseId());
+                    break;
                     
                 default:
                     log.warn("Unhandled event type: {}", event.getEventType());
@@ -112,6 +130,61 @@ public class ExpenseBudgetLinkingConsumer {
 
     
 
+
+    private void handleBatchExpenseBudgetLink(ExpenseBudgetLinkingEvent event) {
+        try {
+            log.info(">>> Handling BUDGET_EXPENSE_BATCH_LINK_UPDATE event");
+            log.info(">>> Event details: {} expenses, budgetId={}, userId={}",
+                event.getExpenseIds() != null ? event.getExpenseIds().size() : 0,
+                event.getNewBudgetId(),
+                event.getUserId());
+
+            if (event.getExpenseIds() == null || event.getExpenseIds().isEmpty() || event.getNewBudgetId() == null) {
+                log.warn("Invalid batch link event data - missing expense IDs or budget ID");
+                return;
+            }
+
+            bulkExpenseBudgetService.batchAddBudgetIdToExpenses(
+                event.getExpenseIds(),
+                event.getNewBudgetId(),
+                event.getUserId()
+            );
+
+            log.info(">>> Successfully batch linked {} expenses to budget {}",
+                event.getExpenseIds().size(), event.getNewBudgetId());
+
+        } catch (Exception e) {
+            log.error("Error handling batch expense-budget link update", e);
+        }
+    }
+
+    private void handleBatchExpenseBudgetRemove(ExpenseBudgetLinkingEvent event) {
+        try {
+            log.info(">>> Handling BUDGET_EXPENSE_BATCH_REMOVE event");
+            log.info(">>> Event details: {} expenses, budgetsToRemove={}, userId={}",
+                event.getExpenseIds() != null ? event.getExpenseIds().size() : 0,
+                event.getBudgetIdsToRemove() != null ? event.getBudgetIdsToRemove().size() : 0,
+                event.getUserId());
+
+            if (event.getExpenseIds() == null || event.getExpenseIds().isEmpty()
+                    || event.getBudgetIdsToRemove() == null || event.getBudgetIdsToRemove().isEmpty()) {
+                log.warn("Invalid batch remove event data - missing expense IDs or budget IDs to remove");
+                return;
+            }
+
+            bulkExpenseBudgetService.batchRemoveBudgetIdFromExpenses(
+                event.getExpenseIds(),
+                event.getBudgetIdsToRemove(),
+                event.getUserId()
+            );
+
+            log.info(">>> Successfully batch removed budgets from {} expenses",
+                event.getExpenseIds().size());
+
+        } catch (Exception e) {
+            log.error("Error handling batch expense-budget remove", e);
+        }
+    }
 
     private void handleBudgetDeletedRemoveFromExpenses(ExpenseBudgetLinkingEvent event) {
         try {

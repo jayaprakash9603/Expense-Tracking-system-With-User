@@ -255,7 +255,7 @@ const CashFlowChart = ({
             tickFormatter={(value) => formatCompactNumber(value)}
             width={80}
           />
-          <Tooltip
+            <Tooltip
             cursor={false}
             content={tooltipContent}
             wrapperStyle={{
@@ -264,6 +264,7 @@ const CashFlowChart = ({
               overflow: "visible",
               pointerEvents: "none",
             }}
+            isAnimationActive={false}
             allowEscapeViewBox={{ x: false, y: true }}
           />
           {Array.isArray(chartData) && chartData.length > 0 && (

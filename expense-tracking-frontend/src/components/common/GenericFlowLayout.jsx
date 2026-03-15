@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import RangePeriodNavigator from "./RangePeriodNavigator";
 import DeletionConfirmationWithToast from "./DeletionConfirmationWithToast";
 import SearchNavigationBar from "../cashflow/SearchNavigationBar";
@@ -87,10 +87,27 @@ const GenericFlowLayout = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const cardsContainerRef = useRef(null);
+  const actionButtonsRef = useRef(null);
+
+  const handleContainerClick = useCallback(
+    (e) => {
+      if (selectedCardIdx.length === 0) return;
+      const isClickOnCards =
+        cardsContainerRef.current?.contains(e.target) ?? false;
+      const isClickOnActionButtons =
+        actionButtonsRef.current?.contains(e.target) ?? false;
+      if (!isClickOnCards && !isClickOnActionButtons) {
+        clearSelection();
+      }
+    },
+    [selectedCardIdx.length, clearSelection],
+  );
 
   return (
     <div
       className="rounded-lg mt-[0px]"
+      onClick={handleContainerClick}
       style={{
         backgroundColor: colors.secondary_bg,
         width: isMobile ? "100vw" : isTablet ? "100vw" : "calc(100vw - 370px)",
@@ -127,6 +144,7 @@ const GenericFlowLayout = ({
         confirmationText={confirmationText}
       />
       <div
+        ref={actionButtonsRef}
         style={{
           position: "absolute",
           top: 16,
@@ -244,6 +262,8 @@ const GenericFlowLayout = ({
         // Use 'expenses' as origin so other flows back button returns to the main expenses view
         currentFlow="expenses"
         autocompleteOptions={autocompleteOptions}
+        clearSelection={clearSelection}
+        hasSelections={selectedCardIdx.length > 0 || selectedBars.length > 0}
       />
       <SortPopover
         open={popoverOpen}
@@ -255,6 +275,7 @@ const GenericFlowLayout = ({
         }}
         recentIcon={recentPng}
       />
+      <div ref={cardsContainerRef}>
       <CardsComponent
         data={sortedCardData}
         loading={loading}
@@ -271,6 +292,7 @@ const GenericFlowLayout = ({
         isFriendView={isFriendView}
         {...cardsExtraProps}
       />
+      </div>
       <style>{`
 				.custom-scrollbar::-webkit-scrollbar { 
           width: 8px; 

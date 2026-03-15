@@ -5,7 +5,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
 import { useDispatch } from "react-redux";
 import { verifyTwoFactorOtpAction } from "../../Redux/Auth/auth.action";
-import ToastNotification from "../Landingpage/ToastNotification";
+import ToastNotification from "../../shared/components/ToastNotification";
 
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 30; // 30 seconds
@@ -158,11 +158,11 @@ const OtpVerification = () => {
 
       // Auth action already fetched profile; route accordingly
       const { currentMode, role, user } = result;
-      if (
-        currentMode === "ADMIN" ||
-        role === "ADMIN" ||
-        user?.role === "ADMIN"
-      ) {
+      const isActuallyAdminMode = 
+        currentMode === "ADMIN" || 
+        (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
+
+      if (isActuallyAdminMode) {
         navigate("/admin/dashboard", { replace: true });
       } else {
         navigate("/dashboard", { replace: true });
