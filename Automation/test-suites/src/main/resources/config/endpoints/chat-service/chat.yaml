@@ -1,0 +1,63 @@
+endpoints:
+
+  # Chats
+  - key: chats.send-direct
+    method: POST
+    path: /api/chats/one-to-one
+    auth: true
+
+  - key: chats.send-group
+    method: POST
+    path: /api/chats/group
+    auth: true
+
+  - key: chats.list
+    method: GET
+    path: /api/chats
+    auth: true
+
+  - key: chats.between
+    method: GET
+    path: /api/chats/between
+    auth: true
+
+  - key: chats.mark-read
+    method: POST
+    path: /api/chats/mark-read
+    auth: true
+
+  - key: chats.unread-count
+    method: GET
+    path: /api/chats/unread/count
+    auth: true
+
+  - key: chats.conversations
+    method: GET
+    path: /api/chats/conversations
+    auth: true
+
+  # Presence
+  - key: presence.user
+    method: GET
+    path: /api/chats/presence/{userId}
+    auth: true
+
+  - key: presence.friends
+    method: GET
+    path: /api/chats/presence/friends
+    auth: true
+
+  - key: presence.batch
+    method: GET
+    path: /api/chats/presence/batch
+    auth: true
+
+  - key: presence.heartbeat
+    method: POST
+    path: /api/chats/presence/heartbeat
+    auth: true
+
+  - key: presence.online
+    method: GET
+    path: /api/chats/presence/online
+    auth: true

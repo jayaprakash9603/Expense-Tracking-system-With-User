@@ -14,9 +14,9 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class BudgetReport {
 
-
-
     private Integer budgetId;
+    private String budgetName;
+    private String description;
     private double allocatedAmount;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -24,5 +24,8 @@ public class BudgetReport {
     private boolean isValid;
     private double totalCashLosses;
     private double totalCreditLosses;
+    private int expenseCount;
+    private double dailyBudget;
+    private double projectedOverspend;
 
 }

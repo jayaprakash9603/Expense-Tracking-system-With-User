@@ -1,0 +1,51 @@
+endpoints:
+
+  - key: user.profile
+    method: GET
+    path: /api/user/profile
+    auth: true
+
+  - key: user.by-email
+    method: GET
+    path: /api/user/email
+    auth: true
+
+  - key: user.all
+    method: GET
+    path: /api/user/all
+    auth: false
+
+  - key: user.by-id
+    method: GET
+    path: /api/user/{id}
+    auth: true
+
+  - key: user.update
+    method: PUT
+    path: /api/user
+    auth: true
+
+  - key: user.two-factor
+    method: PUT
+    path: /api/user/two-factor
+    auth: true
+
+  - key: user.delete
+    method: DELETE
+    path: /api/user/{id}
+    auth: true
+
+  - key: user.assign-role
+    method: POST
+    path: /api/user/{userId}/roles/{roleId}
+    auth: true
+
+  - key: user.remove-role
+    method: DELETE
+    path: /api/user/{userId}/roles/{roleId}
+    auth: true
+
+  - key: user.switch-mode
+    method: PUT
+    path: /api/user/switch-mode
+    auth: true

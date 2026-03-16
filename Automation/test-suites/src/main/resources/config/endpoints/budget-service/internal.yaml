@@ -1,0 +1,16 @@
+endpoints:
+
+  - key: budgets.internal.get-by-id
+    method: GET
+    path: /api/budgets/get-by-id
+    auth: true
+
+  - key: budgets.internal.save
+    method: POST
+    path: /api/budgets/save
+    auth: true
+
+  - key: budgets.internal.user-budgets
+    method: GET
+    path: /api/budgets/user
+    auth: true

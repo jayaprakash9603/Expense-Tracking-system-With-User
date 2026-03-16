@@ -33,8 +33,9 @@
 
 ## Folder Standards
 
-- `test-suites/src/main/resources/features/<domain>/...`
-- `test-suites/src/main/resources/features/templates/...`
+- `test-suites/src/main/resources/features/api/<domain>/...`
+- `test-suites/src/main/resources/features/ui/<domain>/...`
+- `test-suites/src/main/resources/features/api/templates/...`
 - `test-suites/src/main/resources/testdata/<env>/<domain>/...`
 - `test-suites/src/main/resources/testdata/request-templates/<domain>/...`
 - `test-suites/src/main/resources/testdata/expected-fragments/<domain>/...`

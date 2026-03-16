@@ -11,15 +11,15 @@
     <name>automation-parent</name>
 
     <modules>
-        <module>automation-core</module>
-        <module>automation-engine-selenium</module>
-        <module>automation-engine-playwright</module>
-        <module>automation-ui-flows</module>
-        <module>automation-api</module>
-        <module>automation-bdd</module>
+        <module>Automation-Framework/automation-core</module>
+        <module>Automation-Framework/automation-engine-selenium</module>
+        <module>Automation-Framework/automation-engine-playwright</module>
+        <module>Automation-Framework/automation-ui-flows</module>
+        <module>Automation-Framework/automation-api</module>
+        <module>Automation-Framework/automation-bdd</module>
         <module>test-suites</module>
-        <module>automation-data</module>
-        <module>automation-app</module>
+        <module>Automation-Framework/automation-data</module>
+        <module>Automation-Framework/automation-app</module>
     </modules>
 
     <properties>
@@ -152,6 +152,11 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>

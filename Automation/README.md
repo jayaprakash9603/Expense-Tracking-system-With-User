@@ -80,15 +80,15 @@ The framework follows a layered architecture:
 
 | Module | Path | Purpose | Key Classes |
 |--------|------|---------|-------------|
-| **automation-core** | `automation-core/` | Config, context, logging, UI abstractions | `AutomationConfig`, `ConfigLoader`, `UiEngine`, `TestContext`, `RetryExecutor`, `PollingWait` |
-| **automation-api** | `automation-api/` | REST API test clients and validation | `ApiEndpointRegistry` (100+ endpoints), `ApiRequestExecutor`, `ApiResponseValidator`, `ApiClient`, 10 domain API clients |
-| **automation-bdd** | `automation-bdd/` | Cucumber runners, step definitions, hooks | `ScenarioHooks`, `ApiCleanupHooks`, `BddWorld`, `GenericApiSteps`, `UserApiSteps`, `AuthUiSteps`, `ExpenseUiSteps` |
-| **automation-engine-playwright** | `automation-engine-playwright/` | Playwright browser automation | `PlaywrightUiEngine`, `PlaywrightBrowserFactory`, `PlaywrightElementActions`, `PlaywrightScreenshotService` |
-| **automation-engine-selenium** | `automation-engine-selenium/` | Selenium WebDriver automation | `SeleniumUiEngine`, `SeleniumDriverFactory`, `SeleniumElementActions`, `SeleniumScreenshotService` |
-| **automation-ui-flows** | `automation-ui-flows/` | Page objects and auth flows | 11 page objects (`LoginPage`, `DashboardPage`, `ExpensesPage`, etc.), `AuthUiFlowService`, `TabRouteRegistry`, `UiActionRegistry` |
-| **automation-data** | `automation-data/` | Excel-based test data management | `ExcelWorkbookReader`, `ExcelDatasetResolver`, `ExcelSchemaValidator` |
+| **automation-core** | `Automation-Framework/automation-core/` | Config, context, logging, UI abstractions | `AutomationConfig`, `ConfigLoader`, `UiEngine`, `TestContext`, `RetryExecutor`, `PollingWait` |
+| **automation-api** | `Automation-Framework/automation-api/` | REST API test clients and validation | `ApiEndpointRegistry` (100+ endpoints), `ApiRequestExecutor`, `ApiResponseValidator`, `ApiClient`, 10 domain API clients |
+| **automation-bdd** | `Automation-Framework/automation-bdd/` | Cucumber runners, step definitions, hooks | `ScenarioHooks`, `ApiCleanupHooks`, `BddWorld`, `GenericApiSteps`, `UserApiSteps`, `AuthUiSteps`, `ExpenseUiSteps` |
+| **automation-engine-playwright** | `Automation-Framework/automation-engine-playwright/` | Playwright browser automation | `PlaywrightUiEngine`, `PlaywrightBrowserFactory`, `PlaywrightElementActions`, `PlaywrightScreenshotService` |
+| **automation-engine-selenium** | `Automation-Framework/automation-engine-selenium/` | Selenium WebDriver automation | `SeleniumUiEngine`, `SeleniumDriverFactory`, `SeleniumElementActions`, `SeleniumScreenshotService` |
+| **automation-ui-flows** | `Automation-Framework/automation-ui-flows/` | Page objects and auth flows | 11 page objects (`LoginPage`, `DashboardPage`, `ExpensesPage`, etc.), `AuthUiFlowService`, `TabRouteRegistry`, `UiActionRegistry` |
+| **automation-data** | `Automation-Framework/automation-data/` | Excel-based test data management | `ExcelWorkbookReader`, `ExcelDatasetResolver`, `ExcelSchemaValidator` |
 | **test-suites** | `test-suites/` | Feature files, payloads, schemas, config | 30 `.feature` files, request templates, expected fragments, JSON schemas, `suite-data.properties` |
-| **automation-app** | `automation-app/` | CLI runner and boot orchestration | `AutomationApp`, `CliOptionsParser`, `TestExecutionLauncher`, `HealthCheckOrchestrator`, `CommandRunner` |
+| **automation-app** | `Automation-Framework/automation-app/` | CLI runner and boot orchestration | `AutomationApp`, `CliOptionsParser`, `TestExecutionLauncher`, `HealthCheckOrchestrator`, `CommandRunner` |
 | **Parent POM** | `pom.xml` | Dependency management and plugin config | Versions: Selenium 4.28, Playwright 1.57, RestAssured 5.5, Cucumber 7.21, TestNG 7.11, Allure 2.24 |
 
 ### API Clients
@@ -311,10 +311,10 @@ Configuration values are resolved in this order (first match wins):
 
 | File | Path | Purpose |
 |------|------|---------|
-| `smoke.xml` | `automation-bdd/src/test/resources/testng/smoke.xml` | Smoke tests |
-| `regression.xml` | `automation-bdd/src/test/resources/testng/regression.xml` | Full regression |
-| `api.xml` | `automation-bdd/src/test/resources/testng/api.xml` | API-only tests |
-| `ui.xml` | `automation-bdd/src/test/resources/testng/ui.xml` | UI-only tests |
+| `smoke.xml` | `Automation-Framework/automation-bdd/src/test/resources/testng/smoke.xml` | Smoke tests |
+| `regression.xml` | `Automation-Framework/automation-bdd/src/test/resources/testng/regression.xml` | Full regression |
+| `api.xml` | `Automation-Framework/automation-bdd/src/test/resources/testng/api.xml` | API-only tests |
+| `ui.xml` | `Automation-Framework/automation-bdd/src/test/resources/testng/ui.xml` | UI-only tests |
 
 ### Tag-Based Test Selection
 
@@ -384,7 +384,7 @@ The pipeline is defined in [`pipeline/Jenkinsfile`](pipeline/Jenkinsfile) with c
 4. **Docker Build and Push** -- builds the automation Docker image and pushes to registry
 5. **Helm Deploy** (optional) -- `helm upgrade --install` the automation job into Kubernetes
 6. **Smoke Test** -- runs `mvn -pl automation-app -am exec:java` with configured suite and tags
-7. **Publish Reports** -- archives `automation-bdd/target/reports/**` and `target/artifacts/**`
+7. **Publish Reports** -- archives `Automation-Framework/automation-bdd/target/reports/**` and `target/artifacts/**`
 
 ---
 
@@ -435,22 +435,18 @@ helm upgrade --install expense-automation \
 
 ### Adding a Feature File
 
-1. Create the file under `test-suites/src/main/resources/features/<domain>/`:
+1. Create the file under either `test-suites/src/main/resources/features/api/<domain>/` or `test-suites/src/main/resources/features/ui/<domain>/`:
 
 ```
 features/
-├── auth/           # Authentication flows
-├── api/            # Service-level API tests
-├── expenses/       # Expense domain
-├── budgets/        # Budget domain
-├── dashboard/      # Dashboard UI
-├── friends/        # Friends domain
-├── groups/         # Groups domain
-├── sharing/        # Sharing domain
-├── chat/           # Chat domain
-├── settings/       # Settings domain
-├── admin/          # Admin domain
-└── templates/      # Reusable patterns
+├── api/            # API scenarios by domain
+│   ├── auth/
+│   ├── user-service/
+│   └── templates/  # Reusable API patterns
+└── ui/             # UI scenarios by domain
+    ├── auth/
+    ├── dashboard/
+    └── expenses/
 ```
 
 2. Use standard tags: `@smoke`, `@regression`, `@api` or `@ui`, `@<domain>`, optionally `@Phase1`--`@Phase4`
@@ -462,7 +458,7 @@ python tools/feature_generation/generate_feature_template.py bills create-bill
 
 ### Adding Step Definitions
 
-Step definitions live in `automation-bdd/src/test/java/com/jaya/automation/bdd/steps/`:
+Step definitions live in `Automation-Framework/automation-bdd/src/test/java/com/jaya/automation/bdd/steps/`:
 
 | Package | Purpose |
 |---------|---------|
@@ -474,7 +470,7 @@ The `GenericApiSteps` class provides DSL-style steps that work with any endpoint
 
 ### Adding API Endpoints
 
-Register new endpoints in `automation-api/.../contract/ApiEndpointRegistry.java`:
+Register new endpoints in `Automation-Framework/automation-api/.../contract/ApiEndpointRegistry.java`:
 
 ```java
 register("bills.list", new ApiEndpointContract("/api/bills", ApiHttpMethod.GET));
@@ -484,7 +480,7 @@ register("bills.getById", new ApiEndpointContract("/api/bills/{id}", ApiHttpMeth
 
 ### Adding Page Objects
 
-Create a new page in `automation-ui-flows/.../pages/`:
+Create a new page in `Automation-Framework/automation-ui-flows/.../pages/`:
 
 1. Extend `BaseDomainPage`
 2. Define a `path()` method returning the route
@@ -501,7 +497,7 @@ Merge multiple Cucumber JSON reports into a single summary:
 
 ```bash
 python tools/reporting/merge_cucumber_reports.py \
-  --input automation-bdd/target/reports/ \
+  --input Automation-Framework/automation-bdd/target/reports/ \
   --output summary.json
 ```
 
@@ -535,8 +531,9 @@ See [tools/data_generation/README.md](tools/data_generation/README.md) for detai
 |----------|------|-------|
 | User Service API Tests | [README-user-service-api.md](README-user-service-api.md) | Phases, tags, and patterns for user-service API coverage |
 | Test Suites Layout | [test-suites/src/main/resources/README.md](test-suites/src/main/resources/README.md) | Feature file organization and authoring model |
-| Test Data Guide | [automation-data/src/test/resources/README.md](automation-data/src/test/resources/README.md) | Excel data layout, schema, environment folders |
+| Test Data Guide | [Automation-Framework/automation-data/src/test/resources/README.md](Automation-Framework/automation-data/src/test/resources/README.md) | Excel data layout, schema, environment folders |
 | Report Merging | [tools/reporting/README.md](tools/reporting/README.md) | Cucumber report merge utility |
 | Feature Generation | [tools/feature_generation/README.md](tools/feature_generation/README.md) | Feature file scaffolding tool |
 | Data Generation | [tools/data_generation/README.md](tools/data_generation/README.md) | Dataset template generator |
 | Root Project README | [../README.md](../README.md) | Full system architecture and quick start |
+

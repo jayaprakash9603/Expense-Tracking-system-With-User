@@ -66,6 +66,17 @@ pipeline {
             }
         }
 
+        stage('Validate Catalog') {
+            steps {
+                sh """
+                    mvn -f pom.xml -pl Automation-Framework/automation-api -am exec:java \
+                      -Dexec.mainClass=com.jaya.automation.api.contract.CatalogValidationRunner \
+                      -Dexec.classpathScope=compile \
+                      -Dexec.additionalClasspathElements=test-suites/src/main/resources
+                """
+            }
+        }
+
         stage('Smoke Test') {
             steps {
                 sh """
@@ -77,9 +88,10 @@ pipeline {
 
         stage('Publish Reports') {
             steps {
-                archiveArtifacts artifacts: 'automation-bdd/target/reports/**/*', allowEmptyArchive: true
+                archiveArtifacts artifacts: 'Automation-Framework/automation-bdd/target/reports/**/*', allowEmptyArchive: true
                 archiveArtifacts artifacts: 'target/artifacts/**/*', allowEmptyArchive: true
             }
         }
     }
 }
+

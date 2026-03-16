@@ -1,0 +1,81 @@
+endpoints:
+
+  - key: expenses.create
+    method: POST
+    path: /api/expenses/add-expense
+    auth: true
+
+  - key: expenses.copy
+    method: POST
+    path: /api/expenses/{expenseId}/copy
+    auth: true
+
+  - key: expenses.list
+    method: GET
+    path: /api/expenses/fetch-expenses
+    auth: true
+
+  - key: expenses.paginated
+    method: GET
+    path: /api/expenses/fetch-expenses-paginated
+    auth: true
+
+  - key: expenses.by-id
+    method: GET
+    path: /api/expenses/expense/{id}
+    auth: true
+
+  - key: expenses.detailed
+    method: GET
+    path: /api/expenses/expense/{id}/detailed
+    auth: true
+
+  - key: expenses.update
+    method: PUT
+    path: /api/expenses/edit-expense/{id}
+    auth: true
+
+  - key: expenses.delete
+    method: DELETE
+    path: /api/expenses/delete/{id}
+    auth: true
+
+  - key: expenses.search
+    method: GET
+    path: /api/expenses/search
+    auth: true
+
+  - key: expenses.summary
+    method: GET
+    path: /api/expenses/summary-expenses
+    auth: true
+
+  - key: expenses.payment-summary
+    method: GET
+    path: /api/expenses/payment-method-summary
+    auth: true
+
+  - key: expenses.monthly-summary
+    method: GET
+    path: /api/expenses/monthly-summary/{year}/{month}
+    auth: true
+
+  - key: expenses.yearly-summary
+    method: GET
+    path: /api/expenses/yearly-summary/{year}
+    auth: true
+
+  - key: expenses.bulk-add
+    method: POST
+    path: /api/expenses/add-multiple
+    auth: true
+
+  - key: expenses.bulk-add-tracked
+    method: POST
+    path: /api/expenses/add-multiple/tracked
+    auth: true
+
+  - key: expenses.bulk-progress
+    method: GET
+    path: /api/expenses/add-multiple/progress/{jobId}
+    auth: true

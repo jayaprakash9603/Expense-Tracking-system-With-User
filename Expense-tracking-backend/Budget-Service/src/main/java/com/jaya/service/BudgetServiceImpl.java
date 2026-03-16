@@ -154,6 +154,10 @@ public class BudgetServiceImpl implements BudgetService {
 
         Budget existingBudget = getBudgetById(budgetId, userId);
 
+        if (budget.getStartDate() == null || budget.getEndDate() == null) {
+            throw new IllegalArgumentException("Start date and end date must not be null.");
+        }
+
         if (budget.getStartDate().isAfter(budget.getEndDate())) {
             throw new IllegalArgumentException("Start date cannot be after end date.");
         }
@@ -243,6 +247,10 @@ public class BudgetServiceImpl implements BudgetService {
         Optional<Budget> budgetOpt = budgetRepository.findById(budgetId);
         if (budgetOpt.isPresent()) {
             Budget budget = budgetOpt.get();
+            if (!hasCompleteDateRange(budget)) {
+                log.warn("Budget {} has missing start/end date. Marking as invalid.", budgetId);
+                return false;
+            }
             LocalDate today = LocalDate.now();
             return today.isAfter(budget.getStartDate()) && today.isBefore(budget.getEndDate());
         } else {
@@ -320,6 +328,11 @@ public class BudgetServiceImpl implements BudgetService {
 
         if (!budget.getUserId().equals(userId)) {
             throw new Exception("You do not have access to this budget.");
+        }
+
+        if (!hasCompleteDateRange(budget)) {
+            log.warn("Budget {} has missing start/end date. Returning fallback report.", budgetId);
+            return buildReportForBudgetWithoutDateRange(budget);
         }
 
         List<ExpenseDTO> expenses = expenseService.findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
@@ -1888,6 +1901,28 @@ public class BudgetServiceImpl implements BudgetService {
 
     private boolean isValidString(String str) {
         return str != null && !str.isEmpty();
+    }
+
+    private boolean hasCompleteDateRange(Budget budget) {
+        return budget.getStartDate() != null && budget.getEndDate() != null;
+    }
+
+    private BudgetReport buildReportForBudgetWithoutDateRange(Budget budget) {
+        BudgetReport report = new BudgetReport();
+        report.setBudgetId(budget.getId());
+        report.setBudgetName(budget.getName());
+        report.setDescription(budget.getDescription());
+        report.setAllocatedAmount(budget.getAmount());
+        report.setStartDate(budget.getStartDate());
+        report.setEndDate(budget.getEndDate());
+        report.setRemainingAmount(budget.getAmount());
+        report.setValid(false);
+        report.setTotalCashLosses(0);
+        report.setTotalCreditLosses(0);
+        report.setExpenseCount(0);
+        report.setDailyBudget(0);
+        report.setProjectedOverspend(0);
+        return report;
     }
 
     private static class DateRange {

@@ -1,0 +1,36 @@
+endpoints:
+
+  - key: events.create
+    method: POST
+    path: /api/events
+    auth: false
+
+  - key: events.list-user
+    method: GET
+    path: /api/events/user/{userId}
+    auth: false
+
+  - key: events.by-id
+    method: GET
+    path: /api/events/{eventId}/user/{userId}
+    auth: false
+
+  - key: events.update
+    method: PUT
+    path: /api/events/{eventId}/user/{userId}
+    auth: false
+
+  - key: events.delete
+    method: DELETE
+    path: /api/events/{eventId}/user/{userId}
+    auth: false
+
+  - key: events.summary
+    method: GET
+    path: /api/events/{eventId}/summary/user/{userId}
+    auth: false
+
+  - key: events.analytics
+    method: GET
+    path: /api/events/{eventId}/analytics/user/{userId}
+    auth: false

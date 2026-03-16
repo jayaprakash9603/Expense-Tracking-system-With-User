@@ -1,0 +1,51 @@
+endpoints:
+
+  - key: shares.create
+    method: POST
+    path: /api/shares
+    auth: true
+
+  - key: shares.access
+    method: GET
+    path: /api/shares/{token}
+    auth: false
+
+  - key: shares.access-paginated
+    method: GET
+    path: /api/shares/{token}/paginated
+    auth: false
+
+  - key: shares.validate
+    method: GET
+    path: /api/shares/{token}/validate
+    auth: false
+
+  - key: shares.revoke
+    method: DELETE
+    path: /api/shares/{token}
+    auth: true
+
+  - key: shares.my
+    method: GET
+    path: /api/shares/my-shares
+    auth: true
+
+  - key: shares.shared-with-me
+    method: GET
+    path: /api/shares/shared-with-me
+    auth: true
+
+  - key: shares.public
+    method: GET
+    path: /api/shares/public
+    auth: false
+
+  - key: shares.toggle-save
+    method: POST
+    path: /api/shares/{token}/toggle-save
+    auth: true
+
+  - key: shares.make-public
+    method: PUT
+    path: /api/shares/{token}/public
+    auth: true

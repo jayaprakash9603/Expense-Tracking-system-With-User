@@ -60,9 +60,10 @@ spec:
 {{ toYaml .Values.job.resources | indent 12 }}
           volumeMounts:
             - name: report-volume
-              mountPath: /opt/automation/automation-bdd/target/reports
+              mountPath: /opt/automation/Automation-Framework/automation-bdd/target/reports
       volumes:
         - name: report-volume
           hostPath:
             path: {{ .Values.reports.hostPath | quote }}
             type: DirectoryOrCreate
+

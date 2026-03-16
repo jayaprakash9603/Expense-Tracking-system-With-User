@@ -1,0 +1,46 @@
+endpoints:
+
+  - key: friendships.request
+    method: POST
+    path: /api/friendships/request
+    auth: true
+
+  - key: friendships.respond
+    method: PUT
+    path: /api/friendships/{friendshipId}/respond
+    auth: true
+
+  - key: friendships.by-id
+    method: GET
+    path: /api/friendships/{friendshipId}
+    auth: true
+
+  - key: friendships.friends
+    method: GET
+    path: /api/friendships/friends
+    auth: true
+
+  - key: friendships.pending
+    method: GET
+    path: /api/friendships/pending
+    auth: true
+
+  - key: friendships.stats
+    method: GET
+    path: /api/friendships/stats
+    auth: true
+
+  - key: friendships.search
+    method: GET
+    path: /api/friendships/search
+    auth: true
+
+  - key: friendships.remove
+    method: DELETE
+    path: /api/friendships/{friendshipId}
+    auth: true
+
+  - key: friendships.block
+    method: POST
+    path: /api/friendships/block/{userId}
+    auth: true

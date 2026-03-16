@@ -1,0 +1,51 @@
+endpoints:
+
+  - key: groups.create
+    method: POST
+    path: /api/groups
+    auth: true
+
+  - key: groups.list
+    method: GET
+    path: /api/groups
+    auth: true
+
+  - key: groups.by-id
+    method: GET
+    path: /api/groups/{id}
+    auth: true
+
+  - key: groups.update
+    method: PUT
+    path: /api/groups/{id}
+    auth: true
+
+  - key: groups.delete
+    method: DELETE
+    path: /api/groups/{id}
+    auth: true
+
+  - key: groups.members
+    method: GET
+    path: /api/groups/{groupId}/members
+    auth: true
+
+  - key: groups.invite
+    method: POST
+    path: /api/groups/{groupId}/invite
+    auth: true
+
+  - key: groups.search
+    method: GET
+    path: /api/groups/search
+    auth: true
+
+  - key: groups.settings.get
+    method: GET
+    path: /api/groups/{groupId}/settings
+    auth: true
+
+  - key: groups.settings.update
+    method: PUT
+    path: /api/groups/{groupId}/settings
+    auth: true

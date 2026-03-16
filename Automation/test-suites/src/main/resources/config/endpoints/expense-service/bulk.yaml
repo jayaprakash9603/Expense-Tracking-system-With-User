@@ -1,0 +1,16 @@
+endpoints:
+
+  - key: bulk.expenses-budgets.create
+    method: POST
+    path: /api/bulk/expenses-budgets
+    auth: true
+
+  - key: bulk.expenses-budgets.tracked
+    method: POST
+    path: /api/bulk/expenses-budgets/tracked
+    auth: true
+
+  - key: bulk.expenses-budgets.progress
+    method: GET
+    path: /api/bulk/expenses-budgets/progress/{jobId}
+    auth: true

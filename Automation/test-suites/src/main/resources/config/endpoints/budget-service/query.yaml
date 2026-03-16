@@ -1,0 +1,21 @@
+endpoints:
+
+  - key: budgets.expenses
+    method: GET
+    path: /api/budgets/{budgetId}/expenses
+    auth: true
+
+  - key: budgets.filter-by-date
+    method: GET
+    path: /api/budgets/filter-by-date
+    auth: true
+
+  - key: budgets.budgets-for-expense
+    method: GET
+    path: /api/budgets/expenses
+    auth: true
+
+  - key: budgets.search
+    method: GET
+    path: /api/budgets/search
+    auth: true
