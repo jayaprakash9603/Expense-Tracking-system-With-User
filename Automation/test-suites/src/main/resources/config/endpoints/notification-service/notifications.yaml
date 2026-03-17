@@ -1,0 +1,36 @@
+endpoints:
+
+  - key: notifications.list
+    method: GET
+    path: /api/notifications
+    auth: true
+
+  - key: notifications.unread
+    method: GET
+    path: /api/notifications/unread
+    auth: true
+
+  - key: notifications.mark-read
+    method: PUT
+    path: /api/notifications/{id}/read
+    auth: true
+
+  - key: notifications.mark-all-read
+    method: PUT
+    path: /api/notifications/read-all
+    auth: true
+
+  - key: notifications.delete
+    method: DELETE
+    path: /api/notifications/{id}
+    auth: true
+
+  - key: notifications.preferences
+    method: GET
+    path: /api/notification-preferences
+    auth: true
+
+  - key: notifications.update-preferences
+    method: PUT
+    path: /api/notification-preferences
+    auth: true

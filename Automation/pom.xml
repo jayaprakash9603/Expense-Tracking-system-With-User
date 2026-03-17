@@ -75,6 +75,15 @@
         <cucumber.features></cucumber.features>
         <cucumber.filter.tags>@smoke</cucumber.filter.tags>
         <cucumber.thread.count>1</cucumber.thread.count>
+
+        <sonar.projectKey>expense-tracking-automation</sonar.projectKey>
+        <sonar.projectName>Expense Tracking Automation</sonar.projectName>
+        <sonar.java.source>${java.version}</sonar.java.source>
+        <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.exclusions>**/test-suites/**,**/resources/**,**/target/**</sonar.exclusions>
+        <sonar.test.exclusions>**/test-suites/**</sonar.test.exclusions>
+        <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
     <dependencyManagement>
@@ -238,6 +247,26 @@
                             </property>
                         </properties>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

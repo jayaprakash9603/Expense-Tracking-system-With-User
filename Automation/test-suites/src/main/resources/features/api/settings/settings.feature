@@ -1,16 +1,19 @@
-@settings
-Feature: Settings testing flows
+@settings @api @regression
+Feature: User Settings API
 
-  @regression @skeleton
-  Scenario: Settings area is set up for testing
-    Given "settings" area is set up for testing
-    Then "settings" area has its test connections ready
-
-  @regression @template @api @dsl
-  Scenario: User can update two-factor preference
+  Background:
     Given api testing is ready
     And the user is logged in with test credentials
-    When the user sends a PUT request to "user.two-factor" with data
-      | key     | value |
-      | enabled | false |
-    Then the response status should be one of "200,400,401,403"
+
+  @smoke
+  Scenario: Get user settings
+    When the user sends a GET request to "settings.get"
+    Then the request should succeed
+
+  Scenario: Update user settings
+    Given request body "settingsPayload" is defined as
+      | field    | value |
+      | currency | USD   |
+      | locale   | en-US |
+    When the user sends a PUT request to "settings.update" using request body "settingsPayload"
+    Then the request should succeed

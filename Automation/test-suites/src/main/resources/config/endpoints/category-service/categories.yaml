@@ -1,0 +1,71 @@
+endpoints:
+
+  - key: categories.create
+    method: POST
+    path: /api/categories
+    auth: true
+
+  - key: categories.list
+    method: GET
+    path: /api/categories
+    auth: true
+
+  - key: categories.by-id
+    method: GET
+    path: /api/categories/{id}
+    auth: true
+
+  - key: categories.by-name
+    method: GET
+    path: /api/categories/name/{name}
+    auth: true
+
+  - key: categories.update
+    method: PUT
+    path: /api/categories/{id}
+    auth: true
+
+  - key: categories.delete
+    method: DELETE
+    path: /api/categories/{id}
+    auth: true
+
+  - key: categories.delete-all
+    method: DELETE
+    path: /api/categories
+    auth: true
+
+  - key: categories.bulk-create
+    method: POST
+    path: /api/categories/bulk
+    auth: true
+
+  - key: categories.bulk-update
+    method: PUT
+    path: /api/categories/bulk
+    auth: true
+
+  - key: categories.bulk-delete
+    method: DELETE
+    path: /api/categories/bulk
+    auth: true
+
+  - key: categories.uncategorized
+    method: GET
+    path: /api/categories/uncategorized
+    auth: true
+
+  - key: categories.expenses
+    method: GET
+    path: /api/categories/{categoryId}/expenses
+    auth: true
+
+  - key: categories.filtered-expenses
+    method: GET
+    path: /api/categories/{categoryId}/filtered-expenses
+    auth: true
+
+  - key: categories.search
+    method: GET
+    path: /api/categories/search
+    auth: true

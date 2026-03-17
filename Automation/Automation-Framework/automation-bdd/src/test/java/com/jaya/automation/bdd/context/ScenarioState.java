@@ -14,6 +14,8 @@ public final class ScenarioState {
     private static final String SESSION_ALIAS_KEY = "state.alias.session";
     private static final String UI_ALIAS_KEY = "state.alias.ui";
     private static final String VALUE_ALIAS_KEY = "state.alias.value";
+    private static final String SCENARIO_ID_KEY = "state.scenarioId";
+    private static final String SCENARIO_SCOPE_PREFIX = "state.scope.";
 
     private final ScenarioContext scenarioContext;
 
@@ -91,6 +93,27 @@ public final class ScenarioState {
 
     public Map<String, Object> snapshot() {
         return scenarioContext.snapshot();
+    }
+
+    public void registerScenarioId(String scenarioId) {
+        scenarioContext.put(SCENARIO_ID_KEY, scenarioId);
+        putAlias("scenarioId", scenarioId);
+    }
+
+    public Optional<String> currentScenarioId() {
+        return scenarioContext.get(SCENARIO_ID_KEY, String.class);
+    }
+
+    public void putScopedValue(String scenarioId, String key, Object value) {
+        mutableBucket(SCENARIO_SCOPE_PREFIX + scenarioId).put(key, value);
+    }
+
+    public Optional<Object> scopedValue(String scenarioId, String key) {
+        return Optional.ofNullable(readObjectBucket(SCENARIO_SCOPE_PREFIX + scenarioId).get(key));
+    }
+
+    public Map<String, Object> scopedSnapshot(String scenarioId) {
+        return Map.copyOf(readObjectBucket(SCENARIO_SCOPE_PREFIX + scenarioId));
     }
 
     private Map<String, String> readTextBucket(String key) {

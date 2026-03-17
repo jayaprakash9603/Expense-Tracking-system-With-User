@@ -1,0 +1,6 @@
+rules:
+  - name: response_is_array
+    description: "Expense list should be a non-null array"
+    condition:
+      source: "#jsonPath([response],'$')"
+      operator: "notNull"

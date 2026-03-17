@@ -1,0 +1,56 @@
+endpoints:
+
+  - key: audit.logs
+    method: GET
+    path: /api/audit-logs/all
+    auth: true
+
+  - key: audit.types
+    method: GET
+    path: /api/audit-logs/audit-types
+    auth: true
+
+  - key: audit.admin-logs
+    method: GET
+    path: /api/admin/audit-logs
+    auth: true
+
+  - key: audit.admin-stats
+    method: GET
+    path: /api/admin/audit-logs/stats
+    auth: true
+
+  - key: audit.admin-by-user
+    method: GET
+    path: /api/admin/audit-logs/user/{userId}
+    auth: true
+
+  - key: audit.admin-by-entity
+    method: GET
+    path: /api/admin/audit-logs/entity
+    auth: true
+
+  - key: audit.admin-reports
+    method: GET
+    path: /api/admin/reports
+    auth: true
+
+  - key: audit.admin-generate-report
+    method: POST
+    path: /api/admin/reports/generate
+    auth: true
+
+  - key: audit.admin-report-by-id
+    method: GET
+    path: /api/admin/reports/{reportId}
+    auth: true
+
+  - key: audit.admin-delete-report
+    method: DELETE
+    path: /api/admin/reports/{reportId}
+    auth: true
+
+  - key: audit.admin-download-report
+    method: GET
+    path: /api/admin/reports/{reportId}/download
+    auth: true

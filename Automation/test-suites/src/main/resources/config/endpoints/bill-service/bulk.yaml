@@ -1,0 +1,16 @@
+endpoints:
+
+  - key: bills.bulk-add
+    method: POST
+    path: /api/bills/add-multiple
+    auth: true
+
+  - key: bills.bulk-add-tracked
+    method: POST
+    path: /api/bills/add-multiple/tracked
+    auth: true
+
+  - key: bills.bulk-progress
+    method: GET
+    path: /api/bills/add-multiple/progress/{jobId}
+    auth: true

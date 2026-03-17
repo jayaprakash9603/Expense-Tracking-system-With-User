@@ -89,4 +89,91 @@ public class HybridUiSteps extends StepDataSupport {
         BddWorld.putAliasValue(alias, value);
         BddWorld.putUiValue(alias, value);
     }
+
+    @When("the user confirms the modal")
+    public void userConfirmsModal() {
+        BddWorld.uiActionExecutor().clickAction("modal-approve");
+    }
+
+    @When("the user cancels the modal")
+    public void userCancelsModal() {
+        BddWorld.uiActionExecutor().clickAction("modal-decline");
+    }
+
+    @Then("the toast message should contain {string}")
+    public void toastMessageShouldContain(String expectedText) {
+        String toastText = BddWorld.uiActionExecutor().textOf("toast-message");
+        Assertions.assertThat(toastText)
+                .as("Toast message should contain '%s'", expectedText)
+                .containsIgnoringCase(resolveDynamic(expectedText));
+    }
+
+    @When("the user selects {string} from {string} dropdown")
+    public void userSelectsFromDropdown(String optionText, String dropdownKey) {
+        BddWorld.uiActionExecutor().selectDropdownOption(dropdownKey, resolveDynamic(optionText));
+    }
+
+    @When("the user waits until {string} is visible")
+    public void userWaitsUntilVisible(String elementKey) {
+        BddWorld.uiActionExecutor().waitUntilVisible(elementKey);
+    }
+
+    @Then("the current URL should contain {string}")
+    public void currentUrlShouldContain(String expectedSegment) {
+        String currentUrl = BddWorld.uiActionExecutor().currentUrl();
+        Assertions.assertThat(currentUrl)
+                .as("URL should contain '%s'", expectedSegment)
+                .contains(resolveDynamic(expectedSegment));
+    }
+
+    @When("the user searches for {string}")
+    public void userSearchesFor(String searchText) {
+        BddWorld.uiActionExecutor().fillField("search-input", resolveDynamic(searchText));
+    }
+
+    @When("the user clicks {string} on the row containing {string}")
+    public void userClicksActionOnRow(String actionText, String rowIdentifier) {
+        BddWorld.uiActionExecutor().clickRowAction(
+                resolveDynamic(actionText), resolveDynamic(rowIdentifier));
+    }
+
+    @Then("the list {string} should have at least {int} items")
+    public void listShouldHaveAtLeastItems(String listKey, int expectedCount) {
+        String countText = BddWorld.uiActionExecutor().textOf(listKey);
+        int actualCount = extractNumber(countText);
+        Assertions.assertThat(actualCount)
+                .as("List '%s' should have at least %d items", listKey, expectedCount)
+                .isGreaterThanOrEqualTo(expectedCount);
+    }
+
+    @When("the user fills {string} with {string}")
+    public void userFillsSingleField(String fieldKey, String value) {
+        BddWorld.uiActionExecutor().fillField(fieldKey, resolveDynamic(value));
+    }
+
+    @When("the user waits for {int} seconds")
+    public void userWaitsForSeconds(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Wait interrupted", ex);
+        }
+    }
+
+    @Then("{string} should exist on the page")
+    public void elementShouldExistOnPage(String elementKey) {
+        boolean exists = BddWorld.uiActionExecutor().elementExists(elementKey);
+        Assertions.assertThat(exists)
+                .as("Element '%s' should exist", elementKey)
+                .isTrue();
+    }
+
+    private int extractNumber(String text) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
+        String digits = text.replaceAll("[^0-9]", "");
+        return digits.isEmpty() ? 0 : Integer.parseInt(digits);
+    }
 }

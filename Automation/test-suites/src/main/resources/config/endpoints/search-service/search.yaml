@@ -1,0 +1,21 @@
+endpoints:
+
+  - key: search.universal
+    method: GET
+    path: /api/search
+    auth: true
+
+  - key: shortcuts.list
+    method: GET
+    path: /api/shortcuts
+    auth: true
+
+  - key: shortcuts.create
+    method: POST
+    path: /api/shortcuts
+    auth: true
+
+  - key: shortcuts.delete
+    method: DELETE
+    path: /api/shortcuts/{id}
+    auth: true

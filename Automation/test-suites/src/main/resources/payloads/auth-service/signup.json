@@ -1,0 +1,7 @@
+{
+  "firstName": "Auto",
+  "lastName": "User${random.number:4}",
+  "email": "${random.email}",
+  "password": "TestPass@${random.number:4}",
+  "gender": "male"
+}

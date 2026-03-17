@@ -1,0 +1,16 @@
+endpoints:
+
+  - key: analytics.overview
+    method: GET
+    path: /api/analytics/overview
+    auth: true
+
+  - key: analytics.entity
+    method: POST
+    path: /api/analytics/entity
+    auth: true
+
+  - key: analytics.report-excel
+    method: GET
+    path: /api/analytics/report/excel
+    auth: true

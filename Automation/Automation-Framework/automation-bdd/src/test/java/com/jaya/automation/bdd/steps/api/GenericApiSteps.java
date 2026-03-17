@@ -7,6 +7,8 @@ import com.jaya.automation.api.execution.ApiExecutionResult;
 import com.jaya.automation.api.execution.ApiRequest;
 import com.jaya.automation.api.execution.ApiRequestBuilder;
 import com.jaya.automation.bdd.context.BddWorld;
+import com.jaya.automation.api.validation.RuleEvaluator;
+import com.jaya.automation.api.validation.ValidationRuleEngine;
 import com.jaya.automation.bdd.steps.common.ResourceResolver;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
 import io.cucumber.datatable.DataTable;
@@ -16,6 +18,7 @@ import io.cucumber.java.en.When;
 
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -366,6 +369,36 @@ public class GenericApiSteps extends StepDataSupport {
             throw new IllegalArgumentException("Payload file not found: " + payloadFile);
         }
         return stream;
+    }
+
+    @Then("the response should pass validation rules for {string} {string}")
+    public void apiResponseShouldPassValidationRules(String serviceName, String operationName) {
+        Map<String, String> contextJsons = buildRuleContext();
+        List<RuleEvaluator.RuleResult> results = ValidationRuleEngine.validate(
+                serviceName, operationName, contextJsons);
+        ValidationRuleEngine.assertAllPassed(results);
+    }
+
+    @Then("the response should pass validation rules for {string} {string} with override {string}")
+    public void apiResponseShouldPassValidationRulesWithOverride(
+            String serviceName, String operationName, String overrideScenario) {
+        Map<String, String> contextJsons = buildRuleContext();
+        List<RuleEvaluator.RuleResult> results = ValidationRuleEngine.validate(
+                serviceName, operationName, overrideScenario, contextJsons);
+        ValidationRuleEngine.assertAllPassed(results);
+    }
+
+    private Map<String, String> buildRuleContext() {
+        Map<String, String> contextJsons = new HashMap<>();
+        contextJsons.put("response", BddWorld.apiExecutionResult().bodyAsString());
+        BddWorld.apiScenarioContext().requestAlias("last")
+                .ifPresent(req -> {
+                    try {
+                        contextJsons.put("request", objectMapper.writeValueAsString(req));
+                    } catch (Exception ignored) {
+                    }
+                });
+        return contextJsons;
     }
 
     private boolean isJsonPathMissing(String jsonPath) {

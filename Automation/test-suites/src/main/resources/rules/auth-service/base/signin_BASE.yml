@@ -1,0 +1,6 @@
+rules:
+  - name: jwt_present
+    description: "Sign-in response should contain JWT token"
+    condition:
+      source: "#jsonPath([response],'$.jwt')"
+      operator: "notNull"

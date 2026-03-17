@@ -1,0 +1,91 @@
+endpoints:
+
+  - key: settings.get
+    method: GET
+    path: /api/settings
+    auth: true
+
+  - key: settings.update
+    method: PUT
+    path: /api/settings
+    auth: true
+
+  - key: expenses.filter
+    method: GET
+    path: /api/expenses/filter
+    auth: true
+
+  - key: expenses.fuzzy-search
+    method: GET
+    path: /api/expenses/search/fuzzy
+    auth: true
+
+  - key: expenses.between-dates
+    method: GET
+    path: /api/expenses/between-dates
+    auth: true
+
+  - key: expenses.top-n
+    method: GET
+    path: /api/expenses/top-n
+    auth: true
+
+  - key: expenses.today
+    method: GET
+    path: /api/expenses/today
+    auth: true
+
+  - key: expenses.current-month
+    method: GET
+    path: /api/expenses/current-month
+    auth: true
+
+  - key: expenses.last-month
+    method: GET
+    path: /api/expenses/last-month
+    auth: true
+
+  - key: expenses.cashflow
+    method: GET
+    path: /api/expenses/cashflow
+    auth: true
+
+  - key: expenses.gain
+    method: GET
+    path: /api/expenses/gain
+    auth: true
+
+  - key: expenses.loss
+    method: GET
+    path: /api/expenses/loss
+    auth: true
+
+  - key: expenses.delete-all
+    method: DELETE
+    path: /api/expenses/delete-all
+    auth: true
+
+  - key: expenses.edit-multiple
+    method: PUT
+    path: /api/expenses/edit-multiple
+    auth: true
+
+  - key: expenses.delete-multiple
+    method: DELETE
+    path: /api/expenses/delete-multiple
+    auth: true
+
+  - key: expenses.generate-report
+    method: POST
+    path: /api/expenses/{id}/generate-report
+    auth: true
+
+  - key: expenses.excel-report
+    method: GET
+    path: /api/expenses/generate-excel-report
+    auth: true
+
+  - key: expenses.reports-history
+    method: GET
+    path: /api/expenses/reports/history
+    auth: true

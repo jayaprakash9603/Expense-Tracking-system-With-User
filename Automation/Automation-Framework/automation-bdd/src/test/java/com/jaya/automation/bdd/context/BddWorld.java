@@ -338,6 +338,23 @@ public final class BddWorld {
         return values == null ? scenarioState().dataRow() : values;
     }
 
+    public static void registerScenarioId(String scenarioId) {
+        scenarioState().registerScenarioId(scenarioId);
+    }
+
+    public static Optional<String> currentScenarioId() {
+        return scenarioState().currentScenarioId();
+    }
+
+    public static void putScopedValue(String scenarioId, String key, Object value) {
+        scenarioState().putScopedValue(scenarioId, key, value);
+        putAliasValue(scenarioId + "." + key, value);
+    }
+
+    public static Optional<Object> scopedValue(String scenarioId, String key) {
+        return scenarioState().scopedValue(scenarioId, key);
+    }
+
     public static void putRequestAlias(String alias, Map<String, Object> payload) {
         scenarioState().putRequestAlias(alias, payload);
     }

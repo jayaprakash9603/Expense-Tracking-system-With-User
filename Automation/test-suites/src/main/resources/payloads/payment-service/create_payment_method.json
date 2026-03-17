@@ -1,0 +1,4 @@
+{
+  "name": "Auto Payment ${random.number:4}",
+  "type": "credit_card"
+}

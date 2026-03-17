@@ -1,13 +1,19 @@
 package com.jaya.automation.flows.common.service;
 
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
 import com.jaya.automation.core.ui.Locator;
 import com.jaya.automation.core.ui.UiEngine;
+import com.jaya.automation.core.util.RetryExecutor;
 import com.jaya.automation.flows.common.locator.LocatorSet;
 import com.jaya.automation.flows.common.page.BaseDomainPage;
 
 import java.util.Map;
 
 public final class UiActionExecutor {
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(UiActionExecutor.class);
+    private static final int DEFAULT_INTERACTION_RETRIES = 3;
+
     private final UiEngine uiEngine;
     private final DomainNavigationFlowService domainNavigationFlowService;
     private final UiActionRegistry uiActionRegistry;
@@ -103,5 +109,101 @@ public final class UiActionExecutor {
     public boolean isVisible(String textKey) {
         Locator locator = uiActionRegistry.text(textKey).resolve(uiEngine);
         return uiEngine.elements().isVisible(locator);
+    }
+
+    public void resilientClick(String actionKey) {
+        resilientClick(actionKey, DEFAULT_INTERACTION_RETRIES);
+    }
+
+    public void resilientClick(String actionKey, int maxAttempts) {
+        RetryExecutor.execute(() -> {
+            Locator locator = uiActionRegistry.action(actionKey).resolveWithRetry(uiEngine, maxAttempts);
+            uiEngine.waits().forClickable(locator);
+            uiEngine.elements().click(locator);
+            return null;
+        }, maxAttempts);
+        LOG.info("Resilient click completed for action: {}", actionKey);
+    }
+
+    public void resilientFillFields(Map<String, String> fieldValues) {
+        resilientFillFields(fieldValues, DEFAULT_INTERACTION_RETRIES);
+    }
+
+    public void resilientFillFields(Map<String, String> fieldValues, int maxAttempts) {
+        for (Map.Entry<String, String> entry : fieldValues.entrySet()) {
+            RetryExecutor.execute(() -> {
+                Locator locator = uiActionRegistry.field(entry.getKey()).resolveWithRetry(uiEngine, maxAttempts);
+                uiEngine.waits().forVisible(locator);
+                uiEngine.elements().clearAndType(locator, entry.getValue());
+                return null;
+            }, maxAttempts);
+        }
+    }
+
+    public String resilientTextOf(String textKey) {
+        return resilientTextOf(textKey, DEFAULT_INTERACTION_RETRIES);
+    }
+
+    public String resilientTextOf(String textKey, int maxAttempts) {
+        return RetryExecutor.execute(() -> {
+            Locator locator = uiActionRegistry.text(textKey).resolveWithRetry(uiEngine, maxAttempts);
+            uiEngine.waits().forVisible(locator);
+            return uiEngine.elements().textOf(locator);
+        }, maxAttempts);
+    }
+
+    public void selectDropdownOption(String dropdownKey, String optionText) {
+        Locator dropdownLocator = uiActionRegistry.field(dropdownKey).resolve(uiEngine);
+        uiEngine.waits().forClickable(dropdownLocator);
+        uiEngine.elements().click(dropdownLocator);
+        Locator optionLocator = Locator.xpath(
+                "//li[normalize-space()='" + optionText + "'] | //div[@role='option'][normalize-space()='" + optionText + "']"
+        );
+        uiEngine.waits().forVisible(optionLocator);
+        uiEngine.elements().click(optionLocator);
+    }
+
+    public void waitUntilVisible(String elementKey) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        uiEngine.waits().forVisible(locator);
+    }
+
+    public void fillField(String fieldKey, String value) {
+        Locator locator = uiActionRegistry.field(fieldKey).resolve(uiEngine);
+        uiEngine.waits().forVisible(locator);
+        uiEngine.elements().clearAndType(locator, value);
+    }
+
+    public String textOfAction(String actionKey) {
+        Locator locator = uiActionRegistry.action(actionKey).resolve(uiEngine);
+        uiEngine.waits().forVisible(locator);
+        return uiEngine.elements().textOf(locator);
+    }
+
+    public void clickRowAction(String actionText, String rowIdentifier) {
+        String rowXpath = String.format(
+                "//tr[.//*[contains(normalize-space(),'%s')]]//button[normalize-space()='%s']"
+                + " | //div[@role='row'][.//*[contains(normalize-space(),'%s')]]//button[normalize-space()='%s']",
+                rowIdentifier, actionText, rowIdentifier, actionText
+        );
+        Locator locator = Locator.xpath(rowXpath);
+        uiEngine.waits().forClickable(locator);
+        uiEngine.elements().click(locator);
+    }
+
+    public boolean elementExists(String elementKey) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        return uiEngine.elements().exists(locator);
+    }
+
+    public boolean resilientIsVisible(String elementKey) {
+        return resilientIsVisible(elementKey, DEFAULT_INTERACTION_RETRIES);
+    }
+
+    public boolean resilientIsVisible(String elementKey, int maxAttempts) {
+        return RetryExecutor.execute(() -> {
+            Locator locator = uiActionRegistry.text(elementKey).resolveWithRetry(uiEngine, maxAttempts);
+            return uiEngine.elements().isVisible(locator);
+        }, maxAttempts);
     }
 }

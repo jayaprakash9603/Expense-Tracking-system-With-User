@@ -1,0 +1,71 @@
+endpoints:
+
+  - key: bills.create
+    method: POST
+    path: /api/bills
+    auth: true
+
+  - key: bills.list
+    method: GET
+    path: /api/bills
+    auth: true
+
+  - key: bills.by-id
+    method: GET
+    path: /api/bills/{id}
+    auth: true
+
+  - key: bills.update
+    method: PUT
+    path: /api/bills/{id}
+    auth: true
+
+  - key: bills.delete
+    method: DELETE
+    path: /api/bills/{id}
+    auth: true
+
+  - key: bills.delete-all
+    method: DELETE
+    path: /api/bills
+    auth: true
+
+  - key: bills.by-expense
+    method: GET
+    path: /api/bills/expenses/{expenseId}
+    auth: true
+
+  - key: bills.items
+    method: GET
+    path: /api/bills/items
+    auth: true
+
+  - key: bills.search
+    method: GET
+    path: /api/bills/search
+    auth: true
+
+  - key: bills.export-excel
+    method: GET
+    path: /api/bills/export/excel
+    auth: true
+
+  - key: bills.import-excel
+    method: POST
+    path: /api/bills/import/excel
+    auth: true
+
+  - key: bills.import-excel-save
+    method: POST
+    path: /api/bills/import/excel/save
+    auth: true
+
+  - key: bills.scan-receipt
+    method: POST
+    path: /api/bills/scan-receipt
+    auth: true
+
+  - key: bills.ocr-status
+    method: GET
+    path: /api/bills/ocr/status
+    auth: true
