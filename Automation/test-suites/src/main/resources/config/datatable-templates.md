@@ -25,7 +25,7 @@ Use `key | value` rows for generic API/UI steps.
 ## Dynamic Values
 
 - `${ctx.<alias>}` from scenario aliases (`save api response ... as alias ...`)
-- `${suite.<key>}` from `config/suite-data*.properties`
+- `${suite.<key>}` from Helm-managed `AutomationConfiguration.properties`
 - `${random.uuid}`, `${random.number:6}`, `${random.email}`
 - `${now}`, `${now+1d:yyyy-MM-dd}`, `${now-2h:yyyy-MM-dd'T'HH:mm}`
 

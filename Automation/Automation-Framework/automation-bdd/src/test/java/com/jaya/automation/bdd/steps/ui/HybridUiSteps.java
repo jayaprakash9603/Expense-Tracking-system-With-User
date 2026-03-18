@@ -3,6 +3,8 @@ package com.jaya.automation.bdd.steps.ui;
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
 import com.jaya.automation.bdd.steps.ui.support.UiDataRowMapper;
+import com.jaya.automation.core.config.RetryPolicy;
+import com.jaya.automation.core.util.RetryExecutor;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -166,6 +168,47 @@ public class HybridUiSteps extends StepDataSupport {
         boolean exists = BddWorld.uiActionExecutor().elementExists(elementKey);
         Assertions.assertThat(exists)
                 .as("Element '%s' should exist", elementKey)
+                .isTrue();
+    }
+
+    @When("the user resilient clicks {string}")
+    public void userResilientClicks(String actionKey) {
+        RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
+        RetryExecutor.executeVoidWithBackoff(
+                () -> BddWorld.uiActionExecutor().clickAction(actionKey),
+                policy
+        );
+    }
+
+    @When("the user waits for page to be ready at {string}")
+    public void userWaitsForPageReady(String elementKey) {
+        long timeoutMs = BddWorld.config().explicitWait().toMillis();
+        boolean ready = BddWorld.uiActionExecutor().waitForPageReady(elementKey, timeoutMs);
+        Assertions.assertThat(ready)
+                .as("Page element '%s' should be visible", elementKey)
+                .isTrue();
+    }
+
+    @When("the user waits for {string} to be enabled")
+    public void userWaitsForElementEnabled(String elementKey) {
+        long timeoutMs = BddWorld.config().explicitWait().toMillis();
+        boolean enabled = BddWorld.uiActionExecutor().waitForElementEnabled(elementKey, timeoutMs);
+        Assertions.assertThat(enabled)
+                .as("Element '%s' should be enabled", elementKey)
+                .isTrue();
+    }
+
+    @When("the user resilient fills the form with data")
+    public void userResilientFillsForm(DataTable dataTable) {
+        Map<String, String> values = textMap(dataTable);
+        BddWorld.uiActionExecutor().resilientFillFields(values);
+    }
+
+    @Then("{string} should be safely visible on the page")
+    public void elementSafelyVisible(String elementKey) {
+        boolean visible = BddWorld.uiActionExecutor().isVisibleSafe(elementKey);
+        Assertions.assertThat(visible)
+                .as("Element '%s' should be safely visible", elementKey)
                 .isTrue();
     }
 

@@ -78,7 +78,6 @@ public class ScenarioHooks {
         BddWorld.init(config);
         initializeScenarioData(config, scenario);
         dependencyGuard.requireDatasetIfConfigured(config);
-        initializeApiClients(config);
         Collection<String> tags = scenario.getSourceTagNames();
         BddWorld.putAliasValue("scenario.name", scenario.getName());
         BddWorld.putAliasValue("scenario.tags", String.join(",", tags));
@@ -90,9 +89,12 @@ public class ScenarioHooks {
             dependencyGuard.requireCredentials(config);
         }
         if (tags.contains("@api")) {
+            initializeApiClients(config);
             requireReachableOnce("API_BASE_URL", config.apiBaseUrl());
+        } else {
+            initializeApiClientsSafely(config);
         }
-        if (tags.contains("@ui")) {
+        if (tags.contains("@ui") || tags.contains("@BROWSER")) {
             requireReachableOnce("BASE_URL", config.baseUrl());
             initializeUiFlow(config);
         }
@@ -113,6 +115,16 @@ public class ScenarioHooks {
         SharedApiDependencies dependencies = resolveSharedApiDependencies(config);
         dependencies.bind();
         BddWorld.setApiScenarioContext(new ApiScenarioContext(BddWorld.scenarioState()));
+    }
+
+    private void initializeApiClientsSafely(AutomationConfig config) {
+        try {
+            initializeApiClients(config);
+        } catch (IllegalStateException ex) {
+            LOG.debug("API endpoint catalog not available — skipping API initialization for UI-only scenario: {}",
+                    ex.getMessage());
+            BddWorld.setApiScenarioContext(new ApiScenarioContext(BddWorld.scenarioState()));
+        }
     }
 
     private void initializeUiFlow(AutomationConfig config) {

@@ -8,7 +8,6 @@ This module packages reusable suite resources for local, CI, and Kubernetes exec
 test-suites/src/main/resources/
 ├── config/
 │   ├── endpoints/<service>/<domain>.yaml   ← endpoint catalog
-│   ├── suite-data*.properties              ← suite aliases for ${suite.*}
 │   └── datatable-templates.md
 ├── schemas/<service>/<domain>/             ← response JSON schemas
 ├── payloads/<service>/<domain>/            ← request body templates

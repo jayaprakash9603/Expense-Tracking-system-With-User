@@ -20,13 +20,15 @@ public final class ConfigLoader {
     private AutomationConfig buildConfig() {
         AutomationEngine engine = AutomationEngine.from(readValue("AUTOMATION_ENGINE", "selenium"));
         EnvironmentType environment = EnvironmentType.from(readValue("TEST_ENV", EnvironmentType.LOCAL.name()));
-        String baseUrl = readEnvironmentAwareUrl("BASE_URL", environment, "http://localhost:3000");
+        String baseUrl = readEnvironmentAwareUrl("BASE_URL", environment, "http://localhost:9999");
         String apiBaseUrl = readEnvironmentAwareUrl("API_BASE_URL", environment, "http://localhost:8080");
         BrowserType browserType = BrowserType.from(readValue("BROWSER", "chrome"));
         boolean headless = readBoolean("HEADLESS", true);
         int waitSec = readInt("EXPLICIT_WAIT_SEC", 15);
         int retryCount = readInt("RETRY_COUNT", 0);
         int rerunFailedCount = readInt("RERUN_FAILED_COUNT", 0);
+        RetryPolicy apiRetryPolicy = buildRetryPolicy("API");
+        RetryPolicy uiPollRetryPolicy = buildRetryPolicy("UI_POLL");
         int parallelThreads = readInt("cucumber.thread.count", 1);
         String username = readValue("TEST_USERNAME", "");
         String password = readValue("TEST_PASSWORD", "");
@@ -34,11 +36,13 @@ public final class ConfigLoader {
         String mfaProvider = readValue("MFA_PROVIDER", "");
         String runId = readValue("AUTOMATION_RUN_ID", defaultRunId());
         RunnerSettings runnerSettings = buildRunnerSettings(parallelThreads);
-        RetrySettings retrySettings = new RetrySettings(retryCount, rerunFailedCount);
+        RetrySettings retrySettings = new RetrySettings(retryCount, rerunFailedCount, apiRetryPolicy, uiPollRetryPolicy);
         ArtifactSettings artifactSettings = buildArtifactSettings(runId);
         DataSettings dataSettings = buildDataSettings();
         ObservabilitySettings observabilitySettings = buildObservabilitySettings();
         AppBootstrapSettings appBootstrapSettings = buildAppBootstrapSettings();
+        HttpClientSettings httpClientSettings = buildHttpClientSettings();
+        SslSettings sslSettings = buildSslSettings();
         AutomationConfig config = new AutomationConfig(
                 engine,
                 environment,
@@ -58,7 +62,9 @@ public final class ConfigLoader {
                 artifactSettings,
                 dataSettings,
                 observabilitySettings,
-                appBootstrapSettings
+                appBootstrapSettings,
+                httpClientSettings,
+                sslSettings
         );
         publishRuntimeProperties(config);
         return ConfigValidator.validate(config);
@@ -101,6 +107,43 @@ public final class ConfigLoader {
         return new AppBootstrapSettings(startCommand, stopCommand, workDir, readyUrl, Duration.ofSeconds(timeoutSec));
     }
 
+    private HttpClientSettings buildHttpClientSettings() {
+        int connectSec = readInt("HTTP_CONNECT_TIMEOUT_SEC", 30);
+        int readSec = readInt("HTTP_READ_TIMEOUT_SEC", 30);
+        int writeSec = readInt("HTTP_WRITE_TIMEOUT_SEC", 30);
+        int poolSize = readInt("HTTP_CONNECTION_POOL_SIZE", 50);
+        long sleepMs = readLong("HTTP_SLEEP_TIMEOUT_MS", 30000L);
+        int maxRetries = readInt("HTTP_MAX_RETRIES", 5);
+        return new HttpClientSettings(
+                Duration.ofSeconds(connectSec),
+                Duration.ofSeconds(readSec),
+                Duration.ofSeconds(writeSec),
+                poolSize,
+                Duration.ofMillis(sleepMs),
+                maxRetries
+        );
+    }
+
+    private SslSettings buildSslSettings() {
+        boolean skipCerts = readBoolean("SSL_SKIP_CERTIFICATE_VALIDATION", false);
+        String truststorePath = readValue("SSL_TRUSTSTORE_PATH", "");
+        String truststorePassword = readValue("SSL_TRUSTSTORE_PASSWORD", "");
+        return new SslSettings(skipCerts, truststorePath, truststorePassword);
+    }
+
+    private RetryPolicy buildRetryPolicy(String prefix) {
+        int maxAttempts = readInt("RETRY_" + prefix + "_MAX_ATTEMPTS", 3);
+        long intervalMs = readLong("RETRY_" + prefix + "_INTERVAL_MS", 2000L);
+        double multiplier = readDouble("RETRY_" + prefix + "_BACKOFF_MULTIPLIER", 1.5);
+        long maxDelayMs = readLong("RETRY_" + prefix + "_MAX_DELAY_MS", 30000L);
+        return new RetryPolicy(
+                maxAttempts,
+                Duration.ofMillis(intervalMs),
+                multiplier,
+                Duration.ofMillis(maxDelayMs)
+        );
+    }
+
     private String readEnvironmentAwareUrl(String key, EnvironmentType environment, String defaultUrl) {
         String directUrl = readValue(key, "");
         if (isValid(directUrl)) {
@@ -129,6 +172,20 @@ public final class ConfigLoader {
         System.setProperty("DATA_PARTITIONS", String.valueOf(config.dataSettings().partitions()));
         System.setProperty("cucumber.filter.tags", config.runnerSettings().cucumberTags());
         System.setProperty("cucumber.features", config.runnerSettings().cucumberFeatures());
+        System.setProperty("HTTP_CONNECT_TIMEOUT_SEC",
+                String.valueOf(config.httpClientSettings().connectTimeout().toSeconds()));
+        System.setProperty("HTTP_READ_TIMEOUT_SEC",
+                String.valueOf(config.httpClientSettings().readTimeout().toSeconds()));
+        System.setProperty("HTTP_WRITE_TIMEOUT_SEC",
+                String.valueOf(config.httpClientSettings().writeTimeout().toSeconds()));
+        System.setProperty("HTTP_CONNECTION_POOL_SIZE",
+                String.valueOf(config.httpClientSettings().connectionPoolSize()));
+        System.setProperty("HTTP_SLEEP_TIMEOUT_MS",
+                String.valueOf(config.httpClientSettings().sleepTimeoutMs()));
+        System.setProperty("HTTP_MAX_RETRIES",
+                String.valueOf(config.httpClientSettings().maxRetries()));
+        System.setProperty("SSL_SKIP_CERTIFICATE_VALIDATION",
+                String.valueOf(config.sslSettings().skipCertificateValidation()));
     }
 
     private String defaultRunId() {
@@ -169,6 +226,24 @@ public final class ConfigLoader {
         String rawValue = readValue(key, String.valueOf(fallback));
         try {
             return Integer.parseInt(rawValue);
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
+    private long readLong(String key, long fallback) {
+        String rawValue = readValue(key, String.valueOf(fallback));
+        try {
+            return Long.parseLong(rawValue);
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
+    }
+
+    private double readDouble(String key, double fallback) {
+        String rawValue = readValue(key, String.valueOf(fallback));
+        try {
+            return Double.parseDouble(rawValue);
         } catch (NumberFormatException ex) {
             return fallback;
         }

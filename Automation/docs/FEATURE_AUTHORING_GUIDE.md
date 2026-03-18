@@ -200,7 +200,7 @@ Use existing generic steps first. Add a new step definition only when the capabi
 ## Dynamic Value Rules
 
 - `${ctx.<alias>}` — scenario alias from prior steps
-- `${suite.<key>}` — value from suite-data properties
+- `${suite.<key>}` — value from Helm-managed `AutomationConfiguration.properties`
 - `${random.uuid}` / `${random.number:6}` / `${random.email}`
 - `${now}` / `${now+1d:yyyy-MM-dd}` / `${now-2h:yyyy-MM-dd'T'HH:mm}`
 - `${saved.<alias>}` — value stored via "store response field" step

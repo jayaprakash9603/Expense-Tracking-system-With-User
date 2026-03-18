@@ -3,8 +3,10 @@ package com.jaya.automation.bdd.steps.ui;
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
 import com.jaya.automation.core.config.AutomationConfig;
+import com.jaya.automation.core.config.RetryPolicy;
 import com.jaya.automation.core.logging.AutomationLogger;
 import com.jaya.automation.core.logging.LoggerFactory;
+import com.jaya.automation.core.util.RetryExecutor;
 import com.jaya.automation.flows.auth.model.LoginCredentials;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -179,5 +181,65 @@ public class ScenarioIdUiSteps extends StepDataSupport {
         BddWorld.registerScenarioId(scenarioId);
         BddWorld.uiActionExecutor().fillField(fieldKey, resolveDynamic(value));
         LOG.info("Filled '{}' for scenarioID: {}", fieldKey, scenarioId);
+    }
+
+    @When("the user resilient clicks {string} for scenarioID {string}")
+    public void resilientClickForScenarioId(String actionKey, String scenarioId) {
+        BddWorld.registerScenarioId(scenarioId);
+        RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
+        RetryExecutor.executeVoidWithBackoff(
+                () -> BddWorld.uiActionExecutor().clickAction(actionKey),
+                policy
+        );
+        LOG.info("Resilient click '{}' completed for scenarioID: {}", actionKey, scenarioId);
+    }
+
+    @When("the user waits for page to be ready at {string} for scenarioID {string}")
+    public void waitForPageReadyForScenarioId(String elementKey, String scenarioId) {
+        BddWorld.registerScenarioId(scenarioId);
+        long timeoutMs = BddWorld.config().explicitWait().toMillis();
+        boolean ready = BddWorld.uiActionExecutor().waitForPageReady(elementKey, timeoutMs);
+        Assertions.assertThat(ready)
+                .as("Page element '%s' should be visible for scenarioID '%s'", elementKey, scenarioId)
+                .isTrue();
+        LOG.info("Page ready at '{}' for scenarioID: {}", elementKey, scenarioId);
+    }
+
+    @When("the user waits for {string} to be enabled for scenarioID {string}")
+    public void waitForElementEnabledForScenarioId(String elementKey, String scenarioId) {
+        BddWorld.registerScenarioId(scenarioId);
+        long timeoutMs = BddWorld.config().explicitWait().toMillis();
+        boolean enabled = BddWorld.uiActionExecutor().waitForElementEnabled(elementKey, timeoutMs);
+        Assertions.assertThat(enabled)
+                .as("Element '%s' should be enabled for scenarioID '%s'", elementKey, scenarioId)
+                .isTrue();
+        LOG.info("Element '{}' is enabled for scenarioID: {}", elementKey, scenarioId);
+    }
+
+    @When("the user waits for {string} with refresh for scenarioID {string}")
+    public void waitForWithRefreshForScenarioId(String elementKey, String scenarioId) {
+        BddWorld.registerScenarioId(scenarioId);
+        RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
+        BddWorld.uiActionExecutor().waitForWithRefresh(
+                elementKey, policy.maxAttempts(), policy.initialDelayMs()
+        );
+        LOG.info("Element '{}' found after refresh polling for scenarioID: {}", elementKey, scenarioId);
+    }
+
+    @Then("{string} should be safely visible for scenarioID {string}")
+    public void elementSafelyVisibleForScenarioId(String elementKey, String scenarioId) {
+        BddWorld.registerScenarioId(scenarioId);
+        boolean visible = BddWorld.uiActionExecutor().isVisibleSafe(elementKey);
+        Assertions.assertThat(visible)
+                .as("Element '%s' should be safely visible for scenarioID '%s'", elementKey, scenarioId)
+                .isTrue();
+    }
+
+    @When("the user resilient fills the form with data for scenarioID {string}")
+    public void resilientFillFormForScenarioId(String scenarioId, io.cucumber.datatable.DataTable dataTable) {
+        BddWorld.registerScenarioId(scenarioId);
+        Map<String, String> values = textMap(dataTable);
+        BddWorld.uiActionExecutor().resilientFillFields(values);
+        LOG.info("Resilient form fill for scenarioID: {} with {} fields", scenarioId, values.size());
     }
 }

@@ -28,8 +28,7 @@ public final class ForgotPasswordPage extends BaseDomainPage {
     }
 
     public void enterEmail(String email) {
-        uiEngine().elements().clear(emailInput.resolve(uiEngine()));
-        uiEngine().elements().type(emailInput.resolve(uiEngine()), email);
+        uiEngine().elements().clearAndType(emailInput.resolve(uiEngine()), email);
     }
 
     public void clickSendOtp() {
@@ -37,13 +36,11 @@ public final class ForgotPasswordPage extends BaseDomainPage {
     }
 
     public void enterNewPassword(String password) {
-        uiEngine().elements().clear(newPasswordInput.resolve(uiEngine()));
-        uiEngine().elements().type(newPasswordInput.resolve(uiEngine()), password);
+        uiEngine().elements().clearAndType(newPasswordInput.resolve(uiEngine()), password);
     }
 
     public void enterConfirmPassword(String password) {
-        uiEngine().elements().clear(confirmPasswordInput.resolve(uiEngine()));
-        uiEngine().elements().type(confirmPasswordInput.resolve(uiEngine()), password);
+        uiEngine().elements().clearAndType(confirmPasswordInput.resolve(uiEngine()), password);
     }
 
     public void clickResetPassword() {

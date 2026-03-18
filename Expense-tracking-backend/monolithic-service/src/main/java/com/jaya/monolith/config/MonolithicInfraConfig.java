@@ -17,7 +17,6 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.messaging.Message;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -31,24 +30,18 @@ public class MonolithicInfraConfig {
     }
 
     @Configuration
-    @ConditionalOnProperty(name = "kafka.enabled", havingValue = "false")
+    @ConditionalOnProperty(name = "kafka.enabled", havingValue = "false", matchIfMissing = true)
     static class KafkaDisabledCompatibility {
 
         @Bean
         @ConditionalOnMissingBean(KafkaTemplate.class)
         @SuppressWarnings({ "rawtypes", "unchecked" })
         public KafkaTemplate kafkaTemplate() {
-            return new NoOpKafkaTemplate(new DefaultKafkaProducerFactory<>(kafkaProducerConfig()));
-        }
-
-        private Map<String, Object> kafkaProducerConfig() {
-            Map<String, Object> config = new HashMap<>();
-            config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-            config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-            config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-            config.put(ProducerConfig.ACKS_CONFIG, "0");
-            config.put(ProducerConfig.RETRIES_CONFIG, 0);
-            return config;
+            Map<String, Object> config = Map.of(
+                    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092",
+                    ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
+                    ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+            return new NoOpKafkaTemplate(new DefaultKafkaProducerFactory<>(config));
         }
 
         private static final class NoOpKafkaTemplate extends KafkaTemplate<String, Object> {

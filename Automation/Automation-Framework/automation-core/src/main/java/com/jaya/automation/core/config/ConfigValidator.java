@@ -19,6 +19,7 @@ public final class ConfigValidator {
         requireUrl(config.apiBaseUrl(), "API_BASE_URL");
         requireOptionalUrl(config.appBootstrapSettings().readyUrl(), "APP_READY_URL");
         validatePartitionIndex(config.dataSettings().partitionIndex(), config.dataSettings().partitions());
+        validateHttpClientSettings(config.httpClientSettings());
         return config;
     }
 
@@ -45,6 +46,14 @@ public final class ConfigValidator {
             return;
         }
         requireUrl(value, key);
+    }
+
+    private static void validateHttpClientSettings(HttpClientSettings settings) {
+        requirePositive(settings.connectTimeout().toSeconds(), "HTTP_CONNECT_TIMEOUT_SEC");
+        requirePositive(settings.readTimeout().toSeconds(), "HTTP_READ_TIMEOUT_SEC");
+        requirePositive(settings.writeTimeout().toSeconds(), "HTTP_WRITE_TIMEOUT_SEC");
+        requirePositive(settings.connectionPoolSize(), "HTTP_CONNECTION_POOL_SIZE");
+        requirePositive(settings.maxRetries(), "HTTP_MAX_RETRIES");
     }
 
     private static void requireUrl(String value, String key) {

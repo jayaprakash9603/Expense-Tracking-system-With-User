@@ -21,7 +21,9 @@ public record AutomationConfig(
         ArtifactSettings artifactSettings,
         DataSettings dataSettings,
         ObservabilitySettings observabilitySettings,
-        AppBootstrapSettings appBootstrapSettings
+        AppBootstrapSettings appBootstrapSettings,
+        HttpClientSettings httpClientSettings,
+        SslSettings sslSettings
 ) {
     public boolean hasCredentials() {
         return hasValue(testUsername) && hasValue(testPassword);

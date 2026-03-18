@@ -20,8 +20,8 @@ public class NavigationUiSteps {
         BddWorld.setCurrentUrl(BddWorld.uiActionExecutor().currentUrl());
     }
 
-    @Then("the current URL should contain {string}")
-    public void currentUrlShouldContain(String fragment) {
+    @Then("the navigation URL should contain {string}")
+    public void navigationUrlShouldContain(String fragment) {
         String currentUrl = BddWorld.uiActionExecutor().currentUrl();
         assertThat(currentUrl).as("Current URL should contain " + fragment).contains(fragment);
     }

@@ -173,14 +173,20 @@ public final class UiActionRegistry {
         return switch (normalizedKey) {
             case "expense-add-new" -> LocatorSet.of(
                     "expense-add-new-action",
+                    Locator.css("button.fixed.rounded-full"),
+                    Locator.xpath("//button[contains(@class,'fixed') and contains(@class,'rounded-full')]"),
                     Locator.xpath("//button[contains(normalize-space(),'Add New')]"),
                     Locator.css("button[aria-label='Add new expense']"),
                     Locator.xpath("//button[contains(normalize-space(),'New Expense')]"),
                     Locator.xpath("//button[contains(normalize-space(),'Add')]")
             );
-            case "expense-open-add" -> LocatorSet.of(
+            case "expense-open-add" -> LocatorSet.ofPreferred(
                     "expense-open-add-action",
+                    Locator.xpath("//div[contains(@class,'fixed') and contains(@class,'inset-0')]//button[contains(normalize-space(),'Add Expense')]"),
+                    Locator.xpath("//div[contains(@class,'modal') or contains(@class,'fixed')]//button[contains(normalize-space(),'Add Expense')]"),
+                    Locator.xpath("//button[@type='submit'][contains(normalize-space(),'Add Expense')]"),
                     Locator.xpath("//button[normalize-space()='Add Expense']"),
+                    Locator.xpath("//button[normalize-space()='Quick Add Expense']"),
                     Locator.xpath("//li[normalize-space()='Add Expense']"),
                     Locator.xpath("//button[contains(normalize-space(),'Add Expense')]")
             );

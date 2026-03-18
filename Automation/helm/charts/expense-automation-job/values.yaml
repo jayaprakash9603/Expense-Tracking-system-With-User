@@ -7,6 +7,7 @@ job:
   name: expense-automation-job
   backoffLimit: 0
   ttlSecondsAfterFinished: 300
+  configurationPath: "/opt/automation/config"
   resources:
     requests:
       cpu: 250m
@@ -29,8 +30,105 @@ runner:
 app:
   startCommand: ""
   stopCommand: ""
+  workDir: ""
   readyUrl: ""
   readyTimeoutSec: "180"
+
+automation:
+  baseUrl: "http://localhost:9999"
+  apiBaseUrl: "http://localhost:8080"
+
+  browser:
+    type: "chrome"
+    headless: true
+    explicitWaitSec: 15
+    reuseBrowserSession: false
+
+  credentials:
+    otpProvider: ""
+    mfaProvider: ""
+
+  httpClient:
+    connectTimeoutSec: 30
+    readTimeoutSec: 30
+    writeTimeoutSec: 30
+    connectionPoolSize: 50
+    sleepTimeoutMs: 30000
+    maxRetries: 5
+
+  ssl:
+    skipCertificateValidation: false
+    truststorePath: ""
+    truststorePassword: ""
+
+  retry:
+    retryCount: 3
+    rerunFailedCount: 0
+    api:
+      maxAttempts: 5
+      intervalMs: 5000
+      backoffMultiplier: 1.5
+      maxDelayMs: 30000
+    uiPoll:
+      maxAttempts: 10
+      intervalMs: 2000
+      backoffMultiplier: 1.0
+      maxDelayMs: 5000
+
+  data:
+    workbookPath: ""
+    sheetName: "default"
+    iteration: 0
+    partitionIndex: 0
+    partitions: 1
+
+  observability:
+    recordVideo: false
+    recordTrace: false
+    captureScreenshotAlways: false
+
+  artifacts:
+    rootDirectory: "target/artifacts"
+
+  cucumber:
+    features: ""
+    filterTags: "@smoke"
+    threadCount: 1
+
+  env:
+    timezone: "UTC"
+
+  suiteData:
+    auth:
+      username: "jaya@gmail.com"
+      invalidUsername: "invalid@example.test"
+      invalidPassword: "invalid-pass"
+      testEmail: "jaya@gmail.com"
+    api:
+      defaultPage: 0
+      defaultLimit: 20
+    expenses:
+      defaultType: "LOSS"
+      defaultPaymentMethod: "CASH"
+    budgets:
+      defaultName: "Monthly Budget"
+      defaultAmount: 5000
+    bills:
+      defaultType: "purchase"
+    categories:
+      defaultType: "expense"
+    payments:
+      defaultType: "credit_card"
+    friends:
+      defaultRecipientId: 2
+    groups:
+      defaultName: "QA Group"
+    sharing:
+      defaultPublic: false
+    chat:
+      defaultMessage: "Automated chat message"
+    presence:
+      defaultUserId: 2
 
 reports:
   hostPath: /var/automation/expense-tracking/reports

@@ -95,9 +95,21 @@ public final class UiActionExecutor {
     }
 
     public void clickAction(String actionKey) {
-        Locator locator = uiActionRegistry.action(actionKey).resolve(uiEngine);
+        LocatorSet set = uiActionRegistry.action(actionKey);
+        if (set.isFirstCandidatePreferred() && !set.candidates().isEmpty()) {
+            clickFirstCandidate(set);
+            return;
+        }
+        Locator locator = set.resolve(uiEngine);
         uiEngine.waits().forClickable(locator);
         uiEngine.elements().click(locator);
+    }
+
+    private void clickFirstCandidate(LocatorSet set) {
+        Locator modalButton = set.candidates().get(0);
+        uiEngine.waits().forVisible(modalButton);
+        uiEngine.waits().forClickable(modalButton);
+        uiEngine.elements().click(modalButton);
     }
 
     public String textOf(String textKey) {
@@ -205,5 +217,48 @@ public final class UiActionExecutor {
             Locator locator = uiActionRegistry.text(elementKey).resolveWithRetry(uiEngine, maxAttempts);
             return uiEngine.elements().isVisible(locator);
         }, maxAttempts);
+    }
+
+    public boolean waitForPageReady(String elementKey, long timeoutMs) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        return uiEngine.waits().waitForPageReady(locator, timeoutMs);
+    }
+
+    public boolean waitForElementEnabled(String elementKey, long timeoutMs) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        return uiEngine.waits().waitForEnabled(locator, timeoutMs);
+    }
+
+    public void waitForWithRefresh(String elementKey, int maxRetries, long waitMs) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            if (uiEngine.waits().isVisibleSafe(locator)) {
+                LOG.info("Element '{}' visible after {} attempt(s)", elementKey, attempt);
+                return;
+            }
+            LOG.debug("Element '{}' not visible, refreshing (attempt {}/{})", elementKey, attempt, maxRetries);
+            uiEngine.navigateTo(uiEngine.currentUrl());
+            sleepQuietly(waitMs);
+        }
+        throw new IllegalStateException(
+                "Element '" + elementKey + "' not visible after " + maxRetries + " refreshes"
+        );
+    }
+
+    public void waitForNetworkIdle() {
+        uiEngine.waits().forNetworkIdle();
+    }
+
+    public boolean isVisibleSafe(String elementKey) {
+        Locator locator = uiActionRegistry.text(elementKey).resolve(uiEngine);
+        return uiEngine.waits().isVisibleSafe(locator);
+    }
+
+    private void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

@@ -87,7 +87,7 @@ The framework follows a layered architecture:
 | **automation-engine-selenium** | `Automation-Framework/automation-engine-selenium/` | Selenium WebDriver automation | `SeleniumUiEngine`, `SeleniumDriverFactory`, `SeleniumElementActions`, `SeleniumScreenshotService` |
 | **automation-ui-flows** | `Automation-Framework/automation-ui-flows/` | Page objects and auth flows | 11 page objects (`LoginPage`, `DashboardPage`, `ExpensesPage`, etc.), `AuthUiFlowService`, `TabRouteRegistry`, `UiActionRegistry` |
 | **automation-data** | `Automation-Framework/automation-data/` | Excel-based test data management | `ExcelWorkbookReader`, `ExcelDatasetResolver`, `ExcelSchemaValidator` |
-| **test-suites** | `test-suites/` | Feature files, payloads, schemas, config | 30 `.feature` files, request templates, expected fragments, JSON schemas, `suite-data.properties` |
+| **test-suites** | `test-suites/` | Feature files, payloads, schemas, config | 30 `.feature` files, request templates, expected fragments, JSON schemas |
 | **automation-app** | `Automation-Framework/automation-app/` | CLI runner and boot orchestration | `AutomationApp`, `CliOptionsParser`, `TestExecutionLauncher`, `HealthCheckOrchestrator`, `CommandRunner` |
 | **Parent POM** | `pom.xml` | Dependency management and plugin config | Versions: Selenium 4.28, Playwright 1.57, RestAssured 5.5, Cucumber 7.21, TestNG 7.11, Allure 2.24 |
 
@@ -140,7 +140,7 @@ sequenceDiagram
 
 | Phase | Hook | What Happens |
 |-------|------|-------------|
-| **Suite init** | `@BeforeAll` | `BddWorld` loads `AutomationConfig`, creates API clients (`AuthApiClient`, etc.), resolves suite data from `suite-data.properties` |
+| **Suite init** | `@BeforeAll` | `BddWorld` loads `AutomationConfig`, creates API clients (`AuthApiClient`, etc.), resolves suite data from Helm-managed `AutomationConfiguration.properties` |
 | **Scenario setup** | `@Before` | Resets `ScenarioState`, authenticates if `@requiresCredentials`, starts UI engine if `@ui` tag present |
 | **Step execution** | -- | `GenericApiSteps` / `UserApiSteps` for API; `AuthUiSteps` / `ExpenseUiSteps` for UI; `HybridApiSteps` / `HybridUiSteps` for mixed |
 | **Scenario teardown** | `@After` | Captures screenshot on failure, logs step execution summary, runs `ApiCleanupHooks` for `@api` scenarios |

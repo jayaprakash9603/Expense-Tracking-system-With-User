@@ -2,6 +2,7 @@ package com.jaya.automation.engine.selenium;
 
 import com.jaya.automation.core.ui.Locator;
 import com.jaya.automation.core.ui.UiElementActions;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -20,7 +21,11 @@ final class SeleniumElementActions implements UiElementActions {
     @Override
     public void click(Locator locator) {
         waitActions.forClickable(locator);
-        locate(locator).click();
+        WebElement element = locate(locator);
+        if (webDriver instanceof JavascriptExecutor js) {
+            js.executeScript("arguments[0].scrollIntoView({block:'center', behavior:'instant'});", element);
+        }
+        element.click();
     }
 
     @Override

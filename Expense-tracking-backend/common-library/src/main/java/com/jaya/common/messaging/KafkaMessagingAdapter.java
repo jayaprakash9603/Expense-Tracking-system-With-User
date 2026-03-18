@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.CompletableFuture;
 
 @Component
-@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true")
 @ConditionalOnClass(KafkaTemplate.class)
 @Slf4j
 public class KafkaMessagingAdapter implements MessagingPort {

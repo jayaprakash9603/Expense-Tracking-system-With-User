@@ -39,6 +39,7 @@ final class PlaywrightBrowserFactory {
     private BrowserContext createContext(Browser browser, AutomationConfig config) {
         Browser.NewContextOptions options = new Browser.NewContextOptions();
         options.setViewportSize(1920, 1080);
+        options.setIgnoreHTTPSErrors(true);
         if (config.observabilitySettings().videoEnabled()) {
             options.setRecordVideoDir(ArtifactPaths.videoDirectory("playwright"));
             options.setRecordVideoSize(1920, 1080);

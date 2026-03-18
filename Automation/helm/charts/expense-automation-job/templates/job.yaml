@@ -18,6 +18,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: AUTOMATION_CONFIG_FILE
+              value: "{{ .Values.job.configurationPath }}/AutomationConfiguration.properties"
+            - name: TZ
+              value: "{{ .Values.automation.env.timezone }}"
             - name: RUN_MODE
               value: "{{ .Values.runner.runMode }}"
             - name: AUTOMATION_ENGINE
@@ -56,14 +60,27 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: TEST_PASSWORD
                   optional: true
+            {{- if .Values.automation.ssl.truststorePassword }}
+            - name: SSL_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: SSL_TRUSTSTORE_PASSWORD
+                  optional: true
+            {{- end }}
           resources:
 {{ toYaml .Values.job.resources | indent 12 }}
           volumeMounts:
+            - name: automation-configuration
+              mountPath: {{ .Values.job.configurationPath }}/AutomationConfiguration.properties
+              subPath: AutomationConfiguration.properties
             - name: report-volume
               mountPath: /opt/automation/Automation-Framework/automation-bdd/target/reports
       volumes:
+        - name: automation-configuration
+          configMap:
+            name: {{ .Values.job.name }}-automation-configuration
         - name: report-volume
           hostPath:
             path: {{ .Values.reports.hostPath | quote }}
             type: DirectoryOrCreate
-

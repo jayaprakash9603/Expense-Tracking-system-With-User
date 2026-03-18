@@ -6,8 +6,16 @@ import com.jaya.automation.core.util.RetryExecutor;
 
 import java.util.List;
 
-public record LocatorSet(String name, List<Locator> candidates) {
+public record LocatorSet(String name, List<Locator> candidates, boolean firstCandidatePreferred) {
     private static final int DEFAULT_RESOLVE_RETRIES = 3;
+
+    public LocatorSet(String name, List<Locator> candidates) {
+        this(name, candidates, false);
+    }
+
+    public boolean isFirstCandidatePreferred() {
+        return firstCandidatePreferred;
+    }
 
     public Locator resolve(UiEngine uiEngine) {
         return candidates.stream()
@@ -34,6 +42,10 @@ public record LocatorSet(String name, List<Locator> candidates) {
     }
 
     public static LocatorSet of(String name, Locator... locators) {
-        return new LocatorSet(name, List.of(locators));
+        return new LocatorSet(name, List.of(locators), false);
+    }
+
+    public static LocatorSet ofPreferred(String name, Locator... locators) {
+        return new LocatorSet(name, List.of(locators), true);
     }
 }

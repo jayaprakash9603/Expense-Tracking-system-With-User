@@ -31,7 +31,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 }, excludeFilters = {
                 @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.JpaQueryOptimizationConfig"),
                 @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.NoOpCacheConfig"),
-                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.CacheConfig")
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.CacheConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.[A-Z].*KafkaConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.KafkaProducerConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.config\\.KafkaConsumerConfig"),
+                @ComponentScan.Filter(type = org.springframework.context.annotation.FilterType.REGEX, pattern = "com\\.jaya\\.common\\.config\\.CommonKafkaConfig")
 })
 @EntityScan(basePackages = {
                 "com.jaya"
@@ -44,5 +48,5 @@ public class MonolithicApplication {
         public static void main(String[] args) {
                 System.setProperty("spring.profiles.active", "monolithic");
                 SpringApplication.run(MonolithicApplication.class, args);
-        }
+        }       
 }
