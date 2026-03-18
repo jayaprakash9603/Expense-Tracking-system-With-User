@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.common.exception.AccessDeniedException;
 import com.jaya.common.exception.BusinessException;
 import com.jaya.common.exception.ConflictException;
@@ -38,6 +39,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryAsyncService categoryAsyncService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private void checkForDuplicateCategory(String name, String type, Integer userId, boolean isGlobal,
             Integer excludeId) {
@@ -998,7 +1002,7 @@ public class CategoryService {
     }
 
     public List<ExpenseDTO> getOthersAndUncategorizedExpenses(UserDTO UserDTO) {
-        List<ExpenseDTO> allUserExpenses = expenseService.getAllExpenses(UserDTO.getId());
+        List<ExpenseDTO> allUserExpenses = mapExpenseList(expenseService.getAllExpenses(UserDTO.getId()));
         List<Category> allCategories = categoryRepository.findAll();
         Category othersCategory = allCategories.stream()
                 .filter(cat -> "Others".equalsIgnoreCase(cat.getName()) &&
@@ -1023,7 +1027,7 @@ public class CategoryService {
     }
 
     public List<ExpenseDTO> getAllExpensesWithCategoryFlag(Integer userId, Integer categoryId) {
-        List<ExpenseDTO> allUserExpenses = expenseService.getAllExpenses(userId);
+        List<ExpenseDTO> allUserExpenses = mapExpenseList(expenseService.getAllExpenses(userId));
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> ResourceNotFoundException.categoryNotFound(categoryId));
         Set<Integer> categoryExpenseIds = new HashSet<>();
@@ -1169,10 +1173,10 @@ public class CategoryService {
         Sort sort = createSort(sortBy, sortDirection);
         List<ExpenseDTO> allUserExpenses;
         if (sortBy.startsWith("expense.")) {
-            allUserExpenses = expenseService.getAllExpenses(userId);
+            allUserExpenses = mapExpenseList(expenseService.getAllExpenses(userId));
             allUserExpenses = sortExpensesByNestedField(allUserExpenses, sortBy, sortDirection);
         } else {
-            allUserExpenses = expenseService.getAllExpensesWithSort(userId, sort.toString());
+            allUserExpenses = mapExpenseList(expenseService.getAllExpensesWithSort(userId, sort.toString()));
         }
         for (ExpenseDTO expense : allUserExpenses) {
             expense.setIncludeInBudget(categoryExpenseIds.contains(expense.getId()));
@@ -1197,6 +1201,20 @@ public class CategoryService {
         } else {
             return orderedExpenses.subList(start, end);
         }
+    }
+
+    private List<ExpenseDTO> mapExpenseList(List<?> expenses) {
+        if (expenses == null || expenses.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return expenses.stream().map(this::mapExpense).collect(Collectors.toList());
+    }
+
+    private ExpenseDTO mapExpense(Object expense) {
+        if (expense instanceof ExpenseDTO expenseDTO) {
+            return expenseDTO;
+        }
+        return objectMapper.convertValue(expense, ExpenseDTO.class);
     }
 
     public Category save(Category category) {
