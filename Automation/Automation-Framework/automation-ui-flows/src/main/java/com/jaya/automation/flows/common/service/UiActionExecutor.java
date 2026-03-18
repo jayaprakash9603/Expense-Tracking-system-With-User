@@ -18,6 +18,8 @@ public final class UiActionExecutor {
     private final DomainNavigationFlowService domainNavigationFlowService;
     private final UiActionRegistry uiActionRegistry;
     private final TabRouteRegistry tabRouteRegistry;
+    private static final int TAB_NAVIGATION_RETRIES = 3;
+    private static final long TAB_CLICK_SETTLE_MS = 1500;
 
     public UiActionExecutor(UiEngine uiEngine, DomainNavigationFlowService domainNavigationFlowService) {
         this.uiEngine = uiEngine;
@@ -37,15 +39,50 @@ public final class UiActionExecutor {
         return page.isLoaded();
     }
 
+    
+
     public String navigateToTab(String tabLabel, String baseUrl) {
         String tabPath = resolveTabPath(tabLabel);
         if (isAuthRoute(tabPath)) {
             openTabByPath(baseUrl, tabPath);
             return tabPath;
         }
-        clickTab(tabLabel, tabPath);
-        uiEngine.waits().forUrlContains(tabPath);
+        if (urlAlreadyContains(tabPath)) {
+            LOG.info("Already on '{}' — skipping navigation", tabPath);
+            return tabPath;
+        }
+        if (navigateViaClickWithRetry(tabLabel, tabPath)) {
+            return tabPath;
+        }
+        LOG.info("Click navigation to '{}' failed after retries — falling back to direct URL", tabPath);
+        openTabByPath(baseUrl, tabPath);
         return tabPath;
+    }
+
+    private boolean navigateViaClickWithRetry(String tabLabel, String tabPath) {
+        for (int attempt = 1; attempt <= TAB_NAVIGATION_RETRIES; attempt++) {
+            try {
+                clickTab(tabLabel, tabPath);
+                sleepQuietly(TAB_CLICK_SETTLE_MS);
+                if (urlAlreadyContains(tabPath)) {
+                    LOG.info("Tab '{}' navigated via click on attempt {}", tabPath, attempt);
+                    return true;
+                }
+            } catch (Exception ex) {
+                LOG.debug("Tab click attempt {}/{} for '{}' failed: {}",
+                        attempt, TAB_NAVIGATION_RETRIES, tabPath, ex.getMessage());
+            }
+        }
+        return false;
+    }
+
+    private boolean urlAlreadyContains(String segment) {
+        try {
+            String currentUrl = uiEngine.currentUrl();
+            return currentUrl != null && currentUrl.contains(segment);
+        } catch (Exception ex) {
+            return false;
+        }
     }
 
     public String resolveTabPath(String tabLabel) {

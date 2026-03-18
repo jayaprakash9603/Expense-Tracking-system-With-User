@@ -1,28 +1,35 @@
 package com.jaya.automation.bdd.context;
 
 import com.jaya.automation.core.config.AutomationConfig;
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
 import org.testng.SkipException;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 
 public final class DependencyGuard {
-    private static final int REACHABILITY_ATTEMPTS = 4;
-    private static final long RETRY_DELAY_MS = 1500;
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(DependencyGuard.class);
+    private static final int MAX_ATTEMPTS = 2;
+    private static final long RETRY_DELAY_MS = 2000;
+    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(8);
     private final HttpClient httpClient;
 
     public DependencyGuard() {
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
+                .connectTimeout(CONNECT_TIMEOUT)
                 .followRedirects(HttpClient.Redirect.ALWAYS)
                 .sslContext(buildTrustAllSslContext())
                 .build();
@@ -44,11 +51,15 @@ public final class DependencyGuard {
     }
 
     public void requireReachable(String endpointName, String url) {
+        if (url == null || url.isBlank()) {
+            throw new SkipException(endpointName + " URL is not configured. Set it in AutomationConfiguration.yaml.");
+        }
+        LOG.info("Checking reachability: {} at {}", endpointName, url);
         if (isReachableWithRetry(url)) {
+            LOG.info("{} is reachable at {}", endpointName, url);
             return;
         }
-        String message = endpointName + " is not reachable at " + url + ". Start target service and retry.";
-        throw new SkipException(message);
+        throw new SkipException(endpointName + " is not reachable at " + url + ". Start target service and retry.");
     }
 
     public void requireCredentials(AutomationConfig config) {
@@ -69,69 +80,89 @@ public final class DependencyGuard {
         throw new SkipException("DATA_WORKBOOK_PATH is configured but file is missing: " + workbookPath);
     }
 
-    private boolean isReachable(String url) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(15))
-                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
-                    .build();
-            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
-            return response.statusCode() > 0;
-        } catch (Exception ex) {
-            return isReachableViaGet(url);
-        }
-    }
-
-    private boolean isReachableViaGet(String url) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(15))
-                    .GET()
-                    .build();
-            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
-            return response.statusCode() > 0;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
     private boolean isReachableWithRetry(String url) {
-        for (int attempt = 1; attempt <= REACHABILITY_ATTEMPTS; attempt++) {
-            if (isReachableCandidate(url)) {
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            ReachabilityResult result = probe(url);
+            if (result.reachable) {
                 return true;
             }
-            if (attempt < REACHABILITY_ATTEMPTS) {
-                sleepBeforeRetry();
+            if (result.connectionRefused) {
+                LOG.info("Connection refused at {} — service is not running, skipping retries", url);
+                return false;
+            }
+            if (attempt < MAX_ATTEMPTS) {
+                LOG.debug("Attempt {}/{} failed for {} — retrying in {}ms", attempt, MAX_ATTEMPTS, url, RETRY_DELAY_MS);
+                sleepQuietly(RETRY_DELAY_MS);
             }
         }
         return false;
     }
 
-    private boolean isReachableCandidate(String url) {
-        if (isReachable(url)) {
-            return true;
+    private ReachabilityResult probe(String url) {
+        ReachabilityResult headResult = sendProbe(url, "HEAD");
+        if (headResult.reachable) {
+            return headResult;
         }
-        String fallbackUrl = fallbackUrl(url);
-        return fallbackUrl != null && isReachable(fallbackUrl);
+        if (headResult.connectionRefused) {
+            return headResult;
+        }
+        return sendProbe(url, "GET");
     }
 
-    private String fallbackUrl(String url) {
-        if (url == null || url.isBlank()) {
-            return null;
-        }
-        if (url.contains("/login")) {
-            return null;
-        }
-        return url.endsWith("/") ? url + "login" : url + "/login";
-    }
-
-    private void sleepBeforeRetry() {
+    private ReachabilityResult sendProbe(String url, String method) {
         try {
-            Thread.sleep(RETRY_DELAY_MS);
-        } catch (InterruptedException interruptedException) {
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(REQUEST_TIMEOUT);
+            HttpRequest request = "HEAD".equals(method)
+                    ? builder.method("HEAD", HttpRequest.BodyPublishers.noBody()).build()
+                    : builder.GET().build();
+            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            return ReachabilityResult.reachable();
+        } catch (ConnectException ex) {
+            return ReachabilityResult.refused();
+        } catch (HttpTimeoutException ex) {
+            return ReachabilityResult.unreachable();
+        } catch (Exception ex) {
+            boolean refused = isConnectionRefused(ex);
+            return refused ? ReachabilityResult.refused() : ReachabilityResult.unreachable();
+        }
+    }
+
+    private boolean isConnectionRefused(Throwable ex) {
+        Throwable cause = ex;
+        while (cause != null) {
+            if (cause instanceof ConnectException) {
+                return true;
+            }
+            String message = cause.getMessage();
+            if (message != null && message.contains("Connection refused")) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private void sleepQuietly(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static final class ReachabilityResult {
+        final boolean reachable;
+        final boolean connectionRefused;
+
+        private ReachabilityResult(boolean reachable, boolean connectionRefused) {
+            this.reachable = reachable;
+            this.connectionRefused = connectionRefused;
+        }
+
+        static ReachabilityResult reachable() { return new ReachabilityResult(true, false); }
+        static ReachabilityResult refused() { return new ReachabilityResult(false, true); }
+        static ReachabilityResult unreachable() { return new ReachabilityResult(false, false); }
     }
 }
