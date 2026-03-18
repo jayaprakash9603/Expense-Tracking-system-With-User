@@ -72,6 +72,33 @@ import {
   FETCH_FRIENDSHIP_REPORT_SUCCESS,
   FETCH_FRIENDSHIP_REPORT_FAILURE,
   CLEAR_FRIENDSHIP_REPORT,
+  CHECK_ARE_FRIENDS_REQUEST,
+  CHECK_ARE_FRIENDS_SUCCESS,
+  CHECK_ARE_FRIENDS_FAILURE,
+  FETCH_FRIEND_IDS_REQUEST,
+  FETCH_FRIEND_IDS_SUCCESS,
+  FETCH_FRIEND_IDS_FAILURE,
+  FETCH_ALL_PENDING_REQUESTS_REQUEST,
+  FETCH_ALL_PENDING_REQUESTS_SUCCESS,
+  FETCH_ALL_PENDING_REQUESTS_FAILURE,
+  CHECK_FRIENDSHIP_STATUS_REQUEST,
+  CHECK_FRIENDSHIP_STATUS_SUCCESS,
+  CHECK_FRIENDSHIP_STATUS_FAILURE,
+  CHECK_EXPENSE_ACCESS_REQUEST,
+  CHECK_EXPENSE_ACCESS_SUCCESS,
+  CHECK_EXPENSE_ACCESS_FAILURE,
+  CHECK_CAN_ACCESS_EXPENSES_REQUEST,
+  CHECK_CAN_ACCESS_EXPENSES_SUCCESS,
+  CHECK_CAN_ACCESS_EXPENSES_FAILURE,
+  CHECK_CAN_MODIFY_EXPENSES_REQUEST,
+  CHECK_CAN_MODIFY_EXPENSES_SUCCESS,
+  CHECK_CAN_MODIFY_EXPENSES_FAILURE,
+  FETCH_USER_ACCESS_LEVEL_REQUEST,
+  FETCH_USER_ACCESS_LEVEL_SUCCESS,
+  FETCH_USER_ACCESS_LEVEL_FAILURE,
+  FETCH_FRIENDSHIP_BY_ID_REQUEST,
+  FETCH_FRIENDSHIP_BY_ID_SUCCESS,
+  FETCH_FRIENDSHIP_BY_ID_FAILURE,
 } from "./friendsActionTypes";
 
 const initialState = {
@@ -173,6 +200,43 @@ const initialState = {
   // Cancel/Remove operations
   cancellingRequest: false,
   removingFriendship: false,
+
+  // Additional API states
+  areFriendsStatus: null,
+  loadingAreFriends: false,
+  areFriendsError: null,
+
+  friendIds: [],
+  loadingFriendIds: false,
+  friendIdsError: null,
+
+  allPendingRequests: [],
+  loadingAllPendingRequests: false,
+  allPendingRequestsError: null,
+
+  friendshipStatusCheck: {},
+  loadingFriendshipStatusCheck: false,
+  friendshipStatusCheckError: null,
+
+  expenseAccessCheck: {},
+  loadingExpenseAccessCheck: false,
+  expenseAccessCheckError: null,
+
+  canAccessExpenses: null,
+  loadingCanAccessExpenses: false,
+  canAccessExpensesError: null,
+
+  canModifyExpenses: null,
+  loadingCanModifyExpenses: false,
+  canModifyExpensesError: null,
+
+  userAccessLevel: null,
+  loadingUserAccessLevel: false,
+  userAccessLevelError: null,
+
+  friendshipById: null,
+  loadingFriendshipById: false,
+  friendshipByIdError: null,
 };
 
 const friendsReducer = (state = initialState, action) => {
@@ -742,6 +806,84 @@ const friendsReducer = (state = initialState, action) => {
         friendshipReport: null,
         friendshipReportError: null,
       };
+
+    // Additional API cases
+    case CHECK_ARE_FRIENDS_REQUEST:
+      return { ...state, loadingAreFriends: true, areFriendsError: null };
+    case CHECK_ARE_FRIENDS_SUCCESS:
+      return { ...state, loadingAreFriends: false, areFriendsStatus: action.payload };
+    case CHECK_ARE_FRIENDS_FAILURE:
+      return { ...state, loadingAreFriends: false, areFriendsError: action.payload };
+
+    case FETCH_FRIEND_IDS_REQUEST:
+      return { ...state, loadingFriendIds: true, friendIdsError: null };
+    case FETCH_FRIEND_IDS_SUCCESS:
+      return { ...state, loadingFriendIds: false, friendIds: action.payload };
+    case FETCH_FRIEND_IDS_FAILURE:
+      return { ...state, loadingFriendIds: false, friendIdsError: action.payload };
+
+    case FETCH_ALL_PENDING_REQUESTS_REQUEST:
+      return { ...state, loadingAllPendingRequests: true, allPendingRequestsError: null };
+    case FETCH_ALL_PENDING_REQUESTS_SUCCESS:
+      return { ...state, loadingAllPendingRequests: false, allPendingRequests: action.payload };
+    case FETCH_ALL_PENDING_REQUESTS_FAILURE:
+      return { ...state, loadingAllPendingRequests: false, allPendingRequestsError: action.payload };
+
+    case CHECK_FRIENDSHIP_STATUS_REQUEST:
+      return { ...state, loadingFriendshipStatusCheck: true, friendshipStatusCheckError: null };
+    case CHECK_FRIENDSHIP_STATUS_SUCCESS:
+      return { 
+        ...state, 
+        loadingFriendshipStatusCheck: false, 
+        friendshipStatusCheck: {
+          ...state.friendshipStatusCheck,
+          [action.payload.userId]: action.payload.data
+        }
+      };
+    case CHECK_FRIENDSHIP_STATUS_FAILURE:
+      return { ...state, loadingFriendshipStatusCheck: false, friendshipStatusCheckError: action.payload };
+
+    case CHECK_EXPENSE_ACCESS_REQUEST:
+      return { ...state, loadingExpenseAccessCheck: true, expenseAccessCheckError: null };
+    case CHECK_EXPENSE_ACCESS_SUCCESS:
+      return { 
+        ...state, 
+        loadingExpenseAccessCheck: false, 
+        expenseAccessCheck: {
+          ...state.expenseAccessCheck,
+          [action.payload.userId]: action.payload.data
+        }
+      };
+    case CHECK_EXPENSE_ACCESS_FAILURE:
+      return { ...state, loadingExpenseAccessCheck: false, expenseAccessCheckError: action.payload };
+
+    case CHECK_CAN_ACCESS_EXPENSES_REQUEST:
+      return { ...state, loadingCanAccessExpenses: true, canAccessExpensesError: null };
+    case CHECK_CAN_ACCESS_EXPENSES_SUCCESS:
+      return { ...state, loadingCanAccessExpenses: false, canAccessExpenses: action.payload };
+    case CHECK_CAN_ACCESS_EXPENSES_FAILURE:
+      return { ...state, loadingCanAccessExpenses: false, canAccessExpensesError: action.payload };
+
+    case CHECK_CAN_MODIFY_EXPENSES_REQUEST:
+      return { ...state, loadingCanModifyExpenses: true, canModifyExpensesError: null };
+    case CHECK_CAN_MODIFY_EXPENSES_SUCCESS:
+      return { ...state, loadingCanModifyExpenses: false, canModifyExpenses: action.payload };
+    case CHECK_CAN_MODIFY_EXPENSES_FAILURE:
+      return { ...state, loadingCanModifyExpenses: false, canModifyExpensesError: action.payload };
+
+    case FETCH_USER_ACCESS_LEVEL_REQUEST:
+      return { ...state, loadingUserAccessLevel: true, userAccessLevelError: null };
+    case FETCH_USER_ACCESS_LEVEL_SUCCESS:
+      return { ...state, loadingUserAccessLevel: false, userAccessLevel: action.payload };
+    case FETCH_USER_ACCESS_LEVEL_FAILURE:
+      return { ...state, loadingUserAccessLevel: false, userAccessLevelError: action.payload };
+
+    case FETCH_FRIENDSHIP_BY_ID_REQUEST:
+      return { ...state, loadingFriendshipById: true, friendshipByIdError: null };
+    case FETCH_FRIENDSHIP_BY_ID_SUCCESS:
+      return { ...state, loadingFriendshipById: false, friendshipById: action.payload };
+    case FETCH_FRIENDSHIP_BY_ID_FAILURE:
+      return { ...state, loadingFriendshipById: false, friendshipByIdError: action.payload };
 
     default:
       return state;

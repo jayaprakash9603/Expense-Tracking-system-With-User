@@ -108,7 +108,7 @@ const Home = () => {
 
   return (
     <div
-      className="flex flex-col md:flex-row min-h-screen"
+      className="flex flex-col lg:flex-row min-h-screen overflow-x-hidden"
       style={{ backgroundColor: colors.primary_bg }}
     >
       <TourGuide />
@@ -125,11 +125,10 @@ const Home = () => {
       {/* Story Viewer Modal - Visible across all pages */}
       <StoryViewer />
 
-      <div className="md:w-[400px] lg:w-[450px]">
+      <div className="w-0 lg:w-[350px] flex-shrink-0">
         <Left />
       </div>
-      <div className="flex-1 flex flex-col">
-        {/* Global Friend Info Bar (optional per-page duplicates can be removed later) */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         {isFriendView ? (
           <FriendInfoBar
             friendship={friendship}
@@ -143,7 +142,7 @@ const Home = () => {
         ) : (
           <HeaderBar />
         )}
-        <div className="flex-1">
+        <div className="flex-1 overflow-x-hidden">
           <Outlet key={location?.key || location?.pathname} />
         </div>
       </div>
