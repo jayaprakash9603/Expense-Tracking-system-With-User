@@ -9,7 +9,6 @@ import java.util.Properties;
 final class PropertiesSource {
     private static final String CONFIG_FILE_PROPERTY = "automation.config.file";
     private static final String CONFIG_FILE_ENV = "AUTOMATION_CONFIG_FILE";
-    private static final String CLASSPATH_FILE = "automation.properties";
 
     private final Properties properties;
 
@@ -18,47 +17,28 @@ final class PropertiesSource {
     }
 
     static PropertiesSource load() {
-        Properties merged = new Properties();
-        loadFromExternalFile(merged);
-        loadFromClasspath(merged);
-        return new PropertiesSource(merged);
+        Properties properties = new Properties();
+        Path configFile = resolveConfigFile();
+        if (configFile != null) {
+            loadProperties(properties, configFile);
+        }
+        return new PropertiesSource(properties);
     }
 
     String get(String key) {
         return properties.getProperty(key);
     }
 
-    private static void loadFromExternalFile(Properties target) {
-        String pathValue = resolveConfigFilePath();
+    private static Path resolveConfigFile() {
+        String pathValue = System.getProperty(CONFIG_FILE_PROPERTY);
         if (pathValue == null || pathValue.isBlank()) {
-            return;
+            pathValue = System.getenv(CONFIG_FILE_ENV);
         }
-        Path configPath = Path.of(pathValue.trim());
-        if (!Files.exists(configPath)) {
-            return;
+        if (pathValue == null || pathValue.isBlank()) {
+            return null;
         }
-        loadProperties(target, configPath);
-    }
-
-    private static String resolveConfigFilePath() {
-        String systemValue = System.getProperty(CONFIG_FILE_PROPERTY);
-        if (systemValue != null && !systemValue.isBlank()) {
-            return systemValue;
-        }
-        return System.getenv(CONFIG_FILE_ENV);
-    }
-
-    private static void loadFromClasspath(Properties target) {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        if (classLoader == null) {
-            return;
-        }
-        try (InputStream stream = classLoader.getResourceAsStream(CLASSPATH_FILE)) {
-            if (stream != null) {
-                target.load(stream);
-            }
-        } catch (IOException ignored) {
-        }
+        Path path = Path.of(pathValue.trim());
+        return Files.exists(path) ? path : null;
     }
 
     private static void loadProperties(Properties target, Path path) {

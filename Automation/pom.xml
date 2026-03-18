@@ -43,47 +43,6 @@
         <poi.version>5.4.1</poi.version>
         <spring-boot.version>3.4.2</spring-boot.version>
 
-        <AUTOMATION_ENGINE>selenium</AUTOMATION_ENGINE>
-        <TEST_ENV>local</TEST_ENV>
-        <BASE_URL>http://localhost:3000</BASE_URL>
-        <API_BASE_URL>http://localhost:8080</API_BASE_URL>
-        <BROWSER>chrome</BROWSER>
-        <HEADLESS>true</HEADLESS>
-        <EXPLICIT_WAIT_SEC>15</EXPLICIT_WAIT_SEC>
-        <RETRY_COUNT>3</RETRY_COUNT>
-        <RETRY_API_MAX_ATTEMPTS>5</RETRY_API_MAX_ATTEMPTS>
-        <RETRY_API_INTERVAL_MS>5000</RETRY_API_INTERVAL_MS>
-        <RETRY_API_BACKOFF_MULTIPLIER>1.5</RETRY_API_BACKOFF_MULTIPLIER>
-        <RETRY_API_MAX_DELAY_MS>30000</RETRY_API_MAX_DELAY_MS>
-        <RETRY_UI_POLL_MAX_ATTEMPTS>10</RETRY_UI_POLL_MAX_ATTEMPTS>
-        <RETRY_UI_POLL_INTERVAL_MS>2000</RETRY_UI_POLL_INTERVAL_MS>
-        <RETRY_UI_POLL_BACKOFF_MULTIPLIER>1.0</RETRY_UI_POLL_BACKOFF_MULTIPLIER>
-        <RETRY_UI_POLL_MAX_DELAY_MS>5000</RETRY_UI_POLL_MAX_DELAY_MS>
-        <TEST_USERNAME></TEST_USERNAME>
-        <TEST_PASSWORD></TEST_PASSWORD>
-        <OTP_PROVIDER></OTP_PROVIDER>
-        <MFA_PROVIDER></MFA_PROVIDER>
-        <AUTOMATION_RUN_ID></AUTOMATION_RUN_ID>
-        <ARTIFACTS_ROOT>target/artifacts</ARTIFACTS_ROOT>
-        <CAPTURE_SCREENSHOT_ALWAYS>false</CAPTURE_SCREENSHOT_ALWAYS>
-        <RECORD_VIDEO>false</RECORD_VIDEO>
-        <RECORD_TRACE>false</RECORD_TRACE>
-        <RERUN_FAILED_COUNT>0</RERUN_FAILED_COUNT>
-        <DATA_WORKBOOK_PATH></DATA_WORKBOOK_PATH>
-        <DATA_SHEET>default</DATA_SHEET>
-        <DATA_ITERATION>0</DATA_ITERATION>
-        <DATA_PARTITION_INDEX>0</DATA_PARTITION_INDEX>
-        <DATA_PARTITIONS>1</DATA_PARTITIONS>
-        <APP_START_CMD></APP_START_CMD>
-        <APP_STOP_CMD></APP_STOP_CMD>
-        <APP_WORKDIR></APP_WORKDIR>
-        <APP_READY_URL></APP_READY_URL>
-        <APP_READY_TIMEOUT_SEC>180</APP_READY_TIMEOUT_SEC>
-        <REUSE_BROWSER_SESSION>false</REUSE_BROWSER_SESSION>
-        <cucumber.features></cucumber.features>
-        <cucumber.filter.tags>@smoke</cucumber.filter.tags>
-        <cucumber.thread.count>1</cucumber.thread.count>
-
         <sonar.projectKey>expense-tracking-automation</sonar.projectKey>
         <sonar.projectName>Expense Tracking Automation</sonar.projectName>
         <sonar.java.source>${java.version}</sonar.java.source>
@@ -215,51 +174,10 @@
                         <includes>
                             <include>**/*Test.java</include>
                         </includes>
-                        <systemPropertyVariables>
-                            <AUTOMATION_ENGINE>${AUTOMATION_ENGINE}</AUTOMATION_ENGINE>
-                            <TEST_ENV>${TEST_ENV}</TEST_ENV>
-                            <BASE_URL>${BASE_URL}</BASE_URL>
-                            <API_BASE_URL>${API_BASE_URL}</API_BASE_URL>
-                            <BROWSER>${BROWSER}</BROWSER>
-                            <HEADLESS>${HEADLESS}</HEADLESS>
-                            <EXPLICIT_WAIT_SEC>${EXPLICIT_WAIT_SEC}</EXPLICIT_WAIT_SEC>
-                            <RETRY_COUNT>${RETRY_COUNT}</RETRY_COUNT>
-                            <RETRY_API_MAX_ATTEMPTS>${RETRY_API_MAX_ATTEMPTS}</RETRY_API_MAX_ATTEMPTS>
-                            <RETRY_API_INTERVAL_MS>${RETRY_API_INTERVAL_MS}</RETRY_API_INTERVAL_MS>
-                            <RETRY_API_BACKOFF_MULTIPLIER>${RETRY_API_BACKOFF_MULTIPLIER}</RETRY_API_BACKOFF_MULTIPLIER>
-                            <RETRY_API_MAX_DELAY_MS>${RETRY_API_MAX_DELAY_MS}</RETRY_API_MAX_DELAY_MS>
-                            <RETRY_UI_POLL_MAX_ATTEMPTS>${RETRY_UI_POLL_MAX_ATTEMPTS}</RETRY_UI_POLL_MAX_ATTEMPTS>
-                            <RETRY_UI_POLL_INTERVAL_MS>${RETRY_UI_POLL_INTERVAL_MS}</RETRY_UI_POLL_INTERVAL_MS>
-                            <RETRY_UI_POLL_BACKOFF_MULTIPLIER>${RETRY_UI_POLL_BACKOFF_MULTIPLIER}</RETRY_UI_POLL_BACKOFF_MULTIPLIER>
-                            <RETRY_UI_POLL_MAX_DELAY_MS>${RETRY_UI_POLL_MAX_DELAY_MS}</RETRY_UI_POLL_MAX_DELAY_MS>
-                            <TEST_USERNAME>${TEST_USERNAME}</TEST_USERNAME>
-                            <TEST_PASSWORD>${TEST_PASSWORD}</TEST_PASSWORD>
-                            <OTP_PROVIDER>${OTP_PROVIDER}</OTP_PROVIDER>
-                            <MFA_PROVIDER>${MFA_PROVIDER}</MFA_PROVIDER>
-                            <AUTOMATION_RUN_ID>${AUTOMATION_RUN_ID}</AUTOMATION_RUN_ID>
-                            <ARTIFACTS_ROOT>${ARTIFACTS_ROOT}</ARTIFACTS_ROOT>
-                            <CAPTURE_SCREENSHOT_ALWAYS>${CAPTURE_SCREENSHOT_ALWAYS}</CAPTURE_SCREENSHOT_ALWAYS>
-                            <RECORD_VIDEO>${RECORD_VIDEO}</RECORD_VIDEO>
-                            <RECORD_TRACE>${RECORD_TRACE}</RECORD_TRACE>
-                            <RERUN_FAILED_COUNT>${RERUN_FAILED_COUNT}</RERUN_FAILED_COUNT>
-                            <DATA_WORKBOOK_PATH>${DATA_WORKBOOK_PATH}</DATA_WORKBOOK_PATH>
-                            <DATA_SHEET>${DATA_SHEET}</DATA_SHEET>
-                            <DATA_ITERATION>${DATA_ITERATION}</DATA_ITERATION>
-                            <DATA_PARTITION_INDEX>${DATA_PARTITION_INDEX}</DATA_PARTITION_INDEX>
-                            <DATA_PARTITIONS>${DATA_PARTITIONS}</DATA_PARTITIONS>
-                            <APP_START_CMD>${APP_START_CMD}</APP_START_CMD>
-                            <APP_STOP_CMD>${APP_STOP_CMD}</APP_STOP_CMD>
-                            <APP_WORKDIR>${APP_WORKDIR}</APP_WORKDIR>
-                            <APP_READY_URL>${APP_READY_URL}</APP_READY_URL>
-                            <APP_READY_TIMEOUT_SEC>${APP_READY_TIMEOUT_SEC}</APP_READY_TIMEOUT_SEC>
-                            <REUSE_BROWSER_SESSION>${REUSE_BROWSER_SESSION}</REUSE_BROWSER_SESSION>
-                            <cucumber.features>${cucumber.features}</cucumber.features>
-                            <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
-                        </systemPropertyVariables>
                         <properties>
                             <property>
                                 <name>dataproviderthreadcount</name>
-                                <value>${cucumber.thread.count}</value>
+                                <value>1</value>
                             </property>
                         </properties>
                     </configuration>
@@ -288,45 +206,6 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>3.5.2</version>
-                    <configuration>
-                        <systemPropertyVariables>
-                            <AUTOMATION_ENGINE>${AUTOMATION_ENGINE}</AUTOMATION_ENGINE>
-                            <TEST_ENV>${TEST_ENV}</TEST_ENV>
-                            <BASE_URL>${BASE_URL}</BASE_URL>
-                            <API_BASE_URL>${API_BASE_URL}</API_BASE_URL>
-                            <BROWSER>${BROWSER}</BROWSER>
-                            <HEADLESS>${HEADLESS}</HEADLESS>
-                            <EXPLICIT_WAIT_SEC>${EXPLICIT_WAIT_SEC}</EXPLICIT_WAIT_SEC>
-                            <RETRY_COUNT>${RETRY_COUNT}</RETRY_COUNT>
-                            <RETRY_API_MAX_ATTEMPTS>${RETRY_API_MAX_ATTEMPTS}</RETRY_API_MAX_ATTEMPTS>
-                            <RETRY_API_INTERVAL_MS>${RETRY_API_INTERVAL_MS}</RETRY_API_INTERVAL_MS>
-                            <RETRY_API_BACKOFF_MULTIPLIER>${RETRY_API_BACKOFF_MULTIPLIER}</RETRY_API_BACKOFF_MULTIPLIER>
-                            <RETRY_API_MAX_DELAY_MS>${RETRY_API_MAX_DELAY_MS}</RETRY_API_MAX_DELAY_MS>
-                            <RETRY_UI_POLL_MAX_ATTEMPTS>${RETRY_UI_POLL_MAX_ATTEMPTS}</RETRY_UI_POLL_MAX_ATTEMPTS>
-                            <RETRY_UI_POLL_INTERVAL_MS>${RETRY_UI_POLL_INTERVAL_MS}</RETRY_UI_POLL_INTERVAL_MS>
-                            <RETRY_UI_POLL_BACKOFF_MULTIPLIER>${RETRY_UI_POLL_BACKOFF_MULTIPLIER}</RETRY_UI_POLL_BACKOFF_MULTIPLIER>
-                            <RETRY_UI_POLL_MAX_DELAY_MS>${RETRY_UI_POLL_MAX_DELAY_MS}</RETRY_UI_POLL_MAX_DELAY_MS>
-                            <AUTOMATION_RUN_ID>${AUTOMATION_RUN_ID}</AUTOMATION_RUN_ID>
-                            <ARTIFACTS_ROOT>${ARTIFACTS_ROOT}</ARTIFACTS_ROOT>
-                            <CAPTURE_SCREENSHOT_ALWAYS>${CAPTURE_SCREENSHOT_ALWAYS}</CAPTURE_SCREENSHOT_ALWAYS>
-                            <RECORD_VIDEO>${RECORD_VIDEO}</RECORD_VIDEO>
-                            <RECORD_TRACE>${RECORD_TRACE}</RECORD_TRACE>
-                            <RERUN_FAILED_COUNT>${RERUN_FAILED_COUNT}</RERUN_FAILED_COUNT>
-                            <DATA_WORKBOOK_PATH>${DATA_WORKBOOK_PATH}</DATA_WORKBOOK_PATH>
-                            <DATA_SHEET>${DATA_SHEET}</DATA_SHEET>
-                            <DATA_ITERATION>${DATA_ITERATION}</DATA_ITERATION>
-                            <DATA_PARTITION_INDEX>${DATA_PARTITION_INDEX}</DATA_PARTITION_INDEX>
-                            <DATA_PARTITIONS>${DATA_PARTITIONS}</DATA_PARTITIONS>
-                            <APP_START_CMD>${APP_START_CMD}</APP_START_CMD>
-                            <APP_STOP_CMD>${APP_STOP_CMD}</APP_STOP_CMD>
-                            <APP_WORKDIR>${APP_WORKDIR}</APP_WORKDIR>
-                            <APP_READY_URL>${APP_READY_URL}</APP_READY_URL>
-                            <APP_READY_TIMEOUT_SEC>${APP_READY_TIMEOUT_SEC}</APP_READY_TIMEOUT_SEC>
-                            <REUSE_BROWSER_SESSION>${REUSE_BROWSER_SESSION}</REUSE_BROWSER_SESSION>
-                            <cucumber.features>${cucumber.features}</cucumber.features>
-                            <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
-                        </systemPropertyVariables>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

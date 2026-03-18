@@ -42,7 +42,7 @@ automation:
     type: "chrome"
     headless: true
     explicitWaitSec: 15
-    reuseBrowserSession: false
+    reuseBrowserSession: true
 
   credentials:
     otpProvider: ""

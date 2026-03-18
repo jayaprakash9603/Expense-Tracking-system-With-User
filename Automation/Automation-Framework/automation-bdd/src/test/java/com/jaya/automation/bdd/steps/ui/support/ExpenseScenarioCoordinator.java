@@ -53,13 +53,26 @@ public final class ExpenseScenarioCoordinator {
     private void openCreateExpenseForm() {
         try {
             BddWorld.uiActionExecutor().clickAction("expense.add.new");
+            stabilizeAfterSpeedDial();
             BddWorld.uiActionExecutor().clickAction("expense.open.add");
         } catch (RuntimeException exception) {
             openCreateExpensePageDirectly();
         }
     }
 
+    private void stabilizeAfterSpeedDial() {
+        try {
+            Thread.sleep(800);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void ensureExpenseFormReady() {
+        if (BddWorld.testContext().uiEngine().elements().exists(
+                Locator.css("[role='combobox'][aria-label='Enter expense name']"))) {
+            return;
+        }
         if (BddWorld.testContext().uiEngine().elements().exists(Locator.css("input[aria-label='Enter expense name']"))) {
             return;
         }

@@ -42,8 +42,8 @@ public final class SessionTokenHelper {
             return new String[]{automationConfig.testUsername(), automationConfig.testPassword()};
         }
         throw new IllegalStateException(
-                "No credentials found. Set TEST_USERNAME/TEST_PASSWORD via Helm values, CLI, env, "
-                        + "or automation.properties");
+                "No credentials found. Set TEST_USERNAME/TEST_PASSWORD via Helm values, "
+                        + "-D system properties, or environment variables");
     }
 
     private String stringValue(Response response, String path) {

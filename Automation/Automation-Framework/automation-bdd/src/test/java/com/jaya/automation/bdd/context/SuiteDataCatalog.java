@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -35,30 +34,41 @@ public final class SuiteDataCatalog {
 
     private Map<String, String> load(AutomationConfig automationConfig) {
         Map<String, String> merged = new LinkedHashMap<>();
-        loadFromExternalConfigFile(merged);
+        loadFromConfigFile(merged);
         injectCoreConfigValues(merged, automationConfig);
         return merged;
     }
 
-    private void loadFromExternalConfigFile(Map<String, String> target) {
-        String configPath = resolveConfigFilePath();
-        if (configPath == null || configPath.isBlank()) {
-            LOG.debug("No external config file found; suite data will use core config values only");
+    private void loadFromConfigFile(Map<String, String> target) {
+        Path configFile = resolveConfigFile();
+        if (configFile == null) {
+            LOG.debug("No external config file; suite data will use core config values only");
             return;
         }
-        Path path = Path.of(configPath.trim());
-        if (!Files.exists(path)) {
-            LOG.warn("External config file does not exist: {}", configPath);
-            return;
-        }
-        try (InputStream stream = Files.newInputStream(path)) {
+        try (InputStream stream = Files.newInputStream(configFile)) {
             Properties properties = new Properties();
             properties.load(stream);
             properties.forEach((key, value) -> target.put(String.valueOf(key), String.valueOf(value)));
-            LOG.info("Loaded {} suite data properties from external config file", target.size());
+            LOG.info("Loaded {} suite data properties from {}", target.size(), configFile);
         } catch (IOException exception) {
-            LOG.warn("Unable to load external config file '{}': {}", configPath, exception.getMessage());
+            LOG.warn("Unable to load config file '{}': {}", configFile, exception.getMessage());
         }
+    }
+
+    private Path resolveConfigFile() {
+        String pathValue = System.getProperty(CONFIG_FILE_PROPERTY);
+        if (pathValue == null || pathValue.isBlank()) {
+            pathValue = System.getenv(CONFIG_FILE_ENV);
+        }
+        if (pathValue == null || pathValue.isBlank()) {
+            return null;
+        }
+        Path path = Path.of(pathValue.trim());
+        if (!Files.exists(path)) {
+            LOG.warn("Config file does not exist: {}", pathValue);
+            return null;
+        }
+        return path;
     }
 
     private void injectCoreConfigValues(Map<String, String> target, AutomationConfig automationConfig) {
@@ -80,13 +90,5 @@ public final class SuiteDataCatalog {
         target.putIfAbsent("api.story.baseUrl", apiBaseUrl);
         target.putIfAbsent("api.analytics.baseUrl", apiBaseUrl);
         target.putIfAbsent("api.audit.baseUrl", apiBaseUrl);
-    }
-
-    private String resolveConfigFilePath() {
-        String systemValue = System.getProperty(CONFIG_FILE_PROPERTY);
-        if (systemValue != null && !systemValue.isBlank()) {
-            return systemValue;
-        }
-        return System.getenv(CONFIG_FILE_ENV);
     }
 }

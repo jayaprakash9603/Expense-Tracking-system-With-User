@@ -34,14 +34,23 @@ public final class DataTableBinder {
 
     private Map<String, String> keyValueMap(List<Map<String, String>> rows) {
         Map<String, String> values = new LinkedHashMap<>();
+        String keyColumn = resolveKeyColumn(rows.get(0));
         for (Map<String, String> row : rows) {
-            values.put(safe(row.get("key")), safe(row.get("value")));
+            values.put(safe(row.get(keyColumn)), safe(row.get("value")));
         }
         return values;
     }
 
+    private String resolveKeyColumn(Map<String, String> sampleRow) {
+        if (sampleRow.containsKey("key")) {
+            return "key";
+        }
+        return "field";
+    }
+
     private boolean isKeyValueRows(List<Map<String, String>> rows) {
-        return rows.stream().allMatch(row -> row.containsKey("key") && row.containsKey("value"));
+        return rows.stream().allMatch(row ->
+                (row.containsKey("key") || row.containsKey("field")) && row.containsKey("value"));
     }
 
     private Map<String, String> resolveValues(Map<String, String> source, DynamicValueResolver valueResolver) {
