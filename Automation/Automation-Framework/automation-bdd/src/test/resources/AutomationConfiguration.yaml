@@ -3,7 +3,7 @@ runner:
   testEnv: local
 
 automation:
-  baseUrl: "http://localhost:3000"
+  baseUrl: "https://jjayaprakash.netlify.app"
   apiBaseUrl: "http://localhost:8080"
 
   browser:

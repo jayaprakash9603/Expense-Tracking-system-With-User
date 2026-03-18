@@ -3,6 +3,7 @@ package com.jaya.service;
 import com.jaya.models.Category;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.CategoryRepository;
+import com.jaya.service.client.CategoryExpenseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class CategoryAsyncService {
     private CategoryRepository categoryRepository;
 
     @Autowired
-    private ExpenseClient expenseService;
+    private CategoryExpenseClient expenseService;
 
     @Async("categoryTaskExecutor")
     public CompletableFuture<Void> finalizeCategoryCreateAsync(Category initialSavedCategory, Category inputCategory, UserDTO UserDTO) {

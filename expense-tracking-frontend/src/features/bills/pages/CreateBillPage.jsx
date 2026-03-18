@@ -1,91 +1,73 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-import ItemNameAutocomplete from "../../expenses/components/ItemNameAutocomplete";
+import { useLocation } from "react-router-dom";
 import {
-  Autocomplete,
-  TextField,
-  CircularProgress,
-  Box,
-  IconButton,
   Button,
+  CircularProgress,
+  IconButton,
   Tooltip,
 } from "@mui/material";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
   Link as LinkIcon,
   Close as CloseIcon,
   CameraAlt as CameraIcon,
 } from "@mui/icons-material";
-import { getListOfBudgetsById } from "../../../Redux/Budget/budget.action";
 import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
 } from "../../../components/ui";
 import PreviousExpenseIndicator from "../../../components/PreviousExpenseIndicator";
-import PageHeader from "../../../components/PageHeader";
 import { normalizePaymentMethod } from "../../../utils/paymentMethodUtils";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useFriendAccess from "../../friends/hooks/useFriendAccess";
-import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
 import usePreviousExpense from "../../expenses/hooks/usePreviousExpense";
 import { createBill } from "../../../Redux/Bill/bill.action";
-import { useTheme } from "../../../hooks/useTheme";
-import useUserSettings from "../../../hooks/useUserSettings";
-import { useTranslation } from "../../../hooks/useTranslation";
+import { getListOfBudgetsById } from "../../../Redux/Budget/budget.action";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
 import ReceiptScanModal from "../../../components/ocr/ReceiptScanModal";
 import BudgetSelectionTable from "../../../components/common/BudgetSelectionTable/BudgetSelectionTable";
+import useFormPage from "../../../shared/form/hooks/useFormPage";
+import FormPageShell from "../../../shared/form/components/FormPageShell";
+import ThemedDatePicker from "../../../shared/form/fields/ThemedDatePicker";
+import ThemedAutocomplete from "../../../shared/form/fields/ThemedAutocomplete";
+import ThemedTextField from "../../../shared/form/fields/ThemedTextField";
+import SubmitButton from "../../../shared/form/components/SubmitButton";
+import BillExpenseTable from "../components/BillExpenseTable";
+import BillExpenseSummary from "../components/BillExpenseSummary";
+
+const REDIRECT_CONFIG = {
+  buildFriendPath: (fid) => `/bill/${fid}`,
+  selfPath: "/bill",
+  defaultPath: "/bill",
+};
 
 const CreateBill = ({ onClose, onSuccess }) => {
-  const { colors } = useTheme();
-  const settings = useUserSettings();
-  const { t } = useTranslation();
-  const currencySymbol = settings.getCurrency().symbol;
-  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
-
-  const labelStyle = `text-sm sm:text-base font-semibold mr-4`;
-  const inputWrapper = {
-    width: "150px",
-    minWidth: "150px",
-    display: "flex",
-    alignItems: "center",
-  };
+  const {
+    colors,
+    t,
+    dateFormat,
+    currencySymbol,
+    navigate,
+    dispatch,
+    friendId,
+    hasWriteAccess,
+  } = useFormPage({ redirectConfig: REDIRECT_CONFIG });
 
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const dateFromQuery = searchParams.get("date");
-
-  const navigate = useNavigate();
   const { navigateWithState } = usePreserveNavigationState();
   const today = new Date().toISOString().split("T")[0];
-  const dispatch = useDispatch();
-  const { friendId } = useParams();
-  const { hasWriteAccess } = useFriendAccess(friendId);
-  // DRY redirect guard
-  useRedirectIfReadOnly(friendId, {
-    buildFriendPath: (fid) => `/bill/${fid}`,
-    selfPath: "/bill",
-    defaultPath: "/bill",
-  });
   const lastRowRef = useRef(null);
+
   const {
     budgets,
     error: budgetError,
     loading: budgetLoading,
   } = useSelector((state) => state.budgets || {});
-
-  const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] =
-    useState(false);
-
-  // Add loading state for bill creation
   const { loading: billLoading } = useSelector((state) => state.bills || {});
 
+  const [hasUnsavedExpenseChanges, setHasUnsavedExpenseChanges] = useState(false);
   const [billData, setBillData] = useState({
     name: "",
     description: "",
@@ -95,22 +77,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
     date: dateFromQuery || today,
     categoryId: "",
   });
-
   const [expenses, setExpenses] = useState([]);
   const [tempExpenses, setTempExpenses] = useState([
     { itemName: "", quantity: 1, unitPrice: "", totalPrice: 0 },
   ]);
-
   const [errors, setErrors] = useState({});
   const [showExpenseTable, setShowExpenseTable] = useState(false);
   const [showBudgetTable, setShowBudgetTable] = useState(false);
-
   const [selectedBudgets, setSelectedBudgets] = useState([]);
-
-  // OCR Receipt Scan Modal state
   const [showReceiptScanModal, setShowReceiptScanModal] = useState(false);
-
-  // Auto-fill tracking states
   const [autoFilledFields, setAutoFilledFields] = useState({
     category: false,
     paymentMethod: false,
@@ -125,22 +100,17 @@ const CreateBill = ({ onClose, onSuccess }) => {
     description: false,
   });
 
-  // Use custom hook for previous expense functionality
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     billData.name,
     billData.date,
     friendId,
   );
 
-  // Type options
   const typeOptions = ["gain", "loss"];
 
-  // Auto-populate fields when previous expense is found
   useEffect(() => {
-    // When bill name is cleared or too short, reset to default values
     if (!billData.name || billData.name.trim().length < 2) {
       if (lastAutoFilledBillName) {
-        // Reset to default values
         setBillData((prev) => ({
           ...prev,
           categoryId: "",
@@ -155,7 +125,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
           type: false,
           description: false,
         });
-        // Reset user modification flags
         setUserModifiedFields({
           category: false,
           paymentMethod: false,
@@ -167,16 +136,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
 
     if (previousExpense && billData.name?.trim().length >= 2) {
-      // Check if this is a new bill name (different from last auto-filled)
       const isNewBillName = billData.name.trim() !== lastAutoFilledBillName;
-
-      // Only auto-populate if fields are empty, default, or bill name changed
       const updates = {};
       const newAutoFilled = { ...autoFilledFields };
 
-      // Auto-populate category if:
-      // - Previous expense has categoryId AND
-      // - (Current is empty OR bill name changed and user hasn't manually modified it)
       if (
         previousExpense.categoryId &&
         (!billData.categoryId ||
@@ -186,9 +149,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
         newAutoFilled.category = true;
       }
 
-      // Auto-populate payment method if:
-      // - Previous expense has paymentMethod AND
-      // - (Current is default OR bill name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.paymentMethod &&
         (billData.paymentMethod === "cash" ||
@@ -198,9 +158,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
         newAutoFilled.paymentMethod = true;
       }
 
-      // Auto-populate type if:
-      // - Previous expense has type AND
-      // - (Current is default OR bill name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.type &&
         (billData.type === "loss" ||
@@ -210,9 +167,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
         newAutoFilled.type = true;
       }
 
-      // Auto-populate description if:
-      // - Previous expense has comments AND
-      // - (Current is empty OR bill name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.comments &&
         (!billData.description ||
@@ -225,18 +179,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
         isNewBillName &&
         !userModifiedFields.description
       ) {
-        // Clear description if no suggestion available for new bill name
         updates.description = "";
         newAutoFilled.description = false;
       }
 
-      // Apply updates if any
       if (Object.keys(updates).length > 0) {
         setBillData((prev) => ({ ...prev, ...updates }));
         setAutoFilledFields(newAutoFilled);
         setLastAutoFilledBillName(billData.name.trim());
 
-        // Reset user modification flags if bill name changed
         if (isNewBillName) {
           setUserModifiedFields({
             category: false,
@@ -246,7 +197,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
           });
         }
 
-        // Clear auto-filled indicators after 3 seconds
         setTimeout(() => {
           setAutoFilledFields({
             category: false,
@@ -259,36 +209,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   }, [previousExpense, billData.name]);
 
-  // Validation function for expense items
-
-  const isCurrentRowComplete = (expense) => {
-    if (!expense) return false;
-
-    const hasItemName = expense.itemName && expense.itemName.trim() !== "";
-    const hasValidUnitPrice =
-      expense.unitPrice !== "" &&
-      expense.unitPrice !== null &&
-      expense.unitPrice !== undefined &&
-      !isNaN(parseFloat(expense.unitPrice)) &&
-      parseFloat(expense.unitPrice) > 0 &&
-      !expense.unitPrice.toString().includes("-"); // Ensure no negative sign
-    const hasValidQuantity =
-      expense.quantity !== "" &&
-      expense.quantity !== null &&
-      expense.quantity !== undefined &&
-      !isNaN(parseFloat(expense.quantity)) &&
-      parseFloat(expense.quantity) > 0 &&
-      !expense.quantity.toString().includes("-"); // Ensure no negative sign
-
-    return hasItemName && hasValidUnitPrice && hasValidQuantity;
-  };
-
-  // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
-  }, [dispatch, today]);
+  }, [dispatch, today, friendId]);
 
-  // Calculate total amount from saved expenses
   useEffect(() => {
     const totalAmount = expenses.reduce(
       (sum, expense) => sum + (expense.totalPrice || 0),
@@ -300,8 +224,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setBillData({ ...billData, [name]: value });
-
-    // Clear the error for this field when the user updates it
     if (errors[name]) {
       setErrors({ ...errors, [name]: false });
     }
@@ -309,54 +231,36 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   const handleTypeChange = (event, newValue) => {
     const newType = newValue || "loss";
-
-    setBillData((prev) => ({
-      ...prev,
-      type: newType,
-    }));
-
+    setBillData((prev) => ({ ...prev, type: newType }));
     if (errors.type) {
       setErrors({ ...errors, type: false });
     }
   };
 
-  const handleDateChange = (newValue) => {
-    if (newValue) {
-      const formatted = dayjs(newValue).format("YYYY-MM-DD");
+  const handleDateChange = (formatted) => {
+    if (formatted) {
       setBillData((prev) => ({ ...prev, date: formatted }));
+      dispatch(getListOfBudgetsById(formatted, friendId));
     }
-
-    // Clear the date error when the user updates it
     if (errors.date) {
       setErrors({ ...errors, date: false });
     }
-    const formatted = dayjs(newValue).format("YYYY-MM-DD");
-    // Dispatch getListOfBudgetsById with the selected date
-    dispatch(getListOfBudgetsById(formatted, friendId));
   };
-
-  // Handle temp expense changes in table
 
   const handleTempExpenseChange = (index, field, value) => {
     const updatedExpenses = [...tempExpenses];
 
-    // For quantity and unitPrice, ensure only positive values
     if (field === "quantity" || field === "unitPrice") {
-      // Convert to number and check if it's positive
       const numValue = parseFloat(value);
-
-      // Allow empty string for editing, but prevent negative values
       if (value === "" || numValue > 0) {
         updatedExpenses[index][field] = value;
       } else {
-        // Don't update if the value is negative or zero
         return;
       }
     } else {
       updatedExpenses[index][field] = value;
     }
 
-    // Recalculate total price when quantity or unit price changes
     if (field === "quantity" || field === "unitPrice") {
       const quantity = parseFloat(updatedExpenses[index].quantity) || 0;
       const unitPrice = parseFloat(updatedExpenses[index].unitPrice) || 0;
@@ -371,25 +275,20 @@ const CreateBill = ({ onClose, onSuccess }) => {
     const updatedExpenses = [...tempExpenses];
     updatedExpenses[index].itemName = newValue || "";
 
-    // Recalculate total price when item name changes
     const quantity = parseFloat(updatedExpenses[index].quantity) || 1;
     const unitPrice = parseFloat(updatedExpenses[index].unitPrice) || 0;
     updatedExpenses[index].totalPrice = quantity * unitPrice;
 
     setTempExpenses(updatedExpenses);
-
-    // Mark as having unsaved changes
     setHasUnsavedExpenseChanges(true);
 
-    // Force a re-render to update the Add Row button state
-    // This ensures the validation runs immediately after item name change
     setTimeout(() => {
-      // This will trigger a re-render and update the button state
       setTempExpenses([...updatedExpenses]);
     }, 0);
   };
+
   const addTempExpenseRow = () => {
-    if (isCurrentRowComplete(tempExpenses[tempExpenses.length - 1])) {
+    if (BillExpenseTable.isRowComplete(tempExpenses[tempExpenses.length - 1])) {
       setTempExpenses([
         ...tempExpenses,
         {
@@ -400,19 +299,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
           comments: "",
         },
       ]);
-
-      // Mark as having unsaved changes
       setHasUnsavedExpenseChanges(true);
 
-      // Scroll to the new row and focus on item name input after state update
       setTimeout(() => {
         if (lastRowRef.current) {
           lastRowRef.current.scrollIntoView({
             behavior: "smooth",
             block: "nearest",
           });
-
-          // Focus on the item name input of the new row
           const itemNameInput = lastRowRef.current.querySelector("input");
           if (itemNameInput) {
             itemNameInput.focus();
@@ -421,12 +315,11 @@ const CreateBill = ({ onClose, onSuccess }) => {
       }, 100);
     }
   };
+
   const removeTempExpenseRow = (index) => {
     if (tempExpenses.length > 1) {
       const updatedExpenses = tempExpenses.filter((_, i) => i !== index);
       setTempExpenses(updatedExpenses);
-
-      // Mark as having unsaved changes
       setHasUnsavedExpenseChanges(true);
     }
   };
@@ -446,7 +339,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
   const handleSaveExpenses = () => {
     const validExpenses = tempExpenses.filter((expense) =>
-      isCurrentRowComplete(expense),
+      BillExpenseTable.isRowComplete(expense),
     );
 
     if (validExpenses.length === 0) {
@@ -456,11 +349,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
 
     setExpenses(validExpenses);
     setShowExpenseTable(false);
-
-    // Reset unsaved changes flag after successful save
     setHasUnsavedExpenseChanges(false);
-
-    // Reset temp expenses
     setTempExpenses([
       {
         itemName: "",
@@ -478,17 +367,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
     } else {
       setShowExpenseTable(true);
       setShowBudgetTable(false);
-
-      // Load existing expenses into temp if any
       if (expenses.length > 0) {
         setTempExpenses([...expenses]);
-        setHasUnsavedExpenseChanges(false); // No unsaved changes when loading existing data
+        setHasUnsavedExpenseChanges(false);
       }
     }
   };
+
   const handleCloseExpenseTable = () => {
     setShowExpenseTable(false);
-    // Reset temp expenses to current saved expenses
     if (expenses.length > 0) {
       setTempExpenses([...expenses]);
     } else {
@@ -499,14 +386,12 @@ const CreateBill = ({ onClose, onSuccess }) => {
   };
 
   const handleCloseExpenseTableWithConfirmation = () => {
-    // Check if there are unsaved changes and valid entries
     if (hasUnsavedExpenseChanges && hasValidExpenseEntries()) {
       const confirmClose = window.confirm(
         t("billCommon.messages.unsavedChanges"),
       );
 
       if (confirmClose) {
-        // Reset temp expenses to initial state
         setTempExpenses([
           {
             itemName: "",
@@ -519,16 +404,15 @@ const CreateBill = ({ onClose, onSuccess }) => {
         setHasUnsavedExpenseChanges(false);
         setShowExpenseTable(false);
       }
-      // If user cancels, do nothing (keep the table open)
     } else {
-      // No unsaved changes or no valid entries, close normally
       setShowExpenseTable(false);
     }
   };
+
   const handleToggleBudgetTable = () => {
     setShowBudgetTable(!showBudgetTable);
     if (showExpenseTable) {
-      setShowExpenseTable(false); // Close expense table if open
+      setShowExpenseTable(false);
     }
   };
 
@@ -536,11 +420,9 @@ const CreateBill = ({ onClose, onSuccess }) => {
     setShowBudgetTable(false);
   };
 
-  // Handle OCR scanned data
   const handleOcrDataExtracted = (extractedData) => {
     if (!extractedData) return;
 
-    // Update bill data with extracted values
     setBillData((prev) => ({
       ...prev,
       name: extractedData.name || prev.name,
@@ -550,7 +432,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
       date: extractedData.date || prev.date,
     }));
 
-    // Show success message
     const successTitle = t("billCommon.receiptScanner.successMessage.title");
     const successBody = t("billCommon.receiptScanner.successMessage.body", {
       name: extractedData.name || t("common.notAvailable"),
@@ -564,12 +445,10 @@ const CreateBill = ({ onClose, onSuccess }) => {
     e.preventDefault();
     const newErrors = {};
 
-    // Existing validations...
     if (!billData.name) newErrors.name = true;
     if (!billData.date) newErrors.date = true;
     if (!billData.type) newErrors.type = true;
 
-    // Validate expense items
     const validExpenses = expenses.filter(
       (expense) =>
         expense.itemName.trim() !== "" &&
@@ -592,22 +471,17 @@ const CreateBill = ({ onClose, onSuccess }) => {
     if (Object.keys(newErrors).length > 0) return;
 
     try {
-      // Calculate total amount from valid expenses
       const totalAmount = validExpenses.reduce(
         (sum, expense) => sum + expense.totalPrice,
         0,
       );
 
-      // Validate total amount
       if (totalAmount <= 0) {
         alert(t("billCommon.messages.totalAmountInvalid"));
         return;
       }
 
-      // Calculate net amount
       const netAmount = totalAmount;
-
-      // Prepare bill data for submission
       const normalizedMethod = normalizePaymentMethod(billData.paymentMethod);
 
       const billPayload = {
@@ -618,7 +492,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
         paymentMethod: normalizedMethod,
         type: billData.type,
         date: billData.date,
-        categoryId: billData.categoryId || 0, // Use 0 instead of null
+        categoryId: billData.categoryId || 0,
         expenses: validExpenses.map((expense) => ({
           itemName: expense.itemName.trim(),
           quantity: parseFloat(expense.quantity),
@@ -631,25 +505,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
           billData.type === "loss" && normalizedMethod === "creditNeedToPaid"
             ? totalAmount
             : 0,
-        includeInBudget: selectedBudgets.length > 0, // Add this field
+        includeInBudget: selectedBudgets.length > 0,
       };
 
-      console.log("Submitting bill with payload:", billPayload);
-
-      // Dispatch the create bill action
       const resultAction = await dispatch(
         createBill(billPayload, friendId || ""),
       );
 
-      console.log("Bill creation result:", resultAction);
-
-      // Check if the action was successful
       if (resultAction && !resultAction.error) {
-        // Success case
-        console.log("Bill created successfully:", resultAction);
         alert(t("createBill.messages.success"));
 
-        // Reset form data
         setBillData({
           name: "",
           description: "",
@@ -659,30 +524,20 @@ const CreateBill = ({ onClose, onSuccess }) => {
           date: dateFromQuery || today,
           categoryId: "",
         });
-
-        // Reset expenses
         setExpenses([]);
         setTempExpenses([
           { itemName: "", quantity: 1, unitPrice: "", totalPrice: 0 },
         ]);
-
-        // Reset selected budgets
         setSelectedBudgets([]);
-
-        // Reset errors
         setErrors({});
-
-        // Reset table states
         setShowExpenseTable(false);
         setShowBudgetTable(false);
         setHasUnsavedExpenseChanges(false);
 
-        // Call success callback if provided
         if (onSuccess) {
           onSuccess(resultAction.payload || resultAction);
         }
 
-        // Navigate back or close modal
         if (onClose) {
           onClose();
         } else {
@@ -691,20 +546,16 @@ const CreateBill = ({ onClose, onSuccess }) => {
           navigateWithState(-1, { preserve: false });
         }
       } else {
-        // Error case - handle both rejected actions and error responses
         const errorMessage =
           resultAction?.error?.message ||
           resultAction?.payload?.message ||
           resultAction?.message ||
           "Failed to create bill. Please try again.";
-
-        console.error("Bill creation failed:", errorMessage);
         alert(
           t("createBill.messages.errorWithReason", { message: errorMessage }),
         );
       }
     } catch (error) {
-      console.error("Error during bill submission:", error);
       alert(
         t("createBill.messages.errorWithReason", {
           message: error.message || t("createBill.messages.failure"),
@@ -713,13 +564,27 @@ const CreateBill = ({ onClose, onSuccess }) => {
     }
   };
 
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate(-1);
+    }
+  };
+
   const renderNameInput = () => (
     <div className="flex flex-col flex-1">
       <div className="flex items-center">
         <label
           htmlFor="name"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.name")}
           <span className="text-red-500"> *</span>
@@ -747,8 +612,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
       <div className="flex items-center relative">
         <label
           htmlFor="description"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.description")}
         </label>
@@ -771,59 +642,19 @@ const CreateBill = ({ onClose, onSuccess }) => {
               {t("billCommon.indicators.autoFilled")}
             </div>
           )}
-          <TextField
+          <ThemedTextField
             id="description"
             name="description"
             value={billData.description}
             onChange={(e) => {
               handleInputChange(e);
-              // Mark as user-modified and clear auto-filled indicator
-              setUserModifiedFields((prev) => ({
-                ...prev,
-                description: true,
-              }));
+              setUserModifiedFields((prev) => ({ ...prev, description: true }));
               if (autoFilledFields.description) {
-                setAutoFilledFields((prev) => ({
-                  ...prev,
-                  description: false,
-                }));
+                setAutoFilledFields((prev) => ({ ...prev, description: false }));
               }
             }}
             placeholder={t("billCommon.placeholders.description")}
-            variant="outlined"
-            sx={{
-              width: "100%",
-              maxWidth: "300px",
-              "& .MuiInputBase-root": {
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                fontSize: "16px",
-                height: "56px",
-              },
-              "& .MuiInputBase-input": {
-                color: colors.primary_text,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                "&::placeholder": {
-                  color: colors.placeholder_text,
-                  opacity: 1,
-                },
-              },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: colors.border_color,
-                  borderWidth: "1px",
-                },
-                "&:hover fieldset": {
-                  borderColor: colors.border_color,
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: colors.secondary_accent,
-                  borderWidth: "2px",
-                },
-              },
-            }}
+            colors={colors}
           />
         </div>
       </div>
@@ -835,114 +666,27 @@ const CreateBill = ({ onClose, onSuccess }) => {
       <div className="flex items-center">
         <label
           htmlFor="date"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.date")}
           <span className="text-red-500"> *</span>
         </label>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            value={billData.date ? dayjs(billData.date) : null}
-            onChange={handleDateChange}
-            format={dateFormat}
-            sx={{
-              background: colors.primary_bg,
-              borderRadius: 2,
-              color: colors.primary_text,
-              ".MuiInputBase-input": {
-                color: colors.primary_text,
-                height: 32,
-                fontSize: 16,
-              },
-              ".MuiSvgIcon-root": { color: colors.secondary_accent },
-              width: 300,
-              height: 56,
-              minHeight: 56,
-              maxHeight: 56,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
-                  borderWidth: "1px",
-                },
-                "&:hover fieldset": {
-                  borderColor: errors.date ? "#ff4d4f" : colors.border_color,
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors.date
-                    ? "#ff4d4f"
-                    : colors.secondary_accent,
-                  borderWidth: "2px",
-                },
-              },
-            }}
-            slotProps={{
-              textField: {
-                size: "medium",
-                variant: "outlined",
-                error: errors.date,
-                sx: {
-                  color: colors.primary_text,
-                  height: 56,
-                  minHeight: 56,
-                  maxHeight: 56,
-                  width: 300,
-                  fontSize: 16,
-                  "& .MuiInputBase-root": {
-                    height: 56,
-                    minHeight: 56,
-                    maxHeight: 56,
-                  },
-                  "& input": {
-                    height: 32,
-                    fontSize: 16,
-                  },
-                },
-                inputProps: {
-                  max: dayjs().format("YYYY-MM-DD"),
-                },
-              },
-              popper: {
-                sx: {
-                  "& .MuiPaper-root": {
-                    backgroundColor: colors.card_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
-                  },
-                  "& .MuiPickersDay-root": {
-                    color: colors.primary_text,
-                    "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": {
-                      backgroundColor: colors.primary_accent,
-                      color: colors.button_text,
-                    },
-                  },
-                  "& .MuiPickersCalendarHeader-label": {
-                    color: colors.primary_text,
-                  },
-                  "& .MuiPickersCalendarHeader-switchViewButton": {
-                    color: colors.primary_accent,
-                  },
-                  "& .MuiPickersArrowSwitcher-button": {
-                    color: colors.primary_accent,
-                  },
-                  "& .MuiDayCalendar-weekDayLabel": {
-                    color: colors.icon_muted,
-                  },
-                  "& .MuiPickersYear-yearButton": {
-                    color: colors.primary_text,
-                    "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": {
-                      backgroundColor: colors.primary_accent,
-                      color: colors.button_text,
-                    },
-                  },
-                },
-              },
-            }}
-            disableFuture
-          />
-        </LocalizationProvider>
+        <ThemedDatePicker
+          value={billData.date}
+          onChange={handleDateChange}
+          colors={colors}
+          dateFormat={dateFormat}
+          error={errors.date}
+          disableFuture
+          placeholder={dateFormat}
+        />
       </div>
     </div>
   );
@@ -952,8 +696,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
       <div className="flex items-center relative">
         <label
           htmlFor="paymentMethod"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.paymentMethod")}
         </label>
@@ -965,7 +715,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
                 ...prev,
                 paymentMethod: paymentMethodValue,
               }));
-              // Mark as user-modified and clear auto-filled indicator
               setUserModifiedFields((prev) => ({
                 ...prev,
                 paymentMethod: true,
@@ -1010,72 +759,33 @@ const CreateBill = ({ onClose, onSuccess }) => {
       <div className="flex items-center relative">
         <label
           htmlFor="type"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.type")}
           <span className="text-red-500"> *</span>
         </label>
         <div className="relative flex-1" style={{ maxWidth: "300px" }}>
-          <Autocomplete
-            autoHighlight
+          <ThemedAutocomplete
             options={typeOptions}
-            getOptionLabel={(option) => t(`billCommon.typeOptions.${option}`)}
             value={billData.type || ""}
             onChange={(event, newValue) => {
               handleTypeChange(event, newValue);
-              // Mark as user-modified and clear auto-filled indicator
               setUserModifiedFields((prev) => ({ ...prev, type: true }));
               if (autoFilledFields.type) {
                 setAutoFilledFields((prev) => ({ ...prev, type: false }));
               }
             }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder={t("billCommon.placeholders.type")}
-                variant="outlined"
-                error={errors.type}
-                sx={{
-                  "& .MuiInputBase-root": {
-                    backgroundColor: colors.primary_bg,
-                    color: colors.primary_text,
-                    height: "56px",
-                    fontSize: "16px",
-                  },
-                  "& .MuiInputBase-input": {
-                    color: colors.primary_text,
-                    "&::placeholder": {
-                      color: colors.placeholder_text,
-                      opacity: 1,
-                    },
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: errors.type
-                        ? "#ff4d4f"
-                        : colors.border_color,
-                      borderWidth: "1px",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: errors.type
-                        ? "#ff4d4f"
-                        : colors.border_color,
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: errors.type
-                        ? "#ff4d4f"
-                        : colors.secondary_accent,
-                      borderWidth: "2px",
-                    },
-                  },
-                }}
-              />
-            )}
-            sx={{
-              width: "100%",
-              maxWidth: "300px",
-            }}
+            getOptionLabel={(option) => t(`billCommon.typeOptions.${option}`)}
+            colors={colors}
+            error={errors.type}
+            placeholder={t("billCommon.placeholders.type")}
           />
           {autoFilledFields.type && (
             <div
@@ -1105,8 +815,14 @@ const CreateBill = ({ onClose, onSuccess }) => {
       <div className="flex items-center relative">
         <label
           htmlFor="category"
-          className={labelStyle}
-          style={{ ...inputWrapper, color: colors.primary_text }}
+          className="text-sm sm:text-base font-semibold mr-4"
+          style={{
+            width: "150px",
+            minWidth: "150px",
+            display: "flex",
+            alignItems: "center",
+            color: colors.primary_text,
+          }}
         >
           {t("billCommon.fields.category")}
         </label>
@@ -1114,11 +830,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
           <CategoryAutocomplete
             value={billData.categoryId}
             onChange={(categoryId) => {
-              setBillData((prev) => ({
-                ...prev,
-                categoryId: categoryId,
-              }));
-              // Mark as user-modified and clear auto-filled indicator
+              setBillData((prev) => ({ ...prev, categoryId: categoryId }));
               setUserModifiedFields((prev) => ({ ...prev, category: true }));
               if (autoFilledFields.category) {
                 setAutoFilledFields((prev) => ({ ...prev, category: false }));
@@ -1151,67 +863,41 @@ const CreateBill = ({ onClose, onSuccess }) => {
     </div>
   );
 
-  const expenseSummaryCountKey =
-    expenses.length === 1
-      ? "billCommon.summary.singleItem"
-      : "billCommon.summary.multipleItems";
-  const expenseSummaryCountLabel = t(expenseSummaryCountKey, {
-    count: expenses.length,
-  });
-
   return (
     <>
-      <div
-        className="flex flex-col relative create-bill-container"
-        style={{
-          width: "calc(100vw - 370px)",
-          height: "calc(100vh - 100px)",
-          backgroundColor: colors.tertiary_bg,
-          borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
-          padding: "20px",
-          marginRight: "20px",
-          overflowY: "auto",
-        }}
+      <FormPageShell
+        title={t("createBill.title")}
+        onClose={handleClose}
+        colors={colors}
+        rightContent={
+          billData.name?.trim().length >= 2 &&
+          billData.date && (
+            <PreviousExpenseIndicator
+              expense={previousExpense}
+              isLoading={loadingPreviousExpense}
+              position="right"
+              variant="gradient"
+              showTooltip={true}
+              dateFormat={dateFormat}
+              label={t("billCommon.indicators.previouslyAdded")}
+              labelPosition="top"
+              icon="calendar"
+              tooltipConfig={{
+                showAmount: true,
+                showPaymentMethod: true,
+                showType: true,
+              }}
+              colorScheme={{
+                primary: "#00dac6",
+                secondary: "#00b8a0",
+                text: "#ffffff",
+                subtext: "#9ca3af",
+              }}
+            />
+          )
+        }
+        containerStyle={{ backgroundColor: colors.tertiary_bg }}
       >
-        <PageHeader
-          title={t("createBill.title")}
-          onClose={() => {
-            if (onClose) {
-              onClose();
-            } else {
-              navigate(-1);
-            }
-          }}
-          rightContent={
-            billData.name?.trim().length >= 2 &&
-            billData.date && (
-              <PreviousExpenseIndicator
-                expense={previousExpense}
-                isLoading={loadingPreviousExpense}
-                position="right"
-                variant="gradient"
-                showTooltip={true}
-                dateFormat={dateFormat}
-                label={t("billCommon.indicators.previouslyAdded")}
-                labelPosition="top"
-                icon="calendar"
-                tooltipConfig={{
-                  showAmount: true,
-                  showPaymentMethod: true,
-                  showType: true,
-                }}
-                colorScheme={{
-                  primary: "#00dac6",
-                  secondary: "#00b8a0",
-                  text: "#ffffff",
-                  subtext: "#9ca3af",
-                }}
-              />
-            )
-          }
-        />
-
         <div className="flex flex-col gap-4 mt-2">
           <div className="flex flex-1 gap-4 items-center">
             {renderNameInput()}
@@ -1225,7 +911,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
           </div>
         </div>
 
-        {/* Action Buttons - Same Line */}
         <div className="mt-6 flex justify-between items-center">
           <div className="flex gap-2">
             <Button
@@ -1282,7 +967,6 @@ const CreateBill = ({ onClose, onSuccess }) => {
           </Button>
         </div>
 
-        {/* Budget Table Section - Only show when showBudgetTable is true and expense table is closed */}
         {showBudgetTable && !showExpenseTable && (
           <div className="mt-6">
             <div className="flex justify-between items-center mb-4">
@@ -1332,7 +1016,7 @@ const CreateBill = ({ onClose, onSuccess }) => {
               </div>
             ) : (
               <BudgetSelectionTable
-                budgets={budgets} // Pass the raw list of budgets
+                budgets={budgets}
                 selectedBudgetIds={selectedBudgets}
                 onSelectionChange={setSelectedBudgets}
               />
@@ -1340,735 +1024,46 @@ const CreateBill = ({ onClose, onSuccess }) => {
           </div>
         )}
 
-        {/* Expense Items Table Section - Show when showExpenseTable is true */}
         {showExpenseTable && !showBudgetTable && (
-          <div className="mt-6 flex-1 flex flex-col min-h-0">
-            <div className="flex justify-between items-center mb-4">
-              <h3
-                className="text-xl font-semibold"
-                style={{ color: colors.primary_text }}
-              >
-                {t("createBill.labels.expenseTableTitle")}
-              </h3>
-              <IconButton
-                onClick={handleCloseExpenseTableWithConfirmation} // Use the new function
-                sx={{
-                  color: "#ff4444",
-                  "&:hover": {
-                    backgroundColor: "#ff444420",
-                  },
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            </div>
-
-            <div
-              className="rounded border px-3 pt-3 flex-1 flex flex-col min-h-0"
-              style={{
-                backgroundColor: colors.secondary_bg,
-                borderColor: colors.border_color,
-              }}
-            >
-              {/* Table Header - Updated */}
-              <div
-                className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b"
-                style={{ borderColor: colors.border_color }}
-              >
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.itemName")}
-                </div>
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.quantity")}
-                </div>
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.unitPrice")}
-                </div>
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.totalPrice")}
-                </div>
-
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.comments")}
-                </div>
-                <div
-                  className="font-semibold text-sm col-span-1"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.expenseTable.headers.actions")}
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
-                {tempExpenses.map((expense, index) => {
-                  const hasItemName = expense.itemName.trim() !== "";
-                  const hasValidUnitPrice =
-                    expense.unitPrice !== "" &&
-                    !isNaN(parseFloat(expense.unitPrice)) &&
-                    parseFloat(expense.unitPrice) > 0;
-                  const isIncomplete = hasItemName && !hasValidUnitPrice;
-                  const isLastRow = index === tempExpenses.length - 1;
-
-                  return (
-                    <div
-                      key={index}
-                      ref={isLastRow ? lastRowRef : null}
-                      className="grid grid-cols-6 gap-3 items-center p-3 rounded"
-                      style={{
-                        backgroundColor: isIncomplete
-                          ? "rgba(255, 68, 68, 0.1)"
-                          : colors.primary_bg,
-                        border: `1px solid ${isIncomplete ? "#ef4444" : colors.border_color}`,
-                      }}
-                    >
-                      {/* Item Name Autocomplete - Updated */}
-                      <div className="col-span-1">
-                        <ItemNameAutocomplete
-                          value={expense.itemName}
-                          onChange={(event, newValue) =>
-                            handleItemNameChange(index, event, newValue)
-                          }
-                          placeholder={t("billCommon.placeholders.itemName")}
-                          autoFocus={isLastRow && expense.itemName === ""}
-                        />
-                      </div>
-
-                      {/* Quantity Input - Updated with positive value validation */}
-                      <div className="col-span-1">
-                        <input
-                          type="number"
-                          placeholder={t("billCommon.placeholders.quantity")}
-                          value={expense.quantity}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            // Allow empty string or positive numbers only
-                            if (
-                              value === "" ||
-                              (parseFloat(value) > 0 && !value.includes("-"))
-                            ) {
-                              handleTempExpenseChange(index, "quantity", value);
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            // Prevent entering negative sign, 'e', 'E', '+', and '.'
-                            if (["-", "e", "E", "+", "."].includes(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
-                            hasItemName &&
-                            (!expense.quantity ||
-                              parseFloat(expense.quantity) <= 0)
-                              ? "border border-red-400 focus:ring-red-400 outline-none"
-                              : ""
-                          }`}
-                          style={{
-                            backgroundColor:
-                              hasItemName &&
-                              (!expense.quantity ||
-                                parseFloat(expense.quantity) <= 0)
-                                ? "rgba(255, 68, 68, 0.1)"
-                                : colors.primary_bg,
-                            color: colors.primary_text,
-                            borderColor:
-                              hasItemName &&
-                              (!expense.quantity ||
-                                parseFloat(expense.quantity) <= 0)
-                                ? "#ef4444"
-                                : colors.border_color,
-                          }}
-                          onFocus={(e) =>
-                            (e.target.style.outline = `2px solid ${colors.secondary_accent}`)
-                          }
-                          onBlur={(e) => (e.target.style.outline = "none")}
-                          min="1"
-                          step="1"
-                        />
-                      </div>
-
-                      {/* Unit Price Input - Updated with positive value validation */}
-                      <div className="col-span-1">
-                        <input
-                          type="number"
-                          placeholder={t("billCommon.placeholders.unitPrice")}
-                          value={expense.unitPrice}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            // Allow empty string or positive numbers only
-                            if (
-                              value === "" ||
-                              (parseFloat(value) > 0 && !value.includes("-"))
-                            ) {
-                              handleTempExpenseChange(
-                                index,
-                                "unitPrice",
-                                value,
-                              );
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            // Prevent entering negative sign, 'e', 'E', '+'
-                            if (["-", "e", "E", "+"].includes(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                          className={`w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm ${
-                            isIncomplete
-                              ? "border border-red-400 focus:ring-red-400 outline-none"
-                              : ""
-                          }`}
-                          style={{
-                            backgroundColor: isIncomplete
-                              ? "rgba(255, 68, 68, 0.1)"
-                              : colors.primary_bg,
-                            color: colors.primary_text,
-                            borderColor: isIncomplete
-                              ? "#ef4444"
-                              : colors.border_color,
-                          }}
-                          onFocus={(e) =>
-                            (e.target.style.outline = `2px solid ${
-                              isIncomplete ? "#ef4444" : colors.secondary_accent
-                            }`)
-                          }
-                          onBlur={(e) => (e.target.style.outline = "none")}
-                          min="0.01"
-                          step="0.01"
-                        />
-                      </div>
-
-                      {/* Total Price Input */}
-                      <div className="col-span-1">
-                        <input
-                          type="text"
-                          value={expense.totalPrice.toFixed(2)}
-                          readOnly
-                          className="w-full px-3 py-2 rounded cursor-not-allowed text-sm"
-                          style={{
-                            backgroundColor: colors.hover_bg,
-                            color: colors.icon_muted,
-                          }}
-                        />
-                      </div>
-
-                      {/* Comments Input */}
-                      <div className="col-span-1">
-                        <input
-                          type="text"
-                          placeholder={t("billCommon.placeholders.comments")}
-                          value={expense.comments || ""}
-                          onChange={(e) =>
-                            handleTempExpenseChange(
-                              index,
-                              "comments",
-                              e.target.value,
-                            )
-                          }
-                          className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
-                          style={{
-                            backgroundColor: colors.primary_bg,
-                            color: colors.primary_text,
-                          }}
-                          onFocus={(e) =>
-                            (e.target.style.outline = `2px solid ${colors.secondary_accent}`)
-                          }
-                          onBlur={(e) => (e.target.style.outline = "none")}
-                        />
-                      </div>
-
-                      {/* Actions */}
-                      <div className="col-span-1 flex gap-2">
-                        <IconButton
-                          onClick={() => removeTempExpenseRow(index)}
-                          disabled={tempExpenses.length === 1}
-                          sx={{
-                            color:
-                              tempExpenses.length === 1 ? "#666" : "#ff4444",
-                            padding: "4px",
-                            "&:hover": {
-                              backgroundColor:
-                                tempExpenses.length === 1
-                                  ? "transparent"
-                                  : "#ff444420",
-                            },
-                          }}
-                          size="small"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Add Row Button and Actions - Fixed at bottom */}
-              <div
-                className="mt-4 pt-4"
-                style={{ borderTop: `1px solid ${colors.border_color}` }}
-              >
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex flex-col">
-                    <Button
-                      onClick={addTempExpenseRow}
-                      startIcon={<AddIcon />}
-                      disabled={
-                        !isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1],
-                        )
-                      }
-                      sx={{
-                        backgroundColor: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1],
-                        )
-                          ? "#00DAC6"
-                          : colors.border_color,
-                        color: isCurrentRowComplete(
-                          tempExpenses[tempExpenses.length - 1],
-                        )
-                          ? "black"
-                          : colors.icon_muted,
-                        "&:hover": {
-                          backgroundColor: isCurrentRowComplete(
-                            tempExpenses[tempExpenses.length - 1],
-                          )
-                            ? "#00b8a0"
-                            : colors.border_color,
-                        },
-                        "&:disabled": {
-                          backgroundColor: colors.border_color,
-                          color: colors.icon_muted,
-                          opacity: 0.6,
-                        },
-                        fontSize: "0.875rem",
-                        padding: "6px 12px",
-                      }}
-                      size="small"
-                    >
-                      {t("billCommon.actions.addRow")}
-                    </Button>
-
-                    {!isCurrentRowComplete(
-                      tempExpenses[tempExpenses.length - 1],
-                    ) && (
-                      <div className="text-red-400 text-xs mt-1">
-                        {t("billCommon.expenseTable.validationHintDetailed")}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Total Summary - Centered */}
-                  {tempExpenses.length > 0 && (
-                    <div
-                      className="font-semibold"
-                      style={{ color: colors.primary_text }}
-                    >
-                      {t("billCommon.expenseTable.totalLabel")}:{" "}
-                      {currencySymbol}
-                      {tempExpenses
-                        .reduce(
-                          (sum, expense) => sum + (expense.totalPrice || 0),
-                          0,
-                        )
-                        .toFixed(2)}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleCloseExpenseTableWithConfirmation} // Use the new function
-                      sx={{
-                        backgroundColor: "#ff4444",
-                        color: "white",
-                        fontSize: "0.875rem",
-                        padding: "6px 12px",
-                        "&:hover": {
-                          backgroundColor: "#ff6666",
-                        },
-                      }}
-                      size="small"
-                    >
-                      {t("common.cancel")}
-                    </Button>
-                    <Button
-                      onClick={handleSaveExpenses}
-                      sx={{
-                        backgroundColor: "#00DAC6",
-                        color: "black",
-                        "&:hover": {
-                          backgroundColor: "#00b8a0",
-                        },
-                        fontSize: "0.875rem",
-
-                        padding: "6px 12px",
-                      }}
-                      size="small"
-                    >
-                      {t("billCommon.actions.saveExpenses")}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <BillExpenseTable
+            tempExpenses={tempExpenses}
+            onTempExpenseChange={handleTempExpenseChange}
+            onItemNameChange={handleItemNameChange}
+            onAddRow={addTempExpenseRow}
+            onRemoveRow={removeTempExpenseRow}
+            onSave={handleSaveExpenses}
+            onClose={handleCloseExpenseTableWithConfirmation}
+            colors={colors}
+            currencySymbol={currencySymbol}
+            t={t}
+            lastRowRef={lastRowRef}
+            expenseTableTitle={t("createBill.labels.expenseTableTitle")}
+          />
         )}
-
-        {/* Expense Items Summary - Show when not in table view */}
 
         {!showExpenseTable && !showBudgetTable && (
-          <div className="mt-4">
-            <div
-              className="rounded border p-3"
-              style={{
-                backgroundColor: colors.secondary_bg,
-                borderColor: colors.border_color,
-              }}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h4
-                  className="font-semibold text-base"
-                  style={{ color: colors.primary_text }}
-                >
-                  {t("billCommon.summary.title")}
-                </h4>
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: colors.secondary_accent }}
-                >
-                  {expenseSummaryCountLabel}
-                </span>
-              </div>
-
-              {expenses.length === 0 ? (
-                <div
-                  className="text-center py-4"
-                  style={{
-                    height: "345px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <p className="text-red-400 text-sm mb-1">
-                    {t("billCommon.summary.noItemsTitle")}
-                  </p>
-                  <p className="text-xs" style={{ color: colors.icon_muted }}>
-                    {t("createBill.summary.noItemsSubtitle")}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {/* Responsive grid container for expense items - Reduced height */}
-                  <div
-                    className="max-h-80 overflow-y-auto pr-2"
-                    style={{
-                      maxHeight: "285px",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: `${colors.primary_accent} ${colors.primary_bg}`,
-                    }}
-                  >
-                    {/* Grid layout: 1 column on mobile, 2 on tablet, 3 on desktop */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-                      {expenses.map((expense, index) => (
-                        <div
-                          key={index}
-                          className="rounded-lg p-3 transition-all duration-200"
-                          style={{
-                            backgroundColor: colors.primary_bg,
-                            border: `1px solid ${colors.border_color}`,
-                            boxShadow: `0 2px 8px ${colors.primary_bg}40`,
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.borderColor =
-                              colors.primary_accent;
-                            e.currentTarget.style.boxShadow = `0 4px 12px ${colors.primary_accent}20`;
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.borderColor =
-                              colors.border_color;
-                            e.currentTarget.style.boxShadow = `0 2px 8px ${colors.primary_bg}40`;
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-1 min-w-0 pr-2">
-                              <h5
-                                className="font-medium text-xs truncate max-w-[140px]"
-                                title={expense.itemName}
-                                style={{ color: colors.primary_text }}
-                              >
-                                {expense.itemName}
-                              </h5>
-                            </div>
-                            <div
-                              className="font-semibold text-xs whitespace-nowrap"
-                              style={{ color: colors.secondary_accent }}
-                            >
-                              {currencySymbol}
-                              {expense.totalPrice.toFixed(2)}
-                            </div>
-                          </div>
-                          <div className="space-y-1 text-[10px]">
-                            <div className="flex justify-between">
-                              <span style={{ color: colors.icon_muted }}>
-                                {t("billCommon.expenseTable.summaryLabels.qty")}
-                              </span>
-                              <span
-                                className="font-medium"
-                                style={{ color: colors.primary_text }}
-                              >
-                                {expense.quantity}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span style={{ color: colors.icon_muted }}>
-                                {t(
-                                  "billCommon.expenseTable.summaryLabels.unit",
-                                )}
-                              </span>
-                              <span
-                                className="font-medium"
-                                style={{ color: colors.primary_text }}
-                              >
-                                {currencySymbol}
-                                {parseFloat(expense.unitPrice).toFixed(2)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span style={{ color: colors.icon_muted }}>
-                                {t(
-                                  "billCommon.expenseTable.summaryLabels.calc",
-                                )}
-                              </span>
-                              <span style={{ color: colors.secondary_text }}>
-                                {expense.quantity} × {currencySymbol}
-                                {parseFloat(expense.unitPrice).toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                          {expense.comments &&
-                            expense.comments.trim() !== "" && (
-                              <div
-                                className="mt-1 pt-1 border-t"
-                                style={{ borderColor: colors.border_color }}
-                              >
-                                <div
-                                  className="text-[10px] mb-0.5"
-                                  style={{ color: colors.icon_muted }}
-                                >
-                                  {t(
-                                    "billCommon.expenseTable.summaryLabels.comments",
-                                  )}
-                                </div>
-                                <div
-                                  className="text-[10px] p-1 rounded break-words max-h-16 overflow-auto"
-                                  style={{
-                                    color: colors.secondary_text,
-                                    backgroundColor: colors.secondary_bg,
-                                    border: `1px solid ${colors.border_color}`,
-                                  }}
-                                >
-                                  {expense.comments}
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Total summary section */}
-                  <div
-                    className="pt-3 mt-3"
-                    style={{ borderTop: `1px solid ${colors.border_color}` }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span
-                        className="font-medium text-sm"
-                        style={{ color: colors.icon_muted }}
-                      >
-                        {t("billCommon.expenseTable.totalLabel")}:
-                      </span>
-                      <span
-                        className="font-bold text-lg"
-                        style={{ color: colors.secondary_accent }}
-                      >
-                        {currencySymbol}
-                        {expenses
-                          .reduce((sum, expense) => sum + expense.totalPrice, 0)
-                          .toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <BillExpenseSummary
+            expenses={expenses}
+            colors={colors}
+            currencySymbol={currencySymbol}
+            t={t}
+            emptyTitle={t("billCommon.summary.noItemsTitle")}
+            emptySubtitle={t("createBill.summary.noItemsSubtitle")}
+          />
         )}
+
         {hasWriteAccess && (
           <div className="w-full flex justify-end mt-4 sm:mt-8">
-            <button
+            <SubmitButton
               onClick={handleSubmit}
-              disabled={billLoading}
-              className="px-6 py-2 font-semibold rounded w-full sm:w-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: colors.button_bg,
-                color: colors.button_text,
-              }}
-              onMouseEnter={(e) =>
-                !billLoading &&
-                (e.target.style.backgroundColor = colors.button_hover)
-              }
-              onMouseLeave={(e) =>
-                !billLoading &&
-                (e.target.style.backgroundColor = colors.button_bg)
-              }
-            >
-              {billLoading ? (
-                <CircularProgress
-                  size={20}
-                  sx={{ color: colors.button_text }}
-                />
-              ) : (
-                t("billCommon.actions.submit")
-              )}
-            </button>
+              label={t("billCommon.actions.submit")}
+              isSubmitting={billLoading}
+              colors={colors}
+            />
           </div>
         )}
+      </FormPageShell>
 
-        <style>
-          {`
-          input[type="date"]::-webkit-calendar-picker-indicator {
-            background: url('https://cdn-icons-png.flaticon.com/128/8350/8350450.png') no-repeat;
-            background-size: 18px;
-            filter: invert(1) brightness(100) contrast(100);
-          }
-        
-          input[type="number"]::-webkit-outer-spin-button,
-          input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-          }
-          input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: none;
-          }
-          .overflow-y-auto::-webkit-scrollbar {
-            width: 4px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
-            border-radius: 4px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
-          }
-          .overflow-x-auto::-webkit-scrollbar {
-            height: 4px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
-            border-radius: 4px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
-          }
-          @media (max-width: 640px) {
-            .create-bill-container {
-              width: 100vw !important;
-              height: auto !important;
-              padding: 16px;
-            }
-            .form-row {
-              flex-direction: column !important;
-              gap: 12px;
-            }
-            .field-styles {
-              max-width: 100% !important;
-              width: 100% !important;
-              padding: 8px;
-              font-size: 0.875rem;
-            }
-            .label-style {
-              width: 100% !important;
-              font-size: 0.875rem;
-            }
-            .input-wrapper {
-              width: 100% !important;
-              min-width: 100% !important;
-              flex-direction: column !important;
-              align-items: flex-start !important;
-              margin-bottom: 8px;
-            }
-            .action-buttons {
-              flex-direction: column !important;
-              gap: 8px !important;
-              width: 100% !important;
-            }
-            .action-buttons button {
-              width: 100% !important;
-              font-size: 0.875rem !important;
-            }
-            .expense-table-header {
-              display: none !important;
-            }
-            .expense-table-row {
-              display: flex !important;
-              flex-direction: column !important;
-              gap: 8px !important;
-              padding: 12px !important;
-              border: 1px solid #444 !important;
-              border-radius: 8px !important;
-              margin-bottom: 12px !important;
-            }
-            .expense-table-row > div {
-              width: 100% !important;
-            }
-            .expense-table-row input {
-              width: 100% !important;
-              font-size: 0.875rem !important;
-            }
-            .expense-actions {
-              flex-direction: column !important;
-              gap: 8px !important;
-              width: 100% !important;
-            }
-            .expense-actions button {
-              width: 100% !important;
-              font-size: 0.875rem !important;
-            }
-            .total-summary {
-              text-align: center !important;
-              font-size: 0.875rem !important;
-              margin: 8px 0 !important;
-            }
-          }
-          `}
-        </style>
-      </div>
-
-      {/* Receipt OCR Scan Modal */}
       <ReceiptScanModal
         isOpen={showReceiptScanModal}
         onClose={() => setShowReceiptScanModal(false)}

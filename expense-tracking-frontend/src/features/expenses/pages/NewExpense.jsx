@@ -1,41 +1,76 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { createExpenseAction } from "../../../Redux/Expenses/expense.action";
-import {
-  Autocomplete,
-  TextField,
-  CircularProgress,
-  InputAdornment,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import { Autocomplete } from "@mui/material";
 import {
   CategoryAutocomplete,
   PaymentMethodAutocomplete,
   ExpenseNameAutocomplete,
 } from "../../../components/ui";
 import PreviousExpenseIndicator from "../../../components/PreviousExpenseIndicator";
-import PageHeader from "../../../components/PageHeader";
 import { normalizePaymentMethod } from "../../../utils/paymentMethodUtils";
 import { getListOfBudgetsById } from "../../../Redux/Budget/budget.action";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
-import useFriendAccess from "../../friends/hooks/useFriendAccess";
-import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
+import { useLocation } from "react-router-dom";
 import usePreviousExpense from "../hooks/usePreviousExpense";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { useTheme } from "../../../hooks/useTheme";
-import useUserSettings from "../../../hooks/useUserSettings";
-import { useTranslation } from "../../../hooks/useTranslation";
 import HighlightedText from "../../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../../utils/fuzzyMatchUtils";
 import BudgetSelectionTable from "../../../components/common/BudgetSelectionTable/BudgetSelectionTable";
+import useFormPage from "../../../shared/form/hooks/useFormPage";
+import useFormState from "../../../shared/form/hooks/useFormState";
+import FormPageShell from "../../../shared/form/components/FormPageShell";
+import FormField from "../../../shared/form/components/FormField";
+import FormRow from "../../../shared/form/components/FormRow";
+import SubmitButton from "../../../shared/form/components/SubmitButton";
+import ThemedDatePicker from "../../../shared/form/fields/ThemedDatePicker";
+import ThemedAmountField from "../../../shared/form/fields/ThemedAmountField";
+import ThemedCommentField from "../../../shared/form/fields/ThemedCommentField";
+import ThemedAutocomplete from "../../../shared/form/fields/ThemedAutocomplete";
 
 const NewExpense = ({ onClose, onSuccess }) => {
-  const { colors } = useTheme();
-  const settings = useUserSettings();
-  const { t } = useTranslation();
-  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const dateFromQuery = searchParams.get("date");
+  const today = new Date().toISOString().split("T")[0];
+
+  const {
+    colors,
+    t,
+    dateFormat,
+    navigate,
+    dispatch,
+    friendId,
+    hasWriteAccess,
+  } = useFormPage({
+    redirectConfig: {
+      buildFriendPath: (fid) => `/friends/expenses/${fid}`,
+      selfPath: "/friends/expenses",
+      defaultPath: "/friends/expenses",
+    },
+  });
+
+  const initialExpenseData = useMemo(
+    () => ({
+      expenseName: "",
+      amount: "",
+      netAmount: "",
+      paymentMethod: "cash",
+      transactionType: "loss",
+      comments: "",
+      date: dateFromQuery || today,
+      creditDue: "",
+    }),
+    [dateFromQuery, today],
+  );
+
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    setFieldValue,
+    handleInputChange,
+    clearFieldError,
+  } = useFormState(initialExpenseData);
 
   const pageTitle = t("newExpense.title");
   const previouslyAddedLabel = t("newExpense.header.previouslyAdded");
@@ -47,14 +82,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
   const successMessage = t("newExpense.actions.successMessage");
   const noOptionsText = t("newExpense.autocomplete.noOptions");
   const closeLabel = t("common.close");
-
-  // Dynamic styles based on theme (responsive: full width on mobile/tablet, 300px on large)
-  const fieldStyles = `px-3 py-2 rounded w-full text-base max-w-full lg:max-w-[300px] border-0 focus:outline-none focus:ring-2`;
-  const fieldHeight = "48px"; // Consistent height for all form fields
-  const inputWrapper = {
-    display: "flex",
-    alignItems: "center",
-  };
 
   const fieldLabels = useMemo(
     () => ({
@@ -82,19 +109,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
     [t],
   );
 
-  const tableHeaders = useMemo(
-    () => ({
-      name: t("newExpense.table.headers.name"),
-      inBudget: t("newExpense.table.headers.inBudget"),
-      description: t("newExpense.table.headers.description"),
-      startDate: t("newExpense.table.headers.startDate"),
-      endDate: t("newExpense.table.headers.endDate"),
-      remainingAmount: t("newExpense.table.headers.remainingAmount"),
-      amount: t("newExpense.table.headers.amount"),
-    }),
-    [t],
-  );
-
   const transactionTypeLabels = useMemo(
     () => ({
       gain: t("newExpense.transactionTypes.gain"),
@@ -103,24 +117,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     [t],
   );
 
-  // Use lowercase internal values for consistency (gain/loss)
   const typeOptions = ["gain", "loss"];
-
-  const formatLabelFromId = (value) =>
-    value
-      ? value
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (str) => str.toUpperCase())
-      : "";
-
-  const getFieldLabel = (fieldId) =>
-    fieldLabels[fieldId] || formatLabelFromId(fieldId);
-
-  const getPlaceholderForField = (fieldId, fallbackLabel) =>
-    fieldPlaceholders[fieldId] ||
-    t("newExpense.placeholders.generic", {
-      field: fallbackLabel || formatLabelFromId(fieldId),
-    });
 
   const getTransactionTypeLabel = (option) => {
     if (!option) return "";
@@ -137,28 +134,10 @@ const NewExpense = ({ onClose, onSuccess }) => {
     });
   }, [transactionTypeLabels]);
 
-  const location = useLocation();
-  // Get date from query param if present
-  const searchParams = new URLSearchParams(location.search);
-  const dateFromQuery = searchParams.get("date");
-
-  const navigate = useNavigate();
-  const today = new Date().toISOString().split("T")[0];
   const { budgets, error: budgetError } = useSelector(
     (state) => state.budgets || {},
   );
-  const dispatch = useDispatch();
-  const [expenseData, setExpenseData] = useState({
-    expenseName: "",
-    amount: "",
-    netAmount: "",
-    paymentMethod: "cash",
-    transactionType: "loss",
-    comments: "",
-    date: dateFromQuery || today,
-    creditDue: "",
-  });
-  const [errors, setErrors] = useState({});
+
   const [autoFilledFields, setAutoFilledFields] = useState({
     category: false,
     paymentMethod: false,
@@ -173,26 +152,19 @@ const NewExpense = ({ onClose, onSuccess }) => {
     transactionType: false,
     comments: false,
   });
-  // Suggestions now handled by generic NameAutocomplete component
   const [showTable, setShowTable] = useState(false);
   const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
-  const { friendId } = useParams();
-  const { hasWriteAccess } = useFriendAccess(friendId);
 
-  // Use custom hook for previous expense functionality
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
-    expenseData.expenseName,
-    expenseData.date,
+    formData.expenseName,
+    formData.date,
     friendId,
   );
 
-  // Auto-populate fields when previous expense is found
   useEffect(() => {
-    // When expense name is cleared or too short, reset to default values
-    if (!expenseData.expenseName || expenseData.expenseName.trim().length < 2) {
+    if (!formData.expenseName || formData.expenseName.trim().length < 2) {
       if (lastAutoFilledExpenseName) {
-        // Reset to default values
-        setExpenseData((prev) => ({
+        setFormData((prev) => ({
           ...prev,
           category: "",
           paymentMethod: "cash",
@@ -206,7 +178,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
           transactionType: false,
           comments: false,
         });
-        // Reset user modification flags
         setUserModifiedFields({
           category: false,
           paymentMethod: false,
@@ -217,57 +188,43 @@ const NewExpense = ({ onClose, onSuccess }) => {
       return;
     }
 
-    if (previousExpense && expenseData.expenseName?.trim().length >= 2) {
-      // Check if this is a new expense name (different from last auto-filled)
+    if (previousExpense && formData.expenseName?.trim().length >= 2) {
       const isNewExpenseName =
-        expenseData.expenseName.trim() !== lastAutoFilledExpenseName;
+        formData.expenseName.trim() !== lastAutoFilledExpenseName;
 
-      // Only auto-populate if fields are empty, default, or expense name changed
       const updates = {};
       const newAutoFilled = { ...autoFilledFields };
 
-      // Auto-populate category if:
-      // - Previous expense has categoryId AND
-      // - (Current is empty OR expense name changed and user hasn't manually modified it)
       if (
         previousExpense.categoryId &&
-        (!expenseData.category ||
+        (!formData.category ||
           (isNewExpenseName && !userModifiedFields.category))
       ) {
         updates.category = previousExpense.categoryId;
         newAutoFilled.category = true;
       }
 
-      // Auto-populate payment method if:
-      // - Previous expense has paymentMethod AND
-      // - (Current is default OR expense name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.paymentMethod &&
-        (expenseData.paymentMethod === "cash" ||
+        (formData.paymentMethod === "cash" ||
           (isNewExpenseName && !userModifiedFields.paymentMethod))
       ) {
         updates.paymentMethod = previousExpense.expense.paymentMethod;
         newAutoFilled.paymentMethod = true;
       }
 
-      // Auto-populate type if:
-      // - Previous expense has type AND
-      // - (Current is default OR expense name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.type &&
-        (expenseData.transactionType === "loss" ||
+        (formData.transactionType === "loss" ||
           (isNewExpenseName && !userModifiedFields.transactionType))
       ) {
         updates.transactionType = previousExpense.expense.type;
         newAutoFilled.transactionType = true;
       }
 
-      // Auto-populate comments if:
-      // - Previous expense has comments AND
-      // - (Current is empty OR expense name changed and user hasn't manually modified it)
       if (
         previousExpense.expense?.comments &&
-        (!expenseData.comments ||
+        (!formData.comments ||
           (isNewExpenseName && !userModifiedFields.comments))
       ) {
         updates.comments = previousExpense.expense.comments;
@@ -277,18 +234,15 @@ const NewExpense = ({ onClose, onSuccess }) => {
         isNewExpenseName &&
         !userModifiedFields.comments
       ) {
-        // Clear comments if no suggestion available for new expense name
         updates.comments = "";
         newAutoFilled.comments = false;
       }
 
-      // Apply updates if any
       if (Object.keys(updates).length > 0) {
-        setExpenseData((prev) => ({ ...prev, ...updates }));
+        setFormData((prev) => ({ ...prev, ...updates }));
         setAutoFilledFields(newAutoFilled);
-        setLastAutoFilledExpenseName(expenseData.expenseName.trim());
+        setLastAutoFilledExpenseName(formData.expenseName.trim());
 
-        // Reset user modification flags if expense name changed
         if (isNewExpenseName) {
           setUserModifiedFields({
             category: false,
@@ -298,7 +252,6 @@ const NewExpense = ({ onClose, onSuccess }) => {
           });
         }
 
-        // Clear auto-filled indicators after 3 seconds
         setTimeout(() => {
           setAutoFilledFields({
             category: false,
@@ -309,23 +262,12 @@ const NewExpense = ({ onClose, onSuccess }) => {
         }, 3000);
       }
     }
-  }, [previousExpense, expenseData.expenseName]);
+  }, [previousExpense, formData.expenseName]);
 
-  // Updated redirect base paths to /friends/expenses*
-  useRedirectIfReadOnly(friendId, {
-    buildFriendPath: (fid) => `/friends/expenses/${fid}`,
-    selfPath: "/friends/expenses",
-    defaultPath: "/friends/expenses",
-  });
-
-  console.log("FriendId ", friendId);
-
-  // Fetch budgets on component mount
   useEffect(() => {
     dispatch(getListOfBudgetsById(today, friendId || ""));
   }, [dispatch, today, friendId]);
 
-  // Update selection states when budgets change
   useEffect(() => {
     if (budgets && Array.isArray(budgets)) {
       const initialSelection = budgets
@@ -335,8 +277,7 @@ const NewExpense = ({ onClose, onSuccess }) => {
     }
   }, [budgets]);
 
-  // Set initial type based on salary date logic if dateFromQuery is present
-  React.useEffect(() => {
+  useEffect(() => {
     if (dateFromQuery) {
       const newDate = new Date(dateFromQuery);
       const lastDayOfMonth = new Date(
@@ -352,73 +293,50 @@ const NewExpense = ({ onClose, onSuccess }) => {
       }
       const isSalary = newDate.toDateString() === salaryDate.toDateString();
       if (isSalary) {
-        setExpenseData((prev) => ({ ...prev, transactionType: "gain" }));
+        setFormData((prev) => ({ ...prev, transactionType: "gain" }));
       } else {
-        setExpenseData((prev) => ({ ...prev, transactionType: "loss" }));
+        setFormData((prev) => ({ ...prev, transactionType: "loss" }));
       }
     }
   }, [dateFromQuery]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setExpenseData({ ...expenseData, [name]: value });
-
-    // Clear the error for this field when the user updates it
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: false });
-    }
-  };
-
-  const handleDateChange = (newValue) => {
-    if (newValue) {
-      const formatted = dayjs(newValue).format("YYYY-MM-DD");
-      setExpenseData((prev) => ({ ...prev, date: formatted }));
-    }
-
-    // Clear the date error when the user updates it
-    if (errors.date) {
-      setErrors({ ...errors, date: false });
-    }
-
-    // Dispatch getListOfBudgetsById with the selected date
-    dispatch(getListOfBudgetsById(newValue, friendId));
+  const handleDateChange = (formatted, dayjsValue) => {
+    setFormData((prev) => ({ ...prev, date: formatted }));
+    clearFieldError("date");
+    dispatch(getListOfBudgetsById(dayjsValue, friendId));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!hasWriteAccess) return; // safety: block submit if no write
+    if (!hasWriteAccess) return;
     const newErrors = {};
-    if (!expenseData.expenseName) newErrors.expenseName = true;
-    const parsedAmount = parseFloat(expenseData.amount);
-    if (!expenseData.amount || isNaN(parsedAmount) || parsedAmount <= 0)
+    if (!formData.expenseName) newErrors.expenseName = true;
+    const parsedAmount = parseFloat(formData.amount);
+    if (!formData.amount || isNaN(parsedAmount) || parsedAmount <= 0)
       newErrors.amount = true;
-    if (!expenseData.date) newErrors.date = true;
-    if (!expenseData.transactionType) newErrors.transactionType = true;
+    if (!formData.date) newErrors.date = true;
+    if (!formData.transactionType) newErrors.transactionType = true;
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // Use normalized payment method string for backend
-    const normalizedPm = normalizePaymentMethod(expenseData.paymentMethod);
-
-    // Derive creditDue value based on payment method and amount
-    const amt = parseFloat(expenseData.amount) || 0;
+    const normalizedPm = normalizePaymentMethod(formData.paymentMethod);
+    const amt = parseFloat(formData.amount) || 0;
     const derivedCreditDue = normalizedPm === "creditNeedToPaid" ? amt : 0;
-
     const budgetIds = selectedBudgetIds;
 
     dispatch(
       createExpenseAction(
         {
-          date: expenseData.date,
+          date: formData.date,
           budgetIds: budgetIds,
-          categoryId: expenseData.category,
+          categoryId: formData.category,
           expense: {
-            expenseName: expenseData.expenseName,
+            expenseName: formData.expenseName,
             amount: amt,
             netAmount: amt,
             paymentMethod: normalizedPm,
-            type: expenseData.transactionType.toLowerCase(),
-            comments: expenseData.comments,
+            type: formData.transactionType.toLowerCase(),
+            comments: formData.comments,
             creditDue: derivedCreditDue,
           },
         },
@@ -446,913 +364,446 @@ const NewExpense = ({ onClose, onSuccess }) => {
     setShowTable(false);
   };
 
-  const renderInput = (id, type = "text", isTextarea = false) => {
-    const labelText = getFieldLabel(id);
-    const placeholderText = getPlaceholderForField(id, labelText);
-
-    return (
-      <div className="flex flex-col flex-1 w-full">
-        <div className="flex flex-col lg:flex-row lg:items-start relative gap-2 lg:gap-0">
-          <label
-            htmlFor={id}
-            className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-            style={{
-              ...inputWrapper,
-              color: colors.primary_text,
-              fontSize: "0.875rem",
-              fontWeight: "600",
-              paddingTop: isTextarea ? "8px" : "0px",
-            }}
-          >
-            {labelText}
-            {["expenseName", "amount", "date", "transactionType"].includes(
-              id,
-            ) && <span className="text-red-500"> *</span>}
-          </label>
-          <div
-            className="relative flex-1 w-full max-w-full lg:max-w-[300px]"
-          >
-            {id === "comments" && autoFilledFields.comments && (
-              <div
-                className="absolute top-[-20px] right-0 lg:right-auto lg:left-[300px]"
-                style={{
-                  background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
-                  color: colors.button_text,
-                  fontSize: "0.65rem",
-                  padding: "2px 6px",
-                  borderRadius: "4px",
-                  fontWeight: "600",
-                  whiteSpace: "nowrap",
-                  boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
-                  zIndex: 10,
-                }}
-              >
-                {autoFilledLabel}
-              </div>
-            )}
-            {isTextarea ? (
-              <textarea
-                id={id}
-                name={id}
-                value={expenseData[id]}
-                onChange={(e) => {
-                  handleInputChange(e);
-                  // Mark comments as user-modified when manually edited
-                  if (id === "comments") {
-                    setUserModifiedFields((prev) => ({
-                      ...prev,
-                      comments: true,
-                    }));
-                    if (autoFilledFields.comments) {
-                      setAutoFilledFields((prev) => ({
-                        ...prev,
-                        comments: false,
-                      }));
-                    }
-                  }
-                }}
-                placeholder={placeholderText}
-                rows="3"
-                className={fieldStyles}
-                style={{
-                  height: "80px",
-                  backgroundColor: colors.primary_bg,
-                  color: colors.primary_text,
-                  borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-                  borderWidth: errors[id] ? "2px" : "1px",
-                  width: "100%",
-                }}
-              />
-            ) : (
-              <input
-                id={id}
-                name={id}
-                type={type}
-                value={expenseData[id]}
-                onChange={handleInputChange}
-                placeholder={placeholderText}
-                className={fieldStyles}
-                style={{
-                  backgroundColor: colors.primary_bg,
-                  color: colors.primary_text,
-                  borderColor: errors[id] ? "#ff4d4f" : colors.border_color,
-                  borderWidth: errors[id] ? "2px" : "1px",
-                }}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderSelect = (id, options) => {
-    const labelText = getFieldLabel(id);
-    return (
-      <div className="flex flex-col flex-1 w-full">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
-          <label
-            htmlFor={id}
-            className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-            style={{
-              ...inputWrapper,
-              color: colors.primary_text,
-              fontSize: "0.875rem",
-              fontWeight: "600",
-            }}
-          >
-            {labelText}
-          </label>
-          <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
-          <select
-            id={id}
-            name={id}
-            value={expenseData[id]}
-            onChange={handleInputChange}
-            className={fieldStyles}
-            style={{
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: colors.border_color,
-              borderWidth: "1px",
-              height: fieldHeight,
-            }}
-          >
-            {options.map((opt) => (
-              <option key={opt} value={opt}>
-                {opt.charAt(0).toUpperCase() + opt.slice(1)}
-              </option>
-            ))}
-          </select>
-          </div>
-        </div>
-        {errors[id] && (
-          <span className="text-red-500 text-sm mt-1 lg:mt-0 lg:ml-[150px]">
-            {errors[id]}
-          </span>
-        )}
-      </div>
-    );
-  };
+  const renderExpenseNameWithSuggestions = () => (
+    <FormField
+      label={fieldLabels.expenseName}
+      htmlFor="expenseName"
+      required
+      colors={colors}
+    >
+      <ExpenseNameAutocomplete
+        value={formData.expenseName}
+        onChange={(val) => {
+          setFieldValue("expenseName", val);
+          if (errors.expenseName && val) clearFieldError("expenseName");
+        }}
+        friendId={friendId}
+        placeholder={fieldPlaceholders.expenseName}
+        error={errors.expenseName}
+        size="medium"
+        maxSuggestions={500}
+        noDataText="No expense names found"
+      />
+    </FormField>
+  );
 
   const renderAmountInput = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
-        <label
-          htmlFor="amount"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {fieldLabels.amount}
-          <span className="text-red-500"> *</span>
-        </label>
-        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
-        <TextField
-          id="amount"
-          name="amount"
-          type="number"
-          value={expenseData.amount || ""}
-          onChange={(e) => {
-            const val = e.target.value;
-            if (val !== "" && (parseFloat(val) < 0 || val.includes("-"))) return;
-            handleInputChange(e);
-
-            if (errors.amount) {
-              setErrors({ ...errors, amount: false });
-            }
-          }}
-          onKeyDown={(e) => {
-            if (["-", "e", "E"].includes(e.key)) e.preventDefault();
-          }}
-          inputProps={{ min: 0.01, step: "any" }}
-          placeholder={fieldPlaceholders.amount}
-          variant="outlined"
-          error={errors.amount}
-          InputProps={{
-            className: fieldStyles,
-            style: {
-              height: fieldHeight,
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
-              borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
-              borderWidth: errors.amount ? "2px" : "1px",
-            },
-          }}
-          sx={{
-            width: "100%",
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&:hover fieldset": {
-                borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: errors.amount ? "#ff4d4f" : colors.primary_accent,
-                borderStyle: "solid",
-              },
-              "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: errors.amount ? "#ff4d4f" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-                borderStyle: "solid",
-              },
-            },
-            "& .MuiInputBase-input": {
-              color: colors.primary_text,
-            },
-          }}
-        />
-        </div>
-      </div>
-    </div>
+    <FormField
+      label={fieldLabels.amount}
+      htmlFor="amount"
+      required
+      error={errors.amount}
+      colors={colors}
+    >
+      <ThemedAmountField
+        id="amount"
+        name="amount"
+        value={formData.amount}
+        onChange={handleInputChange}
+        onClearError={() => clearFieldError("amount")}
+        placeholder={fieldPlaceholders.amount}
+        colors={colors}
+        error={errors.amount}
+        height="48px"
+      />
+    </FormField>
   );
 
   const renderDateInput = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
-        <label
-          htmlFor="date"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {fieldLabels.date}
-          <span className="text-red-500"> *</span>
-        </label>
-        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DatePicker
-            value={expenseData.date ? dayjs(expenseData.date) : null}
-            onChange={(newValue) => {
-              if (newValue) {
-                const formatted = dayjs(newValue).format("YYYY-MM-DD");
-                setExpenseData((prev) => ({ ...prev, date: formatted }));
-              }
-            }}
-            sx={{
-              background: colors.primary_bg,
-              borderRadius: 2,
-              color: colors.primary_text,
-              ".MuiInputBase-input": {
-                color: colors.primary_text,
-                height: 20,
-                fontSize: 15,
-              },
-              ".MuiSvgIcon-root": { color: colors.primary_accent },
-              width: "100%",
-              minWidth: 0,
-              height: 48,
-              minHeight: 48,
-              maxHeight: 48,
-            }}
-            slotProps={{
-              textField: {
-                size: "medium",
-                variant: "outlined",
-                placeholder: fieldPlaceholders.date,
-                sx: {
-                  color: colors.primary_text,
-                  height: 48,
-                  minHeight: 48,
-                  maxHeight: 48,
-                  width: "100%",
-                  fontSize: 15,
-                  "& .MuiInputBase-root": {
-                    height: 48,
-                    minHeight: 48,
-                    maxHeight: 48,
-                  },
-                  "& input": {
-                    height: 20,
-                    fontSize: 15,
-                    color: colors.primary_text,
-                  },
-                },
-                inputProps: {
-                  max: dayjs().format("YYYY-MM-DD"),
-                },
-              },
-              popper: {
-                sx: {
-                  "& .MuiPaper-root": {
-                    backgroundColor: colors.card_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
-                  },
-                  "& .MuiPickersDay-root": {
-                    color: colors.primary_text,
-                    "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": {
-                      backgroundColor: colors.primary_accent,
-                      color: colors.button_text,
-                    },
-                  },
-                  "& .MuiPickersCalendarHeader-label": {
-                    color: colors.primary_text,
-                  },
-                  "& .MuiPickersCalendarHeader-switchViewButton": {
-                    color: colors.primary_accent,
-                  },
-                  "& .MuiPickersArrowSwitcher-button": {
-                    color: colors.primary_accent,
-                  },
-                  "& .MuiDayCalendar-weekDayLabel": {
-                    color: colors.icon_muted,
-                  },
-                  "& .MuiPickersYear-yearButton": {
-                    color: colors.primary_text,
-                    "&:hover": { backgroundColor: colors.hover_bg },
-                    "&.Mui-selected": {
-                      backgroundColor: colors.primary_accent,
-                      color: colors.button_text,
-                    },
-                  },
-                },
-              },
-            }}
-            disableFuture
-            format={dateFormat}
-          />
-        </LocalizationProvider>
-        </div>
-      </div>
-      {errors.date && (
-        <span className="text-red-500 text-sm mt-1 lg:mt-0 lg:ml-[150px]">
-          {errors.date}
-        </span>
-      )}
-    </div>
-  );
-
-  const renderExpenseNameWithSuggestions = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-0">
-        <label
-          htmlFor="expenseName"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
-          }}
-        >
-          {fieldLabels.expenseName}
-          <span className="text-red-500"> *</span>
-        </label>
-        <div className="flex-1 w-full max-w-full lg:max-w-[300px]">
-        <ExpenseNameAutocomplete
-          value={expenseData.expenseName}
-          onChange={(val) => {
-            setExpenseData((prev) => ({ ...prev, expenseName: val }));
-            if (errors.expenseName && val)
-              setErrors((prev) => ({ ...prev, expenseName: false }));
-          }}
-          friendId={friendId}
-          placeholder={fieldPlaceholders.expenseName}
-          error={errors.expenseName}
-          size="medium"
-          maxSuggestions={500}
-          noDataText="No expense names found"
-        />
-        </div>
-      </div>
-    </div>
+    <FormField
+      label={fieldLabels.date}
+      htmlFor="date"
+      required
+      error={errors.date}
+      colors={colors}
+    >
+      <ThemedDatePicker
+        value={formData.date}
+        onChange={handleDateChange}
+        colors={colors}
+        dateFormat={dateFormat}
+        error={errors.date}
+        disableFuture
+        placeholder={fieldPlaceholders.date}
+        height={48}
+      />
+    </FormField>
   );
 
   const renderCategoryAutocomplete = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
-        <label
-          htmlFor="category"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
+    <FormField
+      label={fieldLabels.category}
+      htmlFor="category"
+      colors={colors}
+    >
+      <div className="relative">
+        <CategoryAutocomplete
+          value={formData.category}
+          onChange={(categoryId) => {
+            setFieldValue("category", categoryId);
+            setUserModifiedFields((prev) => ({ ...prev, category: true }));
+            if (autoFilledFields.category) {
+              setAutoFilledFields((prev) => ({ ...prev, category: false }));
+            }
           }}
-        >
-          {fieldLabels.category}
-        </label>
-        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
-          <CategoryAutocomplete
-            value={expenseData.category}
-            onChange={(categoryId) => {
-              setExpenseData((prev) => ({
-                ...prev,
-                category: categoryId,
-              }));
-              // Mark as user-modified and clear auto-filled indicator
-              setUserModifiedFields((prev) => ({ ...prev, category: true }));
-              if (autoFilledFields.category) {
-                setAutoFilledFields((prev) => ({ ...prev, category: false }));
-              }
+          friendId={friendId}
+          placeholder={fieldPlaceholders.category}
+          size="medium"
+        />
+        {autoFilledFields.category && (
+          <div
+            className="absolute top-0 right-[-8px] transform translate-x-full"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+              color: colors.button_text,
+              fontSize: "0.65rem",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              fontWeight: "600",
+              whiteSpace: "nowrap",
+              boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
             }}
-            friendId={friendId}
-            placeholder={fieldPlaceholders.category}
-            size="medium"
-          />
-          {autoFilledFields.category && (
-            <div
-              className="absolute top-0 right-[-8px] transform translate-x-full"
-              style={{
-                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
-                color: colors.button_text,
-                fontSize: "0.65rem",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                fontWeight: "600",
-                whiteSpace: "nowrap",
-                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
-              }}
-            >
-              {autoFilledLabel}
-            </div>
-          )}
-        </div>
+          >
+            {autoFilledLabel}
+          </div>
+        )}
       </div>
-    </div>
+    </FormField>
   );
 
   const renderPaymentMethodAutocomplete = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
-        <label
-          htmlFor="paymentMethod"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
+    <FormField
+      label={fieldLabels.paymentMethod}
+      htmlFor="paymentMethod"
+      colors={colors}
+    >
+      <div className="relative">
+        <PaymentMethodAutocomplete
+          value={formData.paymentMethod}
+          onChange={(paymentMethodValue) => {
+            setFieldValue("paymentMethod", paymentMethodValue);
+            setUserModifiedFields((prev) => ({
+              ...prev,
+              paymentMethod: true,
+            }));
+            if (autoFilledFields.paymentMethod) {
+              setAutoFilledFields((prev) => ({
+                ...prev,
+                paymentMethod: false,
+              }));
+            }
           }}
-        >
-          {fieldLabels.paymentMethod}
-        </label>
-        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
-          <PaymentMethodAutocomplete
-            value={expenseData.paymentMethod}
-            onChange={(paymentMethodValue) => {
-              setExpenseData((prev) => ({
-                ...prev,
-                paymentMethod: paymentMethodValue,
-              }));
-              // Mark as user-modified and clear auto-filled indicator
-              setUserModifiedFields((prev) => ({
-                ...prev,
-                paymentMethod: true,
-              }));
-              if (autoFilledFields.paymentMethod) {
-                setAutoFilledFields((prev) => ({
-                  ...prev,
-                  paymentMethod: false,
-                }));
-              }
+          transactionType={formData.transactionType}
+          friendId={friendId}
+          placeholder={fieldPlaceholders.paymentMethod}
+          size="medium"
+        />
+        {autoFilledFields.paymentMethod && (
+          <div
+            className="absolute top-0 right-[-8px] transform translate-x-full"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+              color: colors.button_text,
+              fontSize: "0.65rem",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              fontWeight: "600",
+              whiteSpace: "nowrap",
+              boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
             }}
-            transactionType={expenseData.transactionType}
-            friendId={friendId}
-            placeholder={fieldPlaceholders.paymentMethod}
-            size="medium"
-          />
-          {autoFilledFields.paymentMethod && (
-            <div
-              className="absolute top-0 right-[-8px] transform translate-x-full"
-              style={{
-                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
-                color: colors.button_text,
-                fontSize: "0.65rem",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                fontWeight: "600",
-                whiteSpace: "nowrap",
-                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
-              }}
-            >
-              {autoFilledLabel}
-            </div>
-          )}
-        </div>
+          >
+            {autoFilledLabel}
+          </div>
+        )}
       </div>
-    </div>
+    </FormField>
   );
+
   const renderTransactionTypeAutocomplete = () => (
-    <div className="flex flex-col flex-1 w-full">
-      <div className="flex flex-col lg:flex-row lg:items-center relative gap-2 lg:gap-0">
-        <label
-          htmlFor="transactionType"
-          className="w-full lg:w-[150px] lg:min-w-[150px] shrink-0"
-          style={{
-            ...inputWrapper,
-            color: colors.primary_text,
-            fontSize: "0.875rem",
-            fontWeight: "600",
+    <FormField
+      label={fieldLabels.transactionType}
+      htmlFor="transactionType"
+      required
+      colors={colors}
+    >
+      <div className="relative">
+        <ThemedAutocomplete
+          options={typeOptions}
+          value={formData.transactionType || null}
+          onChange={(event, newValue) => {
+            setFieldValue(
+              "transactionType",
+              newValue ? newValue.toLowerCase() : "",
+            );
+            if (errors.transactionType) clearFieldError("transactionType");
+            setUserModifiedFields((prev) => ({
+              ...prev,
+              transactionType: true,
+            }));
+            if (autoFilledFields.transactionType) {
+              setAutoFilledFields((prev) => ({
+                ...prev,
+                transactionType: false,
+              }));
+            }
           }}
-        >
-          {fieldLabels.transactionType}
-          <span className="text-red-500"> *</span>
-        </label>
-        <div className="relative flex-1 w-full max-w-full lg:max-w-[300px]">
-          <Autocomplete
-            autoHighlight
-            options={typeOptions}
-            getOptionLabel={(option) => getTransactionTypeLabel(option)}
-            filterOptions={transactionTypeFilterOptions}
-            value={(expenseData.transactionType || "loss").toLowerCase()}
-            onInputChange={(event, newValue, reason) => {
-              if (reason === "clear") {
-                setExpenseData((prev) => ({
-                  ...prev,
-                  transactionType: "loss",
-                }));
-                if (errors.transactionType) {
-                  setErrors({ ...errors, transactionType: false });
-                }
-                return;
-              }
-              setExpenseData((prev) => ({
-                ...prev,
-                transactionType: (newValue || "").toLowerCase(),
-              }));
-
-              if (errors.transactionType) {
-                setErrors({ ...errors, transactionType: false });
-              }
-            }}
-            onClose={() => {
-              if (
-                !expenseData.transactionType ||
-                !typeOptions.includes(expenseData.transactionType)
-              ) {
-                setExpenseData((prev) => ({
-                  ...prev,
-                  transactionType: "loss",
-                }));
-              }
-            }}
-            onChange={(event, newValue) => {
-              setExpenseData((prev) => ({
-                ...prev,
-                transactionType: (newValue || "loss").toLowerCase(),
-              }));
-
-              // Clear the error when the user selects a value
-              if (errors.transactionType) {
-                setErrors({ ...errors, transactionType: false });
-              }
-              // Mark as user-modified when user manually selects from dropdown
-              setUserModifiedFields((prev) => ({
-                ...prev,
-                transactionType: true,
-              }));
-              // Clear auto-filled indicator when user manually changes
-              if (autoFilledFields.transactionType) {
-                setAutoFilledFields((prev) => ({
-                  ...prev,
-                  transactionType: false,
-                }));
-              }
-            }}
-            noOptionsText={noOptionsText}
-            sx={{
-              width: "100%",
-              "& .MuiAutocomplete-option": {
-                fontSize: "0.92rem",
-                paddingTop: "4px",
-                paddingBottom: "4px",
-              },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: errors.transactionType
-                    ? "#ff4d4f"
-                    : "rgb(75, 85, 99)",
-                  borderWidth: errors.transactionType ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-                "&:hover fieldset": {
-                  borderColor: errors.transactionType
-                    ? "#ff4d4f"
-                    : "rgb(75, 85, 99)",
-                  borderWidth: errors.transactionType ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors.transactionType
-                    ? "#ff4d4f"
-                    : colors.primary_accent,
-                  borderWidth: errors.transactionType ? "2px" : "2px",
-                  borderStyle: "solid",
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: errors.transactionType
-                    ? "#ff4d4f"
-                    : "rgb(75, 85, 99)",
-                  borderWidth: errors.transactionType ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-              },
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder={fieldPlaceholders.transactionType}
-                variant="outlined"
-                error={errors.transactionType}
-                InputProps={{
-                  ...params.InputProps,
-                  className: fieldStyles,
-                  style: {
-                    backgroundColor: colors.primary_bg,
-                    color: colors.primary_text,
-                  },
-                }}
-              />
-            )}
-            renderOption={(props, option, { inputValue }) => (
-              <li
-                {...props}
-                style={{
-                  fontSize: "0.92rem",
-                  paddingTop: 4,
-                  paddingBottom: 12,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  maxWidth: 300,
-                }}
-                title={getTransactionTypeLabel(option)}
-              >
-                <HighlightedText
-                  text={getTransactionTypeLabel(option)}
-                  query={inputValue}
-                  title={getTransactionTypeLabel(option)}
-                />
-              </li>
-            )}
-          />
-          {autoFilledFields.transactionType && (
-            <div
-              className="absolute top-0 right-[-8px] transform translate-x-full"
+          onInputChange={(event, newValue, reason) => {
+            if (reason === "clear") {
+              setFieldValue("transactionType", "");
+              if (errors.transactionType) clearFieldError("transactionType");
+            }
+          }}
+          getOptionLabel={(option) => getTransactionTypeLabel(option)}
+          filterOptions={transactionTypeFilterOptions}
+          renderOption={(props, option, { inputValue }) => (
+            <li
+              {...props}
               style={{
-                background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
-                color: colors.button_text,
-                fontSize: "0.65rem",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                fontWeight: "600",
+                fontSize: "0.92rem",
+                paddingTop: 4,
+                paddingBottom: 12,
                 whiteSpace: "nowrap",
-                boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: 300,
               }}
+              title={getTransactionTypeLabel(option)}
             >
-              {autoFilledLabel}
-            </div>
+              <HighlightedText
+                text={getTransactionTypeLabel(option)}
+                query={inputValue}
+                title={getTransactionTypeLabel(option)}
+              />
+            </li>
           )}
-        </div>
+          colors={colors}
+          error={errors.transactionType}
+          placeholder={fieldPlaceholders.transactionType}
+          noOptionsText={noOptionsText}
+        />
+        {autoFilledFields.transactionType && (
+          <div
+            className="absolute top-0 right-[-8px] transform translate-x-full"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+              color: colors.button_text,
+              fontSize: "0.65rem",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              fontWeight: "600",
+              whiteSpace: "nowrap",
+              boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
+            }}
+          >
+            {autoFilledLabel}
+          </div>
+        )}
       </div>
-    </div>
+    </FormField>
   );
 
-  // (Manual redirect effect removed in favor of generic hook)
+  const renderCommentsField = () => (
+    <FormField
+      label={fieldLabels.comments}
+      htmlFor="comments"
+      colors={colors}
+      layout="horizontal"
+    >
+      <div className="relative">
+        {autoFilledFields.comments && (
+          <div
+            className="absolute top-[-20px] right-0 lg:right-auto lg:left-[300px]"
+            style={{
+              background: `linear-gradient(135deg, ${colors.primary_accent} 0%, ${colors.tertiary_accent} 100%)`,
+              color: colors.button_text,
+              fontSize: "0.65rem",
+              padding: "2px 6px",
+              borderRadius: "4px",
+              fontWeight: "600",
+              whiteSpace: "nowrap",
+              boxShadow: `0 2px 4px ${colors.primary_accent}4D`,
+              zIndex: 10,
+            }}
+          >
+            {autoFilledLabel}
+          </div>
+        )}
+        <ThemedCommentField
+          id="comments"
+          name="comments"
+          value={formData.comments}
+          onChange={(e) => {
+            handleInputChange(e);
+            setUserModifiedFields((prev) => ({ ...prev, comments: true }));
+            if (autoFilledFields.comments) {
+              setAutoFilledFields((prev) => ({ ...prev, comments: false }));
+            }
+          }}
+          placeholder={fieldPlaceholders.comments}
+          colors={colors}
+          error={errors.comments}
+        />
+      </div>
+    </FormField>
+  );
 
   return (
-    <>
-      {/* <div className="w-[calc(100vw-350px)] h-[50px] bg-[#1b1b1b]"></div> */}
-      <div
-        className="flex flex-col relative new-expense-container w-full lg:w-[calc(100vw-370px)] min-h-0 lg:h-[calc(100vh-100px)] p-3 lg:p-5 lg:mr-5"
-        style={{
-          backgroundColor: colors.secondary_bg,
-          borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
-        }}
-      >
-        <PageHeader
-          title={pageTitle}
-          onClose={() => {
-            if (onClose) {
-              onClose();
-            } else {
-              navigate(-1);
-            }
-          }}
-          rightContent={
-            expenseData.expenseName?.trim().length >= 2 &&
-            expenseData.date && (
-              <PreviousExpenseIndicator
-                expense={previousExpense}
-                isLoading={loadingPreviousExpense}
-                position="right"
-                variant="gradient"
-                showTooltip={true}
-                dateFormat={dateFormat}
-                label={previouslyAddedLabel}
-                labelPosition="top"
-                icon="calendar"
-                tooltipConfig={{
-                  showAmount: true,
-                  showPaymentMethod: true,
-                  showType: true,
-                }}
-                colorScheme={{
-                  primary: colors.primary_accent,
-                  secondary: colors.tertiary_accent,
-                  text: colors.primary_text,
-                  subtext: colors.placeholder_text,
-                }}
-              />
-            )
-          }
-        />
-
-        <div className="flex flex-col gap-3 lg:gap-4 mt-2">
-          <div className="flex flex-col lg:flex-row flex-1 gap-3 lg:gap-4 lg:items-center">
-            {renderExpenseNameWithSuggestions()}
-            {renderAmountInput()}
-            {renderDateInput()}
-          </div>
-          <div className="flex flex-col lg:flex-row flex-1 gap-3 lg:gap-4 lg:items-center">
-            {renderTransactionTypeAutocomplete()}
-            {renderCategoryAutocomplete()}
-            {renderPaymentMethodAutocomplete()}
-          </div>
-          <div className="flex flex-1 items-start lg:items-center">
-            {renderInput("comments", "text", true)}
-          </div>
-        </div>
-
-        <div className="mt-2 lg:mt-3 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
-          <button
-            onClick={handleLinkBudgets}
-            className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
-            style={{
-              backgroundColor: colors.button_bg,
-              color: colors.button_text,
-              whiteSpace: "nowrap",
+    <FormPageShell
+      title={pageTitle}
+      onClose={() => {
+        if (onClose) {
+          onClose();
+        } else {
+          navigate(-1);
+        }
+      }}
+      colors={colors}
+      rightContent={
+        formData.expenseName?.trim().length >= 2 && formData.date && (
+          <PreviousExpenseIndicator
+            expense={previousExpense}
+            isLoading={loadingPreviousExpense}
+            position="right"
+            variant="gradient"
+            showTooltip={true}
+            dateFormat={dateFormat}
+            label={previouslyAddedLabel}
+            labelPosition="top"
+            icon="calendar"
+            tooltipConfig={{
+              showAmount: true,
+              showPaymentMethod: true,
+              showType: true,
             }}
-            onMouseEnter={(e) =>
-              (e.target.style.backgroundColor = colors.button_hover)
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = colors.button_bg)
-            }
-          >
-            {linkBudgetsLabel}
-          </button>
-          {showTable && (
-            <button
-              onClick={handleCloseTable}
-              aria-label={closeLabel}
-              className="px-2 py-1 rounded mt-2 sm:mt-0 hidden sm:block"
-              style={{
-                backgroundColor: colors.active_bg,
-                color: colors.primary_text,
-                border: `1px solid ${colors.border_color}`,
-              }}
-            >
-              X
-            </button>
-          )}
-        </div>
-        {showTable && (
-          <div
-            className="mt-2 sm:mt-3 w-full relative overflow-x-auto overflow-y-hidden mb-20 lg:mb-0"
-            style={{
-              "--pm-text-primary": colors.primary_text,
-              "--pm-text-secondary": colors.secondary_text,
-              "--pm-text-tertiary": colors.secondary_text,
-              "--pm-bg-primary": colors.active_bg,
-              "--pm-bg-secondary": colors.secondary_bg,
-              "--pm-border-color": colors.border_color,
-              "--pm-accent-color": colors.primary_accent,
-              "--pm-hover-bg": colors.hover_bg,
-              "--pm-scrollbar-thumb": colors.primary_accent,
-              "--pm-scrollbar-track": colors.secondary_bg,
+            colorScheme={{
+              primary: colors.primary_accent,
+              secondary: colors.tertiary_accent,
+              text: colors.primary_text,
+              subtext: colors.placeholder_text,
             }}
-          >
-            {/* Mobile Close Button (Search removed) */}
-            <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
-              <div className="block sm:hidden self-end">
-                <button
-                  onClick={handleCloseTable}
-                  aria-label={closeLabel}
-                  className="px-2 py-1 rounded"
-                  style={{
-                    backgroundColor: colors.active_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
-                  }}
-                >
-                  X
-                </button>
-              </div>
-            </div>
+          />
+        )
+      }
+      className="new-expense-container"
+    >
+      <div className="flex flex-col gap-3 lg:gap-4 mt-2">
+        <FormRow first>
+          {renderExpenseNameWithSuggestions()}
+          {renderAmountInput()}
+          {renderDateInput()}
+        </FormRow>
+        <FormRow>
+          {renderTransactionTypeAutocomplete()}
+          {renderCategoryAutocomplete()}
+          {renderPaymentMethodAutocomplete()}
+        </FormRow>
+        <FormRow>
+          {renderCommentsField()}
+        </FormRow>
+      </div>
 
-            <BudgetSelectionTable
-              budgets={budgets}
-              selectedBudgetIds={selectedBudgetIds}
-              onSelectionChange={setSelectedBudgetIds}
-            />
-          </div>
-        )}
-
-        {budgetError && (
-          <div className="text-red-500 text-sm mt-4">
-            {errorLoadingBudgets}:{" "}
-            {typeof budgetError === "string"
-              ? budgetError
-              : typeof budgetError === "object"
-                ? budgetError.message ||
-                  budgetError.error ||
-                  JSON.stringify(budgetError).substring(0, 100)
-                : tableNoRowsText}
-          </div>
-        )}
-
-        <div
-          className="w-full flex justify-end mt-2 lg:mt-3 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
+      <div className="mt-2 lg:mt-3 w-full flex flex-col sm:flex-row items-center justify-between gap-2">
+        <button
+          onClick={handleLinkBudgets}
+          className="px-6 py-2 font-semibold rounded w-full sm:w-auto"
           style={{
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: colors.button_bg,
+            color: colors.button_text,
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={(e) =>
+            (e.target.style.backgroundColor = colors.button_hover)
+          }
+          onMouseLeave={(e) =>
+            (e.target.style.backgroundColor = colors.button_bg)
+          }
+        >
+          {linkBudgetsLabel}
+        </button>
+        {showTable && (
+          <button
+            onClick={handleCloseTable}
+            aria-label={closeLabel}
+            className="px-2 py-1 rounded mt-2 sm:mt-0 hidden sm:block"
+            style={{
+              backgroundColor: colors.active_bg,
+              color: colors.primary_text,
+              border: `1px solid ${colors.border_color}`,
+            }}
+          >
+            X
+          </button>
+        )}
+      </div>
+      {showTable && (
+        <div
+          className="mt-2 sm:mt-3 w-full relative overflow-x-auto overflow-y-hidden mb-20 lg:mb-0"
+          style={{
+            "--pm-text-primary": colors.primary_text,
+            "--pm-text-secondary": colors.secondary_text,
+            "--pm-text-tertiary": colors.secondary_text,
+            "--pm-bg-primary": colors.active_bg,
+            "--pm-bg-secondary": colors.secondary_bg,
+            "--pm-border-color": colors.border_color,
+            "--pm-accent-color": colors.primary_accent,
+            "--pm-hover-bg": colors.hover_bg,
+            "--pm-scrollbar-thumb": colors.primary_accent,
+            "--pm-scrollbar-track": colors.secondary_bg,
           }}
         >
-          {hasWriteAccess && (
-            <button
-              onClick={handleSubmit}
-              className="px-6 py-2.5 font-semibold rounded w-full sm:w-auto"
-              style={{
-                backgroundColor: colors.button_bg,
-                color: colors.button_text,
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) =>
-                (e.target.style.backgroundColor = colors.button_hover)
-              }
-              onMouseLeave={(e) =>
-                (e.target.style.backgroundColor = colors.button_bg)
-              }
-            >
-              {submitLabel}
-            </button>
-          )}
-        </div>
+          <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
+            <div className="block sm:hidden self-end">
+              <button
+                onClick={handleCloseTable}
+                aria-label={closeLabel}
+                className="px-2 py-1 rounded"
+                style={{
+                  backgroundColor: colors.active_bg,
+                  color: colors.primary_text,
+                  border: `1px solid ${colors.border_color}`,
+                }}
+              >
+                X
+              </button>
+            </div>
+          </div>
 
-        <style>
-          {`
-          input[type="date"]::-webkit-calendar-picker-indicator {
-            background: url('https://cdn-icons-png.flaticon.com/128/8350/8350450.png') no-repeat;
-            background-size: 18px;
-            filter: invert(1) brightness(100) contrast(100);
-          }
-          input[type="number"]::-webkit-outer-spin-button,
-          input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-          }
-          input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: none;
-          }
-          .overflow-y-auto::-webkit-scrollbar {
-            width: 8px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
-            border-radius: 4px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
-          }
-          .overflow-x-auto::-webkit-scrollbar {
-            height: 8px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-track {
-            background: #1b1b1b;
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #00dac6;
-            border-radius: 4px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #00b8a0;
-          }
-          `}
-        </style>
+          <BudgetSelectionTable
+            budgets={budgets}
+            selectedBudgetIds={selectedBudgetIds}
+            onSelectionChange={setSelectedBudgetIds}
+          />
+        </div>
+      )}
+
+      {budgetError && (
+        <div className="text-red-500 text-sm mt-4">
+          {errorLoadingBudgets}:{" "}
+          {typeof budgetError === "string"
+            ? budgetError
+            : typeof budgetError === "object"
+              ? budgetError.message ||
+                budgetError.error ||
+                JSON.stringify(budgetError).substring(0, 100)
+              : tableNoRowsText}
+        </div>
+      )}
+
+      <div
+        className="w-full flex justify-end mt-2 lg:mt-3 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
+        style={{
+          backgroundColor: colors.secondary_bg,
+        }}
+      >
+        {hasWriteAccess && (
+          <SubmitButton
+            onClick={handleSubmit}
+            label={submitLabel}
+            colors={colors}
+          />
+        )}
       </div>
-    </>
+    </FormPageShell>
   );
 };
 

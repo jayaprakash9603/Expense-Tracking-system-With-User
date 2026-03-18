@@ -83,7 +83,7 @@ const PaymentMethodAutocomplete = ({
   }, [value, processedPaymentMethods]);
 
   const handleChange = (event, newValue) => {
-    const paymentMethodValue = newValue ? newValue.value : "cash";
+    const paymentMethodValue = newValue ? newValue.value : "";
     onChange(paymentMethodValue);
 
     if (onPaymentMethodChange) {
@@ -93,14 +93,11 @@ const PaymentMethodAutocomplete = ({
 
   const handleInputChange = (event, newValue, reason) => {
     if (reason === "clear") {
-      onChange("cash");
+      onChange("");
     }
   };
 
   const handleClose = () => {
-    if (!value) {
-      onChange("cash");
-    }
   };
 
   // Custom render option with highlighting and icon

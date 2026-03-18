@@ -1,4 +1,4 @@
-package com.jaya.service;
+package com.jaya.service.client;
 
 import com.jaya.common.dto.ExpenseDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${EXPENSE_SERVICE_URL:http://localhost:6000}", contextId = "categoryExpenseClient")
-public interface ExpenseClient {
+public interface CategoryExpenseClient {
 
     @PostMapping("/api/expenses/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);

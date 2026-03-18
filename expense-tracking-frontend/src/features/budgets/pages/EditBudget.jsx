@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
-  editMultipleExpenseAction,
   fetchExpenses,
   getExpensesByBudget,
 } from "../../../Redux/Expenses/expense.action";
@@ -9,62 +8,73 @@ import {
   editBudgetAction,
 } from "../../../Redux/Budget/budget.action";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
-import useRedirectIfReadOnly from "../../../hooks/useRedirectIfReadOnly";
-import { Box, TextField } from "@mui/material";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
-import { useTheme } from "../../../hooks/useTheme";
-import useUserSettings from "../../../hooks/useUserSettings";
-import PageHeader from "../../../components/PageHeader";
-import { useTranslation } from "../../../hooks/useTranslation";
+import useFormPage from "../../../shared/form/hooks/useFormPage";
+import useFormState from "../../../shared/form/hooks/useFormState";
+import FormPageShell from "../../../shared/form/components/FormPageShell";
+import FormField from "../../../shared/form/components/FormField";
+import FormRow from "../../../shared/form/components/FormRow";
+import SubmitButton from "../../../shared/form/components/SubmitButton";
+import ThemedDatePicker from "../../../shared/form/fields/ThemedDatePicker";
+import ThemedTextField from "../../../shared/form/fields/ThemedTextField";
+import ThemedAmountField from "../../../shared/form/fields/ThemedAmountField";
 import GroupedDataTable from "../../../components/common/GroupedDataTable/GroupedDataTable";
 import { useExpenseTableConfig } from "../../expenses/hooks/useExpenseTableConfig";
 import { FilterPopover } from "../../../components/ui";
 
-const EditBudget = () => {
-  const { colors } = useTheme();
-  const settings = useUserSettings();
-  const { t } = useTranslation();
-  const dateFormat = settings.dateFormat || "DD/MM/YYYY";
-  const navigate = useNavigate();
-  const { id, friendId } = useParams(); // Get budget ID from URL
+const BUDGET_REDIRECT_CONFIG = {
+  buildFriendPath: (fid) => `/budget/${fid}`,
+  selfPath: "/budget",
+  defaultPath: "/budget",
+};
 
-  // Permission & redirect enforcement
-  const { hasWriteAccess } = useRedirectIfReadOnly(friendId, {
-    buildFriendPath: (fid) => `/budget/${fid}`,
-    selfPath: "/budget",
-    defaultPath: "/budget",
-  });
+const EditBudget = () => {
   const today = new Date().toISOString().split("T")[0];
-  const [formData, setFormData] = useState({
+  const {
+    colors,
+    t,
+    dateFormat,
+    navigate,
+    dispatch,
+    params,
+    friendId,
+    hasWriteAccess,
+  } = useFormPage({ redirectConfig: BUDGET_REDIRECT_CONFIG });
+
+  const { id } = params;
+
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    handleInputChange,
+    clearFieldError,
+  } = useFormState({
     name: "",
     description: "",
     startDate: today,
     endDate: today,
     amount: "",
   });
-  const [errors, setErrors] = useState({});
+
   const [showTable, setShowTable] = useState(false);
-  const [pageIndex, setPageIndex] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [selectedExpenseIds, setSelectedExpenseIds] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+
   const { budget, error: budgetError } = useSelector((state) => state.budgets);
   const { error: expenseError } = useSelector((state) => state.expenses);
   const rawExpenses = useSelector((state) => state.expenses.expenses);
-  // Defensive: some responses may return an object keyed by date or null; normalize to flat array
+
   const expenses = useMemo(() => {
     if (Array.isArray(rawExpenses)) return rawExpenses;
     if (rawExpenses && typeof rawExpenses === "object") {
-      // If shape is { '2025-10-02': [ ... ], '2025-10-03': [ ... ] }
       const all = Object.values(rawExpenses).filter(Array.isArray).flat();
       return all;
     }
     return [];
   }, [rawExpenses]);
-  const [selectedExpenseIds, setSelectedExpenseIds] = useState({});
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     if (id) {
@@ -72,7 +82,6 @@ const EditBudget = () => {
     }
   }, [id, dispatch]);
 
-  // GroupedDataTable Configuration
   const {
     columns: expenseColumns,
     filteredRows,
@@ -81,10 +90,6 @@ const EditBudget = () => {
     columnFilters,
     setColumnFilters,
   } = useExpenseTableConfig(expenses, t);
-
-  // Filter Popover State
-  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
-  const [filterColumn, setFilterColumn] = useState(null);
 
   const handleFilterClick = (e, column) => {
     setFilterAnchorEl(e.currentTarget);
@@ -114,16 +119,6 @@ const EditBudget = () => {
       });
     }
   };
-
-  const inputWrapper = {
-    width: "150px",
-    minWidth: "150px",
-    display: "flex",
-    alignItems: "center",
-  };
-  const fieldStyles = `px-3 py-2 rounded w-full text-base sm:max-w-[300px] max-w-[200px] border-0 focus:outline-none focus:ring-2 focus:ring-[#00dac6]`;
-  const labelStyle = "text-base sm:text-base text-sm font-semibold mr-3";
-  const formRow = "mt-6 flex flex-col sm:flex-row sm:items-center gap-4 w-full";
 
   const fieldLabels = useMemo(
     () => ({
@@ -188,31 +183,16 @@ const EditBudget = () => {
     [fieldPlaceholders, formatLabelFromId, t],
   );
 
-  const tableNoRowsLabel = t("editBudget.table.noRows");
   const linkExpensesLabel = t("editBudget.actions.linkExpenses");
   const submitLabel = t("editBudget.actions.submit");
   const submittingLabel = t("editBudget.actions.submitting");
   const closeLabel = t("common.close");
-  const notAvailableLabel = t("common.notAvailable");
   const pageTitle = t("editBudget.title");
   const successMessage = t("editBudget.messages.updateSuccess");
   const genericErrorMessage = t("editBudget.messages.updateError");
   const expenseErrorFallback = t("editBudget.messages.expenseLoadError");
   const budgetErrorFallback = t("editBudget.messages.budgetLoadError");
-  const minActionButtonWidth = 132;
 
-  const clearFieldError = useCallback((field) => {
-    setErrors((prev) => {
-      if (!prev[field]) {
-        return prev;
-      }
-      const updated = { ...prev };
-      delete updated[field];
-      return updated;
-    });
-  }, []);
-
-  // Pre-populate form with budget data
   useEffect(() => {
     if (budget && budget.id === parseInt(id)) {
       setFormData({
@@ -222,14 +202,8 @@ const EditBudget = () => {
         endDate: budget.endDate || today,
         amount: budget.amount ? budget.amount.toString() : "",
       });
-      setShowTable(!budget.budgetHasExpenses); // Show table if no expenses are linked
-
-      console.log(
-        "start date: ",
-        budget.startDate,
-        "end date: ",
-        budget.endDate,
-      );
+      setErrors({});
+      setShowTable(!budget.budgetHasExpenses);
       dispatch(
         getExpensesByBudget(
           id,
@@ -239,9 +213,8 @@ const EditBudget = () => {
         ),
       );
     }
-  }, [budget, id, dispatch, today]);
+  }, [budget, id, dispatch, friendId, today, setFormData, setErrors]);
 
-  // Checkbox state initialization for 'In Budget' column
   useEffect(() => {
     if (expenses && expenses.length > 0) {
       const initialSelection = {};
@@ -254,29 +227,30 @@ const EditBudget = () => {
     }
   }, [expenses]);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => {
-      const updatedFormData = { ...prev, [name]: value };
-      if ((name === "startDate" || name === "endDate") && showTable) {
-        dispatch(
-          getExpensesByBudget(
-            id,
-            updatedFormData.startDate,
-            updatedFormData.endDate,
-            friendId || "",
-          ),
-        );
-      }
-      return updatedFormData;
-    });
-    clearFieldError(name);
-  };
+  const handleDateChange = useCallback(
+    (fieldId, formatted) => {
+      setFormData((prev) => {
+        const updatedFormData = { ...prev, [fieldId]: formatted };
+        if ((fieldId === "startDate" || fieldId === "endDate") && showTable) {
+          dispatch(
+            getExpensesByBudget(
+              id,
+              fieldId === "startDate" ? formatted : updatedFormData.startDate,
+              fieldId === "endDate" ? formatted : updatedFormData.endDate,
+              friendId || "",
+            ),
+          );
+        }
+        return updatedFormData;
+      });
+      clearFieldError(fieldId);
+    },
+    [showTable, dispatch, id, friendId, setFormData, clearFieldError],
+  );
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!hasWriteAccess) return; // block if read-only
+    if (!hasWriteAccess) return;
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = validationMessages.name;
     if (!formData.description.trim())
@@ -293,10 +267,9 @@ const EditBudget = () => {
 
     setIsSubmitting(true);
     try {
-      // Collect expense IDs where includeInBudget is checked
       const expenseIds = Object.keys(selectedExpenseIds)
-        .filter((id) => selectedExpenseIds[id])
-        .map((id) => Number(id));
+        .filter((expId) => selectedExpenseIds[expId])
+        .map((expId) => Number(expId));
 
       const budgetData = {
         id,
@@ -305,20 +278,15 @@ const EditBudget = () => {
         startDate: formData.startDate,
         endDate: formData.endDate,
         amount: parseFloat(formData.amount) || 0,
-        expenseIds: expenseIds,
+        expenseIds,
       };
 
-      console.log("Submitting budget data:", budgetData);
       await dispatch(
         editBudgetAction(budgetData.id, budgetData, friendId || ""),
       );
-      // if (updatedExpenses.length > 0) {
-      //   await dispatch(editMultipleExpenseAction(updatedExpenses));
-      // }
 
       navigate(-1, successMessage, "success");
     } catch (error) {
-      console.error("Submission error:", error);
       navigate(-1, error?.message || genericErrorMessage, "error");
     } finally {
       setIsSubmitting(false);
@@ -328,12 +296,7 @@ const EditBudget = () => {
   const handleLinkExpenses = () => {
     setShowTable(true);
     dispatch(
-      getExpensesByBudget(
-        id,
-        formData.startDate,
-        formData.endDate,
-        friendId || "",
-      ),
+      getExpensesByBudget(id, formData.startDate, formData.endDate, friendId || ""),
     );
   };
 
@@ -364,320 +327,99 @@ const EditBudget = () => {
     }
   };
 
-  // Render input function with MUI TextField
   const renderInput = (id, type = "text") => {
     const labelText = getFieldLabel(id);
     const placeholderText = getPlaceholderForField(id, labelText);
     const isRequired = requiredFields.includes(id);
 
     return (
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center">
-          <label
-            htmlFor={id}
-            style={{
-              ...inputWrapper,
-              color: colors.primary_text,
-              fontSize: "0.875rem",
-              fontWeight: "600",
-            }}
-          >
-            {labelText}
-            {isRequired && <span className="text-red-500"> *</span>}
-          </label>
-          <TextField
-            id={id}
-            name={id}
-            type={type === "date" ? "text" : type}
-            value={formData[id]}
-            onChange={handleInputChange}
-            placeholder={placeholderText}
-            error={!!errors[id]}
-            variant="outlined"
-            size="small"
-            InputProps={{
-              className: fieldStyles,
-              style: {
-                height: "52px",
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-              },
-            }}
-            sx={{
-              width: "100%",
-              maxWidth: { xs: "250px", sm: "300px" },
-              "& .MuiOutlinedInput-root": {
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                "& fieldset": {
-                  borderColor: errors[id] ? "#ef4444" : colors.border_color,
-                },
-                "&:hover fieldset": {
-                  borderColor: errors[id] ? "#ef4444" : colors.border_color,
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors[id] ? "#ef4444" : colors.primary_accent,
-                },
-              },
-              "& .MuiInputBase-input": {
-                color: colors.primary_text,
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: colors.icon_muted,
-                opacity: 1,
-              },
-            }}
-          />
-        </div>
-      </div>
+      <FormField
+        label={labelText}
+        htmlFor={id}
+        required={isRequired}
+        error={errors[id]}
+        colors={colors}
+      >
+        <ThemedTextField
+          id={id}
+          name={id}
+          value={formData[id]}
+          onChange={handleInputChange}
+          placeholder={placeholderText}
+          colors={colors}
+          error={!!errors[id]}
+          type={type === "date" ? "text" : type}
+        />
+      </FormField>
     );
   };
 
-  const renderDateInput = (id) => {
-    const labelText = getFieldLabel(id);
+  const renderDateInput = (id) => (
+    <FormField
+      label={getFieldLabel(id)}
+      htmlFor={id}
+      required
+      error={errors[id]}
+      colors={colors}
+    >
+      <ThemedDatePicker
+        value={formData[id]}
+        onChange={(formatted) => handleDateChange(id, formatted)}
+        colors={colors}
+        dateFormat={dateFormat}
+        error={!!errors[id]}
+        disableFuture={false}
+        placeholder={getPlaceholderForField(id, getFieldLabel(id))}
+      />
+    </FormField>
+  );
 
-    return (
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center">
-          <label
-            htmlFor={id}
-            style={{
-              ...inputWrapper,
-              color: colors.primary_text,
-              fontSize: "0.875rem",
-              fontWeight: "600",
-            }}
-          >
-            {labelText}
-            <span className="text-red-500"> *</span>
-          </label>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker
-              value={formData[id] ? dayjs(formData[id]) : null}
-              onChange={(newValue) => {
-                if (newValue) {
-                  const formatted = dayjs(newValue).format("YYYY-MM-DD");
-                  setFormData((prev) => {
-                    const updatedFormData = { ...prev, [id]: formatted };
-                    if ((id === "startDate" || id === "endDate") && showTable) {
-                      dispatch(
-                        getExpensesByBudget(
-                          budget?.id || budget.id,
-                          id === "startDate"
-                            ? formatted
-                            : updatedFormData.startDate,
-                          id === "endDate"
-                            ? formatted
-                            : updatedFormData.endDate,
-                          friendId || "",
-                        ),
-                      );
-                    }
-                    return updatedFormData;
-                  });
-                }
-                clearFieldError(id);
-              }}
-              sx={{
-                background: colors.primary_bg,
-                borderRadius: 2,
-                color: colors.primary_text,
-                ".MuiInputBase-input": {
-                  color: colors.primary_text,
-                  height: 32,
-                  fontSize: 18,
-                },
-                ".MuiSvgIcon-root": { color: colors.primary_accent },
-                width: 300,
-                height: 56,
-                minHeight: 56,
-                maxHeight: 56,
-              }}
-              slotProps={{
-                textField: {
-                  size: "medium",
-                  variant: "outlined",
-                  sx: {
-                    color: colors.primary_text,
-                    height: 56,
-                    minHeight: 56,
-                    maxHeight: 56,
-                    width: 300,
-                    fontSize: 18,
-                    "& .MuiInputBase-root": {
-                      height: 56,
-                      minHeight: 56,
-                      maxHeight: 56,
-                    },
-                    "& input": {
-                      height: 32,
-                      fontSize: 18,
-                      color: colors.primary_text,
-                    },
-                  },
-                },
-                popper: {
-                  sx: {
-                    "& .MuiPaper-root": {
-                      backgroundColor: colors.card_bg,
-                      color: colors.primary_text,
-                      border: `1px solid ${colors.border_color}`,
-                    },
-                    "& .MuiPickersDay-root": {
-                      color: colors.primary_text,
-                      "&:hover": { backgroundColor: colors.hover_bg },
-                      "&.Mui-selected": {
-                        backgroundColor: colors.primary_accent,
-                        color: colors.button_text,
-                      },
-                    },
-                    "& .MuiPickersCalendarHeader-label": {
-                      color: colors.primary_text,
-                    },
-                    "& .MuiPickersCalendarHeader-switchViewButton": {
-                      color: colors.primary_accent,
-                    },
-                    "& .MuiPickersArrowSwitcher-button": {
-                      color: colors.primary_accent,
-                    },
-                    "& .MuiDayCalendar-weekDayLabel": {
-                      color: colors.icon_muted,
-                    },
-                    "& .MuiPickersYear-yearButton": {
-                      color: colors.primary_text,
-                      "&:hover": { backgroundColor: colors.hover_bg },
-                      "&.Mui-selected": {
-                        backgroundColor: colors.primary_accent,
-                        color: colors.button_text,
-                      },
-                    },
-                  },
-                },
-              }}
-              format={dateFormat}
-            />
-          </LocalizationProvider>
-        </div>
-        {errors[id] && (
-          <span className="text-red-500 text-sm ml-[150px] sm:ml-[170px]">
-            {errors[id]}
-          </span>
-        )}
-      </div>
-    );
-  };
-
-  const renderAmountInput = () => {
-    const labelText = getFieldLabel("amount");
-    const placeholderText = getPlaceholderForField("amount", labelText);
-
-    return (
-      <div className="flex flex-col flex-1">
-        <div className="flex items-center">
-          <label
-            htmlFor="amount"
-            style={{
-              ...inputWrapper,
-              color: colors.primary_text,
-              fontSize: "0.875rem",
-              fontWeight: "600",
-            }}
-          >
-            {labelText}
-            <span className="text-red-500"> *</span>
-          </label>
-          <TextField
-            id="amount"
-            name="amount"
-            type="number"
-            value={formData.amount || ""}
-            onChange={(e) => {
-              handleInputChange(e);
-              clearFieldError("amount");
-            }}
-            placeholder={placeholderText}
-            variant="outlined"
-            error={!!errors.amount}
-            InputProps={{
-              className: fieldStyles,
-              style: {
-                height: "52px",
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                borderWidth: errors.amount ? "2px" : "1px",
-              },
-            }}
-            sx={{
-              width: "100%",
-              maxWidth: "300px",
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                  borderWidth: errors.amount ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-                "&:hover fieldset": {
-                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                  borderWidth: errors.amount ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-                "&.Mui-focused fieldset": {
-                  borderColor: errors.amount ? "#ef4444" : "#00dac6",
-                  borderWidth: errors.amount ? "2px" : "2px",
-                  borderStyle: "solid",
-                },
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: errors.amount ? "#ef4444" : colors.border_color,
-                  borderWidth: errors.amount ? "2px" : "1px",
-                  borderStyle: "solid",
-                },
-              },
-              "& .MuiInputBase-input": {
-                color: colors.primary_text,
-              },
-            }}
-          />
-        </div>
-      </div>
-    );
-  };
+  const renderAmountInput = () => (
+    <FormField
+      label={getFieldLabel("amount")}
+      htmlFor="amount"
+      required
+      error={errors.amount}
+      colors={colors}
+    >
+      <ThemedAmountField
+        id="amount"
+        name="amount"
+        value={formData.amount || ""}
+        onChange={handleInputChange}
+        onClearError={() => clearFieldError("amount")}
+        placeholder={getPlaceholderForField("amount", getFieldLabel("amount"))}
+        colors={colors}
+        error={!!errors.amount}
+      />
+    </FormField>
+  );
 
   return (
     <div style={{ backgroundColor: colors.primary_bg }}>
-      <div
-        className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
-        style={{
-          height: "auto",
+      <FormPageShell
+        title={pageTitle}
+        onClose={handleCloseBudget}
+        colors={colors}
+        containerStyle={{
           minHeight: "calc(100vh - 100px)",
-          backgroundColor: colors.secondary_bg,
-          borderRadius: "8px",
-          boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: `1px solid ${colors.border_color}`,
-          opacity: 1,
-          marginRight: "20px",
-          padding: "16px",
+          height: "auto",
         }}
+        className="flex flex-col sm:w-full lg:w-[calc(100vw-370px)]"
       >
-        <div>
-          <PageHeader
-            title={pageTitle}
-            onClose={handleCloseBudget}
-            // titleClassName="font-extrabold text-2xl sm:text-3xl"
-            // containerClassName="w-full flex justify-between items-center mb-4"
-          />
-          <div className={formRow}>
+        <div className="flex-1">
+          <FormRow first>
             {renderInput("name")}
             {renderInput("description")}
-          </div>
-          <div className={formRow}>
+          </FormRow>
+          <FormRow>
             {renderDateInput("startDate")}
             {renderDateInput("endDate")}
-          </div>
-          <div className={`${formRow} mb-4`}>
+          </FormRow>
+          <FormRow className="mb-4">
             {renderAmountInput()}
-            <div className="flex-1 hidden sm:block"></div>
-          </div>
+            <div className="flex-1 hidden sm:block" />
+          </FormRow>
           {budgetError && (
             <div className="text-red-500 text-sm mb-4">
               {budgetError.message || budgetErrorFallback}
@@ -749,7 +491,6 @@ const EditBudget = () => {
                 "--pm-scrollbar-track": colors.secondary_bg,
               }}
             >
-              {/* Mobile Close Button */}
               <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
                 <div className="block sm:hidden self-end">
                   <button
@@ -801,109 +542,18 @@ const EditBudget = () => {
           )}
         </div>
         {hasWriteAccess && (
-          <div className="w-full flex justify-end mt-4 sm:mt-8">
-            <button
+          <div className="w-full flex justify-end mt-auto pt-4">
+            <SubmitButton
               onClick={handleSubmit}
-              className="py-2 font-semibold rounded transition-all duration-200 w-full sm:w-auto"
-              disabled={isSubmitting || !hasWriteAccess}
-              style={{
-                position: "relative",
-                opacity: isSubmitting ? 0.7 : 1,
-                minWidth: isSubmitting ? 180 : minActionButtonWidth,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "1rem",
-                gap: isSubmitting ? 10 : 0,
-                backgroundColor: colors.button_bg,
-                color: colors.button_text,
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => {
-                if (!isSubmitting) {
-                  e.target.style.backgroundColor = colors.button_hover;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = colors.button_bg;
-              }}
-            >
-              {isSubmitting ? (
-                <>
-                  <span
-                    className="loader"
-                    style={{
-                      width: 20,
-                      height: 20,
-                      border: `3px solid ${colors.button_text}`,
-                      borderTop: `3px solid ${colors.primary_accent}`,
-                      borderRadius: "50%",
-                      animation: "spin 1s linear infinite",
-                      display: "inline-block",
-                      marginRight: 10,
-                    }}
-                  ></span>
-                  <span>{submittingLabel}</span>
-                </>
-              ) : (
-                submitLabel
-              )}
-            </button>
+              label={submitLabel}
+              loadingLabel={submittingLabel}
+              isSubmitting={isSubmitting}
+              disabled={!hasWriteAccess}
+              colors={colors}
+            />
           </div>
         )}
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-      <style>
-        {`
-          input[type="date"]::-webkit-calendar-picker-indicator {
-            background: url('https://cdn-icons-png.flaticon.com/128/8350/8350450.png') no-repeat;
-            background-size: 18px;
-            filter: invert(1) brightness(100) contrast(100);
-          }
-          input[type="number"]::-webkit-outer-spin-button,
-          input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-          }
-          input[type="number"] {
-            -moz-appearance: textfield;
-            appearance: none;
-          }
-          .overflow-y-auto::-webkit-scrollbar {
-            width: 8px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-track {
-            background: ${colors.secondary_bg};
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: ${colors.primary_accent};
-            border-radius: 4px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: ${colors.primary_accent};
-            opacity: 0.8;
-          }
-          .overflow-x-auto::-webkit-scrollbar {
-            height: 8px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-track {
-            background: ${colors.secondary_bg};
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: ${colors.primary_accent};
-            border-radius: 4px;
-          }
-          .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: ${colors.primary_accent};
-            opacity: 0.8;
-          }
-        `}
-      </style>
+      </FormPageShell>
     </div>
   );
 };

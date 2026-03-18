@@ -7,6 +7,7 @@ import com.jaya.common.exception.ConflictException;
 import com.jaya.common.exception.ResourceNotFoundException;
 import com.jaya.models.Category;
 import com.jaya.repository.CategoryRepository;
+import com.jaya.service.client.CategoryExpenseClient;
 import com.jaya.testutil.CategoryTestDataFactory;
 import com.jaya.util.CategoryServiceHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ class CategoryServiceTest {
     private CategoryRepository categoryRepository;
 
     @Mock
-    private ExpenseClient expenseService;
+    private CategoryExpenseClient expenseService;
 
     @Mock
     private CategoryServiceHelper helper;

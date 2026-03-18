@@ -10,6 +10,7 @@ import com.jaya.common.dto.ExpenseDTO;
 import com.jaya.models.Category;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.repository.CategoryRepository;
+import com.jaya.service.client.CategoryExpenseClient;
 import com.jaya.util.CategoryServiceHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class CategoryService {
 
     @Autowired
     @Lazy
-    private ExpenseClient expenseService;
+    private CategoryExpenseClient expenseService;
 
     @Autowired
     private CategoryServiceHelper helper;
@@ -298,7 +299,7 @@ public class CategoryService {
         categoryRepository.save(othersCategory);
     }
 
-    private ExpenseClient getExpenseService() {
+    private CategoryExpenseClient getExpenseService() {
         return expenseService;
     }
 
