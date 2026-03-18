@@ -288,7 +288,9 @@ const EditExpense = ({}) => {
     const newErrors = {};
     if (!expenseData.expenseName)
       newErrors.expenseName = validationMessages.expenseName;
-    if (!expenseData.amount) newErrors.amount = validationMessages.amount;
+    const parsedAmount = parseFloat(expenseData.amount);
+    if (!expenseData.amount || isNaN(parsedAmount) || parsedAmount <= 0)
+      newErrors.amount = validationMessages.amount;
     if (!expenseData.date) newErrors.date = validationMessages.date;
     if (!expenseData.transactionType)
       newErrors.transactionType = validationMessages.transactionType;
@@ -690,12 +692,22 @@ const EditExpense = ({}) => {
                 name="amount"
                 type="number"
                 value={expenseData.amount || ""}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val !== "" && (parseFloat(val) < 0 || val.includes("-")))
+                    return;
                   setExpenseData((prev) => ({
                     ...prev,
-                    amount: e.target.value,
-                  }))
-                }
+                    amount: val,
+                  }));
+                  if (errors.amount) {
+                    setErrors((prev) => ({ ...prev, amount: false }));
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (["-", "e", "E"].includes(e.key)) e.preventDefault();
+                }}
+                inputProps={{ min: 0.01, step: "any" }}
                 placeholder={fieldPlaceholders.amount}
                 variant="outlined"
                 error={!!errors.amount}

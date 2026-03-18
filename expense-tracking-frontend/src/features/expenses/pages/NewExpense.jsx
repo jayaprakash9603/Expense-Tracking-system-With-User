@@ -389,7 +389,9 @@ const NewExpense = ({ onClose, onSuccess }) => {
     if (!hasWriteAccess) return; // safety: block submit if no write
     const newErrors = {};
     if (!expenseData.expenseName) newErrors.expenseName = true;
-    if (!expenseData.amount) newErrors.amount = true;
+    const parsedAmount = parseFloat(expenseData.amount);
+    if (!expenseData.amount || isNaN(parsedAmount) || parsedAmount <= 0)
+      newErrors.amount = true;
     if (!expenseData.date) newErrors.date = true;
     if (!expenseData.transactionType) newErrors.transactionType = true;
     setErrors(newErrors);
@@ -616,13 +618,18 @@ const NewExpense = ({ onClose, onSuccess }) => {
           type="number"
           value={expenseData.amount || ""}
           onChange={(e) => {
+            const val = e.target.value;
+            if (val !== "" && (parseFloat(val) < 0 || val.includes("-"))) return;
             handleInputChange(e);
 
-            // Clear the error when the user types
             if (errors.amount) {
               setErrors({ ...errors, amount: false });
             }
           }}
+          onKeyDown={(e) => {
+            if (["-", "e", "E"].includes(e.key)) e.preventDefault();
+          }}
+          inputProps={{ min: 0.01, step: "any" }}
           placeholder={fieldPlaceholders.amount}
           variant="outlined"
           error={errors.amount}
@@ -965,22 +972,41 @@ const NewExpense = ({ onClose, onSuccess }) => {
             getOptionLabel={(option) => getTransactionTypeLabel(option)}
             filterOptions={transactionTypeFilterOptions}
             value={(expenseData.transactionType || "loss").toLowerCase()}
-            onInputChange={(event, newValue) => {
+            onInputChange={(event, newValue, reason) => {
+              if (reason === "clear") {
+                setExpenseData((prev) => ({
+                  ...prev,
+                  transactionType: "loss",
+                }));
+                if (errors.transactionType) {
+                  setErrors({ ...errors, transactionType: false });
+                }
+                return;
+              }
               setExpenseData((prev) => ({
                 ...prev,
                 transactionType: (newValue || "").toLowerCase(),
               }));
 
-              // Clear the error when the user types
               if (errors.transactionType) {
                 setErrors({ ...errors, transactionType: false });
               }
-              // Note: Don't clear auto-filled indicator here as this fires during auto-fill
+            }}
+            onClose={() => {
+              if (
+                !expenseData.transactionType ||
+                !typeOptions.includes(expenseData.transactionType)
+              ) {
+                setExpenseData((prev) => ({
+                  ...prev,
+                  transactionType: "loss",
+                }));
+              }
             }}
             onChange={(event, newValue) => {
               setExpenseData((prev) => ({
                 ...prev,
-                transactionType: (newValue || "").toLowerCase(),
+                transactionType: (newValue || "loss").toLowerCase(),
               }));
 
               // Clear the error when the user selects a value

@@ -35,7 +35,7 @@ app:
   readyTimeoutSec: "180"
 
 automation:
-  baseUrl: "http://localhost:9999"
+  baseUrl: "https://jjayaprakash.netlify.app"
   apiBaseUrl: "http://localhost:8080"
 
   browser:

@@ -19,7 +19,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: AUTOMATION_CONFIG_FILE
-              value: "{{ .Values.job.configurationPath }}/AutomationConfiguration.properties"
+              value: "{{ .Values.job.configurationPath }}/AutomationConfiguration.yaml"
             - name: TZ
               value: "{{ .Values.automation.env.timezone }}"
             - name: RUN_MODE
@@ -72,8 +72,8 @@ spec:
 {{ toYaml .Values.job.resources | indent 12 }}
           volumeMounts:
             - name: automation-configuration
-              mountPath: {{ .Values.job.configurationPath }}/AutomationConfiguration.properties
-              subPath: AutomationConfiguration.properties
+              mountPath: {{ .Values.job.configurationPath }}/AutomationConfiguration.yaml
+              subPath: AutomationConfiguration.yaml
             - name: report-volume
               mountPath: /opt/automation/Automation-Framework/automation-bdd/target/reports
       volumes:

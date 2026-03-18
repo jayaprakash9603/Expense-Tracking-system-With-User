@@ -72,6 +72,34 @@ public final class PlaywrightUiEngine implements UiEngine {
     }
 
     @Override
+    public boolean isAlive() {
+        if (runtime == null) {
+            return false;
+        }
+        try {
+            runtime.page().url();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    @Override
+    public void restart() {
+        try {
+            if (runtime != null) {
+                stopTraceIfEnabled();
+                runtime.context().close();
+                runtime.browser().close();
+                runtime.playwright().close();
+            }
+        } catch (Exception ignored) {
+        }
+        runtime = null;
+        start();
+    }
+
+    @Override
     public void stop() {
         if (runtime == null) {
             return;

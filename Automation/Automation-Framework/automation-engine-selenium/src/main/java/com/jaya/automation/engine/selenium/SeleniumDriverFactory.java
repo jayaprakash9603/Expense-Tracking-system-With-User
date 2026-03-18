@@ -33,6 +33,9 @@ public final class SeleniumDriverFactory {
         applyHeadless(options, config.headless());
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--disable-extensions");
         options.addArguments("--window-size=1920,1080");
         return new ChromeDriver(options);
     }

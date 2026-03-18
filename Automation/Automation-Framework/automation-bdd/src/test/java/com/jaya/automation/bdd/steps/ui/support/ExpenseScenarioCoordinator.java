@@ -70,10 +70,11 @@ public final class ExpenseScenarioCoordinator {
 
     private void ensureExpenseFormReady() {
         if (BddWorld.testContext().uiEngine().elements().exists(
-                Locator.css("[role='combobox'][aria-label='Enter expense name']"))) {
+                Locator.css("input[placeholder='Enter expense name']"))) {
             return;
         }
-        if (BddWorld.testContext().uiEngine().elements().exists(Locator.css("input[aria-label='Enter expense name']"))) {
+        if (BddWorld.testContext().uiEngine().elements().exists(
+                Locator.css("[role='combobox'][placeholder='Enter expense name']"))) {
             return;
         }
         if (BddWorld.testContext().uiEngine().elements().exists(Locator.css("#expenseName"))) {

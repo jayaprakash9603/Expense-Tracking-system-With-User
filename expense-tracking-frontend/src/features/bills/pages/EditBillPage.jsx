@@ -460,6 +460,12 @@ const EditBill = ({ onClose, onSuccess, billId }) => {
         (sum, expense) => sum + (expense.totalPrice || 0),
         0,
       );
+
+      if (totalAmount <= 0) {
+        alert(t("billCommon.messages.totalAmountInvalid"));
+        return;
+      }
+
       const selectedBudgetIds = selectedBudgets || [];
 
       const normalizedMethod = normalizePaymentMethod(billData.paymentMethod);

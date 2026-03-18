@@ -1,32 +1,29 @@
 package com.jaya.automation.core.config;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Properties;
+import java.util.Map;
 
 final class PropertiesSource {
     private static final String CONFIG_FILE_PROPERTY = "automation.config.file";
     private static final String CONFIG_FILE_ENV = "AUTOMATION_CONFIG_FILE";
 
-    private final Properties properties;
+    private final Map<String, String> entries;
 
-    private PropertiesSource(Properties properties) {
-        this.properties = properties;
+    private PropertiesSource(Map<String, String> entries) {
+        this.entries = entries;
     }
 
     static PropertiesSource load() {
-        Properties properties = new Properties();
         Path configFile = resolveConfigFile();
         if (configFile != null) {
-            loadProperties(properties, configFile);
+            return new PropertiesSource(ConfigFileParser.parse(configFile));
         }
-        return new PropertiesSource(properties);
+        return new PropertiesSource(ConfigFileParser.parseFromClasspath());
     }
 
     String get(String key) {
-        return properties.getProperty(key);
+        return entries.get(key);
     }
 
     private static Path resolveConfigFile() {
@@ -39,12 +36,5 @@ final class PropertiesSource {
         }
         Path path = Path.of(pathValue.trim());
         return Files.exists(path) ? path : null;
-    }
-
-    private static void loadProperties(Properties target, Path path) {
-        try (InputStream stream = Files.newInputStream(path)) {
-            target.load(stream);
-        } catch (IOException ignored) {
-        }
     }
 }

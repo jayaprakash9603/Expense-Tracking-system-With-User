@@ -1,9 +1,8 @@
 package com.jaya.automation.bdd.hooks;
 
 import com.jaya.automation.api.client.AuthApiClient;
-import com.jaya.automation.api.contract.ApiEndpointRegistry;
+import com.jaya.automation.api.config.ApiSpecifications;
 import com.jaya.automation.api.execution.ApiRequestBuilder;
-import com.jaya.automation.api.execution.ApiRequestExecutor;
 import com.jaya.automation.api.model.AuthSigninRequest;
 import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.core.config.AutomationConfig;
@@ -13,9 +12,12 @@ import com.jaya.automation.core.logging.LoggerFactory;
 import io.cucumber.java.After;
 import io.cucumber.java.AfterAll;
 import io.cucumber.java.Scenario;
+import io.restassured.specification.RequestSpecification;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static io.restassured.RestAssured.given;
 
 public class ApiCleanupHooks {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(ApiCleanupHooks.class);
@@ -49,11 +51,11 @@ public class ApiCleanupHooks {
         int[] cleanupCounts = new int[3];
         AutomationConfig config = ConfigLoader.load();
         AuthApiClient authApiClient = new AuthApiClient(config);
-        ApiRequestExecutor apiRequestExecutor = new ApiRequestExecutor(config, new ApiEndpointRegistry());
+        RequestSpecification requestSpec = new ApiSpecifications(config).requestSpec();
         for (Map.Entry<String, String> entry : SIGNUP_USERS.entrySet()) {
             SignupCleanupResult result = cleanupSingleSignupUser(
                     authApiClient,
-                    apiRequestExecutor,
+                    requestSpec,
                     entry.getKey(),
                     entry.getValue()
             );
@@ -64,44 +66,52 @@ public class ApiCleanupHooks {
     }
 
     private void cleanupUsers() {
-        String userIds = BddWorld.aliasValue("cleanup.disposableUserIds").map(String::valueOf).orElse("");
-        if (userIds.isBlank()) {
-            return;
-        }
-        String adminToken = BddWorld.tokenProvider().token("admin");
-        for (String userId : userIds.split(",")) {
-            if (!userId.isBlank()) {
-                BddWorld.apiRequestExecutor().execute(
-                        ApiRequestBuilder.forEndpoint("admin.users.delete")
-                                .pathParam("userId", userId.trim())
-                                .build(),
-                        adminToken
-                );
+        try {
+            String userIds = BddWorld.aliasValue("cleanup.disposableUserIds").map(String::valueOf).orElse("");
+            if (userIds.isBlank()) {
+                return;
             }
+            String adminToken = BddWorld.tokenProvider().token("admin");
+            for (String userId : userIds.split(",")) {
+                if (!userId.isBlank()) {
+                    BddWorld.apiRequestExecutor().execute(
+                            ApiRequestBuilder.forEndpoint("admin.users.delete")
+                                    .pathParam("userId", userId.trim())
+                                    .build(),
+                            adminToken
+                    );
+                }
+            }
+        } catch (Exception exception) {
+            LOG.debug("API cleanup skipped for disposable users: {}", exception.getMessage());
         }
     }
 
     private void cleanupRoles() {
-        String roleIds = BddWorld.aliasValue("cleanup.disposableRoleIds").map(String::valueOf).orElse("");
-        if (roleIds.isBlank()) {
-            return;
-        }
-        String adminToken = BddWorld.tokenProvider().token("admin");
-        for (String roleId : roleIds.split(",")) {
-            if (!roleId.isBlank()) {
-                BddWorld.apiRequestExecutor().execute(
-                        ApiRequestBuilder.forEndpoint("roles.delete")
-                                .pathParam("id", roleId.trim())
-                                .build(),
-                        adminToken
-                );
+        try {
+            String roleIds = BddWorld.aliasValue("cleanup.disposableRoleIds").map(String::valueOf).orElse("");
+            if (roleIds.isBlank()) {
+                return;
             }
+            String adminToken = BddWorld.tokenProvider().token("admin");
+            for (String roleId : roleIds.split(",")) {
+                if (!roleId.isBlank()) {
+                    BddWorld.apiRequestExecutor().execute(
+                            ApiRequestBuilder.forEndpoint("roles.delete")
+                                    .pathParam("id", roleId.trim())
+                                    .build(),
+                            adminToken
+                    );
+                }
+            }
+        } catch (Exception exception) {
+            LOG.debug("API cleanup skipped for disposable roles: {}", exception.getMessage());
         }
     }
 
     private static SignupCleanupResult cleanupSingleSignupUser(
             AuthApiClient authApiClient,
-            ApiRequestExecutor apiRequestExecutor,
+            RequestSpecification requestSpec,
             String email,
             String password
     ) {
@@ -110,11 +120,11 @@ public class ApiCleanupHooks {
             if (isBlank(jwtToken)) {
                 return SignupCleanupResult.SKIPPED;
             }
-            Object userId = resolveUserId(apiRequestExecutor, jwtToken);
+            Object userId = resolveUserId(requestSpec, jwtToken);
             if (userId == null) {
                 return SignupCleanupResult.SKIPPED;
             }
-            deleteUser(apiRequestExecutor, jwtToken, userId);
+            deleteUser(requestSpec, jwtToken, userId);
             return SignupCleanupResult.DELETED;
         } catch (Exception exception) {
             LOG.warn("Failed to cleanup signup user '{}': {}", email, exception.getMessage());
@@ -126,20 +136,22 @@ public class ApiCleanupHooks {
         return authApiClient.signIn(new AuthSigninRequest(email, password)).getJwt();
     }
 
-    private static Object resolveUserId(ApiRequestExecutor apiRequestExecutor, String jwtToken) {
-        return apiRequestExecutor.execute(
-                ApiRequestBuilder.forEndpoint("user.profile").build(),
-                jwtToken
-        ).jsonPathValue("id").orElse(null);
+    private static Object resolveUserId(RequestSpecification requestSpec, String jwtToken) {
+        return given()
+                .spec(requestSpec)
+                .header("Authorization", "Bearer " + jwtToken)
+                .when()
+                .get("/api/user/profile")
+                .jsonPath()
+                .get("id");
     }
 
-    private static void deleteUser(ApiRequestExecutor apiRequestExecutor, String jwtToken, Object userId) {
-        apiRequestExecutor.execute(
-                ApiRequestBuilder.forEndpoint("user.delete")
-                        .pathParam("id", String.valueOf(userId))
-                        .build(),
-                jwtToken
-        );
+    private static void deleteUser(RequestSpecification requestSpec, String jwtToken, Object userId) {
+        given()
+                .spec(requestSpec)
+                .header("Authorization", "Bearer " + jwtToken)
+                .when()
+                .delete("/api/user/" + userId);
     }
 
     private static boolean isBlank(String value) {

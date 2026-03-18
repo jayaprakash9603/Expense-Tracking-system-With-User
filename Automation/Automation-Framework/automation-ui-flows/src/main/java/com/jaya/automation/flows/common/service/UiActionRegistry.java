@@ -122,52 +122,52 @@ public final class UiActionRegistry {
         return switch (normalizedKey) {
             case "expense-name" -> LocatorSet.of(
                     "expense-name-field",
-                    Locator.css("[role='combobox'][aria-label='Enter expense name']"),
-                    Locator.css("input[aria-label='Enter expense name']"),
+                    Locator.css("input[placeholder='Enter expense name']"),
+                    Locator.css("[role='combobox'][placeholder='Enter expense name']"),
                     Locator.css("#expenseName"),
                     Locator.css("input[name='expenseName']")
             );
             case "expense-amount" -> LocatorSet.of(
                     "expense-amount-field",
-                    Locator.css("[role='spinbutton'][aria-label='Amount *']"),
-                    Locator.css("input[aria-label='Amount *']"),
-                    Locator.css("#amount"),
-                    Locator.css("input[name='amount']")
+                    Locator.css("input#amount"),
+                    Locator.css("input[name='amount']"),
+                    Locator.css("input[placeholder='Enter amount']"),
+                    Locator.css("input[type='number'][name='amount']")
             );
             case "expense-comments" -> LocatorSet.of(
                     "expense-comments-field",
-                    Locator.css("[role='textbox'][aria-label='Comments']"),
-                    Locator.css("textarea[aria-label='Comments']"),
-                    Locator.css("#comments"),
-                    Locator.css("textarea[name='comments']")
+                    Locator.css("textarea#comments"),
+                    Locator.css("textarea[name='comments']"),
+                    Locator.css("textarea[placeholder='Add a comment']"),
+                    Locator.css("#comments")
             );
             case "expense-category" -> LocatorSet.of(
                     "expense-category-field",
-                    Locator.css("[role='combobox'][aria-label='Select category']"),
-                    Locator.css("input[aria-label='Select category']"),
+                    Locator.css("input[placeholder='Select category']"),
+                    Locator.css("[role='combobox'][placeholder='Select category']"),
                     Locator.css("#category"),
                     Locator.css("input[name='category']")
             );
             case "expense-payment-method" -> LocatorSet.of(
                     "expense-payment-method-field",
-                    Locator.css("[role='combobox'][aria-label='Select payment method']"),
-                    Locator.css("input[aria-label='Select payment method']"),
+                    Locator.css("input[placeholder='Select payment method']"),
+                    Locator.css("[role='combobox'][placeholder='Select payment method']"),
                     Locator.css("#paymentMethod"),
                     Locator.css("input[name='paymentMethod']")
             );
             case "expense-date" -> LocatorSet.of(
                     "expense-date-field",
+                    Locator.css("input[placeholder='Choose a date']"),
                     Locator.xpath("//button[contains(@aria-label,'Choose date')]"),
                     Locator.css("button[aria-label*='Choose date']"),
-                    Locator.css("input[aria-label*='Choose date']"),
                     Locator.css("#date")
             );
             case "expense-transaction-type" -> LocatorSet.of(
                     "expense-transaction-type-field",
-                    Locator.css(".MuiInputBase-root.MuiOutlinedInput-root.MuiInputBase-fullWidth"),
-                    Locator.css("[role='combobox'][aria-label='Select transaction type']"),
-                    Locator.css("input[aria-label='Select transaction type']"),
-                    Locator.css("#transactionType")
+                    Locator.css("input[placeholder='Select transaction type']"),
+                    Locator.css("[role='combobox'][placeholder='Select transaction type']"),
+                    Locator.css("#transactionType"),
+                    Locator.css("input[name='transactionType']")
             );
             default -> null;
         };
@@ -522,6 +522,8 @@ public final class UiActionRegistry {
         return switch (normalizedKey) {
             case "auth-error" -> LocatorSet.of("auth-error-text",
                     Locator.css(".MuiAlert-message"),
+                    Locator.css(".Mui-error"),
+                    Locator.css("[aria-invalid='true']"),
                     Locator.xpath("//*[contains(@class,'error')]"));
             case "auth-success" -> LocatorSet.of("auth-success-text",
                     Locator.css(".MuiAlert-message"),
@@ -607,8 +609,10 @@ public final class UiActionRegistry {
                     Locator.xpath("//button[normalize-space()='Confirm']"));
             case "modal-decline", "modal-cancel" -> LocatorSet.of("modal-decline-action",
                     Locator.css("button[data-shortcut='modal-decline']"),
+                    Locator.css("button[aria-label='Close']"),
                     Locator.xpath("//button[normalize-space()='No, Cancel']"),
-                    Locator.xpath("//button[normalize-space()='Cancel']"));
+                    Locator.xpath("//button[normalize-space()='Cancel']"),
+                    Locator.xpath("//button[normalize-space()='Close']"));
             case "modal-close" -> LocatorSet.of("modal-close-action",
                     Locator.xpath("//button[normalize-space()='Close']"),
                     Locator.css("button[aria-label='close']"),

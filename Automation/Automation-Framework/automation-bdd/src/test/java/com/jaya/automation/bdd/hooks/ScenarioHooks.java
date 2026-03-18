@@ -148,18 +148,35 @@ public class ScenarioHooks {
             return uiEngine;
         }
         if (config.parallelThreads() == 1 && PREWARMED_SINGLE_THREAD_UI_ENGINE != null) {
-            SHARED_UI_ENGINE.set(PREWARMED_SINGLE_THREAD_UI_ENGINE);
-            SHARED_ENGINES.add(PREWARMED_SINGLE_THREAD_UI_ENGINE);
-            return PREWARMED_SINGLE_THREAD_UI_ENGINE;
+            UiEngine prewarmed = ensureAlive(PREWARMED_SINGLE_THREAD_UI_ENGINE);
+            PREWARMED_SINGLE_THREAD_UI_ENGINE = prewarmed;
+            SHARED_UI_ENGINE.set(prewarmed);
+            SHARED_ENGINES.add(prewarmed);
+            return prewarmed;
         }
         UiEngine sharedUiEngine = SHARED_UI_ENGINE.get();
         if (sharedUiEngine != null) {
-            return sharedUiEngine;
+            UiEngine alive = ensureAlive(sharedUiEngine);
+            if (alive != sharedUiEngine) {
+                SHARED_ENGINES.remove(sharedUiEngine);
+                SHARED_UI_ENGINE.set(alive);
+                SHARED_ENGINES.add(alive);
+            }
+            return alive;
         }
         UiEngine uiEngine = UiEngineFactory.create(config);
         uiEngine.start();
         SHARED_UI_ENGINE.set(uiEngine);
         SHARED_ENGINES.add(uiEngine);
+        return uiEngine;
+    }
+
+    private UiEngine ensureAlive(UiEngine uiEngine) {
+        if (uiEngine.isAlive()) {
+            return uiEngine;
+        }
+        LOG.warn("Browser session is dead — restarting");
+        uiEngine.restart();
         return uiEngine;
     }
 

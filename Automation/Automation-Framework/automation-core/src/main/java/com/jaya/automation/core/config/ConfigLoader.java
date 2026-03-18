@@ -20,11 +20,11 @@ public final class ConfigLoader {
     private AutomationConfig buildConfig() {
         AutomationEngine engine = AutomationEngine.from(readValue("AUTOMATION_ENGINE", "selenium"));
         EnvironmentType environment = EnvironmentType.from(readValue("TEST_ENV", EnvironmentType.LOCAL.name()));
-        String baseUrl = readEnvironmentAwareUrl("BASE_URL", environment, "http://localhost:9999");
-        String apiBaseUrl = readEnvironmentAwareUrl("API_BASE_URL", environment, "http://localhost:8080");
+        String baseUrl = readEnvironmentAwareUrl("BASE_URL", environment, "");
+        String apiBaseUrl = readEnvironmentAwareUrl("API_BASE_URL", environment, "");
         BrowserType browserType = BrowserType.from(readValue("BROWSER", "chrome"));
         boolean headless = readBoolean("HEADLESS", true);
-        int waitSec = readInt("EXPLICIT_WAIT_SEC", 15);
+        int waitSec = readInt("EXPLICIT_WAIT_SEC", 10);
         int retryCount = readInt("RETRY_COUNT", 0);
         int rerunFailedCount = readInt("RERUN_FAILED_COUNT", 0);
         RetryPolicy apiRetryPolicy = buildRetryPolicy("API");
@@ -134,8 +134,8 @@ public final class ConfigLoader {
     private RetryPolicy buildRetryPolicy(String prefix) {
         int maxAttempts = readInt("RETRY_" + prefix + "_MAX_ATTEMPTS", 3);
         long intervalMs = readLong("RETRY_" + prefix + "_INTERVAL_MS", 2000L);
-        double multiplier = readDouble("RETRY_" + prefix + "_BACKOFF_MULTIPLIER", 1.5);
-        long maxDelayMs = readLong("RETRY_" + prefix + "_MAX_DELAY_MS", 30000L);
+        double multiplier = readDouble("RETRY_" + prefix + "_BACKOFF_MULTIPLIER", 1.0);
+        long maxDelayMs = readLong("RETRY_" + prefix + "_MAX_DELAY_MS", 10000L);
         return new RetryPolicy(
                 maxAttempts,
                 Duration.ofMillis(intervalMs),

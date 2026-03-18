@@ -5,4 +5,4 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ .Values.job.name }}
 data:
-  AutomationConfiguration.properties: {{ (tpl (.Files.Get "resources/AutomationConfiguration.properties") .) | quote }}
+  AutomationConfiguration.yaml: {{ (tpl (.Files.Get "resources/AutomationConfiguration.yaml") .) | quote }}

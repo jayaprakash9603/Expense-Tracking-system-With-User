@@ -15,6 +15,7 @@
     <name>automation-bdd</name>
     <properties>
         <cucumber.filter.tags></cucumber.filter.tags>
+        <RERUN_FAILED_COUNT>0</RERUN_FAILED_COUNT>
     </properties>
 
     <dependencies>
@@ -115,14 +116,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <includes>
-                        <include>**/*CucumberTest.java</include>
+                        <include>**/SpringBootCucumberTest.java</include>
                     </includes>
                     <systemPropertyVariables>
                         <cucumber.filter.tags>${cucumber.filter.tags}</cucumber.filter.tags>
-                        <BASE_URL>http://localhost:9999</BASE_URL>
-                        <API_BASE_URL>http://localhost:8080</API_BASE_URL>
-                        <BASE_URL_LOCAL>http://localhost:9999</BASE_URL_LOCAL>
-                        <API_BASE_URL_LOCAL>http://localhost:8080</API_BASE_URL_LOCAL>
                     </systemPropertyVariables>
                     <rerunFailingTestsCount>${RERUN_FAILED_COUNT}</rerunFailingTestsCount>
                 </configuration>

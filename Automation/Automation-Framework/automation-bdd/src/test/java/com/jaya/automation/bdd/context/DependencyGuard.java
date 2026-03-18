@@ -3,12 +3,16 @@ package com.jaya.automation.bdd.context;
 import com.jaya.automation.core.config.AutomationConfig;
 import org.testng.SkipException;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 
 public final class DependencyGuard {
@@ -18,8 +22,25 @@ public final class DependencyGuard {
 
     public DependencyGuard() {
         this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(3))
+                .connectTimeout(Duration.ofSeconds(10))
+                .followRedirects(HttpClient.Redirect.ALWAYS)
+                .sslContext(buildTrustAllSslContext())
                 .build();
+    }
+
+    private static SSLContext buildTrustAllSslContext() {
+        try {
+            TrustManager[] trustAll = {new X509TrustManager() {
+                @Override public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+                @Override public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+                @Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+            }};
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustAll, new java.security.SecureRandom());
+            return sslContext;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to create trust-all SSL context", ex);
+        }
     }
 
     public void requireReachable(String endpointName, String url) {
@@ -52,7 +73,21 @@ public final class DependencyGuard {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(5))
+                    .timeout(Duration.ofSeconds(15))
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                    .build();
+            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            return response.statusCode() > 0;
+        } catch (Exception ex) {
+            return isReachableViaGet(url);
+        }
+    }
+
+    private boolean isReachableViaGet(String url) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(15))
                     .GET()
                     .build();
             HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());

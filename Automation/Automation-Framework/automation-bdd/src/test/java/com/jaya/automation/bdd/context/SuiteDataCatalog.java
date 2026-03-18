@@ -1,16 +1,14 @@
 package com.jaya.automation.bdd.context;
 
 import com.jaya.automation.core.config.AutomationConfig;
+import com.jaya.automation.core.config.ConfigFileParser;
 import com.jaya.automation.core.logging.AutomationLogger;
 import com.jaya.automation.core.logging.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Properties;
 
 public final class SuiteDataCatalog {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(SuiteDataCatalog.class);
@@ -41,18 +39,15 @@ public final class SuiteDataCatalog {
 
     private void loadFromConfigFile(Map<String, String> target) {
         Path configFile = resolveConfigFile();
-        if (configFile == null) {
-            LOG.debug("No external config file; suite data will use core config values only");
-            return;
+        Map<String, String> parsed;
+        if (configFile != null) {
+            parsed = ConfigFileParser.parse(configFile);
+            LOG.info("Loaded {} config entries from {}", parsed.size(), configFile);
+        } else {
+            parsed = ConfigFileParser.parseFromClasspath();
+            LOG.info("Loaded {} config entries from classpath", parsed.size());
         }
-        try (InputStream stream = Files.newInputStream(configFile)) {
-            Properties properties = new Properties();
-            properties.load(stream);
-            properties.forEach((key, value) -> target.put(String.valueOf(key), String.valueOf(value)));
-            LOG.info("Loaded {} suite data properties from {}", target.size(), configFile);
-        } catch (IOException exception) {
-            LOG.warn("Unable to load config file '{}': {}", configFile, exception.getMessage());
-        }
+        target.putAll(parsed);
     }
 
     private Path resolveConfigFile() {

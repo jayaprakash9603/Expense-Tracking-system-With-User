@@ -13,6 +13,10 @@ public interface UiEngine extends AutoCloseable {
 
     ScreenshotService screenshots();
 
+    boolean isAlive();
+
+    void restart();
+
     void stop();
 
     @Override

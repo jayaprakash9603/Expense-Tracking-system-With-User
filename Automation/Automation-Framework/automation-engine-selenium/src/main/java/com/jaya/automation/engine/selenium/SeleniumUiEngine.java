@@ -64,6 +64,31 @@ public final class SeleniumUiEngine implements UiEngine {
     }
 
     @Override
+    public boolean isAlive() {
+        if (webDriver == null) {
+            return false;
+        }
+        try {
+            webDriver.getTitle();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    @Override
+    public void restart() {
+        try {
+            if (webDriver != null) {
+                webDriver.quit();
+            }
+        } catch (Exception ignored) {
+        }
+        webDriver = null;
+        start();
+    }
+
+    @Override
     public void stop() {
         if (webDriver == null) {
             return;
