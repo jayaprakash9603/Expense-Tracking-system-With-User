@@ -1,32 +1,29 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  Home,
-  Receipt,
-  Plus,
-  Wallet,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { AppIcon } from "@/shared/components/AppIcon";
 import { UserAvatar } from "@/shared/components/UserAvatar";
 import { Separator } from "@/components/ui/separator";
-import { APP_NAME, SIDEBAR_WIDTH } from "@/config/constants";
+import { APP_NAME } from "@/config/constants";
 import { logoutAction } from "@/redux/auth/auth.actions";
+import { getSidebarItems, NAV_GROUPS, isActiveRoute } from "@/app/routing/routeCatalog";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
-  { path: "/dashboard", icon: Home, labelKey: "navigation.home" },
-  { path: "/expenses", icon: Receipt, labelKey: "navigation.expenses" },
-  { path: "/add", icon: Plus, labelKey: "navigation.addNew" },
-  { path: "/budget", icon: Wallet, labelKey: "navigation.budget" },
-  { path: "/settings", icon: Settings, labelKey: "navigation.settings" },
-];
+function groupSidebarItems() {
+  const items = getSidebarItems();
+  const groups = {};
+  items.forEach((item) => {
+    if (!groups[item.navGroup]) groups[item.navGroup] = [];
+    groups[item.navGroup].push(item);
+  });
+  return Object.entries(NAV_GROUPS)
+    .filter(([key]) => key !== "admin" && groups[key]?.length)
+    .sort(([, a], [, b]) => a.order - b.order)
+    .map(([key, meta]) => ({ ...meta, items: groups[key] }));
+}
 
 function SidebarContent() {
   const navigate = useNavigate();
@@ -36,10 +33,7 @@ function SidebarContent() {
   const { sidebarCollapsed, toggleSidebar, isTablet } = useLayout();
   const user = useSelector((state) => state.auth?.user);
   const collapsed = isTablet || sidebarCollapsed;
-
-  const handleNavigate = (path) => {
-    navigate(path);
-  };
+  const navGroups = groupSidebarItems();
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -48,7 +42,10 @@ function SidebarContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className={cn("flex items-center shrink-0 border-b border-border h-14", collapsed ? "justify-center px-2" : "px-4")}>
+      <div className={cn(
+        "flex items-center shrink-0 border-b border-border h-14",
+        collapsed ? "justify-center px-2" : "px-4"
+      )}>
         {collapsed ? (
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
             <span className="text-sm text-primary-foreground font-black font-display">E</span>
@@ -58,41 +55,62 @@ function SidebarContent() {
             <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
               <span className="text-sm text-primary-foreground font-black font-display">E</span>
             </div>
-            <div className="min-w-0">
-              <h2 className="text-sm font-bold truncate">{APP_NAME}</h2>
-            </div>
+            <h2 className="text-sm font-bold truncate">{APP_NAME}</h2>
           </div>
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1 no-scrollbar">
-        {NAV_ITEMS.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <button
-              key={item.path}
-              onClick={() => handleNavigate(item.path)}
-              className={cn(
-                "flex items-center gap-3 w-full rounded-lg transition-colors tap-highlight-none",
-                collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2.5",
-                isActive
-                  ? "bg-primary/10 font-medium"
-                  : "hover:bg-accent"
-              )}
-              title={collapsed ? t(item.labelKey) : undefined}
-            >
-              <AppIcon icon={item.icon} color={isActive ? "primary" : "soft"} size="md" />
-              {!collapsed && (
-                <span className={cn("text-sm truncate", isActive ? "icon-primary" : "text-muted-foreground")}>
-                  {t(item.labelKey)}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      {!collapsed && user && (
+        <div className="flex flex-col items-center py-5 px-4 border-b border-border">
+          <UserAvatar size="lg" showName={false} />
+          <p className="mt-2 text-sm font-semibold truncate max-w-full">
+            {user.firstName} {user.lastName}
+          </p>
+          {user.email && (
+            <p className="text-xs text-muted-foreground truncate max-w-full">{user.email}</p>
+          )}
+        </div>
+      )}
+
+      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4 sidebar-scrollbar">
+        {navGroups.map((group) => (
+          <div key={group.key}>
+            {!collapsed && (
+              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t(group.labelKey)}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const active = isActiveRoute(location.pathname, item.path);
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => navigate(item.path)}
+                    className={cn(
+                      "flex items-center gap-3 w-full rounded-lg transition-colors tap-highlight-none",
+                      collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
+                      active ? "bg-primary/10 font-medium" : "hover:bg-accent"
+                    )}
+                    title={collapsed ? t(item.titleKey) : undefined}
+                  >
+                    {item.navIcon && (
+                      <AppIcon icon={item.navIcon} color={active ? "primary" : "soft"} size="md" />
+                    )}
+                    {!collapsed && (
+                      <span className={cn("text-sm truncate", active ? "icon-primary" : "text-muted-foreground")}>
+                        {t(item.titleKey)}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
-      <div className="shrink-0 border-t border-border p-2 space-y-2">
+      <div className="shrink-0 border-t border-border p-2 space-y-1.5">
         {!isTablet && (
           <button
             onClick={toggleSidebar}
@@ -112,9 +130,11 @@ function SidebarContent() {
 
         <Separator />
 
-        <div className={cn("flex items-center", collapsed ? "justify-center py-1" : "gap-3 px-2 py-1")}>
-          <UserAvatar size="sm" showName={!collapsed} />
-        </div>
+        {collapsed && user && (
+          <div className="flex justify-center py-1">
+            <UserAvatar size="sm" showName={false} />
+          </div>
+        )}
 
         <button
           onClick={handleLogout}

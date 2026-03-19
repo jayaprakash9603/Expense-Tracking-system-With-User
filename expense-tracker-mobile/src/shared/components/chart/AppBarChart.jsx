@@ -1,6 +1,7 @@
 import React from "react";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ReferenceLine } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
 import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,7 @@ export function AppBarChart({
             <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
           </>
         )}
-        {showTooltip && <ChartTooltip content={<ChartTooltipContent />} />}
+        {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent />} />}
         {showLegend && <ChartLegend content={<ChartLegendContent />} />}
         {referenceLine && (
           <ReferenceLine y={referenceLine.value} stroke={referenceLine.color || "hsl(var(--muted-foreground))"} strokeDasharray="3 3" label={referenceLine.label} />

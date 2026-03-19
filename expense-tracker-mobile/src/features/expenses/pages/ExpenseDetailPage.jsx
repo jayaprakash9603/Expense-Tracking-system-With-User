@@ -9,12 +9,13 @@ import { AppBadge } from "@/shared/components/AppBadge";
 import { AppIcon } from "@/shared/components/AppIcon";
 import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { formatMoney } from "@/domain/shared/money";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { fetchExpenseByIdAction, deleteExpenseAction } from "@/redux/expenses/expenses.actions";
 import { selectSelectedExpense, selectExpenseLoading } from "@/redux/selectors";
 
 export function ExpenseDetailPageView() {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -51,7 +52,7 @@ export function ExpenseDetailPageView() {
 
       <AppCard className="p-4 md:p-6 space-y-4">
         <div className="text-center pb-4 border-b">
-          <p className="text-3xl font-bold">{formatMoney(expense.amount)}</p>
+          <p className="text-3xl font-bold">{format(expense.amount)}</p>
           <p className="text-sm text-muted-foreground mt-1">{expense.date}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">

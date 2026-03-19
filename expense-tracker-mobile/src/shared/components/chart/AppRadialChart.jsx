@@ -1,6 +1,7 @@
 import React from "react";
 import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
 import { CHART_HEIGHTS, CHART_ANIMATION } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,7 @@ export function AppRadialChart({
         accessibilityLayer
       >
         <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-        {showTooltip && <ChartTooltip content={<ChartTooltipContent />} />}
+        {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent />} />}
         <RadialBar
           dataKey={dataKey}
           background

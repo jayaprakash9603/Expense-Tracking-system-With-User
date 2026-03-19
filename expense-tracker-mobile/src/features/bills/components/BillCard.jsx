@@ -4,7 +4,7 @@ import { AppCard } from "@/shared/components/AppCard";
 import { AppBadge } from "@/shared/components/AppBadge";
 import { AppIcon, AppIconBox } from "@/shared/components/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { formatMoney } from "@/domain/shared/money";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { getDaysUntilDue } from "@/domain/bills/bill.rules";
 import { BILL_STATUS_COLORS } from "../config/billConfig";
 
@@ -14,8 +14,9 @@ const STATUS_ICONS = {
   OVERDUE: AlertTriangle,
 };
 
-export function BillCard({ bill, onEdit, onDelete, onMarkPaid, currency = "INR" }) {
+export function BillCard({ bill, onEdit, onDelete, onMarkPaid }) {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
   const StatusIcon = STATUS_ICONS[bill.status] || Clock;
   const daysUntil = getDaysUntilDue(bill);
   const iconColor = bill.isOverdue ? "error" : "primary";
@@ -43,7 +44,7 @@ export function BillCard({ bill, onEdit, onDelete, onMarkPaid, currency = "INR" 
         <div className="flex items-center gap-2 ml-3">
           <div className="text-right">
             <span className="font-semibold text-sm md:text-base whitespace-nowrap block">
-              {formatMoney(bill.amount, currency)}
+              {format(bill.amount)}
             </span>
             <AppBadge variant={BILL_STATUS_COLORS[bill.status] || "secondary"} className="text-[10px]">
               {t(`bills.statuses.${bill.status?.toLowerCase()}`)}

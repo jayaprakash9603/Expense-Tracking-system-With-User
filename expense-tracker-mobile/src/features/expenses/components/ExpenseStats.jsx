@@ -2,7 +2,7 @@ import { TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
 import { AppCard } from "@/shared/components/AppCard";
 import { AppIconBox } from "@/shared/components/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { formatMoney } from "@/domain/shared/money";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 
 const STAT_ICONS = {
   monthly: Calendar,
@@ -11,8 +11,9 @@ const STAT_ICONS = {
   savings: TrendingDown,
 };
 
-export function ExpenseStats({ stats = [], currency = "INR" }) {
+export function ExpenseStats({ stats = [] }) {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
 
   return (
     <>
@@ -24,7 +25,7 @@ export function ExpenseStats({ stats = [], currency = "INR" }) {
               <AppIconBox icon={Icon} color="primary" size="sm" />
               <div>
                 <p className="text-xs text-muted-foreground">{t(stat.label)}</p>
-                <p className="text-lg font-bold">{formatMoney(stat.value, currency)}</p>
+                <p className="text-lg font-bold">{format(stat.value)}</p>
               </div>
             </div>
           </AppCard>

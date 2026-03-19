@@ -1,19 +1,14 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, Bell, User } from "lucide-react";
+import { ArrowLeft, Search, Bell } from "lucide-react";
 import { AppIcon } from "@/shared/components/AppIcon";
 import { useLayout } from "@/shared/hooks/useLayout";
+import { ProfileDropdown } from "./ProfileDropdown";
 import { cn } from "@/lib/utils";
 
 export function TopBar({ title, showBack = false }) {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth?.user);
-  const { isMinMd, isMinLg, showSidebar } = useLayout();
-
-  const initials = user
-    ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()
-    : null;
+  const { isMinMd, isMinLg } = useLayout();
 
   return (
     <header
@@ -50,22 +45,15 @@ export function TopBar({ title, showBack = false }) {
         )}
 
         {isMinMd && (
-          <button className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent tap-highlight-none relative">
+          <button
+            onClick={() => navigate("/notifications")}
+            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent tap-highlight-none relative"
+          >
             <AppIcon icon={Bell} color="soft" size="sm" />
           </button>
         )}
 
-        {!showSidebar && (
-          <button
-            onClick={() => navigate("/settings")}
-            className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold tap-highlight-none",
-              !initials && "bg-muted icon-muted"
-            )}
-          >
-            {initials || <AppIcon icon={User} color="inherit" size="sm" />}
-          </button>
-        )}
+        <ProfileDropdown />
       </div>
     </header>
   );

@@ -1,0 +1,212 @@
+import {
+  Home, Receipt, FolderOpen, CreditCard, FileText, Users, UsersRound,
+  Wallet, BarChart3, Settings, Bell, Wrench, Upload, Calendar,
+  MessageCircle, TrendingUp, Shield, User, HelpCircle, FileQuestion,
+  Lock, BookOpen, Share2, Globe, UserPlus, Plus, LayoutDashboard,
+  History, PieChart, Eye,
+} from "lucide-react";
+
+export const NAV_GROUPS = {
+  main: { key: "main", labelKey: "navigation.main", order: 0 },
+  finance: { key: "finance", labelKey: "navigation.finance", order: 1 },
+  social: { key: "social", labelKey: "navigation.social", order: 2 },
+  insights: { key: "insights", labelKey: "navigation.insights", order: 3 },
+  tools: { key: "tools", labelKey: "navigation.tools", order: 4 },
+  admin: { key: "admin", labelKey: "navigation.adminPanel", order: 5 },
+};
+
+export const ROUTE_CATALOG = [
+  { path: "/dashboard", key: "dashboard", titleKey: "dashboard.title", guard: "protected", navGroup: "main", navIcon: Home, bottomNav: true, elementMode: "implemented" },
+  { path: "/expenses", key: "expenses", titleKey: "navigation.expenses", guard: "protected", navGroup: "main", navIcon: Receipt, bottomNav: true, elementMode: "implemented" },
+  { path: "/expenses/add", key: "expenses-add", titleKey: "expenses.addExpense", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/expenses/create", key: "expenses-create", titleKey: "expenses.addExpense", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/expenses/add" },
+  { path: "/expenses/create/:friendId", key: "expenses-create-friend", titleKey: "expenses.addExpense", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/expenses/edit/:id", key: "expenses-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/expenses/edit/:id/friend/:friendId", key: "expenses-edit-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/expenses/:id", key: "expenses-detail", titleKey: "navigation.expenses", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/expenses/view/:id", key: "expenses-view", titleKey: "navigation.expenses", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/expenses/:id" },
+  { path: "/expenses/view/:id/friend/:friendId", key: "expenses-view-friend", titleKey: "navigation.expenses", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/expenses/reports", key: "expenses-reports", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/expenses/reports/:friendId", key: "expenses-reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/budgets", key: "budgets", titleKey: "navigation.budget", guard: "protected", navGroup: "finance", navIcon: Wallet, bottomNav: false, elementMode: "implemented" },
+  { path: "/budgets/add", key: "budgets-add", titleKey: "budget.addBudget", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/budgets/edit/:id", key: "budgets-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/budget", key: "budget-alias", titleKey: "navigation.budget", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/budgets" },
+  { path: "/budget/:friendId", key: "budget-friend", titleKey: "navigation.budget", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/create", key: "budget-create", titleKey: "budget.addBudget", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/budgets/add" },
+  { path: "/budget/create/:friendId", key: "budget-create-friend", titleKey: "budget.addBudget", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/edit/:id", key: "budget-edit-alias", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/budgets/edit/:id" },
+  { path: "/budget/edit/:id/friend/:friendId", key: "budget-edit-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/report/:id", key: "budget-report", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/report/:id/friend/:friendId", key: "budget-report-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/reports", key: "budget-reports", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget/reports/:friendId", key: "budget-reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget-report/:budgetId", key: "budget-detail-report", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/budget-report/:budgetId/:friendId", key: "budget-detail-report-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/categories", key: "categories", titleKey: "navigation.categories", guard: "protected", navGroup: "finance", navIcon: FolderOpen, bottomNav: false, elementMode: "implemented" },
+  { path: "/categories/add", key: "categories-add", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/categories/edit/:id", key: "categories-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/category-flow", key: "category-flow", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/categories" },
+  { path: "/category-flow/:friendId", key: "category-flow-friend", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/calendar", key: "category-calendar", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/calendar/:friendId", key: "category-calendar-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/create", key: "category-create", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/categories/add" },
+  { path: "/category-flow/create/:friendId", key: "category-create-friend", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/reports", key: "category-reports", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/reports/:friendId", key: "category-reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/edit/:id", key: "category-edit-alias", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/categories/edit/:id" },
+  { path: "/category-flow/edit/:id/friend/:friendId", key: "category-edit-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/view/:categoryId", key: "category-analytics", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/category-flow/view/:categoryId/friend/:friendId", key: "category-analytics-friend", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/payment-method", key: "payments", titleKey: "navigation.payments", guard: "protected", navGroup: "finance", navIcon: CreditCard, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/:friendId", key: "payments-friend", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/calendar", key: "payments-calendar", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/calendar/:friendId", key: "payments-calendar-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/reports", key: "payments-reports", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/reports/:friendId", key: "payments-reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/create", key: "payments-create", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/create/:friendId", key: "payments-create-friend", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/edit/:id", key: "payments-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/edit/:id/friend/:friendId", key: "payments-edit-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/view/:paymentMethodId", key: "payments-analytics", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method/view/:paymentMethodId/friend/:friendId", key: "payments-analytics-friend", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/bills", key: "bills", titleKey: "navigation.bills", guard: "protected", navGroup: "finance", navIcon: FileText, bottomNav: true, elementMode: "implemented" },
+  { path: "/bills/add", key: "bills-add", titleKey: "navigation.bills", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/bills/edit/:id", key: "bills-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/bill", key: "bill-alias", titleKey: "navigation.bills", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/bills" },
+  { path: "/bill/:friendId", key: "bill-friend", titleKey: "navigation.bills", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/report", key: "bill-report", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/report/:friendId", key: "bill-report-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/upload", key: "bill-upload", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/upload/:friendId", key: "bill-upload-friend", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/create", key: "bill-create", titleKey: "navigation.bills", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/bills/add" },
+  { path: "/bill/create/:friendId", key: "bill-create-friend", titleKey: "navigation.bills", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/edit/:id", key: "bill-edit-alias", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/bills/edit/:id" },
+  { path: "/bill/edit/:id/friend/:friendId", key: "bill-edit-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/edit-by-expense/:expenseId", key: "bill-edit-by-expense", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/edit-by-expense/:expenseId/friend/:friendId", key: "bill-edit-by-expense-friend", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/calendar", key: "bill-calendar", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill/calendar/:friendId", key: "bill-calendar-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/friends", key: "friends", titleKey: "navigation.friends", guard: "protected", navGroup: "social", navIcon: Users, bottomNav: true, elementMode: "placeholder" },
+  { path: "/friends/report", key: "friends-report", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/friends/activity", key: "friends-activity", titleKey: "navigation.friends", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/friends/expenses/:friendId", key: "friends-expenses", titleKey: "navigation.expenses", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/groups", key: "groups", titleKey: "navigation.groups", guard: "protected", navGroup: "social", navIcon: UsersRound, bottomNav: false, elementMode: "placeholder" },
+  { path: "/groups/create", key: "groups-create", titleKey: "navigation.groups", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/groups/:id", key: "groups-detail", titleKey: "navigation.groups", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/analytics", key: "analytics", titleKey: "analytics.overview", guard: "protected", navGroup: "insights", navIcon: Eye, bottomNav: false, elementMode: "implemented" },
+  { path: "/reports", key: "reports", titleKey: "navigation.reports", guard: "protected", navGroup: "insights", navIcon: BarChart3, bottomNav: true, elementMode: "implemented" },
+  { path: "/reports/monthly", key: "reports-monthly", titleKey: "reports.monthly", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/reports/category", key: "reports-category", titleKey: "reports.category", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/reports/payment", key: "reports-payment", titleKey: "reports.payment", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/reports/trend", key: "reports-trend", titleKey: "reports.trend", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/reports/:friendId", key: "reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/cashflow", key: "cashflow", titleKey: "navigation.cashflow", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/cashflow/:friendId", key: "cashflow-friend", titleKey: "navigation.cashflow", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/transactions", key: "transactions", titleKey: "navigation.transactions", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/transactions/:friendId", key: "transactions-friend", titleKey: "navigation.transactions", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/history", key: "history", titleKey: "navigation.history", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/history/:friendId", key: "history-friend", titleKey: "navigation.history", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/insights", key: "insights", titleKey: "navigation.insights", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/insights/:friendId", key: "insights-friend", titleKey: "navigation.insights", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/notifications", key: "notifications", titleKey: "navigation.notifications", guard: "protected", navGroup: null, navIcon: Bell, bottomNav: false, elementMode: "implemented" },
+
+  { path: "/utilities", key: "utilities", titleKey: "navigation.utilities", guard: "protected", navGroup: "tools", navIcon: Wrench, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/expenses", key: "upload-expenses", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/expenses/:friendId", key: "upload-expenses-friend", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/categories", key: "upload-categories", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/categories/:friendId", key: "upload-categories-friend", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/payments", key: "upload-payments", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/upload/payments/:friendId", key: "upload-payments-friend", titleKey: "navigation.upload", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/calendar-view", key: "calendar-view", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/calendar-view/:friendId", key: "calendar-view-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/day-view/:date", key: "day-view", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/day-view/:date/friend/:friendId", key: "day-view-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill-day-view/:date", key: "bill-day-view", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/bill-day-view/:date/friend/:friendId", key: "bill-day-view-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/profile", key: "profile", titleKey: "navigation.profile", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
+  { path: "/settings", key: "settings", titleKey: "settings.title", guard: "protected", navGroup: null, navIcon: Settings, bottomNav: false, elementMode: "implemented" },
+  { path: "/settings/notifications", key: "settings-notifications", titleKey: "settings.notificationSettings", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/settings/mfa", key: "settings-mfa", titleKey: "settings.mfaAuth", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/chats", key: "chats", titleKey: "navigation.chats", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/friend-chat", key: "friend-chat", titleKey: "navigation.chats", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/my-shares", key: "my-shares", titleKey: "navigation.myShares", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/my-shares/create", key: "my-shares-create", titleKey: "navigation.myShares", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/public-shares", key: "public-shares", titleKey: "navigation.publicShares", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/shared-with-me", key: "shared-with-me", titleKey: "navigation.sharedWithMe", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/share/:token", key: "share-view", titleKey: "navigation.share", guard: "public", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/support/help", key: "help", titleKey: "navigation.helpCenter", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/support/contact", key: "contact", titleKey: "navigation.contactSupport", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/support/terms", key: "terms", titleKey: "navigation.termsOfService", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/support/privacy", key: "privacy", titleKey: "navigation.privacyPolicy", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/admin/dashboard", key: "admin-dashboard", titleKey: "navigation.adminDashboard", guard: "admin", navGroup: "admin", navIcon: LayoutDashboard, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/users", key: "admin-users", titleKey: "navigation.userManagement", guard: "admin", navGroup: "admin", navIcon: User, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/roles", key: "admin-roles", titleKey: "navigation.roleManagement", guard: "admin", navGroup: "admin", navIcon: Shield, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/analytics", key: "admin-analytics", titleKey: "navigation.systemAnalytics", guard: "admin", navGroup: "admin", navIcon: BarChart3, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/audit", key: "admin-audit", titleKey: "navigation.auditLogs", guard: "admin", navGroup: "admin", navIcon: History, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/reports", key: "admin-reports", titleKey: "navigation.reports", guard: "admin", navGroup: "admin", navIcon: PieChart, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/settings", key: "admin-settings", titleKey: "settings.title", guard: "admin", navGroup: "admin", navIcon: Settings, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/stories", key: "admin-stories", titleKey: "navigation.stories", guard: "admin", navGroup: "admin", navIcon: BookOpen, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/stories/create", key: "admin-stories-create", titleKey: "navigation.stories", guard: "admin", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/admin/stories/edit/:id", key: "admin-stories-edit", titleKey: "common.edit", guard: "admin", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+
+  { path: "/add", key: "add-new", titleKey: "navigation.addNew", guard: "protected", navGroup: null, navIcon: Plus, bottomNav: false, elementMode: "redirect", redirectTo: "/expenses/add" },
+];
+
+export function getRouteByPath(pathname) {
+  return ROUTE_CATALOG.find((r) => r.path === pathname);
+}
+
+export function getRouteTitleKey(pathname) {
+  const exact = ROUTE_CATALOG.find((r) => r.path === pathname);
+  if (exact) return exact.titleKey;
+  if (pathname.includes("/edit/")) return "common.edit";
+  const parent = ROUTE_CATALOG.find((r) => pathname.startsWith(r.path + "/") || pathname.startsWith(r.path));
+  return parent?.titleKey || "dashboard.title";
+}
+
+export function getSidebarItems() {
+  return ROUTE_CATALOG.filter((r) => r.navGroup && r.guard !== "admin");
+}
+
+export function getAdminSidebarItems() {
+  return ROUTE_CATALOG.filter((r) => r.navGroup === "admin");
+}
+
+export function getBottomNavItems() {
+  return ROUTE_CATALOG.filter((r) => r.bottomNav);
+}
+
+const MORE_MENU_KEYS = [
+  "budgets", "categories", "payments", "notifications",
+  "groups", "utilities", "settings", "profile",
+];
+
+export function getMoreMenuItems() {
+  return MORE_MENU_KEYS
+    .map((key) => ROUTE_CATALOG.find((r) => r.key === key))
+    .filter(Boolean);
+}
+
+export function isActiveRoute(currentPath, routePath) {
+  if (currentPath === routePath) return true;
+  if (routePath === "/dashboard" && currentPath === "/") return true;
+  if (routePath !== "/" && currentPath.startsWith(routePath + "/")) return true;
+  return false;
+}

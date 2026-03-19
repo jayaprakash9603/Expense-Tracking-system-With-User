@@ -2,11 +2,12 @@ import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { formatMoney } from "@/domain/shared/money";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { Progress } from "@/components/ui/progress";
 
-export function BudgetCard({ budget, onEdit, onDelete, currency = "INR" }) {
+export function BudgetCard({ budget, onEdit, onDelete }) {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
   const statusColor = budget.isOverBudget
     ? "text-destructive"
     : budget.percentage >= 80
@@ -36,10 +37,10 @@ export function BudgetCard({ budget, onEdit, onDelete, currency = "INR" }) {
       <Progress value={budget.percentage} className="h-2 mb-2" />
       <div className="flex justify-between text-xs">
         <span className={cn("font-medium", statusColor)}>
-          {formatMoney(budget.spent, currency)} {t("budgets.of")} {formatMoney(budget.amount, currency)}
+          {format(budget.spent)} {t("budgets.of")} {format(budget.amount)}
         </span>
         <span className="text-muted-foreground">
-          {formatMoney(budget.remaining, currency)} {t("budgets.remaining")}
+          {format(budget.remaining)} {t("budgets.remaining")}
         </span>
       </div>
     </AppCard>

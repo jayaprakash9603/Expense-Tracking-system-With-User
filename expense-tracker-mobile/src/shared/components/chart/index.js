@@ -8,3 +8,4 @@ export { AppLineChart } from "./AppLineChart";
 export { AppRadialChart } from "./AppRadialChart";
 export { AppComposedChart } from "./AppComposedChart";
 export { AppStackedBarChart } from "./AppStackedBarChart";
+export { MaskedChartTooltipContent } from "./MaskedChartTooltip";

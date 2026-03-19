@@ -4,17 +4,17 @@ import { cn } from "@/lib/utils";
 const WIDTH_MAP = {
   xs: "max-w-md",
   sm: "max-w-lg",
-  md: "max-w-lg md:max-w-2xl lg:max-w-3xl",
-  default: "max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl",
-  lg: "max-w-lg md:max-w-3xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl",
-  xl: "max-w-lg md:max-w-4xl lg:max-w-6xl xl:max-w-7xl",
+  md: "max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl",
+  default: "max-w-full",
+  lg: "max-w-full",
+  xl: "max-w-full",
   full: "max-w-full",
 };
 
 const PADDING_MAP = {
   none: "",
   compact: "p-3 md:p-4 lg:p-5",
-  default: "p-4 md:p-6 lg:p-8 xl:p-8 2xl:p-10",
+  default: "p-4 md:p-6 lg:p-6 xl:p-8",
   spacious: "p-6 md:p-8 lg:p-10 xl:p-12",
 };
 

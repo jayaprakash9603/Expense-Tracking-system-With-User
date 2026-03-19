@@ -1,6 +1,7 @@
 import React from "react";
 import { PieChart, Pie, Cell } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
 import { CHART_HEIGHTS, CHART_ANIMATION } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ export function AppPieChart({
   return (
     <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>
       <PieChart accessibilityLayer>
-        {showTooltip && <ChartTooltip content={<ChartTooltipContent nameKey={nameKey} hideLabel />} />}
+        {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent nameKey={nameKey} hideLabel />} />}
         {showLegend && <ChartLegend content={<ChartLegendContent nameKey={nameKey} />} />}
         <Pie
           data={data}

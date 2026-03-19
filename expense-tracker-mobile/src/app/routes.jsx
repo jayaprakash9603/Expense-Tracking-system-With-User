@@ -5,6 +5,8 @@ import { AppShell } from "@/layouts/AppShell";
 import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
 import { PublicRoute } from "@/app/guards/PublicRoute";
 import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
+import { ROUTE_CATALOG } from "@/app/routing/routeCatalog";
+
 import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
@@ -27,9 +29,83 @@ const MonthlyReportPage = lazy(() => import("@/features/reports/pages/MonthlyRep
 const CategoryReportPage = lazy(() => import("@/features/reports/pages/CategoryReportPage"));
 const PaymentReportPage = lazy(() => import("@/features/reports/pages/PaymentReportPage"));
 const TrendReportPage = lazy(() => import("@/features/reports/pages/TrendReportPage"));
+const OverviewPage = lazy(() => import("@/features/analytics/pages/OverviewPage"));
+const RoutePlaceholderPage = lazy(() => import("@/features/system/pages/RoutePlaceholderPage"));
+const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
+
+const IMPLEMENTED_PAGES = {
+  "dashboard": DashboardPage,
+  "settings": SettingsPage,
+  "expenses": ExpenseListPage,
+  "expenses-add": ExpenseFormPage,
+  "expenses-edit": ExpenseFormPage,
+  "expenses-detail": ExpenseDetailPage,
+  "budgets": BudgetListPage,
+  "budgets-add": BudgetFormPage,
+  "budgets-edit": BudgetFormPage,
+  "categories": CategoryListPage,
+  "categories-add": CategoryFormPage,
+  "categories-edit": CategoryFormPage,
+  "bills": BillListPage,
+  "bills-add": BillFormPage,
+  "bills-edit": BillFormPage,
+  "notifications": NotificationListPage,
+  "reports": ReportsPage,
+  "reports-monthly": MonthlyReportPage,
+  "reports-category": CategoryReportPage,
+  "reports-payment": PaymentReportPage,
+  "reports-trend": TrendReportPage,
+  "profile": ProfilePage,
+  "analytics": OverviewPage,
+};
 
 function LazyFallback() {
   return <LoadingSpinner size="lg" className="mt-20" />;
+}
+
+function LazyWrap({ Component }) {
+  return (
+    <Suspense fallback={<LazyFallback />}>
+      <Component />
+    </Suspense>
+  );
+}
+
+function buildProtectedRoutes() {
+  return ROUTE_CATALOG
+    .filter((r) => r.guard === "protected" || r.guard === "admin")
+    .map((route) => {
+      if (route.elementMode === "redirect" && route.redirectTo) {
+        return (
+          <Route
+            key={route.key}
+            path={route.path}
+            element={<Navigate to={route.redirectTo} replace />}
+          />
+        );
+      }
+
+      const PageComponent = IMPLEMENTED_PAGES[route.key];
+
+      if (route.elementMode === "implemented" && PageComponent) {
+        const isEager = route.key === "dashboard" || route.key === "settings";
+        return (
+          <Route
+            key={route.key}
+            path={route.path}
+            element={isEager ? <PageComponent /> : <LazyWrap Component={PageComponent} />}
+          />
+        );
+      }
+
+      return (
+        <Route
+          key={route.key}
+          path={route.path}
+          element={<LazyWrap Component={RoutePlaceholderPage} />}
+        />
+      );
+    });
 }
 
 export function AppRoutes() {
@@ -46,49 +122,18 @@ export function AppRoutes() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-
-          <Route path="/expenses" element={<Suspense fallback={<LazyFallback />}><ExpenseListPage /></Suspense>} />
-          <Route path="/expenses/add" element={<Suspense fallback={<LazyFallback />}><ExpenseFormPage /></Suspense>} />
-          <Route path="/expenses/edit/:id" element={<Suspense fallback={<LazyFallback />}><ExpenseFormPage /></Suspense>} />
-          <Route path="/expenses/:id" element={<Suspense fallback={<LazyFallback />}><ExpenseDetailPage /></Suspense>} />
-
-          <Route path="/budgets" element={<Suspense fallback={<LazyFallback />}><BudgetListPage /></Suspense>} />
-          <Route path="/budgets/add" element={<Suspense fallback={<LazyFallback />}><BudgetFormPage /></Suspense>} />
-          <Route path="/budgets/edit/:id" element={<Suspense fallback={<LazyFallback />}><BudgetFormPage /></Suspense>} />
-
-          <Route path="/categories" element={<Suspense fallback={<LazyFallback />}><CategoryListPage /></Suspense>} />
-          <Route path="/categories/add" element={<Suspense fallback={<LazyFallback />}><CategoryFormPage /></Suspense>} />
-          <Route path="/categories/edit/:id" element={<Suspense fallback={<LazyFallback />}><CategoryFormPage /></Suspense>} />
-
-          <Route path="/bills" element={<Suspense fallback={<LazyFallback />}><BillListPage /></Suspense>} />
-          <Route path="/bills/add" element={<Suspense fallback={<LazyFallback />}><BillFormPage /></Suspense>} />
-          <Route path="/bills/edit/:id" element={<Suspense fallback={<LazyFallback />}><BillFormPage /></Suspense>} />
-
-          <Route path="/notifications" element={<Suspense fallback={<LazyFallback />}><NotificationListPage /></Suspense>} />
-
-          <Route path="/friends" element={<PlaceholderPage title="Friends" />} />
-
-          <Route path="/reports" element={<Suspense fallback={<LazyFallback />}><ReportsPage /></Suspense>} />
-          <Route path="/reports/monthly" element={<Suspense fallback={<LazyFallback />}><MonthlyReportPage /></Suspense>} />
-          <Route path="/reports/category" element={<Suspense fallback={<LazyFallback />}><CategoryReportPage /></Suspense>} />
-          <Route path="/reports/payment" element={<Suspense fallback={<LazyFallback />}><PaymentReportPage /></Suspense>} />
-          <Route path="/reports/trend" element={<Suspense fallback={<LazyFallback />}><TrendReportPage /></Suspense>} />
+          {buildProtectedRoutes()}
         </Route>
       </Route>
+
+      <Route
+        path="/share/:token"
+        element={<Suspense fallback={<LazyFallback />}><RoutePlaceholderPage /></Suspense>}
+      />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-  );
-}
-
-function PlaceholderPage({ title }) {
-  return (
-    <div className="flex items-center justify-center min-h-[300px] text-muted-foreground">
-      <p className="text-lg">{title} — Coming Soon</p>
-    </div>
   );
 }
 

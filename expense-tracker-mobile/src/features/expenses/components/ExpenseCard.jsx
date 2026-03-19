@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/AppCard";
 import { AppBadge } from "@/shared/components/AppBadge";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { formatMoney } from "@/domain/shared/money";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 
 const TYPE_VARIANTS = {
   NEED: "default",
@@ -12,8 +12,9 @@ const TYPE_VARIANTS = {
   SAVINGS: "success",
 };
 
-export function ExpenseCard({ expense, onEdit, onDelete, currency = "INR" }) {
+export function ExpenseCard({ expense, onEdit, onDelete }) {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
 
   return (
     <AppCard className="p-3 md:p-4">
@@ -35,7 +36,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, currency = "INR" }) {
         </div>
         <div className="flex items-center gap-2 ml-3">
           <span className={cn("font-semibold text-sm md:text-base whitespace-nowrap")}>
-            {formatMoney(expense.amount, currency)}
+            {format(expense.amount)}
           </span>
           <div className="flex gap-1">
             {onEdit && (

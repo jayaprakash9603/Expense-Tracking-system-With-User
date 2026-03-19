@@ -6,4 +6,8 @@ export * from "./i18n/useLanguage";
 export * from "./i18n/useDateFormat";
 export * from "./settings/useUserSettings";
 export * from "./settings/useMasking";
+export * from "./settings/useMoneyFormatter";
+export * from "./settings/useSensitiveText";
+export * from "./settings/usePresentation";
 export * from "./utility/useDebounce";
+export * from "./data/useDataTable";

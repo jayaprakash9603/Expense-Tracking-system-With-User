@@ -1,24 +1,16 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { AppCard } from "@/shared/components/AppCard";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
-import { ContentSection } from "@/shared/components/ContentSection";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { Wallet, Receipt, CreditCard, PiggyBank } from "lucide-react";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { ContentSection } from "@/shared/components/layout/ContentSection";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
+import { SummaryCard, SummaryCardGrid } from "@/shared/components/display/SummaryCard";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
 import { SpendingTrendChart } from "@/features/dashboard/components/SpendingTrendChart";
 import { CategoryBreakdownChart } from "@/features/dashboard/components/CategoryBreakdownChart";
 import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
 import { CashFlowChart } from "@/features/dashboard/components/CashFlowChart";
-
-function StatCard({ value, label }) {
-  return (
-    <div className="rounded-lg bg-muted p-4 md:p-5 text-center">
-      <p className="text-2xl md:text-3xl font-bold text-primary">{value}</p>
-      <p className="text-xs md:text-sm text-muted-foreground mt-1">{label}</p>
-    </div>
-  );
-}
 
 export function DashboardPage() {
   const { t } = useLanguage();
@@ -29,22 +21,45 @@ export function DashboardPage() {
   return (
     <PageContainer>
       <ContentSection>
-        <AppCard>
-          <AppCard.Header>
-            <AppCard.Title>
-              {displayName ? t("dashboard.welcome", { name: displayName }) : t("dashboard.welcomeDefault")}
-            </AppCard.Title>
-            <AppCard.Description>{t("dashboard.title")}</AppCard.Description>
-          </AppCard.Header>
-          <AppCard.Content>
-            <ResponsiveGrid preset="stats" gap="md">
-              <StatCard value="0" label={t("navigation.expenses")} />
-              <StatCard value="0" label={t("navigation.budget")} />
-              <StatCard value="0" label={t("navigation.home")} />
-              <StatCard value="0" label={t("navigation.settings")} />
-            </ResponsiveGrid>
-          </AppCard.Content>
-        </AppCard>
+        <div className="mb-4 md:mb-6">
+          <h1 className="text-lg md:text-xl font-bold">
+            {displayName
+              ? t("dashboard.welcome", { name: displayName })
+              : t("dashboard.welcomeDefault")}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("dashboard.title")}</p>
+        </div>
+
+        <SummaryCardGrid>
+          <SummaryCard
+            title={t("navigation.expenses")}
+            rawAmount={0}
+            icon={Receipt}
+            variant="blue"
+            sparklineData={[3, 4, 3, 5, 8, 6, 7]}
+          />
+          <SummaryCard
+            title={t("navigation.budget")}
+            rawAmount={0}
+            icon={Wallet}
+            variant="emerald"
+            sparklineData={[5, 6, 4, 7, 8, 5, 9]}
+          />
+          <SummaryCard
+            title={t("analytics.creditDue")}
+            rawAmount={0}
+            icon={CreditCard}
+            variant="amber"
+            sparklineData={[2, 3, 2, 4, 3, 5, 6]}
+          />
+          <SummaryCard
+            title={t("analytics.billsPaid")}
+            rawAmount={0}
+            icon={PiggyBank}
+            variant="rose"
+            sparklineData={[4, 3, 5, 7, 6, 8, 9]}
+          />
+        </SummaryCardGrid>
       </ContentSection>
 
       <ContentSection className="mt-6">

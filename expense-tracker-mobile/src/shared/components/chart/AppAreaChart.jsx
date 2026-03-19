@@ -1,6 +1,7 @@
 import React from "react";
 import { AreaChart, Area, CartesianGrid, XAxis, YAxis } from "recharts";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
 import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ export function AppAreaChart({
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} tickFormatter={(v) => typeof v === "string" && v.length > 5 ? v.slice(5) : v} />
         <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-        {showTooltip && <ChartTooltip content={<ChartTooltipContent indicator="line" />} />}
+        {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent indicator="line" />} />}
         {showLegend && <ChartLegend content={<ChartLegendContent />} />}
         {gradientFill && (
           <defs>
