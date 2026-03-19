@@ -1,0 +1,143 @@
+import React, { useState } from "react";
+import { Formik, Form } from "formik";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loginUserAction } from "@/redux/auth/auth.actions";
+import { loginSchema, loginInitialValues } from "../validation/loginSchema";
+import { FormField } from "@/shared/components/FormField";
+import { AppButton } from "@/shared/components/AppButton";
+import { GoogleLoginButton } from "./GoogleLoginButton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { AlertCircle } from "lucide-react";
+import { useLanguage } from "@/shared/hooks/useLanguage";
+
+export function LoginForm() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+  const [serverError, setServerError] = useState("");
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    setServerError("");
+    const result = await dispatch(loginUserAction({ data: values }));
+
+    if (!result.success) {
+      if (result.mfaRequired) {
+        navigate("/mfa", { state: { mfaToken: result.mfaToken, email: result.email || values.email } });
+        setSubmitting(false);
+        return;
+      }
+
+      if (result.twoFactorRequired) {
+        navigate(`/otp-verification?mode=login&email=${encodeURIComponent(result.email || values.email)}`);
+        setSubmitting(false);
+        return;
+      }
+
+      if (result.message === "OAUTH_NO_PASSWORD") {
+        navigate(`/create-password?email=${encodeURIComponent(values.email)}`);
+        setSubmitting(false);
+        return;
+      }
+
+      setServerError(result.message);
+    } else {
+      const isAdmin =
+        result.currentMode === "ADMIN" ||
+        result.role === "ADMIN" ||
+        result.user?.role === "ADMIN";
+      navigate(isAdmin ? "/admin/dashboard" : "/dashboard");
+    }
+    setSubmitting(false);
+  };
+
+  const getDisplayError = (errors, submitCount) => {
+    if (submitCount > 0 && errors.email && errors.password) return t("auth.validation.allFieldsRequired");
+    if (submitCount > 0 && errors.email) return t(errors.email);
+    if (submitCount > 0 && errors.password) return t(errors.password);
+    if (serverError) return serverError;
+    return null;
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold text-center">{t("auth.login.title")}</h2>
+
+      <Formik
+        initialValues={loginInitialValues}
+        validationSchema={loginSchema}
+        onSubmit={handleSubmit}
+      >
+        {({ isSubmitting, errors, submitCount }) => {
+          const displayError = getDisplayError(errors, submitCount);
+
+          return (
+            <Form className="space-y-4" noValidate>
+              {displayError ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{displayError}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              <FormField
+                name="email"
+                type="text"
+                placeholder={t("auth.login.emailPlaceholder")}
+                autoComplete="email"
+                onFocusExtra={() => serverError && setServerError("")}
+                onChangeExtra={() => serverError && setServerError("")}
+              />
+
+              <FormField
+                name="password"
+                type="password"
+                placeholder={t("auth.login.passwordPlaceholder")}
+                autoComplete="current-password"
+                onFocusExtra={() => serverError && setServerError("")}
+                onChangeExtra={() => serverError && setServerError("")}
+              />
+
+              <AppButton type="submit" isLoading={isSubmitting}>
+                {t("auth.login.loginButton")}
+              </AppButton>
+
+              <div className="flex items-center gap-2 py-1">
+                <Separator className="flex-1" />
+                <span className="text-muted-foreground text-sm">{t("common.or")}</span>
+                <Separator className="flex-1" />
+              </div>
+
+              <GoogleLoginButton disabled={isSubmitting} />
+
+              <div className="flex flex-col items-center gap-3 pt-1">
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  {t("auth.login.forgotPassword")}
+                </button>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground text-sm">
+                    {t("auth.login.noAccount")}
+                  </span>
+                  <button
+                    type="button"
+                    className="text-sm text-primary font-medium hover:underline"
+                    onClick={() => navigate("/register")}
+                  >
+                    {t("auth.login.register")}
+                  </button>
+                </div>
+              </div>
+            </Form>
+          );
+        }}
+      </Formik>
+    </div>
+  );
+}
+
+export default LoginForm;

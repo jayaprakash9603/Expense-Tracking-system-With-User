@@ -1,0 +1,61 @@
+import React from "react";
+import { BarChart, Bar, CartesianGrid, XAxis, YAxis, ReferenceLine } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { ChartEmptyState } from "./ChartEmptyState";
+import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chartConfig";
+import { cn } from "@/lib/utils";
+
+export function AppBarChart({
+  data,
+  config,
+  dataKeys = [],
+  xAxisKey = "label",
+  height = CHART_HEIGHTS.default,
+  className,
+  showTooltip = true,
+  showLegend = false,
+  stacked = false,
+  horizontal = false,
+  barRadius = 4,
+  referenceLine,
+  children,
+}) {
+  if (!data?.length) return <ChartEmptyState />;
+
+  const layout = horizontal ? "vertical" : "horizontal";
+
+  return (
+    <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>
+      <BarChart data={data} layout={layout} accessibilityLayer>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+        {horizontal ? (
+          <>
+            <YAxis dataKey={xAxisKey} type="category" {...AXIS_CONFIG} width={80} />
+            <XAxis type="number" {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+          </>
+        ) : (
+          <>
+            <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} />
+            <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+          </>
+        )}
+        {showTooltip && <ChartTooltip content={<ChartTooltipContent />} />}
+        {showLegend && <ChartLegend content={<ChartLegendContent />} />}
+        {referenceLine && (
+          <ReferenceLine y={referenceLine.value} stroke={referenceLine.color || "hsl(var(--muted-foreground))"} strokeDasharray="3 3" label={referenceLine.label} />
+        )}
+        {dataKeys.map((key) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            fill={`var(--color-${key})`}
+            radius={barRadius}
+            stackId={stacked ? "stack" : undefined}
+            animationDuration={CHART_ANIMATION.duration}
+          />
+        ))}
+        {children}
+      </BarChart>
+    </ChartContainer>
+  );
+}
