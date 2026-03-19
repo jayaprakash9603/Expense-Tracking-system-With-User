@@ -14,22 +14,24 @@ export function formatMoney(amount, currencyCode = "INR", options = {}) {
   const sign = amount < 0 ? "-" : showSign ? "+" : "";
 
   if (compact && absAmount >= 1_000_000) {
-    return `${sign}${currency.symbol}${(absAmount / 1_000_000).toFixed(1)}M`;
+    const val = absAmount / 1_000_000;
+    return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
   }
   if (compact && absAmount >= 1_000) {
-    return `${sign}${currency.symbol}${(absAmount / 1_000).toFixed(1)}K`;
+    const val = absAmount / 1_000;
+    return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
   }
 
   try {
     const formatted = new Intl.NumberFormat(currency.locale, {
       style: "currency",
       currency: currency.code,
-      minimumFractionDigits: currencyCode === "JPY" ? 0 : 2,
-      maximumFractionDigits: currencyCode === "JPY" ? 0 : 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(absAmount);
     return `${sign}${formatted}`;
   } catch {
-    return `${sign}${currency.symbol}${absAmount.toFixed(2)}`;
+    return `${sign}${currency.symbol}${Math.round(absAmount)}`;
   }
 }
 

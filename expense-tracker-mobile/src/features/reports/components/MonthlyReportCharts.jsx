@@ -2,7 +2,7 @@ import React from "react";
 import { AppComposedChart } from "@/shared/components/chart/AppComposedChart";
 import { AppPieChart } from "@/shared/components/chart/AppPieChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
 export function MonthlyReportCharts({ monthly, category }) {

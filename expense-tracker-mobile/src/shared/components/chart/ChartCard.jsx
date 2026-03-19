@@ -1,10 +1,10 @@
 import React from "react";
-import { AppCard } from "@/shared/components/AppCard";
+import { AppCard } from "@/shared/components/display/AppCard";
 import { cn } from "@/lib/utils";
 
 export function ChartCard({ title, description, children, className, actions }) {
   return (
-    <AppCard className={cn("overflow-hidden", className)}>
+    <AppCard className={cn(className)}>
       <AppCard.Header className="flex-row items-center justify-between pb-2">
         <div>
           {title && <AppCard.Title className="text-base">{title}</AppCard.Title>}

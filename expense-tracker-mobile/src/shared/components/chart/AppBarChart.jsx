@@ -26,7 +26,7 @@ export function AppBarChart({
   const layout = horizontal ? "vertical" : "horizontal";
 
   return (
-    <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>
+    <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>
       <BarChart data={data} layout={layout} accessibilityLayer>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         {horizontal ? (

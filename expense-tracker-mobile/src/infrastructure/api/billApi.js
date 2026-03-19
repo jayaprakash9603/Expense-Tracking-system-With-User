@@ -9,4 +9,11 @@ export const billApi = {
   delete: (id) => safeApiCall(() => api.delete(`/api/bills/${id}`)),
   markPaid: (id) => safeApiCall(() => api.patch(`/api/bills/${id}/pay`)),
   getUpcoming: (params) => safeApiCall(() => api.get("/api/bills/upcoming", { params })),
+  getByExpenseId: (expenseId) => safeApiCall(() => api.get(`/api/bills/expenses/${expenseId}`)),
+  createMultipleTracked: (data) => safeApiCall(() => api.post("/api/bills/add-multiple/tracked", data)),
+  pollSaveProgress: (jobId) => safeApiCall(() => api.get(`/api/bills/add-multiple/progress/${jobId}`)),
+  scanReceipt: (formData) => safeApiCall(() => api.post("/api/bills/scan-receipt", formData, { headers: { "Content-Type": "multipart/form-data" } })),
+  scanMultipleReceipts: (formData) => safeApiCall(() => api.post("/api/bills/scan-receipt/multiple", formData, { headers: { "Content-Type": "multipart/form-data" } })),
+  checkOcrStatus: () => safeApiCall(() => api.get("/api/bills/ocr/status")),
+  getForCalendar: (params) => safeApiCall(() => api.get("/api/bills", { params })),
 };

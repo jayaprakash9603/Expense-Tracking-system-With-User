@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Search, Plus, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppInput } from "@/shared/components/AppInput";
-import { AppButton } from "@/shared/components/AppButton";
-import { AppIcon } from "@/shared/components/AppIcon";
-import { EmptyState } from "@/shared/components/EmptyState";
-import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
-import { PageContainer } from "@/shared/components/PageContainer";
+import { AppInput } from "@/shared/components/form/AppInput";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { AppIcon } from "@/shared/components/display/AppIcon";
+import { EmptyState } from "@/shared/components/feedback/EmptyState";
+import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
 
 export function EntityListPage({
   title,

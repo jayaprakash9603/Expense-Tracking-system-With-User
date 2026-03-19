@@ -16,6 +16,7 @@ export function ThemeProvider({ children }) {
       applyUserSettingsEnhancements(userSettings);
     }
   }, [
+    userSettings?.fontFamily,
     userSettings?.fontSize,
     userSettings?.compactMode,
     userSettings?.reduceMotion,

@@ -9,7 +9,10 @@ import { categoriesReducer } from "./categories/categories.reducer";
 import { billsReducer } from "./bills/bills.reducer";
 import { notificationsReducer } from "./notifications/notifications.reducer";
 import { friendsReducer } from "./friends/friends.reducer";
+import { sharesReducer } from "./shares/shares.reducer";
 import { reportsReducer } from "./reports/reports.reducer";
+import { paymentMethodsReducer } from "./paymentMethods/paymentMethods.reducer";
+import { groupsReducer } from "./groups/groups.reducer";
 import { LOGOUT } from "./auth/auth.actionTypes";
 
 const appReducer = combineReducers({
@@ -22,7 +25,10 @@ const appReducer = combineReducers({
   bills: billsReducer,
   notifications: notificationsReducer,
   friends: friendsReducer,
+  shares: sharesReducer,
   reports: reportsReducer,
+  paymentMethods: paymentMethodsReducer,
+  groups: groupsReducer,
 });
 
 const rootReducer = (state, action) => {

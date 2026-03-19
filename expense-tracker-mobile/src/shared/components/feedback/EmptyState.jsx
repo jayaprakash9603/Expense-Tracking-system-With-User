@@ -1,6 +1,6 @@
 import React from "react";
-import { AppButton } from "@/shared/components/AppButton";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { cn } from "@/lib/utils";
 
 export function EmptyState({ icon: Icon, title, description, actionLabel, onAction, className }) {

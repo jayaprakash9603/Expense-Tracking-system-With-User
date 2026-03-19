@@ -12,10 +12,11 @@ import { SpendingTrendChart } from "@/features/dashboard/components/SpendingTren
 import { CategoryBreakdownChart } from "@/features/dashboard/components/CategoryBreakdownChart";
 import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
 import { CashFlowChart } from "@/features/dashboard/components/CashFlowChart";
+import { DashboardProvider } from "@/features/dashboard/context/DashboardContext";
 
 const SKELETON_VARIANTS = ["blue", "emerald", "amber", "rose"];
 
-export function OverviewPage() {
+function OverviewContent() {
   const { t } = useLanguage();
   const user = useSelector((state) => state.auth?.user);
   const displayName = user?.firstName || user?.fullName;
@@ -70,6 +71,14 @@ export function OverviewPage() {
         </ResponsiveGrid>
       </ContentSection>
     </PageContainer>
+  );
+}
+
+export function OverviewPage() {
+  return (
+    <DashboardProvider>
+      <OverviewContent />
+    </DashboardProvider>
   );
 }
 

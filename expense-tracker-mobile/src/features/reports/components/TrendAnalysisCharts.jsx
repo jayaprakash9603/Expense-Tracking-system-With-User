@@ -2,7 +2,7 @@ import React from "react";
 import { AppAreaChart } from "@/shared/components/chart/AppAreaChart";
 import { AppLineChart } from "@/shared/components/chart/AppLineChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
 export function TrendAnalysisCharts({ daily, monthly }) {

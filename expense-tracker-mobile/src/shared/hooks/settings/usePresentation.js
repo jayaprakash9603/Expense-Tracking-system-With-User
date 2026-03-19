@@ -19,9 +19,10 @@ export function usePresentation() {
 
   const layout = useMemo(() => ({
     compact: settings.compactMode,
+    fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     spacing: settings.compactMode ? 0.75 : 1,
-  }), [settings.compactMode, settings.fontSize]);
+  }), [settings.compactMode, settings.fontFamily, settings.fontSize]);
 
   const accessibility = useMemo(() => ({
     highContrast: settings.highContrastMode,

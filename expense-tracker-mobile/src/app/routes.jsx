@@ -4,7 +4,7 @@ import { AuthLayout } from "@/layouts/AuthLayout";
 import { AppShell } from "@/layouts/AppShell";
 import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
 import { PublicRoute } from "@/app/guards/PublicRoute";
-import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
+import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
 import { ROUTE_CATALOG } from "@/app/routing/routeCatalog";
 
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -30,6 +30,9 @@ const CategoryReportPage = lazy(() => import("@/features/reports/pages/CategoryR
 const PaymentReportPage = lazy(() => import("@/features/reports/pages/PaymentReportPage"));
 const TrendReportPage = lazy(() => import("@/features/reports/pages/TrendReportPage"));
 const OverviewPage = lazy(() => import("@/features/analytics/pages/OverviewPage"));
+const CashflowPage = lazy(() => import("@/features/expenses/pages/CashflowPage"));
+const CategoryFlowPage = lazy(() => import("@/features/categories/pages/CategoryFlowPage"));
+const PaymentMethodFlowPage = lazy(() => import("@/features/payment-methods/pages/PaymentMethodFlowPage"));
 const RoutePlaceholderPage = lazy(() => import("@/features/system/pages/RoutePlaceholderPage"));
 const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
 
@@ -57,6 +60,9 @@ const IMPLEMENTED_PAGES = {
   "reports-trend": TrendReportPage,
   "profile": ProfilePage,
   "analytics": OverviewPage,
+  "cashflow": CashflowPage,
+  "category-flow": CategoryFlowPage,
+  "payments": PaymentMethodFlowPage,
 };
 
 function LazyFallback() {

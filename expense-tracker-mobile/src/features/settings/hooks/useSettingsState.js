@@ -31,6 +31,7 @@ const DEFAULT_LOCAL_SETTINGS = {
   showShortcutIndicators: false,
   reduceMotion: false,
   enhancedFocusIndicators: false,
+  fontFamily: "inter",
   fontSize: "medium",
   compactMode: false,
   enableAnimations: true,

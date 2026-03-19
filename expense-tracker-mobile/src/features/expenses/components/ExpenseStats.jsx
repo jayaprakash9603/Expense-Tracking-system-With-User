@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
-import { AppCard } from "@/shared/components/AppCard";
-import { AppIconBox } from "@/shared/components/AppIcon";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { AppIconBox } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 

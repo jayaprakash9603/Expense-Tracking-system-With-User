@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { AppCard } from "@/shared/components/AppCard";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { BarChart3, PieChart, TrendingUp, CreditCard } from "lucide-react";
 import { REPORT_TYPES } from "@/features/reports/config/reportConfig";

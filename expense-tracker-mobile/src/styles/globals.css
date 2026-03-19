@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;500;600;700&family=Lato:wght@300;400;700;900&family=Raleway:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -82,7 +82,7 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: var(--app-font-family, "Inter"), system-ui, -apple-system, sans-serif;
     font-size: var(--app-font-size, 16px);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -404,4 +404,15 @@
 
 .tab-icon-active {
   animation: tab-icon-pop 300ms ease-out;
+}
+
+.recharts-tooltip-wrapper {
+  z-index: 9999 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+}
+
+.recharts-wrapper,
+.recharts-surface {
+  overflow: visible !important;
 }

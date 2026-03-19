@@ -1,6 +1,7 @@
 import {
   Palette,
   Type,
+  ALargeSmall,
   LayoutGrid,
   Sparkles,
   Contrast,
@@ -68,6 +69,18 @@ export const FONT_SIZE_OPTIONS = [
   { value: "extra-large", labelKey: "settings.options.extraLarge" },
 ];
 
+export const FONT_FAMILY_OPTIONS = [
+  { value: "inter", label: "Inter" },
+  { value: "poppins", label: "Poppins" },
+  { value: "nunito", label: "Nunito" },
+  { value: "roboto", label: "Roboto" },
+  { value: "open-sans", label: "Open Sans" },
+  { value: "lato", label: "Lato" },
+  { value: "raleway", label: "Raleway" },
+  { value: "montserrat", label: "Montserrat" },
+  { value: "source-sans", label: "Source Sans 3" },
+];
+
 export const TIME_FORMAT_OPTIONS = [
   { value: "12h", labelKey: "settings.options.twelveHour" },
   { value: "24h", labelKey: "settings.options.twentyFourHour" },
@@ -120,6 +133,16 @@ export const SETTINGS_SECTIONS = [
         labelKey: "settings.accentColor",
         descriptionKey: "settings.accentColorDesc",
         icon: Palette,
+      },
+      {
+        id: "fontFamily",
+        type: "select",
+        labelKey: "settings.fontFamily",
+        descriptionKey: "settings.fontFamilyDesc",
+        icon: ALargeSmall,
+        stateKey: "fontFamily",
+        settingsKey: "fontFamily",
+        options: FONT_FAMILY_OPTIONS,
       },
       {
         id: "fontSize",

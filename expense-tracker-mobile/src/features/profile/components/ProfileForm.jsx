@@ -2,8 +2,8 @@ import React from "react";
 import { User, Phone, Briefcase, MapPin, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AppIcon, AppIconBox } from "@/shared/components/AppIcon";
-import { AppCard } from "@/shared/components/AppCard";
+import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
+import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 

@@ -1,16 +1,16 @@
 export const DEFAULT_TIMEFRAME_OPTIONS = [
-  { id: "week", labelKey: "chart.week" },
-  { id: "month", labelKey: "chart.month" },
-  { id: "quarter", labelKey: "chart.quarter" },
-  { id: "year", labelKey: "chart.year" },
-  { id: "all", labelKey: "chart.all" },
+  { id: "this_week", labelKey: "chart.thisWeek" },
+  { id: "this_month", labelKey: "chart.thisMonth" },
+  { id: "last_month", labelKey: "chart.lastMonth" },
+  { id: "last_3_months", labelKey: "chart.lastThreeMonths" },
+  { id: "this_year", labelKey: "chart.thisYear" },
+  { id: "last_year", labelKey: "chart.lastYear" },
+  { id: "all_time", labelKey: "chart.allTime" },
 ];
 
-export const DEFAULT_TYPE_OPTIONS = [
-  { id: "bar", labelKey: "chart.bar" },
-  { id: "line", labelKey: "chart.line" },
-  { id: "pie", labelKey: "chart.pie" },
-  { id: "area", labelKey: "chart.area" },
+export const SPENDING_FLOW_OPTIONS = [
+  { id: "loss", labelKey: "dashboard.loss", color: "#ef4444" },
+  { id: "gain", labelKey: "dashboard.gain", color: "#10b981" },
 ];
 
 export const TOOLTIP_CONFIG = {

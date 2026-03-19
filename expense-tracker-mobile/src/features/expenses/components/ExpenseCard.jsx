@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppCard } from "@/shared/components/AppCard";
-import { AppBadge } from "@/shared/components/AppBadge";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { AppBadge } from "@/shared/components/display/AppBadge";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 

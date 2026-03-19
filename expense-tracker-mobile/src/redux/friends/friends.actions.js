@@ -33,14 +33,14 @@ export const sendFriendRequestAction = (requestData) => async (dispatch) => {
 };
 
 export const acceptFriendRequestAction = (id) => async (dispatch) => {
-  const { data, error } = await friendApi.acceptRequest(id);
+  const { data, error } = await friendApi.respondToRequest(id, true);
   if (error) return { success: false, error };
   dispatch({ type: ACCEPT_FRIEND_REQUEST_SUCCESS, payload: { id, data } });
   return { success: true, data };
 };
 
 export const rejectFriendRequestAction = (id) => async (dispatch) => {
-  const { error } = await friendApi.rejectRequest(id);
+  const { error } = await friendApi.respondToRequest(id, false);
   if (error) return { success: false, error };
   dispatch({ type: REJECT_FRIEND_REQUEST_SUCCESS, payload: id });
   return { success: true };
@@ -55,7 +55,7 @@ export const removeFriendAction = (id) => async (dispatch) => {
 
 export const fetchFriendRequestsAction = () => async (dispatch) => {
   dispatch({ type: FETCH_FRIEND_REQUESTS_REQUEST });
-  const { data, error } = await friendApi.getRequests();
+  const { data, error } = await friendApi.getIncomingRequests();
   if (error) {
     dispatch({ type: FETCH_FRIEND_REQUESTS_FAILURE, payload: error.message });
     return { success: false, error };

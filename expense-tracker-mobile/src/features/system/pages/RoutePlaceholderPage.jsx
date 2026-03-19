@@ -1,9 +1,9 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import { Construction } from "lucide-react";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { AppIcon } from "@/shared/components/AppIcon";
-import { AppCard } from "@/shared/components/AppCard";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { AppIcon } from "@/shared/components/display/AppIcon";
+import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { getRouteByPath } from "@/app/routing/routeCatalog";
 

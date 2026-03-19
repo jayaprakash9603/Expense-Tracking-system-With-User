@@ -7,6 +7,18 @@ const FONT_SIZE_MAP = {
   "extra-large": "20px",
 };
 
+const FONT_FAMILY_MAP = {
+  inter: "Inter",
+  poppins: "Poppins",
+  nunito: "Nunito",
+  roboto: "Roboto",
+  "open-sans": "Open Sans",
+  lato: "Lato",
+  raleway: "Raleway",
+  montserrat: "Montserrat",
+  "source-sans": "Source Sans 3",
+};
+
 export function injectTheme(paletteId, mode) {
   const vars = generateShadcnVars(paletteId, mode);
   const root = document.documentElement;
@@ -28,6 +40,12 @@ export function injectFontSize(fontSize) {
   const root = document.documentElement;
   const size = FONT_SIZE_MAP[fontSize] || FONT_SIZE_MAP.medium;
   root.style.setProperty("--app-font-size", size);
+}
+
+export function injectFontFamily(fontFamily) {
+  const root = document.documentElement;
+  const family = FONT_FAMILY_MAP[fontFamily] || FONT_FAMILY_MAP.inter;
+  root.style.setProperty("--app-font-family", `"${family}"`);
 }
 
 export function injectCompactMode(enabled) {
@@ -66,6 +84,7 @@ export function injectScreenReader(enabled) {
 export function applyUserSettingsEnhancements(settings) {
   if (!settings) return;
   injectFontSize(settings.fontSize);
+  injectFontFamily(settings.fontFamily);
   injectCompactMode(settings.compactMode);
   injectReduceMotion(settings.reduceMotion);
   injectHighContrast(settings.highContrastMode);

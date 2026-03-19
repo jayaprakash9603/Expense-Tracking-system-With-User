@@ -53,6 +53,15 @@ export function toChartDataByCategory(expenses) {
   return Object.entries(map).map(([name, value]) => ({ name, value }));
 }
 
+export function toChartDataByPaymentMethod(expenses) {
+  const map = {};
+  expenses.forEach((e) => {
+    const method = e.paymentMethod || "Other";
+    map[method] = (map[method] || 0) + Number(e.amount || 0);
+  });
+  return Object.entries(map).map(([name, value]) => ({ name, value }));
+}
+
 export function toChartDataByDate(expenses) {
   const map = {};
   expenses.forEach((e) => {
@@ -71,8 +80,9 @@ export function toDailySpendingAreaData(expenses) {
     if (!day) return;
     const amount = Number(e.amount || 0);
     const type = e.type === "GAIN" ? "income" : "expense";
-    if (!map[day]) map[day] = { date: day, income: 0, expense: 0 };
+    if (!map[day]) map[day] = { date: day, income: 0, expense: 0, expenses: [] };
     map[day][type] += amount;
+    map[day].expenses.push(e);
   });
   return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
 }

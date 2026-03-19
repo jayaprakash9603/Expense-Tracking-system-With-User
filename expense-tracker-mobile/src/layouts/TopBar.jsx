@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Bell } from "lucide-react";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { cn } from "@/lib/utils";

@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppCard } from "@/shared/components/AppCard";
+import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { Progress } from "@/components/ui/progress";

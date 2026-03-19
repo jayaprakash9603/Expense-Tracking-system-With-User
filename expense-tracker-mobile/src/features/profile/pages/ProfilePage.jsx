@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { PageContainer } from "@/shared/components/PageContainer";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileForm } from "../components/ProfileForm";
 import { useProfileForm } from "../hooks/useProfileForm";

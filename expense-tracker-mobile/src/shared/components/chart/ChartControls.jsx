@@ -1,8 +1,7 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { DEFAULT_TIMEFRAME_OPTIONS, DEFAULT_TYPE_OPTIONS } from "@/config/chartConfig";
+import { DEFAULT_TIMEFRAME_OPTIONS, SPENDING_FLOW_OPTIONS } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function TimeframeSelector({ value, onChange, options = DEFAULT_TIMEFRAME_OPTIONS, className }) {
@@ -21,21 +20,32 @@ export function TimeframeSelector({ value, onChange, options = DEFAULT_TIMEFRAME
   );
 }
 
-export function ChartTypeToggle({ value, onChange, options = DEFAULT_TYPE_OPTIONS, className }) {
+export function ChartTypeToggle({ value, onChange, options = SPENDING_FLOW_OPTIONS, className }) {
   const { t } = useLanguage();
   return (
-    <div className={cn("flex gap-1 rounded-md bg-muted p-0.5", className)}>
-      {options.map((opt) => (
-        <Button
-          key={opt.id}
-          variant={value === opt.id ? "secondary" : "ghost"}
-          size="sm"
-          className="h-7 px-2.5 text-xs"
-          onClick={() => onChange(opt.id)}
-        >
-          {t(opt.labelKey)}
-        </Button>
-      ))}
+    <div className={cn("flex gap-0.5 rounded-lg bg-muted p-0.5", className)}>
+      {options.map((opt) => {
+        const isActive = value === opt.id;
+        return (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => onChange(opt.id)}
+            className={cn(
+              "h-7 px-3 text-xs font-semibold rounded-md transition-all duration-200",
+              isActive
+                ? "text-white shadow-sm scale-[1.02]"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+            style={isActive && opt.color ? {
+              backgroundColor: opt.color,
+              boxShadow: `0 0 0 2px ${opt.color}20, 0 2px 6px ${opt.color}30`,
+            } : undefined}
+          >
+            {t(opt.labelKey)}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
 export function ChartEmptyState({ message }) {

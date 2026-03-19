@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { logoutAction } from "@/redux/auth/auth.actions";
 

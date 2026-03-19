@@ -8,3 +8,5 @@ export * from "./StatsCard";
 export * from "./StatusChip";
 export * from "./SummaryCard";
 export * from "./Sparkline";
+export * from "./MiniStatCard";
+export * from "./SectionHeader";

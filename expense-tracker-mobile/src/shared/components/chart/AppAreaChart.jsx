@@ -14,20 +14,37 @@ export function AppAreaChart({
   height = CHART_HEIGHTS.default,
   className,
   showTooltip = true,
+  customTooltip,
   showLegend = false,
   gradientFill = true,
   stacked = false,
+  connectNulls = true,
   children,
 }) {
   if (!data?.length) return <ChartEmptyState />;
 
   return (
-    <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>
+    <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>
       <AreaChart data={data} accessibilityLayer>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
-        <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} tickFormatter={(v) => typeof v === "string" && v.length > 5 ? v.slice(5) : v} />
+        <XAxis
+          dataKey={xAxisKey}
+          {...AXIS_CONFIG}
+          tickFormatter={(v) => {
+            if (typeof v !== "string") return v;
+            if (v.length === 10) return v.slice(5);
+            if (v.length === 7) return v.slice(2);
+            return v;
+          }}
+        />
         <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-        {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent indicator="line" />} />}
+        {showTooltip && (
+          <ChartTooltip
+            content={customTooltip || <MaskedChartTooltipContent indicator="line" />}
+            allowEscapeViewBox={{ x: true, y: true }}
+            wrapperStyle={{ zIndex: 9999, pointerEvents: "none", overflow: "visible" }}
+          />
+        )}
         {showLegend && <ChartLegend content={<ChartLegendContent />} />}
         {gradientFill && (
           <defs>
@@ -48,6 +65,9 @@ export function AppAreaChart({
             stroke={`var(--color-${key})`}
             strokeWidth={2}
             stackId={stacked ? "stack" : undefined}
+            connectNulls={connectNulls}
+            dot={{ r: 3, fill: `var(--color-${key})`, strokeWidth: 0 }}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }}
             animationDuration={CHART_ANIMATION.duration}
           />
         ))}

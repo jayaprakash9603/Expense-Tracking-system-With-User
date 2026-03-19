@@ -21,6 +21,12 @@ import {
   FETCH_CASHFLOW_REQUEST,
   FETCH_CASHFLOW_SUCCESS,
   FETCH_CASHFLOW_FAILURE,
+  FETCH_CATEGORY_DISTRIBUTION_REQUEST,
+  FETCH_CATEGORY_DISTRIBUTION_SUCCESS,
+  FETCH_CATEGORY_DISTRIBUTION_FAILURE,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_REQUEST,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_SUCCESS,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_FAILURE,
   CLEAR_EXPENSE_ERROR,
   RESET_EXPENSE_STATE,
 } from "./expenses.actionTypes";
@@ -110,6 +116,28 @@ export const fetchCashflowAction = (params) => async (dispatch) => {
     return { success: false, error };
   }
   dispatch({ type: FETCH_CASHFLOW_SUCCESS, payload: data });
+  return { success: true, data };
+};
+
+export const fetchCategoryDistributionAction = (params) => async (dispatch) => {
+  dispatch({ type: FETCH_CATEGORY_DISTRIBUTION_REQUEST });
+  const { data, error } = await expenseApi.getCategoriesDetailed(params);
+  if (error) {
+    dispatch({ type: FETCH_CATEGORY_DISTRIBUTION_FAILURE, payload: error.message });
+    return { success: false, error };
+  }
+  dispatch({ type: FETCH_CATEGORY_DISTRIBUTION_SUCCESS, payload: data });
+  return { success: true, data };
+};
+
+export const fetchPaymentMethodDistributionAction = (params) => async (dispatch) => {
+  dispatch({ type: FETCH_PAYMENT_METHOD_DISTRIBUTION_REQUEST });
+  const { data, error } = await expenseApi.getByPaymentMethod(params);
+  if (error) {
+    dispatch({ type: FETCH_PAYMENT_METHOD_DISTRIBUTION_FAILURE, payload: error.message });
+    return { success: false, error };
+  }
+  dispatch({ type: FETCH_PAYMENT_METHOD_DISTRIBUTION_SUCCESS, payload: data });
   return { success: true, data };
 };
 

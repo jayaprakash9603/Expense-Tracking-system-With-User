@@ -11,3 +11,4 @@ export * from "./settings/useSensitiveText";
 export * from "./settings/usePresentation";
 export * from "./utility/useDebounce";
 export * from "./data/useDataTable";
+export * from "./customization/useSectionCustomization";

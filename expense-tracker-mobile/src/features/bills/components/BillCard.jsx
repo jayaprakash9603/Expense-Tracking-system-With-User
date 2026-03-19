@@ -1,8 +1,8 @@
 import { CheckCircle, Clock, AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppCard } from "@/shared/components/AppCard";
-import { AppBadge } from "@/shared/components/AppBadge";
-import { AppIcon, AppIconBox } from "@/shared/components/AppIcon";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { AppBadge } from "@/shared/components/display/AppBadge";
+import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { getDaysUntilDue } from "@/domain/bills/bill.rules";

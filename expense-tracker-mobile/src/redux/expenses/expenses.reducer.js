@@ -20,6 +20,12 @@ import {
   FETCH_CASHFLOW_REQUEST,
   FETCH_CASHFLOW_SUCCESS,
   FETCH_CASHFLOW_FAILURE,
+  FETCH_CATEGORY_DISTRIBUTION_REQUEST,
+  FETCH_CATEGORY_DISTRIBUTION_SUCCESS,
+  FETCH_CATEGORY_DISTRIBUTION_FAILURE,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_REQUEST,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_SUCCESS,
+  FETCH_PAYMENT_METHOD_DISTRIBUTION_FAILURE,
   CLEAR_EXPENSE_ERROR,
   RESET_EXPENSE_STATE,
 } from "./expenses.actionTypes";
@@ -31,6 +37,10 @@ const initialState = {
   error: null,
   dailySpending: [],
   cashflow: null,
+  categoryDistribution: null,
+  categoryDistributionLoading: false,
+  paymentMethodDistribution: null,
+  paymentMethodDistributionLoading: false,
   pagination: { page: 0, totalPages: 0, totalElements: 0, hasMore: false },
   mutating: false,
 };
@@ -110,6 +120,20 @@ export const expensesReducer = (state = initialState, action) => {
       return { ...state, loading: false, cashflow: action.payload };
     case FETCH_CASHFLOW_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+    case FETCH_CATEGORY_DISTRIBUTION_REQUEST:
+      return { ...state, categoryDistributionLoading: true };
+    case FETCH_CATEGORY_DISTRIBUTION_SUCCESS:
+      return { ...state, categoryDistributionLoading: false, categoryDistribution: action.payload };
+    case FETCH_CATEGORY_DISTRIBUTION_FAILURE:
+      return { ...state, categoryDistributionLoading: false, error: action.payload };
+
+    case FETCH_PAYMENT_METHOD_DISTRIBUTION_REQUEST:
+      return { ...state, paymentMethodDistributionLoading: true };
+    case FETCH_PAYMENT_METHOD_DISTRIBUTION_SUCCESS:
+      return { ...state, paymentMethodDistributionLoading: false, paymentMethodDistribution: action.payload };
+    case FETCH_PAYMENT_METHOD_DISTRIBUTION_FAILURE:
+      return { ...state, paymentMethodDistributionLoading: false, error: action.payload };
 
     case CLEAR_EXPENSE_ERROR:
       return { ...state, error: null };

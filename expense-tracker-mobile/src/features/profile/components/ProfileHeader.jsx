@@ -1,7 +1,7 @@
 import React from "react";
 import { Pencil, Save, X, Camera, Mail, MapPin, Briefcase, Calendar } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { cn } from "@/lib/utils";

@@ -22,7 +22,7 @@ export function AppComposedChart({
   if (!data?.length) return <ChartEmptyState />;
 
   return (
-    <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>
+    <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>
       <ComposedChart data={data} accessibilityLayer>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} />

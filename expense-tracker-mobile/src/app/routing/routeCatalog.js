@@ -48,7 +48,7 @@ export const ROUTE_CATALOG = [
   { path: "/categories", key: "categories", titleKey: "navigation.categories", guard: "protected", navGroup: "finance", navIcon: FolderOpen, bottomNav: false, elementMode: "implemented" },
   { path: "/categories/add", key: "categories-add", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
   { path: "/categories/edit/:id", key: "categories-edit", titleKey: "common.edit", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
-  { path: "/category-flow", key: "category-flow", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "redirect", redirectTo: "/categories" },
+  { path: "/category-flow", key: "category-flow", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
   { path: "/category-flow/:friendId", key: "category-flow-friend", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
   { path: "/category-flow/calendar", key: "category-calendar", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
   { path: "/category-flow/calendar/:friendId", key: "category-calendar-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
@@ -61,7 +61,7 @@ export const ROUTE_CATALOG = [
   { path: "/category-flow/view/:categoryId", key: "category-analytics", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
   { path: "/category-flow/view/:categoryId/friend/:friendId", key: "category-analytics-friend", titleKey: "navigation.categories", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
 
-  { path: "/payment-method", key: "payments", titleKey: "navigation.payments", guard: "protected", navGroup: "finance", navIcon: CreditCard, bottomNav: false, elementMode: "placeholder" },
+  { path: "/payment-method", key: "payments", titleKey: "navigation.payments", guard: "protected", navGroup: "finance", navIcon: CreditCard, bottomNav: false, elementMode: "implemented" },
   { path: "/payment-method/:friendId", key: "payments-friend", titleKey: "navigation.payments", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
   { path: "/payment-method/calendar", key: "payments-calendar", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
   { path: "/payment-method/calendar/:friendId", key: "payments-calendar-friend", titleKey: "navigation.calendar", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
@@ -109,7 +109,7 @@ export const ROUTE_CATALOG = [
   { path: "/reports/trend", key: "reports-trend", titleKey: "reports.trend", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
   { path: "/reports/:friendId", key: "reports-friend", titleKey: "navigation.reports", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
 
-  { path: "/cashflow", key: "cashflow", titleKey: "navigation.cashflow", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
+  { path: "/cashflow", key: "cashflow", titleKey: "navigation.cashflow", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "implemented" },
   { path: "/cashflow/:friendId", key: "cashflow-friend", titleKey: "navigation.cashflow", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
 
   { path: "/transactions", key: "transactions", titleKey: "navigation.transactions", guard: "protected", navGroup: null, navIcon: null, bottomNav: false, elementMode: "placeholder" },
