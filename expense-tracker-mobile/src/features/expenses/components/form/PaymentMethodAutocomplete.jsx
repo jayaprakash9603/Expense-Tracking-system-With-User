@@ -100,7 +100,7 @@ export function PaymentMethodAutocomplete({
       noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
-      maxWidth="300px"
+      maxWidth="100%"
       startAdornment={selectedOption ? <PaymentIcon option={selectedOption} /> : null}
       renderOption={(option, state) => (
         <span className="inline-flex w-full items-center gap-2">

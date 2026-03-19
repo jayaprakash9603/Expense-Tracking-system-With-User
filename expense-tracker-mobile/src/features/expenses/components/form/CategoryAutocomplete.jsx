@@ -97,7 +97,7 @@ export function CategoryAutocomplete({
       noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
-      maxWidth="300px"
+      maxWidth="100%"
       startAdornment={selectedCategory ? <CategoryIcon category={selectedCategory} /> : null}
       renderOption={(option, state) => (
         <span className="inline-flex w-full items-center gap-2">

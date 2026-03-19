@@ -83,7 +83,7 @@ export function ExpenseNameAutocomplete({
       error={error}
       loading={hasExternalOptions ? false : loading}
       freeSolo
-      maxWidth="300px"
+      maxWidth="100%"
       renderOption={(option, state) => (
         <HighlightedText text={option} query={state.inputValue} title={option} />
       )}
