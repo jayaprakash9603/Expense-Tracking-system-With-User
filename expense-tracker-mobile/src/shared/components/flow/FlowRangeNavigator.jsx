@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const RANGE_LABELS = { week: "W", month: "M", year: "Y" };
+const RANGE_LABELS = { week: "Week", month: "Month", year: "Year" };
 
 export function FlowRangeNavigator({
   activeRange,
@@ -16,18 +16,18 @@ export function FlowRangeNavigator({
   className,
 }) {
   return (
-    <div className={cn("flex items-center justify-between gap-2", className)}>
-      <div className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+    <div className={cn("grid grid-cols-1 md:grid-cols-2 items-center gap-3 w-full", className)}>
+      <div className="grid grid-cols-3 sm:flex items-center gap-1 w-full sm:w-fit justify-self-stretch sm:justify-self-start bg-muted rounded-lg p-1">
         {rangeOptions.map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => setActiveRange(r)}
             className={cn(
-              "h-7 px-3 text-xs font-semibold rounded-md transition-colors",
+              "h-9 sm:h-8 w-full sm:w-auto sm:min-w-[72px] px-3 sm:px-2 text-sm sm:text-xs font-semibold rounded-md transition-colors",
               activeRange === r
                 ? "bg-primary text-primary-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
+                : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent"
             )}
           >
             {RANGE_LABELS[r] || r}
@@ -35,18 +35,28 @@ export function FlowRangeNavigator({
         ))}
       </div>
 
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onPrev}>
+      <div className="flex items-center justify-center gap-2 w-full">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 rounded-md border-border text-foreground hover:bg-accent"
+          onClick={onPrev}
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <button
           type="button"
           onClick={onReset}
-          className="text-xs font-medium px-2 py-1 rounded hover:bg-muted transition-colors min-w-[100px] text-center"
+          className="h-9 text-sm font-semibold px-4 rounded-md hover:bg-accent transition-colors min-w-[120px] md:min-w-[140px] text-center text-foreground"
         >
           {rangeLabel}
         </button>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onNext}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9 rounded-md border-border text-foreground hover:bg-accent"
+          onClick={onNext}
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

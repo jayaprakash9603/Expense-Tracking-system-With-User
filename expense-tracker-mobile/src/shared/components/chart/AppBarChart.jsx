@@ -19,6 +19,9 @@ export function AppBarChart({
   horizontal = false,
   barRadius = 4,
   referenceLine,
+  chartMargin,
+  xAxisProps,
+  yAxisProps,
   children,
 }) {
   if (!data?.length) return <ChartEmptyState />;
@@ -27,17 +30,17 @@ export function AppBarChart({
 
   return (
     <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>
-      <BarChart data={data} layout={layout} accessibilityLayer>
+      <BarChart data={data} layout={layout} margin={chartMargin} accessibilityLayer>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         {horizontal ? (
           <>
-            <YAxis dataKey={xAxisKey} type="category" {...AXIS_CONFIG} width={80} />
-            <XAxis type="number" {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+            <YAxis dataKey={xAxisKey} type="category" {...AXIS_CONFIG} width={80} {...yAxisProps} />
+            <XAxis type="number" {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} {...xAxisProps} />
           </>
         ) : (
           <>
-            <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} />
-            <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+            <XAxis dataKey={xAxisKey} {...AXIS_CONFIG} {...xAxisProps} />
+            <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} {...yAxisProps} />
           </>
         )}
         {showTooltip && <ChartTooltip content={<MaskedChartTooltipContent />} />}

@@ -4,9 +4,24 @@ import { safeApiCall } from "@/shared/utils/safeApiCall";
 export const expenseApi = {
   getAll: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses", { params })),
   getPaginated: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses-paginated", { params })),
-  getById: (id) => safeApiCall(() => api.get(`/api/expenses/expense/${id}`)),
-  create: (data) => safeApiCall(() => api.post("/api/expenses/add-expense", data)),
-  update: (id, data) => safeApiCall(() => api.put(`/api/expenses/edit-expense/${id}`, data)),
+  getById: (id, targetId = "") =>
+    safeApiCall(() =>
+      api.get(`/api/expenses/expense/${id}`, {
+        params: targetId ? { targetId } : undefined,
+      }),
+    ),
+  create: (data, targetId = "") =>
+    safeApiCall(() =>
+      api.post("/api/expenses/add-expense", data, {
+        params: targetId ? { targetId } : undefined,
+      }),
+    ),
+  update: (id, data, targetId = "") =>
+    safeApiCall(() =>
+      api.put(`/api/expenses/edit-expense/${id}`, data, {
+        params: targetId ? { targetId } : undefined,
+      }),
+    ),
   delete: (id) => safeApiCall(() => api.delete(`/api/expenses/delete/${id}`)),
   getDailySpending: (params) => safeApiCall(() => api.get("/api/expenses/cashflow", { params })),
   getCashflow: (params) => safeApiCall(() => api.get("/api/expenses/cashflow", { params })),
@@ -19,7 +34,12 @@ export const expenseApi = {
   copy: (id) => safeApiCall(() => api.post(`/api/expenses/${id}/copy`)),
   editMultiple: (data) => safeApiCall(() => api.put("/api/expenses/edit-multiple", data)),
   deleteMultiple: (ids) => safeApiCall(() => api.delete("/api/expenses/delete-multiple", { data: ids })),
-  getPrevious: (name, date) => safeApiCall(() => api.get(`/api/expenses/before/${name}/${date}`)),
+  getPrevious: (name, date, targetId = "") =>
+    safeApiCall(() =>
+      api.get(`/api/expenses/before/${name}/${date}`, {
+        params: targetId ? { targetId } : undefined,
+      }),
+    ),
   upload: (formData) => safeApiCall(() => api.post("/api/expenses/upload", formData, { headers: { "Content-Type": "multipart/form-data" } })),
   uploadCategories: (formData) => safeApiCall(() => api.post("/api/expenses/upload-categories", formData, { headers: { "Content-Type": "multipart/form-data" } })),
   createMultiple: (data) => safeApiCall(() => api.post("/api/expenses/add-multiple", data)),

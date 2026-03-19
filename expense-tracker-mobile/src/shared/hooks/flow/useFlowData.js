@@ -27,6 +27,7 @@ export function useFlowData({
   fetchAction,
   defaultRange = "month",
   defaultFlowTab = "all",
+  paramsBuilder,
 } = {}) {
   const dispatch = useDispatch();
   const storageKey = buildStorageKey(storagePrefix, "self");
@@ -67,20 +68,28 @@ export function useFlowData({
     if (!fetchAction) return;
     setLoading(true);
 
-    const rangeMap = { week: "this_week", month: "this_month", year: "this_year" };
-    let timeframeKey = rangeMap[activeRange] || "this_month";
-    if (offset < 0) {
-      if (activeRange === "month" && offset === -1) timeframeKey = "last_month";
-      else if (activeRange === "year" && offset === -1) timeframeKey = "last_year";
-    }
+    let params;
+    if (typeof paramsBuilder === "function") {
+      params = paramsBuilder({ activeRange, offset, apiFlowType }) || {};
+    } else {
+      const rangeMap = { week: "this_week", month: "this_month", year: "this_year" };
+      let timeframeKey = rangeMap[activeRange] || "this_month";
+      if (offset < 0) {
+        if (activeRange === "month" && offset === -1) timeframeKey = "last_month";
+        else if (activeRange === "year" && offset === -1) timeframeKey = "last_year";
+      }
 
-    const params = buildDateRangeParams(timeframeKey, apiFlowType === "gain" ? "gain" : apiFlowType === "outflow" ? "loss" : null);
+      params = buildDateRangeParams(
+        timeframeKey,
+        apiFlowType === "gain" ? "gain" : apiFlowType === "outflow" ? "loss" : null
+      );
 
-    if (offset !== 0 && offset !== -1) {
-      params.rangeType = activeRange;
-      params.offset = offset;
-      delete params.fromDate;
-      delete params.toDate;
+      if (offset !== 0 && offset !== -1) {
+        params.rangeType = activeRange;
+        params.offset = offset;
+        delete params.fromDate;
+        delete params.toDate;
+      }
     }
 
     const result = await dispatch(fetchAction(params));
@@ -88,7 +97,7 @@ export function useFlowData({
       setRawData(result.data);
     }
     setLoading(false);
-  }, [dispatch, fetchAction, activeRange, offset, apiFlowType]);
+  }, [dispatch, fetchAction, activeRange, offset, apiFlowType, paramsBuilder]);
 
   useEffect(() => {
     fetchData();

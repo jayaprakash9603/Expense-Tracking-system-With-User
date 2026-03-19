@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function ContentSection({ title, description, action, children, className }) {
   return (
-    <section className={cn("mb-6 md:mb-8", className)}>
+    <section className={cn("mb-5 md:mb-5", className)}>
       {(title || action) && (
         <div className="flex items-center justify-between mb-3 md:mb-4">
           <div>

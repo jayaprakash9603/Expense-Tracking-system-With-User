@@ -14,12 +14,11 @@ import OtpVerificationPage from "@/features/auth/pages/OtpVerificationPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import SettingsPage from "@/features/settings/pages/SettingsPage";
 
-const ExpenseListPage = lazy(() => import("@/features/expenses/pages/ExpenseListPage"));
-const ExpenseFormPage = lazy(() => import("@/features/expenses/pages/ExpenseFormPage"));
+const NewExpensePage = lazy(() => import("@/features/expenses/pages/NewExpense"));
+const EditExpensePage = lazy(() => import("@/features/expenses/pages/EditExpense"));
 const ExpenseDetailPage = lazy(() => import("@/features/expenses/pages/ExpenseDetailPage"));
 const BudgetListPage = lazy(() => import("@/features/budgets/pages/BudgetListPage"));
 const BudgetFormPage = lazy(() => import("@/features/budgets/pages/BudgetFormPage"));
-const CategoryListPage = lazy(() => import("@/features/categories/pages/CategoryListPage"));
 const CategoryFormPage = lazy(() => import("@/features/categories/pages/CategoryFormPage"));
 const BillListPage = lazy(() => import("@/features/bills/pages/BillListPage"));
 const BillFormPage = lazy(() => import("@/features/bills/pages/BillFormPage"));
@@ -39,14 +38,14 @@ const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
 const IMPLEMENTED_PAGES = {
   "dashboard": DashboardPage,
   "settings": SettingsPage,
-  "expenses": ExpenseListPage,
-  "expenses-add": ExpenseFormPage,
-  "expenses-edit": ExpenseFormPage,
+  "expenses": CashflowPage,
+  "expenses-add": NewExpensePage,
+  "expenses-edit": EditExpensePage,
   "expenses-detail": ExpenseDetailPage,
   "budgets": BudgetListPage,
   "budgets-add": BudgetFormPage,
   "budgets-edit": BudgetFormPage,
-  "categories": CategoryListPage,
+  "categories": CategoryFlowPage,
   "categories-add": CategoryFormPage,
   "categories-edit": CategoryFormPage,
   "bills": BillListPage,

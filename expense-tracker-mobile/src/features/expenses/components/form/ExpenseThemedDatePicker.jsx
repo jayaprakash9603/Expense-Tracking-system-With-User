@@ -1,0 +1,83 @@
+import React, { useMemo, useState, useCallback } from "react";
+import dayjs from "dayjs";
+import { CalendarDays } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+
+export function ExpenseThemedDatePicker({
+  value,
+  onChange,
+  dateFormat = "DD/MM/YYYY",
+  error = false,
+  disableFuture = true,
+  placeholder,
+  width = "100%",
+  height = 48,
+  className,
+}) {
+  const [open, setOpen] = useState(false);
+
+  const selectedDate = useMemo(() => {
+    if (!value) return undefined;
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.toDate() : undefined;
+  }, [value]);
+
+  const displayValue = useMemo(() => {
+    if (!value) return "";
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.format(dateFormat) : "";
+  }, [value, dateFormat]);
+
+  const maxWidthValue =
+    typeof width === "number" ? `${width}px` : width;
+
+  const handleSelect = useCallback(
+    (nextDate) => {
+      if (!nextDate) return;
+      const day = dayjs(nextDate);
+      if (!day.isValid()) return;
+      onChange?.(day.format("YYYY-MM-DD"), day);
+      setOpen(false);
+    },
+    [onChange],
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex w-full items-center rounded-md border bg-background px-3 text-sm text-left",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            error ? "border-destructive focus-visible:ring-destructive" : "border-input",
+            className,
+          )}
+          style={{ height: `${height}px`, maxWidth: maxWidthValue }}
+          aria-label="Select date"
+        >
+          <CalendarDays className="mr-2 h-4 w-4 text-primary" />
+          <span className={cn("truncate", !displayValue && "text-muted-foreground")}>
+            {displayValue || placeholder}
+          </span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start" sideOffset={6}>
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={handleSelect}
+          defaultMonth={selectedDate || new Date()}
+          disabled={(date) => {
+            if (!disableFuture) return false;
+            return dayjs(date).isAfter(dayjs(), "day");
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export default ExpenseThemedDatePicker;

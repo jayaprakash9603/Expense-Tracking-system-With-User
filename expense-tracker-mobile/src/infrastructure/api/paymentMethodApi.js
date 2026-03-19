@@ -2,7 +2,12 @@ import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
 
 export const paymentMethodApi = {
-  getAll: () => safeApiCall(() => api.get("/api/payment-methods")),
+  getAll: (friendId = "") =>
+    safeApiCall(() =>
+      api.get("/api/payment-methods", {
+        params: friendId ? { targetId: friendId } : undefined,
+      }),
+    ),
   getById: (id, targetId) => safeApiCall(() => api.get(`/api/payment-methods/${id}`, { params: targetId ? { targetId } : undefined })),
   create: (data, friendId) => safeApiCall(() => api.post(friendId ? `/api/payment-methods/friend/${friendId}` : "/api/payment-methods", data)),
   update: (data, friendId) => safeApiCall(() => api.put(friendId ? `/api/payment-methods/friend/${friendId}` : "/api/payment-methods", data)),

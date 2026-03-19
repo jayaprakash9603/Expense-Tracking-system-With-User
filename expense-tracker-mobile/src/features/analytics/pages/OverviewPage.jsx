@@ -11,7 +11,6 @@ import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardChart
 import { SpendingTrendChart } from "@/features/dashboard/components/SpendingTrendChart";
 import { CategoryBreakdownChart } from "@/features/dashboard/components/CategoryBreakdownChart";
 import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
-import { CashFlowChart } from "@/features/dashboard/components/CashFlowChart";
 import { DashboardProvider } from "@/features/dashboard/context/DashboardContext";
 
 const SKELETON_VARIANTS = ["blue", "emerald", "amber", "rose"];
@@ -21,7 +20,7 @@ function OverviewContent() {
   const user = useSelector((state) => state.auth?.user);
   const displayName = user?.firstName || user?.fullName;
   const { cards, loading } = useOverviewData();
-  const { spendingTrend, categoryBreakdown, monthlyComparison, cashFlow } = useDashboardCharts();
+  const { spendingTrend, categoryBreakdown, monthlyComparison } = useDashboardCharts();
 
   return (
     <PageContainer>
@@ -67,7 +66,6 @@ function OverviewContent() {
           <SpendingTrendChart data={spendingTrend.data} config={spendingTrend.config} />
           <CategoryBreakdownChart data={categoryBreakdown.data} config={categoryBreakdown.config} />
           <MonthlyComparisonChart data={monthlyComparison.data} config={monthlyComparison.config} />
-          <CashFlowChart data={cashFlow.data} config={cashFlow.config} />
         </ResponsiveGrid>
       </ContentSection>
     </PageContainer>

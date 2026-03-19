@@ -1,5 +1,47 @@
 import { EXPENSE_TYPES, PAYMENT_METHODS } from "@/domain/expenses/expense.model";
 
+export const EXPENSE_FORM_MODE_CONFIG = {
+  create: {
+    titleKey: "expenseForm.create.title",
+    submitLabelKey: "expenseForm.create.submit",
+    successMessageKey: "expenseForm.create.success",
+  },
+  edit: {
+    titleKey: "expenseForm.edit.title",
+    submitLabelKey: "expenseForm.edit.submit",
+    successMessageKey: "expenseForm.edit.success",
+  },
+};
+
+export const EXPENSE_FORM_VALIDATION_MESSAGES = {
+  expenseName: "Expense name is required",
+  amount: "Enter a valid amount",
+  date: "Date is required",
+  transactionType: "Type is required",
+};
+
+export const EXPENSE_FORM_LABELS = {
+  expenseName: "expenseForm.fields.expenseName",
+  amount: "expenseForm.fields.amount",
+  date: "expenseForm.fields.date",
+  transactionType: "expenseForm.fields.transactionType",
+  category: "expenseForm.fields.category",
+  paymentMethod: "expenseForm.fields.paymentMethod",
+  comments: "expenseForm.fields.comments",
+};
+
+export const EXPENSE_FORM_PLACEHOLDERS = {
+  expenseName: "expenseForm.placeholders.expenseName",
+  amount: "expenseForm.placeholders.amount",
+  date: "expenseForm.placeholders.date",
+  transactionType: "expenseForm.placeholders.transactionType",
+  category: "expenseForm.placeholders.category",
+  paymentMethod: "expenseForm.placeholders.paymentMethod",
+  comments: "expenseForm.placeholders.comments",
+};
+
+export const EXPENSE_TYPE_OPTIONS = ["gain", "loss"];
+
 export const EXPENSE_FORM_FIELDS = [
   { name: "name", label: "expenses.form.name", type: "text", required: true, placeholder: "expenses.form.namePlaceholder" },
   { name: "amount", label: "expenses.form.amount", type: "number", required: true, placeholder: "0.00" },

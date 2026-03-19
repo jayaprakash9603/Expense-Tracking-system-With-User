@@ -1,15 +1,13 @@
 import React from "react";
-import { Loader2 } from "lucide-react";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ContentSection } from "@/shared/components/layout/ContentSection";
 import { FlowRangeNavigator } from "./FlowRangeNavigator";
 import { FlowToggle } from "./FlowToggle";
-import { FlowSummaryHeader } from "./FlowSummaryHeader";
+import { FlowChartSkeleton } from "./skeletons";
 import { ChartEmptyState } from "@/shared/components/chart/ChartEmptyState";
 import { cn } from "@/lib/utils";
 
 export function FlowPageLayout({
-  title,
   activeRange,
   setActiveRange,
   rangeLabel,
@@ -20,20 +18,15 @@ export function FlowPageLayout({
   onReset,
   rangeOptions,
   loading,
-  totals,
   chartSection,
   cardsSection,
+  headerActions,
   className,
 }) {
   return (
-    <PageContainer className={cn(className)}>
+    <PageContainer className={cn("pt-2 md:pt-3 lg:pt-3 xl:pt-4 pb-2 md:pb-2", className)}>
       <ContentSection>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <FlowToggle value={flowTab} onChange={setFlowTab} />
-          </div>
-
+        <div className="w-full grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <FlowRangeNavigator
             activeRange={activeRange}
             setActiveRange={setActiveRange}
@@ -42,21 +35,18 @@ export function FlowPageLayout({
             onNext={onNext}
             onReset={onReset}
             rangeOptions={rangeOptions}
+            className="w-full"
           />
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 md:w-auto md:justify-self-end">
+            {headerActions}
+            <FlowToggle value={flowTab} onChange={setFlowTab} className="w-full sm:w-auto" />
+          </div>
         </div>
       </ContentSection>
 
-      {totals && (
-        <ContentSection>
-          <FlowSummaryHeader totals={totals} />
-        </ContentSection>
-      )}
-
       <ContentSection>
         {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
+          <FlowChartSkeleton />
         ) : chartSection ? (
           chartSection
         ) : (
@@ -65,7 +55,7 @@ export function FlowPageLayout({
       </ContentSection>
 
       {cardsSection && (
-        <ContentSection>
+        <ContentSection className="mb-0 md:mb-0">
           {cardsSection}
         </ContentSection>
       )}

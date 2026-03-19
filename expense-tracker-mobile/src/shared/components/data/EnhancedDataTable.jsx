@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useId } from "react";
+import React, { useState, useMemo, useId, useEffect, useCallback } from "react";
 import {
   closestCenter,
   DndContext,
@@ -28,6 +28,9 @@ import {
 } from "@tanstack/react-table";
 import {
   GripVertical,
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -55,6 +58,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NoDataPlaceholder } from "@/shared/components/feedback/NoDataPlaceholder";
 import { SearchToolbar } from "@/shared/components/search/SearchToolbar";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { DataTableFilterPopover } from "@/shared/components/data/DataTableFilterPopover";
 import { cn } from "@/lib/utils";
 
 function DragHandle({ id }) {
@@ -108,6 +112,103 @@ function TableSkeleton({ colCount, rows = 5 }) {
   ));
 }
 
+function normalizeText(value) {
+  return String(value ?? "").trim().toLowerCase();
+}
+
+function parseNumber(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseDate(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function matchesText(value, filter) {
+  const operator = filter?.operator || "contains";
+  const left = normalizeText(value);
+  const right = normalizeText(filter?.value);
+  if (!right) return true;
+  if (operator === "contains") return left.includes(right);
+  if (operator === "notContains") return !left.includes(right);
+  if (operator === "equals") return left === right;
+  if (operator === "startsWith") return left.startsWith(right);
+  if (operator === "endsWith") return left.endsWith(right);
+  if (operator === "neq") return left !== right;
+  return true;
+}
+
+function matchesNumber(value, filter) {
+  const operator = filter?.operator || "equals";
+  const left = parseNumber(value);
+  const right = parseNumber(filter?.value);
+  if (left == null || right == null) return false;
+  if (operator === "equals") return left === right;
+  if (operator === "gt") return left > right;
+  if (operator === "lt") return left < right;
+  if (operator === "gte") return left >= right;
+  if (operator === "lte") return left <= right;
+  if (operator === "neq") return left !== right;
+  return true;
+}
+
+function toDateOnlyKey(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function matchesDate(value, filter) {
+  const operator = filter?.operator || "equals";
+  const left = parseDate(value);
+  if (!left) return false;
+
+  if (operator === "range") {
+    const from = parseDate(filter?.value?.from);
+    const to = parseDate(filter?.value?.to);
+    if (from && left < from) return false;
+    if (to && left > to) return false;
+    return true;
+  }
+
+  const right = parseDate(filter?.value);
+  if (!right) return false;
+  if (operator === "equals") return toDateOnlyKey(left) === toDateOnlyKey(right);
+  if (operator === "before") return left < right;
+  if (operator === "after") return left > right;
+  if (operator === "neq") return toDateOnlyKey(left) !== toDateOnlyKey(right);
+  return true;
+}
+
+function advancedColumnFilterFn(row, columnId, filter) {
+  if (!filter) return true;
+  const filterType = filter?.type || "text";
+  const value = row.getValue(columnId);
+  if (filterType === "number") return matchesNumber(value, filter);
+  if (filterType === "date") return matchesDate(value, filter);
+  return matchesText(value, filter);
+}
+
+function getSortIndicator(direction) {
+  if (!direction) return <ChevronsUpDown className="h-3.5 w-3.5 opacity-50" />;
+  if (direction === "asc") return <ArrowUp className="h-3.5 w-3.5 text-primary" />;
+  return <ArrowDown className="h-3.5 w-3.5 text-primary" />;
+}
+
+function isSimpleHeader(headerDef) {
+  return typeof headerDef === "string" || typeof headerDef === "number";
+}
+
+function toHeaderLabel(column) {
+  const headerDef = column?.columnDef?.header;
+  if (typeof headerDef === "string" || typeof headerDef === "number") {
+    return String(headerDef);
+  }
+  return String(column?.id || "");
+}
+
 export function EnhancedDataTable({
   columns,
   data: initialData,
@@ -116,6 +217,7 @@ export function EnhancedDataTable({
   searchable = false,
   searchPlaceholder,
   selectable = false,
+  enableColumnFilters = false,
   showColumnVisibility = false,
   showPagination = true,
   defaultPageSize = 10,
@@ -128,20 +230,47 @@ export function EnhancedDataTable({
   toolbar,
   className,
   getRowId,
+  rowSelectionState,
+  onRowSelectionStateChange,
+  selectionCheckboxClassName,
+  tableClassName,
 }) {
   const { t } = useLanguage();
   const [data, setData] = useState(initialData);
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
-  const [rowSelection, setRowSelection] = useState({});
+  const [internalRowSelection, setInternalRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: defaultPageSize });
   const sortableId = useId();
+  const resolvedRowSelection = rowSelectionState ?? internalRowSelection;
 
-  React.useEffect(() => {
+  useEffect(() => {
     setData(initialData);
   }, [initialData]);
+
+  const handleRowSelectionChange = useCallback(
+    (updater) => {
+      if (rowSelectionState == null) {
+        setInternalRowSelection((currentSelection) => {
+          const nextSelection =
+            typeof updater === "function"
+              ? updater(currentSelection)
+              : updater;
+          onRowSelectionStateChange?.(nextSelection);
+          return nextSelection;
+        });
+        return;
+      }
+      const nextSelection =
+        typeof updater === "function"
+          ? updater(rowSelectionState)
+          : updater;
+      onRowSelectionStateChange?.(nextSelection);
+    },
+    [rowSelectionState, onRowSelectionStateChange],
+  );
 
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -169,6 +298,7 @@ export function EnhancedDataTable({
         header: ({ table }) => (
           <div className="flex items-center justify-center">
             <Checkbox
+              className={selectionCheckboxClassName}
               checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
               onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
             />
@@ -177,6 +307,7 @@ export function EnhancedDataTable({
         cell: ({ row }) => (
           <div className="flex items-center justify-center">
             <Checkbox
+              className={selectionCheckboxClassName}
               checked={row.getIsSelected()}
               onCheckedChange={(value) => row.toggleSelected(!!value)}
             />
@@ -188,8 +319,25 @@ export function EnhancedDataTable({
       });
     }
 
-    return [...cols, ...columns];
-  }, [columns, draggable, selectable]);
+    const nextColumns = columns.map((column) => {
+      const filterType = column?.meta?.filterType;
+      if (!enableColumnFilters || !filterType || column.filterFn) {
+        return column;
+      }
+      return {
+        ...column,
+        filterFn: advancedColumnFilterFn,
+      };
+    });
+
+    return [...cols, ...nextColumns];
+  }, [
+    columns,
+    draggable,
+    selectable,
+    enableColumnFilters,
+    selectionCheckboxClassName,
+  ]);
 
   const table = useReactTable({
     data,
@@ -198,13 +346,13 @@ export function EnhancedDataTable({
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
+      rowSelection: resolvedRowSelection,
       globalFilter,
       pagination,
     },
-    getRowId: getRowId || ((row) => (row.id ?? row._id ?? "").toString()),
+    getRowId: getRowId || ((row, index) => String(row.id ?? row._id ?? index)),
     enableRowSelection: selectable,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: handleRowSelectionChange,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -240,16 +388,68 @@ export function EnhancedDataTable({
     .getAllColumns()
     .filter((col) => typeof col.accessorFn !== "undefined" && col.getCanHide());
 
+  const renderHeaderCell = useCallback(
+    (header) => {
+      if (header.isPlaceholder) return null;
+      const headerContent = flexRender(
+        header.column.columnDef.header,
+        header.getContext(),
+      );
+      const canSort =
+        header.column.getCanSort() &&
+        isSimpleHeader(header.column.columnDef.header);
+      const sortDirection = header.column.getIsSorted();
+      const filterType = header.column.columnDef.meta?.filterType;
+      const canFilter = Boolean(
+        enableColumnFilters &&
+          filterType &&
+          header.column.getCanFilter(),
+      );
+      const headerLabel =
+        header.column.columnDef.meta?.filterLabel ||
+        toHeaderLabel(header.column);
+
+      const content = canSort ? (
+        <button
+          type="button"
+          className="inline-flex w-full items-center gap-1 text-left text-xs font-semibold text-muted-foreground hover:text-foreground"
+          onClick={header.column.getToggleSortingHandler()}
+        >
+          <span className="truncate">{headerContent}</span>
+          {getSortIndicator(sortDirection)}
+        </button>
+      ) : isSimpleHeader(header.column.columnDef.header) ? (
+        <div className="truncate text-xs font-semibold text-muted-foreground">
+          {headerContent}
+        </div>
+      ) : (
+        headerContent
+      );
+
+      if (!canFilter) return content;
+
+      return (
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">{content}</div>
+          <DataTableFilterPopover
+            column={header.column}
+            filterType={filterType}
+            filterLabel={headerLabel}
+          />
+        </div>
+      );
+    },
+    [enableColumnFilters],
+  );
+
   const tableContent = (
-    <Table>
+    <Table className={tableClassName}>
       <TableHeader className="sticky top-0 z-10 bg-muted">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
               <TableHead key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
-                {header.isPlaceholder
-                  ? null
-                  : flexRender(header.column.columnDef.header, header.getContext())}
+                {renderHeaderCell(header)}
               </TableHead>
             ))}
           </TableRow>
@@ -365,68 +565,73 @@ export function EnhancedDataTable({
       </div>
 
       {showPagination && (
-        <div className="flex items-center justify-between px-1">
-          <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
-            {selectable && (
-              <span>
-                {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                {table.getFilteredRowModel().rows.length} row(s) selected.
+        <div className="px-1">
+          <div className="flex flex-col gap-2 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-3">
+            <div className="min-h-[20px] text-xs text-muted-foreground sm:text-sm md:justify-self-start">
+              {selectable
+                ? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected.`
+                : ""}
+            </div>
+
+            <div className="flex items-center justify-between gap-2 md:justify-self-center">
+              <div className="text-xs font-medium sm:text-sm">
+                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="hidden h-8 w-8 md:flex"
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="hidden h-8 w-8 md:flex"
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 md:justify-self-end">
+              <span className="text-xs font-medium sm:text-sm">
+                {t("common.rowsPerPage") || "Rows per page"}
               </span>
-            )}
-          </div>
-          <div className="flex w-full items-center gap-4 lg:gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <span className="text-sm font-medium">{t("common.rowsPerPage") || "Rows per page"}</span>
               <select
                 value={pagination.pageSize}
                 onChange={(e) => table.setPageSize(Number(e.target.value))}
-                className="h-8 rounded border border-input bg-background px-2 text-sm"
+                className="h-8 rounded border border-input bg-background px-2 text-xs sm:text-sm"
               >
                 {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>{size}</option>
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
                 ))}
               </select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-1 lg:ml-0">
-              <Button
-                variant="outline"
-                size="icon"
-                className="hidden h-8 w-8 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="hidden h-8 w-8 lg:flex"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>

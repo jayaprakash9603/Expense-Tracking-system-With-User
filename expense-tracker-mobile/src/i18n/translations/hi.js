@@ -21,6 +21,7 @@ export const hi = {
     or: "या",
     processing: "प्रोसेसिंग...",
     retry: "पुनः प्रयास करें",
+    quickActions: "त्वरित कार्य",
   },
   auth: {
     login: {
@@ -275,6 +276,42 @@ export const hi = {
     date: "तारीख",
     description: "विवरण",
     noExpenses: "कोई खर्च नहीं मिला",
+  },
+  expenseForm: {
+    create: {
+      title: "खर्च जोड़ें",
+      submit: "खर्च सहेजें",
+      success: "खर्च सफलतापूर्वक बनाया गया",
+    },
+    edit: {
+      title: "खर्च संपादित करें",
+      submit: "खर्च अपडेट करें",
+      success: "खर्च सफलतापूर्वक अपडेट किया गया",
+    },
+    fields: {
+      expenseName: "खर्च का नाम",
+      amount: "राशि",
+      date: "तारीख",
+      transactionType: "लेनदेन प्रकार",
+      category: "श्रेणी",
+      paymentMethod: "भुगतान विधि",
+      comments: "टिप्पणी",
+    },
+    placeholders: {
+      expenseName: "खर्च का नाम दर्ज करें",
+      amount: "राशि दर्ज करें",
+      date: "तारीख चुनें",
+      transactionType: "प्रकार चुनें",
+      category: "श्रेणी चुनें",
+      paymentMethod: "भुगतान विधि चुनें",
+      comments: "टिप्पणी जोड़ें",
+    },
+    actions: {
+      linkBudgets: "बजट लिंक करें",
+      previouslyAdded: "पहले जोड़ा गया",
+      noExpenseNames: "कोई खर्च नाम नहीं मिला",
+      noOptions: "कोई विकल्प नहीं मिला",
+    },
   },
   budget: {
     title: "बजट",

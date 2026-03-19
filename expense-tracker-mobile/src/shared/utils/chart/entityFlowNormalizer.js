@@ -1,6 +1,16 @@
 import { getChartColor } from "./chartHelpers";
 import { weekDays, yearMonths } from "./timeframeResolver";
 
+const VIBRANT_PALETTE = [
+  "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316",
+  "#eab308", "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6",
+  "#a855f7", "#d946ef", "#0ea5e9", "#10b981", "#f59e0b",
+];
+
+function toSafeKey(name) {
+  return name.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
 function extractEntityMap(rawData) {
   if (!rawData || typeof rawData !== "object") return {};
   if (Array.isArray(rawData)) return {};
@@ -27,15 +37,19 @@ export function normalizeEntityFlowData(rawData, activeRange = "month", offset =
 
   const chartConfig = {};
   const cardData = [];
+  const keyMap = {};
   let totalIncome = 0;
   let totalExpense = 0;
 
   entityNames.forEach((name, idx) => {
     const block = entityMap[name];
     const friendlyName = labelResolver(name);
-    const color = block.color || getChartColor(idx);
+    const safeKey = toSafeKey(friendlyName);
+    const color = block.color || VIBRANT_PALETTE[idx % VIBRANT_PALETTE.length] || getChartColor(idx);
     const expenses = Array.isArray(block.expenses) ? block.expenses : [];
     const totalAmount = Math.abs(Number(block.totalAmount ?? block.total ?? 0));
+
+    keyMap[name] = safeKey;
 
     let entityIncome = 0;
     let entityExpense = 0;
@@ -52,7 +66,7 @@ export function normalizeEntityFlowData(rawData, activeRange = "month", offset =
     totalIncome += entityIncome;
     totalExpense += entityExpense;
 
-    chartConfig[friendlyName] = { label: friendlyName, color };
+    chartConfig[safeKey] = { label: friendlyName, color };
 
     cardData.push({
       id: block.id ?? name,
@@ -67,7 +81,7 @@ export function normalizeEntityFlowData(rawData, activeRange = "month", offset =
 
   cardData.sort((a, b) => b.amount - a.amount);
 
-  const chartBuckets = buildStackedBuckets(rawData, entityNames, activeRange, offset, labelResolver);
+  const chartBuckets = buildStackedBuckets(rawData, entityNames, activeRange, offset, keyMap);
 
   return {
     chartData: chartBuckets,
@@ -84,7 +98,7 @@ function getStartOfIsoWeek(date) {
   return new Date(d.setDate(diff));
 }
 
-function buildStackedBuckets(rawData, entityNames, activeRange, offset, labelResolver) {
+function buildStackedBuckets(rawData, entityNames, activeRange, offset, keyMap) {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
 
@@ -107,14 +121,18 @@ function buildStackedBuckets(rawData, entityNames, activeRange, offset, labelRes
     labels = yearMonths;
   }
 
-  const data = Array.from({ length: bucketCount }, (_, i) => ({
-    label: labels[i],
-  }));
+  const safeKeys = entityNames.map((n) => keyMap[n]);
+
+  const data = Array.from({ length: bucketCount }, (_, i) => {
+    const row = { label: labels[i] };
+    safeKeys.forEach((sk) => { row[sk] = 0; });
+    return row;
+  });
 
   entityNames.forEach((entityName) => {
     const block = rawData[entityName];
     const expenses = Array.isArray(block?.expenses) ? block.expenses : [];
-    const friendlyName = labelResolver(entityName);
+    const safeKey = keyMap[entityName];
 
     expenses.forEach((e) => {
       if (!e) return;
@@ -145,16 +163,8 @@ function buildStackedBuckets(rawData, entityNames, activeRange, offset, labelRes
 
       if (idx >= 0 && idx < bucketCount) {
         const amt = Math.abs(Number(details.amount ?? details.netAmount ?? e.amount ?? 0));
-        data[idx][friendlyName] = (data[idx][friendlyName] || 0) + amt;
+        data[idx][safeKey] = (data[idx][safeKey] || 0) + amt;
       }
-    });
-  });
-
-  // Ensure zeros for absent stacks
-  data.forEach((row) => {
-    entityNames.forEach((name) => {
-      const friendlyName = labelResolver(name);
-      if (row[friendlyName] === undefined) row[friendlyName] = 0;
     });
   });
 

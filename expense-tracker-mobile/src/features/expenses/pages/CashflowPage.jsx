@@ -1,19 +1,17 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FlowPageLayout } from "@/shared/components/flow";
-import { FlowEntityCard } from "@/shared/components/flow";
+import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { ExpenseQuickActions } from "@/features/expenses/components/form";
 import { useCashflowData } from "@/features/expenses/hooks/useCashflowData";
 
 export function CashflowPage() {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const {
     activeRange, setActiveRange, rangeLabel, flowTab, setFlowTab,
     goNext, goPrev, resetOffset, rangeOptions, loading,
-    chartData, cardData, totals, chartConfig,
+    chartData, cardData, chartConfig,
   } = useCashflowData();
 
   const barDataKeys = useMemo(() => {
@@ -22,9 +20,16 @@ export function CashflowPage() {
     return ["income", "expense"];
   }, [flowTab]);
 
+  const handleQuickAdd = useCallback(() => {
+    navigate("/expenses/add");
+  }, [navigate]);
+
+  const handleQuickUpload = useCallback(() => {
+    navigate("/upload/expenses");
+  }, [navigate]);
+
   return (
     <FlowPageLayout
-      title={t("navigation.cashflow")}
       activeRange={activeRange}
       setActiveRange={setActiveRange}
       rangeLabel={rangeLabel}
@@ -35,42 +40,35 @@ export function CashflowPage() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
-      totals={totals}
+      headerActions={
+        <ExpenseQuickActions
+          onAdd={handleQuickAdd}
+          onUpload={handleQuickUpload}
+        />
+      }
       chartSection={
-        <ChartCard title={t("flows.cashflow.chartTitle")}>
+        <ChartCard contentClassName="px-1 sm:px-2 pb-2 pt-0">
           <AppBarChart
             data={chartData}
             config={chartConfig}
             dataKeys={barDataKeys}
             xAxisKey="label"
             height={280}
+            className="px-0 py-1"
+            chartMargin={{ top: 8, right: 8, left: 0, bottom: 6 }}
+            yAxisProps={{ width: 34, tickMargin: 2 }}
             stacked
+            barRadius={flowTab === "all" ? 0 : 4}
           />
         </ChartCard>
       }
       cardsSection={
-        <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-muted-foreground px-1">
-            {t("flows.cashflow.transactions")} ({cardData.length})
-          </h3>
-          <div className="flex flex-col gap-2">
-            {cardData.slice(0, 50).map((card) => (
-              <FlowEntityCard
-                key={card.id}
-                name={card.name}
-                amount={card.amount}
-                count={null}
-                color={card.type === "gain" ? "#10b981" : "#ef4444"}
-                onClick={() => navigate(`/expenses/${card.id}`)}
-              />
-            ))}
-            {cardData.length === 0 && !loading && (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                {t("expenses.noExpenses")}
-              </p>
-            )}
-          </div>
-        </div>
+        <FlowExpenseCards
+          data={cardData}
+          loading={loading}
+          flowTab={flowTab}
+          onCardClick={(expense) => navigate(`/expenses/${expense.id}`)}
+        />
       }
     />
   );

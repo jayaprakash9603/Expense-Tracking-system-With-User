@@ -21,6 +21,7 @@ export const te = {
     or: "లేదా",
     processing: "ప్రాసెస్ అవుతోంది...",
     retry: "మళ్ళీ ప్రయత్నించండి",
+    quickActions: "త్వరిత చర్యలు",
   },
   auth: {
     login: {
@@ -275,6 +276,42 @@ export const te = {
     date: "తేదీ",
     description: "వివరణ",
     noExpenses: "ఖర్చులు కనుగొనబడలేదు",
+  },
+  expenseForm: {
+    create: {
+      title: "ఖర్చు జోడించండి",
+      submit: "ఖర్చు సేవ్ చేయండి",
+      success: "ఖర్చు విజయవంతంగా సృష్టించబడింది",
+    },
+    edit: {
+      title: "ఖర్చు సవరించండి",
+      submit: "ఖర్చు అప్‌డేట్ చేయండి",
+      success: "ఖర్చు విజయవంతంగా అప్‌డేట్ చేయబడింది",
+    },
+    fields: {
+      expenseName: "ఖర్చు పేరు",
+      amount: "మొత్తం",
+      date: "తేదీ",
+      transactionType: "లావాదేవీ రకం",
+      category: "వర్గం",
+      paymentMethod: "చెల్లింపు విధానం",
+      comments: "వ్యాఖ్యలు",
+    },
+    placeholders: {
+      expenseName: "ఖర్చు పేరు నమోదు చేయండి",
+      amount: "మొత్తం నమోదు చేయండి",
+      date: "తేదీ ఎంచుకోండి",
+      transactionType: "రకం ఎంచుకోండి",
+      category: "వర్గం ఎంచుకోండి",
+      paymentMethod: "చెల్లింపు విధానం ఎంచుకోండి",
+      comments: "గమనిక జోడించండి",
+    },
+    actions: {
+      linkBudgets: "బడ్జెట్లను లింక్ చేయండి",
+      previouslyAdded: "మునుపు జోడించబడింది",
+      noExpenseNames: "ఖర్చు పేర్లు లభించలేదు",
+      noOptions: "ఎంపికలు లభించలేదు",
+    },
   },
   budget: {
     title: "బడ్జెట్",

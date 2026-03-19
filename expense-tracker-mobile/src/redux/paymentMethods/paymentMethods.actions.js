@@ -10,9 +10,9 @@ import {
   RESET_PAYMENT_METHOD_STATE,
 } from "./paymentMethods.actionTypes";
 
-export const fetchPaymentMethodsAction = () => async (dispatch) => {
+export const fetchPaymentMethodsAction = (friendId = "") => async (dispatch) => {
   dispatch({ type: FETCH_PAYMENT_METHODS_REQUEST });
-  const { data, error } = await paymentMethodApi.getAll();
+  const { data, error } = await paymentMethodApi.getAll(friendId);
   if (error) {
     dispatch({ type: FETCH_PAYMENT_METHODS_FAILURE, payload: error.message });
     return { success: false, error };
