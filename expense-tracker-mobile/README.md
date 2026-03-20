@@ -24,6 +24,8 @@ No other config files or code changes are required for mode switching.
 
 When `VITE_APP_RUNTIME_MODE=demo`, sign in with `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD`. Profile is **ADMIN** / **ADMIN** mode. Data stays in **sessionStorage** until the session ends.
 
+Demo seed JSON, date hydration, and Postman-aligned route stubs: [`src/infrastructure/demo/README.md`](src/infrastructure/demo/README.md). After updating the backend Postman collection, run **`bun run extract:postman`** in this folder to refresh [`src/infrastructure/demo/generated/postmanRoutes.manifest.json`](src/infrastructure/demo/generated/postmanRoutes.manifest.json).
+
 ## Docker
 
 Default image build is **demo**:

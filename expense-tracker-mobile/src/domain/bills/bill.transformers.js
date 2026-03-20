@@ -1,7 +1,7 @@
 export function fromApiResponse(raw) {
   return {
     id: raw.id,
-    name: raw.name || raw.billName || "",
+    name: raw.name || raw.billName || raw.title || "",
     amount: Number(raw.amount || 0),
     dueDate: raw.dueDate || raw.due_date || "",
     frequency: raw.frequency || "MONTHLY",
@@ -11,6 +11,7 @@ export function fromApiResponse(raw) {
     reminderDays: Number(raw.reminderDays || 3),
     notes: raw.notes || "",
     lastPaidDate: raw.lastPaidDate || null,
+    budgetId: raw.budgetId ?? null,
   };
 }
 
@@ -28,7 +29,8 @@ export function toApiPayload(formData) {
   };
 }
 
-export function toListItem(bill) {
+export function toListItem(raw) {
+  const bill = fromApiResponse(raw);
   return {
     id: bill.id,
     title: bill.name,

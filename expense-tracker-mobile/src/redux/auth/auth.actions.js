@@ -1,6 +1,6 @@
 import { api, updateAuthHeader } from "@/config/api";
 import { getAppConfig } from "@/config/runtime/parseAppConfig";
-import { clearDemoStore } from "@/infrastructure/demo/demoStore";
+import { clearDemoStore } from "@/infrastructure/demo/store/demoStore";
 import { setActiveJwt, clearActiveJwt } from "@/shared/utils/authStorage";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
 import {

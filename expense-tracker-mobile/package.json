@@ -13,6 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "validate:architecture": "node scripts/validate-architecture.js",
+    "extract:postman": "node scripts/extractPostmanRoutes.mjs",
+    "demo:seed:from-xlsx": "node scripts/excelToDemoSeed.mjs",
+    "demo:seed:write-xlsx": "node scripts/excelToDemoSeed.mjs --write-xlsx",
     "e2e": "playwright test"
   },
   "dependencies": {
@@ -76,6 +79,7 @@
     "tailwindcss": "^3.4.15",
     "tailwindcss-animate": "^1.0.7",
     "vite": "^6.3.5",
-    "vitest": "^3.0.6"
+    "vitest": "^3.0.6",
+    "xlsx": "^0.18.5"
   }
 }
