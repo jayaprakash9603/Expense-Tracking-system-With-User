@@ -1,4 +1,4 @@
-﻿# dashboard Feature Boundary
+# dashboard Feature Boundary
 
 ## Scope
 - Own UI flows and user interactions for the 'dashboard' feature.
@@ -11,7 +11,7 @@
 
 ## Exposes
 - Page-level routes registered in src/app/routing/routeCatalog.js.
-- Reusable feature-level components/hooks through local index exports.
+- Dashboard UI under [`components/`](components/) (`header`, `quick-access`, `sections`, `charts`, `modals`) and hooks/context alongside.
 
 ## Migration Notes
 - Parity tracking source: docs/migration/PARITY_MATRIX.md.

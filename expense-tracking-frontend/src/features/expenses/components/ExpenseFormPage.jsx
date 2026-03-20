@@ -22,7 +22,7 @@ import useExpenseAutoFill from "../hooks/useExpenseAutoFill";
 import HighlightedText from "../../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../../utils/fuzzyMatchUtils";
 import BudgetSelectionTable from "../../../components/common/BudgetSelectionTable/BudgetSelectionTable";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import useFormPage from "../../../shared/form/hooks/useFormPage";
 import useFormState from "../../../shared/form/hooks/useFormState";
 import useToast from "../../../shared/form/hooks/useToast";

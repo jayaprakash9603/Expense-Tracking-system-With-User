@@ -74,7 +74,7 @@ import {
 } from "recharts";
 
 // Toast notification component
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 
 const BudgetDashboard = () => {
   // State management

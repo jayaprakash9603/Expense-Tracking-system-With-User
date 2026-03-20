@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
-import { RecentTransactionCard } from "@/features/dashboard/components/RecentTransactionCard";
+import { RecentTransactionCard } from "./RecentTransactionCard";
 
 function useRecentTransactionLimit() {
   const [limit, setLimit] = useState(10);

@@ -8,7 +8,7 @@ import {
   useSearchHighlight,
   highlightAnimationStyles,
 } from "../../../hooks/useSearchHighlight";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import { fetchNotificationPreferences } from "../../../Redux/NotificationPreferences/notificationPreferences.action";
 
 import SettingsHeader from "../components/SettingsHeader";

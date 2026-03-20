@@ -6,7 +6,7 @@ import {
   logoutAction,
   switchUserModeAction,
 } from "../../Redux/Auth/auth.action";
-import Modal from "../../shared/components/Modal";
+import Modal from "../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../hooks/useTranslation";
 
 /**

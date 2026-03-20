@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material";
 
 // Emoji data
-import { emojiCategories } from "../constants/emojiCategories";
+import { emojiCategories } from "../../constants/emoji/emojiCategories";
 
 const EmojiPicker = ({
   isVisible,

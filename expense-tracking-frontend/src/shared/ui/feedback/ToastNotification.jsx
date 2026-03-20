@@ -6,7 +6,7 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
-import { useTheme } from "../../hooks/useTheme";
+import { useTheme } from "../../../hooks/useTheme";
 
 const ToastNotification = ({
   open,

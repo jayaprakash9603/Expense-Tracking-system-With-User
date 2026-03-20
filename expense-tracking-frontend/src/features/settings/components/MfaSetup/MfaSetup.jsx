@@ -53,7 +53,7 @@ import { api } from "../../../../config/api";
 import { useTheme } from "../../../../hooks/useTheme";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { getProfileAction } from "../../../../Redux/Auth/auth.action";
-import Modal from "../../../../shared/components/Modal";
+import Modal from "../../../../shared/ui/overlays/Modal";
 
 // =============================================================================
 // Constants

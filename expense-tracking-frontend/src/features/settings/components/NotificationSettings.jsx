@@ -8,7 +8,7 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
 import { useSearchHighlight } from "../../../hooks/useSearchHighlight";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 
 // Import modular components
 import SettingsHeader from "./SettingsHeader";

@@ -1,6 +1,3 @@
-// AvatarCategories.js
-// Export categorized avatar emoji arrays for easy future extension
-
 const avatarCategories = {
   "Objects & Tools": [
     "🔑",

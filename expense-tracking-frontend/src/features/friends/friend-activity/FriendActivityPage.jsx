@@ -41,7 +41,7 @@ import {
   groupActivitiesByFriend,
 } from "./utils/utils";
 import { PAGINATION } from "./constants/constants";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import "./styles/FriendActivityPage.css";
 
 const GROUP_VIEWS = {

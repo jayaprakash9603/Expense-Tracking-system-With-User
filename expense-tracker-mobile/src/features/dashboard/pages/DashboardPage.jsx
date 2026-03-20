@@ -13,15 +13,15 @@ import {
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { useDashboardLayout } from "@/features/dashboard/hooks/useDashboardLayout";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
-import { DashboardHeader } from "@/features/dashboard/components/DashboardHeader";
-import { QuickAccess } from "@/features/dashboard/components/QuickAccess";
-import { ApplicationOverview } from "@/features/dashboard/components/ApplicationOverview";
-import { DailySpendingSection } from "@/features/dashboard/components/DailySpendingSection";
-import { CategoryBreakdownSection } from "@/features/dashboard/components/CategoryBreakdownSection";
-import { PaymentMethodSection } from "@/features/dashboard/components/PaymentMethodSection";
-import { RecentTransactions } from "@/features/dashboard/components/RecentTransactions";
-import { BudgetOverviewSection } from "@/features/dashboard/components/BudgetOverviewSection";
-import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
+import { DashboardHeader } from "@/features/dashboard/components/header/DashboardHeader";
+import { QuickAccess } from "@/features/dashboard/components/quick-access/QuickAccess";
+import { ApplicationOverview } from "@/features/dashboard/components/sections/ApplicationOverview";
+import { DailySpendingSection } from "@/features/dashboard/components/sections/DailySpendingSection";
+import { CategoryBreakdownSection } from "@/features/dashboard/components/sections/CategoryBreakdownSection";
+import { PaymentMethodSection } from "@/features/dashboard/components/sections/PaymentMethodSection";
+import { RecentTransactions } from "@/features/dashboard/components/sections/RecentTransactions";
+import { BudgetOverviewSection } from "@/features/dashboard/components/sections/BudgetOverviewSection";
+import { MonthlyComparisonChart } from "@/features/dashboard/components/charts/MonthlyComparisonChart";
 import { cn } from "@/lib/utils";
 
 const SECTION_COMPONENTS = {

@@ -12,9 +12,9 @@ import {
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useOverviewData } from "@/features/analytics/hooks/useOverviewData";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
-import { SpendingTrendChart } from "@/features/dashboard/components/SpendingTrendChart";
-import { CategoryBreakdownChart } from "@/features/dashboard/components/CategoryBreakdownChart";
-import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
+import { SpendingTrendChart } from "@/features/dashboard/components/charts/SpendingTrendChart";
+import { CategoryBreakdownChart } from "@/features/dashboard/components/charts/CategoryBreakdownChart";
+import { MonthlyComparisonChart } from "@/features/dashboard/components/charts/MonthlyComparisonChart";
 import { DashboardProvider } from "@/features/dashboard/context/DashboardContext";
 
 const SKELETON_VARIANTS = ["blue", "emerald", "amber", "rose"];

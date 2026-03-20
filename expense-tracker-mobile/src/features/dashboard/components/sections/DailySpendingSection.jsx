@@ -6,7 +6,7 @@ import { SPENDING_FLOW_OPTIONS } from "@/config/chart/chartConfig";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
-import { SpendingChartTooltip } from "./SpendingChartTooltip";
+import { SpendingChartTooltip } from "@/features/dashboard/components/charts/SpendingChartTooltip";
 import { DASHBOARD_AREA_CHART_HEIGHT } from "@/features/dashboard/constants/dashboardChartHeights";
 
 export function DailySpendingSection() {
