@@ -1,5 +1,7 @@
 import { api, updateAuthHeader } from "@/config/api";
-import { STORAGE_KEYS } from "@/config/constants";
+import { getAppConfig } from "@/config/runtime/parseAppConfig";
+import { clearDemoStore } from "@/infrastructure/demo/demoStore";
+import { setActiveJwt, clearActiveJwt } from "@/shared/utils/authStorage";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
 import {
   LOGIN_REQUEST,
@@ -14,7 +16,7 @@ import {
 
 const completeLoginWithJwt = async (dispatch, jwt) => {
   dispatch({ type: LOGIN_SUCCESS, payload: jwt });
-  localStorage.setItem(STORAGE_KEYS.JWT, jwt);
+  setActiveJwt(jwt);
 
   const profileResult = await dispatch(getProfileAction(jwt));
   updateAuthHeader();
@@ -104,7 +106,7 @@ export const getProfileAction = (jwt) => async (dispatch) => {
   if (error) {
     const status = error.status;
     if (status === 401 || status === 403 || status === undefined) {
-      localStorage.removeItem(STORAGE_KEYS.JWT);
+      clearActiveJwt();
       dispatch({ type: LOGOUT });
     }
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
@@ -148,12 +150,25 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
 };
 
 export const logoutAction = () => (dispatch) => {
-  localStorage.clear();
+  const { isDemo } = getAppConfig();
+  clearActiveJwt();
+  if (isDemo) clearDemoStore();
+  else localStorage.clear();
   dispatch({ type: LOGOUT });
   updateAuthHeader();
 };
 
-export const switchUserModeAction = (newMode) => async (dispatch) => {
+export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
+  if (getAppConfig().isDemo) {
+    const user = getState().auth?.user;
+    const nextUser = user ? { ...user, currentMode: newMode } : null;
+    dispatch({
+      type: SWITCH_MODE_SUCCESS,
+      payload: { currentMode: newMode, user: nextUser },
+    });
+    return { success: true, currentMode: newMode, user: nextUser };
+  }
+
   const { data, error } = await safeApiCall(() =>
     api.put("/api/user/switch-mode", null, {
       params: { mode: newMode },

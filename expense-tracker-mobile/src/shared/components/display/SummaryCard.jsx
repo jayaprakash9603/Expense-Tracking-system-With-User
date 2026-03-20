@@ -9,8 +9,8 @@ const VARIANT_STYLES = {
   blue: {
     light: "from-blue-100 to-blue-200",
     dark: "dark:from-blue-950 dark:to-blue-900",
-    iconBg: "bg-blue-500/20",
-    iconColor: "text-blue-500",
+    iconShell:
+      "bg-blue-900/[0.12] text-blue-900 dark:bg-blue-950/70 dark:text-blue-800",
     title: "text-blue-900 dark:text-blue-300",
     value: "text-blue-800 dark:text-blue-100",
     trend: "text-blue-800 dark:text-blue-300",
@@ -21,8 +21,8 @@ const VARIANT_STYLES = {
   purple: {
     light: "from-purple-100 to-purple-200",
     dark: "dark:from-purple-950 dark:to-purple-900",
-    iconBg: "bg-purple-500/20",
-    iconColor: "text-purple-500",
+    iconShell:
+      "bg-purple-900/[0.12] text-purple-900 dark:bg-purple-950/70 dark:text-purple-800",
     title: "text-purple-900 dark:text-purple-300",
     value: "text-purple-800 dark:text-purple-100",
     trend: "text-purple-800 dark:text-purple-300",
@@ -33,8 +33,8 @@ const VARIANT_STYLES = {
   amber: {
     light: "from-amber-100 to-amber-200",
     dark: "dark:from-amber-950 dark:to-amber-900",
-    iconBg: "bg-amber-500/20",
-    iconColor: "text-amber-500",
+    iconShell:
+      "bg-amber-900/[0.12] text-amber-900 dark:bg-amber-950/70 dark:text-amber-800",
     title: "text-amber-900 dark:text-amber-300",
     value: "text-amber-800 dark:text-amber-100",
     trend: "text-amber-800 dark:text-amber-300",
@@ -45,8 +45,8 @@ const VARIANT_STYLES = {
   rose: {
     light: "from-rose-100 to-rose-200",
     dark: "dark:from-rose-950 dark:to-rose-900",
-    iconBg: "bg-rose-500/20",
-    iconColor: "text-rose-500",
+    iconShell:
+      "bg-rose-900/[0.12] text-rose-900 dark:bg-rose-950/70 dark:text-rose-800",
     title: "text-rose-900 dark:text-rose-300",
     value: "text-rose-800 dark:text-rose-100",
     trend: "text-rose-800 dark:text-rose-300",
@@ -57,8 +57,8 @@ const VARIANT_STYLES = {
   emerald: {
     light: "from-emerald-100 to-emerald-200",
     dark: "dark:from-emerald-950 dark:to-emerald-900",
-    iconBg: "bg-emerald-500/20",
-    iconColor: "text-emerald-500",
+    iconShell:
+      "bg-emerald-900/[0.12] text-emerald-900 dark:bg-emerald-950/70 dark:text-emerald-800",
     title: "text-emerald-900 dark:text-emerald-300",
     value: "text-emerald-800 dark:text-emerald-100",
     trend: "text-emerald-800 dark:text-emerald-300",
@@ -69,8 +69,8 @@ const VARIANT_STYLES = {
   cyan: {
     light: "from-cyan-100 to-cyan-200",
     dark: "dark:from-cyan-950 dark:to-cyan-900",
-    iconBg: "bg-cyan-500/20",
-    iconColor: "text-cyan-500",
+    iconShell:
+      "bg-cyan-900/[0.12] text-cyan-900 dark:bg-cyan-950/70 dark:text-cyan-800",
     title: "text-cyan-900 dark:text-cyan-300",
     value: "text-cyan-800 dark:text-cyan-100",
     trend: "text-cyan-800 dark:text-cyan-300",
@@ -122,10 +122,10 @@ export function SummaryCard({
         <div
           className={cn(
             "flex items-center justify-center w-9 h-9 rounded-full shadow-sm",
-            styles.iconBg
+            styles.iconShell,
           )}
         >
-          <AppIcon icon={icon} size="sm" className={styles.iconColor} />
+          <AppIcon icon={icon} size="sm" color="inherit" />
         </div>
 
         {percentage && (

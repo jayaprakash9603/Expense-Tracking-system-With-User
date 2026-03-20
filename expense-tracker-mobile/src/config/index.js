@@ -1,4 +1,5 @@
 export * from "./app/constants";
+export { getAppConfig, isFeatureEnabled, DEFAULT_FEATURE_FLAGS } from "./runtime";
 export * from "./theme/colorPalettes";
 export * from "./theme/themeTokens";
 export * from "./navigation/menuItems";

@@ -1,14 +1,17 @@
-import { API_BASE_URL } from "@/config/api";
-
-const WS_BASE = API_BASE_URL.replace(/^http/, "ws");
+import { getAppConfig } from "@/config/runtime/parseAppConfig";
 
 let socketInstance = null;
 const listeners = new Map();
 
+function resolveWebSocketBaseUrl() {
+  return getAppConfig().apiBaseUrl.replace(/^http/, "ws");
+}
+
 export function connectSocket(token) {
+  if (getAppConfig().isDemo) return null;
   if (socketInstance?.readyState === WebSocket.OPEN) return socketInstance;
 
-  const url = `${WS_BASE}/ws?token=${encodeURIComponent(token)}`;
+  const url = `${resolveWebSocketBaseUrl()}/ws?token=${encodeURIComponent(token)}`;
   socketInstance = new WebSocket(url);
 
   socketInstance.onopen = () => {

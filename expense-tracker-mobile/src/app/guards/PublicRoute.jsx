@@ -1,9 +1,9 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { STORAGE_KEYS } from "@/config/constants";
+import { getActiveJwt } from "@/shared/utils/authStorage";
 
 export function PublicRoute() {
-  const jwt = localStorage.getItem(STORAGE_KEYS.JWT);
+  const jwt = getActiveJwt();
 
   if (jwt) {
     return <Navigate to="/dashboard" replace />;

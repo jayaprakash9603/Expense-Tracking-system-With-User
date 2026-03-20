@@ -6,6 +6,8 @@ export const DEFAULT_DATE_FORMAT = "DD/MM/YYYY";
 
 export const STORAGE_KEYS = {
   JWT: "jwt",
+  DEMO_JWT: "expensio_demo_jwt",
+  DEMO_STORE: "expensio_demo_store_v1",
   THEME_MODE: "theme",
   THEME_PALETTE: "themePalette",
   THEME_USE_SYSTEM: "themeUseSystem",

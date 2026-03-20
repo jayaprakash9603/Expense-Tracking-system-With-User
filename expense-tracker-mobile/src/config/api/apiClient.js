@@ -1,17 +1,28 @@
 import axios from "axios";
-import { STORAGE_KEYS } from "@/config/constants";
+import { getAppConfig } from "@/config/runtime/parseAppConfig";
+import { getActiveJwt, clearActiveJwt } from "@/shared/utils/authStorage";
+import { createDemoAdapter } from "@/config/api/demoAdapter";
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const demoAdapter = createDemoAdapter();
 
-const getJwtToken = () => localStorage.getItem(STORAGE_KEYS.JWT);
+function applyRuntimeTransport(config) {
+  const cfg = getAppConfig();
+  if (cfg.isDemo) {
+    config.baseURL = "";
+    config.adapter = demoAdapter;
+  } else {
+    config.baseURL = cfg.apiBaseUrl;
+    delete config.adapter;
+  }
+}
 
 export const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: "",
   headers: { "Content-Type": "application/json" },
 });
 
 const handleRequest = (config) => {
+  applyRuntimeTransport(config);
   config.headers = config.headers || {};
 
   if (config.skipAuth) {
@@ -19,7 +30,7 @@ const handleRequest = (config) => {
     return config;
   }
 
-  const token = getJwtToken();
+  const token = getActiveJwt();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -33,11 +44,11 @@ const handleResponseError = (error) => {
     const { status } = error.response;
 
     if (status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.JWT);
+      clearActiveJwt();
       window.dispatchEvent(
         new CustomEvent("unauthorized", {
           detail: { message: "Your session has expired. Please login again." },
-        })
+        }),
       );
     }
 
@@ -49,7 +60,7 @@ const handleResponseError = (error) => {
               error.response.data?.message ||
               "Access denied. You do not have permission.",
           },
-        })
+        }),
       );
     }
   }
@@ -61,7 +72,7 @@ api.interceptors.request.use(handleRequest, (err) => Promise.reject(err));
 api.interceptors.response.use((res) => res, handleResponseError);
 
 export const updateAuthHeader = () => {
-  const token = getJwtToken();
+  const token = getActiveJwt();
   api.defaults.headers.Authorization = token ? `Bearer ${token}` : null;
 };
 

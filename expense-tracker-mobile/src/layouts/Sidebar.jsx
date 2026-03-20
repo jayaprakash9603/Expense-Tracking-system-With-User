@@ -1,15 +1,14 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
-import { useSelector, useDispatch } from "react-redux";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSelector } from "react-redux";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { UserAvatar } from "@/shared/components/user/UserAvatar";
 import { Separator } from "@/components/ui/separator";
 import { APP_NAME } from "@/config/constants";
-import { logoutAction } from "@/redux/auth/auth.actions";
 import { getSidebarItems, NAV_GROUPS, isActiveRoute } from "@/app/routing/routeCatalog";
+import { SidebarProfileFooter } from "@/layouts/SidebarProfileFooter";
 import { cn } from "@/lib/utils";
 
 function groupSidebarItems(currentMode = "USER") {
@@ -32,18 +31,12 @@ function groupSidebarItems(currentMode = "USER") {
 function SidebarContent() {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
   const { t } = useLanguage();
   const { sidebarCollapsed, toggleSidebar, isTablet } = useLayout();
   const user = useSelector((state) => state.auth?.user);
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const collapsed = isTablet || sidebarCollapsed;
   const navGroups = groupSidebarItems(currentMode);
-
-  const handleLogout = () => {
-    dispatch(logoutAction());
-    navigate("/login");
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -66,18 +59,6 @@ function SidebarContent() {
           </div>
         )}
       </div>
-
-      {!collapsed && user && (
-        <div className="flex flex-col items-center py-5 px-4 border-b border-border">
-          <UserAvatar size="lg" showName={false} />
-          <p className="mt-2 text-sm font-semibold truncate max-w-full">
-            {user.firstName} {user.lastName}
-          </p>
-          {user.email && (
-            <p className="text-xs text-muted-foreground truncate max-w-full">{user.email}</p>
-          )}
-        </div>
-      )}
 
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4 sidebar-scrollbar">
         {navGroups.map((group) => (
@@ -142,23 +123,7 @@ function SidebarContent() {
 
         <Separator />
 
-        {collapsed && user && (
-          <div className="flex justify-center py-1">
-            <UserAvatar size="sm" showName={false} />
-          </div>
-        )}
-
-        <button
-          onClick={handleLogout}
-          className={cn(
-            "flex items-center gap-3 w-full rounded-lg py-2 hover:bg-destructive/10 transition-colors",
-            collapsed ? "justify-center px-2" : "px-3",
-          )}
-          title={collapsed ? t("settings.logout") : undefined}
-        >
-          <AppIcon icon={LogOut} color="error" size="sm" />
-          {!collapsed && <span className="text-sm text-destructive">{t("settings.logout")}</span>}
-        </button>
+        <SidebarProfileFooter user={user} collapsed={collapsed} />
       </div>
     </div>
   );

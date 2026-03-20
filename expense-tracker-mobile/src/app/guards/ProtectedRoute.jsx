@@ -1,10 +1,10 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { STORAGE_KEYS } from "@/config/constants";
+import { getActiveJwt } from "@/shared/utils/authStorage";
 
 export function ProtectedRoute() {
-  const jwt = localStorage.getItem(STORAGE_KEYS.JWT);
+  const jwt = getActiveJwt();
   const location = useLocation();
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const isAdminMode = currentMode === "ADMIN";

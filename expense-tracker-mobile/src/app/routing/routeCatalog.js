@@ -1,3 +1,4 @@
+import { isFeatureEnabled } from "@/config/runtime/parseAppConfig";
 import {
   Home,
   Receipt,
@@ -1430,12 +1431,30 @@ export function getRouteTitleKey(pathname) {
   return parent?.titleKey || "dashboard.title";
 }
 
+const SIDEBAR_ROUTE_FEATURE = {
+  groups: "groups",
+  friends: "friends",
+  bills: "bills",
+  budgets: "budgets",
+  notifications: "notifications",
+  utilities: "utilities",
+  categories: "sidebarCategories",
+  payments: "sidebarPayments",
+  analytics: "sidebarInsights",
+  reports: "sidebarInsights",
+};
+
 export function getSidebarItems(currentMode = "USER") {
   if (currentMode === "ADMIN") {
     return getAdminSidebarItems();
   }
 
-  return ROUTE_CATALOG.filter((r) => r.navGroup && r.guard !== "admin");
+  return ROUTE_CATALOG.filter((r) => {
+    if (!r.navGroup || r.guard === "admin") return false;
+    const fk = SIDEBAR_ROUTE_FEATURE[r.key];
+    if (fk && !isFeatureEnabled(fk)) return false;
+    return true;
+  });
 }
 
 export function getAdminSidebarItems() {
@@ -1462,6 +1481,13 @@ const ADMIN_BOTTOM_NAV_KEYS = [
 
 const ADMIN_MORE_MENU_KEYS = ["admin-roles", "admin-audit", "admin-settings", "admin-stories"];
 
+const BOTTOM_NAV_ROUTE_FEATURE = {
+  reports: "sidebarInsights",
+  friends: "friends",
+  bills: "bills",
+  groups: "groups",
+};
+
 export function getBottomNavItems(currentMode = "USER") {
   if (currentMode === "ADMIN") {
     return ADMIN_BOTTOM_NAV_KEYS.map((key) => ROUTE_CATALOG.find((r) => r.key === key)).filter(
@@ -1469,12 +1495,28 @@ export function getBottomNavItems(currentMode = "USER") {
     );
   }
 
-  return ROUTE_CATALOG.filter((r) => r.bottomNav);
+  return ROUTE_CATALOG.filter((r) => r.bottomNav).filter((r) => {
+    const fk = BOTTOM_NAV_ROUTE_FEATURE[r.key];
+    return !fk || isFeatureEnabled(fk);
+  });
 }
+
+const MORE_MENU_ROUTE_FEATURE = {
+  categories: "sidebarCategories",
+  payments: "sidebarPayments",
+  notifications: "notifications",
+  groups: "groups",
+};
 
 export function getMoreMenuItems(currentMode = "USER") {
   const keys = currentMode === "ADMIN" ? ADMIN_MORE_MENU_KEYS : USER_MORE_MENU_KEYS;
-  return keys.map((key) => ROUTE_CATALOG.find((r) => r.key === key)).filter(Boolean);
+  return keys
+    .map((key) => ROUTE_CATALOG.find((r) => r.key === key))
+    .filter(Boolean)
+    .filter((r) => {
+      const fk = MORE_MENU_ROUTE_FEATURE[r.key];
+      return !fk || isFeatureEnabled(fk);
+    });
 }
 
 export function isActiveRoute(currentPath, routePath) {

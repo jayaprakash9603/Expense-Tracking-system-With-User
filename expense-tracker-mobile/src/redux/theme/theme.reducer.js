@@ -9,9 +9,10 @@ import {
 import { getSystemPreference } from "@/shared/utils/themeInjector";
 import { COLOR_PALETTES } from "@/config/colorPalettes";
 import { STORAGE_KEYS, DEFAULT_THEME_MODE, DEFAULT_PALETTE } from "@/config/constants";
+import { getActiveJwt } from "@/shared/utils/authStorage";
 
 const getInitialState = () => {
-  const jwt = localStorage.getItem(STORAGE_KEYS.JWT);
+  const jwt = getActiveJwt();
 
   if (jwt) {
     const savedMode = localStorage.getItem(STORAGE_KEYS.THEME_MODE);

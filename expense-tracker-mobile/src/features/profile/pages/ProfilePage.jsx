@@ -1,14 +1,12 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React from "react";
+import { useSelector } from "react-redux";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileForm } from "../components/ProfileForm";
 import { useProfileForm } from "../hooks/useProfileForm";
-import { getProfileAction } from "@/redux/auth/auth.actions";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
 export function ProfilePage() {
-  const dispatch = useDispatch();
   const { t } = useLanguage();
   const user = useSelector((state) => state.auth?.user);
 
@@ -25,10 +23,6 @@ export function ProfilePage() {
     handleCancel,
     handleImageUpload,
   } = useProfileForm();
-
-  useEffect(() => {
-    dispatch(getProfileAction());
-  }, [dispatch]);
 
   return (
     <div className="flex flex-col min-h-0 flex-1">

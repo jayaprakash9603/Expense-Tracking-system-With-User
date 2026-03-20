@@ -84,33 +84,33 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
       <div className={cn("mt-2 flex flex-col gap-3 lg:gap-4", showTable && "pb-2")}>
         <ExpenseFormRow first className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
           <ExpenseFieldLayout
-            label={t("budget.name")}
+              label={t("budget.name")}
             htmlFor="budgetName"
             required
-            error={errors.name ? t(errors.name) : undefined}
-          >
-            <Input
+              error={errors.name ? t(errors.name) : undefined}
+            >
+              <Input
               id="budgetName"
-              value={formData.name || ""}
-              onChange={(e) => handleChange("name", e.target.value)}
-              placeholder={t("budget.name")}
+                value={formData.name || ""}
+                onChange={(e) => handleChange("name", e.target.value)}
+                placeholder={t("budget.name")}
               className={budgetNameInputClassName(Boolean(errors.name))}
               style={{ maxWidth: "100%" }}
-            />
+              />
           </ExpenseFieldLayout>
 
           <ExpenseFieldLayout
-            label={t("budget.amount")}
+              label={t("budget.amount")}
             htmlFor="budgetAmount"
             required
-            error={errors.amount ? t(errors.amount) : undefined}
+              error={errors.amount ? t(errors.amount) : undefined}
           >
             <ExpenseThemedAmountField
               id="budgetAmount"
               name="amount"
               value={formData.amount}
-              onChange={(e) => handleChange("amount", e.target.value)}
-              placeholder="0.00"
+                onChange={(e) => handleChange("amount", e.target.value)}
+                placeholder="0.00"
               error={Boolean(errors.amount)}
               height={48}
               maxWidth="100%"
@@ -192,19 +192,19 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
           error={expenseError || undefined}
           closeAriaLabel={t("common.close")}
         >
-          <ExpenseSelectionTable
-            expenses={expenses}
-            selectedExpenseIds={selectedExpenseIds}
-            onSelectionChange={setSelectedExpenseIds}
-            emptyText={t("budget.noExpensesForDate")}
+                <ExpenseSelectionTable
+                  expenses={expenses}
+                  selectedExpenseIds={selectedExpenseIds}
+                  onSelectionChange={setSelectedExpenseIds}
+                  emptyText={t("budget.noExpensesForDate")}
             loading={expensesLoading}
-          />
+                />
         </LinkedEntityTablePanel>
-      </div>
+            </div>
 
       <ExpenseSubmitArea
         isSubmitting={isSubmitting}
-        disabled={isSubmitting || !isDirty}
+            disabled={isSubmitting || !isDirty}
         onSubmit={handleSubmit}
         label={submitLabel}
       />

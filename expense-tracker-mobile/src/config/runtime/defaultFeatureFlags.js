@@ -1,0 +1,18 @@
+export const DEFAULT_FEATURE_FLAGS = Object.freeze({
+  notifications: true,
+  googleOAuth: true,
+  groups: true,
+  friends: true,
+  bills: true,
+  budgets: true,
+  categories: true,
+  payments: true,
+  reports: false,
+  analytics: false,
+  cashflow: true,
+  uploads: true,
+  utilities: true,
+  sidebarCategories: false,
+  sidebarPayments: false,
+  sidebarInsights: false,
+});

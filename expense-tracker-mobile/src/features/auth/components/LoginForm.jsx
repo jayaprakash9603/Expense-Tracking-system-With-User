@@ -6,6 +6,7 @@ import { loginUserAction } from "@/redux/auth/auth.actions";
 import { loginSchema, loginInitialValues } from "../validation/loginSchema";
 import { FormField } from "@/shared/components/FormField";
 import { AppButton } from "@/shared/components/AppButton";
+import { resolveGoogleSignInClientId } from "@/config/auth/googleOAuth";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +17,7 @@ export function LoginForm() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const googleClientId = resolveGoogleSignInClientId();
   const [serverError, setServerError] = useState("");
 
   const handleSubmit = async (values, { setSubmitting }) => {
@@ -104,13 +106,16 @@ export function LoginForm() {
                 {t("auth.login.loginButton")}
               </AppButton>
 
-              <div className="flex items-center gap-2 py-1">
-                <Separator className="flex-1" />
-                <span className="text-muted-foreground text-sm">{t("common.or")}</span>
-                <Separator className="flex-1" />
-              </div>
-
-              <GoogleLoginButton disabled={isSubmitting} />
+              {googleClientId ? (
+                <>
+                  <div className="flex items-center gap-2 py-1">
+                    <Separator className="flex-1" />
+                    <span className="text-muted-foreground text-sm">{t("common.or")}</span>
+                    <Separator className="flex-1" />
+                  </div>
+                  <GoogleLoginButton disabled={isSubmitting} />
+                </>
+              ) : null}
 
               <div className="flex flex-col items-center gap-3 pt-1">
                 <button

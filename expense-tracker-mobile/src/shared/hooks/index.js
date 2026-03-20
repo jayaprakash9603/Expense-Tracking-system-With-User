@@ -1,4 +1,6 @@
 export * from "./app/useAppInitialization";
+export * from "./useAppConfig";
+export * from "./useFeatureFlag";
 export * from "./theme/useTheme";
 export * from "./theme/useMediaQuery";
 export * from "./layout/useLayout";

@@ -1,0 +1,32 @@
+FROM oven/bun:1 AS deps
+WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+FROM oven/bun:1 AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ARG VITE_APP_RUNTIME_MODE=demo
+ARG VITE_API_BASE_URL=http://localhost:8080
+ARG VITE_FEATURE_FLAGS_JSON=
+ARG VITE_DEMO_EMAIL=admin@gmail.com
+ARG VITE_DEMO_PASSWORD=admin
+ARG VITE_DEMO_SEED_SCENARIO=sample
+ARG VITE_GOOGLE_CLIENT_ID=
+
+ENV VITE_APP_RUNTIME_MODE=$VITE_APP_RUNTIME_MODE
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_FEATURE_FLAGS_JSON=$VITE_FEATURE_FLAGS_JSON
+ENV VITE_DEMO_EMAIL=$VITE_DEMO_EMAIL
+ENV VITE_DEMO_PASSWORD=$VITE_DEMO_PASSWORD
+ENV VITE_DEMO_SEED_SCENARIO=$VITE_DEMO_SEED_SCENARIO
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+
+RUN bun run build
+
+FROM nginx:alpine
+COPY docker/nginx.default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
