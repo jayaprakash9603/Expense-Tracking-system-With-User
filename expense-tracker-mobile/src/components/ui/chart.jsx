@@ -11,6 +11,28 @@ const THEMES = {
 
 const ChartContext = React.createContext(null)
 
+const CSS_HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
+const CSS_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/
+const CSS_HSL = /^hsla?\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%(\s*,\s*(0|1|0?\.\d+))?\s*\)$/
+
+function isSafeCssColorToken(value) {
+  if (value == null || typeof value !== "string") return false
+  const v = value.trim()
+  if (v.length === 0 || v.length > 120) return false
+  return CSS_HEX_COLOR.test(v) || CSS_RGB.test(v) || CSS_HSL.test(v)
+}
+
+function isSafeChartVarKey(key) {
+  return typeof key === "string" && /^[-a-zA-Z0-9_]+$/.test(key) && key.length <= 64
+}
+
+function sanitizeChartDomId(raw) {
+  const base = String(raw ?? "")
+    .replace(/:/g, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "")
+  return base.length > 0 ? base.slice(0, 128) : "chart"
+}
+
 function useChart() {
   const context = React.useContext(ChartContext)
 
@@ -63,10 +85,12 @@ const ChartStyle = ({
 ${prefix} [data-chart=${id}] {
 ${colorConfig
 .map(([key, itemConfig]) => {
+if (!isSafeChartVarKey(key)) return null
 const color =
   itemConfig.theme?.[theme] ||
   itemConfig.color
-return color ? `  --color-${key}: ${color};` : null
+if (!color || !isSafeCssColorToken(color)) return null
+return `  --color-${key}: ${color};`
 })
 .join("\n")}
 }

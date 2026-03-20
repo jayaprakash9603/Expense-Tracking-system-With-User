@@ -20,8 +20,7 @@ import java.util.Set;
 @Component
 public class CategoryExcelParser {
 
-    
-
+    private static final int MAX_CATEGORY_ROWS = 5000;
 
     public List<ExpenseCategory> parseCategories(MultipartFile file) throws IOException {
         List<ExpenseCategory> categories = new ArrayList<>();
@@ -43,8 +42,8 @@ public class CategoryExcelParser {
             ExcelColumnMapper columnMapper = new ExcelColumnMapper(headerRow, evaluator);
 
             
-            int lastRow = sheet.getLastRowNum();
-            for (int r = 1; r <= lastRow; r++) {
+            int lastRow = Math.min(sheet.getLastRowNum(), MAX_CATEGORY_ROWS + 1);
+            for (int r = 1; r <= lastRow && categories.size() < MAX_CATEGORY_ROWS; r++) {
                 Row row = sheet.getRow(r);
                 if (row == null)
                     continue;

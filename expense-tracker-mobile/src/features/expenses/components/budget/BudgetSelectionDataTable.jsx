@@ -11,6 +11,7 @@ export function BudgetSelectionDataTable({
   className,
   defaultPageSize = 5,
   pageSizeOptions = [5, 10, 20, 50],
+  loading = false,
 }) {
   const { t } = useLanguage();
 
@@ -18,6 +19,7 @@ export function BudgetSelectionDataTable({
     <EnhancedDataTable
       columns={columns}
       data={rows}
+      loading={loading}
       selectable
       enableColumnFilters
       showPagination

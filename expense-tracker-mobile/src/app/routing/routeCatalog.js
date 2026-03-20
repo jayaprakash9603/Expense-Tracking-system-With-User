@@ -1292,6 +1292,7 @@ export const ROUTE_CATALOG = [
     path: "/admin/dashboard",
     key: "admin-dashboard",
     titleKey: "navigation.adminDashboard",
+    bottomTitleKey: "navigation.adminShort",
     guard: "admin",
     navGroup: "admin",
     navIcon: LayoutDashboard,
@@ -1302,6 +1303,7 @@ export const ROUTE_CATALOG = [
     path: "/admin/users",
     key: "admin-users",
     titleKey: "navigation.userManagement",
+    bottomTitleKey: "navigation.usersShort",
     guard: "admin",
     navGroup: "admin",
     navIcon: User,
@@ -1322,6 +1324,7 @@ export const ROUTE_CATALOG = [
     path: "/admin/analytics",
     key: "admin-analytics",
     titleKey: "navigation.systemAnalytics",
+    bottomTitleKey: "navigation.analyticsShort",
     guard: "admin",
     navGroup: "admin",
     navIcon: BarChart3,
@@ -1342,6 +1345,7 @@ export const ROUTE_CATALOG = [
     path: "/admin/reports",
     key: "admin-reports",
     titleKey: "navigation.reports",
+    bottomTitleKey: "navigation.reportsShort",
     guard: "admin",
     navGroup: "admin",
     navIcon: PieChart,
@@ -1426,7 +1430,11 @@ export function getRouteTitleKey(pathname) {
   return parent?.titleKey || "dashboard.title";
 }
 
-export function getSidebarItems() {
+export function getSidebarItems(currentMode = "USER") {
+  if (currentMode === "ADMIN") {
+    return getAdminSidebarItems();
+  }
+
   return ROUTE_CATALOG.filter((r) => r.navGroup && r.guard !== "admin");
 }
 
@@ -1434,11 +1442,7 @@ export function getAdminSidebarItems() {
   return ROUTE_CATALOG.filter((r) => r.navGroup === "admin");
 }
 
-export function getBottomNavItems() {
-  return ROUTE_CATALOG.filter((r) => r.bottomNav);
-}
-
-const MORE_MENU_KEYS = [
+const USER_MORE_MENU_KEYS = [
   "budgets",
   "categories",
   "payments",
@@ -1449,8 +1453,28 @@ const MORE_MENU_KEYS = [
   "profile",
 ];
 
-export function getMoreMenuItems() {
-  return MORE_MENU_KEYS.map((key) => ROUTE_CATALOG.find((r) => r.key === key)).filter(Boolean);
+const ADMIN_BOTTOM_NAV_KEYS = [
+  "admin-dashboard",
+  "admin-users",
+  "admin-analytics",
+  "admin-reports",
+];
+
+const ADMIN_MORE_MENU_KEYS = ["admin-roles", "admin-audit", "admin-settings", "admin-stories"];
+
+export function getBottomNavItems(currentMode = "USER") {
+  if (currentMode === "ADMIN") {
+    return ADMIN_BOTTOM_NAV_KEYS.map((key) => ROUTE_CATALOG.find((r) => r.key === key)).filter(
+      Boolean,
+    );
+  }
+
+  return ROUTE_CATALOG.filter((r) => r.bottomNav);
+}
+
+export function getMoreMenuItems(currentMode = "USER") {
+  const keys = currentMode === "ADMIN" ? ADMIN_MORE_MENU_KEYS : USER_MORE_MENU_KEYS;
+  return keys.map((key) => ROUTE_CATALOG.find((r) => r.key === key)).filter(Boolean);
 }
 
 export function isActiveRoute(currentPath, routePath) {

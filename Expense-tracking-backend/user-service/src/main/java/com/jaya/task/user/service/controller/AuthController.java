@@ -14,8 +14,6 @@ import com.jaya.task.user.service.service.OtpService;
 import com.jaya.task.user.service.service.TotpService;
 import com.jaya.task.user.service.service.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -264,21 +262,6 @@ public class AuthController {
         } else {
             throw new Exception("User not found with id: " + id);
         }
-    }
-
-    @GetMapping("/email")
-    public ResponseEntity<User> getUserByEmail(
-            @RequestParam @NotNull @Email(message = "Valid email is required") String email) {
-
-        User user = userRepository.findByEmail(email);
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/all-users")
-    public ResponseEntity<List<User>> getAllUsers() {
-
-        List<User> user = userRepository.findAll();
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
     }
 
     @PostMapping("/check-email")

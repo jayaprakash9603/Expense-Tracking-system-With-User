@@ -1,7 +1,5 @@
 import * as Yup from "yup";
-
-const STRICT_EMAIL_REGEX =
-  /^(?!.*\.\.)[A-Za-z0-9]+([._%+-][A-Za-z0-9]+)*@(?!(?:[0-9]{1,3}\.){3}[0-9]{1,3}$)(?!-)(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,9}$/;
+import { STRICT_EMAIL_REGEX } from "./registerSchema";
 
 export const loginSchema = Yup.object({
   email: Yup.string()

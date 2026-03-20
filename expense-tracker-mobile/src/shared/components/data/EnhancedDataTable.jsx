@@ -31,10 +31,6 @@ import {
   ArrowDown,
   ArrowUp,
   ChevronsUpDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Columns3,
   ChevronDown,
 } from "lucide-react";
@@ -59,6 +55,7 @@ import { NoDataPlaceholder } from "@/shared/components/feedback/NoDataPlaceholde
 import { SearchToolbar } from "@/shared/components/search/SearchToolbar";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { DataTableFilterPopover } from "@/shared/components/data/DataTableFilterPopover";
+import { DataTablePagination } from "@/shared/components/data/DataTablePagination";
 import { cn } from "@/lib/utils";
 
 function DragHandle({ id }) {
@@ -76,7 +73,7 @@ function DragHandle({ id }) {
   );
 }
 
-function DraggableRow({ row, children }) {
+function DraggableRow({ row, children, fixedRowStyle, fixedRowClassName }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id ?? row.id,
   });
@@ -89,10 +86,12 @@ function DraggableRow({ row, children }) {
       className={cn(
         "relative z-0",
         isDragging && "z-10 opacity-80 bg-muted/50",
+        fixedRowClassName,
       )}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
+        ...fixedRowStyle,
       }}
     >
       {children}
@@ -100,12 +99,20 @@ function DraggableRow({ row, children }) {
   );
 }
 
-function TableSkeleton({ colCount, rows = 5 }) {
+function TableSkeleton({ colCount, rows = 5, rowHeightPx = null }) {
+  const fixedStyle =
+    rowHeightPx == null
+      ? undefined
+      : { height: rowHeightPx, maxHeight: rowHeightPx };
+  const fixedClass =
+    rowHeightPx == null
+      ? undefined
+      : "overflow-hidden [&>td]:overflow-hidden [&>td]:align-middle [&>td]:py-2";
   return Array.from({ length: rows }).map((_, i) => (
-    <TableRow key={i}>
+    <TableRow key={i} className={fixedClass} style={fixedStyle}>
       {Array.from({ length: colCount }).map((_, j) => (
         <TableCell key={j}>
-          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full max-w-full" />
         </TableCell>
       ))}
     </TableRow>
@@ -209,6 +216,12 @@ function toHeaderLabel(column) {
   return String(column?.id || "");
 }
 
+const DEFAULT_SCROLL_BODY_MAX_ROWS = 5;
+const DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX = 42;
+const DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX = 41;
+const SCROLL_VIEWPORT_SLACK_PX = 2;
+const PAGE_PAD_MIN_TOTAL_ROWS = 5;
+
 export function EnhancedDataTable({
   columns,
   data: initialData,
@@ -234,6 +247,10 @@ export function EnhancedDataTable({
   onRowSelectionStateChange,
   selectionCheckboxClassName,
   tableClassName,
+  tableContainerClassName,
+  scrollBodyMaxRows = DEFAULT_SCROLL_BODY_MAX_ROWS,
+  scrollBodyRowHeightPx = DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX,
+  scrollTableHeaderHeightPx = DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX,
 }) {
   const { t } = useLanguage();
   const [data, setData] = useState(initialData);
@@ -278,6 +295,8 @@ export function EnhancedDataTable({
     useSensor(KeyboardSensor, {}),
   );
 
+  const lockColumnWidths = scrollBodyMaxRows != null;
+
   const enhancedColumns = useMemo(() => {
     const cols = [];
 
@@ -299,8 +318,14 @@ export function EnhancedDataTable({
           <div className="flex items-center justify-center">
             <Checkbox
               className={selectionCheckboxClassName}
-              checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              checked={
+                table.getIsAllRowsSelected()
+                  ? true
+                  : table.getIsSomeRowsSelected()
+                    ? "indeterminate"
+                    : false
+              }
+              onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
             />
           </div>
         ),
@@ -330,13 +355,22 @@ export function EnhancedDataTable({
       };
     });
 
-    return [...cols, ...nextColumns];
+    const merged = [...cols, ...nextColumns];
+    if (!lockColumnWidths) return merged;
+    return merged.map((col) => {
+      const w = col.size;
+      if (w == null) return col;
+      const n = Number(w);
+      if (Number.isNaN(n)) return col;
+      return { ...col, minSize: n, maxSize: n };
+    });
   }, [
     columns,
     draggable,
     selectable,
     enableColumnFilters,
     selectionCheckboxClassName,
+    lockColumnWidths,
   ]);
 
   const table = useReactTable({
@@ -387,11 +421,39 @@ export function EnhancedDataTable({
   const visibleColumns = table
     .getAllColumns()
     .filter((col) => typeof col.accessorFn !== "undefined" && col.getCanHide());
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const filteredTotal = table.getFilteredRowModel().rows.length;
   const selectedRowsText = selectable
-    ? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected.`
+    ? t("common.tableRowsSelected", { selected: selectedCount, total: filteredTotal })
     : "";
-  const pageSummaryText = `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`;
+  const pageSummaryText = t("common.tablePageStatus", {
+    current: table.getState().pagination.pageIndex + 1,
+    total: Math.max(1, table.getPageCount()),
+  });
   const rowsPerPageLabel = t("common.rowsPerPage") || "Rows per page";
+
+  const pageBodyRowCount = loading
+    ? (scrollBodyMaxRows ?? DEFAULT_SCROLL_BODY_MAX_ROWS)
+    : table.getRowModel().rows.length;
+  const shouldApplyBodyScrollCap =
+    scrollBodyMaxRows != null && pageBodyRowCount > scrollBodyMaxRows;
+
+  const tableScrollMaxHeightPx = shouldApplyBodyScrollCap
+    ? scrollTableHeaderHeightPx +
+      scrollBodyMaxRows * scrollBodyRowHeightPx +
+      SCROLL_VIEWPORT_SLACK_PX
+    : null;
+
+  const tableContainerStyle =
+    tableScrollMaxHeightPx == null ? undefined : { maxHeight: tableScrollMaxHeightPx };
+
+  const useFixedBodyRowMetrics = lockColumnWidths;
+  const fixedDataRowStyle = useFixedBodyRowMetrics
+    ? { height: scrollBodyRowHeightPx, maxHeight: scrollBodyRowHeightPx }
+    : null;
+  const fixedDataRowClassName = useFixedBodyRowMetrics
+    ? "overflow-hidden [&>td]:overflow-hidden [&>td]:align-middle [&>td]:py-1.5"
+    : undefined;
 
   const renderHeaderCell = useCallback(
     (header) => {
@@ -447,13 +509,41 @@ export function EnhancedDataTable({
     [enableColumnFilters],
   );
 
+  const paginationState = table.getState().pagination;
+  const currentPageRows = loading ? [] : table.getRowModel().rows;
+  const pageRowCount = currentPageRows.length;
+  const pageSize = paginationState.pageSize;
+  const pageRemainder = pageSize - pageRowCount;
+  let padRowCount = 0;
+  if (showPagination && !loading && !draggable && pageRowCount > 0 && pageRemainder > 0) {
+    padRowCount =
+      pageRowCount < PAGE_PAD_MIN_TOTAL_ROWS
+        ? Math.min(pageRemainder, PAGE_PAD_MIN_TOTAL_ROWS - pageRowCount)
+        : pageRemainder;
+  }
+  const pagePadTemplateCells =
+    padRowCount > 0 ? currentPageRows[0]?.getVisibleCells() ?? [] : [];
+
   const tableContent = (
-    <Table className={tableClassName}>
-      <TableHeader className="sticky top-0 z-10 bg-muted">
+    <Table
+      className={cn(tableClassName, lockColumnWidths && "table-fixed")}
+      containerClassName={cn(
+        "theme-scrollbar",
+        shouldApplyBodyScrollCap && "overscroll-contain",
+        tableContainerClassName,
+      )}
+      containerStyle={tableContainerStyle}
+    >
+      <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => (
-              <TableHead key={header.id} colSpan={header.colSpan} style={{ width: header.getSize() }}>
+              <TableHead
+                key={header.id}
+                colSpan={header.colSpan}
+                style={{ width: header.getSize() }}
+                className="sticky top-0 z-20 border-b border-border bg-muted"
+              >
                 {renderHeaderCell(header)}
               </TableHead>
             ))}
@@ -462,7 +552,11 @@ export function EnhancedDataTable({
       </TableHeader>
       <TableBody>
         {loading ? (
-          <TableSkeleton colCount={enhancedColumns.length} />
+          <TableSkeleton
+            colCount={enhancedColumns.length}
+            rows={scrollBodyMaxRows ?? DEFAULT_SCROLL_BODY_MAX_ROWS}
+            rowHeightPx={useFixedBodyRowMetrics ? scrollBodyRowHeightPx : null}
+          />
         ) : table.getRowModel().rows.length === 0 ? (
           <TableRow>
             <TableCell colSpan={enhancedColumns.length} className="h-48">
@@ -477,7 +571,12 @@ export function EnhancedDataTable({
         ) : draggable ? (
           <SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
             {table.getRowModel().rows.map((row) => (
-              <DraggableRow key={row.id} row={row}>
+              <DraggableRow
+                key={row.id}
+                row={row}
+                fixedRowStyle={fixedDataRowStyle ?? undefined}
+                fixedRowClassName={fixedDataRowClassName}
+              >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
@@ -491,20 +590,45 @@ export function EnhancedDataTable({
             ))}
           </SortableContext>
         ) : (
-          table.getRowModel().rows.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={row.getIsSelected() && "selected"}
-              className={cn(onRowClick && "cursor-pointer")}
-              onClick={() => onRowClick?.(row.original)}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
+          <>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
+                className={cn(onRowClick && "cursor-pointer", fixedDataRowClassName)}
+                style={fixedDataRowStyle ?? undefined}
+                onClick={() => onRowClick?.(row.original)}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+            {padRowCount > 0 && pagePadTemplateCells.length > 0
+              ? Array.from({ length: padRowCount }).map((_, padIndex) => (
+                  <TableRow
+                    key={`page-pad-${padIndex}`}
+                    className={cn(
+                      "pointer-events-none border-border/40 bg-muted/10",
+                      fixedDataRowClassName,
+                    )}
+                    style={fixedDataRowStyle ?? undefined}
+                    aria-hidden="true"
+                  >
+                    {pagePadTemplateCells.map((cell) => (
+                      <TableCell
+                        key={`${cell.column.id}-pad-${padIndex}`}
+                        style={{ width: cell.column.getSize() }}
+                      >
+                        {"\u00a0"}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : null}
+          </>
         )}
       </TableBody>
     </Table>
@@ -569,115 +693,16 @@ export function EnhancedDataTable({
         )}
       </div>
 
-      {showPagination && (
-        <div className="px-1">
-          <div className="flex flex-col gap-2 md:hidden">
-            {selectable ? (
-              <div className="min-h-[20px] text-center text-xs text-muted-foreground sm:text-sm">
-                {selectedRowsText}
-              </div>
-            ) : null}
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="min-w-[96px] text-center text-xs font-medium sm:text-sm">
-                {pageSummaryText}
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-xs font-medium sm:text-sm">{rowsPerPageLabel}</span>
-              <select
-                value={pagination.pageSize}
-                onChange={(e) => table.setPageSize(Number(e.target.value))}
-                className="h-8 rounded border border-input bg-background px-2 text-xs sm:text-sm"
-              >
-                {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-3">
-            <div className="min-h-[20px] text-xs text-muted-foreground sm:text-sm md:justify-self-start">
-              {selectedRowsText}
-            </div>
-            <div className="flex items-center gap-2 md:justify-self-center">
-              <div className="text-xs font-medium sm:text-sm">{pageSummaryText}</div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="hidden h-8 w-8 md:flex"
-                  onClick={() => table.setPageIndex(0)}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="hidden h-8 w-8 md:flex"
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                  disabled={!table.getCanNextPage()}
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 md:justify-self-end">
-              <span className="text-xs font-medium sm:text-sm">{rowsPerPageLabel}</span>
-              <select
-                value={pagination.pageSize}
-                onChange={(e) => table.setPageSize(Number(e.target.value))}
-                className="h-8 rounded border border-input bg-background px-2 text-xs sm:text-sm"
-              >
-                {pageSizeOptions.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      )}
+      {showPagination ? (
+        <DataTablePagination
+          table={table}
+          selectable={selectable}
+          selectedRowsText={selectedRowsText}
+          pageSummaryText={pageSummaryText}
+          rowsPerPageLabel={rowsPerPageLabel}
+          pageSizeOptions={pageSizeOptions}
+        />
+      ) : null}
     </div>
   );
 }

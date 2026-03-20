@@ -24,8 +24,11 @@ export function ExpenseThemedCommentField({
       placeholder={placeholder}
       rows={minRows}
       className={cn(
-        "w-full bg-background text-foreground resize-y",
-        error && "border-destructive focus-visible:ring-destructive",
+        "w-full resize-y rounded-lg border-2 bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-[border-color,box-shadow]",
+        "placeholder:text-muted-foreground focus-visible:outline-none",
+        error
+          ? "border-destructive focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-destructive/30"
+          : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
         className,
       )}
       style={{ maxWidth, minHeight: `${Math.max(minRows, 2) * 22}px`, maxHeight: `${maxRows * 30}px` }}

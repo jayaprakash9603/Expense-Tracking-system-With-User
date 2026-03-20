@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 
 export function FormField({
   name,
@@ -14,9 +15,12 @@ export function FormField({
   inputClassName,
   disabled,
   autoComplete,
+  inputMode,
   onFocusExtra,
   onChangeExtra,
+  onBlurExtra,
 }) {
+  const { t } = useLanguage();
   const [field, meta] = useField(name);
   const [showPassword, setShowPassword] = useState(false);
   const hasError = meta.touched && meta.error;
@@ -30,6 +34,11 @@ export function FormField({
 
   const handleFocus = (e) => {
     onFocusExtra?.(e);
+  };
+
+  const handleBlur = (e) => {
+    field.onBlur(e);
+    onBlurExtra?.(e);
   };
 
   return (
@@ -46,6 +55,9 @@ export function FormField({
           placeholder={placeholder}
           disabled={disabled}
           autoComplete={autoComplete}
+          inputMode={inputMode}
+          aria-invalid={hasError || undefined}
+          aria-describedby={hasError ? `${name}-error` : undefined}
           className={cn(
             "h-10 md:h-11",
             hasError && "border-destructive focus-visible:ring-destructive",
@@ -55,6 +67,7 @@ export function FormField({
           {...field}
           onChange={handleChange}
           onFocus={handleFocus}
+          onBlur={handleBlur}
         />
         {isPasswordField ? (
           <button
@@ -67,8 +80,10 @@ export function FormField({
           </button>
         ) : null}
       </div>
-      {hasError ? (
-        <p className="text-xs md:text-sm text-destructive">{meta.error}</p>
+      {hasError && meta.error ? (
+        <span id={`${name}-error`} className="sr-only">
+          {meta.error?.includes(".") ? t(meta.error) : meta.error}
+        </span>
       ) : null}
     </div>
   );

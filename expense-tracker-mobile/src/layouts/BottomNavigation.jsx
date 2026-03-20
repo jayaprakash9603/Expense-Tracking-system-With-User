@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MoreHorizontal, X, LogOut } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { getBottomNavItems, getMoreMenuItems, isActiveRoute } from "@/app/routing/routeCatalog";
@@ -13,18 +13,26 @@ export function BottomNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
+  const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const { t } = useLanguage();
   const [moreOpen, setMoreOpen] = useState(false);
   const sheetRef = useRef(null);
 
-  const primaryTabs = getBottomNavItems();
-  const moreItems = getMoreMenuItems();
+  const primaryTabs = getBottomNavItems(currentMode);
+  const moreItems = getMoreMenuItems(currentMode);
   const isMoreActive = moreItems.some((item) => isActiveRoute(location.pathname, item.path));
 
-  const handleNavigate = useCallback((path) => {
-    setMoreOpen(false);
-    navigate(path);
-  }, [navigate]);
+  if (!primaryTabs.length && !moreItems.length) {
+    return null;
+  }
+
+  const handleNavigate = useCallback(
+    (path) => {
+      setMoreOpen(false);
+      navigate(path);
+    },
+    [navigate],
+  );
 
   const handleLogout = useCallback(() => {
     setMoreOpen(false);
@@ -38,7 +46,9 @@ export function BottomNavigation() {
 
   useEffect(() => {
     if (!moreOpen) return;
-    const handleKey = (e) => { if (e.key === "Escape") setMoreOpen(false); };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setMoreOpen(false);
+    };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [moreOpen]);
@@ -78,20 +88,18 @@ export function BottomNavigation() {
                   onClick={() => handleNavigate(item.path)}
                   className={cn(
                     "flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-colors tap-highlight-none",
-                    active ? "bg-primary/10" : "hover:bg-accent active:bg-accent"
+                    active ? "bg-primary/10" : "hover:bg-accent active:bg-accent",
                   )}
                 >
                   {item.navIcon && (
-                    <AppIcon
-                      icon={item.navIcon}
-                      color={active ? "primary" : "soft"}
-                      size="md"
-                    />
+                    <AppIcon icon={item.navIcon} color={active ? "primary" : "soft"} size="md" />
                   )}
-                  <span className={cn(
-                    "text-[10px] font-medium leading-tight text-center",
-                    active ? "icon-primary" : "text-muted-foreground"
-                  )}>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium leading-tight text-center",
+                      active ? "icon-primary" : "text-muted-foreground",
+                    )}
+                  >
                     {t(item.titleKey)}
                   </span>
                 </button>
@@ -119,6 +127,7 @@ export function BottomNavigation() {
             <BottomTab
               key={item.key}
               item={item}
+              labelKey={item.bottomTitleKey || item.titleKey}
               active={isActiveRoute(location.pathname, item.path)}
               onPress={() => handleNavigate(item.path)}
               t={t}
@@ -135,13 +144,13 @@ export function BottomNavigation() {
   );
 }
 
-function BottomTab({ item, active, onPress, t }) {
+function BottomTab({ item, labelKey, active, onPress, t }) {
   return (
     <button
       onClick={onPress}
       className={cn(
         "relative flex flex-col items-center justify-center gap-0.5 flex-1 tap-highlight-none transition-colors",
-        active ? "icon-primary" : "icon-muted"
+        active ? "icon-primary" : "icon-muted",
       )}
     >
       {active && (
@@ -150,11 +159,13 @@ function BottomTab({ item, active, onPress, t }) {
       <span className={active ? "tab-icon-active" : ""}>
         {item.navIcon && <AppIcon icon={item.navIcon} color="inherit" size="md" />}
       </span>
-      <span className={cn(
-        "text-[10px] font-medium transition-colors",
-        active ? "icon-primary" : "text-muted-foreground"
-      )}>
-        {t(item.titleKey)}
+      <span
+        className={cn(
+          "text-[10px] font-medium transition-colors",
+          active ? "icon-primary" : "text-muted-foreground",
+        )}
+      >
+        {t(labelKey)}
       </span>
     </button>
   );
@@ -166,7 +177,7 @@ function MoreTab({ active, onPress, t }) {
       onClick={onPress}
       className={cn(
         "relative flex flex-col items-center justify-center gap-0.5 flex-1 tap-highlight-none transition-colors",
-        active ? "icon-primary" : "icon-muted"
+        active ? "icon-primary" : "icon-muted",
       )}
     >
       {active && (
@@ -175,10 +186,12 @@ function MoreTab({ active, onPress, t }) {
       <span className={active ? "tab-icon-active" : ""}>
         <AppIcon icon={MoreHorizontal} color="inherit" size="md" />
       </span>
-      <span className={cn(
-        "text-[10px] font-medium transition-colors",
-        active ? "icon-primary" : "text-muted-foreground"
-      )}>
+      <span
+        className={cn(
+          "text-[10px] font-medium transition-colors",
+          active ? "icon-primary" : "text-muted-foreground",
+        )}
+      >
         {t("navigation.more")}
       </span>
     </button>

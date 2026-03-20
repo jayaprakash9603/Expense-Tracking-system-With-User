@@ -1,58 +1,126 @@
 import React from "react";
-import { Target } from "lucide-react";
-import { AppCard } from "@/shared/components/display/AppCard";
+import { Target, TrendingDown, Wallet } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { AppRadialChart } from "@/shared/components/chart/AppRadialChart";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
-import { DASHBOARD_BUDGET_RADIAL_HEIGHT } from "@/features/dashboard/constants/dashboardChartHeights";
+import { cn } from "@/lib/utils";
+
+const RADIAL_HEIGHT = 180;
 
 export function BudgetOverviewSection() {
   const { t } = useLanguage();
   const { format } = usePresentation();
-  const { budgetUsedPercent, remainingBudget, totalSpent } = useDashboardData();
+  const { budgetUsedPercent, remainingBudget, totalSpent, totalBudgetAmount } = useDashboardData();
 
   const chartData = [{ percentage: budgetUsedPercent, fill: "hsl(var(--primary))" }];
-  const chartConfig = { percentage: { label: t("dashboard.budgetUsed"), color: "hsl(var(--primary))" } };
+  const chartConfig = {
+    percentage: {
+      label: t("dashboard.budgetUsed"),
+      color: "hsl(var(--primary))",
+    },
+  };
+
+  const isOverBudget = budgetUsedPercent > 100;
+  const clampedPercent = Math.min(budgetUsedPercent, 100);
 
   return (
-    <AppCard className="flex h-full min-h-0 flex-col">
-      <AppCard.Header className="shrink-0">
+    <Card className="flex h-full min-h-0 flex-col">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4 md:p-6">
         <SectionHeader icon={Target} title={t("dashboard.budgetOverview")} />
-      </AppCard.Header>
-      <AppCard.Content className="flex min-h-0 flex-1 flex-col pt-0">
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
+
+        {/* Radial chart */}
+        <div className="flex items-center justify-center">
           <AppRadialChart
             data={chartData}
             config={chartConfig}
             dataKey="percentage"
-            innerRadius={72}
-            outerRadius={98}
-            height={DASHBOARD_BUDGET_RADIAL_HEIGHT}
+            innerRadius={60}
+            outerRadius={82}
+            height={RADIAL_HEIGHT}
             showLabel
           />
         </div>
-        <div className="mt-4 grid shrink-0 grid-cols-1 gap-2">
-          <BudgetStatRow
-            label={t("dashboard.remainingBudget")}
-            value={format(remainingBudget)}
-          />
-          <BudgetStatRow
-            label={t("dashboard.totalSpent")}
-            value={format(totalSpent)}
+
+        {/* Progress bar with label */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">{t("dashboard.budgetUsed")}</span>
+            <span
+              className={cn("font-semibold", isOverBudget ? "text-destructive" : "text-primary")}
+            >
+              {budgetUsedPercent}%
+            </span>
+          </div>
+          <Progress
+            value={clampedPercent}
+            className={cn("h-2", isOverBudget && "[&>div]:bg-destructive")}
           />
         </div>
-      </AppCard.Content>
-    </AppCard>
+
+        <Separator />
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <BudgetStatCard
+            icon={Wallet}
+            label={t("dashboard.remainingBudget")}
+            value={format(remainingBudget)}
+            accent="primary"
+          />
+          <BudgetStatCard
+            icon={TrendingDown}
+            label={t("dashboard.totalSpent")}
+            value={format(totalSpent)}
+            accent="destructive"
+          />
+        </div>
+
+        {/* Total budget footer */}
+        {totalBudgetAmount > 0 && (
+          <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2">
+            <span className="text-xs text-muted-foreground">
+              {t("dashboard.totalBudget") || "Total Budget"}
+            </span>
+            <span className="text-sm font-bold">{format(totalBudgetAmount)}</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
-function BudgetStatRow({ label, value }) {
+function BudgetStatCard({ icon: Icon, label, value, accent = "primary" }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-border p-3">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-sm font-bold">{value}</span>
+    <div
+      className={cn(
+        "flex flex-col gap-1.5 rounded-lg border p-3",
+        accent === "destructive"
+          ? "border-destructive/20 bg-destructive/5"
+          : "border-primary/20 bg-primary/5",
+      )}
+    >
+      <div className="flex items-center gap-1.5">
+        <Icon
+          className={cn(
+            "h-3.5 w-3.5",
+            accent === "destructive" ? "text-destructive" : "text-primary",
+          )}
+        />
+        <span className="text-[11px] leading-tight text-muted-foreground">{label}</span>
+      </div>
+      <span
+        className={cn(
+          "text-base font-bold tracking-tight",
+          accent === "destructive" ? "text-destructive" : "text-primary",
+        )}
+      >
+        {value}
+      </span>
     </div>
   );
 }

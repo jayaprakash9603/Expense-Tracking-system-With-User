@@ -5,22 +5,7 @@ import {
   deduplicateNames,
   getSuggestions,
 } from "../utils/expenseNameUtils";
-
-function extractSuggestionNames(data) {
-  if (Array.isArray(data)) {
-    return data;
-  }
-  if (Array.isArray(data?.data)) {
-    return data.data;
-  }
-  if (Array.isArray(data?.items)) {
-    return data.items;
-  }
-  if (Array.isArray(data?.topExpenses)) {
-    return data.topExpenses;
-  }
-  return [];
-}
+import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
 
 function buildSuggestionPayload(friendId, topN) {
   return {
@@ -33,11 +18,11 @@ async function fetchExpenseNamesFromApi(friendId, topN) {
   const payload = buildSuggestionPayload(friendId, topN);
   const postResult = await expenseApi.getSuggestions(payload);
   if (!postResult.error) {
-    return extractSuggestionNames(postResult.data);
+    return normalizeApiList(postResult.data, "data", "items", "topExpenses");
   }
 
   const response = await api.get("/api/expenses/top-expense-names", { params: payload });
-  return extractSuggestionNames(response.data);
+  return normalizeApiList(response.data, "data", "items", "topExpenses");
 }
 
 function normalizeSuggestionName(item) {

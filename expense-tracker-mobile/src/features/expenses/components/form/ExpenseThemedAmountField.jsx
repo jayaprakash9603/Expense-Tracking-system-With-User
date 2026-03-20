@@ -1,6 +1,9 @@
 import React, { useCallback } from "react";
-import { AppInput } from "@/shared/components/form/AppInput";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+
+const NUMBER_SPINNER_HIDE =
+  "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 export function ExpenseThemedAmountField({
   id = "amount",
@@ -10,7 +13,7 @@ export function ExpenseThemedAmountField({
   onClearError,
   placeholder,
   error = false,
-  height = 48,
+  height,
   maxWidth = "300px",
   className,
   ...rest
@@ -34,7 +37,7 @@ export function ExpenseThemedAmountField({
   }, []);
 
   return (
-    <AppInput
+    <Input
       id={id}
       name={name || id}
       type="number"
@@ -44,11 +47,21 @@ export function ExpenseThemedAmountField({
       placeholder={placeholder}
       inputMode="decimal"
       className={cn(
-        "w-full border-input bg-background text-foreground",
-        error && "border-destructive focus-visible:ring-destructive",
+        "h-12 rounded-lg border-2 bg-card px-3 py-2 text-sm font-medium shadow-sm transition-[border-color,box-shadow]",
+        "placeholder:text-muted-foreground",
+        NUMBER_SPINNER_HIDE,
+        error
+          ? "border-destructive focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-destructive/30"
+          : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
+        "focus-visible:outline-none",
         className,
       )}
-      style={{ height: `${height}px`, maxWidth }}
+      style={{
+        maxWidth,
+        ...(height != null
+          ? { height: typeof height === "number" ? `${height}px` : height }
+          : {}),
+      }}
       {...rest}
     />
   );

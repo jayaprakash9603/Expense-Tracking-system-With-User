@@ -35,11 +35,6 @@ endpoints:
     path: /auth/check-email
     auth: false
 
-  - key: auth.email
-    method: GET
-    path: /auth/email
-    auth: false
-
   - key: auth.send-otp
     method: POST
     path: /auth/send-otp
@@ -63,11 +58,6 @@ endpoints:
   - key: auth.user-by-id-short
     method: GET
     path: /auth/{userId}
-    auth: false
-
-  - key: auth.all-users
-    method: GET
-    path: /auth/all-users
     auth: false
 
   - key: auth.mfa.status

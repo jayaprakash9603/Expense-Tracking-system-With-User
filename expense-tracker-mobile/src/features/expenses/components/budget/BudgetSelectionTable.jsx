@@ -7,6 +7,7 @@ export function BudgetSelectionTable({
   budgets = [],
   selectedBudgetIds = [],
   onSelectionChange,
+  loading = false,
 }) {
   const { t } = useLanguage();
   const { columns, rows } = useBudgetTableConfig(budgets, t);
@@ -48,6 +49,7 @@ export function BudgetSelectionTable({
         rowSelectionState={selectedRowsMap}
         onRowSelectionStateChange={handleRowSelectionStateChange}
         defaultPageSize={5}
+        loading={loading}
       />
     </div>
   );

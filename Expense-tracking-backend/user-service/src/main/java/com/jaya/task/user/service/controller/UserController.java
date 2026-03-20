@@ -57,16 +57,27 @@ public class UserController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/email")
+    @GetMapping(value = {"/email", "/by-email"})
     public ResponseEntity<User> getUserByEmail(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(value = "Authorization", required = false) String jwt,
             @RequestParam @NotNull @Email(message = "Valid email is required") String email) {
 
-        User user = userService.getUserByEmail(email);
-        return user != null ? ResponseEntity.ok(user) : ResponseEntity.notFound().build();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (isInternalServiceCaller(authentication)) {
+            return resolveUserLookupByEmail(email);
+        }
+        if (jwt == null || jwt.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User requester = userService.getUserProfile(jwt);
+        if (!canLookupEmailForAnotherUser(requester, email)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return resolveUserLookupByEmail(email);
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'ROLE_SERVICE')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         List<UserDTO> result = users.stream()
@@ -113,7 +124,7 @@ public class UserController {
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(ERROR_KEY, "Failed to update user: " + e.getMessage()));
+                    .body(Map.of(ERROR_KEY, "Failed to update user. Please try again later."));
         }
     }
 
@@ -362,6 +373,26 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(ERROR_KEY, "Failed to switch mode: " + e.getMessage()));
         }
+    }
+
+    private ResponseEntity<User> resolveUserLookupByEmail(String email) {
+        User found = userService.getUserByEmail(email);
+        return found != null ? ResponseEntity.ok(found) : ResponseEntity.notFound().build();
+    }
+
+    private static boolean isInternalServiceCaller(Authentication authentication) {
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(granted -> "ROLE_SERVICE".equals(granted.getAuthority()));
+    }
+
+    private static boolean canLookupEmailForAnotherUser(User requester, String targetEmail) {
+        if (requester.getRoles() != null && requester.getRoles().contains("ADMIN")) {
+            return true;
+        }
+        return requester.getEmail() != null && requester.getEmail().equalsIgnoreCase(targetEmail);
     }
 
 }

@@ -11,8 +11,6 @@ Legend: H = happy path, V = validation negative, A = auth/authz negative, N = ot
 | POST `/auth/refresh-token`                       | `auth/auth_token_lifecycle.feature`      | Y   | N   | Y   | Y   | Y   |
 | GET `/auth/user/{userId}`                        | `auth/auth_token_lifecycle.feature`      | Y   | N   | N/A | N   | N   |
 | GET `/auth/{userId}`                             | `auth/auth_token_lifecycle.feature`      | Y   | N   | N/A | N   | N   |
-| GET `/auth/email`                                | `auth/auth_otp.feature`                  | Y   | Y   | N/A | N   | Y   |
-| GET `/auth/all-users`                            | `auth/auth_token_lifecycle.feature`      | Y   | N   | N/A | N   | N   |
 | POST `/auth/check-email`                         | `auth/auth_otp.feature`                  | Y   | N   | N/A | N   | Y   |
 | GET `/auth/check-auth-method`                    | `auth/auth_otp.feature`                  | Y   | N   | N/A | N   | Y   |
 | POST `/auth/send-otp`                            | `auth/auth_otp.feature`                  | Y   | N   | N/A | N   | Y   |
@@ -28,8 +26,8 @@ Legend: H = happy path, V = validation negative, A = auth/authz negative, N = ot
 | POST `/auth/mfa/disable`                         | `auth/auth_mfa.feature`                  | Y   | Y   | Y   | Y   | N   |
 | POST `/auth/mfa/regenerate-backup-codes`         | `auth/auth_mfa.feature`                  | Y   | N   | Y   | Y   | N   |
 | GET `/api/user/profile`                          | `user/user_profile.feature`              | Y   | N   | Y   | N   | Y   |
-| GET `/api/user/email`                            | `user/user_profile.feature`              | Y   | Y   | Y   | N   | Y   |
-| GET `/api/user/all`                              | `user/user_profile.feature`              | Y   | N   | N/A | N   | Y   |
+| GET `/api/user/email`                            | `user/user_profile.feature`, `auth/auth_otp.feature` | Y   | Y   | Y   | N   | Y   |
+| GET `/api/user/all`                              | `user/user_profile.feature`, `auth/auth_token_lifecycle.feature` | Y   | N   | Y   | N   | Y   |
 | GET `/api/user/{id}`                             | `user/user_profile.feature`              | Y   | Y   | Y   | N   | Y   |
 | PUT `/api/user`                                  | `user/user_crud.feature`                 | Y   | Y   | Y   | N   | Y   |
 | PUT `/api/user/two-factor`                       | `user/user_crud.feature`                 | Y   | Y   | Y   | N   | Y   |

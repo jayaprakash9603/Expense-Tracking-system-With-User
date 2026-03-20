@@ -4,22 +4,34 @@ import { toDailySpendingAreaData, toMonthlyTrendData } from "@/domain/expenses/e
 import { assignChartColorVars } from "@/shared/utils/chart/chartColors";
 import { normalizeCategoryDistribution, normalizePaymentMethodDistribution } from "@/shared/utils/chart/dataTransformers";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
+import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 
 function normalizeExpense(e) {
+  const amt = Math.abs(
+    Number(
+      e?.amount ??
+        e?.expenseAmount ??
+        e?.expense?.amount ??
+        e?.expense?.expenseAmount ??
+        0,
+    ),
+  );
+  const dateRaw = e?.date || e?.expenseDate || e?.expense?.date || e?.createdAt || "";
   return {
     ...e,
-    amount: Number(e.amount || e.expenseAmount || 0),
-    date: e.date || e.expenseDate || e.createdAt || "",
-    category: e.category || e.categoryName || "Uncategorized",
-    type: (e.type || "NEED").toString().toUpperCase(),
-    name: e.name || e.itemName || e.expenseName || "",
-    paymentMethod: e.paymentMethod || "Other",
+    amount: amt,
+    date: String(dateRaw).split("T")[0],
+    category: e?.category || e?.categoryName || e?.expense?.categoryName || "Uncategorized",
+    type: (e?.type || e?.expense?.type || "NEED").toString().toUpperCase(),
+    name: e?.name || e?.itemName || e?.expenseName || e?.expense?.expenseName || "",
+    paymentMethod: e?.paymentMethod || e?.expense?.paymentMethod || "Other",
   };
 }
 
 function normalizeExpenseEntry(dto) {
   if (!dto) return null;
-  const details = dto.expense || dto.details || {};
+  const details = extractExpenseDetails(dto);
   return {
     id: dto.id ?? details.id ?? dto.expenseId ?? null,
     name: details.expenseName || dto.expenseName || dto.name || dto.categoryName || "Unknown",
@@ -33,7 +45,7 @@ function normalizeExpenseEntry(dto) {
 
 function normalizeCashflowResponse(apiData) {
   if (!apiData) return [];
-  const buckets = Array.isArray(apiData.chartData) ? apiData.chartData : Array.isArray(apiData) ? apiData : [];
+  const buckets = normalizeApiList(apiData, "chartData");
   if (buckets.length === 0) return [];
 
   return buckets
@@ -41,10 +53,21 @@ function normalizeCashflowResponse(apiData) {
       const expenseEntries = Array.isArray(bucket.expenses)
         ? bucket.expenses.map(normalizeExpenseEntry).filter(Boolean)
         : [];
-      const isoDate = bucket.isoDate || bucket.day || bucket.label || "";
-      const amount = Math.abs(Number(bucket.amount ?? 0));
-      if (amount === 0 && expenseEntries.length === 0) return null;
-      return { date: isoDate, expense: amount, expenses: expenseEntries };
+      const isoDate =
+        bucket.isoDate ||
+        bucket.day ||
+        bucket.label ||
+        (expenseEntries[0]?.date ? String(expenseEntries[0].date).split("T")[0] : "") ||
+        "";
+      if (!isoDate) return null;
+      const day = isoDate.split("T")[0];
+      const bucketAmt = Math.abs(
+        Number(bucket.amount ?? bucket.total ?? bucket.totalLoss ?? bucket.loss ?? 0),
+      );
+      const entriesAmt = expenseEntries.reduce((sum, ent) => sum + ent.amount, 0);
+      const expense = bucketAmt > 0 ? bucketAmt : entriesAmt;
+      if (expense === 0 && expenseEntries.length === 0) return null;
+      return { date: day, expense, expenses: expenseEntries };
     })
     .filter(Boolean)
     .sort((a, b) => a.date.localeCompare(b.date));
@@ -83,6 +106,18 @@ function aggregateToMonthlyBuckets(dailyData, labelWithYear = false) {
 
 function shouldUseMonthlyView(timeframe) {
   return timeframe === "this_year" || timeframe === "last_year" || timeframe === "all_time";
+}
+
+function buildMonthlyComparisonRows(dailyData) {
+  if (!dailyData?.length) return [];
+  const buckets = aggregateToMonthlyBuckets(dailyData, true);
+  const rows = buckets.map((b) => ({
+    label: b._sortKey,
+    total: Math.round(Number(b.expense) || 0),
+  }));
+  const avg = rows.length ? rows.reduce((s, r) => s + r.total, 0) / rows.length : 0;
+  const roundedAvg = Math.round(avg);
+  return rows.map((r) => ({ ...r, average: roundedAvg }));
 }
 
 const LOSS_COLOR = "hsl(0, 84%, 60%)";
@@ -148,7 +183,21 @@ export function useDashboardCharts() {
     }, {});
   }, [apiPaymentMethodDistribution]);
 
-  const monthlyData = useMemo(() => toMonthlyTrendData(expenses), [expenses]);
+  const monthlyData = useMemo(() => {
+    let dailyData = normalizeCashflowResponse(apiDailySpending);
+    if (dailyData.length === 0) {
+      dailyData = toDailySpendingAreaData(expenses).map((d) => ({
+        date: d.date,
+        expense: d.expense,
+        expenses: [],
+      }));
+    }
+    if (dailyData.length > 0) {
+      const rows = buildMonthlyComparisonRows(dailyData);
+      if (rows.some((r) => r.total > 0)) return rows;
+    }
+    return toMonthlyTrendData(expenses);
+  }, [apiDailySpending, expenses]);
   const monthlyConfig = useMemo(() => ({
     total: { label: "Total", color: "hsl(var(--chart-1))" },
     average: { label: "Average", color: "hsl(var(--chart-2))" },

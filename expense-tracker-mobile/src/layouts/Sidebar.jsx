@@ -12,15 +12,19 @@ import { logoutAction } from "@/redux/auth/auth.actions";
 import { getSidebarItems, NAV_GROUPS, isActiveRoute } from "@/app/routing/routeCatalog";
 import { cn } from "@/lib/utils";
 
-function groupSidebarItems() {
-  const items = getSidebarItems();
+function groupSidebarItems(currentMode = "USER") {
+  const items = getSidebarItems(currentMode);
   const groups = {};
   items.forEach((item) => {
     if (!groups[item.navGroup]) groups[item.navGroup] = [];
     groups[item.navGroup].push(item);
   });
   return Object.entries(NAV_GROUPS)
-    .filter(([key]) => key !== "admin" && groups[key]?.length)
+    .filter(([key]) => {
+      if (!groups[key]?.length) return false;
+      if (currentMode === "ADMIN") return key === "admin";
+      return key !== "admin";
+    })
     .sort(([, a], [, b]) => a.order - b.order)
     .map(([key, meta]) => ({ ...meta, items: groups[key] }));
 }
@@ -32,8 +36,9 @@ function SidebarContent() {
   const { t } = useLanguage();
   const { sidebarCollapsed, toggleSidebar, isTablet } = useLayout();
   const user = useSelector((state) => state.auth?.user);
+  const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const collapsed = isTablet || sidebarCollapsed;
-  const navGroups = groupSidebarItems();
+  const navGroups = groupSidebarItems(currentMode);
 
   const handleLogout = () => {
     dispatch(logoutAction());
@@ -42,10 +47,12 @@ function SidebarContent() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className={cn(
-        "flex items-center shrink-0 border-b border-border h-14",
-        collapsed ? "justify-center px-2" : "px-4"
-      )}>
+      <div
+        className={cn(
+          "flex items-center shrink-0 border-b border-border h-14",
+          collapsed ? "justify-center px-2" : "px-4",
+        )}
+      >
         {collapsed ? (
           <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
             <span className="text-sm text-primary-foreground font-black font-display">E</span>
@@ -90,7 +97,7 @@ function SidebarContent() {
                     className={cn(
                       "flex items-center gap-3 w-full rounded-lg transition-colors tap-highlight-none",
                       collapsed ? "justify-center px-2 py-2.5" : "px-3 py-2",
-                      active ? "bg-primary/10 font-medium" : "hover:bg-accent"
+                      active ? "bg-primary/10 font-medium" : "hover:bg-accent",
                     )}
                     title={collapsed ? t(item.titleKey) : undefined}
                   >
@@ -98,7 +105,12 @@ function SidebarContent() {
                       <AppIcon icon={item.navIcon} color={active ? "primary" : "soft"} size="md" />
                     )}
                     {!collapsed && (
-                      <span className={cn("text-sm truncate", active ? "icon-primary" : "text-muted-foreground")}>
+                      <span
+                        className={cn(
+                          "text-sm truncate",
+                          active ? "icon-primary" : "text-muted-foreground",
+                        )}
+                      >
                         {t(item.titleKey)}
                       </span>
                     )}
@@ -140,7 +152,7 @@ function SidebarContent() {
           onClick={handleLogout}
           className={cn(
             "flex items-center gap-3 w-full rounded-lg py-2 hover:bg-destructive/10 transition-colors",
-            collapsed ? "justify-center px-2" : "px-3"
+            collapsed ? "justify-center px-2" : "px-3",
           )}
           title={collapsed ? t("settings.logout") : undefined}
         >

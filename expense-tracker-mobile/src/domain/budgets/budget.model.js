@@ -2,6 +2,7 @@ export const BUDGET_PERIODS = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"]
 
 export const BUDGET_DEFAULTS = {
   name: "",
+  description: "",
   amount: "",
   period: "MONTHLY",
   category: "",

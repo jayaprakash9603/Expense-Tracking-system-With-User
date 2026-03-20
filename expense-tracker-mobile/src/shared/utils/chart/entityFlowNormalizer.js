@@ -1,3 +1,4 @@
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { getChartColor } from "./chartHelpers";
 import { weekDays, yearMonths } from "./timeframeResolver";
 
@@ -56,7 +57,7 @@ export function normalizeEntityFlowData(rawData, activeRange = "month", offset =
 
     expenses.forEach((e) => {
       if (!e) return;
-      const details = e.expense || e.details || e;
+      const details = extractExpenseDetails(e);
       const amt = Math.abs(Number(details.amount ?? details.netAmount ?? e.amount ?? 0));
       const type = (details.type || e.type || "").toLowerCase();
       if (["gain", "income", "inflow"].includes(type)) entityIncome += amt;
@@ -136,7 +137,7 @@ function buildStackedBuckets(rawData, entityNames, activeRange, offset, keyMap) 
 
     expenses.forEach((e) => {
       if (!e) return;
-      const details = e.expense || e.details || e;
+      const details = extractExpenseDetails(e);
       const dateStr = details.date || e.date || "";
       if (!dateStr) return;
 

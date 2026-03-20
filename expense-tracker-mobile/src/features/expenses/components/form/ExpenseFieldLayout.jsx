@@ -13,6 +13,8 @@ export function ExpenseFieldLayout({
   contentClassName,
 }) {
   const isVertical = layout === "vertical";
+  const hasError = Boolean(error);
+  const errorText = typeof error === "string" ? error : "";
 
   return (
     <div className={cn("flex flex-col flex-1 w-full", className)}>
@@ -28,7 +30,7 @@ export function ExpenseFieldLayout({
             htmlFor={htmlFor}
             className={cn(
               "text-sm font-semibold",
-              error ? "text-destructive" : "text-foreground",
+              hasError ? "text-destructive" : "text-foreground",
               isVertical ? "w-full" : "w-full lg:shrink-0",
             )}
             style={
@@ -45,9 +47,9 @@ export function ExpenseFieldLayout({
           {children}
         </div>
       </div>
-      {error ? (
-        <span className={cn("text-destructive text-sm mt-1", !isVertical && "lg:ml-[150px]")}>
-          {typeof error === "string" ? error : ""}
+      {hasError && errorText && htmlFor ? (
+        <span id={`${htmlFor}-error`} className="sr-only">
+          {errorText}
         </span>
       ) : null}
     </div>

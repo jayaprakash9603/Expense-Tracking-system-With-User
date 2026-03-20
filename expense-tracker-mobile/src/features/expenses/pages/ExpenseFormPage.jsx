@@ -76,6 +76,7 @@ export function ExpenseFormPage({
     showTable,
     setShowTable,
     budgets,
+    budgetsLoading,
     budgetError,
     selectedBudgetIds,
     setSelectedBudgetIds,
@@ -382,22 +383,21 @@ export function ExpenseFormPage({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div
-            className="w-full max-h-none overflow-y-visible thin-scrollbar md:max-h-[340px] md:overflow-y-auto"
-          >
+          <div className="w-full min-w-0">
             <BudgetSelectionTable
               budgets={budgets}
               selectedBudgetIds={selectedBudgetIds}
               onSelectionChange={setSelectedBudgetIds}
+              loading={budgetsLoading}
             />
           </div>
         </div>
       ) : null}
 
-      {!showTable ? <div className="hidden h-[150px] lg:block" /> : null}
-
       {budgetError ? (
-        <div className="mt-4 text-sm text-destructive">{budgetError}</div>
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {budgetError}
+        </div>
       ) : null}
       </div>
 

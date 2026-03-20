@@ -52,8 +52,9 @@ Feature: Auth OTP APIs
     And the response should match the "check-auth-method-response" schema
 
   @regression @email-endpoint
-  Scenario: Auth email endpoint returns a user for email query
-    When the user sends a GET request to "auth.email" with data
+  Scenario: Secured user email endpoint returns a user for own email query
+    Given the user uses token alias "user"
+    When the user sends a GET request to "user.by-email" with data
       | key         | value         |
       | query.email | ${ctx.otpEmail} |
     Then the request should succeed

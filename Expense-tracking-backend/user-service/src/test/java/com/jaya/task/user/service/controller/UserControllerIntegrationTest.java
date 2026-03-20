@@ -93,8 +93,30 @@ class UserControllerIntegrationTest {
     class GetAllUsers {
 
         @Test
-        void returnsListOfUsers() throws Exception {
+        void rejectsUnauthenticatedRequest() throws Exception {
             mockMvc.perform(get("/api/user/all"))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void rejectsNonAdminUserToken() throws Exception {
+            mockMvc.perform(get("/api/user/all")
+                            .header("Authorization", "Bearer " + userToken))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        void returnsListForAdminToken() throws Exception {
+            mockMvc.perform(get("/api/user/all")
+                            .header("Authorization", "Bearer " + adminToken))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));
+        }
+
+        @Test
+        void returnsListForInternalServiceToken() throws Exception {
+            mockMvc.perform(get("/api/user/all")
+                            .header("X-Service-Token", "test-internal-token"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));
         }
@@ -244,9 +266,17 @@ class UserControllerIntegrationTest {
         @Test
         void returnsNotFoundForUnknownEmail() throws Exception {
             mockMvc.perform(get("/api/user/email")
-                            .header("Authorization", "Bearer " + userToken)
+                            .header("Authorization", "Bearer " + adminToken)
                             .param("email", "unknown@example.com"))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void forbidsNonAdminLookupOfAnotherUsersEmail() throws Exception {
+            mockMvc.perform(get("/api/user/email")
+                            .header("Authorization", "Bearer " + userToken)
+                            .param("email", "admin@example.com"))
+                    .andExpect(status().isForbidden());
         }
     }
 

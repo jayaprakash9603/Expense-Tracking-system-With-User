@@ -4,9 +4,12 @@ import {
   normalizeExpenseDateForForm,
   resolveExpenseFormCategoryFields,
 } from "@/domain/expenses/expense.transformers";
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
+import { getToday } from "@/shared/utils/format/dateUtils";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 import { usePreviousExpense } from "./usePreviousExpense";
 import { useExpenseAutoFill } from "./useExpenseAutoFill";
+import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
 
 function computeSalaryType(dateValue) {
   if (!dateValue) return "loss";
@@ -23,21 +26,12 @@ function computeSalaryType(dateValue) {
   return currentDate.toDateString() === salaryDate.toDateString() ? "gain" : "loss";
 }
 
-function getToday() {
-  return new Date().toISOString().split("T")[0];
-}
-
 function normalizeType(typeValue) {
   const normalized = String(typeValue || "").toLowerCase();
   if (normalized === "gain" || normalized === "inflow" || normalized === "income") {
     return "gain";
   }
   return "loss";
-}
-
-function extractExpenseDetails(rawExpense) {
-  if (!rawExpense || typeof rawExpense !== "object") return {};
-  return rawExpense.expense || rawExpense.details || rawExpense;
 }
 
 function toFormData(rawExpense, fallbackDate) {
@@ -83,13 +77,6 @@ function toFormData(rawExpense, fallbackDate) {
   };
 }
 
-function normalizeBudgets(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.content)) return data.content;
-  if (Array.isArray(data?.budgets)) return data.budgets;
-  return [];
-}
-
 function getInitialErrors() {
   return {
     expenseName: "",
@@ -133,6 +120,7 @@ export function useExpenseForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTable, setShowTable] = useState(true);
   const [budgets, setBudgets] = useState([]);
+  const [budgetsLoading, setBudgetsLoading] = useState(() => isCreateMode);
   const [budgetError, setBudgetError] = useState(null);
   const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
   const onErrorRef = useRef(onError);
@@ -177,18 +165,20 @@ export function useExpenseForm({
 
   const fetchBudgetsByDate = useCallback(
     async (dateValue) => {
+      setBudgetsLoading(true);
       setBudgetError(null);
       const { data, error } = await budgetApi.filterByDate({
         date: dateValue,
         targetId: friendId || "",
       });
+      setBudgetsLoading(false);
       if (error) {
         setBudgets([]);
         setSelectedBudgetIds([]);
         setBudgetError(error.message);
         return;
       }
-      const normalized = normalizeBudgets(data);
+      const normalized = normalizeApiList(data, "content", "budgets");
       setBudgets(normalized);
       setSelectedBudgetIds([]);
     },
@@ -197,19 +187,21 @@ export function useExpenseForm({
 
   const fetchBudgetsByExpenseId = useCallback(
     async (expenseId, dateValue) => {
+      setBudgetsLoading(true);
       setBudgetError(null);
       const { data, error } = await budgetApi.getByExpenseId({
         expenseId,
         date: dateValue,
         targetId: friendId || "",
       });
+      setBudgetsLoading(false);
       if (error) {
         setBudgets([]);
         setSelectedBudgetIds([]);
         setBudgetError(error.message);
         return;
       }
-      const normalized = normalizeBudgets(data);
+      const normalized = normalizeApiList(data, "content", "budgets");
       setBudgets(normalized);
       setSelectedBudgetIds(
         normalized.filter((budget) => budget.includeInBudget).map((budget) => budget.id),
@@ -366,6 +358,7 @@ export function useExpenseForm({
     showTable,
     setShowTable,
     budgets,
+    budgetsLoading,
     budgetError,
     selectedBudgetIds,
     setSelectedBudgetIds,

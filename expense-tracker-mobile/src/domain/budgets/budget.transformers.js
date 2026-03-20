@@ -2,6 +2,7 @@ export function fromApiResponse(raw) {
   return {
     id: raw.id,
     name: raw.name || raw.budgetName || "",
+    description: raw.description || raw.budgetDescription || "",
     amount: Number(raw.amount || raw.budgetAmount || 0),
     spent: Number(raw.spent || raw.amountSpent || 0),
     category: raw.category || raw.categoryName || "",
@@ -16,6 +17,7 @@ export function fromApiResponse(raw) {
 export function toApiPayload(formData) {
   return {
     name: formData.name?.trim(),
+    description: formData.description?.trim(),
     amount: Number(formData.amount),
     category: formData.category,
     period: formData.period,
@@ -40,7 +42,15 @@ export function toProgressRadialData(budgets) {
   const totalBudget = budgets.reduce((s, b) => s + Number(b.amount || 0), 0);
   const totalSpent = budgets.reduce((s, b) => s + Number(b.spent || 0), 0);
   const percentage = totalBudget ? Math.round((totalSpent / totalBudget) * 100) : 0;
-  return [{ name: "budget", value: totalSpent, max: totalBudget, percentage, fill: "hsl(var(--chart-1))" }];
+  return [
+    {
+      name: "budget",
+      value: totalSpent,
+      max: totalBudget,
+      percentage,
+      fill: "hsl(var(--chart-1))",
+    },
+  ];
 }
 
 export function toDistributionPieData(budgets) {

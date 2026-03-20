@@ -1,3 +1,5 @@
+import { groupAndSum } from "@/shared/utils/chart/dataTransformers";
+
 function normalizeExpenseDateValue(value) {
   if (value == null || value === "") return "";
   if (Array.isArray(value) && value.length >= 3) {
@@ -104,21 +106,19 @@ export function toListItem(expense) {
 }
 
 export function toChartDataByCategory(expenses) {
-  const map = {};
-  expenses.forEach((e) => {
-    const cat = e.category || "Uncategorized";
-    map[cat] = (map[cat] || 0) + Number(e.amount || 0);
-  });
-  return Object.entries(map).map(([name, value]) => ({ name, value }));
+  return groupAndSum(
+    expenses,
+    (e) => e.category || "Uncategorized",
+    (e) => e.amount || 0,
+  );
 }
 
 export function toChartDataByPaymentMethod(expenses) {
-  const map = {};
-  expenses.forEach((e) => {
-    const method = e.paymentMethod || "Other";
-    map[method] = (map[method] || 0) + Number(e.amount || 0);
-  });
-  return Object.entries(map).map(([name, value]) => ({ name, value }));
+  return groupAndSum(
+    expenses,
+    (e) => e.paymentMethod || "Other",
+    (e) => e.amount || 0,
+  );
 }
 
 export function toChartDataByDate(expenses) {
@@ -169,11 +169,19 @@ export function toCashFlowBarData(expenses, groupBy = "month") {
 
 export function toMonthlyTrendData(expenses) {
   const map = {};
-  expenses.forEach((e) => {
-    const month = (e.date || "").split("T")[0]?.slice(0, 7);
-    if (!month) return;
+  (expenses || []).forEach((raw) => {
+    const nested = raw?.expense;
+    const row =
+      nested && typeof nested === "object" && !Array.isArray(nested)
+        ? { ...raw, ...nested, id: raw?.id ?? nested.id }
+        : raw;
+    if (!row) return;
+    const day = String(row.date || row.expenseDate || "").split("T")[0];
+    const month = day.slice(0, 7);
+    if (!month || month.length < 7) return;
+    const amt = Math.abs(Number(row.amount ?? row.expenseAmount ?? row.netAmount ?? 0));
     if (!map[month]) map[month] = { label: month, total: 0, count: 0 };
-    map[month].total += Number(e.amount || 0);
+    map[month].total += amt;
     map[month].count += 1;
   });
   const result = Object.values(map).sort((a, b) => a.label.localeCompare(b.label));

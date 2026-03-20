@@ -32,3 +32,7 @@ export function setDateLocale(locale) {
     .then(() => dayjs.locale(locale))
     .catch(() => dayjs.locale("en"));
 }
+
+export function getToday() {
+  return new Date().toISOString().split("T")[0];
+}

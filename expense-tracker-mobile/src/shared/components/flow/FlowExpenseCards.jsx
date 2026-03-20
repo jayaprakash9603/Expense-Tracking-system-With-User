@@ -410,7 +410,7 @@ export function FlowExpenseCards({
                 </button>
               </PopoverTrigger>
               <PopoverContent align="start" sideOffset={6} className="w-[220px] p-2">
-                <div className="max-h-[240px] overflow-y-auto thin-scrollbar pr-1 space-y-1">
+                <div className="max-h-[240px] overflow-y-auto theme-scrollbar pr-1 space-y-1">
                   {monthGroups.map((month) => (
                     <button
                       key={month.monthKey}
@@ -522,7 +522,7 @@ export function FlowExpenseCards({
               </button>
             </div>
 
-            <div className="max-h-[50vh] overflow-y-auto thin-scrollbar pr-1 space-y-1">
+            <div className="max-h-[50vh] overflow-y-auto theme-scrollbar pr-1 space-y-1">
               {monthGroups.map((month) => (
                 <button
                   key={month.monthKey}
@@ -581,7 +581,7 @@ export function FlowExpenseCards({
 
       <div
         ref={scrollRef}
-        className="flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[280px] sm:max-h-[320px] md:max-h-[360px] lg:max-h-[390px] overflow-y-auto overflow-x-hidden overscroll-contain thin-scrollbar pr-1 pb-2"
+        className="flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[280px] sm:max-h-[320px] md:max-h-[360px] lg:max-h-[390px] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2"
       >
         {dateGroups.map((group, groupIdx) => (
           <div key={group.dateKey} data-date-key={group.dateKey}>

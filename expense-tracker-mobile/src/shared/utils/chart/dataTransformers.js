@@ -14,6 +14,16 @@ const PAYMENT_METHOD_LABELS = {
   NET_BANKING: "Net Banking",
 };
 
+export function groupAndSum(items, keyFn, valueFn) {
+  const map = {};
+  (items || []).forEach((item) => {
+    const groupKey = keyFn(item);
+    const n = Number(valueFn(item) ?? 0);
+    map[groupKey] = (map[groupKey] || 0) + n;
+  });
+  return Object.entries(map).map(([name, value]) => ({ name, value }));
+}
+
 export function toFriendlyLabel(key) {
   return (
     PAYMENT_METHOD_LABELS[key] ||

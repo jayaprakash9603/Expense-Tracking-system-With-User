@@ -172,10 +172,12 @@ export function ExpenseThemedAutocomplete({
           disabled={disabled}
           onKeyDown={handleTriggerKeyDown}
           className={cn(
-            "flex w-full items-center justify-between rounded-md border bg-background px-3 text-sm",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "flex w-full items-center justify-between rounded-lg border-2 bg-card px-3 py-2 text-sm font-medium shadow-sm transition-[border-color,box-shadow]",
+            "focus-visible:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-50",
-            error ? "border-destructive focus-visible:ring-destructive" : "border-input",
+            error
+              ? "border-destructive focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-destructive/30"
+              : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
             className,
           )}
           style={{ height: triggerHeight, maxWidth }}

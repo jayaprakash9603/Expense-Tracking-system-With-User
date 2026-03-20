@@ -9,12 +9,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { formatPaymentMethodName } from "../../utils/expensePaymentMethodUtils";
-
-function resolveExpenseDetails(expense) {
-  if (!expense) return null;
-  return expense.expense || expense.details || expense;
-}
 
 function resolveTypeLabel(type) {
   const normalized = String(type || "").toLowerCase();
@@ -43,7 +39,7 @@ export function PreviousExpenseIndicator({
   className,
 }) {
   const { format } = useMoneyFormatter();
-  const details = resolveExpenseDetails(expense);
+  const details = expense ? extractExpenseDetails(expense) : null;
   const Icon = resolveIndicatorIcon(icon);
   const formattedDate = useMemo(() => {
     const dateValue = expense?.date || details?.date;

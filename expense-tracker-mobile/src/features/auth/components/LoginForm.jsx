@@ -63,6 +63,7 @@ export function LoginForm() {
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-semibold text-center">{t("auth.login.title")}</h2>
+      <p className="text-center text-sm text-muted-foreground">{t("auth.login.subtitle")}</p>
 
       <Formik
         initialValues={loginInitialValues}

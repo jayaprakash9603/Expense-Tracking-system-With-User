@@ -13,7 +13,7 @@ endpoints:
   - key: user.all
     method: GET
     path: /api/user/all
-    auth: false
+    auth: true
 
   - key: user.by-id
     method: GET

@@ -2,6 +2,8 @@ import { useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useFlowData } from "@/shared/hooks/flow/useFlowData";
 import { fetchDailySpendingAction } from "@/redux/expenses/expenses.actions";
+import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 
 function deriveIncomeExpenseFromBucket(bucket, flowTab) {
   let income = 0;
@@ -14,7 +16,7 @@ function deriveIncomeExpenseFromBucket(bucket, flowTab) {
   }
 
   expenses.forEach((exp) => {
-    const details = exp?.expense || exp;
+    const details = extractExpenseDetails(exp);
     const amt = Math.abs(Number(details?.amount ?? exp?.amount ?? 0));
     const type = (details?.type ?? exp?.type ?? "outflow").toString().toLowerCase();
     if (["gain", "income", "inflow"].includes(type)) {
@@ -35,11 +37,7 @@ function deriveIncomeExpenseFromBucket(bucket, flowTab) {
 
 function normalizeChartData(apiData, flowTab) {
   if (!apiData) return [];
-  const rawBuckets = Array.isArray(apiData.chartData)
-    ? apiData.chartData
-    : Array.isArray(apiData)
-      ? apiData
-      : [];
+  const rawBuckets = normalizeApiList(apiData, "chartData");
 
   if (!rawBuckets.length) return [];
 
@@ -69,7 +67,7 @@ function buildCardData(chartData) {
   const all = [];
   chartData.forEach((bucket) => {
     (bucket.expenses || []).forEach((exp) => {
-      const details = exp.expense || exp.details || {};
+      const details = extractExpenseDetails(exp);
       all.push({
         id: exp.id ?? details.id ?? exp.expenseId,
         name: details.expenseName || exp.expenseName || exp.name || "Unknown",

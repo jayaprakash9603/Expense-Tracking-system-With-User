@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { toChartDataByCategory, toDailySpendingAreaData, toCashFlowBarData, toMonthlyTrendData } from "@/domain/expenses/expense.transformers";
-import { buildChartConfig, assignChartColorVars } from "@/shared/utils/chart/chartColors";
+import { buildChartConfig, buildPieChartConfig, assignChartColorVars } from "@/shared/utils/chart/chartColors";
 
 export function useReportCharts(type = "monthly") {
   const expenses = useSelector((state) => state.expenses?.list || []);
@@ -11,12 +11,7 @@ export function useReportCharts(type = "monthly") {
   const monthlyConfig = useMemo(() => buildChartConfig(["total", "average"], ["Total", "Average"]), []);
 
   const categoryData = useMemo(() => assignChartColorVars(toChartDataByCategory(expenses)), [expenses]);
-  const categoryConfig = useMemo(() => {
-    return toChartDataByCategory(expenses).reduce((cfg, item, i) => {
-      cfg[item.name] = { label: item.name, color: `hsl(var(--chart-${(i % 10) + 1}))` };
-      return cfg;
-    }, {});
-  }, [expenses]);
+  const categoryConfig = useMemo(() => buildPieChartConfig(toChartDataByCategory(expenses)), [expenses]);
 
   const dailyData = useMemo(() => toDailySpendingAreaData(expenses), [expenses]);
   const dailyConfig = useMemo(() => buildChartConfig(["expense", "income"], ["Expense", "Income"]), []);

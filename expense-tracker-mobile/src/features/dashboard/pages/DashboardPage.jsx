@@ -6,7 +6,10 @@ import { ContentSection } from "@/shared/components/layout/ContentSection";
 import { SummaryCard, SummaryCardGrid } from "@/shared/components/display/SummaryCard";
 import { SectionCustomizationModal } from "@/shared/components/customization/SectionCustomizationModal";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { DashboardProvider, useDashboardContext } from "@/features/dashboard/context/DashboardContext";
+import {
+  DashboardProvider,
+  useDashboardContext,
+} from "@/features/dashboard/context/DashboardContext";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { useDashboardLayout } from "@/features/dashboard/hooks/useDashboardLayout";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
@@ -22,7 +25,7 @@ import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyC
 import { cn } from "@/lib/utils";
 
 const SECTION_COMPONENTS = {
-  "metrics": MetricsSection,
+  metrics: MetricsSection,
   "daily-spending": () => <DailySpendingSection />,
   "quick-access": () => <QuickAccess />,
   "summary-overview": () => <ApplicationOverview />,
@@ -75,7 +78,7 @@ function MonthlyTrendSection() {
   const { monthlyComparison } = useDashboardCharts();
   return (
     <div className="w-full">
-      <MonthlyComparisonChart data={monthlyComparison.data} config={monthlyComparison.config} />
+      <MonthlyComparisonChart data={monthlyComparison.data} />
     </div>
   );
 }
@@ -86,7 +89,10 @@ function buildLayoutGroups(visibleSections) {
 
   visibleSections.forEach((section) => {
     if (section.type === "full") {
-      if (currentRow) { groups.push(currentRow); currentRow = null; }
+      if (currentRow) {
+        groups.push(currentRow);
+        currentRow = null;
+      }
       groups.push({ type: "full", sections: [section] });
     } else {
       if (!currentRow) currentRow = { type: "row", sections: [] };
@@ -129,7 +135,7 @@ function DashboardContent() {
 
   const layoutGroups = useMemo(
     () => buildLayoutGroups(layoutConfig.visibleSections),
-    [layoutConfig.visibleSections]
+    [layoutConfig.visibleSections],
   );
 
   return (
@@ -158,25 +164,19 @@ function DashboardContent() {
 
         return (
           <ContentSection key={`row-${idx}`}>
-            <div
-              className={cn(
-                "grid items-stretch gap-4 md:gap-6",
-                getRowCols(group.sections),
-              )}
-            >
+            <div className={cn("grid items-stretch gap-4 md:gap-6", getRowCols(group.sections))}>
               {group.sections.map((section) => {
                 const Component = SECTION_COMPONENTS[section.id];
                 if (!Component) return null;
                 return (
                   <div
                     key={section.id}
-                    className={cn(stretchRow && "h-full min-h-0", getColSpan(section, group.sections))}
+                    className={cn(
+                      stretchRow && "h-full min-h-0",
+                      getColSpan(section, group.sections),
+                    )}
                   >
-                    <div
-                      className={cn(
-                        stretchRow && "h-full min-h-0 [&>*]:h-full",
-                      )}
-                    >
+                    <div className={cn(stretchRow && "h-full min-h-0 [&>*]:h-full")}>
                       <Component />
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 package com.jaya.common.service.client.feign;
 
+import com.jaya.common.config.UserServiceFeignConfig;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,7 +16,8 @@ import java.util.List;
 @FeignClient(
     name = "USER-SERVICE",
     url = "${USER_SERVICE_URL:http://localhost:6001}",
-    contextId = "commonUserServiceClient"
+    contextId = "commonUserServiceClient",
+    configuration = UserServiceFeignConfig.class
 )
 @Profile("!monolithic")
 public interface FeignUserServiceClient extends IUserServiceClient {

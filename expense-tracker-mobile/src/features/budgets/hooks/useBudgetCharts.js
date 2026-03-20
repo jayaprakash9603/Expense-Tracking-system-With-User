@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { toProgressRadialData, toDistributionPieData, toLossGainBarData } from "@/domain/budgets/budget.transformers";
-import { buildChartConfig, assignChartColorVars } from "@/shared/utils/chart/chartColors";
+import { buildChartConfig, buildPieChartConfig, assignChartColorVars } from "@/shared/utils/chart/chartColors";
 
 export function useBudgetCharts() {
   const budgets = useSelector((state) => state.budgets?.list || []);
@@ -11,13 +11,7 @@ export function useBudgetCharts() {
   const progressConfig = useMemo(() => buildChartConfig(["budget"], ["Budget"]), []);
 
   const distributionData = useMemo(() => assignChartColorVars(toDistributionPieData(budgets)), [budgets]);
-  const distributionConfig = useMemo(() => {
-    const raw = toDistributionPieData(budgets);
-    return raw.reduce((cfg, item, i) => {
-      cfg[item.name] = { label: item.name, color: `hsl(var(--chart-${(i % 10) + 1}))` };
-      return cfg;
-    }, {});
-  }, [budgets]);
+  const distributionConfig = useMemo(() => buildPieChartConfig(toDistributionPieData(budgets)), [budgets]);
 
   const lossGainData = useMemo(() => toLossGainBarData(budgets), [budgets]);
   const lossGainConfig = useMemo(() => buildChartConfig(["savings", "overBudget"], ["Savings", "Over Budget"]), []);

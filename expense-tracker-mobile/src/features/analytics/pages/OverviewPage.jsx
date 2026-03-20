@@ -4,7 +4,11 @@ import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ContentSection } from "@/shared/components/layout/ContentSection";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { AppCard } from "@/shared/components/display/AppCard";
-import { SummaryCard, SummaryCardGrid, SummaryCardSkeleton } from "@/shared/components/display/SummaryCard";
+import {
+  SummaryCard,
+  SummaryCardGrid,
+  SummaryCardSkeleton,
+} from "@/shared/components/display/SummaryCard";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useOverviewData } from "@/features/analytics/hooks/useOverviewData";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
@@ -31,9 +35,7 @@ function OverviewContent() {
               ? t("dashboard.welcome", { name: displayName })
               : t("dashboard.welcomeDefault")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("analytics.overview")}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{t("analytics.overview")}</p>
         </div>
 
         {loading ? (
@@ -65,7 +67,7 @@ function OverviewContent() {
         <ResponsiveGrid cols={{ default: 1, md: 2 }} gap="lg">
           <SpendingTrendChart data={spendingTrend.data} config={spendingTrend.config} />
           <CategoryBreakdownChart data={categoryBreakdown.data} config={categoryBreakdown.config} />
-          <MonthlyComparisonChart data={monthlyComparison.data} config={monthlyComparison.config} />
+          <MonthlyComparisonChart data={monthlyComparison.data} />
         </ResponsiveGrid>
       </ContentSection>
     </PageContainer>

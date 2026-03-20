@@ -50,9 +50,11 @@ export function ExpenseThemedDatePicker({
         <button
           type="button"
           className={cn(
-            "inline-flex w-full items-center rounded-md border bg-background px-3 text-sm text-left",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            error ? "border-destructive focus-visible:ring-destructive" : "border-input",
+            "inline-flex w-full items-center rounded-lg border-2 bg-card px-3 text-left text-sm font-medium shadow-sm",
+            "transition-[border-color,box-shadow] focus-visible:outline-none",
+            error
+              ? "border-destructive focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-destructive/30"
+              : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
             className,
           )}
           style={{ height: `${height}px`, maxWidth: maxWidthValue }}

@@ -18,7 +18,8 @@ const NewExpensePage = lazy(() => import("@/features/expenses/pages/NewExpense")
 const EditExpensePage = lazy(() => import("@/features/expenses/pages/EditExpense"));
 const ExpenseDetailPage = lazy(() => import("@/features/expenses/pages/ExpenseDetailPage"));
 const BudgetListPage = lazy(() => import("@/features/budgets/pages/BudgetListPage"));
-const BudgetFormPage = lazy(() => import("@/features/budgets/pages/BudgetFormPage"));
+const NewBudgetPage = lazy(() => import("@/features/budgets/pages/NewBudget"));
+const EditBudgetPage = lazy(() => import("@/features/budgets/pages/EditBudget"));
 const CategoryFormPage = lazy(() => import("@/features/categories/pages/CategoryFormPage"));
 const BillListPage = lazy(() => import("@/features/bills/pages/BillListPage"));
 const BillFormPage = lazy(() => import("@/features/bills/pages/BillFormPage"));
@@ -56,8 +57,8 @@ const IMPLEMENTED_PAGES = {
   "expenses-edit": EditExpensePage,
   "expenses-detail": ExpenseDetailPage,
   budgets: BudgetListPage,
-  "budgets-add": BudgetFormPage,
-  "budgets-edit": BudgetFormPage,
+  "budgets-add": NewBudgetPage,
+  "budgets-edit": EditBudgetPage,
   categories: CategoryFlowPage,
   "categories-add": CategoryFormPage,
   "categories-edit": CategoryFormPage,

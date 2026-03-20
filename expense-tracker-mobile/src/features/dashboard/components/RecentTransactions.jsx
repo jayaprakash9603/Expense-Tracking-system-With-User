@@ -1,20 +1,59 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Clock, Receipt } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { AppButton } from "@/shared/components/form/AppButton";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { EmptyState } from "@/shared/components/feedback/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { RecentTransactionCard } from "@/features/dashboard/components/RecentTransactionCard";
+
+function useRecentTransactionLimit() {
+  const [limit, setLimit] = useState(10);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 600px)");
+    const sync = () => setLimit(mq.matches ? 6 : 10);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+  return limit;
+}
+
+function RecentTransactionsSkeleton({ count }) {
+  const items = Array.from({ length: count });
+  return (
+    <div className="grid min-h-0 flex-1 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+      {items.map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 rounded-lg border border-border p-3"
+        >
+          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-[min(100%,14rem)]" />
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+          <Skeleton className="h-5 w-16 shrink-0" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function RecentTransactions() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { format, animation } = usePresentation();
-  const { recentTransactions } = useDashboardData();
+  const { recentTransactions, loading } = useDashboardData();
+  const limit = useRecentTransactionLimit();
+  const skeletonCount = limit >= 10 ? 10 : 6;
+
+  const visible = (recentTransactions || []).slice(0, limit);
 
   return (
     <AppCard className="flex h-full min-h-0 flex-col">
@@ -30,66 +69,37 @@ export function RecentTransactions() {
         </SectionHeader>
       </AppCard.Header>
       <AppCard.Content className="flex min-h-0 flex-1 flex-col pt-0">
-        {recentTransactions.length === 0 ? (
+        {loading ? (
+          <RecentTransactionsSkeleton count={skeletonCount} />
+        ) : visible.length === 0 ? (
           <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="col-span-full flex min-h-[min(16rem,45vh)] w-full flex-1 items-center justify-center sm:col-span-2 sm:min-h-[17rem]">
               <EmptyState
                 icon={Receipt}
-                title={t("dashboard.noExpenses")}
+                title={t("dashboard.noRecentTransactionsTitle")}
+                description={t("dashboard.noRecentTransactionsMessage")}
                 className="w-full max-w-none justify-center px-4 py-6 sm:py-8 md:py-10"
               />
             </div>
           </div>
         ) : (
-          <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
-            {recentTransactions.map((tx) => (
-              <TransactionRow
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+            {visible.map((tx) => (
+              <RecentTransactionCard
                 key={tx.id}
                 transaction={tx}
                 format={format}
                 animated={animation.enabled}
-                onClick={() => navigate(`/expenses/${tx.id}`)}
+                onExpenseNavigate={(id) => navigate(`/expenses/${id}`)}
+                onCategoryNavigate={(categoryId) =>
+                  navigate(`/category-flow/view/${categoryId}`)
+                }
               />
             ))}
           </div>
         )}
       </AppCard.Content>
     </AppCard>
-  );
-}
-
-function TransactionRow({ transaction, format, animated, onClick }) {
-  const amount = Number(transaction.amount || transaction.expenseAmount || 0);
-  const type = transaction.type || "";
-  const isIncome = type === "INCOME" || type === "GAIN";
-  const displayAmount = isIncome
-    ? `+${format(Math.abs(amount))}`
-    : `-${format(Math.abs(amount))}`;
-  const name = transaction.name || transaction.itemName || transaction.expenseName || transaction.title || "";
-  const category = transaction.category || transaction.categoryName || transaction.subtitle || "";
-  const date = transaction.date || transaction.expenseDate || "";
-
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "flex items-center justify-between gap-3 p-3 rounded-lg border border-border cursor-pointer",
-        animated && "transition-all duration-150 hover:bg-muted/50",
-      )}
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{name}</p>
-        <p className="text-xs text-muted-foreground truncate">
-          {category} &middot; {date}
-        </p>
-      </div>
-      <span className={cn(
-        "text-sm font-semibold whitespace-nowrap",
-        isIncome ? "text-emerald-500" : "text-red-500"
-      )}>
-        {displayAmount}
-      </span>
-    </div>
   );
 }
 

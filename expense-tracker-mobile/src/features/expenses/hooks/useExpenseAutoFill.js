@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 
 const EMPTY_FLAGS = {
@@ -9,11 +10,6 @@ const EMPTY_FLAGS = {
 };
 
 const AUTO_FILL_CLEAR_DELAY = 3000;
-
-function getPreviousDetails(previousExpense) {
-  if (!previousExpense) return {};
-  return previousExpense.expense || previousExpense.details || previousExpense;
-}
 
 export function useExpenseAutoFill(
   previousExpense,
@@ -44,7 +40,7 @@ export function useExpenseAutoFill(
     }
 
     if (!previousExpense) return;
-    const previousDetails = getPreviousDetails(previousExpense);
+    const previousDetails = extractExpenseDetails(previousExpense);
     const isNewName = normalizedName !== lastAutoFilledName;
     const updates = {};
     const nextAutoFilled = { ...autoFilledFields };

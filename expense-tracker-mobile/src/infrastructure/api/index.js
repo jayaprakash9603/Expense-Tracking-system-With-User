@@ -1,3 +1,4 @@
+export { authApi } from "./authApi";
 export { expenseApi } from "./expenseApi";
 export { budgetApi } from "./budgetApi";
 export { categoryApi } from "./categoryApi";
