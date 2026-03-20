@@ -228,6 +228,9 @@ export function EnhancedDataTable({
   loading = false,
   draggable = false,
   searchable = false,
+  hideSearchToolbar = false,
+  searchQuery: controlledSearchQuery,
+  onSearchQueryChange,
   searchPlaceholder,
   selectable = false,
   enableColumnFilters = false,
@@ -239,6 +242,7 @@ export function EnhancedDataTable({
   onDataReorder,
   emptyMessage,
   emptySubMessage,
+  emptyPlaceholderSize = "sm",
   onRetry,
   toolbar,
   className,
@@ -248,9 +252,13 @@ export function EnhancedDataTable({
   selectionCheckboxClassName,
   tableClassName,
   tableContainerClassName,
+  tableSectionClassName,
   scrollBodyMaxRows = DEFAULT_SCROLL_BODY_MAX_ROWS,
   scrollBodyRowHeightPx = DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX,
   scrollTableHeaderHeightPx = DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX,
+  scrollBodyHeightExtraPx = 0,
+  scrollBodyAlwaysSized = false,
+  filterRowGlobalFn,
 }) {
   const { t } = useLanguage();
   const [data, setData] = useState(initialData);
@@ -258,7 +266,23 @@ export function EnhancedDataTable({
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [internalRowSelection, setInternalRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState("");
+  const [uncontrolledGlobalFilter, setUncontrolledGlobalFilter] = useState("");
+  const isSearchControlled = controlledSearchQuery !== undefined;
+  const globalFilter = isSearchControlled ? controlledSearchQuery : uncontrolledGlobalFilter;
+  const setGlobalFilter = useCallback(
+    (updater) => {
+      if (isSearchControlled) {
+        const prev = controlledSearchQuery;
+        const next = typeof updater === "function" ? updater(prev) : updater;
+        onSearchQueryChange?.(next);
+        return;
+      }
+      setUncontrolledGlobalFilter((prev) =>
+        typeof updater === "function" ? updater(prev) : updater,
+      );
+    },
+    [isSearchControlled, controlledSearchQuery, onSearchQueryChange],
+  );
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: defaultPageSize });
   const sortableId = useId();
   const resolvedRowSelection = rowSelectionState ?? internalRowSelection;
@@ -398,6 +422,7 @@ export function EnhancedDataTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    ...(filterRowGlobalFn ? { globalFilterFn: filterRowGlobalFn } : {}),
   });
 
   const dataIds = useMemo(
@@ -436,16 +461,23 @@ export function EnhancedDataTable({
     ? (scrollBodyMaxRows ?? DEFAULT_SCROLL_BODY_MAX_ROWS)
     : table.getRowModel().rows.length;
   const shouldApplyBodyScrollCap =
-    scrollBodyMaxRows != null && pageBodyRowCount > scrollBodyMaxRows;
+    scrollBodyMaxRows != null &&
+    (scrollBodyAlwaysSized || pageBodyRowCount > scrollBodyMaxRows);
 
   const tableScrollMaxHeightPx = shouldApplyBodyScrollCap
     ? scrollTableHeaderHeightPx +
       scrollBodyMaxRows * scrollBodyRowHeightPx +
-      SCROLL_VIEWPORT_SLACK_PX
+      SCROLL_VIEWPORT_SLACK_PX +
+      scrollBodyHeightExtraPx
     : null;
 
   const tableContainerStyle =
     tableScrollMaxHeightPx == null ? undefined : { maxHeight: tableScrollMaxHeightPx };
+
+  const emptyTableBodyMinHeightPx =
+    !loading && table.getRowModel().rows.length === 0 && shouldApplyBodyScrollCap
+      ? scrollBodyMaxRows * scrollBodyRowHeightPx + scrollBodyHeightExtraPx + SCROLL_VIEWPORT_SLACK_PX
+      : null;
 
   const useFixedBodyRowMetrics = lockColumnWidths;
   const fixedDataRowStyle = useFixedBodyRowMetrics
@@ -568,12 +600,22 @@ export function EnhancedDataTable({
           />
         ) : table.getRowModel().rows.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={enhancedColumns.length} className="h-48">
+            <TableCell
+              colSpan={enhancedColumns.length}
+              className={cn(emptyTableBodyMinHeightPx == null && "h-48")}
+              style={
+                emptyTableBodyMinHeightPx != null
+                  ? { minHeight: emptyTableBodyMinHeightPx }
+                  : undefined
+              }
+            >
               <NoDataPlaceholder
                 message={emptyMessage || t("common.noData") || "No data"}
                 subMessage={emptySubMessage}
                 onRetry={onRetry}
-                size="sm"
+                size={emptyTableBodyMinHeightPx != null ? emptyPlaceholderSize : "sm"}
+                fullWidth
+                className={emptyTableBodyMinHeightPx != null ? "min-h-[min(100%,18rem)]" : undefined}
               />
             </TableCell>
           </TableRow>
@@ -645,13 +687,13 @@ export function EnhancedDataTable({
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>
-      {(searchable || showColumnVisibility || toolbar) && (
+      {((searchable && !hideSearchToolbar) || showColumnVisibility || toolbar) && (
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            {searchable && (
+            {searchable && !hideSearchToolbar && (
               <SearchToolbar
                 value={globalFilter}
-                onChange={setGlobalFilter}
+                onChange={(val) => setGlobalFilter(val)}
                 placeholder={searchPlaceholder}
                 className="flex-1 min-w-[200px] max-w-sm"
               />
@@ -686,7 +728,7 @@ export function EnhancedDataTable({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className={cn("overflow-hidden rounded-lg border", tableSectionClassName)}>
         {draggable ? (
           <DndContext
             collisionDetection={closestCenter}

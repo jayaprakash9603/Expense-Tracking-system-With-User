@@ -2,7 +2,10 @@ import { useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useFlowData } from "@/shared/hooks/flow/useFlowData";
 import { fetchPaymentMethodDistributionAction } from "@/redux/expenses/expenses.actions";
-import { normalizeEntityFlowData } from "@/shared/utils/chart/entityFlowNormalizer";
+import {
+  normalizeEntityFlowData,
+  extractEntityMap,
+} from "@/shared/utils/chart/entityFlowNormalizer";
 import { toFriendlyLabel } from "@/shared/utils/chart/dataTransformers";
 
 export function usePaymentMethodFlowData() {
@@ -20,6 +23,8 @@ export function usePaymentMethodFlowData() {
     [apiData, flow.activeRange, flow.offset, labelResolver],
   );
 
+  const expensesMap = useMemo(() => extractEntityMap(apiData), [apiData]);
+
   const dataKeys = useMemo(
     () => Object.keys(chartConfig),
     [chartConfig],
@@ -32,5 +37,6 @@ export function usePaymentMethodFlowData() {
     totals,
     chartConfig,
     dataKeys,
+    expensesMap,
   };
 }

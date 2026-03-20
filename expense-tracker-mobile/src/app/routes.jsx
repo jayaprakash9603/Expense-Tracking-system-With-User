@@ -5,6 +5,7 @@ import { AppShell } from "@/layouts/AppShell";
 import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
 import { PublicRoute } from "@/app/guards/PublicRoute";
 import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
+import { FlowPageRouteSkeleton } from "@/shared/components/flow/skeletons";
 import { ROUTE_CATALOG } from "@/app/routing/routeCatalog";
 
 import LoginPage from "@/features/auth/pages/LoginPage";
@@ -91,9 +92,19 @@ function LazyFallback() {
   return <LoadingSpinner size="lg" className="mt-20" />;
 }
 
-function LazyWrap({ Component }) {
+function resolveLazyFallback(routeKey) {
+  if (routeKey === "expenses" || routeKey === "cashflow") {
+    return <FlowPageRouteSkeleton variant="expense" />;
+  }
+  if (routeKey === "categories" || routeKey === "category-flow" || routeKey === "payments") {
+    return <FlowPageRouteSkeleton variant="entity" />;
+  }
+  return <LazyFallback />;
+}
+
+function LazyWrap({ routeKey, Component }) {
   return (
-    <Suspense fallback={<LazyFallback />}>
+    <Suspense fallback={resolveLazyFallback(routeKey)}>
       <Component />
     </Suspense>
   );
@@ -120,7 +131,13 @@ function buildProtectedRoutes() {
           <Route
             key={route.key}
             path={route.path}
-            element={isEager ? <PageComponent /> : <LazyWrap Component={PageComponent} />}
+            element={
+              isEager ? (
+                <PageComponent />
+              ) : (
+                <LazyWrap routeKey={route.key} Component={PageComponent} />
+              )
+            }
           />
         );
       }

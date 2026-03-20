@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Search, X, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AppIcon } from "@/shared/components/display/AppIcon";
@@ -18,6 +18,10 @@ export function SearchToolbar({
 }) {
   const { t } = useLanguage();
   const [localValue, setLocalValue] = useState(value);
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
 
   const debouncedChange = useDebouncedCallback((val) => {
     onChange?.(val);

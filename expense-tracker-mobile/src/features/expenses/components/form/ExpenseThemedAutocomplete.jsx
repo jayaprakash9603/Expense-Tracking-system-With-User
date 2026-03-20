@@ -193,7 +193,7 @@ export function ExpenseThemedAutocomplete({
               {selectedLabel || inputValue || placeholder}
             </span>
           </span>
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-primary" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start" style={{ width: "var(--radix-popover-trigger-width)" }}>

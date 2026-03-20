@@ -7,6 +7,9 @@ import {
   areNamesEqual,
   sanitizeName,
 } from "../../utils/expenseNameUtils";
+import { createFuzzyFilterOptions } from "../../utils/expenseFuzzyUtils";
+
+const filterExpenseNamesFuzzy = createFuzzyFilterOptions();
 
 export function ExpenseNameAutocomplete({
   value = "",
@@ -18,6 +21,9 @@ export function ExpenseNameAutocomplete({
   error = false,
   noDataText = "No expense names found",
   maxSuggestions = 500,
+  maxWidth = "100%",
+  inputHeight = "48px",
+  className,
 }) {
   const hasExternalOptions = Array.isArray(options);
   const {
@@ -78,12 +84,15 @@ export function ExpenseNameAutocomplete({
       onChange={handleValueChange}
       onInputChange={handleInputChange}
       onOpen={hasExternalOptions ? undefined : fetchNames}
+      filterOptions={filterExpenseNamesFuzzy}
       placeholder={placeholder}
       noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
       freeSolo
-      maxWidth="100%"
+      maxWidth={maxWidth}
+      inputHeight={inputHeight}
+      className={className}
       renderOption={(option, state) => (
         <HighlightedText text={option} query={state.inputValue} title={option} />
       )}

@@ -2,7 +2,10 @@ import { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useFlowData } from "@/shared/hooks/flow/useFlowData";
 import { fetchCategoryDistributionAction } from "@/redux/expenses/expenses.actions";
-import { normalizeEntityFlowData } from "@/shared/utils/chart/entityFlowNormalizer";
+import {
+  normalizeEntityFlowData,
+  extractEntityMap,
+} from "@/shared/utils/chart/entityFlowNormalizer";
 
 export function useCategoryFlowData() {
   const flow = useFlowData({
@@ -17,6 +20,8 @@ export function useCategoryFlowData() {
     [apiData, flow.activeRange, flow.offset],
   );
 
+  const expensesMap = useMemo(() => extractEntityMap(apiData), [apiData]);
+
   const dataKeys = useMemo(
     () => Object.keys(chartConfig),
     [chartConfig],
@@ -29,5 +34,6 @@ export function useCategoryFlowData() {
     totals,
     chartConfig,
     dataKeys,
+    expensesMap,
   };
 }

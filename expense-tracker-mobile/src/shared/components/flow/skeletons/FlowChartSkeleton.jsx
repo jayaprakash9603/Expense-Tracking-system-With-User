@@ -20,9 +20,9 @@ export function FlowChartSkeleton({ className }) {
             ))}
           </div>
 
-          <div className="flex-1 flex items-end justify-around gap-1 pb-2 relative z-[1]">
-            {BAR_HEIGHTS.slice(0, 7).map((h, i) => (
-              <div key={i} className="flex-1 max-w-10 flex items-end h-full">
+          <div className="flex-1 flex items-end justify-around gap-0.5 sm:gap-1 pb-2 relative z-[1]">
+            {BAR_HEIGHTS.map((h, i) => (
+              <div key={i} className="flex h-full max-w-10 flex-1 items-end">
                 <div
                   className="w-full rounded-t bg-muted"
                   style={{
@@ -34,9 +34,9 @@ export function FlowChartSkeleton({ className }) {
             ))}
           </div>
 
-          <div className="flex justify-around pt-2">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="h-3 w-6 rounded bg-muted/60" />
+          <div className="flex justify-around gap-0.5 pt-2 sm:gap-1">
+            {Array.from({ length: BAR_HEIGHTS.length }).map((_, i) => (
+              <div key={i} className="h-3 w-5 shrink-0 rounded bg-muted/60 sm:w-6" />
             ))}
           </div>
         </div>

@@ -5,6 +5,7 @@ import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/features/expenses/components/form";
 import { useCashflowData } from "@/features/expenses/hooks/useCashflowData";
+import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chartConfig";
 
 export function CashflowPage() {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ export function CashflowPage() {
             config={chartConfig}
             dataKeys={barDataKeys}
             xAxisKey="label"
-            height={280}
+            height={FLOW_PAGE_CHART_HEIGHT}
             className="px-0 py-1"
             chartMargin={{ top: 8, right: 8, left: 0, bottom: 6 }}
             yAxisProps={{ width: 34, tickMargin: 2 }}

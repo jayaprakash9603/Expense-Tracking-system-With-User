@@ -145,20 +145,22 @@ export function DataTablePagination({
         />
       </div>
 
-      <div className="hidden flex-wrap items-center justify-between gap-3 md:flex">
-        <div className="min-h-5 min-w-0 flex-1 text-xs text-primary sm:text-sm">
+      <div className="relative hidden min-h-9 items-center gap-3 md:flex">
+        <div className="relative z-[1] min-h-5 min-w-0 max-w-[42%] shrink-0 text-xs text-primary sm:text-sm">
           {selectable ? selectedRowsText : null}
         </div>
-        <div className="flex flex-none flex-wrap items-center justify-center gap-2">
-          <span className="text-xs font-medium tabular-nums sm:text-sm">{pageSummaryText}</span>
-          <TablePageNav table={table} lastPageIndex={lastPageIndex} />
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-2">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2">
+            <span className="text-xs font-medium tabular-nums sm:text-sm">{pageSummaryText}</span>
+            <TablePageNav table={table} lastPageIndex={lastPageIndex} />
+          </div>
         </div>
         <PageSizeSelect
           value={pagination.pageSize}
           options={pageSizeOptions}
           label={rowsPerPageLabel}
           onChange={(size) => table.setPageSize(size)}
-          className="ml-auto flex-none justify-end"
+          className="relative z-[1] ml-auto shrink-0 justify-end"
         />
       </div>
     </div>

@@ -2,50 +2,71 @@ import React from "react";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { cn } from "@/lib/utils";
 
-export function FlowEntityCard({ name, amount, count, color, icon, onClick, className }) {
+const VARIANT_STYLES = {
+  default: {
+    bar: "w-1.5",
+    body: "gap-2 p-4",
+    icon: "h-7 w-7 text-lg",
+    name: "text-sm",
+    amount: "text-base",
+    count: "text-xs",
+  },
+  compact: {
+    bar: "w-1",
+    body: "gap-1 p-2 sm:p-2.5",
+    icon: "h-5 w-5 text-sm",
+    name: "text-xs",
+    amount: "text-sm",
+    count: "text-[10px] sm:text-[11px]",
+  },
+};
+
+export function FlowEntityCard({
+  name,
+  amount,
+  count,
+  color,
+  icon,
+  onClick,
+  className,
+  variant = "default",
+}) {
   const { format: formatMoney } = useMoneyFormatter();
   const borderColor = color || "hsl(var(--primary))";
+  const v = VARIANT_STYLES[variant] || VARIANT_STYLES.default;
 
   return (
     <div
       className={cn(
-        "rounded-lg border bg-card shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden",
+        "h-full min-h-0 cursor-pointer overflow-hidden rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
       onClick={onClick}
     >
-      <div className="flex items-stretch">
-        <div
-          className="w-1.5 shrink-0"
-          style={{ backgroundColor: borderColor }}
-        />
-        <div className="flex-1 p-4 flex flex-col gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex h-full min-h-0 items-stretch">
+        <div className={cn("shrink-0", v.bar)} style={{ backgroundColor: borderColor }} />
+        <div className={cn("flex min-w-0 flex-1 flex-col", v.body)}>
+          <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
             <span
-              className="text-lg shrink-0 flex items-center justify-center h-7 w-7"
+              className={cn("flex shrink-0 items-center justify-center", v.icon)}
               style={{ color: borderColor }}
             >
               {icon || name?.charAt(0)?.toUpperCase()}
             </span>
-            <span className="font-semibold text-sm truncate text-foreground">
-              {name}
-            </span>
+            <span className={cn("truncate font-semibold text-foreground", v.name)}>{name}</span>
           </div>
-
-          <div className="flex items-center gap-1">
-            <span
-              className="text-base font-bold"
-              style={{ color: borderColor }}
-            >
-              {formatMoney(amount)}
-            </span>
-          </div>
-
-          {count != null && (
-            <p className="text-xs text-muted-foreground">
+          <span
+            className={cn("block min-w-0 truncate font-bold leading-tight", v.amount)}
+            style={{ color: borderColor }}
+            title={formatMoney(amount)}
+          >
+            {formatMoney(amount)}
+          </span>
+          {count != null ? (
+            <p className={cn("text-muted-foreground", v.count)}>
               {count} {count === 1 ? "expense" : "expenses"}
             </p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

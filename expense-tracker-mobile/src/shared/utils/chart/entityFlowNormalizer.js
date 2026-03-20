@@ -12,7 +12,7 @@ function toSafeKey(name) {
   return name.replace(/[^a-zA-Z0-9]/g, "_");
 }
 
-function extractEntityMap(rawData) {
+export function extractEntityMap(rawData) {
   if (!rawData || typeof rawData !== "object") return {};
   if (Array.isArray(rawData)) return {};
 

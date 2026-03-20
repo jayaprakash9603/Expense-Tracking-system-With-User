@@ -22,6 +22,7 @@ export function AppBarChart({
   chartMargin,
   xAxisProps,
   yAxisProps,
+  onBarSeriesClick,
   children,
 }) {
   if (!data?.length) return <ChartEmptyState height={height} className={className} />;
@@ -56,6 +57,13 @@ export function AppBarChart({
             radius={barRadius}
             stackId={stacked ? "stack" : undefined}
             animationDuration={CHART_ANIMATION.duration}
+            onClick={
+              onBarSeriesClick
+                ? (entry, xIndex) => {
+                    onBarSeriesClick({ dataKey: key, payload: entry?.payload, xIndex });
+                  }
+                : undefined
+            }
           />
         ))}
         {children}

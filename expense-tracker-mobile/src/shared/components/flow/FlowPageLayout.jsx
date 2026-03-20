@@ -102,7 +102,11 @@ export function FlowPageLayout({
 
       <ContentSection>
         {loading ? (
-          <FlowChartSkeleton />
+          <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="px-1 pb-2 pt-0 sm:px-2">
+              <FlowChartSkeleton />
+            </div>
+          </div>
         ) : chartSection ? (
           chartSection
         ) : (

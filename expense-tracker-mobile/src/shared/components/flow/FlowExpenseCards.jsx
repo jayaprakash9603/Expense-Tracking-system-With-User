@@ -6,6 +6,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { FlowExpenseCard } from "./FlowExpenseCard";
 import { FlowExpenseCardsSkeleton } from "./skeletons";
+import { getFuzzyMatchIndices } from "@/features/expenses/utils/expenseFuzzyUtils";
 import { cn } from "@/lib/utils";
 
 function toInputDate(value) {
@@ -115,12 +116,36 @@ function buildMonthGroups(dateGroups) {
   return Array.from(monthMap.values());
 }
 
+function expenseMatchesSearchQuery(expense, rawQuery) {
+  const q = (rawQuery || "").trim();
+  if (!q) return true;
+  const blob = [
+    expense.name,
+    expense.description,
+    expense.comments,
+    expense.categoryName,
+    expense.paymentMethod,
+    String(expense.amount),
+    expense.type,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return getFuzzyMatchIndices(blob, q) != null;
+}
+
+const DEFAULT_LIST_SCROLL_CLASS =
+  "flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[280px] sm:max-h-[320px] md:max-h-[360px] lg:max-h-[390px] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
+
 export function FlowExpenseCards({
   data = [],
   loading,
   flowTab,
   onCardClick,
   className,
+  hideCategory = false,
+  hidePaymentMethod = false,
+  listContainerClassName,
+  searchQuery = "",
 }) {
   const { t } = useLanguage();
   const [sortOrder, setSortOrder] = useState("desc");
@@ -132,9 +157,14 @@ export function FlowExpenseCards({
   const scrollRef = useRef(null);
   const activeDateKeyRef = useRef("");
 
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return data;
+    return data.filter((exp) => expenseMatchesSearchQuery(exp, searchQuery));
+  }, [data, searchQuery]);
+
   const dateGroups = useMemo(
-    () => groupExpensesByDate(data, sortOrder),
-    [data, sortOrder],
+    () => groupExpensesByDate(filteredData, sortOrder),
+    [filteredData, sortOrder],
   );
 
   const dateGroupByKey = useMemo(() => (
@@ -323,8 +353,32 @@ export function FlowExpenseCards({
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-sm text-muted-foreground">{t("expenses.noExpenses")}</p>
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 py-16 text-center sm:py-20",
+          className,
+        )}
+      >
+        <p className="text-base font-semibold text-foreground sm:text-lg">
+          {t("flows.expensesTable.empty")}
+        </p>
+        <p className="max-w-sm text-sm text-muted-foreground">{t("flows.expensesTable.emptyHint")}</p>
+      </div>
+    );
+  }
+
+  if (!filteredData.length) {
+    return (
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 py-16 text-center sm:py-20",
+          className,
+        )}
+      >
+        <p className="text-base font-semibold text-foreground sm:text-lg">{t("common.noResults")}</p>
+        <p className="max-w-sm text-sm text-muted-foreground">
+          {t("flows.expensesTable.filterNoResultsHint")}
+        </p>
       </div>
     );
   }
@@ -581,7 +635,7 @@ export function FlowExpenseCards({
 
       <div
         ref={scrollRef}
-        className="flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[280px] sm:max-h-[320px] md:max-h-[360px] lg:max-h-[390px] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2"
+        className={listContainerClassName || DEFAULT_LIST_SCROLL_CLASS}
       >
         {dateGroups.map((group, groupIdx) => (
           <div key={group.dateKey} data-date-key={group.dateKey}>
@@ -599,6 +653,8 @@ export function FlowExpenseCards({
                   key={expense.id || expense.expenseId}
                   expense={expense}
                   flowTab={flowTab}
+                  hideCategory={hideCategory}
+                  hidePaymentMethod={hidePaymentMethod}
                   onClick={() => onCardClick?.(expense)}
                 />
               ))}

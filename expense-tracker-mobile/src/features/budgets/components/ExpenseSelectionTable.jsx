@@ -4,6 +4,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { useUserSettings } from "@/shared/hooks/settings/useUserSettings";
 import { SelectableDataTable } from "@/shared/components/data/SelectableDataTable";
+import { formatPaymentMethodName } from "@/features/expenses/utils/expensePaymentMethodUtils";
 
 export function ExpenseSelectionTable({
   expenses = [],
@@ -31,6 +32,8 @@ export function ExpenseSelectionTable({
   const dateLabel = t("budget.linkExpensesTable.date");
   const amountLabel = t("budget.linkExpensesTable.amount");
   const categoryLabel = t("budget.linkExpensesTable.category");
+  const paymentMethodLabel = t("budget.linkExpensesTable.paymentMethod");
+  const commentsLabel = t("budget.linkExpensesTable.comments");
 
   const columns = useMemo(
     () => [
@@ -85,8 +88,43 @@ export function ExpenseSelectionTable({
           </span>
         ),
       },
+      {
+        id: "paymentMethod",
+        accessorFn: (row) => row.paymentMethod || "",
+        header: paymentMethodLabel,
+        enableSorting: true,
+        size: 140,
+        meta: { filterType: "text", filterLabel: paymentMethodLabel },
+        cell: ({ row }) => (
+          <span className="block max-w-[140px] truncate">
+            {formatPaymentMethodName(row.original.paymentMethod || "") || "-"}
+          </span>
+        ),
+      },
+      {
+        id: "comments",
+        accessorFn: (row) => row.comments || "",
+        header: commentsLabel,
+        enableSorting: true,
+        size: 200,
+        meta: { filterType: "text", filterLabel: commentsLabel },
+        cell: ({ row }) => (
+          <span className="block max-w-[220px] truncate" title={row.original.comments || ""}>
+            {row.original.comments?.trim() ? row.original.comments : "-"}
+          </span>
+        ),
+      },
     ],
-    [amountLabel, categoryLabel, dateLabel, expenseNameLabel, format, formatExpenseDate],
+    [
+      amountLabel,
+      categoryLabel,
+      commentsLabel,
+      dateLabel,
+      expenseNameLabel,
+      format,
+      formatExpenseDate,
+      paymentMethodLabel,
+    ],
   );
 
   const renderEmpty = useCallback(
@@ -108,7 +146,7 @@ export function ExpenseSelectionTable({
       defaultPageSize={defaultPageSize}
       pageSizeOptions={[5, 10, 20, 50]}
       emptyMessage={emptyText}
-      tableClassName="min-w-[560px] w-full"
+      tableClassName="min-w-[960px] w-full"
       renderEmpty={renderEmpty}
     />
   );

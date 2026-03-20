@@ -3,7 +3,14 @@ import { ArrowUp, ArrowDown, Tag, CreditCard } from "lucide-react";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { cn } from "@/lib/utils";
 
-export function FlowExpenseCard({ expense, flowTab, onClick, className }) {
+export function FlowExpenseCard({
+  expense,
+  flowTab,
+  onClick,
+  className,
+  hideCategory = false,
+  hidePaymentMethod = false,
+}) {
   const { format: formatMoney } = useMoneyFormatter();
 
   const type = flowTab === "all"
@@ -46,16 +53,22 @@ export function FlowExpenseCard({ expense, flowTab, onClick, className }) {
         </span>
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1 min-w-0 flex-1">
-          <Tag className="h-3 w-3 shrink-0 text-primary" />
-          <span className="truncate font-medium">{categoryName}</span>
+      {(!hideCategory || !hidePaymentMethod) && (
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          {!hideCategory ? (
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              <Tag className="h-3 w-3 shrink-0 text-primary" />
+              <span className="truncate font-medium">{categoryName}</span>
+            </div>
+          ) : null}
+          {!hidePaymentMethod ? (
+            <div className="flex min-w-0 flex-1 items-center gap-1">
+              <CreditCard className="h-3 w-3 shrink-0 text-muted-foreground" />
+              <span className="truncate font-medium">{paymentMethod}</span>
+            </div>
+          ) : null}
         </div>
-        <div className="flex items-center gap-1 min-w-0 flex-1">
-          <CreditCard className="h-3 w-3 shrink-0 text-muted-foreground" />
-          <span className="truncate font-medium">{paymentMethod}</span>
-        </div>
-      </div>
+      )}
 
       {comments && (
         <div

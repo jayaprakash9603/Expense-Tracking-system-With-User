@@ -24,6 +24,13 @@ function normalizeExpenseRows(data) {
         type: details?.type || row?.type || "",
         categoryName:
           row?.categoryName || details?.categoryName || row?.category || details?.category || "",
+        paymentMethod:
+          details?.paymentMethod ||
+          row?.paymentMethod ||
+          row?.paymentMethodInfo?.name ||
+          details?.paymentMethodInfo?.name ||
+          "",
+        comments: details?.comments ?? row?.comments ?? "",
         includeInBudget:
           typeof row?.includeInBudget === "boolean"
             ? row.includeInBudget
