@@ -1,6 +1,6 @@
 # Demo mode HTTP adapter
 
-Set `VITE_APP_RUNTIME_MODE=demo` in the app [`.env`](../../.env) (then restart dev or rebuild). [`runtime/handleDemoRequest.js`](runtime/handleDemoRequest.js) resolves requests with store-backed handlers first, then the **Postman route manifest** (heuristic stubs and optional JSON overrides). Session entities live in `sessionStorage` under `expensio_demo_store_v1`. The Axios adapter uses an empty `baseURL` in demo mode.
+Set `VITE_APP_RUNTIME_MODE=demo` in your local **`.env`** (copy from [`.env.example`](../../.env.example)), then restart dev or rebuild. [`runtime/handleDemoRequest.js`](runtime/handleDemoRequest.js) resolves requests with store-backed handlers first, then the **Postman route manifest** (heuristic stubs and optional JSON overrides). Session entities live in `sessionStorage` under `expensio_demo_store_v1`. The Axios adapter uses an empty `baseURL` in demo mode.
 
 Default demo credentials (overridable via `VITE_DEMO_EMAIL` / `VITE_DEMO_PASSWORD`): **admin@gmail.com** / **admin**. Profile responses use **ADMIN** role and **ADMIN** `currentMode`.
 

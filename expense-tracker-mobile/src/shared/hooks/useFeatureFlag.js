@@ -2,8 +2,8 @@ import { useAppConfig } from "@/shared/hooks/useAppConfig";
 
 export function useFeatureFlag(flagKey) {
   const { featureFlags } = useAppConfig();
-  if (Object.prototype.hasOwnProperty.call(featureFlags, flagKey)) {
-    return Boolean(featureFlags[flagKey]);
+  if (!Object.prototype.hasOwnProperty.call(featureFlags, flagKey)) {
+    return false;
   }
-  return true;
+  return Boolean(featureFlags[flagKey]);
 }

@@ -114,6 +114,7 @@ export const APP_INFO = {
 export const SETTINGS_SECTIONS = [
   {
     id: "appearance",
+    featureFlagKey: "settings.section.appearance",
     titleKey: "settings.sections.appearance",
     icon: Palette,
     items: [
@@ -185,6 +186,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "preferences",
+    featureFlagKey: "settings.section.preferences",
     titleKey: "settings.sections.preferences",
     icon: Languages,
     items: [
@@ -232,6 +234,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "privacySecurity",
+    featureFlagKey: "settings.section.privacySecurity",
     titleKey: "settings.sections.privacySecurity",
     icon: Shield,
     items: [
@@ -294,6 +297,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "dataStorage",
+    featureFlagKey: "settings.section.dataStorage",
     titleKey: "settings.sections.dataStorage",
     icon: Database,
     items: [
@@ -349,6 +353,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "smartFeatures",
+    featureFlagKey: "settings.section.smartFeatures",
     titleKey: "settings.sections.smartFeatures",
     icon: Brain,
     items: [
@@ -402,6 +407,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "accessibility",
+    featureFlagKey: "settings.section.accessibility",
     titleKey: "settings.sections.accessibility",
     icon: Accessibility,
     items: [
@@ -464,6 +470,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "account",
+    featureFlagKey: "settings.section.account",
     titleKey: "settings.sections.account",
     icon: User,
     items: [
@@ -516,6 +523,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "helpSupport",
+    featureFlagKey: "settings.section.helpSupport",
     titleKey: "settings.sections.helpSupport",
     icon: HelpCircle,
     items: [
@@ -564,6 +572,7 @@ export const SETTINGS_SECTIONS = [
   },
   {
     id: "about",
+    featureFlagKey: "settings.section.about",
     titleKey: "settings.sections.about",
     icon: Info,
     items: [],

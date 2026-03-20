@@ -26,6 +26,7 @@ export * from "./feedback/ErrorState";
 export * from "./feedback/AsyncStateView";
 export * from "./feedback/AppErrorBoundary";
 export * from "./feedback/NoDataPlaceholder";
+export * from "./feedback/FeatureGate";
 export * from "./layout/PageContainer";
 export * from "./layout/ResponsiveGrid";
 export * from "./layout/AppContainer";

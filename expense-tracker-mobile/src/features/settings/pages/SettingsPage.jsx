@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { PageContainer } from "@/shared/components/PageContainer";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { SETTINGS_SECTIONS } from "@/features/settings/constants/settingsConfig";
+import { FeatureGate } from "@/shared/components/feedback/FeatureGate";
 import { SettingSection } from "@/features/settings/components/SettingSection";
 import { SettingItem } from "@/features/settings/components/SettingItem";
 import { AppInfoSection } from "@/features/settings/components/AppInfoSection";
@@ -71,7 +72,11 @@ export function SettingsPage() {
   return (
     <PageContainer maxWidth="full" className="pb-8">
       <div className="settings-grid">
-        {SETTINGS_SECTIONS.map(renderSection)}
+        {SETTINGS_SECTIONS.map((section) => (
+          <FeatureGate key={section.id} flagKey={section.featureFlagKey}>
+            {renderSection(section)}
+          </FeatureGate>
+        ))}
       </div>
 
       <ChangePasswordDialog open={changePasswordOpen} onOpenChange={setChangePasswordOpen} />

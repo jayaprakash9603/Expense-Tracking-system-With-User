@@ -1,4 +1,4 @@
-import { DEFAULT_FEATURE_FLAGS } from "@/config/runtime/defaultFeatureFlags";
+import { getFeatureMatrixProfile } from "@/config/runtime/loadFeatureMatrix";
 
 const RUNTIME_MODES = new Set(["live", "demo"]);
 const SEED_SCENARIOS = new Set(["empty", "sample"]);
@@ -18,14 +18,15 @@ function parseFeatureFlagsJson(raw) {
   }
 }
 
-function mergeFeatureFlags(overrides) {
-  return Object.freeze({ ...DEFAULT_FEATURE_FLAGS, ...overrides });
+function mergeFeatureFlags(runtimeMode, jsonOverrides) {
+  const base = getFeatureMatrixProfile(runtimeMode);
+  return Object.freeze({ ...base, ...jsonOverrides });
 }
 
 function buildConfig() {
   const runtimeMode = normalizeMode(import.meta.env.VITE_APP_RUNTIME_MODE);
   const isDemo = runtimeMode === "demo";
-  const featureFlagsRaw = parseFeatureFlagsJson(import.meta.env.VITE_FEATURE_FLAGS_JSON);
+  const featureFlagsJsonOverrides = parseFeatureFlagsJson(import.meta.env.VITE_FEATURE_FLAGS_JSON);
   const demoSeedScenarioRaw = String(
     import.meta.env.VITE_DEMO_SEED_SCENARIO || "sample",
   ).toLowerCase();
@@ -42,7 +43,7 @@ function buildConfig() {
     demoEmail: import.meta.env.VITE_DEMO_EMAIL || "admin@gmail.com",
     demoPassword: import.meta.env.VITE_DEMO_PASSWORD || "admin",
     demoSeedScenario,
-    featureFlags: mergeFeatureFlags(featureFlagsRaw),
+    featureFlags: mergeFeatureFlags(runtimeMode, featureFlagsJsonOverrides),
   });
 }
 
@@ -52,8 +53,8 @@ export function getAppConfig() {
 
 export function isFeatureEnabled(flagKey) {
   const { featureFlags } = getAppConfig();
-  if (Object.prototype.hasOwnProperty.call(featureFlags, flagKey)) {
-    return Boolean(featureFlags[flagKey]);
+  if (!Object.prototype.hasOwnProperty.call(featureFlags, flagKey)) {
+    return false;
   }
-  return true;
+  return Boolean(featureFlags[flagKey]);
 }
