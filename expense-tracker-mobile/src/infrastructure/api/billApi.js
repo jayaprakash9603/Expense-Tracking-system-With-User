@@ -15,5 +15,4 @@ export const billApi = {
   scanReceipt: (formData) => safeApiCall(() => api.post("/api/bills/scan-receipt", formData, { headers: { "Content-Type": "multipart/form-data" } })),
   scanMultipleReceipts: (formData) => safeApiCall(() => api.post("/api/bills/scan-receipt/multiple", formData, { headers: { "Content-Type": "multipart/form-data" } })),
   checkOcrStatus: () => safeApiCall(() => api.get("/api/bills/ocr/status")),
-  getForCalendar: (params) => safeApiCall(() => api.get("/api/bills", { params })),
 };

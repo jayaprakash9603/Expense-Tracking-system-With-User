@@ -1,5 +1,6 @@
 import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { optionalTargetParams } from "@/infrastructure/api/apiUtils";
 
 export const expenseApi = {
   getAll: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses", { params })),
@@ -24,7 +25,6 @@ export const expenseApi = {
     ),
   delete: (id) => safeApiCall(() => api.delete(`/api/expenses/delete/${id}`)),
   getDailySpending: (params) => safeApiCall(() => api.get("/api/expenses/cashflow", { params })),
-  getCashflow: (params) => safeApiCall(() => api.get("/api/expenses/cashflow", { params })),
   search: (query, params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses", { params: { query, ...params } })),
   getByCategory: (categoryId, params) => safeApiCall(() => api.get(`/api/expenses/category/${categoryId}`, { params })),
   exportData: (params) => safeApiCall(() => api.get("/api/expenses/export", { params, responseType: "blob" })),
@@ -37,7 +37,7 @@ export const expenseApi = {
   getPrevious: (name, date, targetId = "") =>
     safeApiCall(() =>
       api.get(`/api/expenses/before/${name}/${date}`, {
-        params: targetId ? { targetId } : undefined,
+        params: optionalTargetParams(targetId),
       }),
     ),
   upload: (formData) => safeApiCall(() => api.post("/api/expenses/upload", formData, { headers: { "Content-Type": "multipart/form-data" } })),
@@ -48,11 +48,5 @@ export const expenseApi = {
   getByDate: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses-by-date", { params })),
   getByParticularDate: (params) => safeApiCall(() => api.get("/api/expenses/particular-date", { params })),
   getCategoriesDetailed: (params) => safeApiCall(() => api.get("/api/expenses/all-by-categories/detailed/filtered", { params })),
-  getDetailed: (id, targetId = "") =>
-    safeApiCall(() =>
-      api.get(`/api/expenses/expense/${id}/detailed`, {
-        params: targetId ? { targetId } : undefined,
-      }),
-    ),
   getByPaymentMethod: (params) => safeApiCall(() => api.get("/api/expenses/all-by-payment-method/detailed/filtered", { params })),
 };

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { budgetApi, expenseApi } from "@/infrastructure/api";
 import { getToday } from "@/shared/utils/format/dateUtils";
 import { BUDGET_DEFAULTS } from "@/domain/budgets/budget.model";
@@ -6,6 +6,7 @@ import { validateBudget } from "@/domain/budgets/budget.validators";
 import { fromApiResponse, toApiPayload } from "@/domain/budgets/budget.transformers";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { normalizeApiListOrObjectArrays } from "@/shared/utils/api/normalizeApiList";
+import { useFormFields, useEditLoader, useSyncedRef } from "@/shared/hooks/form/useFormState";
 
 function normalizeExpenseRows(data) {
   const base = normalizeApiListOrObjectArrays(data, "content", "expenses");
@@ -52,40 +53,32 @@ export function useBudgetForm({
   onError,
 } = {}) {
   const isEditMode = mode === "edit";
-  const [formData, setFormData] = useState(() => ({
-    ...BUDGET_DEFAULTS,
-    startDate: BUDGET_DEFAULTS.startDate || getToday(),
-  }));
-  const [errors, setErrors] = useState(buildInitialErrors);
-  const [isLoading, setIsLoading] = useState(Boolean(isEditMode));
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    isDirty,
+    setIsDirty,
+    setFieldValue,
+    clearFieldError,
+  } = useFormFields({
+    getInitialForm: () => ({
+      ...BUDGET_DEFAULTS,
+      startDate: BUDGET_DEFAULTS.startDate || getToday(),
+    }),
+    getInitialErrors: buildInitialErrors,
+    trackDirty: true,
+    clearErrorOnChange: true,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
   const [showTable, setShowTable] = useState(true);
   const [expenses, setExpenses] = useState([]);
   const [selectedExpenseIds, setSelectedExpenseIds] = useState([]);
   const [expenseError, setExpenseError] = useState("");
   const [expensesLoading, setExpensesLoading] = useState(() => !isEditMode);
-  const onErrorRef = useRef(onError);
-
-  useEffect(() => {
-    onErrorRef.current = onError;
-  }, [onError]);
-
-  const clearFieldError = useCallback((field) => {
-    setErrors((prev) => {
-      if (!prev[field]) return prev;
-      return { ...prev, [field]: "" };
-    });
-  }, []);
-
-  const setFieldValue = useCallback(
-    (field, value) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      clearFieldError(field);
-      setIsDirty(true);
-    },
-    [clearFieldError],
-  );
+  const onErrorRef = useSyncedRef(onError);
 
   const handleChange = useCallback(
     (field, value) => {
@@ -162,17 +155,10 @@ export function useBudgetForm({
     [friendId],
   );
 
-  useEffect(() => {
-    if (!isEditMode || !entityId) {
-      setIsLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setIsLoading(true);
-
-    const run = async () => {
+  const loadBudgetForEdit = useCallback(
+    async ({ cancelled, setIsLoading }) => {
       const { data, error } = await budgetApi.getById(entityId, friendId || "");
-      if (cancelled) return;
+      if (cancelled()) return;
       if (error) {
         onErrorRef.current?.(error);
         setIsLoading(false);
@@ -186,15 +172,17 @@ export function useBudgetForm({
       }));
       setIsLoading(false);
       await fetchExpensesForBudget(entityId);
-    };
+    },
+    [entityId, friendId, fetchExpensesForBudget, onErrorRef, setFormData],
+  );
 
-    run();
-
-    return () => {
-      cancelled = true;
-      setIsLoading(false);
-    };
-  }, [isEditMode, entityId, friendId, fetchExpensesForBudget]);
+  const isLoading = useEditLoader(
+    isEditMode && Boolean(entityId),
+    loadBudgetForEdit,
+    entityId,
+    friendId,
+    fetchExpensesForBudget,
+  );
 
   useEffect(() => {
     if (isEditMode || !showTable) return;

@@ -1,8 +1,6 @@
 import { categoryApi } from "@/infrastructure/api";
+import { fetchCategoriesAction } from "./categories.listSlice";
 import {
-  FETCH_CATEGORIES_REQUEST,
-  FETCH_CATEGORIES_SUCCESS,
-  FETCH_CATEGORIES_FAILURE,
   CREATE_CATEGORY_REQUEST,
   CREATE_CATEGORY_SUCCESS,
   CREATE_CATEGORY_FAILURE,
@@ -19,16 +17,7 @@ import {
   RESET_CATEGORY_STATE,
 } from "./categories.actionTypes";
 
-export const fetchCategoriesAction = (params) => async (dispatch) => {
-  dispatch({ type: FETCH_CATEGORIES_REQUEST });
-  const { data, error } = await categoryApi.getAll(params);
-  if (error) {
-    dispatch({ type: FETCH_CATEGORIES_FAILURE, payload: error.message });
-    return { success: false, error };
-  }
-  dispatch({ type: FETCH_CATEGORIES_SUCCESS, payload: data });
-  return { success: true, data };
-};
+export { fetchCategoriesAction };
 
 export const createCategoryAction = (categoryData) => async (dispatch) => {
   dispatch({ type: CREATE_CATEGORY_REQUEST });

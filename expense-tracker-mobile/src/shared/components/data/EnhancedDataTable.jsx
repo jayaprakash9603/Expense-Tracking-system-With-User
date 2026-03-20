@@ -220,7 +220,7 @@ const DEFAULT_SCROLL_BODY_MAX_ROWS = 5;
 const DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX = 42;
 const DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX = 41;
 const SCROLL_VIEWPORT_SLACK_PX = 2;
-const PAGE_PAD_MIN_TOTAL_ROWS = 5;
+const LAST_PAGE_PADDED_ROW_TOTAL = 5;
 
 export function EnhancedDataTable({
   columns,
@@ -514,12 +514,21 @@ export function EnhancedDataTable({
   const pageRowCount = currentPageRows.length;
   const pageSize = paginationState.pageSize;
   const pageRemainder = pageSize - pageRowCount;
+  const isLastPage = !table.getCanNextPage();
   let padRowCount = 0;
-  if (showPagination && !loading && !draggable && pageRowCount > 0 && pageRemainder > 0) {
-    padRowCount =
-      pageRowCount < PAGE_PAD_MIN_TOTAL_ROWS
-        ? Math.min(pageRemainder, PAGE_PAD_MIN_TOTAL_ROWS - pageRowCount)
-        : pageRemainder;
+  if (
+    showPagination &&
+    !loading &&
+    !draggable &&
+    isLastPage &&
+    pageRowCount > 0 &&
+    pageRemainder > 0
+  ) {
+    const maxBlanksToReachTarget = Math.max(
+      0,
+      LAST_PAGE_PADDED_ROW_TOTAL - pageRowCount,
+    );
+    padRowCount = Math.min(pageRemainder, maxBlanksToReachTarget);
   }
   const pagePadTemplateCells =
     padRowCount > 0 ? currentPageRows[0]?.getVisibleCells() ?? [] : [];

@@ -110,7 +110,7 @@ export const fetchDailySpendingAction = (params) => async (dispatch) => {
 
 export const fetchCashflowAction = (params) => async (dispatch) => {
   dispatch({ type: FETCH_CASHFLOW_REQUEST });
-  const { data, error } = await expenseApi.getCashflow(params);
+  const { data, error } = await expenseApi.getDailySpending(params);
   if (error) {
     dispatch({ type: FETCH_CASHFLOW_FAILURE, payload: error.message });
     return { success: false, error };

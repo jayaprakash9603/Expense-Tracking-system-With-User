@@ -1,8 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { cn } from "@/lib/utils";
@@ -15,6 +13,7 @@ import {
 } from "../config/expenseConfig";
 import { useExpenseForm } from "../hooks/useExpenseForm";
 import { BudgetSelectionTable } from "../components/budget/BudgetSelectionTable";
+import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
 import {
   ExpenseFormShell,
   ExpenseFormRow,
@@ -346,59 +345,20 @@ export function ExpenseFormPage({
             </div>
           </ExpenseFieldLayout>
         </ExpenseFormRow>
-      <div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2">
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={() => setShowTable(true)}
-          >
-            {linkBudgetsLabel}
-          </Button>
-        </div>
-        {showTable ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="hidden sm:inline-flex"
-            onClick={() => setShowTable(false)}
-            aria-label={t("common.close")}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        ) : null}
-      </div>
-
-      {showTable ? (
-        <div className="relative mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-card/50">
-          <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setShowTable(false)}
-              aria-label={t("common.close")}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="w-full min-w-0">
-            <BudgetSelectionTable
-              budgets={budgets}
-              selectedBudgetIds={selectedBudgetIds}
-              onSelectionChange={setSelectedBudgetIds}
-              loading={budgetsLoading}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      {budgetError ? (
-        <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {budgetError}
-        </div>
-      ) : null}
+      <LinkedEntityTablePanel
+        linkLabel={linkBudgetsLabel}
+        open={showTable}
+        onOpenChange={setShowTable}
+        error={budgetError}
+        closeAriaLabel={t("common.close")}
+      >
+        <BudgetSelectionTable
+          budgets={budgets}
+          selectedBudgetIds={selectedBudgetIds}
+          onSelectionChange={setSelectedBudgetIds}
+          loading={budgetsLoading}
+        />
+      </LinkedEntityTablePanel>
       </div>
 
       <ExpenseSubmitArea

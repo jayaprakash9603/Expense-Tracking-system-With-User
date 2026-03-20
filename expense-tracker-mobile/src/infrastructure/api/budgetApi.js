@@ -1,30 +1,31 @@
 import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { optionalTargetParams } from "@/infrastructure/api/apiUtils";
 
 export const budgetApi = {
   getAll: (params) => safeApiCall(() => api.get("/api/budgets", { params })),
   getById: (id, targetId = "") =>
     safeApiCall(() =>
       api.get(`/api/budgets/${id}`, {
-        params: targetId ? { targetId } : undefined,
+        params: optionalTargetParams(targetId),
       }),
     ),
   create: (data, targetId = "") =>
     safeApiCall(() =>
       api.post("/api/budgets", data, {
-        params: targetId ? { targetId } : undefined,
+        params: optionalTargetParams(targetId),
       }),
     ),
   update: (id, data, targetId = "") =>
     safeApiCall(() =>
       api.put(`/api/budgets/${id}`, data, {
-        params: targetId ? { targetId } : undefined,
+        params: optionalTargetParams(targetId),
       }),
     ),
   delete: (id, targetId = "") =>
     safeApiCall(() =>
       api.delete(`/api/budgets/${id}`, {
-        params: targetId ? { targetId } : undefined,
+        params: optionalTargetParams(targetId),
       }),
     ),
   getOverview: () => safeApiCall(() => api.get("/api/budgets/overview")),

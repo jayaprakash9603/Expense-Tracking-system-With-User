@@ -1,7 +1,7 @@
-import React, { useMemo, useCallback } from "react";
+import React from "react";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { SelectableDataTable } from "@/shared/components/data/SelectableDataTable";
 import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
-import { BudgetSelectionDataTable } from "./BudgetSelectionDataTable";
 
 export function BudgetSelectionTable({
   budgets = [],
@@ -12,44 +12,17 @@ export function BudgetSelectionTable({
   const { t } = useLanguage();
   const { columns, rows } = useBudgetTableConfig(budgets, t);
 
-  const selectedRowsMap = useMemo(
-    () =>
-      selectedBudgetIds.reduce((accumulator, id) => {
-        accumulator[id] = true;
-        return accumulator;
-      }, {}),
-    [selectedBudgetIds],
-  );
-
-  const typedBudgetIdByKey = useMemo(
-    () =>
-      rows.reduce((accumulator, row) => {
-        accumulator[String(row.id)] = row.id;
-        return accumulator;
-      }, {}),
-    [rows],
-  );
-
-  const handleRowSelectionStateChange = useCallback(
-    (nextSelection) => {
-      if (!onSelectionChange) return;
-      const nextIds = Object.entries(nextSelection || {})
-        .filter(([, selected]) => selected === true)
-        .map(([id]) => typedBudgetIdByKey[id] ?? id);
-      onSelectionChange(nextIds);
-    },
-    [onSelectionChange, typedBudgetIdByKey],
-  );
-
   return (
     <div className="w-full">
-      <BudgetSelectionDataTable
-        rows={rows}
+      <SelectableDataTable
         columns={columns}
-        rowSelectionState={selectedRowsMap}
-        onRowSelectionStateChange={handleRowSelectionStateChange}
+        data={rows}
+        selectedIds={selectedBudgetIds}
+        onSelectionChange={onSelectionChange}
         defaultPageSize={5}
         loading={loading}
+        emptyMessage={t("common.noResults")}
+        tableClassName="min-w-[920px] lg:min-w-0"
       />
     </div>
   );

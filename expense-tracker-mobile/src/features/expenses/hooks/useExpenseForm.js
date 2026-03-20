@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { budgetApi, expenseApi } from "@/infrastructure/api";
 import {
   normalizeExpenseDateForForm,
@@ -9,7 +9,9 @@ import { getToday } from "@/shared/utils/format/dateUtils";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 import { usePreviousExpense } from "./usePreviousExpense";
 import { useExpenseAutoFill } from "./useExpenseAutoFill";
+import { EXPENSE_FORM_VALIDATION_MESSAGES } from "@/features/expenses/config/expenseConfig";
 import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
+import { useFormFields, useEditLoader, useSyncedRef } from "@/shared/hooks/form/useFormState";
 
 function computeSalaryType(dateValue) {
   if (!dateValue) return "loss";
@@ -114,20 +116,27 @@ export function useExpenseForm({
   const isEditMode = mode === "edit";
   const initialDate = dateFromQuery || today;
 
-  const [formData, setFormData] = useState(() => buildInitialFormData(initialDate));
-  const [errors, setErrors] = useState(getInitialErrors);
-  const [isLoading, setIsLoading] = useState(Boolean(isEditMode));
+  const {
+    formData,
+    setFormData,
+    errors,
+    setErrors,
+    setFieldValue,
+    clearFieldError,
+  } = useFormFields({
+    getInitialForm: () => buildInitialFormData(initialDate),
+    getInitialErrors,
+    trackDirty: false,
+    clearErrorOnChange: false,
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTable, setShowTable] = useState(true);
   const [budgets, setBudgets] = useState([]);
   const [budgetsLoading, setBudgetsLoading] = useState(() => isCreateMode);
   const [budgetError, setBudgetError] = useState(null);
   const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
-  const onErrorRef = useRef(onError);
-
-  useEffect(() => {
-    onErrorRef.current = onError;
-  }, [onError]);
+  const onErrorRef = useSyncedRef(onError);
 
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     isCreateMode ? formData.expenseName : null,
@@ -141,17 +150,6 @@ export function useExpenseForm({
     formData,
     setFormData,
   );
-
-  const setFieldValue = useCallback((field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
-
-  const clearFieldError = useCallback((field) => {
-    setErrors((prev) => {
-      if (!prev[field]) return prev;
-      return { ...prev, [field]: "" };
-    });
-  }, []);
 
   const handleInputChange = useCallback(
     (event) => {
@@ -224,17 +222,10 @@ export function useExpenseForm({
     }));
   }, [isCreateMode, dateFromQuery]);
 
-  useEffect(() => {
-    if (!isEditMode || !entityId) {
-      setIsLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setIsLoading(true);
-
-    const run = async () => {
+  const loadExpenseForEdit = useCallback(
+    async ({ cancelled, setIsLoading }) => {
       const { data, error } = await expenseApi.getById(entityId, friendId);
-      if (cancelled) return;
+      if (cancelled()) return;
       if (error) {
         onErrorRef.current?.(error);
         setIsLoading(false);
@@ -244,15 +235,18 @@ export function useExpenseForm({
       setFormData((prev) => ({ ...prev, ...parsed }));
       setIsLoading(false);
       await fetchBudgetsByExpenseId(entityId, parsed.date || today);
-    };
+    },
+    [entityId, friendId, today, fetchBudgetsByExpenseId, onErrorRef, setFormData],
+  );
 
-    run();
-
-    return () => {
-      cancelled = true;
-      setIsLoading(false);
-    };
-  }, [isEditMode, entityId, friendId, today, fetchBudgetsByExpenseId]);
+  const isLoading = useEditLoader(
+    isEditMode && Boolean(entityId),
+    loadExpenseForEdit,
+    entityId,
+    friendId,
+    today,
+    fetchBudgetsByExpenseId,
+  );
 
   const handleDateChange = useCallback(
     async (formattedDate) => {
@@ -282,22 +276,23 @@ export function useExpenseForm({
 
   const validate = useCallback(() => {
     const nextErrors = getInitialErrors();
+    const msg = EXPENSE_FORM_VALIDATION_MESSAGES;
     if (!String(formData.expenseName || "").trim()) {
-      nextErrors.expenseName = "Expense name is required";
+      nextErrors.expenseName = msg.expenseName;
     }
     const amount = Number(formData.amount);
     if (!formData.amount || !Number.isFinite(amount) || amount <= 0) {
-      nextErrors.amount = "Enter a valid amount";
+      nextErrors.amount = msg.amount;
     }
     if (!formData.date) {
-      nextErrors.date = "Date is required";
+      nextErrors.date = msg.date;
     }
     if (!formData.transactionType) {
-      nextErrors.transactionType = "Type is required";
+      nextErrors.transactionType = msg.transactionType;
     }
     setErrors(nextErrors);
     return Object.values(nextErrors).every((value) => !value);
-  }, [formData]);
+  }, [formData, setErrors]);
 
   const handleSubmit = useCallback(async () => {
     if (!validate()) return { success: false };

@@ -17,6 +17,7 @@ import {
   CLEAR_CATEGORY_ERROR,
   RESET_CATEGORY_STATE,
 } from "./categories.actionTypes";
+import { categoriesListSliceHelpers } from "./categories.listSlice";
 
 const initialState = {
   list: [],
@@ -30,16 +31,12 @@ export const categoriesReducer = (state = initialState, action) => {
   switch (action.type) {
     case FETCH_CATEGORIES_REQUEST:
     case FETCH_CATEGORY_FLOW_REQUEST:
-      return { ...state, loading: true, error: null };
+      return categoriesListSliceHelpers.applyRequest(state);
     case FETCH_CATEGORIES_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        list: Array.isArray(action.payload) ? action.payload : [],
-      };
+      return categoriesListSliceHelpers.applySuccess(state, action);
     case FETCH_CATEGORIES_FAILURE:
     case FETCH_CATEGORY_FLOW_FAILURE:
-      return { ...state, loading: false, error: action.payload };
+      return categoriesListSliceHelpers.applyFailure(state, action);
     case FETCH_CATEGORY_FLOW_SUCCESS:
       return { ...state, loading: false, flow: action.payload };
 
