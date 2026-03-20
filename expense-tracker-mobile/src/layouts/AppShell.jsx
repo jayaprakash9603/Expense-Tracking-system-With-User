@@ -6,6 +6,7 @@ import { Sidebar } from "./Sidebar";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { getRouteTitleKey } from "@/app/routing/routeCatalog";
+import { UniversalSearchHost } from "@/app/search";
 
 export function AppShell() {
   const location = useLocation();
@@ -20,6 +21,7 @@ export function AppShell() {
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <TopBar title={t(titleKey)} />
+          <UniversalSearchHost />
           <main className="flex-1 overflow-y-auto no-scrollbar bg-background">
             <Outlet />
           </main>

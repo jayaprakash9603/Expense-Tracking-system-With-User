@@ -1,3 +1,62 @@
+function normalizeExpenseDateValue(value) {
+  if (value == null || value === "") return "";
+  if (Array.isArray(value) && value.length >= 3) {
+    const [y, m, d] = value;
+    return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
+  if (typeof value === "string") return value.split("T")[0];
+  return "";
+}
+
+export function normalizeExpenseDateForForm(value, fallback) {
+  const normalized = normalizeExpenseDateValue(value);
+  return normalized || fallback;
+}
+
+export function resolveExpenseFormCategoryFields(rawExpense, details) {
+  const cat = details?.category ?? rawExpense?.category;
+  if (cat && typeof cat === "object" && cat !== null && "id" in cat) {
+    return {
+      category: cat.id != null ? String(cat.id) : "",
+      categoryName: cat.name || "",
+    };
+  }
+  const fallbackId = rawExpense?.categoryId ?? details?.categoryId;
+  if (fallbackId != null && fallbackId !== "") {
+    return {
+      category: String(fallbackId),
+      categoryName: rawExpense?.categoryName || details?.categoryName || "",
+    };
+  }
+  if (typeof cat === "string" || typeof cat === "number") {
+    return { category: String(cat), categoryName: "" };
+  }
+  return {
+    category: "",
+    categoryName: rawExpense?.categoryName || details?.categoryName || "",
+  };
+}
+
+export function normalizeExpenseSelectedState(raw) {
+  if (!raw || typeof raw !== "object") return raw;
+  const categoryIsObject = raw.category && typeof raw.category === "object";
+  const looksDetailed = raw.expenseName != null || categoryIsObject;
+  if (!looksDetailed) return raw;
+  const dateNorm = normalizeExpenseDateValue(raw.date);
+  const categoryLabel = categoryIsObject
+    ? raw.category.name || "-"
+    : typeof raw.category === "string"
+      ? raw.category
+      : "-";
+  return {
+    ...raw,
+    name: raw.name || raw.expenseName || "",
+    date: dateNorm || raw.date,
+    category: categoryLabel,
+    isRecurring: Boolean(raw.isRecurring ?? raw.isBill),
+  };
+}
+
 export function fromApiResponse(raw) {
   return {
     id: raw.id,

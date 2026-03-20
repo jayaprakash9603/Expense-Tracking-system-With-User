@@ -29,6 +29,7 @@ import {
   CLEAR_EXPENSE_ERROR,
   RESET_EXPENSE_STATE,
 } from "./expenses.actionTypes";
+import { normalizeExpenseSelectedState } from "@/domain/expenses/expense.transformers";
 
 const initialState = {
   list: [],
@@ -76,7 +77,11 @@ export const expensesReducer = (state = initialState, action) => {
     case FETCH_EXPENSE_BY_ID_REQUEST:
       return { ...state, loading: true, error: null };
     case FETCH_EXPENSE_BY_ID_SUCCESS:
-      return { ...state, loading: false, selected: action.payload };
+      return {
+        ...state,
+        loading: false,
+        selected: normalizeExpenseSelectedState(action.payload),
+      };
     case FETCH_EXPENSE_BY_ID_FAILURE:
       return { ...state, loading: false, error: action.payload };
 

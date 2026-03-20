@@ -18,7 +18,12 @@ export function FlowToggle({ value, onChange, className }) {
   const { t } = useLanguage();
 
   return (
-    <div className={cn("grid grid-cols-3 md:flex md:items-center gap-1 w-full md:w-auto bg-muted rounded-lg p-1", className)}>
+    <div
+      className={cn(
+        "grid w-full grid-cols-3 gap-1 rounded-lg bg-muted p-1 touch-manipulation md:flex md:w-auto md:items-center",
+        className,
+      )}
+    >
       {FLOW_TABS.map((tab) => {
         const isActive = value === tab.id;
         return (
@@ -27,7 +32,8 @@ export function FlowToggle({ value, onChange, className }) {
             type="button"
             onClick={() => onChange(tab.id)}
             className={cn(
-              "h-9 md:h-8 w-full md:w-auto md:min-w-[72px] px-3 md:px-2 text-sm md:text-xs font-semibold rounded-md transition-colors",
+              "!cursor-pointer h-9 w-full select-none rounded-md px-3 text-sm font-semibold transition-colors",
+              "touch-manipulation md:h-8 md:w-auto md:min-w-[72px] md:px-2 md:text-xs",
               isActive
                 ? `${ACTIVE_STYLES[tab.id]} shadow-sm`
                 : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-accent"

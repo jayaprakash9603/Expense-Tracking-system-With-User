@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { cn } from "@/lib/utils";
+import { ExpenseSpeedDial } from "./ExpenseSpeedDial";
 
 function resolveLabel(translator, key, fallback) {
   const value = translator?.(key);
@@ -16,11 +17,7 @@ function resolveLabel(translator, key, fallback) {
   return value;
 }
 
-export function ExpenseQuickActions({
-  onAdd,
-  onUpload,
-  className,
-}) {
+export function ExpenseQuickActions({ onAdd, onUpload, className, floating = false }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
@@ -49,6 +46,18 @@ export function ExpenseQuickActions({
     [onUpload],
   );
 
+  if (floating) {
+    return (
+      <ExpenseSpeedDial
+        mainAriaLabel={quickActionsLabel}
+        actions={[
+          { key: "add", icon: Plus, label: addLabel, onClick: onAdd },
+          { key: "upload", icon: Upload, label: uploadLabel, onClick: onUpload },
+        ]}
+      />
+    );
+  }
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <div
@@ -60,7 +69,7 @@ export function ExpenseQuickActions({
           <Button
             type="button"
             variant="outline"
-            className="group h-9 w-9 justify-start overflow-hidden rounded-full border-primary/40 px-2 text-primary transition-all duration-200 ease-out hover:w-36 hover:bg-primary/10"
+            className="group h-9 w-9 cursor-pointer justify-start overflow-hidden rounded-full border-primary/40 px-2 text-primary transition-all duration-200 ease-out hover:w-36 hover:bg-primary/10"
           >
             <Plus className="h-4 w-4 shrink-0" />
             <span className="ml-2 max-w-0 overflow-hidden whitespace-nowrap text-xs font-semibold opacity-0 transition-all duration-200 ease-out group-hover:max-w-[92px] group-hover:opacity-100">
@@ -75,11 +84,11 @@ export function ExpenseQuickActions({
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          <DropdownMenuItem onSelect={handleAddSelect}>
+          <DropdownMenuItem className="cursor-pointer" onSelect={handleAddSelect}>
             <Plus className="h-4 w-4" />
             {addLabel}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={handleUploadSelect}>
+          <DropdownMenuItem className="cursor-pointer" onSelect={handleUploadSelect}>
             <Upload className="h-4 w-4" />
             {uploadLabel}
           </DropdownMenuItem>

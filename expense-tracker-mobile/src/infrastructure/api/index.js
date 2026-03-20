@@ -15,3 +15,4 @@ export { chatApi } from "./chatApi";
 export { activityApi } from "./activityApi";
 export { storyApi } from "./storyApi";
 export { analyticsApi } from "./analyticsApi";
+export { searchApi } from "./searchApi";

@@ -82,7 +82,11 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--app-font-family, "Inter"), system-ui, -apple-system, sans-serif;
+    font-family:
+      var(--app-font-family, "Inter"),
+      system-ui,
+      -apple-system,
+      sans-serif;
     font-size: var(--app-font-size, 16px);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -94,8 +98,11 @@
   *,
   *::before,
   *::after {
-    transition: background-color 0.2s ease, color 0.2s ease,
-      border-color 0.2s ease, font-size 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      font-size 0.2s ease;
   }
 }
 
@@ -151,6 +158,29 @@
   }
   .thin-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/40;
+  }
+
+  .palette-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  .palette-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .palette-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .palette-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 999px;
+  }
+
+  .palette-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
   }
 }
 
@@ -370,24 +400,57 @@
 }
 
 @keyframes bottom-sheet-up {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @keyframes bottom-sheet-overlay-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes tab-indicator-slide {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes tab-icon-pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes expense-speed-dial-action-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.52);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.expense-speed-dial-action {
+  animation: expense-speed-dial-action-in 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
 .bottom-sheet-overlay {

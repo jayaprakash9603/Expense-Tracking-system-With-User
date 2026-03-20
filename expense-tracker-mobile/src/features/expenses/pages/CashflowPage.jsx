@@ -40,8 +40,9 @@ export function CashflowPage() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
-      headerActions={
+      floatingActions={
         <ExpenseQuickActions
+          floating
           onAdd={handleQuickAdd}
           onUpload={handleQuickUpload}
         />

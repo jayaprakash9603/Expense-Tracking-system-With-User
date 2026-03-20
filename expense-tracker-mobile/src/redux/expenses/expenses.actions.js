@@ -53,9 +53,9 @@ export const fetchExpensePaginatedAction = (params) => async (dispatch) => {
   return { success: true, data };
 };
 
-export const fetchExpenseByIdAction = (id) => async (dispatch) => {
+export const fetchExpenseByIdAction = (id, targetId = "") => async (dispatch) => {
   dispatch({ type: FETCH_EXPENSE_BY_ID_REQUEST });
-  const { data, error } = await expenseApi.getById(id);
+  const { data, error } = await expenseApi.getById(id, targetId);
   if (error) {
     dispatch({ type: FETCH_EXPENSE_BY_ID_FAILURE, payload: error.message });
     return { success: false, error };

@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { budgetApi, expenseApi } from "@/infrastructure/api";
+import {
+  normalizeExpenseDateForForm,
+  resolveExpenseFormCategoryFields,
+} from "@/domain/expenses/expense.transformers";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 import { usePreviousExpense } from "./usePreviousExpense";
 import { useExpenseAutoFill } from "./useExpenseAutoFill";
@@ -40,7 +44,15 @@ function toFormData(rawExpense, fallbackDate) {
   const details = extractExpenseDetails(rawExpense);
   const resolvedAmount = details.amount ?? rawExpense.amount ?? "";
   const resolvedPaymentMethod = normalizePaymentMethod(
-    details.paymentMethod || rawExpense.paymentMethod || "cash",
+    details.paymentMethod ||
+      rawExpense.paymentMethod ||
+      rawExpense.paymentMethodInfo?.name ||
+      "cash",
+  );
+  const { category, categoryName } = resolveExpenseFormCategoryFields(rawExpense, details);
+  const resolvedDate = normalizeExpenseDateForForm(
+    rawExpense.date ?? details.date,
+    fallbackDate,
   );
   return {
     expenseName:
@@ -59,14 +71,9 @@ function toFormData(rawExpense, fallbackDate) {
     paymentMethod: resolvedPaymentMethod,
     transactionType: normalizeType(details.type || rawExpense.type || "loss"),
     comments: details.comments || rawExpense.comments || "",
-    date: rawExpense.date || details.date || fallbackDate,
-    category:
-      rawExpense.categoryId ||
-      details.categoryId ||
-      rawExpense.category ||
-      details.category ||
-      "",
-    categoryName: rawExpense.categoryName || details.categoryName || "",
+    date: resolvedDate,
+    category,
+    categoryName,
     creditDue:
       details.creditDue != null
         ? String(details.creditDue)
@@ -124,7 +131,7 @@ export function useExpenseForm({
   const [errors, setErrors] = useState(getInitialErrors);
   const [isLoading, setIsLoading] = useState(Boolean(isEditMode));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showTable, setShowTable] = useState(() => isCreateMode);
+  const [showTable, setShowTable] = useState(true);
   const [budgets, setBudgets] = useState([]);
   const [budgetError, setBudgetError] = useState(null);
   const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
@@ -230,26 +237,28 @@ export function useExpenseForm({
       setIsLoading(false);
       return;
     }
-    let active = true;
-    const load = async () => {
-      setIsLoading(true);
+    let cancelled = false;
+    setIsLoading(true);
+
+    const run = async () => {
       const { data, error } = await expenseApi.getById(entityId, friendId);
-      if (!active) return;
+      if (cancelled) return;
       if (error) {
-        setIsLoading(false);
         onErrorRef.current?.(error);
+        setIsLoading(false);
         return;
       }
       const parsed = toFormData(data, today);
       setFormData((prev) => ({ ...prev, ...parsed }));
+      setIsLoading(false);
       await fetchBudgetsByExpenseId(entityId, parsed.date || today);
-      if (active) {
-        setIsLoading(false);
-      }
     };
-    load();
+
+    run();
+
     return () => {
-      active = false;
+      cancelled = true;
+      setIsLoading(false);
     };
   }, [isEditMode, entityId, friendId, today, fetchBudgetsByExpenseId]);
 

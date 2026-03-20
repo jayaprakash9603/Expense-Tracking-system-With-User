@@ -6,7 +6,7 @@ export const expenseApi = {
   getPaginated: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses-paginated", { params })),
   getById: (id, targetId = "") =>
     safeApiCall(() =>
-      api.get(`/api/expenses/expense/${id}`, {
+      api.get(`/api/expenses/expense/${id}/detailed`, {
         params: targetId ? { targetId } : undefined,
       }),
     ),
@@ -48,6 +48,11 @@ export const expenseApi = {
   getByDate: (params) => safeApiCall(() => api.get("/api/expenses/fetch-expenses-by-date", { params })),
   getByParticularDate: (params) => safeApiCall(() => api.get("/api/expenses/particular-date", { params })),
   getCategoriesDetailed: (params) => safeApiCall(() => api.get("/api/expenses/all-by-categories/detailed/filtered", { params })),
-  getDetailed: (id) => safeApiCall(() => api.get(`/api/expenses/expense/${id}/detailed`)),
+  getDetailed: (id, targetId = "") =>
+    safeApiCall(() =>
+      api.get(`/api/expenses/expense/${id}/detailed`, {
+        params: targetId ? { targetId } : undefined,
+      }),
+    ),
   getByPaymentMethod: (params) => safeApiCall(() => api.get("/api/expenses/all-by-payment-method/detailed/filtered", { params })),
 };

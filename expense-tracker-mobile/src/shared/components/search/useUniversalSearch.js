@@ -1,10 +1,13 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDebounce } from "@/shared/hooks/utility/useDebounce";
+
+const EMPTY_SECTIONS = [];
 
 export function useUniversalSearch({
   searchFn,
-  sections = [],
+  sections = EMPTY_SECTIONS,
   debounceMs = 300,
+  enableGlobalHotkey = true,
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -15,7 +18,8 @@ export function useUniversalSearch({
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
-      setResults([]);
+      setResults((prev) => (prev.length === 0 ? prev : []));
+      setLoading((prev) => (prev ? false : prev));
       return;
     }
 
@@ -31,7 +35,9 @@ export function useUniversalSearch({
           const lower = debouncedQuery.toLowerCase();
           const matched = sections.flatMap((section) => {
             const items = (section.items || []).filter((item) =>
-              String(item.label || item.name || "").toLowerCase().includes(lower)
+              String(item.label || item.name || "")
+                .toLowerCase()
+                .includes(lower),
             );
             if (items.length === 0) return [];
             return [{ ...section, items }];
@@ -46,7 +52,9 @@ export function useUniversalSearch({
     };
 
     doSearch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [debouncedQuery, searchFn, sections]);
 
   const openSearch = useCallback(() => {
@@ -61,6 +69,8 @@ export function useUniversalSearch({
   }, []);
 
   useEffect(() => {
+    if (!enableGlobalHotkey) return undefined;
+
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
@@ -69,7 +79,7 @@ export function useUniversalSearch({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [enableGlobalHotkey]);
 
   const hasResults = results.length > 0;
   const isEmpty = debouncedQuery.trim().length > 0 && !loading && !hasResults;

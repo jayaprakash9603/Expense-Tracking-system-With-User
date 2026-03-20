@@ -161,7 +161,7 @@ export function ExpenseFormPage({
           />
         ) : null
       }
-      className={isCreateMode ? "new-expense-container" : undefined}
+      className="new-expense-container"
     >
       <div className={cn("mt-2 flex flex-col gap-3 lg:gap-4", showTable && "pb-2")}>
         <ExpenseFormRow first className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
@@ -242,9 +242,7 @@ export function ExpenseFormPage({
                   const nextValue = String(value || "").toLowerCase();
                   setFieldValue("transactionType", nextValue);
                   clearFieldError("transactionType");
-                  if (isCreateMode) {
-                    markUserModified("transactionType");
-                  }
+                  markUserModified("transactionType");
                 }}
                 onInputChange={(_, nextValue, reason) => {
                   if (reason === "clear") {
@@ -285,9 +283,7 @@ export function ExpenseFormPage({
                 value={formData.category}
                 onChange={(categoryId) => {
                   setFieldValue("category", categoryId);
-                  if (isCreateMode) {
-                    markUserModified("category");
-                  }
+                  markUserModified("category");
                 }}
                 friendId={friendId}
                 placeholder={t(EXPENSE_FORM_PLACEHOLDERS.category)}
@@ -308,9 +304,7 @@ export function ExpenseFormPage({
                 value={formData.paymentMethod}
                 onChange={(value) => {
                   setFieldValue("paymentMethod", value);
-                  if (isCreateMode) {
-                    markUserModified("paymentMethod");
-                  }
+                  markUserModified("paymentMethod");
                 }}
                 transactionType={formData.transactionType}
                 friendId={friendId}
@@ -327,7 +321,7 @@ export function ExpenseFormPage({
           <ExpenseFieldLayout
             label={t(EXPENSE_FORM_LABELS.comments)}
             htmlFor="comments"
-            layout={isCreateMode ? "horizontal" : "vertical"}
+            layout="horizontal"
             contentClassName="w-full max-w-full lg:max-w-[760px]"
           >
             <div className="relative">
@@ -341,9 +335,7 @@ export function ExpenseFormPage({
                 value={formData.comments}
                 onChange={(event) => {
                   setFieldValue("comments", event.target.value);
-                  if (isCreateMode) {
-                    markUserModified("comments");
-                  }
+                  markUserModified("comments");
                 }}
                 placeholder={t(EXPENSE_FORM_PLACEHOLDERS.comments)}
                 maxWidth="760px"
@@ -353,12 +345,7 @@ export function ExpenseFormPage({
             </div>
           </ExpenseFieldLayout>
         </ExpenseFormRow>
-      <div
-        className={cn(
-          "mt-3 flex w-full flex-wrap items-center justify-between gap-2",
-          !isCreateMode && "mt-5",
-        )}
-      >
+      <div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2">
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Button
             type="button"
@@ -383,12 +370,7 @@ export function ExpenseFormPage({
       </div>
 
       {showTable ? (
-        <div
-          className={cn(
-            "relative mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-card/50",
-            !isCreateMode && "mt-4 sm:mt-6",
-          )}
-        >
+        <div className="relative mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-card/50">
           <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
             <Button
               type="button"
@@ -401,10 +383,7 @@ export function ExpenseFormPage({
             </Button>
           </div>
           <div
-            className={cn(
-              "w-full overflow-y-visible thin-scrollbar md:overflow-y-auto",
-              isCreateMode ? "max-h-none md:max-h-[340px]" : "max-h-none md:max-h-[380px]",
-            )}
+            className="w-full max-h-none overflow-y-visible thin-scrollbar md:max-h-[340px] md:overflow-y-auto"
           >
             <BudgetSelectionTable
               budgets={budgets}
@@ -415,9 +394,7 @@ export function ExpenseFormPage({
         </div>
       ) : null}
 
-      {!showTable && isCreateMode ? (
-        <div className="hidden h-[150px] lg:block" />
-      ) : null}
+      {!showTable ? <div className="hidden h-[150px] lg:block" /> : null}
 
       {budgetError ? (
         <div className="mt-4 text-sm text-destructive">{budgetError}</div>
@@ -425,7 +402,6 @@ export function ExpenseFormPage({
       </div>
 
       <ExpenseSubmitArea
-        isCreateMode={isCreateMode}
         isSubmitting={isSubmitting}
         disabled={isSubmitting}
         onSubmit={handleFormSubmit}
