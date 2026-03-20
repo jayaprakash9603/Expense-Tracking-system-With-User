@@ -20,7 +20,7 @@ export function AppRadialChart({
   showLabel = true,
   children,
 }) {
-  if (!data?.length) return <ChartEmptyState />;
+  if (!data?.length) return <ChartEmptyState height={height} className={className} />;
 
   return (
     <ChartContainer config={config} className={cn("w-full", className)} style={{ height }}>

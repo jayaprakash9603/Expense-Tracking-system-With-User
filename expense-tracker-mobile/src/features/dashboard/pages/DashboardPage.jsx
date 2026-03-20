@@ -19,6 +19,7 @@ import { PaymentMethodSection } from "@/features/dashboard/components/PaymentMet
 import { RecentTransactions } from "@/features/dashboard/components/RecentTransactions";
 import { BudgetOverviewSection } from "@/features/dashboard/components/BudgetOverviewSection";
 import { MonthlyComparisonChart } from "@/features/dashboard/components/MonthlyComparisonChart";
+import { cn } from "@/lib/utils";
 
 const SECTION_COMPONENTS = {
   "metrics": MetricsSection,
@@ -153,15 +154,31 @@ function DashboardContent() {
           );
         }
 
+        const stretchRow = group.sections.length > 1;
+
         return (
           <ContentSection key={`row-${idx}`}>
-            <div className={`grid gap-4 md:gap-6 ${getRowCols(group.sections)}`}>
+            <div
+              className={cn(
+                "grid items-stretch gap-4 md:gap-6",
+                getRowCols(group.sections),
+              )}
+            >
               {group.sections.map((section) => {
                 const Component = SECTION_COMPONENTS[section.id];
                 if (!Component) return null;
                 return (
-                  <div key={section.id} className={getColSpan(section, group.sections)}>
-                    <Component />
+                  <div
+                    key={section.id}
+                    className={cn(stretchRow && "h-full min-h-0", getColSpan(section, group.sections))}
+                  >
+                    <div
+                      className={cn(
+                        stretchRow && "h-full min-h-0 [&>*]:h-full",
+                      )}
+                    >
+                      <Component />
+                    </div>
                   </div>
                 );
               })}

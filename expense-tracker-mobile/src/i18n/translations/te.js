@@ -83,6 +83,18 @@ export const te = {
     budget: "బడ్జెట్",
     settings: "సెట్టింగ్స్",
   },
+  header: {
+    user: "వినియోగదారు",
+    switchToAdminMode: "అడ్మిన్ మోడ్‌కు మార్చండి",
+    switchToUserMode: "వినియోగదారి మోడ్‌కు మార్చండి",
+  },
+  profile: {
+    viewProfile: "ప్రొఫైల్ చూడండి",
+  },
+  modals: {
+    logoutTitle: "లాగ్‌అవుట్",
+    logoutPrompt: "మీరు ఖచ్చితంగా లాగ్‌అవుట్ కావాలనుకుంటున్నారా?",
+  },
   sidebar: {
     collapse: "కుదించు",
     expand: "విస్తరించు",
@@ -354,10 +366,12 @@ export const te = {
     },
     categoryFlow: {
       chartTitle: "వర్గం ప్రకారం ఖర్చు",
+      chartDescription: "మీరు ఎంచుకున్న పరిధికి వర్గం ప్రకారం మొత్తాలు",
       categories: "వర్గాలు",
     },
     paymentMethodFlow: {
       chartTitle: "చెల్లింపు విధానం ప్రకారం ఖర్చు",
+      chartDescription: "మీరు ఎంచుకున్న పరిధికి చెల్లింపు విధానం ప్రకారం మొత్తాలు",
       paymentMethods: "చెల్లింపు విధానాలు",
     },
   },

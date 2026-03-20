@@ -83,6 +83,18 @@ export const hi = {
     budget: "बजट",
     settings: "सेटिंग्स",
   },
+  header: {
+    user: "उपयोगकर्ता",
+    switchToAdminMode: "एडमिन मोड पर स्विच करें",
+    switchToUserMode: "यूज़र मोड पर स्विच करें",
+  },
+  profile: {
+    viewProfile: "प्रोफ़ाइल देखें",
+  },
+  modals: {
+    logoutTitle: "लॉगआउट",
+    logoutPrompt: "क्या आप वाकई लॉगआउट करना चाहते हैं?",
+  },
   sidebar: {
     collapse: "छोटा करें",
     expand: "बड़ा करें",
@@ -203,7 +215,8 @@ export const hi = {
     confirmPassword: "पासवर्ड की पुष्टि करें",
     passwordChanged: "पासवर्ड सफलतापूर्वक बदला गया",
     typeDeleteToConfirm: "पुष्टि के लिए DELETE टाइप करें",
-    deleteAccountWarning: "यह क्रिया स्थायी है। आपका सारा डेटा हटा दिया जाएगा और पुनर्प्राप्त नहीं किया जा सकता।",
+    deleteAccountWarning:
+      "यह क्रिया स्थायी है। आपका सारा डेटा हटा दिया जाएगा और पुनर्प्राप्त नहीं किया जा सकता।",
     accountDeleted: "खाता सफलतापूर्वक हटाया गया",
 
     sections: {
@@ -354,10 +367,12 @@ export const hi = {
     },
     categoryFlow: {
       chartTitle: "श्रेणी के अनुसार खर्च",
+      chartDescription: "आपके चुने हुए अंतराल के लिए श्रेणी के अनुसार कुल",
       categories: "श्रेणियाँ",
     },
     paymentMethodFlow: {
       chartTitle: "भुगतान विधि के अनुसार खर्च",
+      chartDescription: "आपके चुने हुए अंतराल के लिए भुगतान विधि के अनुसार कुल",
       paymentMethods: "भुगतान विधियाँ",
     },
   },

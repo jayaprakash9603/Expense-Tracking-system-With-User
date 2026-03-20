@@ -6,6 +6,7 @@ import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { DASHBOARD_BUDGET_RADIAL_HEIGHT } from "@/features/dashboard/constants/dashboardChartHeights";
 
 export function BudgetOverviewSection() {
   const { t } = useLanguage();
@@ -16,23 +17,23 @@ export function BudgetOverviewSection() {
   const chartConfig = { percentage: { label: t("dashboard.budgetUsed"), color: "hsl(var(--primary))" } };
 
   return (
-    <AppCard className="h-full">
-      <AppCard.Header>
+    <AppCard className="flex h-full min-h-0 flex-col">
+      <AppCard.Header className="shrink-0">
         <SectionHeader icon={Target} title={t("dashboard.budgetOverview")} />
       </AppCard.Header>
-      <AppCard.Content>
-        <div className="flex flex-col items-center">
+      <AppCard.Content className="flex min-h-0 flex-1 flex-col pt-0">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center">
           <AppRadialChart
             data={chartData}
             config={chartConfig}
             dataKey="percentage"
-            innerRadius={70}
-            outerRadius={95}
-            height={200}
+            innerRadius={72}
+            outerRadius={98}
+            height={DASHBOARD_BUDGET_RADIAL_HEIGHT}
             showLabel
           />
         </div>
-        <div className="grid grid-cols-1 gap-2 mt-4">
+        <div className="mt-4 grid shrink-0 grid-cols-1 gap-2">
           <BudgetStatRow
             label={t("dashboard.remainingBudget")}
             value={format(remainingBudget)}

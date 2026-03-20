@@ -38,7 +38,7 @@ export function AppPieChart({
   label = false,
   children,
 }) {
-  if (!data?.length) return <ChartEmptyState />;
+  if (!data?.length) return <ChartEmptyState height={height} className={className} />;
 
   const computedInner = donut ? (innerRadius || 60) : (innerRadius || 0);
   const computedOuter = outerRadius || 100;

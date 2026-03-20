@@ -9,6 +9,7 @@ import {
   GET_PROFILE_REQUEST,
   GET_PROFILE_SUCCESS,
   GET_PROFILE_FAILURE,
+  SWITCH_MODE_SUCCESS,
 } from "./auth.actionTypes";
 
 const completeLoginWithJwt = async (dispatch, jwt) => {
@@ -38,7 +39,7 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signin", loginData.data, { skipAuth: true })
+    api.post("/auth/signin", loginData.data, { skipAuth: true }),
   );
 
   if (error) {
@@ -80,7 +81,7 @@ export const registerUserAction = (loginData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/signup", loginData.data, { skipAuth: true })
+    api.post("/auth/signup", loginData.data, { skipAuth: true }),
   );
 
   if (error) {
@@ -96,13 +97,9 @@ export const registerUserAction = (loginData) => async (dispatch) => {
 export const getProfileAction = (jwt) => async (dispatch) => {
   dispatch({ type: GET_PROFILE_REQUEST });
 
-  const requestConfig = jwt
-    ? { headers: { Authorization: `Bearer ${jwt}` } }
-    : undefined;
+  const requestConfig = jwt ? { headers: { Authorization: `Bearer ${jwt}` } } : undefined;
 
-  const { data, error } = await safeApiCall(() =>
-    api.get("/api/user/profile", requestConfig)
-  );
+  const { data, error } = await safeApiCall(() => api.get("/api/user/profile", requestConfig));
 
   if (error) {
     const status = error.status;
@@ -122,7 +119,7 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/oauth2/google", { credential: googleData.credential }, { skipAuth: true })
+    api.post("/auth/oauth2/google", { credential: googleData.credential }, { skipAuth: true }),
   );
 
   if (error || !data?.jwt) {
@@ -138,7 +135,7 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   const { data, error } = await safeApiCall(() =>
-    api.post("/auth/verify-login-otp", payload, { skipAuth: true })
+    api.post("/auth/verify-login-otp", payload, { skipAuth: true }),
   );
 
   if (error || !data?.jwt) {
@@ -154,4 +151,33 @@ export const logoutAction = () => (dispatch) => {
   localStorage.clear();
   dispatch({ type: LOGOUT });
   updateAuthHeader();
+};
+
+export const switchUserModeAction = (newMode) => async (dispatch) => {
+  const { data, error } = await safeApiCall(() =>
+    api.put("/api/user/switch-mode", null, {
+      params: { mode: newMode },
+    }),
+  );
+
+  if (error) {
+    return { success: false, message: error.message || "Failed to switch user mode." };
+  }
+
+  const payloadUser = data?.user || null;
+  const payloadMode = data?.currentMode || payloadUser?.currentMode || newMode;
+
+  dispatch({
+    type: SWITCH_MODE_SUCCESS,
+    payload: {
+      currentMode: payloadMode,
+      user: payloadUser,
+    },
+  });
+
+  return {
+    success: true,
+    currentMode: payloadMode,
+    user: payloadUser,
+  };
 };

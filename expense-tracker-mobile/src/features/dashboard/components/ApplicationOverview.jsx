@@ -37,47 +37,50 @@ export function ApplicationOverview() {
   ];
 
   return (
-    <AppCard>
-      <AppCard.Header>
+    <AppCard className="flex h-full min-h-0 flex-col">
+      <AppCard.Header className="shrink-0">
         <SectionHeader icon={LayoutGrid} title={t("dashboard.applicationOverview")} />
       </AppCard.Header>
-      <AppCard.Content className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {primaryStats.map((stat) => (
-            <MiniStatCard key={stat.key} {...stat} />
-          ))}
+      <AppCard.Content className="flex min-h-0 flex-1 flex-col gap-4 pt-0">
+        <div className="shrink-0 space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {primaryStats.map((stat) => (
+              <MiniStatCard key={stat.key} {...stat} />
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {secondaryStats.map((stat) => (
+              <MiniStatCard key={stat.key} {...stat} />
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {secondaryStats.map((stat) => (
-            <MiniStatCard key={stat.key} {...stat} />
-          ))}
-        </div>
-
-        {topExpenses?.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-2">
+        {topExpenses?.length > 0 ? (
+          <div className="shrink-0">
+            <div className="mb-2 flex items-center gap-2">
               <Star className="h-4 w-4 text-primary" />
               <h4 className="text-sm font-semibold">{t("dashboard.topExpenses") || "Top Expenses"}</h4>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {topExpenses.slice(0, 4).map((expense, idx) => (
                 <div key={expense.id || idx} className="flex items-center gap-3 rounded-lg border border-border p-2.5">
-                  <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                     {idx + 1}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{expense.name || expense.itemName}</p>
+                    <p className="truncate text-sm font-medium">{expense.name || expense.itemName}</p>
                     <p className="text-xs text-muted-foreground">{expense.date || expense.expenseDate}</p>
                   </div>
-                  <span className="text-sm font-bold whitespace-nowrap">
+                  <span className="whitespace-nowrap text-sm font-bold">
                     {format(Number(expense.amount || 0))}
                   </span>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        ) : null}
+        <div className="min-h-0 flex-1 basis-0" aria-hidden />
       </AppCard.Content>
     </AppCard>
   );

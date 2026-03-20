@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock } from "lucide-react";
+import { Clock, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { AppButton } from "@/shared/components/form/AppButton";
@@ -17,8 +17,8 @@ export function RecentTransactions() {
   const { recentTransactions } = useDashboardData();
 
   return (
-    <AppCard className="h-full">
-      <AppCard.Header>
+    <AppCard className="flex h-full min-h-0 flex-col">
+      <AppCard.Header className="shrink-0">
         <SectionHeader icon={Clock} title={t("dashboard.recentTransactions")}>
           <AppButton
             variant="outline"
@@ -29,13 +29,19 @@ export function RecentTransactions() {
           </AppButton>
         </SectionHeader>
       </AppCard.Header>
-      <AppCard.Content>
+      <AppCard.Content className="flex min-h-0 flex-1 flex-col pt-0">
         {recentTransactions.length === 0 ? (
-          <EmptyState
-            title={t("dashboard.noExpenses")}
-          />
+          <div className="grid min-h-0 w-full flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
+            <div className="col-span-full flex min-h-[min(16rem,45vh)] w-full flex-1 items-center justify-center sm:col-span-2 sm:min-h-[17rem]">
+              <EmptyState
+                icon={Receipt}
+                title={t("dashboard.noExpenses")}
+                className="w-full max-w-none justify-center px-4 py-6 sm:py-8 md:py-10"
+              />
+            </div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2">
             {recentTransactions.map((tx) => (
               <TransactionRow
                 key={tx.id}

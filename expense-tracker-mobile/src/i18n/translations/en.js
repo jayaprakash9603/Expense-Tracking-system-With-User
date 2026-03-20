@@ -139,6 +139,11 @@ export const en = {
     tools: "Tools",
     more: "More",
   },
+  header: {
+    user: "User",
+    switchToAdminMode: "Switch to Admin Mode",
+    switchToUserMode: "Switch to User Mode",
+  },
   profile: {
     viewProfile: "View Profile",
     personalInfo: "Personal Information",
@@ -151,6 +156,10 @@ export const en = {
     dateOfBirth: "Date of Birth",
     bio: "Bio",
     updateSuccess: "Profile updated successfully",
+  },
+  modals: {
+    logoutTitle: "Logout",
+    logoutPrompt: "Are you sure you want to logout?",
   },
   sidebar: {
     collapse: "Collapse",
@@ -272,7 +281,8 @@ export const en = {
     confirmPassword: "Confirm Password",
     passwordChanged: "Password changed successfully",
     typeDeleteToConfirm: "Type DELETE to confirm",
-    deleteAccountWarning: "This action is permanent. All your data will be deleted and cannot be recovered.",
+    deleteAccountWarning:
+      "This action is permanent. All your data will be deleted and cannot be recovered.",
     accountDeleted: "Account deleted successfully",
 
     sections: {
@@ -512,10 +522,12 @@ export const en = {
     },
     categoryFlow: {
       chartTitle: "Spending by Category",
+      chartDescription: "Totals by category for the range you select",
       categories: "Categories",
     },
     paymentMethodFlow: {
       chartTitle: "Spending by Payment Method",
+      chartDescription: "Totals by payment method for the range you select",
       paymentMethods: "Payment Methods",
     },
   },

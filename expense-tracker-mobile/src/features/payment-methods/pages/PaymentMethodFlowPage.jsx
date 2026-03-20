@@ -25,8 +25,15 @@ export function PaymentMethodFlowPage() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
+      stackedMobileHeader
+      mobileChartTitle={t("flows.paymentMethodFlow.chartTitle")}
+      mobileChartDescription={t("flows.paymentMethodFlow.chartDescription")}
       chartSection={
-        <ChartCard title={t("flows.paymentMethodFlow.chartTitle")}>
+        <ChartCard
+          title={t("flows.paymentMethodFlow.chartTitle")}
+          description={t("flows.paymentMethodFlow.chartDescription")}
+          cardHeaderFrom="sm"
+        >
           <AppBarChart
             data={chartData}
             config={chartConfig}

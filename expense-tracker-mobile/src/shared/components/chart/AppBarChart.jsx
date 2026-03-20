@@ -24,7 +24,7 @@ export function AppBarChart({
   yAxisProps,
   children,
 }) {
-  if (!data?.length) return <ChartEmptyState />;
+  if (!data?.length) return <ChartEmptyState height={height} className={className} />;
 
   const layout = horizontal ? "vertical" : "horizontal";
 

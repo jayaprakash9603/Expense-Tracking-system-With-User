@@ -7,6 +7,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
 import { SpendingChartTooltip } from "./SpendingChartTooltip";
+import { DASHBOARD_AREA_CHART_HEIGHT } from "@/features/dashboard/constants/dashboardChartHeights";
 
 export function DailySpendingSection() {
   const { t } = useLanguage();
@@ -15,10 +16,12 @@ export function DailySpendingSection() {
 
   return (
     <ChartCard
+      fillHeight
+      stackActionsBelowTitleOnSmall
       title={t("dashboard.spendingTrend")}
       description={t("dashboard.dailySpendingOverTime")}
       actions={
-        <div className="flex items-center gap-2">
+        <>
           <ChartTypeToggle
             options={SPENDING_FLOW_OPTIONS}
             value={spendingType}
@@ -28,7 +31,7 @@ export function DailySpendingSection() {
             value={spendingTimeframe}
             onChange={setSpendingTimeframe}
           />
-        </div>
+        </>
       }
     >
       <AppAreaChart
@@ -37,7 +40,7 @@ export function DailySpendingSection() {
         dataKeys={["expense"]}
         xAxisKey="date"
         showLegend={false}
-        height={280}
+        height={DASHBOARD_AREA_CHART_HEIGHT}
         customTooltip={<SpendingChartTooltip selectedType={spendingType} />}
       />
     </ChartCard>

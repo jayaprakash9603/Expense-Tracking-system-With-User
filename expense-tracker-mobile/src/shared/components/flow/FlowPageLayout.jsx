@@ -1,10 +1,12 @@
 import React from "react";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ContentSection } from "@/shared/components/layout/ContentSection";
+import { AppCard } from "@/shared/components/display/AppCard";
 import { FlowRangeGranularityTabs, FlowPeriodNavigation } from "./FlowRangeNavigator";
 import { FlowToggle } from "./FlowToggle";
 import { FlowChartSkeleton } from "./skeletons";
 import { ChartEmptyState } from "@/shared/components/chart/ChartEmptyState";
+import { CHART_HEIGHTS } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function FlowPageLayout({
@@ -22,6 +24,9 @@ export function FlowPageLayout({
   cardsSection,
   headerActions,
   floatingActions,
+  stackedMobileHeader = false,
+  mobileChartTitle,
+  mobileChartDescription,
   className,
 }) {
   return (
@@ -30,7 +35,44 @@ export function FlowPageLayout({
 
       <ContentSection>
         <div className="flex w-full flex-col gap-3">
-          <div className="relative flex min-h-[44px] w-full flex-col gap-3 sm:min-h-[40px] md:block md:min-h-[44px]">
+          {stackedMobileHeader ? (
+            <div className="flex w-full flex-col gap-3 sm:hidden">
+              {(mobileChartTitle || mobileChartDescription) && (
+                <div>
+                  {mobileChartTitle ? (
+                    <AppCard.Title className="text-base">{mobileChartTitle}</AppCard.Title>
+                  ) : null}
+                  {mobileChartDescription ? (
+                    <AppCard.Description>{mobileChartDescription}</AppCard.Description>
+                  ) : null}
+                </div>
+              )}
+              <div className="flex w-full items-center justify-between gap-2">
+                <FlowToggle value={flowTab} onChange={setFlowTab} className="w-auto shrink-0" />
+                <div className="flex min-w-0 shrink justify-end">
+                  <FlowRangeGranularityTabs
+                    activeRange={activeRange}
+                    setActiveRange={setActiveRange}
+                    rangeOptions={rangeOptions}
+                  />
+                </div>
+              </div>
+              <div className="flex w-full justify-center">
+                <FlowPeriodNavigation
+                  rangeLabel={rangeLabel}
+                  onPrev={onPrev}
+                  onNext={onNext}
+                  onReset={onReset}
+                />
+              </div>
+            </div>
+          ) : null}
+          <div
+            className={cn(
+              "relative flex min-h-[44px] w-full flex-col gap-3 sm:min-h-[40px] md:block md:min-h-[44px]",
+              stackedMobileHeader && "hidden sm:block",
+            )}
+          >
             <div className="flex w-full items-center justify-between gap-2 md:pointer-events-none md:absolute md:left-0 md:right-0 md:top-1/2 md:z-[1] md:-translate-y-1/2">
               <div className="md:pointer-events-auto">
                 <FlowRangeGranularityTabs
@@ -64,7 +106,7 @@ export function FlowPageLayout({
         ) : chartSection ? (
           chartSection
         ) : (
-          <ChartEmptyState />
+          <ChartEmptyState height={CHART_HEIGHTS.default} />
         )}
       </ContentSection>
 

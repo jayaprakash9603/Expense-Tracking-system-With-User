@@ -6,6 +6,11 @@ import { SPENDING_FLOW_OPTIONS } from "@/config/chart/chartConfig";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
+import {
+  DASHBOARD_PIE_HEIGHT,
+  DASHBOARD_PIE_INNER_RADIUS,
+  DASHBOARD_PIE_OUTER_RADIUS,
+} from "@/features/dashboard/constants/dashboardChartHeights";
 
 export function CategoryBreakdownSection() {
   const { t } = useLanguage();
@@ -14,10 +19,12 @@ export function CategoryBreakdownSection() {
 
   return (
     <ChartCard
+      fillHeight
+      stackActionsBelowTitleOnSmall
       title={t("dashboard.categoryBreakdown")}
       description={t("dashboard.expensesByCategory")}
       actions={
-        <div className="flex items-center gap-2">
+        <>
           <ChartTypeToggle
             options={SPENDING_FLOW_OPTIONS}
             value={categoryFlowType}
@@ -27,16 +34,16 @@ export function CategoryBreakdownSection() {
             value={categoryTimeframe}
             onChange={setCategoryTimeframe}
           />
-        </div>
+        </>
       }
     >
       <AppPieChart
         data={categoryBreakdown.data}
         config={categoryBreakdown.config}
         donut
-        innerRadius={50}
-        outerRadius={90}
-        height={300}
+        innerRadius={DASHBOARD_PIE_INNER_RADIUS}
+        outerRadius={DASHBOARD_PIE_OUTER_RADIUS}
+        height={DASHBOARD_PIE_HEIGHT}
       />
     </ChartCard>
   );

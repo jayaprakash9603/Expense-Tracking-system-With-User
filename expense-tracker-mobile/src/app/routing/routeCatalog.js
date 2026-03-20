@@ -1400,6 +1400,16 @@ export const ROUTE_CATALOG = [
     elementMode: "redirect",
     redirectTo: "/expenses/add",
   },
+  {
+    path: "/not-found",
+    key: "not-found",
+    titleKey: "errors.notFound",
+    guard: "protected",
+    navGroup: null,
+    navIcon: null,
+    bottomNav: false,
+    elementMode: "implemented",
+  },
 ];
 
 export function getRouteByPath(pathname) {

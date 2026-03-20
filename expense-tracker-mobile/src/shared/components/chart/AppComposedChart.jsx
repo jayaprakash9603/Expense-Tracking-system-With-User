@@ -19,7 +19,7 @@ export function AppComposedChart({
   showLegend = false,
   children,
 }) {
-  if (!data?.length) return <ChartEmptyState />;
+  if (!data?.length) return <ChartEmptyState height={height} className={className} />;
 
   return (
     <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>

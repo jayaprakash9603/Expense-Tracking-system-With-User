@@ -46,6 +46,7 @@ const AdminAuditPage = lazy(() => import("@/features/system/admin/pages/AdminAud
 const AdminReportsPage = lazy(() => import("@/features/system/admin/pages/AdminReportsPage"));
 const AdminSettingsPage = lazy(() => import("@/features/system/admin/pages/AdminSettingsPage"));
 const AdminStoriesPage = lazy(() => import("@/features/system/admin/pages/AdminStoriesPage"));
+const NotFoundPage = lazy(() => import("@/features/errors/pages/NotFoundPage"));
 
 const IMPLEMENTED_PAGES = {
   dashboard: DashboardPage,
@@ -82,6 +83,7 @@ const IMPLEMENTED_PAGES = {
   "admin-reports": AdminReportsPage,
   "admin-settings": AdminSettingsPage,
   "admin-stories": AdminStoriesPage,
+  "not-found": NotFoundPage,
 };
 
 function LazyFallback() {
@@ -97,8 +99,8 @@ function LazyWrap({ Component }) {
 }
 
 function buildProtectedRoutes() {
-  return ROUTE_CATALOG.filter((r) => r.guard === "protected" || r.guard === "admin").map(
-    (route) => {
+  return ROUTE_CATALOG.filter((r) => r.guard === "protected" || r.guard === "admin")
+    .map((route) => {
       if (route.elementMode === "redirect" && route.redirectTo) {
         return (
           <Route
@@ -129,8 +131,10 @@ function buildProtectedRoutes() {
           element={<LazyWrap Component={RoutePlaceholderPage} />}
         />
       );
-    },
-  );
+    })
+    .concat([
+      <Route key="fallback-not-found" path="*" element={<Navigate to="/not-found" replace />} />,
+    ]);
 }
 
 export function AppRoutes() {
@@ -159,7 +163,7 @@ export function AppRoutes() {
       />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/not-found" replace />} />
     </Routes>
   );
 }

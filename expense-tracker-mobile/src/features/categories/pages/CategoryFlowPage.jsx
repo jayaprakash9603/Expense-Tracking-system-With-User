@@ -27,8 +27,15 @@ export function CategoryFlowPage() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
+      stackedMobileHeader
+      mobileChartTitle={t("flows.categoryFlow.chartTitle")}
+      mobileChartDescription={t("flows.categoryFlow.chartDescription")}
       chartSection={
-        <ChartCard title={t("flows.categoryFlow.chartTitle")}>
+        <ChartCard
+          title={t("flows.categoryFlow.chartTitle")}
+          description={t("flows.categoryFlow.chartDescription")}
+          cardHeaderFrom="sm"
+        >
           <AppBarChart
             data={chartData}
             config={chartConfig}
