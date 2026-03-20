@@ -387,6 +387,11 @@ export function EnhancedDataTable({
   const visibleColumns = table
     .getAllColumns()
     .filter((col) => typeof col.accessorFn !== "undefined" && col.getCanHide());
+  const selectedRowsText = selectable
+    ? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected.`
+    : "";
+  const pageSummaryText = `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`;
+  const rowsPerPageLabel = t("common.rowsPerPage") || "Rows per page";
 
   const renderHeaderCell = useCallback(
     (header) => {
@@ -566,17 +571,57 @@ export function EnhancedDataTable({
 
       {showPagination && (
         <div className="px-1">
-          <div className="flex flex-col gap-2 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-3">
-            <div className="min-h-[20px] text-xs text-muted-foreground sm:text-sm md:justify-self-start">
-              {selectable
-                ? `${table.getFilteredSelectedRowModel().rows.length} of ${table.getFilteredRowModel().rows.length} row(s) selected.`
-                : ""}
-            </div>
-
-            <div className="flex items-center justify-between gap-2 md:justify-self-center">
-              <div className="text-xs font-medium sm:text-sm">
-                Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+          <div className="flex flex-col gap-2 md:hidden">
+            {selectable ? (
+              <div className="min-h-[20px] text-center text-xs text-muted-foreground sm:text-sm">
+                {selectedRowsText}
               </div>
+            ) : null}
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="min-w-[96px] text-center text-xs font-medium sm:text-sm">
+                {pageSummaryText}
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs font-medium sm:text-sm">{rowsPerPageLabel}</span>
+              <select
+                value={pagination.pageSize}
+                onChange={(e) => table.setPageSize(Number(e.target.value))}
+                className="h-8 rounded border border-input bg-background px-2 text-xs sm:text-sm"
+              >
+                {pageSizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:items-center md:gap-3">
+            <div className="min-h-[20px] text-xs text-muted-foreground sm:text-sm md:justify-self-start">
+              {selectedRowsText}
+            </div>
+            <div className="flex items-center gap-2 md:justify-self-center">
+              <div className="text-xs font-medium sm:text-sm">{pageSummaryText}</div>
               <div className="flex items-center gap-1">
                 <Button
                   variant="outline"
@@ -616,11 +661,8 @@ export function EnhancedDataTable({
                 </Button>
               </div>
             </div>
-
             <div className="flex items-center gap-2 md:justify-self-end">
-              <span className="text-xs font-medium sm:text-sm">
-                {t("common.rowsPerPage") || "Rows per page"}
-              </span>
+              <span className="text-xs font-medium sm:text-sm">{rowsPerPageLabel}</span>
               <select
                 value={pagination.pageSize}
                 onChange={(e) => table.setPageSize(Number(e.target.value))}

@@ -22,7 +22,9 @@ const BudgetFormPage = lazy(() => import("@/features/budgets/pages/BudgetFormPag
 const CategoryFormPage = lazy(() => import("@/features/categories/pages/CategoryFormPage"));
 const BillListPage = lazy(() => import("@/features/bills/pages/BillListPage"));
 const BillFormPage = lazy(() => import("@/features/bills/pages/BillFormPage"));
-const NotificationListPage = lazy(() => import("@/features/notifications/pages/NotificationListPage"));
+const NotificationListPage = lazy(
+  () => import("@/features/notifications/pages/NotificationListPage"),
+);
 const ReportsPage = lazy(() => import("@/features/reports/pages/ReportsPage"));
 const MonthlyReportPage = lazy(() => import("@/features/reports/pages/MonthlyReportPage"));
 const CategoryReportPage = lazy(() => import("@/features/reports/pages/CategoryReportPage"));
@@ -31,37 +33,55 @@ const TrendReportPage = lazy(() => import("@/features/reports/pages/TrendReportP
 const OverviewPage = lazy(() => import("@/features/analytics/pages/OverviewPage"));
 const CashflowPage = lazy(() => import("@/features/expenses/pages/CashflowPage"));
 const CategoryFlowPage = lazy(() => import("@/features/categories/pages/CategoryFlowPage"));
-const PaymentMethodFlowPage = lazy(() => import("@/features/payment-methods/pages/PaymentMethodFlowPage"));
+const PaymentMethodFlowPage = lazy(
+  () => import("@/features/payment-methods/pages/PaymentMethodFlowPage"),
+);
 const RoutePlaceholderPage = lazy(() => import("@/features/system/pages/RoutePlaceholderPage"));
 const ProfilePage = lazy(() => import("@/features/profile/pages/ProfilePage"));
+const AdminDashboardPage = lazy(() => import("@/features/system/admin/pages/AdminDashboardPage"));
+const AdminUsersPage = lazy(() => import("@/features/system/admin/pages/AdminUsersPage"));
+const AdminRolesPage = lazy(() => import("@/features/system/admin/pages/AdminRolesPage"));
+const AdminAnalyticsPage = lazy(() => import("@/features/system/admin/pages/AdminAnalyticsPage"));
+const AdminAuditPage = lazy(() => import("@/features/system/admin/pages/AdminAuditPage"));
+const AdminReportsPage = lazy(() => import("@/features/system/admin/pages/AdminReportsPage"));
+const AdminSettingsPage = lazy(() => import("@/features/system/admin/pages/AdminSettingsPage"));
+const AdminStoriesPage = lazy(() => import("@/features/system/admin/pages/AdminStoriesPage"));
 
 const IMPLEMENTED_PAGES = {
-  "dashboard": DashboardPage,
-  "settings": SettingsPage,
-  "expenses": CashflowPage,
+  dashboard: DashboardPage,
+  settings: SettingsPage,
+  expenses: CashflowPage,
   "expenses-add": NewExpensePage,
   "expenses-edit": EditExpensePage,
   "expenses-detail": ExpenseDetailPage,
-  "budgets": BudgetListPage,
+  budgets: BudgetListPage,
   "budgets-add": BudgetFormPage,
   "budgets-edit": BudgetFormPage,
-  "categories": CategoryFlowPage,
+  categories: CategoryFlowPage,
   "categories-add": CategoryFormPage,
   "categories-edit": CategoryFormPage,
-  "bills": BillListPage,
+  bills: BillListPage,
   "bills-add": BillFormPage,
   "bills-edit": BillFormPage,
-  "notifications": NotificationListPage,
-  "reports": ReportsPage,
+  notifications: NotificationListPage,
+  reports: ReportsPage,
   "reports-monthly": MonthlyReportPage,
   "reports-category": CategoryReportPage,
   "reports-payment": PaymentReportPage,
   "reports-trend": TrendReportPage,
-  "profile": ProfilePage,
-  "analytics": OverviewPage,
-  "cashflow": CashflowPage,
+  profile: ProfilePage,
+  analytics: OverviewPage,
+  cashflow: CashflowPage,
   "category-flow": CategoryFlowPage,
-  "payments": PaymentMethodFlowPage,
+  payments: PaymentMethodFlowPage,
+  "admin-dashboard": AdminDashboardPage,
+  "admin-users": AdminUsersPage,
+  "admin-roles": AdminRolesPage,
+  "admin-analytics": AdminAnalyticsPage,
+  "admin-audit": AdminAuditPage,
+  "admin-reports": AdminReportsPage,
+  "admin-settings": AdminSettingsPage,
+  "admin-stories": AdminStoriesPage,
 };
 
 function LazyFallback() {
@@ -77,9 +97,8 @@ function LazyWrap({ Component }) {
 }
 
 function buildProtectedRoutes() {
-  return ROUTE_CATALOG
-    .filter((r) => r.guard === "protected" || r.guard === "admin")
-    .map((route) => {
+  return ROUTE_CATALOG.filter((r) => r.guard === "protected" || r.guard === "admin").map(
+    (route) => {
       if (route.elementMode === "redirect" && route.redirectTo) {
         return (
           <Route
@@ -110,7 +129,8 @@ function buildProtectedRoutes() {
           element={<LazyWrap Component={RoutePlaceholderPage} />}
         />
       );
-    });
+    },
+  );
 }
 
 export function AppRoutes() {
@@ -126,14 +146,16 @@ export function AppRoutes() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-        <Route element={<AppShell />}>
-          {buildProtectedRoutes()}
-        </Route>
+        <Route element={<AppShell />}>{buildProtectedRoutes()}</Route>
       </Route>
 
       <Route
         path="/share/:token"
-        element={<Suspense fallback={<LazyFallback />}><RoutePlaceholderPage /></Suspense>}
+        element={
+          <Suspense fallback={<LazyFallback />}>
+            <RoutePlaceholderPage />
+          </Suspense>
+        }
       />
 
       <Route path="/" element={<Navigate to="/login" replace />} />

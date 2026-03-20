@@ -1,5 +1,4 @@
-import { legacy_createStore, applyMiddleware, combineReducers, compose } from "redux";
-import { thunk } from "redux-thunk";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { authReducer } from "./auth/auth.reducer";
 import { themeReducer } from "./theme/theme.reducer";
 import { userSettingsReducer } from "./userSettings/userSettings.reducer";
@@ -33,16 +32,13 @@ const appReducer = combineReducers({
 
 const rootReducer = (state, action) => {
   if (action.type === LOGOUT) {
-    const { theme } = state;
+    const { theme } = state || {};
     state = { theme };
   }
   return appReducer(state, action);
 };
 
-const composeEnhancers =
-  (typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose;
-
-export const store = legacy_createStore(
-  rootReducer,
-  composeEnhancers(applyMiddleware(thunk))
-);
+export const store = configureStore({
+  reducer: rootReducer,
+  devTools: process.env.NODE_ENV !== "production",
+});

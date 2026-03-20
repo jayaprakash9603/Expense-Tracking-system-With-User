@@ -7,11 +7,12 @@ import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { getRouteByPath } from "@/app/routing/routeCatalog";
 
-export function RoutePlaceholderPage() {
+export function RoutePlaceholderPage({ title: overrideTitle, description: overrideDescription }) {
   const { t } = useLanguage();
   const location = useLocation();
   const route = getRouteByPath(location.pathname);
-  const title = route ? t(route.titleKey) : location.pathname;
+  const title = overrideTitle || (route ? t(route.titleKey) : location.pathname);
+  const description = overrideDescription || t("system.comingSoon");
 
   return (
     <PageContainer>
@@ -20,7 +21,7 @@ export function RoutePlaceholderPage() {
           <AppCard.Content className="py-12 flex flex-col items-center gap-4">
             <AppIcon icon={Construction} color="primary" size="xl" />
             <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="text-sm text-muted-foreground">{t("system.comingSoon")}</p>
+            <p className="text-sm text-muted-foreground">{description}</p>
             <p className="text-xs text-muted-foreground/60">{location.pathname}</p>
           </AppCard.Content>
         </AppCard>

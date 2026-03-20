@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { ListScreen } from "@/shared/components/templates/ListScreen";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { AppIcon } from "@/shared/components/display/AppIcon";
@@ -15,10 +15,23 @@ export function ReportsPage() {
   const navigate = useNavigate();
 
   return (
-    <PageContainer>
-      <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md">
+    <ListScreen
+      title={t("navigation.reports")}
+      description={t("reports.generateReports") || "Generate and view report modules."}
+      status="success"
+      hasData={REPORT_TYPES.length > 0}
+      emptyProps={{
+        title: t("common.noData") || "No reports found",
+        description: t("reports.noData") || "No report modules are currently configured.",
+      }}
+    >
+      <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md" preset="">
         {REPORT_TYPES.map((report) => (
-          <AppCard key={report.id} className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate(report.path)}>
+          <AppCard
+            key={report.id}
+            className="cursor-pointer hover:border-primary transition-colors"
+            onClick={() => navigate(report.path)}
+          >
             <AppCard.Content className="flex flex-col items-center py-6 gap-3">
               <AppIcon icon={ICONS[report.id]} color="primary" size="xl" />
               <p className="text-sm font-medium">{t(report.labelKey)}</p>
@@ -26,7 +39,7 @@ export function ReportsPage() {
           </AppCard>
         ))}
       </ResponsiveGrid>
-    </PageContainer>
+    </ListScreen>
   );
 }
 

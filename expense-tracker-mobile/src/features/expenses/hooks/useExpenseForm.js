@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { budgetApi, expenseApi } from "@/infrastructure/api";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 import { usePreviousExpense } from "./usePreviousExpense";
@@ -128,6 +128,11 @@ export function useExpenseForm({
   const [budgets, setBudgets] = useState([]);
   const [budgetError, setBudgetError] = useState(null);
   const [selectedBudgetIds, setSelectedBudgetIds] = useState([]);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onErrorRef.current = onError;
+  }, [onError]);
 
   const { previousExpense, loadingPreviousExpense } = usePreviousExpense(
     isCreateMode ? formData.expenseName : null,
@@ -232,7 +237,7 @@ export function useExpenseForm({
       if (!active) return;
       if (error) {
         setIsLoading(false);
-        onError?.(error);
+        onErrorRef.current?.(error);
         return;
       }
       const parsed = toFormData(data, today);
@@ -246,7 +251,7 @@ export function useExpenseForm({
     return () => {
       active = false;
     };
-  }, [isEditMode, entityId, friendId, today, fetchBudgetsByExpenseId, onError]);
+  }, [isEditMode, entityId, friendId, today, fetchBudgetsByExpenseId]);
 
   const handleDateChange = useCallback(
     async (formattedDate) => {

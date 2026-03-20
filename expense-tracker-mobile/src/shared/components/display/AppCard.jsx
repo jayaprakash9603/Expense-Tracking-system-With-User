@@ -1,16 +1,46 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { cva } from "class-variance-authority";
 
-export function AppCard({ className, children, padding = "default", ...props }) {
-  const paddingMap = {
-    compact: "[&>div]:p-3 md:[&>div]:p-4",
-    default: "",
-    spacious: "[&>div]:p-5 md:[&>div]:p-6 lg:[&>div]:p-8",
-  };
+const appCardVariants = cva("border-border", {
+  variants: {
+    density: {
+      compact: "[&>div]:p-3 md:[&>div]:p-4",
+      default: "",
+      spacious: "[&>div]:p-5 md:[&>div]:p-6 lg:[&>div]:p-8",
+    },
+    intent: {
+      default: "",
+      neutral: "bg-card",
+      accent: "border-primary/20 bg-primary/5",
+      danger: "border-destructive/40 bg-destructive/5",
+    },
+  },
+  defaultVariants: {
+    density: "default",
+    intent: "default",
+  },
+});
+
+export function AppCard({
+  className,
+  children,
+  padding = "default",
+  intent = "default",
+  ...props
+}) {
+  const density = padding;
 
   return (
-    <Card className={cn("border-border", paddingMap[padding], className)} {...props}>
+    <Card className={cn(appCardVariants({ density, intent }), className)} {...props}>
       {children}
     </Card>
   );

@@ -53,15 +53,16 @@ export function ExpenseFormPage({
     mode === "create"
       ? new URLSearchParams(location.search).get("date") || ""
       : "";
+  const handleFormError = useCallback(() => {
+    toast.error(t("common.error"));
+  }, [t]);
 
   const formHook = useExpenseForm({
     mode,
     entityId: id,
     friendId: friendId || "",
     dateFromQuery,
-    onError: () => {
-      toast.error(t("common.error"));
-    },
+    onError: handleFormError,
   });
 
   const {

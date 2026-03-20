@@ -6,12 +6,15 @@ import {
   MARK_ALL_NOTIFICATIONS_READ_SUCCESS,
   DELETE_NOTIFICATION_SUCCESS,
   FETCH_UNREAD_COUNT_SUCCESS,
+  ADD_REALTIME_NOTIFICATION,
+  DISMISS_FLOATING_NOTIFICATION,
   CLEAR_NOTIFICATION_ERROR,
   RESET_NOTIFICATION_STATE,
 } from "./notifications.actionTypes";
 
 const initialState = {
   list: [],
+  floatingQueue: [],
   unreadCount: 0,
   loading: false,
   error: null,
@@ -33,9 +36,7 @@ export const notificationsReducer = (state = initialState, action) => {
     case MARK_NOTIFICATION_READ_SUCCESS:
       return {
         ...state,
-        list: state.list.map((n) =>
-          n.id === action.payload ? { ...n, read: true } : n
-        ),
+        list: state.list.map((n) => (n.id === action.payload ? { ...n, read: true } : n)),
         unreadCount: Math.max(state.unreadCount - 1, 0),
       };
     case MARK_ALL_NOTIFICATIONS_READ_SUCCESS:
@@ -51,9 +52,7 @@ export const notificationsReducer = (state = initialState, action) => {
         ...state,
         list: state.list.filter((n) => n.id !== action.payload),
         unreadCount:
-          removed && !removed.read
-            ? Math.max(state.unreadCount - 1, 0)
-            : state.unreadCount,
+          removed && !removed.read ? Math.max(state.unreadCount - 1, 0) : state.unreadCount,
       };
     }
 
@@ -61,6 +60,36 @@ export const notificationsReducer = (state = initialState, action) => {
       return {
         ...state,
         unreadCount: Number(action.payload?.count ?? action.payload ?? 0),
+      };
+
+    case ADD_REALTIME_NOTIFICATION: {
+      const incoming = action.payload;
+      if (!incoming?.id) return state;
+
+      const alreadyExists = state.list.some((n) => n.id === incoming.id);
+      const nextList = alreadyExists
+        ? state.list.map((n) => (n.id === incoming.id ? { ...n, ...incoming } : n))
+        : [incoming, ...state.list];
+
+      const existsInQueue = state.floatingQueue.some((n) => n.id === incoming.id);
+      const nextQueue = existsInQueue
+        ? state.floatingQueue
+        : [incoming, ...state.floatingQueue].slice(0, 5);
+
+      return {
+        ...state,
+        list: nextList,
+        floatingQueue: nextQueue,
+        unreadCount: incoming.read
+          ? state.unreadCount
+          : state.unreadCount + (alreadyExists ? 0 : 1),
+      };
+    }
+
+    case DISMISS_FLOATING_NOTIFICATION:
+      return {
+        ...state,
+        floatingQueue: state.floatingQueue.filter((n) => n.id !== action.payload),
       };
 
     case CLEAR_NOTIFICATION_ERROR:
