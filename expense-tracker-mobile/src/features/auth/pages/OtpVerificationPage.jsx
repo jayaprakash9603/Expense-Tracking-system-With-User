@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Formik, Form } from "formik";
@@ -6,19 +6,24 @@ import * as Yup from "yup";
 import { verifyTwoFactorOtpAction } from "@/redux/auth/auth.actions";
 import { FormField } from "@/shared/components/FormField";
 import { AppButton } from "@/shared/components/AppButton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-
-const schema = Yup.object({
-  otp: Yup.string().required("OTP is required").min(4, "Enter a valid OTP"),
-});
 
 export function OtpVerificationPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
+  const schema = useMemo(
+    () =>
+      Yup.object({
+        otp: Yup.string()
+          .required(t("auth.validation.otpRequired"))
+          .min(4, t("auth.validation.otpMinLength")),
+      }),
+    [t],
+  );
   const [serverError, setServerError] = useState("");
   const email = searchParams.get("email") || "";
 
@@ -31,7 +36,10 @@ export function OtpVerificationPage() {
     if (result.success) {
       navigate("/dashboard");
     } else {
-      setServerError(result.message);
+      const err = result.error;
+      setServerError(
+        typeof err === "string" && err.startsWith("auth.errors.") ? t(err) : err,
+      );
     }
     setSubmitting(false);
   };

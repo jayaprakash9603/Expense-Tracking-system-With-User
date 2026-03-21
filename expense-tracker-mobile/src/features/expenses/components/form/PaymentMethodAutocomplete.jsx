@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
 import { useExpensePaymentMethods } from "../../hooks/useExpensePaymentMethods";
@@ -32,10 +33,13 @@ export function PaymentMethodAutocomplete({
   friendId = "",
   transactionType = "loss",
   autofetch = true,
-  placeholder = "Select payment method",
-  noDataText = "No payment methods found",
+  placeholder,
+  noDataText,
   error = false,
 }) {
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t("expenseForm.placeholders.paymentMethod");
+  const resolvedNoDataText = noDataText ?? t("expenseForm.actions.noPaymentMethods");
   const hasExternalOptions = Array.isArray(options);
   const {
     processedPaymentMethods,
@@ -82,10 +86,10 @@ export function PaymentMethodAutocomplete({
   );
 
   const noOptionsText = loading
-    ? "Loading payment methods..."
+    ? t("expenseForm.actions.loadingPaymentMethods")
     : paymentMethodsError
-      ? "Error loading payment methods"
-      : noDataText;
+      ? t("expenseForm.actions.paymentMethodsLoadError")
+      : resolvedNoDataText;
 
   return (
     <ExpenseThemedAutocomplete
@@ -96,8 +100,8 @@ export function PaymentMethodAutocomplete({
       getOptionLabel={getPaymentMethodDisplayLabel}
       isOptionEqualToValue={arePaymentMethodsEqual}
       filterOptions={filterOptions}
-      placeholder={placeholder}
-      noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
+      placeholder={resolvedPlaceholder}
+      noOptionsText={hasExternalOptions ? resolvedNoDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
       maxWidth="100%"

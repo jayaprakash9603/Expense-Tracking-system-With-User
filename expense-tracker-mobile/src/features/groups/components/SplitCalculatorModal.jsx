@@ -3,6 +3,7 @@ import { AppDialog } from "@/shared/components/overlay/AppDialog";
 import { AppInput } from "@/shared/components/form/AppInput";
 import { AppButton } from "@/shared/components/form/AppButton";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 
 function toNumber(value) {
   const parsed = Number(value);
@@ -14,6 +15,7 @@ function toNumber(value) {
  */
 export function SplitCalculatorModal({ open, onOpenChange, members = [], amount = 0, onApply }) {
   const { t } = useLanguage();
+  const { format } = useMoneyFormatter();
   const [mode, setMode] = useState("equal");
   const [customValues, setCustomValues] = useState({});
 
@@ -75,7 +77,7 @@ export function SplitCalculatorModal({ open, onOpenChange, members = [], amount 
           <div key={member.id} className="grid grid-cols-2 items-center gap-2">
             <p className="text-sm font-medium">{member.name}</p>
             {mode === "equal" ? (
-              <p className="text-sm text-right">{equalAmount.toFixed(2)}</p>
+              <p className="text-sm text-right">{format(equalAmount)}</p>
             ) : (
               <AppInput
                 type="number"

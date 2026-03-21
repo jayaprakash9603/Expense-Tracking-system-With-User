@@ -1,7 +1,7 @@
 import {
   notificationService,
   normalizeNotification,
-} from "@/domain/notifications/notificationService";
+} from "@/domain/notifications/notification.service";
 import {
   FETCH_NOTIFICATIONS_REQUEST,
   FETCH_NOTIFICATIONS_SUCCESS,

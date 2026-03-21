@@ -3,9 +3,9 @@ import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
-import { Progress } from "@/components/ui/progress";
+import { Progress } from "@/shared/components/app-shadcn";
 
-export function BudgetCard({ budget, onEdit, onDelete }) {
+export function BudgetCard({ budget, onEdit, onDelete, className }) {
   const { t } = useLanguage();
   const { format } = useMoneyFormatter();
   const statusColor = budget.isOverBudget
@@ -15,7 +15,7 @@ export function BudgetCard({ budget, onEdit, onDelete }) {
       : "text-green-500";
 
   return (
-    <AppCard className="p-3 md:p-4">
+    <AppCard className={cn("p-3 md:p-4", className)}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-sm md:text-base truncate">{budget.title}</h3>

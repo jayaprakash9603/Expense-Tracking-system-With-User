@@ -28,7 +28,7 @@ function resolveChartLabel(translate, kind) {
   return CHART_LABEL_FALLBACK[kind];
 }
 
-export function rawCashflowBuckets(apiData) {
+export function extractCashflowBucketsFromApi(apiData) {
   if (!apiData) return [];
   if (Array.isArray(apiData)) return apiData;
   for (const key of ["chartData", "data", "buckets", "items"]) {
@@ -91,8 +91,8 @@ function countMatchingExpenses(bucket, flowType) {
   return n;
 }
 
-export function cashflowApiToAreaChartModel(apiData, flowType, translate) {
-  const rawBuckets = rawCashflowBuckets(apiData);
+export function buildAreaChartModelFromCashflowApi(apiData, flowType, translate) {
+  const rawBuckets = extractCashflowBucketsFromApi(apiData);
   if (!rawBuckets.length) {
     return {
       data: [],
@@ -143,7 +143,7 @@ export function cashflowApiToAreaChartModel(apiData, flowType, translate) {
 }
 
 export function cashflowApiToCountChartModel(apiData, flowType, translate) {
-  const rawBuckets = rawCashflowBuckets(apiData);
+  const rawBuckets = extractCashflowBucketsFromApi(apiData);
   if (!rawBuckets.length) {
     return {
       data: [],

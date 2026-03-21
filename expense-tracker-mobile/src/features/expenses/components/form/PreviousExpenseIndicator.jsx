@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";

@@ -4,12 +4,19 @@ import { useCommandPalette } from "../hooks/useCommandPalette";
 import { SearchInput } from "./SearchInput";
 import { ResultList } from "./ResultList";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { cn } from "@/lib/utils";
 
 function getPreviewIcon(icon) {
   return typeof icon === "string" && icon.trim() ? icon : "➡️";
 }
 
-export function CommandPalette({ currentRoute, onNavigate, baseActions = [], searchRemote }) {
+export function CommandPalette({
+  currentRoute,
+  onNavigate,
+  baseActions = [],
+  searchRemote,
+  className,
+}) {
   const { t } = useLanguage();
   const {
     isOpen,
@@ -33,7 +40,10 @@ export function CommandPalette({ currentRoute, onNavigate, baseActions = [], sea
 
   return (
     <div
-      className="fixed inset-0 z-[140] flex items-start justify-center bg-background/40 px-3 pt-[8vh] backdrop-blur-sm"
+      className={cn(
+        "fixed inset-0 z-[140] flex items-start justify-center bg-background/40 px-3 pt-[8vh] backdrop-blur-sm",
+        className,
+      )}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closePalette();
       }}

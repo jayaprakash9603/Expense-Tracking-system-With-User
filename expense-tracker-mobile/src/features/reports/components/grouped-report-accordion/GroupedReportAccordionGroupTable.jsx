@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { EnhancedDataTable } from "@/shared/components/data/EnhancedDataTable";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { useGroupedExpenseTableColumns } from "./useGroupedExpenseTableColumns";
+import { useGroupedExpenseTableColumns } from "@/features/reports/hooks/useGroupedExpenseTableColumns";
 import { getGroupExpenseRows, buildTableRowSelectionMap, mergeTableRowSelection } from "./groupedReportAccordionSelection";
 import { GROUPED_REPORT_CHECKBOX_CLASS } from "./groupedReportCheckboxStyles";
 

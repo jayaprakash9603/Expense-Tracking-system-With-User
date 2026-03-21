@@ -7,9 +7,9 @@ import {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-} from "@/components/ui/chart";
-import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/shared/components/app-shadcn";
+import { Card, CardContent, CardDescription, CardTitle } from "@/shared/components/app-shadcn";
+import { Button } from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
 const MONTH_LABELS = [

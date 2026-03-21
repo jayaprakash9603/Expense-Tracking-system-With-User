@@ -2,8 +2,6 @@ import React, { useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { HighlightedText } from "@/shared/components/display/HighlightedText";
-import { cn } from "@/lib/utils";
 import { createFuzzyFilterOptions } from "../utils/expenseFuzzyUtils";
 import {
   EXPENSE_FORM_LABELS,
@@ -12,23 +10,11 @@ import {
   EXPENSE_TYPE_OPTIONS,
 } from "../config/expenseConfig";
 import { useExpenseForm } from "../hooks/useExpenseForm";
-import { BudgetSelectionTable } from "../components/budget/BudgetSelectionTable";
-import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
-import {
-  ExpenseFormShell,
-  ExpenseFormRow,
-  ExpenseFieldLayout,
-  ExpenseSubmitArea,
-  ExpenseThemedAmountField,
-  ExpenseThemedDatePicker,
-  ExpenseThemedCommentField,
-  ExpenseThemedAutocomplete,
-  ExpenseNameAutocomplete,
-  CategoryAutocomplete,
-  PaymentMethodAutocomplete,
-  AutoFillBadge,
-  PreviousExpenseIndicator,
-} from "../components/form";
+import { ExpenseFormShell } from "../components/form/ExpenseFormShell";
+import { ExpenseSubmitArea } from "../components/form/ExpenseSubmitArea";
+import { PreviousExpenseIndicator } from "../components/form/PreviousExpenseIndicator";
+import { ExpenseFormFields } from "../components/form/ExpenseFormFields";
+import { ExpenseFormLoadingState } from "../components/form/ExpenseFormLoadingState";
 
 function formatTransactionTypeLabel(value) {
   const normalized = String(value || "").toLowerCase();
@@ -134,11 +120,7 @@ export function ExpenseFormPage({
 
   if (isLoading) {
     return (
-      <ExpenseFormShell title={pageTitle} onClose={handleClose}>
-        <div className="py-10 text-center text-sm text-muted-foreground">
-          {t("common.loading")}
-        </div>
-      </ExpenseFormShell>
+      <ExpenseFormLoadingState title={pageTitle} loadingLabel={t("common.loading")} onClose={handleClose} />
     );
   }
 
@@ -163,203 +145,33 @@ export function ExpenseFormPage({
       }
       className="new-expense-container"
     >
-      <div className={cn("mt-2 flex flex-col gap-3 lg:gap-4", showTable && "pb-2")}>
-        <ExpenseFormRow first className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.expenseName)}
-            htmlFor="expenseName"
-            required
-            error={errors.expenseName}
-          >
-            <ExpenseNameAutocomplete
-              value={formData.expenseName}
-              onChange={(value) => {
-                setFieldValue("expenseName", value);
-                clearFieldError("expenseName");
-              }}
-              friendId={friendId}
-              placeholder={t(EXPENSE_FORM_PLACEHOLDERS.expenseName)}
-              error={Boolean(errors.expenseName)}
-              maxSuggestions={500}
-              noDataText={noExpenseNamesLabel}
-            />
-          </ExpenseFieldLayout>
-
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.amount)}
-            htmlFor="amount"
-            required
-            error={errors.amount}
-          >
-            <ExpenseThemedAmountField
-              id="amount"
-              name="amount"
-              value={formData.amount}
-              onChange={(event) => {
-                setFieldValue("amount", event.target.value);
-                clearFieldError("amount");
-              }}
-              placeholder={t(EXPENSE_FORM_PLACEHOLDERS.amount)}
-              error={Boolean(errors.amount)}
-              height={48}
-              maxWidth="100%"
-            />
-          </ExpenseFieldLayout>
-
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.date)}
-            htmlFor="date"
-            required
-            error={errors.date}
-          >
-            <ExpenseThemedDatePicker
-              value={formData.date}
-              onChange={(nextDate) => {
-                handleDateChange(nextDate);
-              }}
-              dateFormat="DD/MM/YYYY"
-              error={Boolean(errors.date)}
-              disableFuture
-              placeholder={t(EXPENSE_FORM_PLACEHOLDERS.date)}
-              height={48}
-              width="100%"
-            />
-          </ExpenseFieldLayout>
-        </ExpenseFormRow>
-
-        <ExpenseFormRow className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.transactionType)}
-            htmlFor="transactionType"
-            required
-            error={errors.transactionType}
-          >
-            <div className="relative">
-              <ExpenseThemedAutocomplete
-                options={EXPENSE_TYPE_OPTIONS}
-                value={formData.transactionType}
-                onChange={(_, value) => {
-                  const nextValue = String(value || "").toLowerCase();
-                  setFieldValue("transactionType", nextValue);
-                  clearFieldError("transactionType");
-                  markUserModified("transactionType");
-                }}
-                onInputChange={(_, nextValue, reason) => {
-                  if (reason === "clear") {
-                    setFieldValue("transactionType", "");
-                    clearFieldError("transactionType");
-                  }
-                }}
-                getOptionLabel={formatTransactionTypeLabel}
-                isOptionEqualToValue={(option, value) =>
-                  String(option || "").toLowerCase() ===
-                  String(value || "").toLowerCase()
-                }
-                filterOptions={transactionTypeFilterOptions}
-                placeholder={t(EXPENSE_FORM_PLACEHOLDERS.transactionType)}
-                noOptionsText={noOptionsLabel}
-                error={Boolean(errors.transactionType)}
-                renderOption={(option, state) => (
-                  <HighlightedText
-                    text={formatTransactionTypeLabel(option)}
-                    query={state.inputValue}
-                    title={formatTransactionTypeLabel(option)}
-                  />
-                )}
-              />
-              <AutoFillBadge
-                visible={isCreateMode && autoFilledFields.transactionType}
-              />
-            </div>
-          </ExpenseFieldLayout>
-
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.category)}
-            htmlFor="category"
-            error={errors.category}
-          >
-            <div className="relative">
-              <CategoryAutocomplete
-                value={formData.category}
-                onChange={(categoryId) => {
-                  setFieldValue("category", categoryId);
-                  markUserModified("category");
-                }}
-                friendId={friendId}
-                placeholder={t(EXPENSE_FORM_PLACEHOLDERS.category)}
-                error={Boolean(errors.category)}
-              />
-              <AutoFillBadge
-                visible={isCreateMode && autoFilledFields.category}
-              />
-            </div>
-          </ExpenseFieldLayout>
-
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.paymentMethod)}
-            htmlFor="paymentMethod"
-          >
-            <div className="relative">
-              <PaymentMethodAutocomplete
-                value={formData.paymentMethod}
-                onChange={(value) => {
-                  setFieldValue("paymentMethod", value);
-                  markUserModified("paymentMethod");
-                }}
-                transactionType={formData.transactionType}
-                friendId={friendId}
-                placeholder={t(EXPENSE_FORM_PLACEHOLDERS.paymentMethod)}
-              />
-              <AutoFillBadge
-                visible={isCreateMode && autoFilledFields.paymentMethod}
-              />
-            </div>
-          </ExpenseFieldLayout>
-        </ExpenseFormRow>
-
-        <ExpenseFormRow>
-          <ExpenseFieldLayout
-            label={t(EXPENSE_FORM_LABELS.comments)}
-            htmlFor="comments"
-            layout="horizontal"
-            contentClassName="w-full max-w-full lg:max-w-[760px]"
-          >
-            <div className="relative">
-              <AutoFillBadge
-                visible={isCreateMode && autoFilledFields.comments}
-                className="top-[-20px] right-0 translate-x-0 lg:right-auto lg:left-[300px]"
-              />
-              <ExpenseThemedCommentField
-                id="comments"
-                name="comments"
-                value={formData.comments}
-                onChange={(event) => {
-                  setFieldValue("comments", event.target.value);
-                  markUserModified("comments");
-                }}
-                placeholder={t(EXPENSE_FORM_PLACEHOLDERS.comments)}
-                maxWidth="760px"
-                minRows={2}
-                maxRows={3}
-              />
-            </div>
-          </ExpenseFieldLayout>
-        </ExpenseFormRow>
-      <LinkedEntityTablePanel
-        linkLabel={linkBudgetsLabel}
-        open={showTable}
-        onOpenChange={setShowTable}
-        error={budgetError}
-        closeAriaLabel={t("common.close")}
-      >
-        <BudgetSelectionTable
-          budgets={budgets}
-          selectedBudgetIds={selectedBudgetIds}
-          onSelectionChange={setSelectedBudgetIds}
-          loading={budgetsLoading}
-        />
-      </LinkedEntityTablePanel>
-      </div>
+      <ExpenseFormFields
+        t={t}
+        formData={formData}
+        errors={errors}
+        setFieldValue={setFieldValue}
+        clearFieldError={clearFieldError}
+        friendId={friendId}
+        showTable={showTable}
+        setShowTable={setShowTable}
+        budgets={budgets}
+        budgetsLoading={budgetsLoading}
+        budgetError={budgetError}
+        selectedBudgetIds={selectedBudgetIds}
+        setSelectedBudgetIds={setSelectedBudgetIds}
+        isCreateMode={isCreateMode}
+        autoFilledFields={autoFilledFields}
+        markUserModified={markUserModified}
+        handleDateChange={handleDateChange}
+        labels={EXPENSE_FORM_LABELS}
+        placeholders={EXPENSE_FORM_PLACEHOLDERS}
+        expenseTypeOptions={EXPENSE_TYPE_OPTIONS}
+        transactionTypeFilterOptions={transactionTypeFilterOptions}
+        formatTransactionTypeLabel={formatTransactionTypeLabel}
+        noExpenseNamesLabel={noExpenseNamesLabel}
+        noOptionsLabel={noOptionsLabel}
+        linkBudgetsLabel={linkBudgetsLabel}
+      />
 
       <ExpenseSubmitArea
         isSubmitting={isSubmitting}

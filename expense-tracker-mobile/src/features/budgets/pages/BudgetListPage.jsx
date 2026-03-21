@@ -12,7 +12,7 @@ import { BudgetProgressChart } from "../components/BudgetProgressChart";
 import { BudgetDistributionChart } from "../components/BudgetDistributionChart";
 import { LossGainChart } from "../components/LossGainChart";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
 import { AppIcon } from "@/shared/components/AppIcon";
 

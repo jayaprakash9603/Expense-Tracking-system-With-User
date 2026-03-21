@@ -13,6 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "validate:architecture": "node scripts/validate-architecture.js",
+    "validate:rules": "node scripts/validate-rules.js",
+    "validate:rules:json": "node scripts/validate-rules.js --json",
     "extract:postman": "node scripts/extractPostmanRoutes.mjs",
     "demo:seed:from-xlsx": "node scripts/excelToDemoSeed.mjs",
     "demo:seed:write-xlsx": "node scripts/excelToDemoSeed.mjs --write-xlsx",

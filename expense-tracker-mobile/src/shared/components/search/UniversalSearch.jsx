@@ -15,6 +15,7 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useLayout } from "@/shared/hooks/useLayout";
+import { cn } from "@/lib/utils";
 
 export function UniversalSearch({
   open,
@@ -27,6 +28,7 @@ export function UniversalSearch({
   quickActions = [],
   placeholder,
   errorMessage,
+  className,
 }) {
   const { t } = useLanguage();
   const { isMobile } = useLayout();
@@ -109,7 +111,7 @@ export function UniversalSearch({
 
   if (isMobile) {
     return (
-      <AppSheet open={open} onOpenChange={onOpenChange} side="bottom" className="max-h-[92vh]">
+      <AppSheet open={open} onOpenChange={onOpenChange} side="bottom" className={cn("max-h-[92vh]", className)}>
         <Command className="max-h-[78vh] overflow-hidden rounded-md border border-border/60">
           {renderCommandContent()}
         </Command>
@@ -118,7 +120,7 @@ export function UniversalSearch({
   }
 
   return (
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
+    <CommandDialog open={open} onOpenChange={onOpenChange} className={className}>
       {renderCommandContent()}
     </CommandDialog>
   );

@@ -1,12 +1,12 @@
 import React from "react";
 import { Download, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/components/app-shadcn";
 
 export function ExpenseReportExportMenu({ onExport, exportLabel, moreLabel }) {
   if (typeof onExport !== "function") return null;

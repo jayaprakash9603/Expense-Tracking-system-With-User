@@ -4,10 +4,10 @@ import { FormField } from "@/shared/components/FormField";
 import { AppButton } from "@/shared/components/AppButton";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
+import { Label } from "@/shared/components/app-shadcn";
+import { RadioGroup, RadioGroupItem } from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
 import { resolveRegisterBannerError } from "../utils/registerBannerError";
 

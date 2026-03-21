@@ -1,13 +1,13 @@
 import React from "react";
 import { MoreVertical, RefreshCw, Download, Filter, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { cn } from "@/lib/utils";

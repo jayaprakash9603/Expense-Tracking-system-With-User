@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 import { getCategoryIcon } from "@/config/navigation/iconMapping";
 import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
@@ -36,10 +37,13 @@ export function CategoryAutocomplete({
   options,
   friendId = "",
   autofetch = true,
-  placeholder = "Select category",
-  noDataText = "No categories found",
+  placeholder,
+  noDataText,
   error = false,
 }) {
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t("expenseForm.placeholders.category");
+  const resolvedNoDataText = noDataText ?? t("expenseForm.actions.noCategories");
   const hasExternalOptions = Array.isArray(options);
   const {
     uniqueCategories,
@@ -79,10 +83,10 @@ export function CategoryAutocomplete({
   );
 
   const noOptionsText = loading
-    ? "Loading categories..."
+    ? t("expenseForm.actions.loadingCategories")
     : categoriesError
-      ? "Error loading categories"
-      : noDataText;
+      ? t("expenseForm.actions.categoriesLoadError")
+      : resolvedNoDataText;
 
   return (
     <ExpenseThemedAutocomplete
@@ -93,8 +97,8 @@ export function CategoryAutocomplete({
       getOptionLabel={getCategoryDisplayName}
       isOptionEqualToValue={areCategoriesEqual}
       filterOptions={fuzzyFilter}
-      placeholder={placeholder}
-      noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
+      placeholder={resolvedPlaceholder}
+      noOptionsText={hasExternalOptions ? resolvedNoDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
       maxWidth="100%"

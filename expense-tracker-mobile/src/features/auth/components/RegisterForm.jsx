@@ -41,7 +41,7 @@ export function RegisterForm() {
       );
       navigate("/login");
     } else {
-      setServerError(result.message);
+      setServerError(result.error);
     }
     setSubmitting(false);
   };

@@ -8,8 +8,8 @@ import { FormField } from "@/shared/components/FormField";
 import { AppButton } from "@/shared/components/AppButton";
 import { resolveGoogleSignInClientId } from "@/config/auth/googleOAuth";
 import { GoogleLoginButton } from "./GoogleLoginButton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 
@@ -25,30 +25,36 @@ export function LoginForm() {
     const result = await dispatch(loginUserAction({ data: values }));
 
     if (!result.success) {
-      if (result.mfaRequired) {
-        navigate("/mfa", { state: { mfaToken: result.mfaToken, email: result.email || values.email } });
+      const flow = result.data || {};
+      if (flow.mfaRequired) {
+        navigate("/mfa", {
+          state: { mfaToken: flow.mfaToken, email: flow.email || values.email },
+        });
         setSubmitting(false);
         return;
       }
 
-      if (result.twoFactorRequired) {
-        navigate(`/otp-verification?mode=login&email=${encodeURIComponent(result.email || values.email)}`);
+      if (flow.twoFactorRequired) {
+        navigate(
+          `/otp-verification?mode=login&email=${encodeURIComponent(flow.email || values.email)}`,
+        );
         setSubmitting(false);
         return;
       }
 
-      if (result.message === "OAUTH_NO_PASSWORD") {
+      if (result.error === "OAUTH_NO_PASSWORD") {
         navigate(`/create-password?email=${encodeURIComponent(values.email)}`);
         setSubmitting(false);
         return;
       }
 
-      setServerError(result.message);
+      setServerError(result.error);
     } else {
+      const payload = result.data || {};
       const isAdmin =
-        result.currentMode === "ADMIN" ||
-        result.role === "ADMIN" ||
-        result.user?.role === "ADMIN";
+        payload.currentMode === "ADMIN" ||
+        payload.role === "ADMIN" ||
+        payload.user?.role === "ADMIN";
       navigate(isAdmin ? "/admin/dashboard" : "/dashboard");
     }
     setSubmitting(false);

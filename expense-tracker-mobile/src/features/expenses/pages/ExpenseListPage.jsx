@@ -12,7 +12,7 @@ import { DailySpendingChart } from "../components/DailySpendingChart";
 import { ExpenseCategoryChart } from "../components/ExpenseCategoryChart";
 import { useState } from "react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
 import { AppIcon } from "@/shared/components/AppIcon";
 

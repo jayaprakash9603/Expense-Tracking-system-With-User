@@ -1,5 +1,5 @@
 import React from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 
 export function ExpenseThemedCommentField({

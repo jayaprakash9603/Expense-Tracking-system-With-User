@@ -24,7 +24,7 @@ export function groupAndSum(items, keyFn, valueFn) {
   return Object.entries(map).map(([name, value]) => ({ name, value }));
 }
 
-export function toFriendlyLabel(key) {
+export function formatFriendlyLabel(key) {
   return (
     PAYMENT_METHOD_LABELS[key] ||
     key
@@ -82,7 +82,7 @@ export function normalizePaymentMethodDistribution(rawData) {
     return Object.entries(totals)
       .filter(([, val]) => Number(val) > 0)
       .map(([name, value]) => ({
-        name: toFriendlyLabel(name),
+        name: formatFriendlyLabel(name),
         value: Math.abs(Number(value)),
       }));
   }
@@ -91,7 +91,7 @@ export function normalizePaymentMethodDistribution(rawData) {
     return rawData
       .filter((d) => Number(d.value ?? d.amount ?? d.total ?? 0) > 0)
       .map((d) => ({
-        name: toFriendlyLabel(d.label || d.name || d.method || "Unknown"),
+        name: formatFriendlyLabel(d.label || d.name || d.method || "Unknown"),
         value: Math.abs(Number(d.value ?? d.amount ?? d.total ?? 0)),
       }));
   }
@@ -106,13 +106,13 @@ export function normalizePaymentMethodDistribution(rawData) {
       .map((k) => {
         const block = rawData[k] || {};
         const val = Math.abs(Number(block.totalAmount ?? block.total ?? 0));
-        return { name: toFriendlyLabel(k), value: val };
+        return { name: formatFriendlyLabel(k), value: val };
       })
       .filter((d) => d.value > 0);
   }
 
   return keys
-    .map((k) => ({ name: toFriendlyLabel(k), value: Math.abs(Number(rawData[k] ?? 0)) }))
+    .map((k) => ({ name: formatFriendlyLabel(k), value: Math.abs(Number(rawData[k] ?? 0)) }))
     .filter((d) => d.value > 0);
 }
 

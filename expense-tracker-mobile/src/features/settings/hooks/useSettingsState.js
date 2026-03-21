@@ -105,12 +105,12 @@ export function useSettingsState() {
         updateUserSettings({ [key]: value }, previousSettingsData)
       );
 
-      if (result?.message) {
+      if (!result?.success && result?.error) {
         const rolledBack = { ...newSettings, [key]: previousValue };
         setLocalSettings(rolledBack);
         saveToStorage(rolledBack);
         syncToRedux(rolledBack);
-        toast.error(result.message);
+        toast.error(result.error);
         return false;
       }
 

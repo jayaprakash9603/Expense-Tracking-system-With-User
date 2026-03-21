@@ -10,11 +10,12 @@ export function ExpenseSelectionTable({
   expenses = [],
   selectedExpenseIds = [],
   onSelectionChange,
-  emptyText = "No expenses available for selected dates",
+  emptyText,
   defaultPageSize = 5,
   loading = false,
 }) {
   const { t } = useLanguage();
+  const resolvedEmptyText = emptyText ?? t("budget.noExpensesForDate");
   const { settings } = useUserSettings();
   const { format } = useMoneyFormatter();
   const dateFormatPattern = settings.dateFormat;
@@ -130,10 +131,10 @@ export function ExpenseSelectionTable({
   const renderEmpty = useCallback(
     () => (
       <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-        {emptyText}
+        {resolvedEmptyText}
       </div>
     ),
-    [emptyText],
+    [resolvedEmptyText],
   );
 
   return (
@@ -145,7 +146,7 @@ export function ExpenseSelectionTable({
       loading={loading}
       defaultPageSize={defaultPageSize}
       pageSizeOptions={[5, 10, 20, 50]}
-      emptyMessage={emptyText}
+      emptyMessage={resolvedEmptyText}
       tableClassName="min-w-[960px] w-full"
       renderEmpty={renderEmpty}
     />

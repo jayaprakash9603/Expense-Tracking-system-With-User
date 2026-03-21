@@ -1,4 +1,4 @@
-import { rawCashflowBuckets } from "@/features/expenses/utils/expenseReportApiTransforms";
+import { extractCashflowBucketsFromApi } from "@/features/expenses/utils/expenseReportApiTransforms";
 import { normalizeCategoryDistribution } from "@/shared/utils/chart/dataTransformers";
 
 function formatSignedPct(diff) {
@@ -36,7 +36,7 @@ function dailyAmountSeries(areaModel, flowType) {
 }
 
 function dailyTransactionCounts(cashflowRaw) {
-  const rawBuckets = rawCashflowBuckets(cashflowRaw);
+  const rawBuckets = extractCashflowBucketsFromApi(cashflowRaw);
   if (!rawBuckets.length) return [];
   return rawBuckets.map((b) => {
     if (Array.isArray(b.expenses) && b.expenses.length > 0) return b.expenses.length;

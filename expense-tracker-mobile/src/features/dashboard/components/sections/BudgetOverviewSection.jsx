@@ -1,8 +1,8 @@
 import React from "react";
 import { Target, TrendingDown, Wallet } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/shared/components/app-shadcn";
+import { Progress } from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
 import { AppRadialChart } from "@/shared/components/chart/AppRadialChart";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
@@ -83,9 +83,7 @@ export function BudgetOverviewSection() {
         {/* Total budget footer */}
         {totalBudgetAmount > 0 && (
           <div className="flex items-center justify-between rounded-md bg-muted/50 px-3 py-2">
-            <span className="text-xs text-muted-foreground">
-              {t("dashboard.totalBudget") || "Total Budget"}
-            </span>
+            <span className="text-xs text-muted-foreground">{t("dashboard.totalBudget")}</span>
             <span className="text-sm font-bold">{format(totalBudgetAmount)}</span>
           </div>
         )}

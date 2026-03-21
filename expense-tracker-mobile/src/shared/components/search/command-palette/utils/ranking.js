@@ -53,6 +53,6 @@ export function groupAndLimit(actions, limitPerCategory = MAX_RESULTS_PER_CATEGO
   return grouped;
 }
 
-export function flattenGrouped(grouped) {
+export function buildFlattenedGroups(grouped) {
   return GROUP_ORDER.flatMap((category) => grouped[category] || []);
 }

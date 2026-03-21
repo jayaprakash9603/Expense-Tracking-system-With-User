@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/shared/hooks/useLanguage";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/shared/components/app-shadcn";
+import { Skeleton } from "@/shared/components/app-shadcn";
 import {
   ExpenseFormShell,
   ExpenseFormRow,

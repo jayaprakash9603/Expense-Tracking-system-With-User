@@ -1,5 +1,5 @@
 import React from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shared/components/app-shadcn";
 import { AccordionGroupRowSkeleton } from "@/shared/components/data/AccordionGroupRowSkeleton";
 
 const DEFAULT_SKELETON_ROWS = 8;

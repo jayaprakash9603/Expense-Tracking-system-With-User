@@ -1,7 +1,7 @@
 import React from "react";
 import { User, Phone, Briefcase, MapPin, FileText } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/shared/components/app-shadcn";
+import { Label } from "@/shared/components/app-shadcn";
 import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { useLanguage } from "@/shared/hooks/useLanguage";

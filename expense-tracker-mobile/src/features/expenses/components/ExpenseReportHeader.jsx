@@ -10,8 +10,8 @@ import { ExpenseReportAdvancedFilters } from "@/features/expenses/components/Exp
 import { useExpenseReportHeaderFilters } from "@/features/expenses/hooks/useExpenseReportHeaderFilters";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
 import { DEFAULT_EXPENSE_REPORT_VIEW_FILTERS } from "@/features/expenses/constants/expenseReportViewFilterDefaults";
 
 const BADGE_CLASS =

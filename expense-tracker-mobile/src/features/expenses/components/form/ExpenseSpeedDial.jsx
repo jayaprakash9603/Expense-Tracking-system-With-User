@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 
 const Z_STACK = 9990;

@@ -34,8 +34,9 @@ export const useAppInitialization = (jwt) => {
           dispatch(getProfileAction(jwt)),
         ]);
         if (cancelled) return;
-        const settings = await dispatch(fetchOrCreateUserSettings());
+        const settingsOutcome = await dispatch(fetchOrCreateUserSettings());
         if (cancelled) return;
+        const settings = settingsOutcome?.success ? settingsOutcome.data : null;
         if (settings?.themeMode) {
           dispatch(setTheme(settings.themeMode));
         }

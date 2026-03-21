@@ -119,6 +119,10 @@ export const en = {
     expired: "Your session has expired. Please login again.",
     accessDenied: "Access denied. You do not have permission.",
   },
+  notifications: {
+    defaultTitle: "Notification",
+    defaultBody: "You have a new update.",
+  },
   demo: {
     registered: "Registered. Sign in with demo credentials.",
   },
@@ -228,6 +232,8 @@ export const en = {
       resend: "Resend Code",
     },
     validation: {
+      otpRequired: "OTP is required",
+      otpMinLength: "Enter a valid OTP",
       emailRequired: "Email is required",
       emailInvalid: "Enter a valid email",
       passwordRequired: "Password is required",
@@ -446,6 +452,16 @@ export const en = {
     newPassword: "New Password",
     confirmPassword: "Confirm Password",
     passwordChanged: "Password changed successfully",
+    passwordValidation: {
+      currentRequired: "Current password is required",
+      newMinLength: "Password must be at least 8 characters",
+      newUppercase: "Must contain at least one uppercase letter",
+      newNumber: "Must contain at least one number",
+      newSpecial: "Must contain at least one special character",
+      newRequired: "New password is required",
+      confirmMatch: "Passwords must match",
+      confirmRequired: "Please confirm your password",
+    },
     typeDeleteToConfirm: "Type DELETE to confirm",
     deleteAccountWarning:
       "This action is permanent. All your data will be deleted and cannot be recovered.",
@@ -643,7 +659,15 @@ export const en = {
       linkBudgets: "Link Budgets",
       previouslyAdded: "Previously Added",
       noExpenseNames: "No expense names found",
+      noCategories: "No categories found",
+      noPaymentMethods: "No payment methods found",
       noOptions: "No options found",
+      loadingNames: "Loading names...",
+      namesLoadError: "Error loading names",
+      loadingCategories: "Loading categories...",
+      categoriesLoadError: "Error loading categories",
+      loadingPaymentMethods: "Loading payment methods...",
+      paymentMethodsLoadError: "Error loading payment methods",
     },
   },
   budget: {
@@ -696,6 +720,9 @@ export const en = {
   },
   reports: {
     title: "Reports",
+    generateReports: "Generate and view report modules.",
+    emptyListTitle: "No reports found",
+    noData: "No report modules are currently configured.",
     monthly: "Monthly Report",
     category: "Category Report",
     payment: "Payment Report",

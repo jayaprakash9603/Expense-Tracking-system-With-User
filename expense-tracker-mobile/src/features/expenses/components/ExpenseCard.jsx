@@ -12,12 +12,12 @@ const TYPE_VARIANTS = {
   SAVINGS: "success",
 };
 
-export function ExpenseCard({ expense, onEdit, onDelete }) {
+export function ExpenseCard({ expense, onEdit, onDelete, className }) {
   const { t } = useLanguage();
   const { format } = useMoneyFormatter();
 
   return (
-    <AppCard className="p-3 md:p-4">
+    <AppCard className={cn("p-3 md:p-4", className)}>
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">

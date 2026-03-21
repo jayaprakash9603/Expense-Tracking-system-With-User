@@ -12,9 +12,9 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import RegisterPage from "@/features/auth/pages/RegisterPage";
 import ForgotPasswordPage from "@/features/auth/pages/ForgotPasswordPage";
 import OtpVerificationPage from "@/features/auth/pages/OtpVerificationPage";
-import DashboardPage from "@/features/dashboard/pages/DashboardPage";
-import SettingsPage from "@/features/settings/pages/SettingsPage";
 
+const DashboardPage = lazy(() => import("@/features/dashboard/pages/DashboardPage"));
+const SettingsPage = lazy(() => import("@/features/settings/pages/SettingsPage"));
 const NewExpensePage = lazy(() => import("@/features/expenses/pages/NewExpense"));
 const EditExpensePage = lazy(() => import("@/features/expenses/pages/EditExpense"));
 const ExpenseDetailPage = lazy(() => import("@/features/expenses/pages/ExpenseDetailPage"));
@@ -128,18 +128,11 @@ function buildProtectedRoutes() {
       const PageComponent = IMPLEMENTED_PAGES[route.key];
 
       if (route.elementMode === "implemented" && PageComponent) {
-        const isEager = route.key === "dashboard" || route.key === "settings";
         return (
           <Route
             key={route.key}
             path={route.path}
-            element={
-              isEager ? (
-                <PageComponent />
-              ) : (
-                <LazyWrap routeKey={route.key} Component={PageComponent} />
-              )
-            }
+            element={<LazyWrap routeKey={route.key} Component={PageComponent} />}
           />
         );
       }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeNotification } from "@/domain/notifications/notificationService";
+import { normalizeNotification } from "@/domain/notifications/notification.service";
 
 describe("normalizeNotification", () => {
   it("normalizes shape and defaults", () => {

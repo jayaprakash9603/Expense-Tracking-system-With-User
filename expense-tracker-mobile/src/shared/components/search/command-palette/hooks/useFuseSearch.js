@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Fuse from "fuse.js";
 import {
+  buildFlattenedGroups,
   calculateSmartScore,
-  flattenGrouped,
   groupAndLimit,
   MAX_RESULTS_PER_CATEGORY,
 } from "../utils/ranking";
@@ -65,7 +65,7 @@ export function useFuseSearch({
 
       const grouped = groupAndLimit(ranked, MAX_RESULTS_PER_CATEGORY);
       setGroupedResults(grouped);
-      setFlatResults(flattenGrouped(grouped));
+      setFlatResults(buildFlattenedGroups(grouped));
       setLoading(false);
     }, debounceMs);
 

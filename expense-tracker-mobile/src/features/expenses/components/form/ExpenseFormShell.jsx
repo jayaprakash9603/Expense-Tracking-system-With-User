@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";

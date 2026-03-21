@@ -6,7 +6,7 @@ import {
   normalizeEntityFlowData,
   extractEntityMap,
 } from "@/shared/utils/chart/entityFlowNormalizer";
-import { toFriendlyLabel } from "@/shared/utils/chart/dataTransformers";
+import { formatFriendlyLabel } from "@/shared/utils/chart/dataTransformers";
 
 export function usePaymentMethodFlowData() {
   const flow = useFlowData({
@@ -16,7 +16,7 @@ export function usePaymentMethodFlowData() {
 
   const apiData = useSelector((s) => s.expenses?.paymentMethodDistribution);
 
-  const labelResolver = useCallback((key) => toFriendlyLabel(key), []);
+  const labelResolver = useCallback((key) => formatFriendlyLabel(key), []);
 
   const { chartData, cardData, totals, chartConfig } = useMemo(
     () => normalizeEntityFlowData(apiData, flow.activeRange, flow.offset, labelResolver),

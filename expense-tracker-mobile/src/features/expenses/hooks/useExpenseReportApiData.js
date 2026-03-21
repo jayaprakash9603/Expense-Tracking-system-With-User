@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { expenseApi } from "@/infrastructure/api";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import {
-  cashflowApiToAreaChartModel,
+  buildAreaChartModelFromCashflowApi,
   categoryApiToPieModel,
   paymentApiToPieModel,
 } from "@/features/expenses/utils/expenseReportApiTransforms";
@@ -243,7 +243,7 @@ export function useExpenseReportApiData({
   }, [payParams]);
 
   const areaModelBase = useMemo(
-    () => cashflowApiToAreaChartModel(cashflowRaw, dailyApiKind, t),
+    () => buildAreaChartModelFromCashflowApi(cashflowRaw, dailyApiKind, t),
     [cashflowRaw, dailyApiKind, t],
   );
 

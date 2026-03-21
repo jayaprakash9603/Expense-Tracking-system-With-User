@@ -1,1 +1,1 @@
-export * from "./universalSearchService";
+export * from "./search.service";

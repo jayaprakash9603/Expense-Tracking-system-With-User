@@ -1,4 +1,12 @@
-import { useState, useEffect, useCallback, useMemo, createContext, useContext } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  createContext,
+  useContext,
+  createElement,
+} from "react";
 import { STORAGE_KEYS, SIDEBAR_WIDTH } from "@/config/constants";
 
 const LayoutContext = createContext(null);
@@ -141,7 +149,7 @@ function useLayoutProvider() {
 
 export function LayoutProvider({ children }) {
   const layout = useLayoutProvider();
-  return <LayoutContext.Provider value={layout}>{children}</LayoutContext.Provider>;
+  return createElement(LayoutContext.Provider, { value: layout }, children);
 }
 
 export function useLayout() {

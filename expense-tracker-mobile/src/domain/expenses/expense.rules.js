@@ -1,5 +1,5 @@
 import { sumAmounts } from "../shared/money";
-import { isCurrentMonth, isCurrentWeek } from "../shared/dateRules";
+import { isCurrentMonth, isCurrentWeek } from "../shared/date.rules";
 
 export function isOverBudget(expenses, budgetLimit) {
   const total = sumAmounts(expenses);

@@ -1,8 +1,8 @@
 import React from "react";
 import { ChevronRight } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/shared/components/app-shadcn";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/app-shadcn";
+import { Button } from "@/shared/components/app-shadcn";
 import { ThemePicker } from "@/shared/components/ThemePicker";
 import { AppIcon } from "@/shared/components/AppIcon";
 import { useLanguage } from "@/shared/hooks/useLanguage";
@@ -14,7 +14,7 @@ function ItemIcon({ icon, variant }) {
   return <AppIcon icon={icon} color={color} size="sm" />;
 }
 
-export function SettingItem({ item, value, onChange, onAction, disabled = false }) {
+export function SettingItem({ item, value, onChange, onAction, disabled = false, className }) {
   const { t } = useLanguage();
   const { type, labelKey, descriptionKey, icon: Icon, options, variant, actionId, switchValueMapping } = item;
 
@@ -23,7 +23,7 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false 
 
   if (type === "themePicker") {
     return (
-      <div className="py-3">
+      <div className={cn("py-3", className)}>
         <div className="mb-3">
           <p className="text-sm font-medium">{label}</p>
           {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
@@ -46,7 +46,7 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false 
     };
 
     return (
-      <div className={cn("flex items-center justify-between py-3", disabled && "opacity-50")}>
+      <div className={cn("flex items-center justify-between py-3", disabled && "opacity-50", className)}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <ItemIcon icon={Icon} variant={variant} />
           <div className="min-w-0">
@@ -61,7 +61,13 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false 
 
   if (type === "select") {
     return (
-      <div className={cn("flex items-center justify-between py-3 gap-4", disabled && "opacity-50")}>
+      <div
+        className={cn(
+          "flex items-center justify-between py-3 gap-4",
+          disabled && "opacity-50",
+          className,
+        )}
+      >
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <ItemIcon icon={Icon} variant={variant} />
           <div className="min-w-0">
@@ -90,7 +96,7 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false 
     const buttonVariant = isDestructive ? "outline" : (variant || "outline");
 
     return (
-      <div className="flex items-center justify-between py-3">
+      <div className={cn("flex items-center justify-between py-3", className)}>
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <ItemIcon icon={Icon} variant={variant} />
           <div className="min-w-0">
@@ -113,7 +119,11 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false 
   if (type === "navigation") {
     return (
       <button
-        className="flex items-center justify-between py-3 w-full text-left hover:bg-muted/50 rounded-md px-1 -mx-1 transition-colors"
+        type="button"
+        className={cn(
+          "flex items-center justify-between py-3 w-full text-left hover:bg-muted/50 rounded-md px-1 -mx-1 transition-colors",
+          className,
+        )}
         onClick={() => onAction?.(actionId)}
       >
         <div className="flex items-center gap-3 flex-1 min-w-0">

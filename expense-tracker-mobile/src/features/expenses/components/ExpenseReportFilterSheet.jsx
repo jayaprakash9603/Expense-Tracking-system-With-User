@@ -1,14 +1,14 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from "@/shared/components/app-shadcn";
+import { Separator } from "@/shared/components/app-shadcn";
+import { ScrollArea } from "@/shared/components/app-shadcn";
 import { useIsDesktop } from "@/shared/hooks/theme/useMediaQuery";
 import { cn } from "@/lib/utils";
 

@@ -17,7 +17,7 @@ import {
   CLEAR_CATEGORY_ERROR,
   RESET_CATEGORY_STATE,
 } from "./categories.actionTypes";
-import { categoriesListSliceHelpers } from "./categories.listSlice";
+import { categoriesListSliceHelpers } from "./categories.slice";
 
 const initialState = {
   list: [],

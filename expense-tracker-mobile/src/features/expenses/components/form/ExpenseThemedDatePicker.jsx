@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useCallback } from "react";
 import dayjs from "dayjs";
 import { CalendarDays } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/shared/components/app-shadcn";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 

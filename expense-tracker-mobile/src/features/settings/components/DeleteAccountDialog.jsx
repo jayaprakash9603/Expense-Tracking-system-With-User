@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/shared/components/app-shadcn";
+import { Label } from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";

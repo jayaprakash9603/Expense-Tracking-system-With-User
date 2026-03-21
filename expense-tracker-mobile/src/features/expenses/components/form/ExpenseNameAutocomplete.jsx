@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
 import { useExpenseNames } from "../../hooks/useExpenseNames";
 import {
@@ -17,14 +18,17 @@ export function ExpenseNameAutocomplete({
   options,
   friendId = "",
   autofetch = true,
-  placeholder = "Enter name",
+  placeholder,
   error = false,
-  noDataText = "No expense names found",
+  noDataText,
   maxSuggestions = 500,
   maxWidth = "100%",
   inputHeight = "48px",
   className,
 }) {
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t("expenseForm.placeholders.expenseName");
+  const resolvedNoDataText = noDataText ?? t("expenseForm.actions.noExpenseNames");
   const hasExternalOptions = Array.isArray(options);
   const {
     suggestions,
@@ -72,10 +76,10 @@ export function ExpenseNameAutocomplete({
   );
 
   const noOptionsText = loading
-    ? "Loading names..."
+    ? t("expenseForm.actions.loadingNames")
     : namesError
-      ? "Error loading names"
-      : noDataText;
+      ? t("expenseForm.actions.namesLoadError")
+      : resolvedNoDataText;
 
   return (
     <ExpenseThemedAutocomplete
@@ -85,8 +89,8 @@ export function ExpenseNameAutocomplete({
       onInputChange={handleInputChange}
       onOpen={hasExternalOptions ? undefined : fetchNames}
       filterOptions={filterExpenseNamesFuzzy}
-      placeholder={placeholder}
-      noOptionsText={hasExternalOptions ? noDataText : noOptionsText}
+      placeholder={resolvedPlaceholder}
+      noOptionsText={hasExternalOptions ? resolvedNoDataText : noOptionsText}
       error={error}
       loading={hasExternalOptions ? false : loading}
       freeSolo

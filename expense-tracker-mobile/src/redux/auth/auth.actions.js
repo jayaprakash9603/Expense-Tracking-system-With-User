@@ -15,6 +15,9 @@ import {
 } from "./auth.actionTypes";
 import { normalizeAppMode } from "./normalizeAppMode";
 
+const resolveProfileErrorKey = (profileResult) =>
+  profileResult?.error || "auth.errors.profileLoadFailed";
+
 const completeLoginWithJwt = async (dispatch, jwt) => {
   dispatch({ type: LOGIN_SUCCESS, payload: jwt });
   setActiveJwt(jwt);
@@ -25,16 +28,18 @@ const completeLoginWithJwt = async (dispatch, jwt) => {
   if (!profileResult?.success) {
     return {
       success: false,
-      message: profileResult?.error?.message || "auth.errors.profileLoadFailed",
+      error: resolveProfileErrorKey(profileResult),
     };
   }
 
   const userProfile = profileResult.data;
   return {
     success: true,
-    user: userProfile,
-    currentMode: userProfile?.currentMode,
-    role: userProfile?.role,
+    data: {
+      user: userProfile,
+      currentMode: userProfile?.currentMode,
+      role: userProfile?.role,
+    },
   };
 };
 
@@ -46,19 +51,21 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   );
 
   if (error) {
-    const errorMessage = error.message || "auth.errors.loginFailed";
-    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
-    return { success: false, message: errorMessage };
+    const errorKey = error.message || "auth.errors.loginFailed";
+    dispatch({ type: LOGIN_FAILURE, payload: errorKey });
+    return { success: false, error: errorKey };
   }
 
   if (data?.message === "MFA_REQUIRED" || data?.mfaRequired) {
     dispatch({ type: LOGIN_FAILURE, payload: "MFA_REQUIRED" });
     return {
       success: false,
-      mfaRequired: true,
-      mfaToken: data?.mfaToken,
-      message: "MFA_REQUIRED",
-      email: loginData?.data?.email,
+      error: "MFA_REQUIRED",
+      data: {
+        mfaRequired: true,
+        mfaToken: data?.mfaToken,
+        email: loginData?.data?.email,
+      },
     };
   }
 
@@ -66,15 +73,17 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     dispatch({ type: LOGIN_FAILURE, payload: "OTP_REQUIRED" });
     return {
       success: false,
-      twoFactorRequired: true,
-      message: "OTP_REQUIRED",
-      email: loginData?.data?.email,
+      error: "OTP_REQUIRED",
+      data: {
+        twoFactorRequired: true,
+        email: loginData?.data?.email,
+      },
     };
   }
 
   if (!data?.jwt) {
     dispatch({ type: LOGIN_FAILURE, payload: "auth.errors.loginFailed" });
-    return { success: false, message: "auth.errors.loginFailed" };
+    return { success: false, error: "auth.errors.loginFailed" };
   }
 
   return await completeLoginWithJwt(dispatch, data.jwt);
@@ -88,13 +97,13 @@ export const registerUserAction = (loginData) => async (dispatch) => {
   );
 
   if (error) {
-    const message = error.message || "auth.errors.registrationFailed";
-    dispatch({ type: LOGIN_FAILURE, payload: message });
-    return { success: false, message };
+    const errKey = error.message || "auth.errors.registrationFailed";
+    dispatch({ type: LOGIN_FAILURE, payload: errKey });
+    return { success: false, error: errKey };
   }
 
   dispatch({ type: LOGIN_SUCCESS, payload: null });
-  return { success: true };
+  return { success: true, data: data ?? {} };
 };
 
 export const getProfileAction = (jwt) => async (dispatch) => {
@@ -111,7 +120,10 @@ export const getProfileAction = (jwt) => async (dispatch) => {
       dispatch({ type: LOGOUT });
     }
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
-    return { success: false, error };
+    return {
+      success: false,
+      error: error.message || "auth.errors.profileLoadFailed",
+    };
   }
 
   dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
@@ -126,9 +138,9 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
   );
 
   if (error || !data?.jwt) {
-    const errorMessage = error?.message || "auth.errors.googleAuthFailed";
-    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
-    return { success: false, message: errorMessage };
+    const errorKey = error?.message || "auth.errors.googleAuthFailed";
+    dispatch({ type: LOGIN_FAILURE, payload: errorKey });
+    return { success: false, error: errorKey };
   }
 
   return await completeLoginWithJwt(dispatch, data.jwt);
@@ -142,9 +154,9 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
   );
 
   if (error || !data?.jwt) {
-    const errorMessage = error?.message || data?.message || "auth.errors.otpVerificationFailed";
-    dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
-    return { success: false, message: errorMessage };
+    const errorKey = error?.message || data?.message || "auth.errors.otpVerificationFailed";
+    dispatch({ type: LOGIN_FAILURE, payload: errorKey });
+    return { success: false, error: errorKey };
   }
 
   return await completeLoginWithJwt(dispatch, data.jwt);
@@ -168,7 +180,10 @@ export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
       type: SWITCH_MODE_SUCCESS,
       payload: { currentMode: target, user: nextUser },
     });
-    return { success: true, currentMode: target, user: nextUser };
+    return {
+      success: true,
+      data: { currentMode: target, user: nextUser },
+    };
   }
 
   const { data, error } = await safeApiCall(() =>
@@ -178,7 +193,10 @@ export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
   );
 
   if (error) {
-    return { success: false, message: error.message || "Failed to switch user mode." };
+    return {
+      success: false,
+      error: error.message || "auth.errors.loginFailed",
+    };
   }
 
   const prev = getState().auth?.user;
@@ -201,7 +219,9 @@ export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
 
   return {
     success: true,
-    currentMode: payloadMode,
-    user,
+    data: {
+      currentMode: payloadMode,
+      user,
+    },
   };
 };

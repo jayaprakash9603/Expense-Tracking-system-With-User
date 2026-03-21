@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { createElement, useMemo } from "react";
 
 function normalizeCellContent(value) {
   if (React.isValidElement(value)) return value;
@@ -23,7 +23,7 @@ export function useGroupedExpenseTableColumns(columns) {
           const raw = col.render ? col.render(val, row.original) : val;
           const content = normalizeCellContent(raw);
           const cls = typeof col.className === "function" ? col.className(row.original) : col.className;
-          return <div className={cls}>{content}</div>;
+          return createElement("div", { className: cls }, content);
         },
         enableSorting: col.sortable !== false,
       })),

@@ -9,11 +9,15 @@ export const getUserSettings = () => async (dispatch) => {
 
   if (error) {
     dispatch({ type: types.FETCH_USER_SETTINGS_FAILURE, payload: error.message });
-    return error;
+    return {
+      success: false,
+      error: error.message,
+      status: error.status,
+    };
   }
 
   dispatch({ type: types.FETCH_USER_SETTINGS_SUCCESS, payload: data });
-  return data;
+  return { success: true, data };
 };
 
 export const updateUserSettings = (settingsData, previousSettingsData) => async (dispatch) => {
@@ -21,12 +25,12 @@ export const updateUserSettings = (settingsData, previousSettingsData) => async 
 
   if (Object.prototype.hasOwnProperty.call(settingsData || {}, "twoFactorEnabled")) {
     const { error: tfaError } = await safeApiCall(() =>
-      api.put("/api/user/two-factor", { enabled: settingsData.twoFactorEnabled })
+      api.put("/api/user/two-factor", { enabled: settingsData.twoFactorEnabled }),
     );
 
     if (tfaError) {
       dispatch({ type: types.UPDATE_USER_SETTINGS_FAILURE, payload: tfaError.message });
-      return tfaError;
+      return { success: false, error: tfaError.message };
     }
   }
 
@@ -38,16 +42,16 @@ export const updateUserSettings = (settingsData, previousSettingsData) => async 
       Object.prototype.hasOwnProperty.call(previousSettingsData || {}, "twoFactorEnabled")
     ) {
       await safeApiCall(() =>
-        api.put("/api/user/two-factor", { enabled: previousSettingsData.twoFactorEnabled })
+        api.put("/api/user/two-factor", { enabled: previousSettingsData.twoFactorEnabled }),
       );
     }
 
     dispatch({ type: types.UPDATE_USER_SETTINGS_FAILURE, payload: error.message });
-    return error;
+    return { success: false, error: error.message };
   }
 
   dispatch({ type: types.UPDATE_USER_SETTINGS_SUCCESS, payload: data });
-  return data;
+  return { success: true, data };
 };
 
 export const createDefaultSettings = () => async (dispatch) => {
@@ -57,11 +61,11 @@ export const createDefaultSettings = () => async (dispatch) => {
 
   if (error) {
     dispatch({ type: types.CREATE_DEFAULT_SETTINGS_FAILURE, payload: error.message });
-    return error;
+    return { success: false, error: error.message };
   }
 
   dispatch({ type: types.CREATE_DEFAULT_SETTINGS_SUCCESS, payload: data });
-  return data;
+  return { success: true, data };
 };
 
 export const resetUserSettings = () => async (dispatch) => {
@@ -71,11 +75,11 @@ export const resetUserSettings = () => async (dispatch) => {
 
   if (error) {
     dispatch({ type: types.RESET_USER_SETTINGS_FAILURE, payload: error.message });
-    return error;
+    return { success: false, error: error.message };
   }
 
   dispatch({ type: types.RESET_USER_SETTINGS_SUCCESS, payload: data });
-  return data;
+  return { success: true, data };
 };
 
 export const checkSettingsExist = () => async (dispatch) => {
@@ -85,23 +89,22 @@ export const checkSettingsExist = () => async (dispatch) => {
 
   if (error) {
     dispatch({ type: types.CHECK_SETTINGS_EXIST_FAILURE, payload: error.message });
-    return error;
+    return { success: false, error: error.message };
   }
 
   dispatch({ type: types.CHECK_SETTINGS_EXIST_SUCCESS, payload: data });
-  return data;
+  return { success: true, data };
 };
 
 export const fetchOrCreateUserSettings = () => async (dispatch) => {
-  try {
-    const settings = await dispatch(getUserSettings());
-    return settings;
-  } catch (err) {
-    if (err?.status === 404) {
-      return dispatch(createDefaultSettings());
-    }
-    return err;
+  const result = await dispatch(getUserSettings());
+  if (result.success) {
+    return result;
   }
+  if (result.status === 404) {
+    return dispatch(createDefaultSettings());
+  }
+  return result;
 };
 
 export const clearUserSettings = () => ({ type: types.CLEAR_USER_SETTINGS });

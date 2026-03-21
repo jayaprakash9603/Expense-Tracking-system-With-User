@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { getGroupExpenseRows, isEveryGroupRowSelected, mergeCheckboxSelectionForGroup } from "./groupedReportAccordionSelection";

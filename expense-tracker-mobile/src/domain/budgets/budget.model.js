@@ -1,5 +1,7 @@
 export const BUDGET_PERIODS = ["DAILY", "WEEKLY", "MONTHLY", "YEARLY", "CUSTOM"];
 
+export const DEFAULT_BUDGET_ALERT_THRESHOLD_PERCENT = 80;
+
 export const BUDGET_DEFAULTS = {
   name: "",
   description: "",
@@ -9,7 +11,7 @@ export const BUDGET_DEFAULTS = {
   startDate: new Date().toISOString().split("T")[0],
   endDate: "",
   isGlobal: false,
-  alertThreshold: 80,
+  alertThreshold: DEFAULT_BUDGET_ALERT_THRESHOLD_PERCENT,
 };
 
 export function createBudget(overrides = {}) {

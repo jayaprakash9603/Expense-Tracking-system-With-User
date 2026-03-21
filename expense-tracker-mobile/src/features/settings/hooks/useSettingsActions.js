@@ -8,6 +8,7 @@ import { clearUserSettings } from "@/redux/userSettings/userSettings.actions";
 import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
 import { toast } from "sonner";
+import { PRODUCT_URLS } from "@/config/productUrls";
 
 export function useSettingsActions(updateSetting) {
   const dispatch = useDispatch();
@@ -103,13 +104,13 @@ export function useSettingsActions(updateSetting) {
           setTimeout(() => navigate("/dashboard"), 500);
         },
 
-        helpCenter: () => window.open("https://help.expensio.app", "_blank"),
+        helpCenter: () => window.open(PRODUCT_URLS.helpCenter, "_blank"),
 
         contactSupport: () => window.open("mailto:support@expensio.app", "_blank"),
 
-        termsOfService: () => window.open("https://expensio.app/terms", "_blank"),
+        termsOfService: () => window.open(PRODUCT_URLS.termsOfService, "_blank"),
 
-        privacyPolicy: () => window.open("https://expensio.app/privacy", "_blank"),
+        privacyPolicy: () => window.open(PRODUCT_URLS.privacyPolicy, "_blank"),
 
         logout: () => {
           dispatch(logoutAction());

@@ -1,12 +1,12 @@
 import React, { useCallback, useState } from "react";
 import { Plus, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/app-shadcn";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/useLanguage";
 import { cn } from "@/lib/utils";
 import { ExpenseSpeedDial } from "./ExpenseSpeedDial";

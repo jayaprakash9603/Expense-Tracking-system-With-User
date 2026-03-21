@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 
 const NUMBER_SPINNER_HIDE =

@@ -31,9 +31,30 @@ export function ApplicationOverview() {
   ];
 
   const secondaryStats = [
-    { key: "avgDaily", icon: TrendingDown, iconColor: "warning", title: t("dashboard.avgDailySpend") || "Avg Daily Spend", rawAmount: avgDailySpend, subtitle: t("dashboard.last30Days") || "Last 30 days" },
-    { key: "savings", icon: PiggyBank, iconColor: "success", title: t("dashboard.savingsRate") || "Savings Rate", value: `${savingsRate}%`, subtitle: t("dashboard.ofIncome") || "of income" },
-    { key: "upcoming", icon: CalendarClock, iconColor: "error", title: t("dashboard.upcomingBills") || "Upcoming Bills", rawAmount: upcomingBillsAmount, subtitle: t("dashboard.duePeriod") || "due this period" },
+    {
+      key: "avgDaily",
+      icon: TrendingDown,
+      iconColor: "warning",
+      title: t("dashboard.avgDailySpend"),
+      rawAmount: avgDailySpend,
+      subtitle: t("dashboard.last30Days"),
+    },
+    {
+      key: "savings",
+      icon: PiggyBank,
+      iconColor: "success",
+      title: t("dashboard.savingsRate"),
+      value: `${savingsRate}%`,
+      subtitle: t("dashboard.ofIncome"),
+    },
+    {
+      key: "upcoming",
+      icon: CalendarClock,
+      iconColor: "error",
+      title: t("dashboard.upcomingBills"),
+      rawAmount: upcomingBillsAmount,
+      subtitle: t("dashboard.duePeriod"),
+    },
   ];
 
   return (
@@ -60,7 +81,7 @@ export function ApplicationOverview() {
           <div className="shrink-0">
             <div className="mb-2 flex items-center gap-2">
               <Star className="h-4 w-4 text-primary" />
-              <h4 className="text-sm font-semibold">{t("dashboard.topExpenses") || "Top Expenses"}</h4>
+              <h4 className="text-sm font-semibold">{t("dashboard.topExpenses")}</h4>
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {topExpenses.slice(0, 4).map((expense, idx) => (

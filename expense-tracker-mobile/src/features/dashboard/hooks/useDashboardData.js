@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
-import { sumAmounts } from "@/domain/shared/money";
+import { sumAmounts } from "@/domain/shared/money.utils";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
 
 export function useDashboardData() {

@@ -1,19 +1,21 @@
 import React from "react";
 import { Bell, X } from "lucide-react";
 import { AppButton } from "@/shared/components/form/AppButton";
+import { useLanguage } from "@/shared/hooks/useLanguage";
+import { cn } from "@/lib/utils";
 
-/**
- * @param {{item: any, onDismiss: (id: string|number) => void}} props
- */
-export function FloatingNotificationItem({ item, onDismiss }) {
+export function FloatingNotificationItem({ item, onDismiss, className }) {
+  const { t } = useLanguage();
   return (
-    <div className="w-[320px] rounded-lg border border-border bg-card p-3 shadow-lg">
+    <div className={cn("w-[320px] rounded-lg border border-border bg-card p-3 shadow-lg", className)}>
       <div className="flex items-start gap-2">
         <Bell className="mt-0.5 h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold truncate">{item.title || "Notification"}</p>
+          <p className="text-sm font-semibold truncate">
+            {item.title || t("notifications.defaultTitle")}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-            {item.message || item.body || "You have a new update."}
+            {item.message || item.body || t("notifications.defaultBody")}
           </p>
         </div>
         <AppButton

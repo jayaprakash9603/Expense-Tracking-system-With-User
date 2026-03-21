@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { AppDialog } from "@/shared/components/AppDialog";
@@ -9,21 +9,24 @@ import { api } from "@/config/api";
 import { safeApiCall } from "@/shared/utils/safeApiCall";
 import { toast } from "sonner";
 
-const passwordSchema = Yup.object({
-  currentPassword: Yup.string().required("Current password is required"),
-  newPassword: Yup.string()
-    .min(8, "Password must be at least 8 characters")
-    .matches(/[A-Z]/, "Must contain at least one uppercase letter")
-    .matches(/[0-9]/, "Must contain at least one number")
-    .matches(/[^A-Za-z0-9]/, "Must contain at least one special character")
-    .required("New password is required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("newPassword")], "Passwords must match")
-    .required("Please confirm your password"),
-});
-
 export function ChangePasswordDialog({ open, onOpenChange }) {
   const { t } = useLanguage();
+  const passwordSchema = useMemo(
+    () =>
+      Yup.object({
+        currentPassword: Yup.string().required(t("settings.passwordValidation.currentRequired")),
+        newPassword: Yup.string()
+          .min(8, t("settings.passwordValidation.newMinLength"))
+          .matches(/[A-Z]/, t("settings.passwordValidation.newUppercase"))
+          .matches(/[0-9]/, t("settings.passwordValidation.newNumber"))
+          .matches(/[^A-Za-z0-9]/, t("settings.passwordValidation.newSpecial"))
+          .required(t("settings.passwordValidation.newRequired")),
+        confirmPassword: Yup.string()
+          .oneOf([Yup.ref("newPassword")], t("settings.passwordValidation.confirmMatch"))
+          .required(t("settings.passwordValidation.confirmRequired")),
+      }),
+    [t],
+  );
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const { data, error } = await safeApiCall(() =>

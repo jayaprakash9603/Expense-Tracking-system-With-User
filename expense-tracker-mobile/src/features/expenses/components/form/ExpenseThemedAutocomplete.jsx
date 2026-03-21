@@ -6,8 +6,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+} from "@/shared/components/app-shadcn";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 

@@ -17,12 +17,12 @@ export function ReportsPage() {
   return (
     <ListScreen
       title={t("navigation.reports")}
-      description={t("reports.generateReports") || "Generate and view report modules."}
+      description={t("reports.generateReports")}
       status="success"
       hasData={REPORT_TYPES.length > 0}
       emptyProps={{
-        title: t("common.noData") || "No reports found",
-        description: t("reports.noData") || "No report modules are currently configured.",
+        title: t("reports.emptyListTitle"),
+        description: t("reports.noData"),
       }}
     >
       <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md" preset="">

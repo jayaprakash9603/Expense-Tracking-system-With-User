@@ -5,17 +5,22 @@ import { AppCard } from "@/shared/components/display/AppCard";
 import { AppButton } from "@/shared/components/form/AppButton";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { EmptyState } from "@/shared/components/feedback/EmptyState";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
 import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
 import { RecentTransactionCard } from "./RecentTransactionCard";
 
+const RECENT_TXN_MOBILE_MAX_WIDTH_PX = 600;
+const RECENT_TXN_LIMIT_DESKTOP = 10;
+const RECENT_TXN_LIMIT_MOBILE = 6;
+
 function useRecentTransactionLimit() {
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(RECENT_TXN_LIMIT_DESKTOP);
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 600px)");
-    const sync = () => setLimit(mq.matches ? 6 : 10);
+    const mq = window.matchMedia(`(max-width: ${RECENT_TXN_MOBILE_MAX_WIDTH_PX}px)`);
+    const sync = () =>
+      setLimit(mq.matches ? RECENT_TXN_LIMIT_MOBILE : RECENT_TXN_LIMIT_DESKTOP);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);

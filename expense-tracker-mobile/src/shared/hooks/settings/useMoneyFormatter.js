@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useMasking } from "./useMasking";
 import { useUserSettings } from "./useUserSettings";
-import { formatMoney, CURRENCY_MAP } from "@/domain/shared/money";
+import { formatMoney, CURRENCY_MAP } from "@/domain/shared/money.utils";
 
 export function useMoneyFormatter() {
   const { isMasked, formatMaskedAmount } = useMasking();

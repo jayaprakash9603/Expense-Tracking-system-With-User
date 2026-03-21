@@ -1,5 +1,5 @@
 import { categoryApi } from "@/infrastructure/api";
-import { fetchCategoriesAction } from "./categories.listSlice";
+import { fetchCategoriesAction } from "./categories.slice";
 import {
   CREATE_CATEGORY_REQUEST,
   CREATE_CATEGORY_SUCCESS,
