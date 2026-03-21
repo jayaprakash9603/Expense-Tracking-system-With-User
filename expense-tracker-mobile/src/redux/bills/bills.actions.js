@@ -22,6 +22,12 @@ import {
   RESET_BILL_STATE,
 } from "./bills.actionTypes";
 
+export const fetchBillByIdAction = (id) => async () => {
+  const { data, error } = await billApi.getById(id);
+  if (error) return { success: false, error };
+  return { success: true, data };
+};
+
 export const fetchBillsAction = (params) => async (dispatch) => {
   dispatch({ type: FETCH_BILLS_REQUEST });
   const { data, error } = await billApi.getAll(params);

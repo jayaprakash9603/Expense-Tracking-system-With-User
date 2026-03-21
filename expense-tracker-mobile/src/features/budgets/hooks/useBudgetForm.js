@@ -141,11 +141,10 @@ export function useBudgetForm({
       setExpensesLoading(true);
       setExpenseError("");
 
-      const { data, error } = await expenseApi.getAll({
-        startDate,
-        endDate: effectiveEndDate,
-        sort: "desc",
-        targetId: friendId || "",
+      const { data, error } = await expenseApi.getByDate({
+        from: startDate,
+        to: effectiveEndDate,
+        ...(friendId ? { targetId: friendId } : {}),
       });
 
       setExpensesLoading(false);
@@ -198,23 +197,12 @@ export function useBudgetForm({
 
   const refreshLinkedExpenses = useCallback(
     async (startDateOverride, endDateOverride) => {
-      if (isEditMode && entityId) {
-        await fetchExpensesForBudget(entityId);
-        return;
-      }
       await fetchExpensesForDateRange(
         startDateOverride || formData.startDate,
         endDateOverride || formData.endDate,
       );
     },
-    [
-      isEditMode,
-      entityId,
-      formData.startDate,
-      formData.endDate,
-      fetchExpensesForBudget,
-      fetchExpensesForDateRange,
-    ],
+    [formData.startDate, formData.endDate, fetchExpensesForDateRange],
   );
 
   const handleSubmit = useCallback(async () => {

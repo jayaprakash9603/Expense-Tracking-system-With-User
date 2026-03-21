@@ -128,15 +128,6 @@ export function ExpenseSelectionTable({
     ],
   );
 
-  const renderEmpty = useCallback(
-    () => (
-      <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
-        {resolvedEmptyText}
-      </div>
-    ),
-    [resolvedEmptyText],
-  );
-
   return (
     <SelectableDataTable
       columns={columns}
@@ -148,7 +139,6 @@ export function ExpenseSelectionTable({
       pageSizeOptions={[5, 10, 20, 50]}
       emptyMessage={resolvedEmptyText}
       tableClassName="min-w-[960px] w-full"
-      renderEmpty={renderEmpty}
     />
   );
 }

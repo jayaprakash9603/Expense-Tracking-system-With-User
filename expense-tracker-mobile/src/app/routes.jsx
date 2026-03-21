@@ -23,7 +23,8 @@ const NewBudgetPage = lazy(() => import("@/features/budgets/pages/NewBudget"));
 const EditBudgetPage = lazy(() => import("@/features/budgets/pages/EditBudget"));
 const CategoryFormPage = lazy(() => import("@/features/categories/pages/CategoryFormPage"));
 const BillListPage = lazy(() => import("@/features/bills/pages/BillListPage"));
-const BillFormPage = lazy(() => import("@/features/bills/pages/BillFormPage"));
+const NewBillPage = lazy(() => import("@/features/bills/pages/NewBill"));
+const EditBillPage = lazy(() => import("@/features/bills/pages/EditBill"));
 const NotificationListPage = lazy(
   () => import("@/features/notifications/pages/NotificationListPage"),
 );
@@ -66,8 +67,8 @@ const IMPLEMENTED_PAGES = {
   "categories-add": CategoryFormPage,
   "categories-edit": CategoryFormPage,
   bills: BillListPage,
-  "bills-add": BillFormPage,
-  "bills-edit": BillFormPage,
+  "bills-add": NewBillPage,
+  "bills-edit": EditBillPage,
   notifications: NotificationListPage,
   reports: ReportsPage,
   "reports-monthly": MonthlyReportPage,

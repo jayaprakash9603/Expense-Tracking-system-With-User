@@ -220,7 +220,21 @@ const DEFAULT_SCROLL_BODY_MAX_ROWS = 5;
 const DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX = 42;
 const DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX = 41;
 const SCROLL_VIEWPORT_SLACK_PX = 2;
+const TABLE_BODY_ROW_SEPARATOR_PX = 1;
 const LAST_PAGE_PADDED_ROW_TOTAL = 5;
+
+function computeSizedBodyViewportHeightPx(
+  scrollBodyMaxRows,
+  scrollBodyRowHeightPx,
+  scrollBodyHeightExtraPx,
+) {
+  return (
+    scrollBodyMaxRows * scrollBodyRowHeightPx +
+    scrollBodyHeightExtraPx +
+    SCROLL_VIEWPORT_SLACK_PX +
+    Math.max(0, scrollBodyMaxRows - 1) * TABLE_BODY_ROW_SEPARATOR_PX
+  );
+}
 
 export function EnhancedDataTable({
   columns,
@@ -464,19 +478,26 @@ export function EnhancedDataTable({
     scrollBodyMaxRows != null &&
     (scrollBodyAlwaysSized || pageBodyRowCount > scrollBodyMaxRows);
 
-  const tableScrollMaxHeightPx = shouldApplyBodyScrollCap
-    ? scrollTableHeaderHeightPx +
-      scrollBodyMaxRows * scrollBodyRowHeightPx +
-      SCROLL_VIEWPORT_SLACK_PX +
-      scrollBodyHeightExtraPx
-    : null;
+  const sizedBodyViewportHeightPx =
+    shouldApplyBodyScrollCap && scrollBodyMaxRows != null
+      ? computeSizedBodyViewportHeightPx(
+          scrollBodyMaxRows,
+          scrollBodyRowHeightPx,
+          scrollBodyHeightExtraPx,
+        )
+      : null;
+
+  const tableScrollMaxHeightPx =
+    shouldApplyBodyScrollCap && sizedBodyViewportHeightPx != null
+      ? scrollTableHeaderHeightPx + sizedBodyViewportHeightPx
+      : null;
 
   const tableContainerStyle =
     tableScrollMaxHeightPx == null ? undefined : { maxHeight: tableScrollMaxHeightPx };
 
   const emptyTableBodyMinHeightPx =
-    !loading && table.getRowModel().rows.length === 0 && shouldApplyBodyScrollCap
-      ? scrollBodyMaxRows * scrollBodyRowHeightPx + scrollBodyHeightExtraPx + SCROLL_VIEWPORT_SLACK_PX
+    !loading && table.getRowModel().rows.length === 0 && sizedBodyViewportHeightPx != null
+      ? sizedBodyViewportHeightPx
       : null;
 
   const useFixedBodyRowMetrics = lockColumnWidths;
@@ -605,7 +626,10 @@ export function EnhancedDataTable({
               className={cn(emptyTableBodyMinHeightPx == null && "h-48")}
               style={
                 emptyTableBodyMinHeightPx != null
-                  ? { minHeight: emptyTableBodyMinHeightPx }
+                  ? {
+                      height: emptyTableBodyMinHeightPx,
+                      minHeight: emptyTableBodyMinHeightPx,
+                    }
                   : undefined
               }
             >
@@ -613,9 +637,13 @@ export function EnhancedDataTable({
                 message={emptyMessage || t("common.noData") || "No data"}
                 subMessage={emptySubMessage}
                 onRetry={onRetry}
-                size={emptyTableBodyMinHeightPx != null ? emptyPlaceholderSize : "sm"}
+                size={emptyTableBodyMinHeightPx != null ? "xs" : emptyPlaceholderSize}
                 fullWidth
-                className={emptyTableBodyMinHeightPx != null ? "min-h-[min(100%,18rem)]" : undefined}
+                className={
+                  emptyTableBodyMinHeightPx != null
+                    ? "h-full min-h-0 justify-center border-border bg-background"
+                    : undefined
+                }
               />
             </TableCell>
           </TableRow>

@@ -9,7 +9,7 @@ export function useBillList(options = {}) {
     fetchAction: fetchBillsAction,
     selector: selectBillList,
     searchFields: BILL_SEARCH_FIELDS,
-    defaultSort: { field: "dueDate", order: "asc" },
+    defaultSort: { field: "date", order: "asc" },
     transformItem: toListItem,
     ...options,
   });

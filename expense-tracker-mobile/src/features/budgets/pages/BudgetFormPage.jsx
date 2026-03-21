@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { Input } from "@/shared/components/app-shadcn";
-import { Skeleton } from "@/shared/components/app-shadcn";
 import {
   ExpenseFormShell,
   ExpenseFormRow,
@@ -13,6 +12,7 @@ import {
   ExpenseThemedCommentField,
 } from "@/features/expenses/components";
 import { useBudgetForm } from "../hooks/useBudgetForm";
+import { BudgetFormPageSkeleton } from "../components/BudgetFormPageSkeleton";
 import { ExpenseSelectionTable } from "../components/ExpenseSelectionTable";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
 import { toast } from "sonner";
@@ -129,7 +129,9 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
               value={formData.startDate}
               onChange={(nextDate) => {
                 handleChange("startDate", nextDate);
-                if (showTable) refreshLinkedExpenses(nextDate, formData.endDate);
+                if (showTable && !isCreateMode) {
+                  refreshLinkedExpenses(nextDate, formData.endDate);
+                }
               }}
               dateFormat="DD/MM/YYYY"
               error={Boolean(errors.startDate)}
@@ -150,7 +152,9 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
               value={formData.endDate}
               onChange={(nextDate) => {
                 handleChange("endDate", nextDate);
-                if (showTable) refreshLinkedExpenses(formData.startDate, nextDate);
+                if (showTable && !isCreateMode) {
+                  refreshLinkedExpenses(formData.startDate, nextDate);
+                }
               }}
               dateFormat="DD/MM/YYYY"
               error={Boolean(errors.endDate)}

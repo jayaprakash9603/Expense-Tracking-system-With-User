@@ -30,12 +30,19 @@ export async function tryDemoBillRoutes(ctx) {
     const row = {
       id,
       name: body.name || body.title || body.billName || "Bill",
+      description: body.description || "",
       amount: Number(body.amount || 0),
-      dueDate: body.dueDate || new Date().toISOString().split("T")[0],
+      date: body.date || body.billDate || new Date().toISOString().split("T")[0],
+      dueDate: body.date || body.dueDate || new Date().toISOString().split("T")[0],
+      type: body.type || "loss",
+      paymentMethod: body.paymentMethod || "cash",
+      netAmount: Number(body.netAmount ?? body.amount ?? 0),
+      creditDue: Number(body.creditDue ?? 0),
+      categoryId: body.categoryId ?? 0,
+      includeInBudget: Boolean(body.includeInBudget),
       status: body.status || "PENDING",
-      category: body.category || "",
-      notes: body.notes || "",
-      budgetId: body.budgetId || "",
+      expenses: Array.isArray(body.expenses) ? body.expenses : [],
+      budgetIds: Array.isArray(body.budgetIds) ? body.budgetIds : [],
     };
     store.bills = [row, ...store.bills];
     saveDemoStore(store);

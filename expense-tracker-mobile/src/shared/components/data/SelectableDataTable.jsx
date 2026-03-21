@@ -16,7 +16,6 @@ export function SelectableDataTable({
   emptyMessage,
   tableClassName,
   className,
-  renderEmpty,
 }) {
   const rowSelectionState = useMemo(
     () =>
@@ -47,10 +46,6 @@ export function SelectableDataTable({
     [onSelectionChange, typedIdByKey],
   );
 
-  if (renderEmpty && !loading && !data.length) {
-    return renderEmpty();
-  }
-
   return (
     <EnhancedDataTable
       columns={columns}
@@ -59,6 +54,7 @@ export function SelectableDataTable({
       selectable
       enableColumnFilters
       showPagination
+      scrollBodyAlwaysSized
       rowSelectionState={rowSelectionState}
       onRowSelectionStateChange={handleRowSelectionStateChange}
       getRowId={(row, index) => String(row?.id ?? index)}

@@ -606,7 +606,7 @@ export const ROUTE_CATALOG = [
   {
     path: "/bills/add",
     key: "bills-add",
-    titleKey: "navigation.bills",
+    titleKey: "billForm.create.title",
     guard: "protected",
     navGroup: null,
     navIcon: null,
@@ -616,7 +616,7 @@ export const ROUTE_CATALOG = [
   {
     path: "/bills/edit/:id",
     key: "bills-edit",
-    titleKey: "common.edit",
+    titleKey: "billForm.edit.title",
     guard: "protected",
     navGroup: null,
     navIcon: null,

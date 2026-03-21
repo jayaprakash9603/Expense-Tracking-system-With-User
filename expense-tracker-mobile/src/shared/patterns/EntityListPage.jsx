@@ -16,9 +16,11 @@ export function EntityListPage({
   renderItem,
   emptyState = {},
   fab = null,
+  emptyAction = null,
   filters = null,
   sortOptions = [],
   headerActions = null,
+  floatingSlot = null,
   className,
 }) {
   const { t } = useLanguage();
@@ -84,9 +86,11 @@ export function EntityListPage({
           title={emptyState.title || t("common.emptyState.noItemsYet")}
           description={emptyState.description || t("common.emptyState.getStarted")}
           action={
-            fab
-              ? { label: emptyState.actionLabel || t("common.emptyState.addNew"), onClick: fab.onPress }
-              : undefined
+            emptyAction
+              ? { label: emptyAction.label, onClick: emptyAction.onClick }
+              : fab
+                ? { label: emptyState.actionLabel || t("common.emptyState.addNew"), onClick: fab.onPress }
+                : undefined
           }
         />
       )}
@@ -121,6 +125,7 @@ export function EntityListPage({
           {fab.icon ? <AppIcon icon={fab.icon} color="inherit" size="lg" /> : <AppIcon icon={Plus} color="inherit" size="lg" />}
         </AppButton>
       )}
+      {floatingSlot}
     </PageContainer>
   );
 }
