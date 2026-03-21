@@ -9,6 +9,25 @@ const LOSS_COLOR = "hsl(0, 84%, 60%)";
 const GAIN_COLOR = "hsl(142, 71%, 45%)";
 const CREDIT_LABEL_PATTERN = /credit|loan|emi|bnpl/i;
 
+const CHART_LABEL_KEYS = {
+  expense: "chart.labels.expense",
+  income: "chart.labels.income",
+  transactions: "chart.labels.transactions",
+};
+
+const CHART_LABEL_FALLBACK = {
+  expense: "Expense",
+  income: "Income",
+  transactions: "Transactions",
+};
+
+function resolveChartLabel(translate, kind) {
+  if (typeof translate === "function") {
+    return translate(CHART_LABEL_KEYS[kind]);
+  }
+  return CHART_LABEL_FALLBACK[kind];
+}
+
 export function rawCashflowBuckets(apiData) {
   if (!apiData) return [];
   if (Array.isArray(apiData)) return apiData;
@@ -72,12 +91,12 @@ function countMatchingExpenses(bucket, flowType) {
   return n;
 }
 
-export function cashflowApiToAreaChartModel(apiData, flowType) {
+export function cashflowApiToAreaChartModel(apiData, flowType, translate) {
   const rawBuckets = rawCashflowBuckets(apiData);
   if (!rawBuckets.length) {
     return {
       data: [],
-      config: { expense: { label: "Expense", color: LOSS_COLOR } },
+      config: { expense: { label: resolveChartLabel(translate, "expense"), color: LOSS_COLOR } },
       dataKeys: ["expense"],
     };
   }
@@ -93,7 +112,7 @@ export function cashflowApiToAreaChartModel(apiData, flowType) {
     const data = rows.map((r) => ({ date: r.date, expense: r.income, expenses: r.expenses }));
     return {
       data,
-      config: { expense: { label: "Income", color: GAIN_COLOR } },
+      config: { expense: { label: resolveChartLabel(translate, "income"), color: GAIN_COLOR } },
       dataKeys: ["expense"],
     };
   }
@@ -102,7 +121,7 @@ export function cashflowApiToAreaChartModel(apiData, flowType) {
     const data = rows.map((r) => ({ date: r.date, expense: r.expense, expenses: r.expenses }));
     return {
       data,
-      config: { expense: { label: "Expense", color: LOSS_COLOR } },
+      config: { expense: { label: resolveChartLabel(translate, "expense"), color: LOSS_COLOR } },
       dataKeys: ["expense"],
     };
   }
@@ -116,19 +135,19 @@ export function cashflowApiToAreaChartModel(apiData, flowType) {
   return {
     data,
     config: {
-      expense: { label: "Expense", color: LOSS_COLOR },
-      income: { label: "Income", color: GAIN_COLOR },
+      expense: { label: resolveChartLabel(translate, "expense"), color: LOSS_COLOR },
+      income: { label: resolveChartLabel(translate, "income"), color: GAIN_COLOR },
     },
     dataKeys: ["expense", "income"],
   };
 }
 
-export function cashflowApiToCountChartModel(apiData, flowType) {
+export function cashflowApiToCountChartModel(apiData, flowType, translate) {
   const rawBuckets = rawCashflowBuckets(apiData);
   if (!rawBuckets.length) {
     return {
       data: [],
-      config: { count: { label: "Transactions", color: LOSS_COLOR } },
+      config: { count: { label: resolveChartLabel(translate, "transactions"), color: LOSS_COLOR } },
       dataKeys: ["count"],
     };
   }
@@ -139,7 +158,7 @@ export function cashflowApiToCountChartModel(apiData, flowType) {
   });
   return {
     data: rows,
-    config: { count: { label: "Transactions", color: LOSS_COLOR } },
+    config: { count: { label: resolveChartLabel(translate, "transactions"), color: LOSS_COLOR } },
     dataKeys: ["count"],
   };
 }

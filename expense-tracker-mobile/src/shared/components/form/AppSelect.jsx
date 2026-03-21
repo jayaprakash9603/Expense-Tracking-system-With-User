@@ -8,13 +8,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function AppSelect({
   label,
   value,
   onChange,
   options = [],
-  placeholder = "Select...",
+  placeholder,
   placeholderOption,
   error,
   disabled = false,
@@ -23,6 +24,8 @@ export function AppSelect({
   triggerClassName,
   name,
 }) {
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder ?? t("common.select");
   return (
     <div className={cn("space-y-1.5", className)}>
       {label && (
@@ -40,7 +43,7 @@ export function AppSelect({
             triggerClassName
           )}
         >
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={resolvedPlaceholder} />
         </SelectTrigger>
         <SelectContent>
           {placeholderOption ? (

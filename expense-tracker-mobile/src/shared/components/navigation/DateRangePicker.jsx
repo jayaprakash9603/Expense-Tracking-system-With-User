@@ -20,15 +20,6 @@ const SHORTCUTS = [
   { labelKey: "dateRange.lastYear", getValue: () => ({ from: dayjs().subtract(1, "year").startOf("year").toDate(), to: dayjs().subtract(1, "year").endOf("year").toDate() }) },
 ];
 
-const SHORTCUT_FALLBACK_LABELS = {
-  "dateRange.yesterday": "Yesterday",
-  "dateRange.last7Days": "Last 7 days",
-  "dateRange.last30Days": "Last 30 days",
-  "dateRange.last3Months": "Last 3 months",
-  "dateRange.yearToDate": "Year to date",
-  "dateRange.lastYear": "Last year",
-};
-
 function useWideScreenCalendar() {
   const [wide, setWide] = useState(() =>
     typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false,
@@ -188,7 +179,7 @@ export function DateRangePicker({
                   "hover:bg-accent hover:text-accent-foreground transition-colors",
                 )}
               >
-                {t(shortcut.labelKey) || SHORTCUT_FALLBACK_LABELS[shortcut.labelKey]}
+                {t(shortcut.labelKey)}
               </button>
             ))}
           </div>
@@ -202,14 +193,14 @@ export function DateRangePicker({
           </p>
           <div className="flex justify-end gap-2">
             <AppButton variant="ghost" size="sm" onClick={handleCancel}>
-              {t("common.cancel") || "Cancel"}
+              {t("common.cancel")}
             </AppButton>
             <AppButton
               size="sm"
               onClick={handleApply}
               disabled={!range.from || !range.to}
             >
-              {t("common.apply") || "Apply"}
+              {t("common.apply")}
             </AppButton>
           </div>
         </div>

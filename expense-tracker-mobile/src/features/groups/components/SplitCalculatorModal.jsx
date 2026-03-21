@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { AppDialog } from "@/shared/components/overlay/AppDialog";
 import { AppInput } from "@/shared/components/form/AppInput";
 import { AppButton } from "@/shared/components/form/AppButton";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function toNumber(value) {
   const parsed = Number(value);
@@ -12,6 +13,7 @@ function toNumber(value) {
  * @param {{open: boolean, onOpenChange: (next: boolean) => void, members: Array<{id: string|number, name: string}>, amount: number, onApply?: (splits: Array<{memberId: string|number, amount: number}>) => void}} props
  */
 export function SplitCalculatorModal({ open, onOpenChange, members = [], amount = 0, onApply }) {
+  const { t } = useLanguage();
   const [mode, setMode] = useState("equal");
   const [customValues, setCustomValues] = useState({});
 
@@ -35,12 +37,12 @@ export function SplitCalculatorModal({ open, onOpenChange, members = [], amount 
     <AppDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Split Calculator"
-      description="Calculate equal or custom split amounts for group expenses"
+      title={t("groups.splitCalculator.title")}
+      description={t("groups.splitCalculator.description")}
       footer={
         <div className="flex w-full justify-end gap-2">
           <AppButton intent="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t("groups.splitCalculator.cancel")}
           </AppButton>
           <AppButton
             onClick={() => {
@@ -48,7 +50,7 @@ export function SplitCalculatorModal({ open, onOpenChange, members = [], amount 
               onOpenChange(false);
             }}
           >
-            Apply Split
+            {t("groups.splitCalculator.applySplit")}
           </AppButton>
         </div>
       }
@@ -59,13 +61,13 @@ export function SplitCalculatorModal({ open, onOpenChange, members = [], amount 
             intent={mode === "equal" ? "primary" : "secondary"}
             onClick={() => setMode("equal")}
           >
-            Equal
+            {t("groups.splitCalculator.equal")}
           </AppButton>
           <AppButton
             intent={mode === "custom" ? "primary" : "secondary"}
             onClick={() => setMode("custom")}
           >
-            Custom
+            {t("groups.splitCalculator.custom")}
           </AppButton>
         </div>
 

@@ -3,12 +3,14 @@ import { CornerDownLeft, Keyboard, Sparkles } from "lucide-react";
 import { useCommandPalette } from "../hooks/useCommandPalette";
 import { SearchInput } from "./SearchInput";
 import { ResultList } from "./ResultList";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function getPreviewIcon(icon) {
   return typeof icon === "string" && icon.trim() ? icon : "➡️";
 }
 
 export function CommandPalette({ currentRoute, onNavigate, baseActions = [], searchRemote }) {
+  const { t } = useLanguage();
   const {
     isOpen,
     query,
@@ -44,7 +46,7 @@ export function CommandPalette({ currentRoute, onNavigate, baseActions = [], sea
           canGoBack={stackDepth > 1}
           onQueryChange={setQuery}
           onGoBack={goBackLevel}
-          placeholder="Search navigation, actions, settings, or users..."
+          placeholder={t("commandPalette.searchPlaceholder")}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-[1.35fr_0.85fr]">
@@ -72,36 +74,41 @@ export function CommandPalette({ currentRoute, onNavigate, baseActions = [], sea
 
                 <div className="rounded-xl border border-border/60 bg-background p-3 text-xs text-muted-foreground">
                   <p className="mb-2 flex items-center gap-1.5 font-medium text-foreground">
-                    <Sparkles className="h-3.5 w-3.5" /> Command Preview
+                    <Sparkles className="h-3.5 w-3.5" /> {t("commandPalette.commandPreview")}
                   </p>
                   {selectedAction.route ? (
                     <p className="mb-1">
-                      Route:{" "}
+                      {t("commandPalette.routePrefix")}{" "}
                       <span className="font-mono text-foreground">{selectedAction.route}</span>
                     </p>
                   ) : null}
-                  <p>Priority: {selectedAction.priority}</p>
-                  <p>Keywords: {selectedAction.keywords?.slice(0, 4).join(", ")}</p>
+                  <p>
+                    {t("commandPalette.priorityPrefix")} {selectedAction.priority}
+                  </p>
+                  <p>
+                    {t("commandPalette.keywordsPrefix")}{" "}
+                    {selectedAction.keywords?.slice(0, 4).join(", ")}
+                  </p>
                 </div>
 
                 <div className="space-y-1 text-xs text-muted-foreground">
                   <p className="flex items-center gap-2">
-                    <Keyboard className="h-3.5 w-3.5" /> ↑/↓ Navigate
+                    <Keyboard className="h-3.5 w-3.5" /> {t("commandPalette.navigateHint")}
                   </p>
                   <p className="flex items-center gap-2">
-                    <CornerDownLeft className="h-3.5 w-3.5" /> Enter Execute
+                    <CornerDownLeft className="h-3.5 w-3.5" /> {t("commandPalette.executeHint")}
                   </p>
                   <p className="flex items-center gap-2">
-                    <span className="font-mono">Esc</span> Close palette
+                    <span className="font-mono">Esc</span> {t("commandPalette.closePaletteHint")}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="space-y-3 text-xs text-muted-foreground">
                 <p className="text-sm font-medium text-foreground">{currentLevel.title}</p>
-                <p>Use arrow keys to navigate and press Enter to execute.</p>
+                <p>{t("commandPalette.useArrowKeys")}</p>
                 <p>
-                  Categories visible:{" "}
+                  {t("commandPalette.categoriesVisible")}{" "}
                   {Object.values(categoryCount).reduce((acc, value) => acc + value, 0)}
                 </p>
               </div>
@@ -115,9 +122,9 @@ export function CommandPalette({ currentRoute, onNavigate, baseActions = [], sea
             <span className="rounded bg-background px-1.5 py-0.5 font-mono">/</span>
             <span className="rounded bg-background px-1.5 py-0.5 font-mono">Tab</span>
             <span className="rounded bg-background px-1.5 py-0.5 font-mono">Esc</span>
-            <span className="hidden sm:inline">Backspace on empty query to go back</span>
+            <span className="hidden sm:inline">{t("commandPalette.footerShortcutHint")}</span>
           </div>
-          <span className="font-medium">Notion-style command palette</span>
+          <span className="font-medium">{t("commandPalette.footerBrand")}</span>
         </footer>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { PageContainer } from "@/shared/components/PageContainer";
 import { ContentSection } from "@/shared/components/ContentSection";
 import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function EntityFlowPage({
   title,
@@ -10,6 +11,7 @@ export function EntityFlowPage({
   listComponent,
   className,
 }) {
+  const { t } = useLanguage();
   return (
     <PageContainer className={cn("space-y-6", className)}>
       <h1 className="text-xl font-bold md:text-2xl">{title}</h1>
@@ -23,7 +25,7 @@ export function EntityFlowPage({
       )}
 
       {charts.length > 0 && (
-        <ContentSection title="Analytics">
+        <ContentSection title={t("common.analytics")}>
           <ResponsiveGrid preset="cards">
             {charts.map((chart, i) => (
               <div key={i}>{chart}</div>
@@ -33,7 +35,7 @@ export function EntityFlowPage({
       )}
 
       {listComponent && (
-        <ContentSection title="Recent Activity">
+        <ContentSection title={t("common.recentActivity")}>
           {listComponent}
         </ContentSection>
       )}

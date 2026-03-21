@@ -14,93 +14,69 @@ function formatNumber(value) {
   return amount.toLocaleString();
 }
 
-function resolveText(t, key, fallback) {
-  const translated = t?.(key);
-  if (!translated || translated === key) return fallback;
-  return translated;
-}
-
 export function useBudgetTableConfig(data = [], t) {
   const rows = useMemo(() => (Array.isArray(data) ? data : []), [data]);
-
-  const nameLabel = resolveText(t, "common.name", "Name");
-  const descriptionLabel = resolveText(
-    t,
-    "expenses.description",
-    "Description",
-  );
-  const startDateLabel = resolveText(t, "tableFilters.startDate", "Start Date");
-  const endDateLabel = resolveText(t, "tableFilters.endDate", "End Date");
-  const remainingLabel = resolveText(t, "budget.remaining", "Remaining");
-  const totalLabel = resolveText(t, "tableFilters.total", "Total");
 
   const columns = useMemo(
     () => [
       {
         id: "name",
         accessorKey: "name",
-        header: nameLabel,
+        header: t("common.name"),
         enableSorting: true,
         size: 220,
-        meta: { filterType: "text", filterLabel: nameLabel },
+        meta: { filterType: "text", filterLabel: t("common.name") },
       },
       {
         id: "description",
         accessorKey: "description",
-        header: descriptionLabel,
+        header: t("expenses.description"),
         enableSorting: true,
         size: 260,
-        meta: { filterType: "text", filterLabel: descriptionLabel },
+        meta: { filterType: "text", filterLabel: t("expenses.description") },
         cell: ({ getValue }) => getValue() || "-",
       },
       {
         id: "startDate",
         accessorKey: "startDate",
-        header: startDateLabel,
+        header: t("tableFilters.startDate"),
         enableSorting: true,
         size: 170,
-        meta: { filterType: "date", filterLabel: startDateLabel },
+        meta: { filterType: "date", filterLabel: t("tableFilters.startDate") },
         cell: ({ getValue }) => formatDate(getValue()),
       },
       {
         id: "endDate",
         accessorKey: "endDate",
-        header: endDateLabel,
+        header: t("tableFilters.endDate"),
         enableSorting: true,
         size: 170,
-        meta: { filterType: "date", filterLabel: endDateLabel },
+        meta: { filterType: "date", filterLabel: t("tableFilters.endDate") },
         cell: ({ getValue }) => formatDate(getValue()),
       },
       {
         id: "remainingAmount",
         accessorFn: (row) =>
           (Number(row.amount) || 0) - (Number(row.spentAmount) || 0),
-        header: remainingLabel,
+        header: t("budget.remaining"),
         enableSorting: true,
         size: 170,
-        meta: { filterType: "number", filterLabel: remainingLabel },
+        meta: { filterType: "number", filterLabel: t("budget.remaining") },
         sortingFn: "basic",
         cell: ({ getValue }) => formatNumber(getValue()),
       },
       {
         id: "amount",
         accessorKey: "amount",
-        header: totalLabel,
+        header: t("tableFilters.total"),
         enableSorting: true,
         size: 150,
-        meta: { filterType: "number", filterLabel: totalLabel },
+        meta: { filterType: "number", filterLabel: t("tableFilters.total") },
         sortingFn: "basic",
         cell: ({ getValue }) => formatNumber(getValue()),
       },
     ],
-    [
-      descriptionLabel,
-      endDateLabel,
-      nameLabel,
-      remainingLabel,
-      startDateLabel,
-      totalLabel,
-    ],
+    [t],
   );
 
   return {

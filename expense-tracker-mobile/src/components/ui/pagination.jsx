@@ -3,12 +3,14 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function Pagination({ className, ...props }) {
+  const { t } = useLanguage();
   return (
     <nav
       role="navigation"
-      aria-label="pagination"
+      aria-label={t("common.aria.pagination")}
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
     />
@@ -47,35 +49,42 @@ const PaginationLink = React.forwardRef(
 );
 PaginationLink.displayName = "PaginationLink";
 
-const PaginationPrevious = React.forwardRef(({ className, ...props }, ref) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    size="default"
-    className={cn("gap-1 pl-2.5", className)}
-    ref={ref}
-    {...props}
-  >
-    <ChevronLeft className="h-4 w-4" />
-    <span>Previous</span>
-  </PaginationLink>
-));
+const PaginationPrevious = React.forwardRef(({ className, ...props }, ref) => {
+  const { t } = useLanguage();
+  return (
+    <PaginationLink
+      aria-label={t("common.aria.goToPreviousPage")}
+      size="default"
+      className={cn("gap-1 pl-2.5", className)}
+      ref={ref}
+      {...props}
+    >
+      <ChevronLeft className="h-4 w-4" />
+      <span>{t("common.previous")}</span>
+    </PaginationLink>
+  );
+});
 PaginationPrevious.displayName = "PaginationPrevious";
 
-const PaginationNext = React.forwardRef(({ className, ...props }, ref) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    size="default"
-    className={cn("gap-1 pr-2.5", className)}
-    ref={ref}
-    {...props}
-  >
-    <span>Next</span>
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-));
+const PaginationNext = React.forwardRef(({ className, ...props }, ref) => {
+  const { t } = useLanguage();
+  return (
+    <PaginationLink
+      aria-label={t("common.aria.goToNextPage")}
+      size="default"
+      className={cn("gap-1 pr-2.5", className)}
+      ref={ref}
+      {...props}
+    >
+      <span>{t("common.next")}</span>
+      <ChevronRight className="h-4 w-4" />
+    </PaginationLink>
+  );
+});
 PaginationNext.displayName = "PaginationNext";
 
 function PaginationEllipsis({ className, ...props }) {
+  const { t } = useLanguage();
   return (
     <span
       aria-hidden
@@ -83,7 +92,7 @@ function PaginationEllipsis({ className, ...props }) {
       {...props}
     >
       <MoreHorizontal className="h-4 w-4" />
-      <span className="sr-only">More pages</span>
+      <span className="sr-only">{t("common.aria.morePages")}</span>
     </span>
   );
 }

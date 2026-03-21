@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { expenseApi } from "@/infrastructure/api";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import {
   cashflowApiToAreaChartModel,
   categoryApiToPieModel,
@@ -74,6 +75,7 @@ export function useExpenseReportApiData({
   paymentTimeframe,
   paymentFlowType,
 }) {
+  const { t } = useLanguage();
   const [error, setError] = useState(null);
   const [categoryRaw, setCategoryRaw] = useState(null);
   const [paymentRaw, setPaymentRaw] = useState(null);
@@ -241,8 +243,8 @@ export function useExpenseReportApiData({
   }, [payParams]);
 
   const areaModelBase = useMemo(
-    () => cashflowApiToAreaChartModel(cashflowRaw, dailyApiKind),
-    [cashflowRaw, dailyApiKind],
+    () => cashflowApiToAreaChartModel(cashflowRaw, dailyApiKind, t),
+    [cashflowRaw, dailyApiKind, t],
   );
 
   const dailySpending = useMemo(

@@ -25,7 +25,7 @@ const completeLoginWithJwt = async (dispatch, jwt) => {
   if (!profileResult?.success) {
     return {
       success: false,
-      message: profileResult?.error?.message || "Failed to load profile after login.",
+      message: profileResult?.error?.message || "auth.errors.profileLoadFailed",
     };
   }
 
@@ -46,7 +46,7 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   );
 
   if (error) {
-    const errorMessage = error.message || "Login failed. Please try again.";
+    const errorMessage = error.message || "auth.errors.loginFailed";
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return { success: false, message: errorMessage };
   }
@@ -73,8 +73,8 @@ export const loginUserAction = (loginData) => async (dispatch) => {
   }
 
   if (!data?.jwt) {
-    dispatch({ type: LOGIN_FAILURE, payload: "Login failed. Please try again." });
-    return { success: false, message: "Login failed. Please try again." };
+    dispatch({ type: LOGIN_FAILURE, payload: "auth.errors.loginFailed" });
+    return { success: false, message: "auth.errors.loginFailed" };
   }
 
   return await completeLoginWithJwt(dispatch, data.jwt);
@@ -88,7 +88,7 @@ export const registerUserAction = (loginData) => async (dispatch) => {
   );
 
   if (error) {
-    const message = error.message || "Registration failed.";
+    const message = error.message || "auth.errors.registrationFailed";
     dispatch({ type: LOGIN_FAILURE, payload: message });
     return { success: false, message };
   }
@@ -126,7 +126,7 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
   );
 
   if (error || !data?.jwt) {
-    const errorMessage = error?.message || "Google authentication failed.";
+    const errorMessage = error?.message || "auth.errors.googleAuthFailed";
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return { success: false, message: errorMessage };
   }
@@ -142,7 +142,7 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
   );
 
   if (error || !data?.jwt) {
-    const errorMessage = error?.message || data?.message || "OTP verification failed.";
+    const errorMessage = error?.message || data?.message || "auth.errors.otpVerificationFailed";
     dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
     return { success: false, message: errorMessage };
   }

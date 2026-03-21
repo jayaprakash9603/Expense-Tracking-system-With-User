@@ -13,7 +13,7 @@ export function useStandardExpenseColumns(options = {}) {
     const cols = [
       {
         key: "date",
-        label: t("expenses.columns.date") || "Date",
+        label: t("expenses.columns.date"),
         meta: { filterType: "date" },
         sortable: true,
         width: "100px",
@@ -26,7 +26,7 @@ export function useStandardExpenseColumns(options = {}) {
       },
       {
         key: "categoryName",
-        label: t("expenses.columns.category") || "Category",
+        label: t("expenses.columns.category"),
         meta: { filterType: "text" },
         sortable: true,
         width: "15%",
@@ -35,7 +35,7 @@ export function useStandardExpenseColumns(options = {}) {
       },
       {
         key: "expenseName",
-        label: t("expenses.columns.name") || "Expense Name",
+        label: t("expenses.columns.name"),
         meta: { filterType: "text" },
         sortable: true,
         width: "230px",
@@ -48,7 +48,7 @@ export function useStandardExpenseColumns(options = {}) {
       },
       {
         key: "amount",
-        label: t("expenses.columns.amount") || "Amount",
+        label: t("expenses.columns.amount"),
         meta: { filterType: "number" },
         sortable: true,
         width: "100px",
@@ -75,7 +75,7 @@ export function useStandardExpenseColumns(options = {}) {
     if (options.includeNet) {
       cols.push({
         key: "netAmount",
-        label: t("expenses.columns.netAmount") || "Net Amount",
+        label: t("expenses.columns.netAmount"),
         meta: { filterType: "number" },
         width: "100px",
         sortable: true,
@@ -99,7 +99,7 @@ export function useStandardExpenseColumns(options = {}) {
     if (options.includeCredit) {
       cols.push({
         key: "creditDue",
-        label: t("expenses.columns.creditDue") || "Credit Due",
+        label: t("expenses.columns.creditDue"),
         meta: { filterType: "number" },
         width: "110px",
         sortable: true,
@@ -117,7 +117,7 @@ export function useStandardExpenseColumns(options = {}) {
 
     cols.push({
       key: "comments",
-      label: t("expenses.columns.comments") || "Comments",
+      label: t("expenses.columns.comments"),
       meta: { filterType: "text" },
       sortable: true,
       width: "240px",

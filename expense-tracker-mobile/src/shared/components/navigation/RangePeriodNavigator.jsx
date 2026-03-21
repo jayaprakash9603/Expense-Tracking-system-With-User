@@ -33,7 +33,7 @@ export function RangePeriodNavigator({
             className="gap-1.5"
           >
             <AppIcon icon={ArrowLeft} size="sm" />
-            {t("common.back") || "Back"}
+            {t("common.back")}
           </AppButton>
         )}
 
@@ -72,7 +72,7 @@ export function RangePeriodNavigator({
               ? "opacity-40 cursor-not-allowed bg-muted"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
-          aria-label={t("common.previous") || "Previous"}
+          aria-label={t("common.previous")}
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -91,7 +91,7 @@ export function RangePeriodNavigator({
               ? "opacity-40 cursor-not-allowed bg-muted"
               : "bg-primary text-primary-foreground hover:bg-primary/90"
           )}
-          aria-label={t("common.next") || "Next"}
+          aria-label={t("common.next")}
         >
           <ChevronRight className="h-5 w-5" />
         </button>

@@ -18,31 +18,17 @@ import {
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
-const FILTER_OPERATORS = {
-  text: [
-    { value: "contains", label: "Contains" },
-    { value: "notContains", label: "Not Contains" },
-    { value: "equals", label: "Equals" },
-    { value: "startsWith", label: "Starts With" },
-    { value: "endsWith", label: "Ends With" },
-    { value: "neq", label: "Not Equal" },
-  ],
-  number: [
-    { value: "equals", label: "Equals" },
-    { value: "gt", label: "Greater Than" },
-    { value: "lt", label: "Less Than" },
-    { value: "gte", label: "Greater or Equal" },
-    { value: "lte", label: "Less or Equal" },
-    { value: "neq", label: "Not Equal" },
-  ],
-  date: [
-    { value: "equals", label: "Is On" },
-    { value: "range", label: "Range" },
-    { value: "before", label: "Before" },
-    { value: "after", label: "After" },
-    { value: "neq", label: "Not On" },
-  ],
+const FILTER_OPERATOR_VALUES = {
+  text: ["contains", "notContains", "equals", "startsWith", "endsWith", "neq"],
+  number: ["equals", "gt", "lt", "gte", "lte", "neq"],
+  date: ["equals", "range", "before", "after", "neq"],
 };
+
+function getOperatorTranslationKey(filterType, value) {
+  if (filterType === "date" && value === "equals") return "tableFilters.operators.isOn";
+  if (filterType === "date" && value === "neq") return "tableFilters.operators.notOn";
+  return `tableFilters.operators.${value}`;
+}
 
 function getDefaultOperator(filterType) {
   if (filterType === "number") return "equals";
@@ -57,7 +43,7 @@ function getLocalized(t, key, fallback, variables) {
 }
 
 function getOperatorOptions(filterType) {
-  return FILTER_OPERATORS[filterType] || FILTER_OPERATORS.text;
+  return FILTER_OPERATOR_VALUES[filterType] || FILTER_OPERATOR_VALUES.text;
 }
 
 function normalizeDraft(filterType, filterValue) {
@@ -216,9 +202,9 @@ export function DataTableFilterPopover({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {operatorOptions.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
+                {operatorOptions.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {t(getOperatorTranslationKey(filterType, value))}
                   </SelectItem>
                 ))}
               </SelectContent>

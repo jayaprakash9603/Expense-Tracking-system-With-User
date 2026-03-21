@@ -1,11 +1,13 @@
 import React from "react";
 import { RoutePlaceholderPage } from "@/features/system/pages/RoutePlaceholderPage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function AdminDashboardPage() {
+  const { t } = useLanguage();
   return (
     <RoutePlaceholderPage
-      title="Admin Dashboard"
-      description="System metrics and governance controls are scaffolded for Phase 6 expansion."
+      title={t("admin.dashboard.title")}
+      description={t("admin.dashboard.description")}
     />
   );
 }

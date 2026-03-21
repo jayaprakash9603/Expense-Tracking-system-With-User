@@ -78,7 +78,7 @@ export function FilterSheet({
       <SheetContent side={isMobile ? "bottom" : "right"} className="flex flex-col">
         <SheetHeader>
           <SheetTitle>
-            {title || t("common.filter") || "Filters"}
+            {title || t("common.filters")}
             {activeCount > 0 && (
               <span className="ml-2 text-xs text-primary">({activeCount})</span>
             )}
@@ -108,7 +108,7 @@ export function FilterSheet({
                     "focus:outline-none focus:ring-2 focus:ring-ring"
                   )}
                 >
-                  <option value="">{filter.placeholder || "All"}</option>
+                  <option value="">{filter.placeholder || t("common.all")}</option>
                   {filter.options?.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -144,10 +144,10 @@ export function FilterSheet({
 
         <SheetFooter className="flex-row gap-2 pt-4 border-t">
           <AppButton variant="outline" onClick={handleReset} className="flex-1">
-            {t("common.reset") || "Reset"}
+            {t("common.reset")}
           </AppButton>
           <AppButton onClick={handleApply} className="flex-1">
-            {t("common.apply") || "Apply"}
+            {t("common.apply")}
           </AppButton>
         </SheetFooter>
       </SheetContent>

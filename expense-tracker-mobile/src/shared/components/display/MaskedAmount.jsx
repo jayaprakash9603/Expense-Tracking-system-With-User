@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useMasking } from "@/shared/hooks/settings/useMasking";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function MaskedAmount({
   amount,
@@ -12,6 +13,7 @@ export function MaskedAmount({
   className,
   showIcon = false,
 }) {
+  const { t } = useLanguage();
   const { formatMaskedAmount, isMasked } = useMasking();
 
   const displayValue = partial
@@ -30,7 +32,7 @@ export function MaskedAmount({
               </span>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Amount is masked for privacy</p>
+              <p>{t("common.maskedAmountPrivacy")}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -2,48 +2,54 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ArrowLeft, Home, Search } from "lucide-react";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 
-function buildContext({ isAdminMode, attemptedAdminRoute }) {
+function buildContext({ isAdminMode, attemptedAdminRoute, t }) {
   const defaultAdminRoute = "/admin/dashboard";
   const defaultUserRoute = "/dashboard";
 
   const adminQuickLinks = [
-    { label: "Admin Dashboard", path: defaultAdminRoute },
-    { label: "User Management", path: "/admin/users" },
-    { label: "System Analytics", path: "/admin/analytics" },
-    { label: "Audit Logs", path: "/admin/audit" },
+    { label: t("navigation.adminDashboard"), path: defaultAdminRoute },
+    { label: t("navigation.userManagement"), path: "/admin/users" },
+    { label: t("navigation.systemAnalytics"), path: "/admin/analytics" },
+    { label: t("navigation.auditLogs"), path: "/admin/audit" },
   ];
 
   const userQuickLinks = [
-    { label: "Dashboard", path: defaultUserRoute },
-    { label: "Expenses", path: "/expenses" },
-    { label: "Groups", path: "/groups" },
-    { label: "Friends", path: "/friends" },
+    { label: t("dashboard.title"), path: defaultUserRoute },
+    { label: t("navigation.expenses"), path: "/expenses" },
+    { label: t("navigation.groups"), path: "/groups" },
+    { label: t("navigation.friends"), path: "/friends" },
   ];
 
   if (isAdminMode && !attemptedAdminRoute) {
     return {
-      message:
-        "You are currently in Admin Mode, but the page you tried to open belongs to the user workspace.",
-      primaryCta: { label: "Open Admin Dashboard", path: defaultAdminRoute },
+      message: t("errors.notFound.messageAdminWrongWorkspace"),
+      primaryCta: {
+        label: t("errors.notFound.openAdminDashboard"),
+        path: defaultAdminRoute,
+      },
       quickLinks: adminQuickLinks,
     };
   }
 
   if (!isAdminMode && attemptedAdminRoute) {
     return {
-      message:
-        "This page is available only in Admin Mode. Switch back to your user workspace to continue.",
-      primaryCta: { label: "Return to User Dashboard", path: defaultUserRoute },
+      message: t("errors.notFound.messageUserAdminOnly"),
+      primaryCta: {
+        label: t("errors.notFound.returnUserDashboard"),
+        path: defaultUserRoute,
+      },
       quickLinks: userQuickLinks,
     };
   }
 
   return {
-    message:
-      "The page you are looking for does not exist. It may have moved, been deleted, or the URL is incorrect.",
+    message: t("errors.notFound.messageGeneric"),
     primaryCta: {
-      label: isAdminMode ? "Open Admin Dashboard" : "Go to Dashboard",
+      label: isAdminMode
+        ? t("errors.notFound.openAdminDashboard")
+        : t("errors.notFound.goToDashboard"),
       path: isAdminMode ? defaultAdminRoute : defaultUserRoute,
     },
     quickLinks: isAdminMode ? adminQuickLinks : userQuickLinks,
@@ -53,11 +59,16 @@ function buildContext({ isAdminMode, attemptedAdminRoute }) {
 export function NotFoundPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
 
   const isAdminMode = currentMode === "ADMIN";
   const attemptedAdminRoute = location.pathname?.startsWith("/admin");
-  const { message, primaryCta, quickLinks } = buildContext({ isAdminMode, attemptedAdminRoute });
+  const { message, primaryCta, quickLinks } = buildContext({
+    isAdminMode,
+    attemptedAdminRoute,
+    t,
+  });
 
   return (
     <div className="relative flex min-h-[calc(100dvh-64px)] w-full items-center justify-center overflow-hidden bg-background px-4 py-8 sm:px-6 lg:px-8">
@@ -74,15 +85,17 @@ export function NotFoundPage() {
         </div>
 
         <div className="text-center">
-          <p className="text-5xl font-extrabold tracking-tight text-primary sm:text-6xl">404</p>
+          <p className="text-5xl font-extrabold tracking-tight text-primary sm:text-6xl">
+            {t("errors.notFound.code")}
+          </p>
           <h1 className="mt-2 text-2xl font-semibold text-foreground sm:text-3xl">
-            Page Not Found
+            {t("errors.notFound.title")}
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
             {message}
           </p>
           <p className="mt-2 text-xs text-muted-foreground/80 sm:text-sm">
-            Attempted route: {location.pathname}
+            {t("errors.notFound.attemptedRoutePrefix")} {location.pathname}
           </p>
         </div>
 
@@ -102,12 +115,12 @@ export function NotFoundPage() {
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent"
           >
             <ArrowLeft className="h-4 w-4" />
-            Go Back
+            {t("errors.notFound.goBack")}
           </button>
         </div>
 
         <div className="mt-7 border-t border-border/60 pt-5 text-center">
-          <p className="text-sm text-muted-foreground">Try one of these popular pages:</p>
+          <p className="text-sm text-muted-foreground">{t("errors.notFound.popularPagesHint")}</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             {quickLinks.map((link) => (
               <button

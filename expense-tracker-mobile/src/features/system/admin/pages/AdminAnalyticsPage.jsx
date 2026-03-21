@@ -1,11 +1,13 @@
 import React from "react";
 import { RoutePlaceholderPage } from "@/features/system/pages/RoutePlaceholderPage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function AdminAnalyticsPage() {
+  const { t } = useLanguage();
   return (
     <RoutePlaceholderPage
-      title="Admin System Analytics"
-      description="System analytics dashboard structure is prepared for service integration."
+      title={t("admin.analytics.title")}
+      description={t("admin.analytics.description")}
     />
   );
 }

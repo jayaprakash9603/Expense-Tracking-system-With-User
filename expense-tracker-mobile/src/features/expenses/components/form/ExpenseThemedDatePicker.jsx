@@ -4,6 +4,7 @@ import { CalendarDays } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ExpenseThemedDatePicker({
   value,
@@ -16,6 +17,7 @@ export function ExpenseThemedDatePicker({
   height = 48,
   className,
 }) {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   const selectedDate = useMemo(() => {
@@ -58,7 +60,7 @@ export function ExpenseThemedDatePicker({
             className,
           )}
           style={{ height: `${height}px`, maxWidth: maxWidthValue }}
-          aria-label="Select date"
+          aria-label={t("common.aria.selectDate")}
         >
           <CalendarDays className="mr-2 h-4 w-4 text-primary" />
           <span className={cn("truncate", !displayValue && "text-muted-foreground")}>

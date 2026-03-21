@@ -7,10 +7,11 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { EmptyState } from "@/shared/components/feedback/EmptyState";
 import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function EntityListPage({
   title,
-  searchPlaceholder = "Search...",
+  searchPlaceholder,
   hook,
   renderItem,
   emptyState = {},
@@ -20,6 +21,8 @@ export function EntityListPage({
   headerActions = null,
   className,
 }) {
+  const { t } = useLanguage();
+  const resolvedSearchPlaceholder = searchPlaceholder ?? t("common.searchPlaceholderShort");
   const {
     items, loading, search, setSearch, sort, toggleSort, isEmpty, isSearchEmpty,
   } = hook;
@@ -56,7 +59,7 @@ export function EntityListPage({
         <div className="relative flex-1">
           <AppIcon icon={Search} color="muted" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2" />
           <AppInput
-            placeholder={searchPlaceholder}
+            placeholder={resolvedSearchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -78,11 +81,11 @@ export function EntityListPage({
       {isEmpty && (
         <EmptyState
           icon={emptyState.icon}
-          title={emptyState.title || "No items yet"}
-          description={emptyState.description || "Get started by adding your first item"}
+          title={emptyState.title || t("common.emptyState.noItemsYet")}
+          description={emptyState.description || t("common.emptyState.getStarted")}
           action={
             fab
-              ? { label: emptyState.actionLabel || "Add New", onClick: fab.onPress }
+              ? { label: emptyState.actionLabel || t("common.emptyState.addNew"), onClick: fab.onPress }
               : undefined
           }
         />
@@ -91,9 +94,9 @@ export function EntityListPage({
       {isSearchEmpty && (
         <EmptyState
           icon={Search}
-          title="No results found"
-          description={`No items match "${search}"`}
-          action={{ label: "Clear search", onClick: () => setSearch("") }}
+          title={t("common.noResults")}
+          description={t("common.emptyState.noMatch", { search })}
+          action={{ label: t("common.emptyState.clearSearch"), onClick: () => setSearch("") }}
         />
       )}
 

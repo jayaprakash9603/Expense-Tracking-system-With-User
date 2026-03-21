@@ -3,6 +3,7 @@ import { BarChart3, RefreshCw } from "lucide-react";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { AppButton } from "@/shared/components/form/AppButton";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const SIZE_HEIGHTS = {
   xs: "min-h-0",
@@ -13,16 +14,19 @@ const SIZE_HEIGHTS = {
 };
 
 export function NoDataPlaceholder({
-  message = "No data available",
+  message,
   subMessage,
   size = "md",
   onRetry,
-  actionLabel = "Retry",
+  actionLabel,
   icon: CustomIcon,
   dense = false,
   fullWidth = false,
   className,
 }) {
+  const { t } = useLanguage();
+  const resolvedMessage = message ?? t("common.noData");
+  const resolvedActionLabel = actionLabel ?? t("common.retry");
   const IconComponent = CustomIcon || BarChart3;
   const heightClass = SIZE_HEIGHTS[size] || SIZE_HEIGHTS.md;
   const iconSize = dense ? "md" : "xl";
@@ -43,7 +47,7 @@ export function NoDataPlaceholder({
         <AppIcon icon={IconComponent} size={iconSize} color="muted" />
       </div>
 
-      <p className={messageClass}>{message}</p>
+      <p className={messageClass}>{resolvedMessage}</p>
 
       {subMessage && (
         <p className="text-sm text-muted-foreground max-w-[360px]">{subMessage}</p>
@@ -56,7 +60,7 @@ export function NoDataPlaceholder({
           className={dense ? "mt-1" : "mt-2"}
         >
           <AppIcon icon={RefreshCw} size="xs" className="mr-1.5" />
-          {actionLabel}
+          {resolvedActionLabel}
         </AppButton>
       )}
     </div>

@@ -1,11 +1,13 @@
 import React from "react";
 import { RoutePlaceholderPage } from "@/features/system/pages/RoutePlaceholderPage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function AdminUsersPage() {
+  const { t } = useLanguage();
   return (
     <RoutePlaceholderPage
-      title="Admin User Management"
-      description="User governance scaffolding ready. Integrate list and role assignment flows in follow-up increments."
+      title={t("admin.users.title")}
+      description={t("admin.users.description")}
     />
   );
 }

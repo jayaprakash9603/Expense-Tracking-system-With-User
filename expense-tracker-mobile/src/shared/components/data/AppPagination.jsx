@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const NAV_BTN = "h-8 w-8";
 
@@ -47,7 +48,7 @@ function PageSizeSelect({ value, options, label, onChange, className, showLabel 
   );
 }
 
-function TablePageNav({ pageIndex, pageCount, setPageIndex }) {
+function TablePageNav({ pageIndex, pageCount, setPageIndex, aria }) {
   const lastPageIndex = Math.max(0, pageCount - 1);
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < lastPageIndex;
@@ -61,7 +62,7 @@ function TablePageNav({ pageIndex, pageCount, setPageIndex }) {
             variant="outline"
             size="icon"
             className={NAV_BTN}
-            aria-label="First page"
+            aria-label={aria.first}
             disabled={!canPrev}
             onClick={() => setPageIndex(0)}
           >
@@ -74,7 +75,7 @@ function TablePageNav({ pageIndex, pageCount, setPageIndex }) {
             variant="outline"
             size="icon"
             className={NAV_BTN}
-            aria-label="Previous page"
+            aria-label={aria.previous}
             disabled={!canPrev}
             onClick={() => setPageIndex(pageIndex - 1)}
           >
@@ -87,7 +88,7 @@ function TablePageNav({ pageIndex, pageCount, setPageIndex }) {
             variant="outline"
             size="icon"
             className={NAV_BTN}
-            aria-label="Next page"
+            aria-label={aria.next}
             disabled={!canNext}
             onClick={() => setPageIndex(pageIndex + 1)}
           >
@@ -100,7 +101,7 @@ function TablePageNav({ pageIndex, pageCount, setPageIndex }) {
             variant="outline"
             size="icon"
             className={NAV_BTN}
-            aria-label="Last page"
+            aria-label={aria.last}
             disabled={!canNext}
             onClick={() => setPageIndex(lastPageIndex)}
           >
@@ -123,9 +124,17 @@ export function AppPagination({
   selectable = false,
   selectedRowsText = "",
   pageSummaryText,
-  rowsPerPageLabel = "Rows per page",
+  rowsPerPageLabel,
   className,
 }) {
+  const { t } = useLanguage();
+  const resolvedRowsLabel = rowsPerPageLabel ?? t("common.rowsPerPage");
+  const paginationAria = {
+    first: t("common.pagination.first"),
+    previous: t("common.pagination.previous"),
+    next: t("common.pagination.next"),
+    last: t("common.pagination.last"),
+  };
   const pageCount = explicitPageCount ?? Math.ceil(totalItems / pageSize);
   const pageCurrent = pageIndex + 1;
   const pageTotal = Math.max(1, pageCount);
@@ -141,12 +150,17 @@ export function AppPagination({
           {mobilePageIndicator}
         </span>
         <div className="flex min-w-0 flex-1 justify-center">
-          <TablePageNav pageIndex={pageIndex} pageCount={pageCount} setPageIndex={onPageChange} />
+          <TablePageNav
+            pageIndex={pageIndex}
+            pageCount={pageCount}
+            setPageIndex={onPageChange}
+            aria={paginationAria}
+          />
         </div>
         <PageSizeSelect
           value={pageSize}
           options={pageSizeOptions}
-          label={rowsPerPageLabel}
+          label={resolvedRowsLabel}
           onChange={onPageSizeChange}
           showLabel={false}
           className="shrink-0 justify-end"
@@ -160,13 +174,18 @@ export function AppPagination({
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-2">
           <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2">
             <span className="text-xs font-medium tabular-nums sm:text-sm">{pageSummaryText}</span>
-            <TablePageNav pageIndex={pageIndex} pageCount={pageCount} setPageIndex={onPageChange} />
+            <TablePageNav
+              pageIndex={pageIndex}
+              pageCount={pageCount}
+              setPageIndex={onPageChange}
+              aria={paginationAria}
+            />
           </div>
         </div>
         <PageSizeSelect
           value={pageSize}
           options={pageSizeOptions}
-          label={rowsPerPageLabel}
+          label={resolvedRowsLabel}
           onChange={onPageSizeChange}
           className="relative z-[1] ml-auto shrink-0 justify-end"
         />

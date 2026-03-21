@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ExpenseFormShell({
   title,
@@ -13,6 +14,7 @@ export function ExpenseFormShell({
   className,
   titleClassName,
 }) {
+  const { t } = useLanguage();
   return (
     <PageContainer className="pt-2 md:pt-3">
       <div
@@ -36,7 +38,7 @@ export function ExpenseFormShell({
             size="icon"
             className="h-9 w-9 shrink-0 text-primary"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <X className="h-4 w-4" />
           </Button>

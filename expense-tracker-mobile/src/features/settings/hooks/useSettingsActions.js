@@ -13,7 +13,7 @@ export function useSettingsActions(updateSetting) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { setMode } = useTheme();
-  const { setLanguage } = useLanguage();
+  const { setLanguage, t } = useLanguage();
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
 
@@ -44,12 +44,12 @@ export function useSettingsActions(updateSetting) {
         deleteAccount: () => setDeleteAccountOpen(true),
 
         dataExport: async () => {
-          toast.info("Preparing data export...");
+          toast.info(t("settings.actions.preparingExport"));
           const { data, error } = await safeApiCall(() =>
             api.get("/api/user/export", { responseType: "blob" })
           );
           if (error) {
-            toast.error("Export failed. Please try again.");
+            toast.error(t("settings.actions.exportFailed"));
             return;
           }
           const url = window.URL.createObjectURL(new Blob([data]));
@@ -60,7 +60,7 @@ export function useSettingsActions(updateSetting) {
           link.click();
           link.remove();
           window.URL.revokeObjectURL(url);
-          toast.success("Data exported successfully!");
+          toast.success(t("settings.actions.exportSuccess"));
         },
 
         configureMfa: () => navigate("/settings/mfa"),
@@ -72,10 +72,12 @@ export function useSettingsActions(updateSetting) {
             navigator.storage.estimate().then(({ usage, quota }) => {
               const usedMB = (usage / (1024 * 1024)).toFixed(2);
               const totalMB = (quota / (1024 * 1024)).toFixed(0);
-              toast.info(`Storage: ${usedMB} MB used of ${totalMB} MB`);
+              toast.info(
+                t("settings.actions.storageUsage", { used: usedMB, total: totalMB }),
+              );
             });
           } else {
-            toast.info("Storage info not available in this browser.");
+            toast.info(t("settings.actions.storageUnavailable"));
           }
         },
 
@@ -86,24 +88,18 @@ export function useSettingsActions(updateSetting) {
               names.forEach((name) => caches.delete(name));
             });
           }
-          toast.success("Cache cleared successfully!");
+          toast.success(t("settings.actions.cacheCleared"));
         },
 
         shortcutsGuide: () => {
-          toast.info(
-            "Keyboard shortcuts:\n" +
-            "Ctrl+D → Dashboard\n" +
-            "Ctrl+E → Expenses\n" +
-            "Ctrl+B → Budget\n" +
-            "Ctrl+, → Settings"
-          );
+          toast.info(t("settings.actions.shortcutsGuide"));
         },
 
         notificationSettings: () => navigate("/settings/notifications"),
 
         restartTour: () => {
           localStorage.removeItem("tour_completed");
-          toast.success("Tour will restart on next page load.");
+          toast.success(t("settings.actions.tourRestart"));
           setTimeout(() => navigate("/dashboard"), 500);
         },
 
@@ -126,7 +122,7 @@ export function useSettingsActions(updateSetting) {
       const action = actions[actionId];
       if (action) action();
     },
-    [navigate, dispatch]
+    [navigate, dispatch, t]
   );
 
   return {

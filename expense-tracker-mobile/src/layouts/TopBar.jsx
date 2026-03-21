@@ -7,10 +7,12 @@ import { getBreadcrumbSegments } from "@/app/routing/breadcrumbResolver";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function TopBar({ showBack = false, breadcrumbItems }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   const { isMinMd, isMinLg } = useLayout();
   const items = breadcrumbItems ?? getBreadcrumbSegments(location.pathname);
 
@@ -46,10 +48,12 @@ export function TopBar({ showBack = false, breadcrumbItems }) {
             "flex items-center justify-center rounded-full hover:bg-accent tap-highlight-none",
             isMinLg ? "h-9 min-w-[110px] px-3" : "h-9 w-9",
           )}
-          aria-label="Open search"
+          aria-label={t("common.aria.openSearch")}
         >
           <AppIcon icon={Search} color="soft" size="sm" />
-          {isMinLg ? <span className="ml-2 text-xs text-muted-foreground">Ctrl+K</span> : null}
+          {isMinLg ? (
+            <span className="ml-2 text-xs text-muted-foreground">{t("common.searchShortcut")}</span>
+          ) : null}
         </button>
 
         {isMinMd && (

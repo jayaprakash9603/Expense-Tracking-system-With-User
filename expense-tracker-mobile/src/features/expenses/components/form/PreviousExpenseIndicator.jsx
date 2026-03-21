@@ -11,12 +11,13 @@ import { cn } from "@/lib/utils";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { formatPaymentMethodName } from "../../utils/expensePaymentMethodUtils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
-function resolveTypeLabel(type) {
+function resolveTypeLabel(type, t) {
   const normalized = String(type || "").toLowerCase();
-  if (normalized === "loss" || normalized === "outflow") return "Loss";
-  if (normalized === "gain" || normalized === "inflow") return "Gain";
-  return "Unknown";
+  if (normalized === "loss" || normalized === "outflow") return t("flows.expensesTable.typeLoss");
+  if (normalized === "gain" || normalized === "inflow") return t("flows.expensesTable.typeGain");
+  return t("chart.unknown");
 }
 
 function resolveIndicatorIcon(icon) {
@@ -31,13 +32,15 @@ export function PreviousExpenseIndicator({
   position = "right",
   showTooltip = true,
   dateFormat = "DD MMM YYYY",
-  label = "Previously Added",
+  label: labelProp,
   labelPosition = "top",
   variant = "gradient",
   colorScheme,
   icon = "calendar",
   className,
 }) {
+  const { t } = useLanguage();
+  const label = labelProp ?? t("expenseForm.actions.previouslyAdded");
   const { format } = useMoneyFormatter();
   const details = expense ? extractExpenseDetails(expense) : null;
   const Icon = resolveIndicatorIcon(icon);
@@ -83,7 +86,7 @@ export function PreviousExpenseIndicator({
         {labelPosition !== "none" ? (
           <span className="text-[10px] uppercase tracking-wide opacity-80">{label}</span>
         ) : null}
-        <span className="text-sm font-semibold">{isLoading ? "Loading..." : formattedDate}</span>
+        <span className="text-sm font-semibold">{isLoading ? t("common.loading") : formattedDate}</span>
       </span>
     </div>
   );
@@ -94,11 +97,12 @@ export function PreviousExpenseIndicator({
 
   const amount = Number(details.amount ?? 0);
   const paymentMethod = formatPaymentMethodName(details.paymentMethod || "");
-  const typeLabel = resolveTypeLabel(details.type);
+  const typeLabel = resolveTypeLabel(details.type, t);
+  const normalizedType = String(details?.type || "").toLowerCase();
   const typeClass =
-    typeLabel === "Loss"
+    normalizedType === "loss" || normalizedType === "outflow"
       ? "text-red-500"
-      : typeLabel === "Gain"
+      : ["gain", "income", "inflow", "profit"].includes(normalizedType)
         ? "text-emerald-500"
         : "text-muted-foreground";
 
@@ -113,15 +117,15 @@ export function PreviousExpenseIndicator({
         >
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Amount</span>
+              <span className="text-muted-foreground">{t("common.amount")}</span>
               <span className="font-semibold">{format(amount)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Payment</span>
+              <span className="text-muted-foreground">{t("expenseForm.fields.paymentMethod")}</span>
               <span className="font-medium">{paymentMethod || "-"}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Type</span>
+              <span className="text-muted-foreground">{t("expenses.columns.type")}</span>
               <span className={cn("font-semibold", typeClass)}>{typeLabel}</span>
             </div>
           </div>

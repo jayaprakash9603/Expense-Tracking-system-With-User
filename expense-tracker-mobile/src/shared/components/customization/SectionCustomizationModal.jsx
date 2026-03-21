@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useSectionCustomization } from "@/shared/hooks/customization/useSectionCustomization";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const TYPE_VARIANT = {
   full: "default",
@@ -38,12 +39,15 @@ export function SectionCustomizationModal({
   sections,
   onSaveLayout,
   onResetLayout,
-  title = "Customize Dashboard",
-  subtitle = "Drag sections between columns \u2022 Reorder active sections",
+  title: titleProp,
+  subtitle: subtitleProp,
   showReset = true,
   labels = {},
 }) {
+  const { t } = useLanguage();
   const { animation } = usePresentation();
+  const title = titleProp ?? t("customization.sectionModal.title");
+  const subtitle = subtitleProp ?? t("customization.sectionModal.subtitle");
 
   const {
     activeSections,
@@ -69,11 +73,11 @@ export function SectionCustomizationModal({
   });
 
   const mergedLabels = {
-    save: "Save Layout",
-    reset: "Reset to Default",
-    cancel: "Cancel",
-    active: "Active",
-    available: "Available",
+    save: t("customization.sectionModal.saveLayout"),
+    reset: t("customization.sectionModal.resetDefault"),
+    cancel: t("customization.cancel"),
+    active: t("customization.active"),
+    available: t("customization.available"),
     ...labels,
   };
 
@@ -107,13 +111,13 @@ export function SectionCustomizationModal({
 
         <div className="flex-1 overflow-hidden flex flex-col sm:flex-row min-h-0">
           <ColumnPanel
-            title={`\uD83D\uDCE6 ${mergedLabels.available} Sections`}
+            title={`\uD83D\uDCE6 ${mergedLabels.available} ${t("customization.sectionModal.sectionsSuffix")}`}
             sections={availableSections}
             selectedIds={selectedAvailable}
             onSelect={handleSelectAvailable}
             onToggle={handleToggle}
             isActive={false}
-            emptyMessage="All sections are active!"
+            emptyMessage={t("customization.sectionModal.emptyAllActive")}
             animated={animation.enabled}
           />
 
@@ -124,7 +128,7 @@ export function SectionCustomizationModal({
               className="h-8 w-8"
               disabled={!availableSections.length}
               onClick={moveAllToActive}
-              title="Move all to active"
+              title={t("customization.sectionModal.moveAllToActive")}
             >
               <ChevronsRight className="h-4 w-4 hidden sm:block" />
               <ChevronDown className="h-4 w-4 sm:hidden" />
@@ -135,7 +139,9 @@ export function SectionCustomizationModal({
               className="h-8 w-8"
               disabled={!selectedAvailable.length}
               onClick={moveSelectedToActive}
-              title={`Move selected (${selectedAvailable.length})`}
+              title={t("customization.sectionModal.moveSelectedToActive", {
+                count: selectedAvailable.length,
+              })}
             >
               <ChevronDown className="h-4 w-4 sm:hidden" />
               <svg className="h-4 w-4 hidden sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
@@ -146,7 +152,9 @@ export function SectionCustomizationModal({
               className="h-8 w-8"
               disabled={!selectedActive.length}
               onClick={moveSelectedToAvailable}
-              title={`Remove selected (${selectedActive.length})`}
+              title={t("customization.sectionModal.removeSelected", {
+                count: selectedActive.length,
+              })}
             >
               <ChevronUp className="h-4 w-4 sm:hidden" />
               <svg className="h-4 w-4 hidden sm:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
@@ -157,7 +165,7 @@ export function SectionCustomizationModal({
               className="h-8 w-8"
               disabled={!activeSections.length}
               onClick={moveAllToAvailable}
-              title="Remove all"
+              title={t("customization.sectionModal.removeAll")}
             >
               <ChevronsLeft className="h-4 w-4 hidden sm:block" />
               <ChevronUp className="h-4 w-4 sm:hidden" />
@@ -165,14 +173,14 @@ export function SectionCustomizationModal({
           </div>
 
           <ColumnPanel
-            title={`\u2713 ${mergedLabels.active} Sections`}
+            title={`\u2713 ${mergedLabels.active} ${t("customization.sectionModal.sectionsSuffix")}`}
             sections={activeSections}
             selectedIds={selectedActive}
             onSelect={handleSelectActive}
             onToggle={handleToggle}
             onReorder={handleReorder}
             isActive
-            emptyMessage="Drag sections here to activate"
+            emptyMessage={t("customization.sectionModal.emptyDragHere")}
             animated={animation.enabled}
           />
         </div>
@@ -197,7 +205,17 @@ export function SectionCustomizationModal({
   );
 }
 
-function ColumnPanel({ title, sections, selectedIds, onSelect, onToggle, onReorder, isActive, emptyMessage, animated }) {
+function ColumnPanel({
+  title,
+  sections,
+  selectedIds,
+  onSelect,
+  onToggle,
+  onReorder,
+  isActive,
+  emptyMessage,
+  animated,
+}) {
   return (
     <div className="flex-1 flex flex-col min-w-0 min-h-0 sm:min-h-[300px]">
       <div className="px-4 py-2.5 border-b border-border">
@@ -232,6 +250,7 @@ function ColumnPanel({ title, sections, selectedIds, onSelect, onToggle, onReord
 }
 
 function SectionItem({ section, isSelected, onSelect, onToggle, onMoveUp, onMoveDown, isActive, animated }) {
+  const { t } = useLanguage();
   return (
     <div
       className={cn(
@@ -255,13 +274,15 @@ function SectionItem({ section, isSelected, onSelect, onToggle, onMoveUp, onMove
       <span className="text-sm font-medium flex-1 truncate">{section.name}</span>
 
       <Badge variant={TYPE_VARIANT[section.type] || "secondary"} className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-        {section.type === "full" ? "Full" : "Half"}
+        {section.type === "full"
+          ? t("customization.sectionModal.sectionTypeFull")
+          : t("customization.sectionModal.sectionTypeHalf")}
       </Badge>
 
       <button
         onClick={(e) => { e.stopPropagation(); onToggle(); }}
         className="p-1 rounded hover:bg-muted shrink-0"
-        title={isActive ? "Hide" : "Show"}
+        title={isActive ? t("customization.sectionModal.hide") : t("customization.sectionModal.show")}
       >
         {isActive ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-primary" />}
       </button>

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { ArrowLeft, Loader2, Search, X } from "lucide-react";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function SearchInput({
   isOpen,
@@ -8,9 +9,11 @@ export function SearchInput({
   canGoBack,
   onQueryChange,
   onGoBack,
-  placeholder = "Search anything or run an action...",
+  placeholder,
 }) {
+  const { t } = useLanguage();
   const inputRef = useRef(null);
+  const resolvedPlaceholder = placeholder ?? t("commandPalette.searchPlaceholderDefault");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -24,7 +27,7 @@ export function SearchInput({
         <button
           onClick={onGoBack}
           className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          aria-label="Go back"
+          aria-label={t("common.aria.goBack")}
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
@@ -36,7 +39,7 @@ export function SearchInput({
         ref={inputRef}
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         className="h-8 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
       />
 
@@ -46,7 +49,7 @@ export function SearchInput({
         <button
           onClick={() => onQueryChange("")}
           className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          aria-label="Clear query"
+          aria-label={t("common.aria.clearQuery")}
         >
           <X className="h-4 w-4" />
         </button>

@@ -1,15 +1,14 @@
 import React from "react";
 import { SectionCustomizationModal } from "@/shared/components/customization/SectionCustomizationModal";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
-/**
- * Dashboard wrapper around section customization modal.
- */
 export function DashboardCustomizationModal(props) {
+  const { t } = useLanguage();
   return (
     <SectionCustomizationModal
-      title="Customize Dashboard"
-      subtitle="Select, reorder, and organize dashboard sections"
       {...props}
+      title={props.title ?? t("customization.dashboardModal.title")}
+      subtitle={props.subtitle ?? t("customization.dashboardModal.subtitle")}
     />
   );
 }

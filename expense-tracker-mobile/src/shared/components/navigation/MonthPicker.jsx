@@ -6,9 +6,9 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
-const MONTH_NAMES = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+const MONTH_KEY_IDS = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec",
 ];
 
 export function MonthPicker({
@@ -18,6 +18,10 @@ export function MonthPicker({
   className,
 }) {
   const { t } = useLanguage();
+  const monthNames = useMemo(
+    () => MONTH_KEY_IDS.map((id) => t(`common.monthsShort.${id}`)),
+    [t],
+  );
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(() => {
     if (value) return dayjs(value).year();
@@ -55,7 +59,7 @@ export function MonthPicker({
 
   const displayLabel = value
     ? dayjs(value).format("MMM YYYY")
-    : t("common.selectMonth") || "Select month";
+    : t("common.selectMonth");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -93,13 +97,13 @@ export function MonthPicker({
         </div>
 
         <div className="grid grid-cols-3 gap-1.5">
-          {MONTH_NAMES.map((name, idx) => {
+          {monthNames.map((name, idx) => {
             const isSelected = viewYear === currentYear && idx === currentMonth;
             const isAvailable = isMonthAvailable(viewYear, idx);
 
             return (
               <button
-                key={name}
+                key={MONTH_KEY_IDS[idx]}
                 type="button"
                 onClick={() => isAvailable && handleSelect(idx)}
                 disabled={!isAvailable}

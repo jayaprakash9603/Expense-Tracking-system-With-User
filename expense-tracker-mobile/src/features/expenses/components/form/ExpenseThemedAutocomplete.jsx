@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function defaultGetOptionLabel(option) {
   if (option == null) return "";
@@ -39,7 +40,7 @@ export function ExpenseThemedAutocomplete({
   filterOptions,
   renderOption,
   placeholder,
-  noOptionsText = "No options found",
+  noOptionsText,
   error = false,
   disabled = false,
   loading = false,
@@ -50,6 +51,8 @@ export function ExpenseThemedAutocomplete({
   startAdornment,
   className,
 }) {
+  const { t } = useLanguage();
+  const resolvedNoOptionsText = noOptionsText ?? t("expenseForm.actions.noOptions");
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
@@ -205,7 +208,7 @@ export function ExpenseThemedAutocomplete({
           />
           <CommandList>
             {loading ? (
-              <div className="px-3 py-2 text-sm text-muted-foreground">Loading...</div>
+              <div className="px-3 py-2 text-sm text-muted-foreground">{t("common.loading")}</div>
             ) : (
               <CommandGroup>
                 {showFreeSoloOption ? (
@@ -234,7 +237,7 @@ export function ExpenseThemedAutocomplete({
                   );
                 })}
                 {!showFreeSoloOption && filteredOptions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">{noOptionsText}</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">{resolvedNoOptionsText}</div>
                 ) : null}
               </CommandGroup>
             )}

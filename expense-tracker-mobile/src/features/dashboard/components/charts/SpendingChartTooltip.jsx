@@ -23,7 +23,7 @@ function CompactTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney,
           {dateLabel}
         </div>
         <div className="text-[9px] text-white/70 mb-0.5">
-          {isLoss ? t("dashboard.totalSpending", "Total Spending") : t("dashboard.totalIncome", "Total Income")}
+          {isLoss ? t("dashboard.totalSpending") : t("dashboard.totalIncome")}
         </div>
         <div className="flex items-center gap-2">
           {isLoss ? <ArrowDownRight className="w-3.5 h-3.5 text-white/80 shrink-0" /> : <ArrowUpRight className="w-3.5 h-3.5 text-white/80 shrink-0" />}
@@ -33,12 +33,12 @@ function CompactTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney,
       {displayExpenses.length > 0 && (
         <div className="px-2.5 py-2 space-y-1">
           <div className="flex items-center justify-between text-[9px] text-muted-foreground mb-0.5">
-            <span>{t("dashboard.transactions", "Transactions")}</span>
+            <span>{t("dashboard.transactions")}</span>
             <span>{expenses.length}</span>
           </div>
           {displayExpenses.map((expense, idx) => {
             const details = extractExpenseDetails(expense);
-            const label = resolveExpenseDisplayName(details) || "Unknown";
+            const label = resolveExpenseDisplayName(details) || t("chart.unknown");
             return (
               <div key={idx} className="flex justify-between items-center text-[10px]">
                 <span className="text-foreground truncate mr-1.5 max-w-[90px]">
@@ -51,7 +51,7 @@ function CompactTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney,
             );
           })}
           {remainingCount > 0 && (
-            <div className="text-[9px] text-muted-foreground text-center">+{remainingCount} {t("dashboard.more", "more")}</div>
+            <div className="text-[9px] text-muted-foreground text-center">+{remainingCount} {t("dashboard.more")}</div>
           )}
         </div>
       )}
@@ -80,7 +80,7 @@ function FullTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney, t 
           </div>
           <div>
             <div className="text-xs font-medium text-white/80 mb-0.5">
-              {isLoss ? t("dashboard.totalSpending", "Total Spending") : t("dashboard.totalIncome", "Total Income")}
+              {isLoss ? t("dashboard.totalSpending") : t("dashboard.totalIncome")}
             </div>
             <div className="text-lg font-bold leading-none">{formatMoney(amountValue)}</div>
           </div>
@@ -92,22 +92,22 @@ function FullTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney, t 
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
               <ReceiptText className="w-3.5 h-3.5" />
-              <span>{t("dashboard.transactions", "Transactions")}</span>
+              <span>{t("dashboard.transactions")}</span>
               <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold ${isLoss ? "bg-red-500/10 text-red-500" : "bg-emerald-500/10 text-emerald-500"}`}>
                 {expenses.length}
               </span>
             </div>
             {remainingCount > 0 && (
               <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                +{remainingCount} {t("dashboard.more", "more")}
+                +{remainingCount} {t("dashboard.more")}
               </span>
             )}
           </div>
           <div className="space-y-1.5">
             {displayExpenses.map((expense, idx) => {
               const details = extractExpenseDetails(expense);
-              const label = resolveExpenseDisplayName(details) || "Unknown";
-              const categoryLabel = resolveExpenseCategoryLabel(details) || "Uncategorized";
+              const label = resolveExpenseDisplayName(details) || t("chart.unknown");
+              const categoryLabel = resolveExpenseCategoryLabel(details) || t("chart.uncategorized");
               return (
                 <div key={idx} className="p-2 rounded-lg bg-muted/50 border border-border/50">
                   <div className="flex justify-between items-start mb-1">

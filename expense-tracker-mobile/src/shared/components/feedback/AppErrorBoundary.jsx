@@ -1,5 +1,18 @@
 import React from "react";
 import { ErrorState } from "@/shared/components/feedback/ErrorState";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+
+function AppErrorBoundaryFallback({ onRetry }) {
+  const { t } = useLanguage();
+  return (
+    <ErrorState
+      title={t("system.errorBoundary.title")}
+      message={t("system.errorBoundary.message")}
+      onRetry={onRetry}
+      retryLabel={t("common.reload")}
+    />
+  );
+}
 
 export class AppErrorBoundary extends React.Component {
   constructor(props) {
@@ -18,14 +31,7 @@ export class AppErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <ErrorState
-          title="Unexpected UI Error"
-          message="The app hit an unexpected problem. Reload to continue."
-          onRetry={() => window.location.reload()}
-          retryLabel="Reload"
-        />
-      );
+      return <AppErrorBoundaryFallback onRetry={() => window.location.reload()} />;
     }
 
     return this.props.children;

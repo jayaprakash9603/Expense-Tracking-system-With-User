@@ -58,7 +58,11 @@ export function LoginForm() {
     if (submitCount > 0 && errors.email && errors.password) return t("auth.validation.allFieldsRequired");
     if (submitCount > 0 && errors.email) return t(errors.email);
     if (submitCount > 0 && errors.password) return t(errors.password);
-    if (serverError) return serverError;
+    if (serverError) {
+      return typeof serverError === "string" && serverError.startsWith("auth.errors.")
+        ? t(serverError)
+        : serverError;
+    }
     return null;
   };
 

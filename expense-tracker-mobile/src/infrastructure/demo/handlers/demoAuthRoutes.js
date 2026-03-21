@@ -17,7 +17,7 @@ export async function tryDemoAuthRoutes(ctx) {
   }
 
   if (method === "POST" && path === "/auth/signup") {
-    return resolveDemoData({ message: "Registered. Sign in with demo credentials.", success: true });
+    return resolveDemoData({ message: "demo.registered", success: true });
   }
 
   if (method === "POST" && path === "/auth/oauth2/google") {

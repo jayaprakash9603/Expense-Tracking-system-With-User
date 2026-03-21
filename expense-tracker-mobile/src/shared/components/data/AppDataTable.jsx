@@ -125,7 +125,7 @@ export function AppDataTable({
                 <TableRow>
                   <TableCell colSpan={columns.length + (selectable ? 1 : 0)} className="h-48">
                     <NoDataPlaceholder
-                      message={emptyMessage || t("common.noData") || "No data available"}
+                      message={emptyMessage || t("common.noData")}
                       subMessage={emptySubMessage}
                       onRetry={onRetry}
                       size="sm"
@@ -171,7 +171,7 @@ export function AppDataTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <span>{t("common.rowsPerPage") || "Rows per page"}:</span>
+            <span>{t("common.rowsPerPage")}:</span>
             <select
               value={pageSize}
               onChange={(e) => onPageSizeChange?.(Number(e.target.value))}
@@ -182,7 +182,8 @@ export function AppDataTable({
               ))}
             </select>
             <span>
-              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, totalItems)} of {totalItems}
+              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, totalItems)} {t("common.of")}{" "}
+              {totalItems}
             </span>
           </div>
           <div className="flex items-center gap-1">

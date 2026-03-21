@@ -8,7 +8,15 @@ export function resolveRegisterBannerError({
   serverError,
   t,
 }) {
-  if (serverError) return serverError;
+  if (serverError) {
+    if (
+      typeof serverError === "string" &&
+      (serverError.startsWith("auth.errors.") || serverError.startsWith("demo."))
+    ) {
+      return t(serverError);
+    }
+    return serverError;
+  }
   if (submitCount === 0) return emailAvailabilityMessage || null;
 
   const emptyWithErrors = REQUIRED_FIELD_NAMES.filter((name) => !values[name] && errors[name]);

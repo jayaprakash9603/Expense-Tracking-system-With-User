@@ -47,7 +47,7 @@ const handleResponseError = (error) => {
       clearActiveJwt();
       window.dispatchEvent(
         new CustomEvent("unauthorized", {
-          detail: { message: "Your session has expired. Please login again." },
+          detail: { messageKey: "session.expired" },
         }),
       );
     }
@@ -56,9 +56,8 @@ const handleResponseError = (error) => {
       window.dispatchEvent(
         new CustomEvent("show403Error", {
           detail: {
-            message:
-              error.response.data?.message ||
-              "Access denied. You do not have permission.",
+            message: error.response.data?.message,
+            messageKey: "session.accessDenied",
           },
         }),
       );
