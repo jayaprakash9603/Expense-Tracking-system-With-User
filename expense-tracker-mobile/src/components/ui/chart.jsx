@@ -14,12 +14,18 @@ const ChartContext = React.createContext(null)
 const CSS_HEX_COLOR = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/
 const CSS_RGB = /^rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/
 const CSS_HSL = /^hsla?\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%(\s*,\s*(0|1|0?\.\d+))?\s*\)$/
+const CSS_HSL_VAR_REF = /^hsl\(var\(--[a-zA-Z0-9_-]+\)\)$/
 
 function isSafeCssColorToken(value) {
   if (value == null || typeof value !== "string") return false
   const v = value.trim()
   if (v.length === 0 || v.length > 120) return false
-  return CSS_HEX_COLOR.test(v) || CSS_RGB.test(v) || CSS_HSL.test(v)
+  return (
+    CSS_HEX_COLOR.test(v) ||
+    CSS_RGB.test(v) ||
+    CSS_HSL.test(v) ||
+    CSS_HSL_VAR_REF.test(v)
+  )
 }
 
 function isSafeChartVarKey(key) {

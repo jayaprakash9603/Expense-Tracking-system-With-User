@@ -11,11 +11,11 @@ import {
 } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useIsMobile } from "@/shared/hooks/theme/useMediaQuery";
 import { usePaymentMethodFlowData } from "@/features/payment-methods/hooks/usePaymentMethodFlowData";
 import { useEntityFlowDrilldown } from "@/shared/hooks/flow/useEntityFlowDrilldown";
-import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chartConfig";
+import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function PaymentMethodFlowPage() {
   const { t } = useLanguage();

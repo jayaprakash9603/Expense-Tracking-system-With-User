@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { UserAvatar } from "@/shared/components/user/UserAvatar";
 import { logoutAction } from "@/redux/auth/auth.actions";
 import { SidebarAccountMenuItems } from "@/layouts/SidebarAccountMenuItems";

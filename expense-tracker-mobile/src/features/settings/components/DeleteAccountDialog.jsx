@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 import { Input } from "@/shared/components/app-shadcn";
 import { Label } from "@/shared/components/app-shadcn";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { api } from "@/config/api";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 import { toast } from "sonner";
 
 const CONFIRMATION_TEXT = "DELETE";

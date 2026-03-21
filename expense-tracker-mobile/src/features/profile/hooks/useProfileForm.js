@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { api } from "@/config/api";
 import { getProfileAction } from "@/redux/auth/auth.actions";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 
 const EMPTY_FORM = {
   firstName: "",

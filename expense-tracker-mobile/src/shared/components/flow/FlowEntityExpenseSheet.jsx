@@ -1,7 +1,7 @@
 import React from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { FlowEntityExpenseDrilldownContent } from "./FlowEntityExpenseDrilldownContent";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 const SHEET_MAX_HEIGHT = "max-h-[92vh]";

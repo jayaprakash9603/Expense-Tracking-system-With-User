@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { EntityFormPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { FormField } from "@/shared/components/FormField";
-import { AppInput } from "@/shared/components/AppInput";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppInput } from "@/shared/components/form/AppInput";
 import { useBillForm } from "../hooks/useBillForm";
 import { BILL_FORM_FIELDS } from "../config/billConfig";
 import { toast } from "sonner";

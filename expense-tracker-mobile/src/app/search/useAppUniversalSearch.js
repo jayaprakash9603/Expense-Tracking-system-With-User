@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useUniversalSearch } from "@/shared/components/search/useUniversalSearch";
-import { universalSearchService } from "@/domain/search";
+import { universalSearchService } from "@/domain/search/search.service";
 import { buildQuickActions, filterQuickActions, SEARCH_MODES } from "@/app/search/quickActions";
 
 export function useAppUniversalSearch() {

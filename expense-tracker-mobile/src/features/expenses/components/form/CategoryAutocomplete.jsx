@@ -1,9 +1,9 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { getCategoryIcon } from "@/config/navigation/iconMapping";
 import { cn } from "@/lib/utils";
-import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
+import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
 import { useExpenseCategories } from "../../hooks/useExpenseCategories";
 import {
   deduplicateCategories,

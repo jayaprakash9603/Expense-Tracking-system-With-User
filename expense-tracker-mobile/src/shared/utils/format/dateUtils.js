@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { STORAGE_KEYS, DEFAULT_DATE_FORMAT } from "@/config/constants";
+import { STORAGE_KEYS, DEFAULT_DATE_FORMAT } from "@/config/app/constants";
 
 dayjs.extend(relativeTime);
 dayjs.extend(localizedFormat);

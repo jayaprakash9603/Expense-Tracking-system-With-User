@@ -7,7 +7,7 @@ import {
   getBrowserLanguage,
   getLanguageDirection,
 } from "./config";
-import { STORAGE_KEYS } from "@/config/constants";
+import { STORAGE_KEYS } from "@/config/app/constants";
 
 const resolveTranslationPath = (languagePack, key) => {
   if (!languagePack || !key) return undefined;

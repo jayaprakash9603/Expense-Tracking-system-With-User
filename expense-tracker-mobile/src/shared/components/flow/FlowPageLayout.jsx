@@ -6,7 +6,7 @@ import { FlowRangeGranularityTabs, FlowPeriodNavigation } from "./FlowRangeNavig
 import { FlowToggle } from "./FlowToggle";
 import { FlowChartSkeleton } from "./skeletons";
 import { ChartEmptyState } from "@/shared/components/chart/ChartEmptyState";
-import { CHART_HEIGHTS } from "@/config/chartConfig";
+import { CHART_HEIGHTS } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function FlowPageLayout({

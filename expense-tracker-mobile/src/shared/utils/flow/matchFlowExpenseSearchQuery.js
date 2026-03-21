@@ -1,4 +1,4 @@
-import { getFuzzyMatchIndices } from "@/features/expenses/utils/expenseFuzzyUtils";
+import { getFuzzyMatchIndices } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 
 export function matchFlowExpenseSearchQuery(row, rawQuery) {
   const q = String(rawQuery ?? "").trim();

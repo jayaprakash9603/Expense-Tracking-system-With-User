@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { Input } from "@/shared/components/app-shadcn";
 import { Skeleton } from "@/shared/components/app-shadcn";
 import {
@@ -11,7 +11,7 @@ import {
   ExpenseThemedAmountField,
   ExpenseThemedDatePicker,
   ExpenseThemedCommentField,
-} from "@/features/expenses/components/form";
+} from "@/features/expenses/components";
 import { useBudgetForm } from "../hooks/useBudgetForm";
 import { ExpenseSelectionTable } from "../components/ExpenseSelectionTable";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";

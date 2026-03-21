@@ -28,6 +28,8 @@ Phase 0 requires each bounded context to have explicit ownership.
 - `src/features/reports`: Reporting team
 - `src/features/settings`: Settings team
 - `src/features/system`: Platform/system team
+- `src/features/errors`: Platform/error UX team
+- `src/features/groups`: Groups and social expense team
 
 ## Ownership Rules
 

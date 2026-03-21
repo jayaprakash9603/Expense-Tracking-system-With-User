@@ -1,9 +1,9 @@
 import React from "react";
 import { Info } from "lucide-react";
-import { AppIcon, AppIconBox } from "@/shared/components/AppIcon";
+import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
 import { APP_INFO } from "@/features/settings/constants/settingsConfig";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { APP_NAME } from "@/config/constants";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { APP_NAME } from "@/config/app/constants";
 
 export function AppInfoSection() {
   const { t } = useLanguage();

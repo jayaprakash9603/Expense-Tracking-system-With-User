@@ -1,5 +1,5 @@
 import { api } from "@/config/api";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 
 export const notificationApi = {
   getAll: (params) => safeApiCall(() => api.get("/api/notifications", { params })),

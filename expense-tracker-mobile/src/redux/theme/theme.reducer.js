@@ -6,9 +6,9 @@ import {
   SET_SYSTEM_PREFERENCE,
   RESET_THEME,
 } from "./theme.actionTypes";
-import { getSystemPreference } from "@/shared/utils/themeInjector";
-import { COLOR_PALETTES } from "@/config/colorPalettes";
-import { STORAGE_KEYS, DEFAULT_THEME_MODE, DEFAULT_PALETTE } from "@/config/constants";
+import { getSystemPreference } from "@/shared/utils/theme/themeInjector";
+import { COLOR_PALETTES } from "@/config/theme/colorPalettes";
+import { STORAGE_KEYS, DEFAULT_THEME_MODE, DEFAULT_PALETTE } from "@/config/app/constants";
 import { getActiveJwt } from "@/shared/utils/authStorage";
 
 const getInitialState = () => {

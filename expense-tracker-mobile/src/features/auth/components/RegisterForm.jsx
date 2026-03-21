@@ -4,8 +4,8 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { registerUserAction } from "@/redux/auth/auth.actions";
 import { registerSchema, registerInitialValues } from "../validation/registerSchema";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { toast } from "@/shared/components/AppToast";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { toast } from "@/shared/components/overlay/AppToast";
 import { useRegisterEmailAvailability } from "../hooks/useRegisterEmailAvailability";
 import { RegisterFormFields } from "./RegisterFormFields";
 

@@ -1,13 +1,18 @@
 import React from "react";
 import { Form } from "formik";
-import { FormField } from "@/shared/components/FormField";
-import { AppButton } from "@/shared/components/AppButton";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppButton } from "@/shared/components/form/AppButton";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { PasswordStrengthMeter } from "./PasswordStrengthMeter";
-import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
-import { Separator } from "@/shared/components/app-shadcn";
-import { Label } from "@/shared/components/app-shadcn";
-import { RadioGroup, RadioGroupItem } from "@/shared/components/app-shadcn";
+import {
+  Alert,
+  AlertDescription,
+  Button,
+  Label,
+  RadioGroup,
+  RadioGroupItem,
+  Separator,
+} from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
 import { resolveRegisterBannerError } from "../utils/registerBannerError";
 
@@ -127,13 +132,14 @@ export function RegisterFormFields({
 
       <div className="flex items-center justify-center gap-1 pt-1">
         <span className="text-muted-foreground text-sm">{t("auth.register.hasAccount")}</span>
-        <button
+        <Button
           type="button"
-          className="text-sm text-primary font-medium hover:underline"
+          variant="link"
+          className="h-auto p-0 text-sm font-medium text-primary"
           onClick={() => navigate("/login")}
         >
           {t("auth.register.login")}
-        </button>
+        </Button>
       </div>
     </Form>
   );

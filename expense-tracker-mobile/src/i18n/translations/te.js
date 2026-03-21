@@ -122,6 +122,7 @@ export const te = {
   notifications: {
     defaultTitle: "నోటిఫికేషన్",
     defaultBody: "మీకు కొత్త అప్‌డేట్ ఉంది.",
+    markRead: "చదివినట్లు గుర్తు పెట్టు",
   },
   demo: {
     registered: "నమోదు చేయబడింది. డెమో క్రెడెన్షియల్స్‌తో సైన్ ఇన్ చేయండి.",
@@ -291,6 +292,7 @@ export const te = {
   },
   profile: {
     viewProfile: "ప్రొఫైల్ చూడండి",
+    joinedWithDate: "{{date}} నుండి చేరారు",
   },
   modals: {
     logoutTitle: "లాగ్‌అవుట్",

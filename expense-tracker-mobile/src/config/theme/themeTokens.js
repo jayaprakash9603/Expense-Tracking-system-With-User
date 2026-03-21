@@ -1,5 +1,5 @@
 import { COLOR_PALETTES, SEMANTIC_COLORS } from "./colorPalettes";
-import { hexToHsl, lighten, darken, getContrastText } from "@/shared/utils/colorUtils";
+import { hexToHsl, lighten, darken, getContrastText } from "@/shared/utils/color/colorUtils";
 
 const DARK_SURFACES = {
   background: "#121212",

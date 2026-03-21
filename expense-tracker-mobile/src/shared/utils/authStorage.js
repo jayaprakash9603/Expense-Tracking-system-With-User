@@ -1,4 +1,4 @@
-import { STORAGE_KEYS } from "@/config/constants";
+import { STORAGE_KEYS } from "@/config/app/constants";
 import { getAppConfig } from "@/config/runtime/parseAppConfig";
 
 export function reconcileAuthStorageWithRuntimeMode() {

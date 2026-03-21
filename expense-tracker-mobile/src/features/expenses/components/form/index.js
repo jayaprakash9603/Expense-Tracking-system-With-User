@@ -7,7 +7,7 @@ export * from "./ExpenseSubmitArea";
 export * from "./ExpenseThemedAmountField";
 export * from "./ExpenseThemedDatePicker";
 export * from "./ExpenseThemedCommentField";
-export * from "./ExpenseThemedAutocomplete";
+export * from "@/shared/components/form/ExpenseThemedAutocomplete";
 export * from "./ExpenseNameAutocomplete";
 export * from "./CategoryAutocomplete";
 export * from "./PaymentMethodAutocomplete";

@@ -2,9 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import { FormField } from "@/shared/components/FormField";
-import { AppButton } from "@/shared/components/AppButton";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { Button } from "@/shared/components/app-shadcn";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const schema = Yup.object({
   email: Yup.string().email("auth.validation.emailInvalid").required("auth.validation.emailRequired"),
@@ -14,8 +15,7 @@ export function ForgotPasswordPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const handleSubmit = async (values, { setSubmitting }) => {
-    // Placeholder — will be wired to backend later
+  const handleSubmit = async (_values, { setSubmitting }) => {
     setSubmitting(false);
   };
 
@@ -43,13 +43,14 @@ export function ForgotPasswordPage() {
             <AppButton type="submit" isLoading={isSubmitting}>
               {t("auth.forgotPassword.sendButton")}
             </AppButton>
-            <button
+            <Button
               type="button"
-              className="block w-full text-center text-sm text-primary hover:underline"
+              variant="link"
+              className="block h-auto w-full p-0 text-center text-sm font-normal text-primary"
               onClick={() => navigate("/login")}
             >
               {t("auth.forgotPassword.backToLogin")}
-            </button>
+            </Button>
           </Form>
         )}
       </Formik>

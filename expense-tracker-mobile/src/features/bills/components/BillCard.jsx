@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { AppBadge } from "@/shared/components/display/AppBadge";
 import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { getDaysUntilDue } from "@/domain/bills/bill.rules";
 import { BILL_STATUS_COLORS } from "../config/billConfig";
+import { Button } from "@/shared/components/app-shadcn";
 
 const STATUS_ICONS = {
   PENDING: Clock,
@@ -52,14 +53,28 @@ export function BillCard({ bill, onEdit, onDelete, onMarkPaid }) {
           </div>
           <div className="flex flex-col gap-1">
             {onEdit && (
-              <button onClick={() => onEdit(bill)} className="p-1 rounded hover:bg-muted">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => onEdit(bill)}
+                aria-label={t("common.edit")}
+              >
                 <AppIcon icon={Pencil} color="soft" size="xs" className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
             {onDelete && (
-              <button onClick={() => onDelete(bill)} className="p-1 rounded hover:bg-muted">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => onDelete(bill)}
+                aria-label={t("common.delete")}
+              >
                 <AppIcon icon={Trash2} color="error" size="xs" className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
         </div>

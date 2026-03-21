@@ -1,2 +1,2 @@
-export * from "./grouped-report-accordion";
-export { default } from "./grouped-report-accordion/GroupedReportAccordion";
+export * from "@/shared/components/report/grouped-report-accordion";
+export { default } from "@/shared/components/report/grouped-report-accordion/GroupedReportAccordion";

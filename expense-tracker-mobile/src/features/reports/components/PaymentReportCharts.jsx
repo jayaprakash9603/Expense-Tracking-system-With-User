@@ -2,7 +2,7 @@ import React from "react";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function PaymentReportCharts({ cashFlow }) {
   const { t } = useLanguage();

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { AppSelect } from "@/shared/components/form/AppSelect";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import {
   EXPENSE_REPORT_COMBINE_BELOW_OPTIONS,
   EXPENSE_REPORT_TOP_OPTIONS,

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
-import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
+import { extractExpenseDetails } from "@/shared/utils/expense/expenseDisplayUtils";
 
 dayjs.extend(isoWeek);
 

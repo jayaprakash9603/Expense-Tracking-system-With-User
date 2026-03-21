@@ -1,7 +1,7 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { DEFAULT_TIMEFRAME_OPTIONS, SPENDING_FLOW_OPTIONS } from "@/config/chartConfig";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { DEFAULT_TIMEFRAME_OPTIONS, SPENDING_FLOW_OPTIONS } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function TimeframeSelector({ value, onChange, options = DEFAULT_TIMEFRAME_OPTIONS, className }) {

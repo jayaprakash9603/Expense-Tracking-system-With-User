@@ -10,9 +10,6 @@ function toNumber(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-/**
- * @param {{open: boolean, onOpenChange: (next: boolean) => void, members: Array<{id: string|number, name: string}>, amount: number, onApply?: (splits: Array<{memberId: string|number, amount: number}>) => void}} props
- */
 export function SplitCalculatorModal({ open, onOpenChange, members = [], amount = 0, onApply }) {
   const { t } = useLanguage();
   const { format } = useMoneyFormatter();
@@ -21,7 +18,7 @@ export function SplitCalculatorModal({ open, onOpenChange, members = [], amount 
 
   const equalAmount = useMemo(() => {
     if (!members.length) return 0;
-    return Number((amount / members.length).toFixed(2));
+    return Math.round((amount / members.length) * 100) / 100;
   }, [amount, members.length]);
 
   const computedSplits = useMemo(() => {

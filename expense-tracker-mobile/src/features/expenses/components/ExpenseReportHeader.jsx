@@ -8,7 +8,7 @@ import { ExpenseReportFilterSheet } from "@/features/expenses/components/Expense
 import { ExpenseReportExportMenu } from "@/features/expenses/components/ExpenseReportExportMenu";
 import { ExpenseReportAdvancedFilters } from "@/features/expenses/components/ExpenseReportAdvancedFilters";
 import { useExpenseReportHeaderFilters } from "@/features/expenses/hooks/useExpenseReportHeaderFilters";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/app-shadcn";
 import { Separator } from "@/shared/components/app-shadcn";

@@ -1,8 +1,8 @@
 import { BellOff, CheckCheck } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { AppButton } from "@/shared/components/AppButton";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { AppButton } from "@/shared/components/form/AppButton";
 import {
   markNotificationReadAction,
   markAllNotificationsReadAction,

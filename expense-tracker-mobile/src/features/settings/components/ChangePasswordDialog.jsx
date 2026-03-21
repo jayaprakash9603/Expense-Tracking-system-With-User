@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import { AppDialog } from "@/shared/components/AppDialog";
-import { FormField } from "@/shared/components/FormField";
-import { AppButton } from "@/shared/components/AppButton";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppDialog } from "@/shared/components/overlay/AppDialog";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { api } from "@/config/api";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 import { toast } from "sonner";
 
 export function ChangePasswordDialog({ open, onOpenChange }) {

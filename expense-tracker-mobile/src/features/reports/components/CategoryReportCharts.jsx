@@ -3,7 +3,7 @@ import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { AppPieChart } from "@/shared/components/chart/AppPieChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function CategoryReportCharts({ category }) {
   const { t } = useLanguage();

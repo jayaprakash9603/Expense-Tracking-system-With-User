@@ -5,7 +5,7 @@ import { updateAuthHeader } from "@/config/api";
 import { getProfileAction } from "@/redux/auth/auth.actions";
 import { fetchOrCreateUserSettings } from "@/redux/userSettings/userSettings.actions";
 import { setTheme } from "@/redux/theme/theme.actions";
-import { preloadUserPreferences } from "@/services/userPreferencesService";
+import { preloadUserPreferences } from "@/app/services/userPreferencesService";
 
 export const useAppInitialization = (jwt) => {
   const [loading, setLoading] = useState(() => Boolean(jwt));

@@ -1,6 +1,6 @@
 import React from "react";
 import { ExpenseReportExportMenu } from "@/features/expenses/components/ExpenseReportExportMenu";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ExpenseReportHeaderToolbar({ filterControls, onExport }) {
   const { t } = useLanguage();

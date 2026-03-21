@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { ContentSection } from "@/shared/components/ContentSection";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { ContentSection } from "@/shared/components/layout/ContentSection";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function EntityFlowPage({

@@ -1,4 +1,4 @@
-import { generateShadcnVars } from "@/config/themeTokens";
+import { generateShadcnVars } from "@/config/theme/themeTokens";
 
 const FONT_SIZE_MAP = {
   small: "14px",

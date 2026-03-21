@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
-import { AppButton } from "@/shared/components/AppButton";
-import { AppBadge } from "@/shared/components/AppBadge";
-import { AppCard } from "@/shared/components/AppCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { AppBadge } from "@/shared/components/display/AppBadge";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { EXPENSE_FILTER_OPTIONS } from "../config/expenseConfig";
 
 export function ExpenseFilters({ filters = {}, onFilterChange, onClear }) {

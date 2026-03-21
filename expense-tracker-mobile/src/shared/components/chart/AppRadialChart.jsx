@@ -3,7 +3,7 @@ import { RadialBarChart, RadialBar, PolarAngleAxis } from "recharts";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
-import { CHART_HEIGHTS, CHART_ANIMATION } from "@/config/chartConfig";
+import { CHART_HEIGHTS, CHART_ANIMATION } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function AppRadialChart({

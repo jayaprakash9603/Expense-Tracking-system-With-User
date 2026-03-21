@@ -1,16 +1,16 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { ArrowLeft, LayoutGrid, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useUserSettings } from "@/shared/hooks/settings/useUserSettings";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
-import { ExpenseNameAutocomplete } from "@/features/expenses/components/form/ExpenseNameAutocomplete";
+import { FlowExpenseNameSearch } from "@/shared/components/form/FlowExpenseNameSearch";
 import { FlowExpenseCards } from "./FlowExpenseCards";
 import { EnhancedDataTable } from "@/shared/components/data/EnhancedDataTable";
 import { normalizeFlowExpenseRecords } from "@/shared/utils/flow/normalizeFlowExpenseRecords";
 import { matchFlowExpenseSearchQuery } from "@/shared/utils/flow/matchFlowExpenseSearchQuery";
 import { buildFlowEntityExpenseTableColumns } from "./flowEntityExpenseTableColumns";
-import { FLOW_INLINE_DRILLDOWN_MAX_HEIGHT_CLASS } from "@/config/chartConfig";
+import { FLOW_INLINE_DRILLDOWN_MAX_HEIGHT_CLASS } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 const SHEET_LIST_SCROLL =
@@ -85,7 +85,7 @@ function FlowEntityDrilldownToolbar({
           </div>
           <div className="flex w-full min-w-0 items-center gap-2">
             <div className="min-w-0 flex-1">
-              <ExpenseNameAutocomplete
+              <FlowExpenseNameSearch
                 options={expenseNames}
                 value={searchQuery}
                 onChange={onSearchChange}
@@ -126,7 +126,7 @@ function FlowEntityDrilldownToolbar({
             </div>
           </div>
           <div className="flex w-full shrink-0 items-center justify-end gap-2 lg:w-auto">
-            <ExpenseNameAutocomplete
+            <FlowExpenseNameSearch
               options={expenseNames}
               value={searchQuery}
               onChange={onSearchChange}

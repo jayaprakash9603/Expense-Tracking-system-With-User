@@ -4,7 +4,7 @@ import { Input } from "@/shared/components/app-shadcn";
 import { Label } from "@/shared/components/app-shadcn";
 import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
 import { AppCard } from "@/shared/components/display/AppCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 const FIELDS = [

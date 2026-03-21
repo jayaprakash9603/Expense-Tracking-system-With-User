@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "@/shared/hooks/useTheme";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useTheme } from "@/shared/hooks/theme/useTheme";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { logoutAction } from "@/redux/auth/auth.actions";
 import { clearUserSettings } from "@/redux/userSettings/userSettings.actions";
 import { api } from "@/config/api";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 import { toast } from "sonner";
 import { PRODUCT_URLS } from "@/config/productUrls";
 

@@ -1,4 +1,4 @@
-export * from "./expenseFuzzyUtils";
+export * from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 export * from "./expenseCategoryUtils";
 export * from "./expensePaymentMethodUtils";
-export * from "./expenseNameUtils";
+export * from "@/shared/utils/expense/expenseNameUtils";

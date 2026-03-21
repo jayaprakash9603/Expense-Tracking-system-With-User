@@ -3,9 +3,9 @@ import { ChevronRight } from "lucide-react";
 import { Switch } from "@/shared/components/app-shadcn";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/app-shadcn";
 import { Button } from "@/shared/components/app-shadcn";
-import { ThemePicker } from "@/shared/components/ThemePicker";
-import { AppIcon } from "@/shared/components/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { ThemePicker } from "@/shared/components/user/ThemePicker";
+import { AppIcon } from "@/shared/components/display/AppIcon";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 function ItemIcon({ icon, variant }) {
@@ -118,10 +118,11 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false,
 
   if (type === "navigation") {
     return (
-      <button
+      <Button
         type="button"
+        variant="ghost"
         className={cn(
-          "flex items-center justify-between py-3 w-full text-left hover:bg-muted/50 rounded-md px-1 -mx-1 transition-colors",
+          "h-auto w-full justify-between py-3 px-1 -mx-1 text-left font-normal hover:bg-muted/50",
           className,
         )}
         onClick={() => onAction?.(actionId)}
@@ -134,7 +135,7 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false,
           </div>
         </div>
         <AppIcon icon={ChevronRight} color="muted" size="sm" />
-      </button>
+      </Button>
     );
   }
 

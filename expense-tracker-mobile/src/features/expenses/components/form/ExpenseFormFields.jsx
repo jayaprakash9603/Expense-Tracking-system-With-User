@@ -8,7 +8,7 @@ import { ExpenseFieldLayout } from "./ExpenseFieldLayout";
 import { ExpenseThemedAmountField } from "./ExpenseThemedAmountField";
 import { ExpenseThemedDatePicker } from "./ExpenseThemedDatePicker";
 import { ExpenseThemedCommentField } from "./ExpenseThemedCommentField";
-import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
+import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
 import { ExpenseNameAutocomplete } from "./ExpenseNameAutocomplete";
 import { CategoryAutocomplete } from "./CategoryAutocomplete";
 import { PaymentMethodAutocomplete } from "./PaymentMethodAutocomplete";

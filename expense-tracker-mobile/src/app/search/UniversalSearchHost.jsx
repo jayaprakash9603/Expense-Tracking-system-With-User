@@ -3,7 +3,7 @@ import { useMemo, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTE_CATALOG } from "@/app/routing/routeCatalog";
-import { universalSearchService } from "@/domain/search";
+import { universalSearchService } from "@/domain/search/search.service";
 import { buildCatalogCommandActions, SEARCH_MODES } from "@/app/search/quickActions";
 import { CommandPalette } from "@/shared/components/search/command-palette";
 import { buildBaseCommandActions } from "@/shared/components/search/command-palette/data/actions";

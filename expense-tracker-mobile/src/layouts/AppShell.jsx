@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 import { TopBar } from "./TopBar";
 import { BottomNavigation } from "./BottomNavigation";
 import { Sidebar } from "./Sidebar";
-import { useLayout } from "@/shared/hooks/useLayout";
+import { useLayout } from "@/shared/hooks/layout/useLayout";
 import { useAppInitialization } from "@/shared/hooks/app/useAppInitialization";
 import { getActiveJwt } from "@/shared/utils/authStorage";
 import { UniversalSearchHost } from "@/app/search";

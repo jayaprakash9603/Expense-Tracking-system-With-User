@@ -4,7 +4,7 @@ import { ArrowLeft, Search, Bell } from "lucide-react";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { AppBreadcrumb } from "@/shared/components/navigation/AppBreadcrumb";
 import { getBreadcrumbSegments } from "@/app/routing/breadcrumbResolver";
-import { useLayout } from "@/shared/hooks/useLayout";
+import { useLayout } from "@/shared/hooks/layout/useLayout";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { logoutAction, switchUserModeAction } from "@/redux/auth/auth.actions";
 import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 import { getActiveJwt } from "@/shared/utils/authStorage";

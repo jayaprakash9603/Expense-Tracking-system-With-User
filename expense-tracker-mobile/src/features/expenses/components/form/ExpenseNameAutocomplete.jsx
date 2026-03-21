@@ -1,14 +1,14 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
 import { useExpenseNames } from "../../hooks/useExpenseNames";
 import {
   findExactNameMatch,
   areNamesEqual,
   sanitizeName,
-} from "../../utils/expenseNameUtils";
-import { createFuzzyFilterOptions } from "../../utils/expenseFuzzyUtils";
+} from "@/shared/utils/expense/expenseNameUtils";
+import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 
 const filterExpenseNamesFuzzy = createFuzzyFilterOptions();
 

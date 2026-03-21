@@ -8,7 +8,7 @@ import { AppButton } from "@/shared/components/form/AppButton";
 import { AppBadge } from "@/shared/components/display/AppBadge";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { fetchExpenseByIdAction, deleteExpenseAction } from "@/redux/expenses/expenses.actions";
 import { selectSelectedExpense, selectExpenseLoading } from "@/redux/selectors";

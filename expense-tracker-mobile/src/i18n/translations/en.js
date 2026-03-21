@@ -122,6 +122,7 @@ export const en = {
   notifications: {
     defaultTitle: "Notification",
     defaultBody: "You have a new update.",
+    markRead: "Mark as read",
   },
   demo: {
     registered: "Registered. Sign in with demo credentials.",
@@ -327,6 +328,7 @@ export const en = {
     dateOfBirth: "Date of Birth",
     bio: "Bio",
     updateSuccess: "Profile updated successfully",
+    joinedWithDate: "Joined {{date}}",
   },
   modals: {
     logoutTitle: "Logout",

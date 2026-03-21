@@ -1,6 +1,6 @@
 import React from "react";
 import { DateRangeBadge } from "@/shared/components/common/DateRangeBadge/DateRangeBadge";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 export function ReportHeaderCenter({

@@ -1,6 +1,6 @@
 import React from "react";
 import { AppSelect } from "@/shared/components/form/AppSelect";
-import { CUSTOM_TIMEFRAME_PLACEHOLDER } from "@/features/reports/constants/reportFilters";
+import { CUSTOM_TIMEFRAME_PLACEHOLDER } from "@/shared/constants/reportFilters";
 import { cn } from "@/lib/utils";
 
 const FILTER_SELECT_TRIGGER =

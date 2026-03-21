@@ -1,6 +1,6 @@
 import React from "react";
-import { AppButton } from "@/shared/components/AppButton";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function GoogleLoginButton({ onLogin, disabled }) {
   const { t } = useLanguage();

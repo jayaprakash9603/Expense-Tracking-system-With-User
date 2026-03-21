@@ -2,7 +2,8 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ArrowLeft, Home, Search } from "lucide-react";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { Button } from "@/shared/components/app-shadcn";
 
 function buildContext({ isAdminMode, attemptedAdminRoute, t }) {
   const defaultAdminRoute = "/admin/dashboard";
@@ -100,37 +101,34 @@ export function NotFoundPage() {
         </div>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <button
+          <Button
             type="button"
             onClick={() => navigate(primaryCta.path, { replace: true })}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+            className="gap-2"
           >
             <Home className="h-4 w-4" />
             {primaryCta.label}
-          </button>
+          </Button>
 
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition hover:bg-accent"
-          >
+          <Button type="button" variant="outline" onClick={() => navigate(-1)} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             {t("errors.notFound.goBack")}
-          </button>
+          </Button>
         </div>
 
         <div className="mt-7 border-t border-border/60 pt-5 text-center">
           <p className="text-sm text-muted-foreground">{t("errors.notFound.popularPagesHint")}</p>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             {quickLinks.map((link) => (
-              <button
+              <Button
                 key={link.path}
                 type="button"
+                variant="link"
                 onClick={() => navigate(link.path, { replace: true })}
-                className="text-sm font-medium text-primary underline-offset-4 transition hover:underline"
+                className="h-auto p-0 text-sm font-medium text-primary underline-offset-4"
               >
                 {link.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>

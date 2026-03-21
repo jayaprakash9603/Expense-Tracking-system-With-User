@@ -1,9 +1,9 @@
 import React from "react";
 import { Pencil, Save, X, Camera, Mail, MapPin, Briefcase, Calendar } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/shared/components/app-shadcn";
+import { Avatar, AvatarFallback, AvatarImage, Button } from "@/shared/components/app-shadcn";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { useLayout } from "@/shared/hooks/useLayout";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { useLayout } from "@/shared/hooks/layout/useLayout";
 import { cn } from "@/lib/utils";
 
 function getInitials(first, last) {
@@ -77,7 +77,7 @@ export function ProfileHeader({
               <StatChip icon={MapPin} value={formData.location} />
             )}
             {joinDate && (
-              <StatChip icon={Calendar} value={`Joined ${joinDate}`} />
+              <StatChip icon={Calendar} value={t("profile.joinedWithDate", { date: joinDate })} />
             )}
           </div>
 
@@ -90,24 +90,26 @@ export function ProfileHeader({
 
         <div className={cn("flex gap-2 shrink-0", isMobile && "w-full")}>
           {!isEditMode ? (
-            <button
+            <Button
+              type="button"
               onClick={onEditToggle}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors tap-highlight-none",
-                isMobile && "flex-1 justify-center"
+                "flex items-center gap-2 px-4 py-2 tap-highlight-none",
+                isMobile && "flex-1 justify-center",
               )}
             >
               <AppIcon icon={Pencil} color="inherit" size="xs" />
               {t("settings.editProfile")}
-            </button>
+            </Button>
           ) : (
             <>
-              <button
+              <Button
+                type="button"
                 onClick={onSave}
                 disabled={isSaving}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium shadow-sm hover:bg-primary/90 transition-colors tap-highlight-none disabled:opacity-60",
-                  isMobile && "flex-1 justify-center"
+                  "flex items-center gap-2 px-4 py-2 tap-highlight-none disabled:opacity-60",
+                  isMobile && "flex-1 justify-center",
                 )}
               >
                 {isSaving ? (
@@ -116,18 +118,20 @@ export function ProfileHeader({
                   <AppIcon icon={Save} color="inherit" size="xs" />
                 )}
                 {isSaving ? t("common.processing") : t("common.save")}
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
                 onClick={onCancel}
                 disabled={isSaving}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-accent transition-colors tap-highlight-none disabled:opacity-50",
-                  isMobile && "flex-1 justify-center"
+                  "flex items-center gap-2 px-4 py-2 tap-highlight-none disabled:opacity-50",
+                  isMobile && "flex-1 justify-center",
                 )}
               >
                 <AppIcon icon={X} color="soft" size="xs" />
                 {t("common.cancel")}
-              </button>
+              </Button>
             </>
           )}
         </div>

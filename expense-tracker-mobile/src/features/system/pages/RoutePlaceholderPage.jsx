@@ -4,7 +4,7 @@ import { Construction } from "lucide-react";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { AppCard } from "@/shared/components/display/AppCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { getRouteByPath } from "@/app/routing/routeCatalog";
 
 export function RoutePlaceholderPage({ title: overrideTitle, description: overrideDescription }) {

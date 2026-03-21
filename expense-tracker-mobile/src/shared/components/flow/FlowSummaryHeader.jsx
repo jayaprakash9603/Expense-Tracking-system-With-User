@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 export function FlowSummaryHeader({ totals, className }) {

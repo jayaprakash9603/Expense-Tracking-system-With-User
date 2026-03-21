@@ -1,9 +1,9 @@
 import { ArrowLeft, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppButton } from "@/shared/components/AppButton";
-import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { AppCard } from "@/shared/components/AppCard";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { AppCard } from "@/shared/components/display/AppCard";
 
 export function EntityFormPage({
   title,

@@ -3,10 +3,10 @@ import { ArrowDown, ArrowUp, CalendarDays, ChevronDown, ChevronUp, ChevronsUpDow
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { FlowExpenseCard } from "./FlowExpenseCard";
 import { FlowExpenseCardsSkeleton } from "./skeletons";
-import { getFuzzyMatchIndices } from "@/features/expenses/utils/expenseFuzzyUtils";
+import { getFuzzyMatchIndices } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import { cn } from "@/lib/utils";
 
 function toInputDate(value) {

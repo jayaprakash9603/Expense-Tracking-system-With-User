@@ -1,8 +1,9 @@
 import { Bell, Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppCard } from "@/shared/components/AppCard";
-import { AppIcon, AppIconBox } from "@/shared/components/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { AppIcon, AppIconBox } from "@/shared/components/display/AppIcon";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { Button } from "@/shared/components/app-shadcn";
 
 export function NotificationCard({ notification, onMarkRead, onDelete }) {
   const { t } = useLanguage();
@@ -22,14 +23,28 @@ export function NotificationCard({ notification, onMarkRead, onDelete }) {
         </div>
         <div className="flex gap-1 flex-shrink-0">
           {!notification.read && onMarkRead && (
-            <button onClick={() => onMarkRead(notification)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onMarkRead(notification)}
+              aria-label={t("notifications.markRead")}
+            >
               <AppIcon icon={Check} color="primary" size="xs" className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button onClick={() => onDelete(notification)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onDelete(notification)}
+              aria-label={t("common.delete")}
+            >
               <AppIcon icon={Trash2} color="error" size="xs" className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

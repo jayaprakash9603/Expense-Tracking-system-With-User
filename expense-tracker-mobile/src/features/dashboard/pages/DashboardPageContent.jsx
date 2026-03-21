@@ -18,7 +18,8 @@ import { CategoryBreakdownSection } from "@/features/dashboard/components/sectio
 import { PaymentMethodSection } from "@/features/dashboard/components/sections/PaymentMethodSection";
 import { RecentTransactions } from "@/features/dashboard/components/sections/RecentTransactions";
 import { BudgetOverviewSection } from "@/features/dashboard/components/sections/BudgetOverviewSection";
-import { MonthlyComparisonChart } from "@/features/dashboard/components/charts/MonthlyComparisonChart";
+import { MonthlyComparisonChart } from "@/shared/components/charts/dashboard/MonthlyComparisonChart";
+import { Button } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import {
   buildDashboardLayoutGroups,
@@ -151,13 +152,9 @@ export function DashboardPageContent() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-lg font-semibold mb-2">{t("dashboard.allSectionsHidden")}</p>
             <p className="text-sm text-muted-foreground mb-4">{t("dashboard.restoreSections")}</p>
-            <button
-              type="button"
-              onClick={() => setCustomizationOpen(true)}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
-            >
+            <Button type="button" onClick={() => setCustomizationOpen(true)}>
               {t("dashboard.customize")}
-            </button>
+            </Button>
           </div>
         </ContentSection>
       )}

@@ -122,6 +122,7 @@ export const hi = {
   notifications: {
     defaultTitle: "सूचना",
     defaultBody: "आपके पास एक नया अपडेट है।",
+    markRead: "पढ़ा हुआ मार्क करें",
   },
   demo: {
     registered: "पंजीकृत। डेमो क्रेडेंशियल से साइन इन करें।",
@@ -291,6 +292,7 @@ export const hi = {
   },
   profile: {
     viewProfile: "प्रोफ़ाइल देखें",
+    joinedWithDate: "{{date}} से जुड़े",
   },
   modals: {
     logoutTitle: "लॉगआउट",

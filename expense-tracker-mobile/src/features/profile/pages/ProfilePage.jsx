@@ -4,7 +4,7 @@ import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ProfileHeader } from "../components/ProfileHeader";
 import { ProfileForm } from "../components/ProfileForm";
 import { useProfileForm } from "../hooks/useProfileForm";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ProfilePage() {
   const { t } = useLanguage();

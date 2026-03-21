@@ -1,4 +1,4 @@
-import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
+import { extractExpenseDetails } from "@/shared/utils/expense/expenseDisplayUtils";
 
 export function normalizeFlowExpenseRecords(rawList) {
   if (!Array.isArray(rawList)) return [];

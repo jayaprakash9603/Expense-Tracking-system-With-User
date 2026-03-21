@@ -1,8 +1,7 @@
 import React, { useMemo, useState, useCallback } from "react";
 import dayjs from "dayjs";
 import { CalendarDays } from "lucide-react";
-import { Calendar } from "@/shared/components/app-shadcn";
-import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
+import { Button, Calendar, Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
@@ -49,10 +48,11 @@ export function ExpenseThemedDatePicker({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="outline"
           className={cn(
-            "inline-flex w-full items-center rounded-lg border-2 bg-card px-3 text-left text-sm font-medium shadow-sm",
+            "inline-flex h-auto w-full items-center justify-start rounded-lg border-2 bg-card px-3 text-left text-sm font-medium shadow-sm",
             "transition-[border-color,box-shadow] focus-visible:outline-none",
             error
               ? "border-destructive focus-visible:border-destructive focus-visible:ring-2 focus-visible:ring-destructive/30"
@@ -66,7 +66,7 @@ export function ExpenseThemedDatePicker({
           <span className={cn("truncate", !displayValue && "text-muted-foreground")}>
             {displayValue || placeholder}
           </span>
-        </button>
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start" sideOffset={6}>
         <Calendar

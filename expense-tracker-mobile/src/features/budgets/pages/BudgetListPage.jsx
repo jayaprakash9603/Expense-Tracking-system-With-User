@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteBudgetAction } from "@/redux/budgets/budgets.actions";
 import { useBudgetList, BUDGET_SORT_OPTIONS } from "../hooks/useBudgetList";
 import { useBudgetCharts } from "../hooks/useBudgetCharts";
@@ -11,10 +11,10 @@ import { BudgetCard } from "../components/BudgetCard";
 import { BudgetProgressChart } from "../components/BudgetProgressChart";
 import { BudgetDistributionChart } from "../components/BudgetDistributionChart";
 import { LossGainChart } from "../components/LossGainChart";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 import { Button } from "@/shared/components/app-shadcn";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 
 export function BudgetListPageView() {
   const { t } = useLanguage();

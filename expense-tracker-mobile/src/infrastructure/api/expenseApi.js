@@ -1,5 +1,5 @@
 import { api } from "@/config/api";
-import { safeApiCall } from "@/shared/utils/safeApiCall";
+import { safeApiCall } from "@/shared/utils/network/safeApiCall";
 import { optionalTargetParams } from "@/infrastructure/api/apiUtils";
 
 export const expenseApi = {

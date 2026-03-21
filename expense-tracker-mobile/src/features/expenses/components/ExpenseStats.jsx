@@ -1,7 +1,7 @@
 import { TrendingUp, TrendingDown, Calendar, DollarSign } from "lucide-react";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { AppIconBox } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 
 const STAT_ICONS = {

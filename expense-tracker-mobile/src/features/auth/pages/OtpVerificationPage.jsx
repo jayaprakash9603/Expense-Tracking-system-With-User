@@ -4,11 +4,11 @@ import { useDispatch } from "react-redux";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { verifyTwoFactorOtpAction } from "@/redux/auth/auth.actions";
-import { FormField } from "@/shared/components/FormField";
-import { AppButton } from "@/shared/components/AppButton";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppButton } from "@/shared/components/form/AppButton";
 import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function OtpVerificationPage() {
   const dispatch = useDispatch();

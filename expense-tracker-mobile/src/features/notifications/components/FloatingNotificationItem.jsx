@@ -1,7 +1,7 @@
 import React from "react";
 import { Bell, X } from "lucide-react";
 import { AppButton } from "@/shared/components/form/AppButton";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 
 export function FloatingNotificationItem({ item, onDismiss, className }) {

@@ -7,7 +7,7 @@ import {
   useContext,
   createElement,
 } from "react";
-import { STORAGE_KEYS, SIDEBAR_WIDTH } from "@/config/constants";
+import { STORAGE_KEYS, SIDEBAR_WIDTH } from "@/config/app/constants";
 
 const LayoutContext = createContext(null);
 

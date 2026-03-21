@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteCategoryAction } from "@/redux/categories/categories.actions";
 import { useCategoryList, CATEGORY_SORT_OPTIONS } from "../hooks/useCategoryList";
 import { CategoryCard } from "../components/CategoryCard";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 
 export function CategoryListPageView() {
   const { t } = useLanguage();

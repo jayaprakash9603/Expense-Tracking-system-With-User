@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { DEFAULT_TIMEFRAME_OPTIONS } from "@/config/chart/chartConfig";
-import { DEFAULT_REPORT_FLOW_TYPES, CUSTOM_TIMEFRAME_PLACEHOLDER } from "@/features/reports/constants/reportFilters";
+import { DEFAULT_REPORT_FLOW_TYPES, CUSTOM_TIMEFRAME_PLACEHOLDER } from "@/shared/constants/reportFilters";
 
 export function useExpenseReportHeaderFilters(t, timeframe, isCustomRangeActive) {
   const flowOpts = useMemo(

@@ -1,9 +1,9 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AppCard } from "@/shared/components/display/AppCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
-import { Progress } from "@/shared/components/app-shadcn";
+import { Button, Progress } from "@/shared/components/app-shadcn";
 
 export function BudgetCard({ budget, onEdit, onDelete, className }) {
   const { t } = useLanguage();
@@ -23,14 +23,28 @@ export function BudgetCard({ budget, onEdit, onDelete, className }) {
         </div>
         <div className="flex gap-1 ml-2">
           {onEdit && (
-            <button onClick={() => onEdit(budget)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onEdit(budget)}
+              aria-label={t("common.edit")}
+            >
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button onClick={() => onDelete(budget)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onDelete(budget)}
+              aria-label={t("common.delete")}
+            >
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

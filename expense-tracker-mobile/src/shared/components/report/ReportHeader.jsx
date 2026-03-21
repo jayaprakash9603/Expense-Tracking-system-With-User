@@ -6,13 +6,13 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { ReportActionMenu } from "./ReportActionMenu";
 import { ReportHeaderCenter } from "./ReportHeaderCenter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 import {
   CUSTOM_TIMEFRAME_PLACEHOLDER,
   DEFAULT_REPORT_FLOW_TYPES,
   DEFAULT_REPORT_TIMEFRAMES,
-} from "@/features/reports/constants/reportFilters";
+} from "@/shared/constants/reportFilters";
 
 function ReportHeaderSkeleton() {
   return (

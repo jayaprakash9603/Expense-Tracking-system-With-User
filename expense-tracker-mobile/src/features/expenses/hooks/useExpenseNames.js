@@ -4,7 +4,7 @@ import { expenseApi } from "@/infrastructure/api";
 import {
   deduplicateNames,
   getSuggestions,
-} from "../utils/expenseNameUtils";
+} from "@/shared/utils/expense/expenseNameUtils";
 import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
 
 function buildSuggestionPayload(friendId, topN) {

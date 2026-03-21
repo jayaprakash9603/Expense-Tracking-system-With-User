@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useFlowData } from "@/shared/hooks/flow/useFlowData";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { fetchDailySpendingAction } from "@/redux/expenses/expenses.actions";
 import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
@@ -83,6 +84,7 @@ function buildCardData(chartData) {
 }
 
 export function useCashflowData() {
+  const { t } = useLanguage();
   const paramsBuilder = useCallback(({ activeRange, offset, apiFlowType }) => {
     const params = {
       range: activeRange,
@@ -128,10 +130,13 @@ export function useCashflowData() {
     return buildCardData(chartData);
   }, [apiData, chartData]);
 
-  const chartConfig = useMemo(() => ({
-    income: { label: "Gain", color: "#10b981" },
-    expense: { label: "Loss", color: "#ef4444" },
-  }), []);
+  const chartConfig = useMemo(
+    () => ({
+      income: { label: t("dashboard.gain"), color: "hsl(var(--chart-7))" },
+      expense: { label: t("dashboard.loss"), color: "hsl(var(--chart-4))" },
+    }),
+    [t],
+  );
 
   return {
     ...flow,

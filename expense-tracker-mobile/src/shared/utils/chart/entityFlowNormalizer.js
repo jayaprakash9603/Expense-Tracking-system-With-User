@@ -1,4 +1,4 @@
-import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
+import { extractExpenseDetails } from "@/shared/utils/expense/expenseDisplayUtils";
 import { getChartColor } from "./chartHelpers";
 import { buildStackedBuckets } from "./entityFlowStackedBuckets";
 

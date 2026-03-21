@@ -13,8 +13,8 @@ import {
 import { AppSheet } from "@/shared/components/overlay/AppSheet";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { useLayout } from "@/shared/hooks/useLayout";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { useLayout } from "@/shared/hooks/layout/useLayout";
 import { cn } from "@/lib/utils";
 
 export function UniversalSearch({

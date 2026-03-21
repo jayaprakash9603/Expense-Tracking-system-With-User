@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { STORAGE_KEYS, DEFAULT_DATE_FORMAT } from "@/config/constants";
-import { formatDate, formatDateTime, formatRelative } from "@/shared/utils/dateUtils";
+import { STORAGE_KEYS, DEFAULT_DATE_FORMAT } from "@/config/app/constants";
+import { formatDate, formatDateTime, formatRelative } from "@/shared/utils/format/dateUtils";
 
 export function useDateFormat() {
   const [dateFormat, setDateFormatState] = useState(

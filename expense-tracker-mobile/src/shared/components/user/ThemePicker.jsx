@@ -1,9 +1,9 @@
 import React from "react";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/shared/hooks/useTheme";
+import { useTheme } from "@/shared/hooks/theme/useTheme";
 import { Switch } from "@/components/ui/switch";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ThemePicker({ showModeToggle = false, compact = false }) {
   const { mode, palette, availablePalettes, setPaletteId, toggle } = useTheme();

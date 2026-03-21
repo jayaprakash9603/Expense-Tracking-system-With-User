@@ -1,7 +1,7 @@
 import { useSelector, useDispatch } from "react-redux";
 import { useMemo, useCallback, useEffect } from "react";
-import { generateLegacyTokens } from "@/config/themeTokens";
-import { COLOR_PALETTES, getPaletteOptions } from "@/config/colorPalettes";
+import { generateLegacyTokens } from "@/config/theme/themeTokens";
+import { COLOR_PALETTES, getPaletteOptions } from "@/config/theme/colorPalettes";
 import {
   toggleTheme,
   setTheme,
@@ -10,7 +10,7 @@ import {
   setSystemPreference,
   resetTheme,
 } from "@/redux/theme/theme.actions";
-import { injectTheme, watchSystemPreference } from "@/shared/utils/themeInjector";
+import { injectTheme, watchSystemPreference } from "@/shared/utils/theme/themeInjector";
 
 export const useTheme = () => {
   const dispatch = useDispatch();

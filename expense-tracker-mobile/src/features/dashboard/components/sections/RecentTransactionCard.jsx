@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Button } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
 import { buildRecentTransactionRow } from "@/features/dashboard/utils/buildRecentTransactionRow";
 
@@ -33,31 +34,33 @@ export function RecentTransactionCard({
         {row.variant === "gain" ? "💰" : "💸"}
       </div>
       <div className="min-w-0 flex-1">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={(e) => {
             e.stopPropagation();
             if (row.id != null) onExpenseNavigate?.(row.id);
           }}
-          className="block w-full truncate text-left text-sm font-semibold text-foreground underline-offset-2 hover:underline"
+          className="h-auto w-full justify-start truncate p-0 text-left text-sm font-semibold text-foreground underline-offset-2 hover:underline"
         >
           {row.name || "—"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="link"
           disabled={!row.categoryId}
           onClick={(e) => {
             e.stopPropagation();
             if (row.categoryId) onCategoryNavigate?.(row.categoryId);
           }}
           className={cn(
-            "mt-0.5 block w-full truncate text-left text-xs text-muted-foreground",
+            "mt-0.5 h-auto w-full justify-start truncate p-0 text-left text-xs text-muted-foreground",
             row.categoryId && "cursor-pointer underline-offset-2 hover:underline",
             !row.categoryId && "cursor-default",
           )}
         >
           {row.categoryName || "—"}
-        </button>
+        </Button>
         <p className="mt-0.5 text-xs text-muted-foreground/90">{row.dateLabel}</p>
       </div>
       <div

@@ -2,7 +2,7 @@ import {
   getFuzzyMatchIndices,
   scoreFuzzyMatch,
   compareFuzzyScores,
-} from "./expenseFuzzyUtils";
+} from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 
 export function deduplicateCategories(categories) {
   const list = Array.isArray(categories) ? categories : [];

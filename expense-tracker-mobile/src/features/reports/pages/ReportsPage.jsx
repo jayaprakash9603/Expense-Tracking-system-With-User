@@ -4,7 +4,7 @@ import { ListScreen } from "@/shared/components/templates/ListScreen";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { BarChart3, PieChart, TrendingUp, CreditCard } from "lucide-react";
 import { REPORT_TYPES } from "@/features/reports/config/reportConfig";
 

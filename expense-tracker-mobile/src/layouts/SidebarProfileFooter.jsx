@@ -6,7 +6,7 @@ import { UserAvatar } from "@/shared/components/user/UserAvatar";
 import { SidebarAccountMenu } from "@/layouts/SidebarAccountMenu";
 import { SidebarProfileFooterSkeleton } from "@/layouts/SidebarProfileFooterSkeleton";
 import { buildSidebarDisplayName } from "@/layouts/buildSidebarDisplayName";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { logoutAction } from "@/redux/auth/auth.actions";
 import { cn } from "@/lib/utils";
 

@@ -4,14 +4,13 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { loginUserAction } from "@/redux/auth/auth.actions";
 import { loginSchema, loginInitialValues } from "../validation/loginSchema";
-import { FormField } from "@/shared/components/FormField";
-import { AppButton } from "@/shared/components/AppButton";
+import { FormField } from "@/shared/components/form/FormField";
+import { AppButton } from "@/shared/components/form/AppButton";
 import { resolveGoogleSignInClientId } from "@/config/auth/googleOAuth";
 import { GoogleLoginButton } from "./GoogleLoginButton";
-import { Alert, AlertDescription } from "@/shared/components/app-shadcn";
-import { Separator } from "@/shared/components/app-shadcn";
+import { Alert, AlertDescription, Button, Separator } from "@/shared/components/app-shadcn";
 import { AlertCircle } from "lucide-react";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function LoginForm() {
   const dispatch = useDispatch();
@@ -128,24 +127,26 @@ export function LoginForm() {
               ) : null}
 
               <div className="flex flex-col items-center gap-3 pt-1">
-                <button
+                <Button
                   type="button"
-                  className="text-sm text-primary hover:underline"
+                  variant="link"
+                  className="h-auto p-0 text-sm font-normal text-primary"
                   onClick={() => navigate("/forgot-password")}
                 >
                   {t("auth.login.forgotPassword")}
-                </button>
+                </Button>
                 <div className="flex items-center gap-1">
                   <span className="text-muted-foreground text-sm">
                     {t("auth.login.noAccount")}
                   </span>
-                  <button
+                  <Button
                     type="button"
-                    className="text-sm text-primary font-medium hover:underline"
+                    variant="link"
+                    className="h-auto p-0 text-sm font-medium text-primary"
                     onClick={() => navigate("/register")}
                   >
                     {t("auth.login.register")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </Form>

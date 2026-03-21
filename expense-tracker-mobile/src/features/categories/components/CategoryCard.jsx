@@ -1,7 +1,8 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { AppCard } from "@/shared/components/AppCard";
-import { AppBadge } from "@/shared/components/AppBadge";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppCard } from "@/shared/components/display/AppCard";
+import { AppBadge } from "@/shared/components/display/AppBadge";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { Button } from "@/shared/components/app-shadcn";
 
 export function CategoryCard({ category, onEdit, onDelete }) {
   const { t } = useLanguage();
@@ -28,14 +29,28 @@ export function CategoryCard({ category, onEdit, onDelete }) {
         </div>
         <div className="flex gap-1 ml-2">
           {onEdit && (
-            <button onClick={() => onEdit(category)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onEdit(category)}
+              aria-label={t("common.edit")}
+            >
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
+            </Button>
           )}
           {onDelete && (
-            <button onClick={() => onDelete(category)} className="p-1 rounded hover:bg-muted">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => onDelete(category)}
+              aria-label={t("common.delete")}
+            >
               <Trash2 className="h-3.5 w-3.5 text-destructive" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

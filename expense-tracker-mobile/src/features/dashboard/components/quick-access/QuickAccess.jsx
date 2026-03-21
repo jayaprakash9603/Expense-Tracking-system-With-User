@@ -10,6 +10,7 @@ import {
   DASHBOARD_QUICK_ACCESS_ACTIONS,
   DASHBOARD_QUICK_ACCESS_COLOR_MAP,
 } from "@/features/dashboard/config/quickAccessActions";
+import { Button } from "@/shared/components/app-shadcn";
 
 export function QuickAccess() {
   const navigate = useNavigate();
@@ -33,13 +34,13 @@ export function QuickAccess() {
       )}
     >
       {actions.map((action) => (
-        <button
+        <Button
           key={action.key}
           type="button"
+          variant="outline"
           onClick={() => navigate(action.path)}
           className={cn(
-            "flex min-h-[44px] w-full min-w-0 items-center justify-start gap-2 rounded-xl border border-border bg-card px-3 py-2.5",
-            "text-left text-sm font-medium sm:px-4",
+            "h-auto min-h-[44px] w-full min-w-0 justify-start gap-2 rounded-xl border-border bg-card px-3 py-2.5 text-left text-sm font-medium sm:px-4",
             animation.enabled && "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
           )}
         >
@@ -55,7 +56,7 @@ export function QuickAccess() {
             <Plus className="h-3 w-3 shrink-0" />
             <span className="truncate">{t(action.labelKey)}</span>
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   );

@@ -3,7 +3,7 @@ import { AppComposedChart } from "@/shared/components/chart/AppComposedChart";
 import { AppPieChart } from "@/shared/components/chart/AppPieChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function MonthlyReportCharts({ monthly, category }) {
   const { t } = useLanguage();

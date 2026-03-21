@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { MoreHorizontal, X, LogOut } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { getBottomNavItems, getMoreMenuItems, isActiveRoute } from "@/app/routing/routeCatalog";
 import { logoutAction } from "@/redux/auth/auth.actions";
 import { Separator } from "@/components/ui/separator";

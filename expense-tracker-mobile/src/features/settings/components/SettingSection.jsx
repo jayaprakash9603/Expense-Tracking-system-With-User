@@ -1,6 +1,6 @@
 import React from "react";
-import { AppIcon } from "@/shared/components/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { AppIcon } from "@/shared/components/display/AppIcon";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function SettingSection({ icon: Icon, titleKey, children }) {
   const { t } = useLanguage();

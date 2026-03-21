@@ -1,10 +1,10 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
-import { ExpenseThemedAutocomplete } from "./ExpenseThemedAutocomplete";
+import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
 import { useExpensePaymentMethods } from "../../hooks/useExpensePaymentMethods";
-import { createFuzzyFilterOptions } from "../../utils/expenseFuzzyUtils";
+import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import {
   findPaymentMethodByValue,
   arePaymentMethodsEqual,

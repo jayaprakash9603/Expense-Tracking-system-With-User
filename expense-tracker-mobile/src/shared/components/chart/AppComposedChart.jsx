@@ -3,7 +3,7 @@ import { ComposedChart, Bar, Line, Area, CartesianGrid, XAxis, YAxis } from "rec
 import { ChartContainer, ChartTooltip, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { MaskedChartTooltipContent } from "./MaskedChartTooltip";
 import { ChartEmptyState } from "./ChartEmptyState";
-import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chartConfig";
+import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function AppComposedChart({

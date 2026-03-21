@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { useDateFormat } from "@/shared/hooks/useDateFormat";
+import { useDateFormat } from "@/shared/hooks/i18n/useDateFormat";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 

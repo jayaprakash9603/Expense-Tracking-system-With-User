@@ -1,6 +1,6 @@
 import React, { useEffect, useSyncExternalStore } from "react";
 import { store } from "@/redux/store";
-import { injectTheme, applyUserSettingsEnhancements } from "@/shared/utils/themeInjector";
+import { injectTheme, applyUserSettingsEnhancements } from "@/shared/utils/theme/themeInjector";
 
 function selectThemeAndSettings(state) {
   return {

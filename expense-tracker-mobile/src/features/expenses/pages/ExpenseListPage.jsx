@@ -2,7 +2,7 @@ import { Receipt, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteExpenseAction } from "@/redux/expenses/expenses.actions";
 import { useExpenseList, EXPENSE_SORT_OPTIONS } from "../hooks/useExpenseList";
 import { useExpenseCharts } from "../hooks/useExpenseCharts";
@@ -11,10 +11,10 @@ import { ExpenseFilters } from "../components/ExpenseFilters";
 import { DailySpendingChart } from "../components/DailySpendingChart";
 import { ExpenseCategoryChart } from "../components/ExpenseCategoryChart";
 import { useState } from "react";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 import { Button } from "@/shared/components/app-shadcn";
-import { ResponsiveGrid } from "@/shared/components/ResponsiveGrid";
-import { AppIcon } from "@/shared/components/AppIcon";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
+import { AppIcon } from "@/shared/components/display/AppIcon";
 
 export function ExpenseListPageView() {
   const { t } = useLanguage();

@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useState } from "react";
 import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteBillAction } from "@/redux/bills/bills.actions";
 import { useBillList, BILL_SORT_OPTIONS } from "../hooks/useBillList";
 import { BillCard } from "../components/BillCard";
-import { ConfirmDialog } from "@/shared/components/ConfirmDialog";
+import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 
 export function BillListPageView() {
   const { t } = useLanguage();

@@ -4,12 +4,12 @@ import { BarChart3 } from "lucide-react";
 import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
 import { AppButton } from "@/shared/components/form/AppButton";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { ExpenseQuickActions } from "@/features/expenses/components/form";
+import { ExpenseQuickActions } from "@/features/expenses/components";
 import { useCashflowData } from "@/features/expenses/hooks/useCashflowData";
-import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chartConfig";
+import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function CashflowPage() {
   const navigate = useNavigate();

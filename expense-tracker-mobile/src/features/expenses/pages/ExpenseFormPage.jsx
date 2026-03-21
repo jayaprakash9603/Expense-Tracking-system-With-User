@@ -1,8 +1,8 @@
 import React, { useMemo, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { createFuzzyFilterOptions } from "../utils/expenseFuzzyUtils";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import {
   EXPENSE_FORM_LABELS,
   EXPENSE_FORM_PLACEHOLDERS,

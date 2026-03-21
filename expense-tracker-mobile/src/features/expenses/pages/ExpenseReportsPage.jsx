@@ -8,7 +8,7 @@ import { useExpenseReportApiData } from "@/features/expenses/hooks/useExpenseRep
 import { getTimeframeDateRange } from "@/shared/utils/chart/timeframeResolver";
 import { expenseApi } from "@/infrastructure/api";
 import { downloadBlobFile } from "@/shared/utils/file/downloadFile";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { DEFAULT_EXPENSE_REPORT_VIEW_FILTERS } from "@/features/expenses/constants/expenseReportViewFilterDefaults";
 
 function toYmd(value) {

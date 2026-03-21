@@ -1,8 +1,8 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
 import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/useLanguage";
-import { CHART_HEIGHTS } from "@/config/chartConfig";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { CHART_HEIGHTS } from "@/config/chart/chartConfig";
 import { cn } from "@/lib/utils";
 
 export function ChartEmptyState({ message, height = CHART_HEIGHTS.default, className }) {

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { PageContainer } from "@/shared/components/PageContainer";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { SETTINGS_SECTIONS } from "@/features/settings/constants/settingsConfig";
 import { FeatureGate } from "@/shared/components/feedback/FeatureGate";
 import { SettingSection } from "@/features/settings/components/SettingSection";
@@ -12,7 +12,7 @@ import { DeleteAccountDialog } from "@/features/settings/components/DeleteAccoun
 import { useSettingsState } from "@/features/settings/hooks/useSettingsState";
 import { useSettingsActions } from "@/features/settings/hooks/useSettingsActions";
 import { fetchOrCreateUserSettings } from "@/redux/userSettings/userSettings.actions";
-import { applyUserSettingsEnhancements } from "@/shared/utils/themeInjector";
+import { applyUserSettingsEnhancements } from "@/shared/utils/theme/themeInjector";
 
 export function SettingsPage() {
   const dispatch = useDispatch();

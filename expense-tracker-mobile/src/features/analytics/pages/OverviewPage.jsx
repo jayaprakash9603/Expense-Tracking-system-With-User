@@ -11,11 +11,13 @@ import {
 } from "@/shared/components/display/SummaryCard";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useOverviewData } from "@/features/analytics/hooks/useOverviewData";
-import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
-import { SpendingTrendChart } from "@/features/dashboard/components/charts/SpendingTrendChart";
-import { CategoryBreakdownChart } from "@/features/dashboard/components/charts/CategoryBreakdownChart";
-import { MonthlyComparisonChart } from "@/features/dashboard/components/charts/MonthlyComparisonChart";
-import { DashboardProvider } from "@/features/dashboard/context/DashboardContext";
+import {
+  CategoryBreakdownChart,
+  DashboardProvider,
+  MonthlyComparisonChart,
+  SpendingTrendChart,
+  useDashboardCharts,
+} from "@/features/dashboard";
 
 const SKELETON_VARIANTS = ["blue", "emerald", "amber", "rose"];
 

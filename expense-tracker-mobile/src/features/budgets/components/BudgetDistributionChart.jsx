@@ -1,7 +1,7 @@
 import React from "react";
 import { AppPieChart } from "@/shared/components/chart/AppPieChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { useLanguage } from "@/shared/hooks/useLanguage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function BudgetDistributionChart({ data, config }) {
   const { t } = useLanguage();
