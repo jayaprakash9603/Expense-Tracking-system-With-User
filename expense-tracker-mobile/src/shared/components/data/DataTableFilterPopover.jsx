@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DataTableFilterValueField } from "@/shared/components/data/DataTableFilterValueField";
 import {
   Popover,
   PopoverContent,
@@ -191,7 +191,7 @@ export function DataTableFilterPopover({
           <Filter className="h-3.5 w-3.5" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[320px] p-4">
+      <PopoverContent align="end" className="w-[min(100vw-2rem,340px)] max-w-[340px] p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold">{dialogTitle}</p>
           <Button
@@ -227,37 +227,15 @@ export function DataTableFilterPopover({
 
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">{valueLabel}</Label>
-            {filterType === "date" && operator === "range" ? (
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                <Input
-                  type="date"
-                  value={range.from}
-                  onChange={(event) =>
-                    setRange((prev) => ({ ...prev, from: event.target.value }))
-                  }
-                />
-                <Input
-                  type="date"
-                  value={range.to}
-                  onChange={(event) =>
-                    setRange((prev) => ({ ...prev, to: event.target.value }))
-                  }
-                />
-              </div>
-            ) : (
-              <Input
-                type={
-                  filterType === "number"
-                    ? "number"
-                    : filterType === "date"
-                      ? "date"
-                      : "text"
-                }
-                value={value}
-                onChange={(event) => setValue(event.target.value)}
-                placeholder={valuePlaceholder}
-              />
-            )}
+            <DataTableFilterValueField
+              filterType={filterType}
+              operator={operator}
+              value={value}
+              onValueChange={setValue}
+              range={range}
+              onRangeChange={setRange}
+              valuePlaceholder={valuePlaceholder}
+            />
           </div>
         </div>
 

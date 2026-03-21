@@ -1,0 +1,46 @@
+---
+description: Code splitting, memoization, selectors, charts, lists, bundle discipline for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/**/*.{js,jsx}
+alwaysApply: false
+---
+
+# Performance (expense-tracker-mobile)
+
+## Route-level code splitting
+
+- `src/app/routes.jsx` uses `React.lazy` for feature pages via `IMPLEMENTED_PAGES` and wraps routes in `Suspense` with `RouteFallback`.
+- New pages: add to `IMPLEMENTED_PAGES` + `ImplementedRoutes` (and `routeCatalog.js`) — avoid static imports for heavy screens unless they are core shell routes.
+
+## Memoization
+
+- `useMemo` for derived lists, chart datasets, filtered rows, sorted data.
+- `useCallback` for handlers passed to memoized children or deep trees.
+- `React.memo` for pure list rows/cards that receive stable props.
+
+## Redux
+
+- Prefer selectors in `src/redux/selectors/`; use `createSelector` from Reselect for expensive derivations.
+- Do not store derived values in Redux; compute in selectors or components.
+
+## Charts
+
+- Use `CHART_HEIGHTS`, `CHART_ANIMATION`, `CHART_MARGINS` from `src/config/chart/chartConfig.js`.
+- Memoize chart config objects and data transforms; avoid recreating large option blobs every render.
+
+## Lists and tables
+
+- `EnhancedDataTable` supports pagination — use for large datasets.
+- Long card lists: consider windowing or pagination patterns before rendering hundreds of DOM nodes.
+
+## Layout reads
+
+- Do not read `window.innerWidth` in render; use `useLayout`, `useMediaQuery`, or CSS.
+
+## Bundle
+
+- Keep feature chunks reasonably small; lazy-load Recharts-heavy pages; avoid importing entire libraries in shared entry paths.
+- If adding large deps, verify Vite chunk split (`vite.config` / dynamic imports).
+
+## References
+
+- `src/app/routes.jsx`, `src/config/chart/chartConfig.js`, `src/shared/components/data/EnhancedDataTable.jsx`

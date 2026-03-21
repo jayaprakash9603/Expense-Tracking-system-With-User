@@ -1,0 +1,66 @@
+---
+description: Expense-tracker-mobile layered architecture, feature folders, naming, imports, and barrels.
+globs: expense-tracker-mobile/**/*.{js,jsx,css}
+alwaysApply: true
+---
+
+# Architecture (expense-tracker-mobile)
+
+This app is **Vite + React 18 + shadcn/ui + Tailwind + Redux Toolkit**, not the legacy MUI frontend. Follow the layers below.
+
+## Layer map
+
+| Layer | Path | Role |
+|-------|------|------|
+| Shell | `src/app/` | Routes, guards, providers, search |
+| Features | `src/features/{name}/` | Screens and feature-scoped UI |
+| Domain | `src/domain/{entity}/` | `{entity}.model.js`, `*.rules.js`, `*.validators.js`, `*.transformers.js` |
+| Infrastructure | `src/infrastructure/` | `api/`, `demo/`, `cache/`, `websocket/` |
+| Redux | `src/redux/` | Per-slice `*.actions.js`, `*.reducer.js`, `*.actionTypes.js`, `store.js` |
+| Shared | `src/shared/` | `components/`, `hooks/`, `patterns/`, `utils/`, `contracts/` |
+| UI primitives | `src/components/ui/` | shadcn/Radix primitives only |
+| Config | `src/config/` | `runtime/`, `theme/`, `navigation/`, `chart/`, `api/`, `auth/`, `ui/` |
+| i18n | `src/i18n/` | `LanguageContext.jsx`, `translations/en.js`, `hi.js`, `te.js` |
+| Styles | `src/styles/` | `globals.css` |
+
+## Feature folder contract
+
+Every `src/features/{name}/` must include:
+
+- `pages/` — route-level pages (one primary export per file; filename matches export)
+- `components/` — feature-only UI
+- `hooks/` — feature-scoped hooks
+
+Optional: `config/`, `constants/`, `utils/`, `context/`, `validation/`.
+
+Use **kebab-case** for multi-word feature folders (`payment-methods`, `grouped-report-accordion`).
+
+## Naming
+
+| Artifact | Convention | Example |
+|----------|------------|---------|
+| React components | PascalCase `.jsx` | `ExpenseReportHeader.jsx` |
+| Hooks | `use` + PascalCase, camelCase file | `useExpenseForm.js` |
+| Domain | `{entity}.{role}.js` | `expense.transformers.js` |
+| Redux | `{slice}.actions.js`, `.reducer.js`, `.actionTypes.js` | `expenses.actions.js` |
+| Config | `*Config.js` or `constants/` | `expenseConfig.js` |
+
+## Imports
+
+- Use `@/` path alias for all app imports (`@/shared/...`, `@/features/...`, `@/config/...`).
+- Avoid deep relative paths (`../../..`).
+
+## Barrel exports
+
+- Subfolders with multiple public modules should expose `index.js` with `export * from` or explicit named exports.
+- Prefer importing from barrels when the feature exports a stable API.
+
+## New top-level `src/` directories
+
+Do not add new roots under `src/` without an ADR and alignment with `docs/adr/` patterns.
+
+## References
+
+- Config entry: `src/config/index.js`
+- Route catalog: `src/app/routing/routeCatalog.js`
+- Redux store: `src/redux/store.js`

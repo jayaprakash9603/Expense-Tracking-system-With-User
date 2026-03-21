@@ -1,0 +1,53 @@
+---
+description: Mobile-first layout, breakpoints, useLayout, sheets vs desktop, safe areas for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/**/*.{jsx,css}
+alwaysApply: true
+---
+
+# Responsive design (expense-tracker-mobile)
+
+## Mobile-first
+
+- Layouts must work at **320px** width. Add behavior with `sm:`, `md:`, `lg:`, `xl:`, `2xl:` — do not assume desktop-only widths.
+
+## Canonical breakpoints
+
+Align with Tailwind defaults and `useLayout` in `src/shared/hooks/layout/useLayout.jsx`:
+
+| Token | Min width |
+|-------|-----------|
+| sm | 640px |
+| md | 768px |
+| lg | 1024px |
+| xl | 1280px |
+| 2xl | 1536px |
+
+**Mobile** = below `md`; **tablet** = `md`–`lg`; **desktop** = `lg+` (see `useLayout` for `isMobile`, `isTablet`, `showSidebar`, `showBottomNav`).
+
+## Hooks (required)
+
+- Use `useLayout()` from `@/shared/hooks/layout/useLayout` (or re-export) for shell-aware layout (`isMobile`, `showBottomNav`, `showSidebar`).
+- Use `useIsMobile()`, `useIsDesktop()`, `useMediaQuery()` from `@/shared/hooks/theme/useMediaQuery.js` for simple one-off checks.
+- **Avoid** `window.innerWidth`, ad-hoc `matchMedia` in render, or magic pixel numbers unless documented (e.g. tooltip compact mode).
+
+## Patterns
+
+- **Sheets**: `Sheet` / `SheetContent` — `side="bottom"` on mobile, `side="right"` or `side="left"` on desktop where the codebase already does this (e.g. filter sheets).
+- **Grids**: `ResponsiveGrid` with `cols={{ default: 1, md: 2, lg: 3 }}` or presets (`stats`, `cards`, `settings`, `form`) from `src/shared/components/layout/ResponsiveGrid.jsx`.
+- **Charts**: `CHART_HEIGHTS` from `@/config/chartConfig`; full width on small screens; avoid fixed widths that overflow.
+- **Sticky actions**: bottom fixed submit bars on mobile (`fixed bottom-0` + safe area), static on `md+` — see `EntityFormPage.jsx`.
+- **Touch targets**: interactive controls at least ~44px (`h-10`, `min-h-10`, `size-10` for icon buttons).
+
+## Safe areas
+
+- Fixed bottom nav and overlays: use `.safe-bottom` / `.safe-top` from `src/styles/globals.css` where applicable.
+
+## Overflow
+
+- No horizontal page scroll at default zoom; test narrow viewports.
+
+## References
+
+- `src/layouts/AppShell.jsx`, `Sidebar.jsx`, `BottomNavigation.jsx`, `TopBar.jsx`
+- `src/shared/components/layout/ResponsiveGrid.jsx`
+- `src/styles/globals.css` (`.settings-grid`, `.app-shell`)

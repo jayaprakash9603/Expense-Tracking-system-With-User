@@ -1,0 +1,49 @@
+---
+description: shadcn-first UI, App wrappers, Entity patterns, theming, i18n, loading and empty states for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/**/*.jsx
+alwaysApply: true
+---
+
+# Components (expense-tracker-mobile)
+
+## shadcn-first
+
+- Primitives live in `src/components/ui/` (Button, Input, Select, Calendar, Dialog, Sheet, Popover, Table, Tabs, Switch, Checkbox, Skeleton, etc.).
+- Do not ship raw `<button>`, `<select>`, or native date inputs in features; use shadcn components or App wrappers.
+- Charts compose `ChartContainer` / `ChartTooltip` from `src/components/ui/chart.jsx` with Recharts.
+
+## App wrappers
+
+- Prefer `AppButton`, `AppInput`, `AppCard`, `AppSelect`, `AppDialog`, `AppSheet` from `src/shared/components/` (and barrels) so density, variants, and tokens stay consistent.
+- Features should not import `@/components/ui/button` directly unless extending a wrapper or building a new App primitive.
+
+## Entity patterns
+
+- Lists: `EntityListPage` + list hook pattern (`useEntityList` from `src/shared/patterns/`) + domain transformers.
+- Forms: `EntityFormPage` + `useEntityForm` / feature form hooks.
+- Flow dashboards: `EntityFlowPage` + flow hooks from `src/shared/patterns/`.
+- Avoid one-off full-page list/form shells when these patterns fit.
+
+## Size and composition
+
+- Target under **80 lines** for presentational components; under **120** for page containers; split into subcomponents or hooks when larger.
+- Prefer slots: `renderItem`, `renderFields`, `children`, `toolbar`, `headerActions` over many boolean props.
+
+## Every interactive / visible component must
+
+1. **className** — accept optional `className` and merge with `cn()` from `@/lib/utils`.
+2. **Theme** — use semantic Tailwind tokens: `bg-background`, `text-foreground`, `text-muted-foreground`, `border-border`, `bg-card`, `text-primary`, `bg-destructive`, etc. Avoid hard-coded hex/rgb except in chart config maps that already use CSS variables.
+3. **i18n** — user-visible strings via `useLanguage()` and `t("namespace.key")`. No literal English in JSX for labels, placeholders, buttons, empty copy, or errors.
+4. **Loading** — use `Skeleton` from `@/components/ui/skeleton` or feature `*Skeleton` components; `LoadingSpinner` where appropriate.
+5. **Empty** — use `EmptyState`, `NoDataPlaceholder`, or `ChartEmptyState` for zero-data cases.
+
+## Masking and money
+
+- Display money with `useMoneyFormatter()` from `@/shared/hooks/settings/useMoneyFormatter` (respects `maskSensitiveData`).
+- Chart tooltips: use `MaskedChartTooltipContent` / patterns in `src/shared/components/chart/`.
+
+## References
+
+- Patterns: `src/shared/patterns/EntityListPage.jsx`, `EntityFormPage.jsx`, `EntityFlowPage.jsx`
+- Feedback: `src/shared/components/feedback/`
+- Form wrappers: `src/shared/components/form/`

@@ -1,0 +1,45 @@
+---
+description: User settings, theme injection, masking, density, accessibility classes for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/**/*.{js,jsx}
+alwaysApply: true
+---
+
+# Settings and theming (expense-tracker-mobile)
+
+## Settings-driven UI
+
+- User preferences live in Redux `userSettings` and localStorage `expensio_user_settings`, merged in `useSettingsState` (`src/features/settings/hooks/useSettingsState.js`).
+- Declarative UI schema: `src/features/settings/constants/settingsConfig.js` — sections, items, `stateKey`, `labelKey`, `featureFlagKey`, `dependsOn`.
+- New settings rows: extend `SETTINGS_SECTIONS` and i18n keys; do not invent parallel `localStorage` keys for the same concerns.
+
+## Theme and palette
+
+- `ThemeProvider` (`src/app/providers/ThemeProvider.jsx`) applies `injectTheme` from `src/shared/utils/theme/themeInjector.js` and `applyUserSettingsEnhancements` for font, compact, motion, contrast, focus, screen reader.
+- Use **semantic** classes and CSS variables: `bg-background`, `text-foreground`, `border-border`, `primary`, `muted`, `destructive`, chart vars `var(--chart-1)` … `var(--chart-10)`.
+- `html` gets `dark` or `light` class; prefer tokens over ad-hoc `dark:` unless necessary.
+
+## Masking
+
+- `maskSensitiveData` in `useUserSettings().settings`.
+- Money: `useMoneyFormatter().format` — never raw `toFixed` for sensitive amounts in UI.
+- Text: `useSensitiveText` / `maskSensitiveText` from `src/shared/hooks/settings/`.
+- Charts: `MaskedChartTooltipContent`, `MaskedAmount` in `src/shared/components/`.
+
+## Density and motion
+
+- `.compact` on root affects spacing via `--app-spacing`; avoid hard-coded large padding that ignores compact mode.
+- Respect `.reduce-motion`, `.no-animations`, `.high-contrast`, `.enhanced-focus` applied by `applyUserSettingsEnhancements`.
+
+## Accessibility
+
+- Meaningful controls: `aria-label` where icon-only; form fields associated with `Label`.
+- Settings toggles map to real behavior (screen reader, keyboard shortcuts, etc.).
+
+## Feature gates
+
+- Settings sections use `FeatureGate` with `section.featureFlagKey` — see `src/features/settings/pages/SettingsPage.jsx`.
+
+## References
+
+- `src/shared/hooks/settings/useUserSettings.js`, `useMoneyFormatter.js`, `useMasking.js`, `usePresentation.js`
+- `src/config/theme/themeTokens.js`, `src/config/theme/colorPalettes.js`
