@@ -57,7 +57,7 @@ export function useBillForm({
     friendId,
   );
 
-  const { autoFilledFields, markUserModified } = useBillAutoFill(
+  const { autoFilledFields, markUserModified, autoFillNoticeToken } = useBillAutoFill(
     isCreateMode ? previousExpense : null,
     isCreateMode ? formData.name : null,
     formData,
@@ -201,6 +201,7 @@ export function useBillForm({
     loadingPreviousExpense,
     autoFilledFields,
     markUserModified,
+    autoFillNoticeToken,
     isCreateMode,
   };
 }

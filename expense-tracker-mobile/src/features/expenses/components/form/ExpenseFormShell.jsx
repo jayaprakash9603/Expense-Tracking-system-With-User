@@ -24,24 +24,27 @@ export function ExpenseFormShell({
         )}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className={cn("text-2xl md:text-3xl font-extrabold", titleClassName)}>
-                {title}
-              </h1>
-              {rightContent}
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 shrink-0 text-primary"
-            onClick={onClose}
-            aria-label={t("common.close")}
+          <h1
+            className={cn(
+              "min-w-0 flex-1 text-2xl font-extrabold md:text-3xl",
+              titleClassName,
+            )}
           >
-            <X className="h-4 w-4" />
-          </Button>
+            {title}
+          </h1>
+          <div className="flex shrink-0 items-center gap-2">
+            {rightContent}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 text-primary"
+              onClick={onClose}
+              aria-label={t("common.close")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <Separator className="my-2.5" />
         {children}

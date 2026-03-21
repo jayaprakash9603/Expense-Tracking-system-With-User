@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
 import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
 
@@ -9,8 +9,6 @@ const EMPTY_FLAGS = {
   comments: false,
 };
 
-const AUTO_FILL_CLEAR_DELAY = 3000;
-
 export function useExpenseAutoFill(
   previousExpense,
   expenseName,
@@ -20,7 +18,7 @@ export function useExpenseAutoFill(
   const [autoFilledFields, setAutoFilledFields] = useState({ ...EMPTY_FLAGS });
   const [lastAutoFilledName, setLastAutoFilledName] = useState("");
   const [userModifiedFields, setUserModifiedFields] = useState({ ...EMPTY_FLAGS });
-  const timeoutRef = useRef(null);
+  const [autoFillNoticeToken, setAutoFillNoticeToken] = useState(0);
 
   useEffect(() => {
     const normalizedName = String(expenseName || "").trim();
@@ -84,15 +82,10 @@ export function useExpenseAutoFill(
     setFormData((prev) => ({ ...prev, ...updates }));
     setAutoFilledFields(nextAutoFilled);
     setLastAutoFilledName(normalizedName);
+    setAutoFillNoticeToken((n) => n + 1);
     if (isNewName) {
       setUserModifiedFields({ ...EMPTY_FLAGS });
     }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      setAutoFilledFields({ ...EMPTY_FLAGS });
-    }, AUTO_FILL_CLEAR_DELAY);
   }, [
     previousExpense,
     expenseName,
@@ -106,20 +99,12 @@ export function useExpenseAutoFill(
     userModifiedFields,
   ]);
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   const markUserModified = useCallback((field) => {
     setUserModifiedFields((prev) => ({ ...prev, [field]: true }));
     setAutoFilledFields((prev) => ({ ...prev, [field]: false }));
   }, []);
 
-  return { autoFilledFields, userModifiedFields, markUserModified };
+  return { autoFilledFields, userModifiedFields, markUserModified, autoFillNoticeToken };
 }
 
 export default useExpenseAutoFill;

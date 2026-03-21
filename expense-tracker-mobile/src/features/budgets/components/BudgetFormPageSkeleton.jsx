@@ -10,6 +10,15 @@ function BudgetFieldSkeleton() {
   );
 }
 
+function BudgetDescriptionSkeleton() {
+  return (
+    <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-start lg:gap-0">
+      <Skeleton className="mt-0.5 h-4 w-28 shrink-0 lg:w-[150px]" />
+      <Skeleton className="min-h-[72px] w-full max-w-full flex-1 rounded-lg lg:max-w-[760px]" />
+    </div>
+  );
+}
+
 export function BudgetFormPageSkeleton() {
   return (
     <div
@@ -26,7 +35,7 @@ export function BudgetFormPageSkeleton() {
         <BudgetFieldSkeleton />
       </ExpenseFormRow>
       <ExpenseFormRow>
-        <BudgetFieldSkeleton />
+        <BudgetDescriptionSkeleton />
       </ExpenseFormRow>
       <div className="mt-1 flex flex-wrap gap-2">
         <Skeleton className="h-10 w-full rounded-md sm:w-44" />

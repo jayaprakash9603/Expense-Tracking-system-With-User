@@ -1,5 +1,10 @@
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS,
+  LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_PX,
+} from "@/shared/constants/linkedTableLayout";
 
 export function LinkedEntityTablePanel({
   linkLabel,
@@ -8,6 +13,7 @@ export function LinkedEntityTablePanel({
   error,
   children,
   closeAriaLabel,
+  summaryWhenClosed,
 }) {
   return (
     <>
@@ -30,6 +36,16 @@ export function LinkedEntityTablePanel({
           </Button>
         ) : null}
       </div>
+
+      {!open && summaryWhenClosed ? (
+        <div
+          className={cn("mt-4", LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS)}
+          style={{ minHeight: LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_PX }}
+          role="status"
+        >
+          {summaryWhenClosed}
+        </div>
+      ) : null}
 
       {open ? (
         <div className="relative mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-card/50">

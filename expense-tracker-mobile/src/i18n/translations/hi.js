@@ -720,6 +720,8 @@ export const hi = {
       loadingPaymentMethods: "भुगतान विधियाँ लोड हो रही हैं...",
       paymentMethodsLoadError: "भुगतान विधियाँ लोड करने में त्रुटि",
     },
+    noBudgetsSelected: "कोई बजट चयनित नहीं",
+    budgetsSelectedCount: "{{count}} बजट चयनित",
   },
   budget: {
     title: "बजट",
@@ -733,6 +735,8 @@ export const hi = {
     endDate: "समाप्ति तिथि",
     linkExpenses: "खर्च लिंक करें",
     noExpensesForDate: "चयनित तिथियों के लिए कोई खर्च उपलब्ध नहीं",
+    noExpensesSelected: "कोई खर्च चयनित नहीं",
+    expensesSelectedCount: "{{count}} खर्च चयनित",
     selectAllExpenses: "सभी खर्च चुनें",
     deleteBudget: "बजट हटाएं",
     deleteConfirm: "क्या आप वाकई इस बजट को हटाना चाहते हैं?",

@@ -56,7 +56,7 @@ export function useExpenseForm({
     isCreateMode ? friendId : null,
   );
 
-  const { autoFilledFields, markUserModified } = useExpenseAutoFill(
+  const { autoFilledFields, markUserModified, autoFillNoticeToken } = useExpenseAutoFill(
     isCreateMode ? previousExpense : null,
     isCreateMode ? formData.expenseName : null,
     formData,
@@ -273,6 +273,7 @@ export function useExpenseForm({
     loadingPreviousExpense,
     autoFilledFields,
     markUserModified,
+    autoFillNoticeToken,
     handleDateChange,
     handleSubmit,
   };

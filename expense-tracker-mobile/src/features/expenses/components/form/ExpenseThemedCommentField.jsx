@@ -9,9 +9,9 @@ export function ExpenseThemedCommentField({
   onChange,
   placeholder,
   error = false,
-  minRows = 3,
-  maxRows = 5,
-  maxWidth = "920px",
+  minRows = 2,
+  maxRows = 3,
+  maxWidth = "760px",
   className,
   ...rest
 }) {

@@ -182,9 +182,6 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder={t("budget.description")}
               error={Boolean(errors.description)}
-              maxWidth="760px"
-              minRows={3}
-              maxRows={5}
             />
           </ExpenseFieldLayout>
         </ExpenseFormRow>
@@ -195,14 +192,21 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
           onOpenChange={setShowTable}
           error={expenseError || undefined}
           closeAriaLabel={t("common.close")}
+          summaryWhenClosed={
+            showTable
+              ? undefined
+              : selectedExpenseIds.length === 0
+                ? t("budget.noExpensesSelected")
+                : t("budget.expensesSelectedCount", { count: selectedExpenseIds.length })
+          }
         >
-                <ExpenseSelectionTable
-                  expenses={expenses}
-                  selectedExpenseIds={selectedExpenseIds}
-                  onSelectionChange={setSelectedExpenseIds}
-                  emptyText={t("budget.noExpensesForDate")}
+          <ExpenseSelectionTable
+            expenses={expenses}
+            selectedExpenseIds={selectedExpenseIds}
+            onSelectionChange={setSelectedExpenseIds}
+            emptyText={t("budget.noExpensesForDate")}
             loading={expensesLoading}
-                />
+          />
         </LinkedEntityTablePanel>
             </div>
 

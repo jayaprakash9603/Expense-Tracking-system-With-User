@@ -36,12 +36,6 @@ export function BillFormLoadingState({ title, loadingLabel, onClose }) {
           </div>
         </ExpenseFormRow>
 
-        <ExpenseFormRow className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
-          <div className="w-full md:max-w-md">
-            <BillFormFieldSkeleton />
-          </div>
-        </ExpenseFormRow>
-
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Skeleton className="h-11 w-full rounded-md sm:w-40" />
           <Skeleton className="h-11 w-full rounded-md sm:w-44" />

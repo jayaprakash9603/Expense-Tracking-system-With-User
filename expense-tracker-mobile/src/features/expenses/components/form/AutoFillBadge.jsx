@@ -1,12 +1,27 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+
+const DEFAULT_HIDE_AFTER_MS = 4500;
 
 export function AutoFillBadge({
   visible = false,
   label = "Auto-filled",
   className,
+  hideAfterMs = DEFAULT_HIDE_AFTER_MS,
 }) {
-  if (!visible) return null;
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      setShown(false);
+      return undefined;
+    }
+    setShown(true);
+    const id = window.setTimeout(() => setShown(false), hideAfterMs);
+    return () => window.clearTimeout(id);
+  }, [visible, hideAfterMs]);
+
+  if (!shown) return null;
 
   return (
     <span

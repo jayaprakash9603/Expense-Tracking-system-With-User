@@ -56,6 +56,7 @@ export function BillFormPage({ mode: modeProp }) {
     loadingPreviousExpense,
     autoFilledFields,
     markUserModified,
+    autoFillNoticeToken,
     isCreateMode,
   } = formHook;
 
@@ -185,6 +186,7 @@ export function BillFormPage({ mode: modeProp }) {
             label={t("expenseForm.actions.previouslyAdded")}
             labelPosition="top"
             icon="calendar"
+            className="max-w-[min(100%,14rem)] shrink-0"
           />
         ) : null
       }
@@ -200,6 +202,7 @@ export function BillFormPage({ mode: modeProp }) {
         handleDateChange={handleDateChange}
         autoFilledFields={autoFilledFields}
         markUserModified={markUserModified}
+        autoFillNoticeToken={autoFillNoticeToken}
         isCreateMode={isCreateMode}
         noExpenseNamesLabel={noExpenseNamesLabel}
         noOptionsLabel={noOptionsLabel}
@@ -268,7 +271,11 @@ export function BillFormPage({ mode: modeProp }) {
 
       {!showBudgetPanel && !showExpenseTable && (
         <div className="mt-4">
-          <BillExpenseItemsSummary expenses={validCommittedLines} t={t} />
+          <BillExpenseItemsSummary
+            expenses={validCommittedLines}
+            t={t}
+            errorMessage={errors.amount ? t(errors.amount) : undefined}
+          />
         </div>
       )}
 

@@ -69,6 +69,7 @@ export function ExpenseFormPage({
     loadingPreviousExpense,
     autoFilledFields,
     markUserModified,
+    autoFillNoticeToken,
     handleDateChange,
     handleSubmit,
   } = formHook;
@@ -140,6 +141,7 @@ export function ExpenseFormPage({
             label={previouslyAddedLabel}
             labelPosition="top"
             icon="calendar"
+            className="max-w-[min(100%,14rem)] shrink-0"
           />
         ) : null
       }
@@ -162,6 +164,7 @@ export function ExpenseFormPage({
         isCreateMode={isCreateMode}
         autoFilledFields={autoFilledFields}
         markUserModified={markUserModified}
+        autoFillNoticeToken={autoFillNoticeToken}
         handleDateChange={handleDateChange}
         labels={EXPENSE_FORM_LABELS}
         placeholders={EXPENSE_FORM_PLACEHOLDERS}

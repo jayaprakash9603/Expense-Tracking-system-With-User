@@ -1,23 +1,38 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { computeBillExpensesTotal } from "@/domain/bills/billExpenseLineUtils";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { BILL_EXPENSE_SCROLL } from "../config/billConfig";
+import {
+  LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS,
+  LINKED_TABLE_RESERVE_MIN_HEIGHT_CLASS,
+} from "@/shared/constants/linkedTableLayout";
 
-export function BillExpenseItemsSummary({ expenses, t }) {
+export function BillExpenseItemsSummary({ expenses, t, errorMessage }) {
   const { format } = useMoneyFormatter();
   const total = computeBillExpensesTotal(expenses || []);
 
   if (!expenses?.length) {
     return (
-      <div className="rounded-lg border border-dashed border-primary/30 bg-muted/20 px-3 py-4 text-center text-xs text-muted-foreground sm:text-sm">
-        {t("billForm.summary.noItems")}
+      <div
+        className={cn(LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS, LINKED_TABLE_RESERVE_MIN_HEIGHT_CLASS)}
+      >
+        <div className="flex flex-col gap-2">
+          {errorMessage ? (
+            <p className="text-xs font-medium text-destructive sm:text-sm">{errorMessage}</p>
+          ) : null}
+          <span>{t("billForm.summary.noItems")}</span>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="rounded-lg border border-border/60 bg-card/50 px-2 py-2 sm:px-3 sm:py-3">
+      {errorMessage ? (
+        <p className="mb-2 text-xs font-medium text-destructive sm:text-sm">{errorMessage}</p>
+      ) : null}
       <p className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
         {t("billForm.summary.title")}
       </p>

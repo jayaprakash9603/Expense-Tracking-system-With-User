@@ -15,6 +15,8 @@ export function SelectableDataTable({
   pageSizeOptions = [5, 10, 20, 50],
   emptyMessage,
   tableClassName,
+  tableContainerClassName,
+  flexColumnSizing = false,
   className,
 }) {
   const rowSelectionState = useMemo(
@@ -63,6 +65,8 @@ export function SelectableDataTable({
       pageSizeOptions={pageSizeOptions}
       emptyMessage={emptyMessage}
       tableClassName={tableClassName}
+      tableContainerClassName={tableContainerClassName}
+      flexColumnSizing={flexColumnSizing}
       className={cn("w-full", className)}
     />
   );

@@ -671,6 +671,8 @@ export const en = {
       loadingPaymentMethods: "Loading payment methods...",
       paymentMethodsLoadError: "Error loading payment methods",
     },
+    noBudgetsSelected: "No budgets selected",
+    budgetsSelectedCount: "{{count}} budgets selected",
   },
   budget: {
     title: "Budget",
@@ -691,6 +693,8 @@ export const en = {
     endDate: "End Date",
     linkExpenses: "Link Expenses",
     noExpensesForDate: "No expenses available for selected dates",
+    noExpensesSelected: "No expenses selected",
+    expensesSelectedCount: "{{count}} expenses selected",
     selectAllExpenses: "Select all expenses",
     noBudgets: "No budgets found",
     linkExpensesTable: {

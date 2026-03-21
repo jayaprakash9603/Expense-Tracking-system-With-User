@@ -219,7 +219,7 @@ function toHeaderLabel(column) {
 const DEFAULT_SCROLL_BODY_MAX_ROWS = 5;
 const DEFAULT_SCROLL_BODY_ROW_HEIGHT_PX = 42;
 const DEFAULT_SCROLL_TABLE_HEADER_HEIGHT_PX = 41;
-const SCROLL_VIEWPORT_SLACK_PX = 2;
+const SCROLL_VIEWPORT_SLACK_PX = 10;
 const TABLE_BODY_ROW_SEPARATOR_PX = 1;
 const LAST_PAGE_PADDED_ROW_TOTAL = 5;
 
@@ -273,6 +273,7 @@ export function EnhancedDataTable({
   scrollBodyHeightExtraPx = 0,
   scrollBodyAlwaysSized = false,
   filterRowGlobalFn,
+  flexColumnSizing = false,
 }) {
   const { t } = useLanguage();
   const [data, setData] = useState(initialData);
@@ -586,6 +587,15 @@ export function EnhancedDataTable({
   const pagePadTemplateCells =
     padRowCount > 0 ? currentPageRows[0]?.getVisibleCells() ?? [] : [];
 
+  const tableTotalWidth = table.getTotalSize();
+
+  const resolveColumnWidthStyle = (sizePx) => {
+    if (!flexColumnSizing || !tableTotalWidth) {
+      return { width: sizePx };
+    }
+    return { width: `${(sizePx / tableTotalWidth) * 100}%` };
+  };
+
   const tableContent = (
     <Table
       className={cn(tableClassName, lockColumnWidths && "table-fixed")}
@@ -603,8 +613,8 @@ export function EnhancedDataTable({
               <TableHead
                 key={header.id}
                 colSpan={header.colSpan}
-                style={{ width: header.getSize() }}
-                className="sticky top-0 z-20 border-b border-border bg-muted"
+                style={resolveColumnWidthStyle(header.getSize())}
+                className="sticky top-0 z-20 min-w-0 border-b border-border bg-muted"
               >
                 {renderHeaderCell(header)}
               </TableHead>
@@ -679,7 +689,10 @@ export function EnhancedDataTable({
                 onClick={() => onRowClick?.(row.original)}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                  <TableCell
+                    key={cell.id}
+                    className={cn(flexColumnSizing && "min-w-0")}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
@@ -699,7 +712,7 @@ export function EnhancedDataTable({
                     {pagePadTemplateCells.map((cell) => (
                       <TableCell
                         key={`${cell.column.id}-pad-${padIndex}`}
-                        style={{ width: cell.column.getSize() }}
+                        style={resolveColumnWidthStyle(cell.column.getSize())}
                       >
                         {"\u00a0"}
                       </TableCell>

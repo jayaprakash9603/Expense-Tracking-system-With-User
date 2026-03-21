@@ -18,6 +18,7 @@ import SubmitButton from "../../../shared/form/components/SubmitButton";
 import ThemedDatePicker from "../../../shared/form/fields/ThemedDatePicker";
 import ThemedTextField from "../../../shared/form/fields/ThemedTextField";
 import ThemedAmountField from "../../../shared/form/fields/ThemedAmountField";
+import ThemedCommentField from "../../../shared/form/fields/ThemedCommentField";
 import GroupedDataTable from "../../../components/common/GroupedDataTable/GroupedDataTable";
 import { useExpenseTableConfig } from "../../expenses/hooks/useExpenseTableConfig";
 import { FilterPopover } from "../../../components/ui";
@@ -410,6 +411,32 @@ export default function BudgetFormPage({ mode }) {
     </FormField>
   );
 
+  const renderDescriptionField = () => (
+    <FormField
+      label={getFieldLabel("description")}
+      htmlFor="description"
+      required
+      error={errors.description}
+      colors={colors}
+    >
+      <ThemedCommentField
+        id="description"
+        name="description"
+        value={formData.description || ""}
+        onChange={handleInputChange}
+        placeholder={getPlaceholderForField(
+          "description",
+          getFieldLabel("description"),
+        )}
+        colors={colors}
+        error={!!errors.description}
+        minRows={2}
+        maxRows={3}
+        maxWidth="760px"
+      />
+    </FormField>
+  );
+
   return (
     <div style={{ backgroundColor: colors.primary_bg }}>
       <FormPageShell
@@ -425,7 +452,7 @@ export default function BudgetFormPage({ mode }) {
         <div className="flex-1">
           <FormRow first>
             {renderInput("name")}
-            {renderInput("description")}
+            <div className="flex-1 hidden sm:block" />
           </FormRow>
           <FormRow>
             {renderDateInput("startDate")}
@@ -435,6 +462,7 @@ export default function BudgetFormPage({ mode }) {
             {renderAmountInput()}
             <div className="flex-1 hidden sm:block" />
           </FormRow>
+          <FormRow className="mb-4">{renderDescriptionField()}</FormRow>
           {budgetError && (
             <div className="text-red-500 text-sm mb-4">
               {budgetError.message || budgetErrorFallback}

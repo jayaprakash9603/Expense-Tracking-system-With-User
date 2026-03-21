@@ -22,7 +22,9 @@ export function BudgetSelectionTable({
         defaultPageSize={5}
         loading={loading}
         emptyMessage={t("common.noResults")}
-        tableClassName="min-w-[920px] lg:min-w-0"
+        tableClassName="w-full min-w-0"
+        tableContainerClassName="overflow-x-hidden overflow-y-auto"
+        flexColumnSizing
       />
     </div>
   );

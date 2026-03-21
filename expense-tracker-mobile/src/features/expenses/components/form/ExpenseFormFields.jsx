@@ -41,6 +41,7 @@ export function ExpenseFormFields({
   noOptionsLabel,
   linkBudgetsLabel,
   className,
+  autoFillNoticeToken = 0,
 }) {
   return (
     <div className={cn("mt-2 flex flex-col gap-3 lg:gap-4", showTable && "pb-2", className)}>
@@ -141,7 +142,10 @@ export function ExpenseFormFields({
                 />
               )}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.transactionType} />
+            <AutoFillBadge
+              key={`exp-af-tt-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.transactionType}
+            />
           </div>
         </ExpenseFieldLayout>
 
@@ -161,7 +165,10 @@ export function ExpenseFormFields({
               placeholder={t(placeholders.category)}
               error={Boolean(errors.category)}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.category} />
+            <AutoFillBadge
+              key={`exp-af-cat-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.category}
+            />
           </div>
         </ExpenseFieldLayout>
 
@@ -177,7 +184,10 @@ export function ExpenseFormFields({
               friendId={friendId}
               placeholder={t(placeholders.paymentMethod)}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.paymentMethod} />
+            <AutoFillBadge
+              key={`exp-af-pm-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.paymentMethod}
+            />
           </div>
         </ExpenseFieldLayout>
       </ExpenseFormRow>
@@ -191,6 +201,7 @@ export function ExpenseFormFields({
         >
           <div className="relative">
             <AutoFillBadge
+              key={`exp-af-com-${autoFillNoticeToken}`}
               visible={isCreateMode && autoFilledFields.comments}
               className="top-[-20px] right-0 translate-x-0 lg:right-auto lg:left-[300px]"
             />
@@ -203,9 +214,6 @@ export function ExpenseFormFields({
                 markUserModified("comments");
               }}
               placeholder={t(placeholders.comments)}
-              maxWidth="760px"
-              minRows={2}
-              maxRows={3}
             />
           </div>
         </ExpenseFieldLayout>
@@ -216,6 +224,13 @@ export function ExpenseFormFields({
         onOpenChange={setShowTable}
         error={budgetError}
         closeAriaLabel={t("common.close")}
+        summaryWhenClosed={
+          showTable
+            ? undefined
+            : selectedBudgetIds.length === 0
+              ? t("expenseForm.noBudgetsSelected")
+              : t("expenseForm.budgetsSelectedCount", { count: selectedBudgetIds.length })
+        }
       >
         <BudgetSelectionTable
           budgets={budgets}

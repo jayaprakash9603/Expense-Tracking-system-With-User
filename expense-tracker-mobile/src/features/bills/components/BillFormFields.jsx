@@ -5,8 +5,6 @@ import { BILL_TYPE_OPTIONS } from "@/domain/bills/bill.model";
 import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import { ExpenseFormRow } from "@/features/expenses/components/form/ExpenseFormRow";
 import { ExpenseFieldLayout } from "@/features/expenses/components/form/ExpenseFieldLayout";
-import { computeBillExpensesTotal, filterValidBillExpenses } from "@/domain/bills/billExpenseLineUtils";
-import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { ExpenseThemedDatePicker } from "@/features/expenses/components/form/ExpenseThemedDatePicker";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
 import { ExpenseNameAutocomplete } from "@/features/expenses/components/form/ExpenseNameAutocomplete";
@@ -36,6 +34,7 @@ export function BillFormFields({
   isCreateMode,
   noExpenseNamesLabel,
   noOptionsLabel,
+  autoFillNoticeToken = 0,
 }) {
   const resolveError = (key) => (errors[key] ? t(errors[key]) : undefined);
 
@@ -45,12 +44,6 @@ export function BillFormFields({
         getOptionLabel: formatBillTypeLabel,
       }),
     [],
-  );
-
-  const { format } = useMoneyFormatter();
-  const lineItemsTotal = useMemo(
-    () => computeBillExpensesTotal(filterValidBillExpenses(formData.expenses || [])),
-    [formData.expenses],
   );
 
   const onNameChange = useCallback(
@@ -92,7 +85,10 @@ export function BillFormFields({
               placeholder={t(placeholders.description)}
               intent="default"
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.description} />
+            <AutoFillBadge
+              key={`bill-af-desc-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.description}
+            />
           </div>
         </ExpenseFieldLayout>
 
@@ -147,7 +143,10 @@ export function BillFormFields({
                 />
               )}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.type} />
+            <AutoFillBadge
+              key={`bill-af-type-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.type}
+            />
           </div>
         </ExpenseFieldLayout>
 
@@ -163,7 +162,10 @@ export function BillFormFields({
               friendId={friendId}
               placeholder={t(placeholders.paymentMethod)}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.paymentMethod} />
+            <AutoFillBadge
+              key={`bill-af-pm-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.paymentMethod}
+            />
           </div>
         </ExpenseFieldLayout>
 
@@ -179,26 +181,10 @@ export function BillFormFields({
               placeholder={t(placeholders.category)}
               error={Boolean(errors.categoryId)}
             />
-            <AutoFillBadge visible={isCreateMode && autoFilledFields.categoryId} />
-          </div>
-        </ExpenseFieldLayout>
-      </ExpenseFormRow>
-
-      <ExpenseFormRow className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
-        <ExpenseFieldLayout
-          label={t(labels.totalFromLines)}
-          htmlFor="bill-total-from-lines"
-          required
-          error={resolveError("amount")}
-        >
-          <div
-            id="bill-total-from-lines"
-            className={cn(
-              "flex min-h-12 items-center justify-end rounded-md border bg-muted/30 px-3 text-base font-semibold tabular-nums",
-              errors.amount ? "border-destructive" : "border-border/60",
-            )}
-          >
-            {lineItemsTotal > 0 ? format(lineItemsTotal) : "—"}
+            <AutoFillBadge
+              key={`bill-af-cat-${autoFillNoticeToken}`}
+              visible={isCreateMode && autoFilledFields.categoryId}
+            />
           </div>
         </ExpenseFieldLayout>
       </ExpenseFormRow>

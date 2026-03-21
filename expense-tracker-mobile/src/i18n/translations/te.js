@@ -719,6 +719,8 @@ export const te = {
       loadingPaymentMethods: "చెల్లింపు విధానాలు లోడ్ అవుతున్నాయి...",
       paymentMethodsLoadError: "చెల్లింపు విధానాలు లోడ్ చేయడంలో లోపం",
     },
+    noBudgetsSelected: "బడ్జెట్లు ఏవీ ఎంచుకోలేదు",
+    budgetsSelectedCount: "{{count}} బడ్జెట్లు ఎంచుకున్నారు",
   },
   budget: {
     title: "బడ్జెట్",
@@ -732,6 +734,8 @@ export const te = {
     endDate: "ముగింపు తేదీ",
     linkExpenses: "ఖర్చులను లింక్ చేయండి",
     noExpensesForDate: "ఎంచుకున్న తేదీలకు ఖర్చులు అందుబాటులో లేవు",
+    noExpensesSelected: "ఖర్చులు ఏవీ ఎంచుకోలేదు",
+    expensesSelectedCount: "{{count}} ఖర్చులు ఎంచుకున్నారు",
     selectAllExpenses: "అన్ని ఖర్చులను ఎంచుకోండి",
     deleteBudget: "బడ్జెట్ తొలగించండి",
     deleteConfirm: "మీరు నిజంగా ఈ బడ్జెట్‌ను తొలగించాలనుకుంటున్నారా?",

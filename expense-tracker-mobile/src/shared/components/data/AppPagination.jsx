@@ -168,7 +168,7 @@ export function AppPagination({
       </div>
 
       <div className="relative hidden min-h-9 items-center gap-3 md:flex">
-        <div className="relative z-[1] min-h-5 min-w-0 max-w-[42%] shrink-0 text-xs text-primary sm:text-sm">
+        <div className="relative z-[1] min-h-5 min-w-0 max-w-[42%] shrink-0 text-sm font-medium text-primary">
           {selectable ? selectedRowsText : null}
         </div>
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-2">
