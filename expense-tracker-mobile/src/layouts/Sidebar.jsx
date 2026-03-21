@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { APP_NAME } from "@/config/constants";
 import { getSidebarItems, NAV_GROUPS, isActiveRoute } from "@/app/routing/routeCatalog";
 import { SidebarProfileFooter } from "@/layouts/SidebarProfileFooter";
+import { getActiveJwt } from "@/shared/utils/authStorage";
 import { cn } from "@/lib/utils";
 
 function groupSidebarItems(currentMode = "USER") {
@@ -34,7 +35,10 @@ function SidebarContent() {
   const { t } = useLanguage();
   const { sidebarCollapsed, toggleSidebar, isTablet } = useLayout();
   const user = useSelector((state) => state.auth?.user);
+  const authLoading = useSelector((state) => state.auth?.loading);
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
+  const sessionActive = Boolean(getActiveJwt());
+  const profileLoading = sessionActive && !user && authLoading;
   const collapsed = isTablet || sidebarCollapsed;
   const navGroups = groupSidebarItems(currentMode);
 
@@ -123,7 +127,12 @@ function SidebarContent() {
 
         <Separator />
 
-        <SidebarProfileFooter user={user} collapsed={collapsed} />
+        <SidebarProfileFooter
+          user={user}
+          collapsed={collapsed}
+          sessionActive={sessionActive}
+          profileLoading={profileLoading}
+        />
       </div>
     </div>
   );

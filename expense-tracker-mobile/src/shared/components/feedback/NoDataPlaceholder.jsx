@@ -5,6 +5,7 @@ import { AppButton } from "@/shared/components/form/AppButton";
 import { cn } from "@/lib/utils";
 
 const SIZE_HEIGHTS = {
+  xs: "min-h-0",
   sm: "min-h-[140px]",
   md: "min-h-[180px]",
   lg: "min-h-[260px]",
@@ -24,6 +25,8 @@ export function NoDataPlaceholder({
 }) {
   const IconComponent = CustomIcon || BarChart3;
   const heightClass = SIZE_HEIGHTS[size] || SIZE_HEIGHTS.md;
+  const iconSize = dense ? "md" : "xl";
+  const messageClass = dense ? "text-sm font-semibold text-foreground" : "text-base font-semibold text-foreground";
 
   return (
     <div
@@ -31,16 +34,16 @@ export function NoDataPlaceholder({
         "flex flex-col items-center justify-center text-center",
         "border border-dashed border-border rounded-lg bg-background",
         heightClass,
-        dense ? "gap-2 px-4" : "gap-3 px-6",
+        dense ? "gap-1.5 px-3 py-3 sm:px-4" : "gap-3 px-6",
         fullWidth && "w-full",
         className
       )}
     >
       <div className="opacity-60">
-        <AppIcon icon={IconComponent} size="xl" color="muted" />
+        <AppIcon icon={IconComponent} size={iconSize} color="muted" />
       </div>
 
-      <p className="text-base font-semibold text-foreground">{message}</p>
+      <p className={messageClass}>{message}</p>
 
       {subMessage && (
         <p className="text-sm text-muted-foreground max-w-[360px]">{subMessage}</p>

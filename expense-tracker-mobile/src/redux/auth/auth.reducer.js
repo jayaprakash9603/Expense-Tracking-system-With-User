@@ -11,6 +11,7 @@ import {
   GET_PROFILE_FAILURE,
   SWITCH_MODE_SUCCESS,
 } from "./auth.actionTypes";
+import { normalizeAppMode } from "./normalizeAppMode";
 
 const initialState = {
   jwt: null,
@@ -31,26 +32,40 @@ export const authReducer = (state = initialState, action) => {
     case REGISTER_SUCCESS:
       return { ...state, jwt: action.payload, loading: false, error: null };
 
-    case GET_PROFILE_SUCCESS:
+    case GET_PROFILE_SUCCESS: {
+      const profile = action.payload;
+      const mode = normalizeAppMode(
+        profile?.currentMode ?? state.currentMode ?? "USER",
+      );
+      const user =
+        profile && typeof profile === "object"
+          ? { ...profile, currentMode: mode }
+          : profile;
       return {
         ...state,
-        user: action.payload,
-        currentMode: action.payload?.currentMode || state.currentMode || "USER",
+        user,
+        currentMode: mode,
         loading: false,
         error: null,
       };
+    }
 
     case LOGIN_FAILURE:
     case REGISTER_FAILURE:
     case GET_PROFILE_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
-    case SWITCH_MODE_SUCCESS:
+    case SWITCH_MODE_SUCCESS: {
+      const mode = normalizeAppMode(action.payload.currentMode);
+      const raw = action.payload.user || state.user;
+      const user =
+        raw && typeof raw === "object" ? { ...raw, currentMode: mode } : raw;
       return {
         ...state,
-        currentMode: action.payload.currentMode,
-        user: action.payload.user || state.user,
+        currentMode: mode,
+        user,
       };
+    }
 
     case LOGOUT:
       return { ...initialState };

@@ -7,6 +7,7 @@ import {
   endOfWeek,
   endOfYear,
   format,
+  isValid,
   isWithinInterval,
   parseISO,
   startOfMonth,
@@ -87,6 +88,18 @@ function matchesFlowFilter(kind, params) {
   return true;
 }
 
+function parseYmdBoundary(value) {
+  if (!value || typeof value !== "string") return null;
+  const raw = value.split("T")[0];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  try {
+    const d = parseISO(raw);
+    return isValid(d) ? d : null;
+  } catch {
+    return null;
+  }
+}
+
 function toCashflowExpenseRow(expense, kind) {
   return {
     id: expense.id,
@@ -101,9 +114,30 @@ function toCashflowExpenseRow(expense, kind) {
 }
 
 export function buildDemoCashflowResponse(store, params = {}, now = new Date()) {
-  const range = params.range === "week" || params.range === "year" ? params.range : "month";
-  const { start, end } = resolveCashflowWindow(range, params.offset, now);
-  const defs = buildBucketDefs(range, start, end);
+  const fromBoundary = parseYmdBoundary(params.startDate);
+  const toBoundary = parseYmdBoundary(params.endDate);
+  let range;
+  let start;
+  let end;
+  let defs;
+
+  if (fromBoundary && toBoundary && fromBoundary <= toBoundary) {
+    range = "custom";
+    start = fromBoundary;
+    end = toBoundary;
+    defs = eachDayOfInterval({ start, end }).map((d) => ({
+      bucketKey: format(d, "yyyy-MM-dd"),
+      label: format(d, "MMM d"),
+      day: format(d, "EEE"),
+    }));
+  } else {
+    range = params.range === "week" || params.range === "year" ? params.range : "month";
+    const resolved = resolveCashflowWindow(range, params.offset, now);
+    start = resolved.start;
+    end = resolved.end;
+    defs = buildBucketDefs(range, start, end);
+  }
+
   const bucketMap = new Map(defs.map((d) => [d.bucketKey, { ...d, expenses: [] }]));
 
   for (const expense of store.expenses || []) {
@@ -112,7 +146,10 @@ export function buildDemoCashflowResponse(store, params = {}, now = new Date()) 
     if (!isWithinInterval(day, { start, end })) continue;
     const kind = expenseFlowKind(expense);
     if (!matchesFlowFilter(kind, params)) continue;
-    const key = expenseBucketKey(range, day);
+    const key =
+      range === "custom" || range === "month" || range === "week"
+        ? format(day, "yyyy-MM-dd")
+        : expenseBucketKey(range, day);
     const bucket = bucketMap.get(key);
     if (!bucket) continue;
     bucket.expenses.push(toCashflowExpenseRow(expense, kind));
@@ -121,6 +158,7 @@ export function buildDemoCashflowResponse(store, params = {}, now = new Date()) 
   const chartData = defs.map((d) => {
     const b = bucketMap.get(d.bucketKey);
     return {
+      isoDate: d.bucketKey,
       label: d.label,
       day: d.day,
       month: d.month,

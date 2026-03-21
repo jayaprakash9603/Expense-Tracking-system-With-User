@@ -34,6 +34,7 @@ const PaymentReportPage = lazy(() => import("@/features/reports/pages/PaymentRep
 const TrendReportPage = lazy(() => import("@/features/reports/pages/TrendReportPage"));
 const OverviewPage = lazy(() => import("@/features/analytics/pages/OverviewPage"));
 const CashflowPage = lazy(() => import("@/features/expenses/pages/CashflowPage"));
+const ExpenseReportsPage = lazy(() => import("@/features/expenses/pages/ExpenseReportsPage"));
 const CategoryFlowPage = lazy(() => import("@/features/categories/pages/CategoryFlowPage"));
 const PaymentMethodFlowPage = lazy(
   () => import("@/features/payment-methods/pages/PaymentMethodFlowPage"),
@@ -57,6 +58,7 @@ const IMPLEMENTED_PAGES = {
   "expenses-add": NewExpensePage,
   "expenses-edit": EditExpensePage,
   "expenses-detail": ExpenseDetailPage,
+  "expenses-reports": ExpenseReportsPage,
   budgets: BudgetListPage,
   "budgets-add": NewBudgetPage,
   "budgets-edit": EditBudgetPage,
@@ -93,7 +95,7 @@ function LazyFallback() {
 }
 
 function resolveLazyFallback(routeKey) {
-  if (routeKey === "expenses" || routeKey === "cashflow") {
+  if (routeKey === "expenses" || routeKey === "cashflow" || routeKey === "expenses-reports") {
     return <FlowPageRouteSkeleton variant="expense" />;
   }
   if (routeKey === "categories" || routeKey === "category-flow" || routeKey === "payments") {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import { CalendarDays } from "lucide-react";
@@ -29,6 +29,22 @@ const SHORTCUT_FALLBACK_LABELS = {
   "dateRange.lastYear": "Last year",
 };
 
+function useWideScreenCalendar() {
+  const [wide, setWide] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 1024px)").matches : false,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setWide(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  return wide;
+}
+
 export function DateRangePicker({
   fromDate,
   toDate,
@@ -36,10 +52,15 @@ export function DateRangePicker({
   onReset,
   dateFormat = "DD MMM YYYY",
   className,
+  showInlineLabels = false,
+  showFromToLabels = false,
+  buttonLabels,
+  showCalendarIcon = true,
 }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [range, setRange] = useState({ from: undefined, to: undefined });
+  const showTwoMonths = useWideScreenCalendar();
 
   useEffect(() => {
     setRange({
@@ -77,11 +98,42 @@ export function DateRangePicker({
 
   const displayFrom = fromDate ? dayjs(fromDate).format(dateFormat) : "--";
   const displayTo = toDate ? dayjs(toDate).format(dateFormat) : "--";
+  const labelFrom = buttonLabels?.from ?? t("dateRange.from");
+  const labelTo = buttonLabels?.to ?? t("dateRange.to");
 
-  const numberOfMonths = useMemo(() => {
-    if (typeof window !== "undefined" && window.innerWidth < 640) return 1;
-    return 2;
-  }, []);
+  const triggerDates = (
+    <>
+      {showFromToLabels ? (
+        <>
+          <span className="shrink-0 text-primary">{labelFrom}</span>
+          <span className="min-w-0 truncate text-foreground">{displayFrom}</span>
+          <span className="shrink-0 opacity-60">–</span>
+          <span className="shrink-0 text-primary">{labelTo}</span>
+          <span className="min-w-0 truncate text-foreground">{displayTo}</span>
+        </>
+      ) : (
+        <>
+          <span
+            className={cn(
+              "min-w-0 truncate tabular-nums text-foreground",
+              showInlineLabels ? "text-foreground" : "text-primary",
+            )}
+          >
+            {displayFrom}
+          </span>
+          <span className="shrink-0 opacity-60">–</span>
+          <span
+            className={cn(
+              "min-w-0 truncate tabular-nums text-foreground",
+              showInlineLabels ? "text-foreground" : "text-primary",
+            )}
+          >
+            {displayTo}
+          </span>
+        </>
+      )}
+    </>
+  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -89,39 +141,51 @@ export function DateRangePicker({
         <button
           type="button"
           className={cn(
-            "inline-flex items-center gap-2 rounded-full border border-primary/30",
-            "bg-primary/10 px-4 py-2 text-sm font-medium",
-            "hover:bg-primary/20 transition-colors",
-            className
+            "inline-flex max-w-full min-w-0 items-center justify-center gap-1 rounded-full border border-primary/30",
+            "bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs md:text-sm",
+            "hover:bg-primary/20 transition-colors sm:max-w-[min(100%,22rem)]",
+            className,
           )}
         >
-          <AppIcon icon={CalendarDays} size="sm" color="primary" />
-          <span className="text-primary">{displayFrom}</span>
-          <span className="opacity-60">→</span>
-          <span className="text-primary">{displayTo}</span>
+          {showCalendarIcon ? (
+            <AppIcon icon={CalendarDays} size="sm" color="primary" className="size-3.5 shrink-0 sm:size-4" />
+          ) : null}
+          {triggerDates}
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="center" sideOffset={8}>
-        <div className="flex flex-col sm:flex-row">
-          <div className="p-3">
+      <PopoverContent
+        className="w-[calc(100vw-1.25rem)] max-w-[min(100vw-1.25rem,18.5rem)] p-0 sm:max-w-[22rem] md:max-w-[26rem] lg:max-w-none lg:w-auto"
+        align="start"
+        alignOffset={-4}
+        side="bottom"
+        sideOffset={6}
+        collisionPadding={8}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-stretch">
+          <div className="w-full p-2 sm:p-2.5 md:p-3">
             <Calendar
               mode="range"
               selected={range}
               onSelect={handleSelect}
-              numberOfMonths={numberOfMonths}
+              numberOfMonths={showTwoMonths ? 2 : 1}
               defaultMonth={range.from || new Date()}
+              className={cn(
+                "w-full max-w-full p-1 [--cell-size:1.625rem] sm:p-2 sm:[--cell-size:1.875rem] md:[--cell-size:2rem]",
+                "[&_.rdp-months]:w-full [&_.rdp-month]:w-full [&_.rdp-month]:max-w-full [&_.rdp-table]:w-full [&_.rdp-cell]:text-center",
+                "lg:[--cell-size:2.25rem]",
+              )}
             />
           </div>
 
-          <div className="flex flex-row sm:flex-col border-t sm:border-t-0 sm:border-l p-3 gap-1 overflow-x-auto sm:overflow-visible sm:min-w-[140px]">
+          <div className="flex flex-row flex-wrap gap-1 border-t border-border p-2 sm:min-w-[8.5rem] sm:flex-col sm:flex-nowrap sm:gap-0.5 sm:border-l sm:border-t-0 sm:p-2 md:min-w-[9.5rem] md:p-2.5">
             {SHORTCUTS.map((shortcut) => (
               <button
                 key={shortcut.labelKey}
                 type="button"
                 onClick={() => handleShortcut(shortcut)}
                 className={cn(
-                  "text-left px-3 py-2 text-sm rounded-md whitespace-nowrap",
-                  "hover:bg-accent hover:text-accent-foreground transition-colors"
+                  "rounded-md px-2 py-1.5 text-left text-xs whitespace-nowrap sm:w-full sm:px-2.5 sm:text-sm",
+                  "hover:bg-accent hover:text-accent-foreground transition-colors",
                 )}
               >
                 {t(shortcut.labelKey) || SHORTCUT_FALLBACK_LABELS[shortcut.labelKey]}
@@ -130,13 +194,13 @@ export function DateRangePicker({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t px-4 py-3">
-          <p className="text-sm text-muted-foreground">
-            {range.from ? dayjs(range.from).format(dateFormat) : "--"}{" "}
-            –{" "}
+        <div className="flex flex-col gap-2 border-t px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-3">
+          <p className="text-xs text-muted-foreground tabular-nums sm:text-sm">
+            {range.from ? dayjs(range.from).format(dateFormat) : "--"}
+            <span className="mx-1">–</span>
             {range.to ? dayjs(range.to).format(dateFormat) : "--"}
           </p>
-          <div className="flex gap-2">
+          <div className="flex justify-end gap-2">
             <AppButton variant="ghost" size="sm" onClick={handleCancel}>
               {t("common.cancel") || "Cancel"}
             </AppButton>

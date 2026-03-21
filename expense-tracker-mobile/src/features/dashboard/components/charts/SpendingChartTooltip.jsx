@@ -3,6 +3,11 @@ import { format } from "date-fns";
 import { Calendar, ArrowDownRight, ArrowUpRight, ReceiptText } from "lucide-react";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import {
+  extractExpenseDetails,
+  resolveExpenseCategoryLabel,
+  resolveExpenseDisplayName,
+} from "@/domain/expenses/expense.utils";
 
 const MAX_ITEMS_MOBILE = 3;
 const MAX_ITEMS_DESKTOP = 5;
@@ -31,16 +36,20 @@ function CompactTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney,
             <span>{t("dashboard.transactions", "Transactions")}</span>
             <span>{expenses.length}</span>
           </div>
-          {displayExpenses.map((expense, idx) => (
-            <div key={idx} className="flex justify-between items-center text-[10px]">
-              <span className="text-foreground truncate mr-1.5 max-w-[90px]">
-                {expense.name || "Unknown"}
-              </span>
-              <span className={`font-semibold whitespace-nowrap ${isLoss ? "text-red-500" : "text-emerald-500"}`}>
-                {formatMoney(expense.amount)}
-              </span>
-            </div>
-          ))}
+          {displayExpenses.map((expense, idx) => {
+            const details = extractExpenseDetails(expense);
+            const label = resolveExpenseDisplayName(details) || "Unknown";
+            return (
+              <div key={idx} className="flex justify-between items-center text-[10px]">
+                <span className="text-foreground truncate mr-1.5 max-w-[90px]">
+                  {label}
+                </span>
+                <span className={`font-semibold whitespace-nowrap ${isLoss ? "text-red-500" : "text-emerald-500"}`}>
+                  {formatMoney(details.amount)}
+                </span>
+              </div>
+            );
+          })}
           {remainingCount > 0 && (
             <div className="text-[9px] text-muted-foreground text-center">+{remainingCount} {t("dashboard.more", "more")}</div>
           )}
@@ -95,24 +104,29 @@ function FullTooltip({ dateLabel, amountValue, expenses, isLoss, formatMoney, t 
             )}
           </div>
           <div className="space-y-1.5">
-            {displayExpenses.map((expense, idx) => (
-              <div key={idx} className="p-2 rounded-lg bg-muted/50 border border-border/50">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-xs font-semibold text-foreground truncate mr-2">
-                    {expense.name || expense.itemName || "Unknown"}
-                  </span>
-                  <span className={`text-xs font-bold whitespace-nowrap ${isLoss ? "text-red-500" : "text-emerald-500"}`}>
-                    {formatMoney(expense.amount)}
-                  </span>
+            {displayExpenses.map((expense, idx) => {
+              const details = extractExpenseDetails(expense);
+              const label = resolveExpenseDisplayName(details) || "Unknown";
+              const categoryLabel = resolveExpenseCategoryLabel(details) || "Uncategorized";
+              return (
+                <div key={idx} className="p-2 rounded-lg bg-muted/50 border border-border/50">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="text-xs font-semibold text-foreground truncate mr-2">
+                      {label}
+                    </span>
+                    <span className={`text-xs font-bold whitespace-nowrap ${isLoss ? "text-red-500" : "text-emerald-500"}`}>
+                      {formatMoney(details.amount)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full ${isLoss ? "bg-red-500" : "bg-emerald-500"}`} />
+                    <span className="text-[10px] font-medium text-muted-foreground">
+                      {categoryLabel}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${isLoss ? "bg-red-500" : "bg-emerald-500"}`} />
-                  <span className="text-[10px] font-medium text-muted-foreground">
-                    {expense.category || expense.categoryName || "Uncategorized"}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -128,9 +142,14 @@ export function SpendingChartTooltip({ active, payload, label, coordinate, viewB
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
-  const isLoss = selectedType === "loss";
-
-  const amountEntry = payload.find((p) => p.dataKey === "expense" || p.dataKey === "amount") || payload[0];
+  const expenseEntry = payload.find((p) => p.dataKey === "expense");
+  const incomeEntry = payload.find((p) => p.dataKey === "income");
+  const hasDualSeries = Boolean(expenseEntry && incomeEntry);
+  const amountEntry =
+    (hasDualSeries ? expenseEntry : null) ||
+    payload.find((p) => p.dataKey === "expense" || p.dataKey === "amount") ||
+    payload[0];
+  const isLoss = hasDualSeries ? true : selectedType === "loss";
   const amountValue = Number(amountEntry?.value ?? 0);
   const expenses = data.expenses || [];
 

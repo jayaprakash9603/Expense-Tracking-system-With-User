@@ -14,7 +14,7 @@ Source of truth: `feature-matrix.yaml` (versioned `defaults`, then `profiles.liv
 
 ### Environment variables
 
-Copy `expense-tracker-mobile/.env.example` to `.env` in that folder for local values (`.env` is gitignored). The example file is the only checked-in env template.
+Vite reads **`.env`** only (not `.env.example`). If `.env` is missing, the first dev/build copies `.env.example` → `.env` via `vite.config.js`. Edit `.env`, set `VITE_APP_RUNTIME_MODE` to `live` or `demo`, then **restart** `bun run dev` (or rebuild). `.env` is gitignored.
 
 | Variable | Purpose |
 |----------|---------|

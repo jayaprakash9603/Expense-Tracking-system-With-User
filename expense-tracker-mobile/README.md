@@ -1,6 +1,6 @@
 # Expense Tracker Mobile
 
-Vite + React client. Env vars are documented in [`.env.example`](.env.example) (the only env file in git). Copy it to **`.env`** in this folder for local overrides (same variable names as Docker `ARG`/`ENV` at build time).
+Vite + React client. Env vars are documented in [`.env.example`](.env.example). **Vite only reads `.env`**, not `.env.example`. On first `bun run dev` / `bun run build`, if `.env` is missing, [`vite.config.js`](vite.config.js) copies `.env.example` → `.env`. Edit **`.env`** for `VITE_APP_RUNTIME_MODE` (`demo` | `live`), then restart the dev server so Vite picks up changes.
 
 ## Switching demo ↔ live
 

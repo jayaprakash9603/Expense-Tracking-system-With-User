@@ -14,6 +14,7 @@ export function SearchToolbar({
   placeholder,
   filterCount = 0,
   debounceMs = 300,
+  compact = false,
   className,
 }) {
   const { t } = useLanguage();
@@ -44,8 +45,14 @@ export function SearchToolbar({
   const resolvedPlaceholder = placeholder || t("common.search") || "Search...";
 
   return (
-    <div className={cn("flex items-center gap-2 w-full", className)}>
-      <div className="relative flex-1">
+    <div
+      className={cn(
+        "flex min-w-0 items-center gap-2",
+        compact ? "w-full max-w-none shrink" : "w-full",
+        className,
+      )}
+    >
+      <div className={cn("relative min-w-0", compact ? "w-full" : "flex-1")}>
         <AppIcon
           icon={Search}
           size="sm"
@@ -56,7 +63,7 @@ export function SearchToolbar({
           value={localValue}
           onChange={handleChange}
           placeholder={resolvedPlaceholder}
-          className="pl-9 pr-8 h-9 text-sm"
+          className={cn("pl-9 pr-8 text-sm", compact ? "h-8 text-xs" : "h-9")}
         />
         {localValue && (
           <button

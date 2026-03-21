@@ -1,58 +1,64 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { updateAuthHeader } from "@/config/api";
 import { getProfileAction } from "@/redux/auth/auth.actions";
 import { fetchOrCreateUserSettings } from "@/redux/userSettings/userSettings.actions";
 import { setTheme } from "@/redux/theme/theme.actions";
 import { preloadUserPreferences } from "@/services/userPreferencesService";
 
 export const useAppInitialization = (jwt) => {
-  const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(jwt));
+  const firstHydrationRef = useRef(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (!jwt) {
+      firstHydrationRef.current = true;
       setLoading(false);
-      return;
+      return undefined;
     }
 
+    let cancelled = false;
     setLoading(true);
+    updateAuthHeader();
 
-    const initializeApp = async () => {
+    const pathAtStart =
+      typeof window !== "undefined" ? window.location.pathname : "/";
+
+    const run = async () => {
       try {
         await Promise.all([
           preloadUserPreferences(dispatch),
           dispatch(getProfileAction(jwt)),
         ]);
-
+        if (cancelled) return;
         const settings = await dispatch(fetchOrCreateUserSettings());
-
+        if (cancelled) return;
         if (settings?.themeMode) {
           dispatch(setTheme(settings.themeMode));
         }
-
         const isAuthRoute =
-          location.pathname === "/" ||
-          location.pathname.startsWith("/login") ||
-          location.pathname.startsWith("/register");
-
-        if (isInitialLoad && isAuthRoute) {
+          pathAtStart === "/" ||
+          pathAtStart.startsWith("/login") ||
+          pathAtStart.startsWith("/register");
+        if (firstHydrationRef.current && isAuthRoute) {
           navigate("/dashboard");
         }
-
-        setIsInitialLoad(false);
+        firstHydrationRef.current = false;
       } catch {
-        setIsInitialLoad(false);
+        firstHydrationRef.current = false;
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    initializeApp();
-  }, [jwt, dispatch]);
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [jwt, dispatch, navigate]);
 
   return { loading };
 };

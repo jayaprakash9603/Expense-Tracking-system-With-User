@@ -156,7 +156,7 @@ export function AppDataTable({
                       )}
                       {columns.map((col) => (
                         <TableCell key={col.key} className={col.cellClassName}>
-                          {col.render ? col.render(row) : row[col.key]}
+                          {col.render ? col.render(col.value ? col.value(row) : row[col.key], row) : (col.value ? col.value(row) : row[col.key])}
                         </TableCell>
                       ))}
                     </TableRow>

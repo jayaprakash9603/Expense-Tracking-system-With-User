@@ -1,6 +1,14 @@
+import fs from "node:fs";
+import path from "path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+
+const root = path.resolve(process.cwd(), ".");
+const envPath = path.join(root, ".env");
+const envExamplePath = path.join(root, ".env.example");
+if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
+  fs.copyFileSync(envExamplePath, envPath);
+}
 
 export default defineConfig({
   plugins: [react()],

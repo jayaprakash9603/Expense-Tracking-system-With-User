@@ -152,7 +152,7 @@ export const ROUTE_CATALOG = [
     navGroup: null,
     navIcon: null,
     bottomNav: false,
-    elementMode: "placeholder",
+    elementMode: "implemented",
   },
   {
     path: "/expenses/reports/:friendId",

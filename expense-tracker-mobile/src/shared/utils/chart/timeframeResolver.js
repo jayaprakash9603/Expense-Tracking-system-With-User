@@ -35,6 +35,22 @@ export function resolveTimeframeParams(timeframe) {
       };
     }
 
+    case "last_3_months": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+      return {
+        startDate: formatDateString(start),
+        endDate: formatDateString(now),
+      };
+    }
+
+    case "last_6_months": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      return {
+        startDate: formatDateString(start),
+        endDate: formatDateString(now),
+      };
+    }
+
     case "this_year": {
       const isFirstQuarter = now.getMonth() <= 2;
       if (isFirstQuarter) {
@@ -109,11 +125,35 @@ export function getTimeframeDateRange(timeframe) {
         start: new Date(now.getFullYear() - 1, 0, 1),
         end: new Date(now.getFullYear() - 1, 11, 31),
       };
+    case "last_3_months": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+      return { start, end: today };
+    }
+    case "last_6_months": {
+      const start = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      return { start, end: today };
+    }
     case "all_time":
       return { start: EARLIEST_SUPPORTED_DATE, end: today };
     default:
       return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: today };
   }
+}
+
+export function filterExpensesByFlowType(expenses, flowType) {
+  if (!flowType || flowType === "all") return expenses;
+  if (flowType === "inflow") return expenses.filter((e) => e.type === "GAIN");
+  if (flowType === "outflow") return expenses.filter((e) => e.type === "LOSS");
+  return expenses;
+}
+
+export function filterExpensesByDateStrings(expenses, fromStr, toStr) {
+  if (!fromStr || !toStr) return expenses;
+  return expenses.filter((e) => {
+    const dateStr = (e.date || "").split("T")[0];
+    if (!dateStr) return false;
+    return dateStr >= fromStr && dateStr <= toStr;
+  });
 }
 
 export function filterExpensesByTimeframe(expenses, timeframe) {

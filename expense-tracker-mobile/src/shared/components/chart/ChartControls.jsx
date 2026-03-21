@@ -20,12 +20,18 @@ export function TimeframeSelector({ value, onChange, options = DEFAULT_TIMEFRAME
   );
 }
 
-export function ChartTypeToggle({ value, onChange, options = SPENDING_FLOW_OPTIONS, className }) {
+export function ChartTypeToggle({ value, onChange, options = SPENDING_FLOW_OPTIONS, className, disabled = false }) {
   const { t } = useLanguage();
   return (
-    <div className={cn("flex gap-0.5 rounded-lg bg-muted p-0.5", className)}>
+    <div
+      className={cn(
+        "flex gap-0.5 rounded-lg bg-muted p-0.5",
+        disabled && "pointer-events-none opacity-50",
+        className,
+      )}
+    >
       {options.map((opt) => {
-        const isActive = value === opt.id;
+        const isActive = value != null && value === opt.id;
         return (
           <button
             key={opt.id}

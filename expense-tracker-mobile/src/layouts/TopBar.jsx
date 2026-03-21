@@ -1,14 +1,18 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Bell } from "lucide-react";
 import { AppIcon } from "@/shared/components/display/AppIcon";
+import { AppBreadcrumb } from "@/shared/components/navigation/AppBreadcrumb";
+import { getBreadcrumbSegments } from "@/app/routing/breadcrumbResolver";
 import { useLayout } from "@/shared/hooks/useLayout";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { cn } from "@/lib/utils";
 
-export function TopBar({ title, showBack = false }) {
+export function TopBar({ showBack = false, breadcrumbItems }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isMinMd, isMinLg } = useLayout();
+  const items = breadcrumbItems ?? getBreadcrumbSegments(location.pathname);
 
   const handleOpenUniversalSearch = () => {
     window.dispatchEvent(new Event("open-universal-search"));
@@ -17,25 +21,26 @@ export function TopBar({ title, showBack = false }) {
   return (
     <header
       className={cn(
-        "flex shrink-0 items-center justify-between border-b border-border bg-card safe-top",
+        "flex shrink-0 items-center justify-between gap-3 border-b border-border bg-card safe-top",
         isMinLg ? "h-14 px-6 xl:px-8" : isMinMd ? "h-13 px-5" : "h-12 px-4",
       )}
     >
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         {showBack && (
           <button
+            type="button"
             onClick={() => navigate(-1)}
-            className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-accent tap-highlight-none"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full hover:bg-accent tap-highlight-none"
           >
             <AppIcon icon={ArrowLeft} color="foreground" size="md" />
           </button>
         )}
-
-        <h1 className={cn("font-semibold truncate", isMinLg ? "text-lg" : "text-base")}>{title}</h1>
+        <AppBreadcrumb items={items} className="text-xs sm:text-sm" />
       </div>
 
-      <div className="flex items-center gap-1 md:gap-2">
+      <div className="flex shrink-0 items-center gap-1 md:gap-2">
         <button
+          type="button"
           onClick={handleOpenUniversalSearch}
           className={cn(
             "flex items-center justify-center rounded-full hover:bg-accent tap-highlight-none",
@@ -49,8 +54,9 @@ export function TopBar({ title, showBack = false }) {
 
         {isMinMd && (
           <button
+            type="button"
             onClick={() => navigate("/notifications")}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent tap-highlight-none relative"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full hover:bg-accent tap-highlight-none"
           >
             <AppIcon icon={Bell} color="soft" size="sm" />
           </button>

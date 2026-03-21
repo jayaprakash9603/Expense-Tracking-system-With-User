@@ -1,6 +1,10 @@
 import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { BarChart3 } from "lucide-react";
 import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
+import { AppButton } from "@/shared/components/form/AppButton";
+import { AppIcon } from "@/shared/components/display/AppIcon";
+import { useLanguage } from "@/shared/hooks/useLanguage";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/features/expenses/components/form";
@@ -9,6 +13,7 @@ import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chartConfig";
 
 export function CashflowPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const {
     activeRange, setActiveRange, rangeLabel, flowTab, setFlowTab,
     goNext, goPrev, resetOffset, rangeOptions, loading,
@@ -29,6 +34,23 @@ export function CashflowPage() {
     navigate("/upload/expenses");
   }, [navigate]);
 
+  const headerActions = useMemo(
+    () => (
+      <AppButton
+        type="button"
+        variant="outline"
+        size="icon"
+        className="h-9 w-9 shrink-0 border-primary/40"
+        aria-label={t("expenses.expenseReportsAria")}
+        title={t("expenses.expenseReportsAria")}
+        onClick={() => navigate("/expenses/reports")}
+      >
+        <AppIcon icon={BarChart3} color="primary" size="sm" />
+      </AppButton>
+    ),
+    [navigate, t],
+  );
+
   return (
     <FlowPageLayout
       activeRange={activeRange}
@@ -41,6 +63,7 @@ export function CashflowPage() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
+      headerActions={headerActions}
       floatingActions={
         <ExpenseQuickActions
           floating

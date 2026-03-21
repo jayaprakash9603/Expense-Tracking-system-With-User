@@ -15,6 +15,7 @@ export function AppSelect({
   onChange,
   options = [],
   placeholder = "Select...",
+  placeholderOption,
   error,
   disabled = false,
   required = false,
@@ -42,6 +43,14 @@ export function AppSelect({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
+          {placeholderOption ? (
+            <SelectItem
+              value={placeholderOption.value}
+              disabled={placeholderOption.disabled !== false}
+            >
+              {placeholderOption.label}
+            </SelectItem>
+          ) : null}
           {options.map((opt) => (
             <SelectItem
               key={typeof opt === "string" ? opt : opt.value}

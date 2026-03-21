@@ -28,7 +28,7 @@ export function SidebarAccountMenu({ user, collapsed }) {
   const items = (
     <SidebarAccountMenuItems
       displayName={displayName}
-      email={user.email}
+      email={user?.email}
       profileLabel={t("navigation.profile")}
       logoutLabel={t("settings.logout")}
       onProfile={() => navigate("/profile")}

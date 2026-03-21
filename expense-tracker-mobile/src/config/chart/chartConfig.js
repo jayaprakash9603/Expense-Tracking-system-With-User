@@ -3,6 +3,8 @@ export const DEFAULT_TIMEFRAME_OPTIONS = [
   { id: "this_month", labelKey: "chart.thisMonth" },
   { id: "last_month", labelKey: "chart.lastMonth" },
   { id: "last_3_months", labelKey: "chart.lastThreeMonths" },
+  { id: "last_6_months", labelKey: "chart.lastSixMonths" },
+  { id: "quarter", labelKey: "chart.quarter" },
   { id: "this_year", labelKey: "chart.thisYear" },
   { id: "last_year", labelKey: "chart.lastYear" },
   { id: "all_time", labelKey: "chart.allTime" },

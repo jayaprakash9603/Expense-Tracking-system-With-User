@@ -57,13 +57,14 @@ export function FlowPageLayout({
                   />
                 </div>
               </div>
-              <div className="flex w-full justify-center">
+              <div className="flex w-full items-center justify-center gap-2">
                 <FlowPeriodNavigation
                   rangeLabel={rangeLabel}
                   onPrev={onPrev}
                   onNext={onNext}
                   onReset={onReset}
                 />
+                {headerActions ? <div className="shrink-0">{headerActions}</div> : null}
               </div>
             </div>
           ) : null}
@@ -82,18 +83,19 @@ export function FlowPageLayout({
                 />
               </div>
               <div className="flex shrink-0 items-center gap-2 md:pointer-events-auto">
-                {headerActions}
+                <div className="hidden md:contents">{headerActions}</div>
                 <FlowToggle value={flowTab} onChange={setFlowTab} className="w-auto" />
               </div>
             </div>
-            <div className="flex w-full justify-center md:pointer-events-none md:absolute md:left-1/2 md:top-1/2 md:z-[2] md:-translate-x-1/2 md:-translate-y-1/2">
-              <div className="md:pointer-events-auto">
+            <div className="flex w-full flex-col items-center gap-2 sm:flex-row sm:justify-center md:pointer-events-none md:absolute md:left-1/2 md:top-1/2 md:z-[2] md:-translate-x-1/2 md:-translate-y-1/2">
+              <div className="flex items-center justify-center gap-2 md:pointer-events-auto">
                 <FlowPeriodNavigation
                   rangeLabel={rangeLabel}
                   onPrev={onPrev}
                   onNext={onNext}
                   onReset={onReset}
                 />
+                {headerActions ? <div className="shrink-0 md:hidden">{headerActions}</div> : null}
               </div>
             </div>
           </div>

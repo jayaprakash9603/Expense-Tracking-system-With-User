@@ -6,6 +6,10 @@ import { ChartEmptyState } from "./ChartEmptyState";
 import { CHART_HEIGHTS, AXIS_CONFIG, CHART_ANIMATION } from "@/config/chartConfig";
 import { cn } from "@/lib/utils";
 
+const DEFAULT_INNER_MARGIN = { top: 20, right: 4, left: 0, bottom: 20 };
+
+const Y_AXIS_WIDTH_COMPACT = 38;
+
 export function AppAreaChart({
   data,
   config,
@@ -19,13 +23,18 @@ export function AppAreaChart({
   gradientFill = true,
   stacked = false,
   connectNulls = true,
+  margin = DEFAULT_INNER_MARGIN,
   children,
 }) {
   if (!data?.length) return <ChartEmptyState height={height} className={className} />;
 
   return (
-    <ChartContainer config={config} className={cn("w-full !aspect-auto", className)} style={{ height }}>
-      <AreaChart data={data} accessibilityLayer>
+    <ChartContainer
+      config={config}
+      className={cn("w-full !aspect-auto justify-start [&_.recharts-responsive-container]:!w-full", className)}
+      style={{ height }}
+    >
+      <AreaChart data={data} accessibilityLayer margin={margin}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <XAxis
           dataKey={xAxisKey}
@@ -37,7 +46,12 @@ export function AppAreaChart({
             return v;
           }}
         />
-        <YAxis {...AXIS_CONFIG} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+        <YAxis
+          {...AXIS_CONFIG}
+          width={Y_AXIS_WIDTH_COMPACT}
+          tickMargin={4}
+          tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
+        />
         {showTooltip && (
           <ChartTooltip
             content={customTooltip || <MaskedChartTooltipContent indicator="line" />}

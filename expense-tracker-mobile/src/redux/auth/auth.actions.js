@@ -13,6 +13,7 @@ import {
   GET_PROFILE_FAILURE,
   SWITCH_MODE_SUCCESS,
 } from "./auth.actionTypes";
+import { normalizeAppMode } from "./normalizeAppMode";
 
 const completeLoginWithJwt = async (dispatch, jwt) => {
   dispatch({ type: LOGIN_SUCCESS, payload: jwt });
@@ -159,19 +160,20 @@ export const logoutAction = () => (dispatch) => {
 };
 
 export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
+  const target = normalizeAppMode(newMode);
   if (getAppConfig().isDemo) {
     const user = getState().auth?.user;
-    const nextUser = user ? { ...user, currentMode: newMode } : null;
+    const nextUser = user ? { ...user, currentMode: target } : null;
     dispatch({
       type: SWITCH_MODE_SUCCESS,
-      payload: { currentMode: newMode, user: nextUser },
+      payload: { currentMode: target, user: nextUser },
     });
-    return { success: true, currentMode: newMode, user: nextUser };
+    return { success: true, currentMode: target, user: nextUser };
   }
 
   const { data, error } = await safeApiCall(() =>
     api.put("/api/user/switch-mode", null, {
-      params: { mode: newMode },
+      params: { mode: target },
     }),
   );
 
@@ -179,20 +181,27 @@ export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
     return { success: false, message: error.message || "Failed to switch user mode." };
   }
 
-  const payloadUser = data?.user || null;
-  const payloadMode = data?.currentMode || payloadUser?.currentMode || newMode;
+  const prev = getState().auth?.user;
+  const payloadUser = data?.user ?? null;
+  const payloadMode = normalizeAppMode(
+    data?.currentMode ?? payloadUser?.currentMode ?? target,
+  );
+  const user =
+    payloadUser && prev
+      ? { ...prev, ...payloadUser, currentMode: payloadMode }
+      : payloadUser || prev;
 
   dispatch({
     type: SWITCH_MODE_SUCCESS,
     payload: {
       currentMode: payloadMode,
-      user: payloadUser,
+      user,
     },
   });
 
   return {
     success: true,
     currentMode: payloadMode,
-    user: payloadUser,
+    user,
   };
 };

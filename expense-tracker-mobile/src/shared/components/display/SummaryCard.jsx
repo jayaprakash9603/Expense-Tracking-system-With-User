@@ -102,8 +102,8 @@ export function SummaryCard({
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 md:p-5",
-        "min-h-[130px] flex flex-col justify-between cursor-pointer",
+        "relative overflow-hidden rounded-2xl bg-gradient-to-br p-3 sm:p-4 md:p-5",
+        "min-h-[104px] sm:min-h-[118px] md:min-h-[130px] flex flex-col justify-between cursor-pointer",
         "shadow-sm",
         styles.light,
         styles.dark,
@@ -121,7 +121,7 @@ export function SummaryCard({
       <div className="flex items-start justify-between relative z-[1]">
         <div
           className={cn(
-            "flex items-center justify-center w-9 h-9 rounded-full shadow-sm",
+            "flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-sm",
             styles.iconShell,
           )}
         >
@@ -145,18 +145,18 @@ export function SummaryCard({
         )}
       </div>
 
-      <div className="flex items-end justify-between relative z-[1] mt-4">
-        <div className="min-w-0 flex-1">
-          <p className={cn("text-[13px] font-medium mb-1 truncate", styles.title)}>
+      <div className="flex items-end justify-between relative z-[1] mt-2 sm:mt-3 md:mt-4">
+        <div className="min-w-0 flex-1 pr-1">
+          <p className={cn("text-[11px] sm:text-[13px] font-medium mb-0.5 sm:mb-1 truncate", styles.title)}>
             {title}
           </p>
-          <p className={cn("text-xl md:text-2xl font-bold leading-none truncate", styles.value)}>
+          <p className={cn("text-base sm:text-lg md:text-2xl font-bold leading-none truncate", styles.value)}>
             {displayValue}
           </p>
         </div>
 
         {sparklineData?.length > 1 && (
-          <div className="shrink-0 pb-0.5 ml-2">
+          <div className="shrink-0 pb-0.5 ml-1 sm:ml-2 scale-[0.82] origin-bottom-right sm:scale-100">
             <Sparkline
               data={sparklineData}
               color={styles.sparkline}
@@ -189,8 +189,8 @@ export function SummaryCardGrid({ children, className }) {
   return (
     <div
       className={cn(
-        "grid gap-3 md:gap-4",
-        "grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4",
+        "grid gap-2 sm:gap-3 md:gap-4",
+        "grid-cols-2 lg:grid-cols-4",
         className
       )}
     >
@@ -205,20 +205,20 @@ export function SummaryCardSkeleton({ variant = "blue", className }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl bg-gradient-to-br p-4 md:p-5",
-        "min-h-[130px] flex flex-col justify-between animate-pulse",
+        "relative overflow-hidden rounded-2xl bg-gradient-to-br p-3 sm:p-4 md:p-5",
+        "min-h-[104px] sm:min-h-[118px] md:min-h-[130px] flex flex-col justify-between animate-pulse",
         styles.light,
         styles.dark,
         className
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="w-9 h-9 rounded-full bg-black/5 dark:bg-white/10" />
-        <div className="w-24 h-4 rounded bg-black/5 dark:bg-white/10" />
+        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/5 dark:bg-white/10" />
+        <div className="w-16 sm:w-24 h-3 sm:h-4 rounded bg-black/5 dark:bg-white/10" />
       </div>
-      <div className="mt-4">
-        <div className="w-20 h-3 rounded bg-black/5 dark:bg-white/10 mb-2" />
-        <div className="w-28 h-6 rounded bg-black/5 dark:bg-white/10" />
+      <div className="mt-2 sm:mt-3 md:mt-4">
+        <div className="w-16 sm:w-20 h-2.5 sm:h-3 rounded bg-black/5 dark:bg-white/10 mb-1.5 sm:mb-2" />
+        <div className="w-20 sm:w-28 h-5 sm:h-6 rounded bg-black/5 dark:bg-white/10" />
       </div>
     </div>
   );

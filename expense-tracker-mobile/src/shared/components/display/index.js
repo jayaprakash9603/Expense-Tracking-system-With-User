@@ -1,5 +1,6 @@
 export * from "./AppCard";
 export * from "./AppBadge";
+export * from "./AppAccordionGroup";
 export * from "./AppIcon";
 export * from "./AppTabs";
 export * from "./MaskedAmount";

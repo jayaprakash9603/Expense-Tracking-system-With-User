@@ -13,8 +13,8 @@ defaults:
   cashflow: true
   uploads: true
   utilities: true
-  sidebarCategories: false
-  sidebarPayments: false
+  sidebarCategories: true
+  sidebarPayments: true
   sidebarInsights: false
   settings:
     section:

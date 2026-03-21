@@ -1,6 +1,23 @@
 import { STORAGE_KEYS } from "@/config/constants";
 import { getAppConfig } from "@/config/runtime/parseAppConfig";
 
+export function reconcileAuthStorageWithRuntimeMode() {
+  const { isDemo } = getAppConfig();
+  const demoKey = STORAGE_KEYS.DEMO_JWT;
+  const liveKey = STORAGE_KEYS.JWT;
+  const demoTok = sessionStorage.getItem(demoKey);
+  const liveTok = localStorage.getItem(liveKey);
+  if (isDemo) {
+    if (demoTok || !liveTok) return;
+    sessionStorage.setItem(demoKey, liveTok);
+    localStorage.removeItem(liveKey);
+    return;
+  }
+  if (liveTok || !demoTok) return;
+  localStorage.setItem(liveKey, demoTok);
+  sessionStorage.removeItem(demoKey);
+}
+
 export function getActiveJwt() {
   const { isDemo } = getAppConfig();
   if (isDemo) return sessionStorage.getItem(STORAGE_KEYS.DEMO_JWT);
