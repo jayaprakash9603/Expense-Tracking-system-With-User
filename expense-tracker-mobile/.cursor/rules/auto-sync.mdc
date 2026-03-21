@@ -1,0 +1,182 @@
+---
+description: Auto-sync guardian — after every code change, detect and apply updates to rules, persona, architecture docs, validation scripts, and folder structure. Runs silently on every request.
+globs: expense-tracker-mobile/**/*.{js,jsx,css,yaml,mdc,md}
+alwaysApply: true
+---
+
+# Auto-Sync Guardian
+
+This rule fires **after every code change** you make. You do not wait for the user to ask — you detect drift and fix it yourself.
+
+After completing the user's primary request, run through the checklist below. If any trigger condition is true, apply the corresponding update immediately. Report what you synced at the end of your response in a brief `Auto-synced:` line.
+
+If nothing needs syncing, say nothing — do not clutter the response.
+
+---
+
+## 1. New or Renamed Feature Directory
+
+**Trigger:** A file was created, moved, or deleted under `src/features/` and the set of feature directories changed.
+
+**Known features (current):**
+analytics, auth, bills, budgets, categories, dashboard, errors, expenses, groups, notifications, payment-methods, profile, reports, settings, system
+
+**Actions:**
+- Update `docs/architecture/FOLDER-OWNERSHIP.md` — add/remove the feature row with its owner.
+- Verify the new feature has `pages/`, `components/`, `hooks/` subdirectories. If missing, create them.
+- If the feature has a `featureFlagKey`, verify it exists in `src/config/runtime/feature-matrix.yaml` under `defaults`.
+
+---
+
+## 2. New Top-Level src/ Directory
+
+**Trigger:** A directory was created directly under `src/` that is not in the known set.
+
+**Known top-level dirs (current):**
+app, assets, components, config, domain, features, i18n, infrastructure, layouts, lib, redux, services, shared, styles, test
+
+**Actions:**
+- Update `architecture.mdc` — add the new layer to the layer map table with its role.
+- Update `docs/architecture/BOUNDARIES.md` — add allowed/forbidden import rules for the new layer.
+- Update `scripts/validate-rules.js` — add the directory to the `knownDirs` set in `checkTopLevelDirs()`.
+- Update `docs/validation/check-catalog.md` — update check 4 known-set list.
+
+---
+
+## 3. New .mdc Rule File
+
+**Trigger:** A new `.mdc` file was created in `.cursor/rules/`.
+
+**Actions:**
+- Update `audit-persona.mdc` Phase 0 — add the new rule to the project rules scan table.
+- Update `audit-persona.mdc` Quick Reference — map the new rule to its automated check (if any) and deep skill.
+- If the rule defines patterns that can be checked automatically, add a new check function to `scripts/validate-rules.js` and document it in `docs/validation/check-catalog.md`.
+
+---
+
+## 4. New Skill File
+
+**Trigger:** A new skill `.md` file was created in `.cursor/skills/`.
+
+**Actions:**
+- Update `audit-persona.mdc` Phase 2 — add the skill to the Skill Execution Matrix with its order, path, validation targets, and trigger condition.
+- Update `audit-persona.mdc` Quick Reference — map the skill to the rules it validates.
+
+---
+
+## 5. Architecture Contract Changed
+
+**Trigger:** Any file in `docs/architecture/` was created or modified.
+
+**Actions:**
+- Update `audit-persona.mdc` Phase 0 — add/update the contract in the architecture contracts table.
+- If the contract introduces new boundary rules, update `scripts/validate-rules.js` forbidden-import map and the check-catalog.
+
+---
+
+## 6. Import Boundary Changed
+
+**Trigger:** The allowed/forbidden import directions changed in `docs/architecture/BOUNDARIES.md` or `architecture.mdc`.
+
+**Actions:**
+- Update the `FORBIDDEN` map in `scripts/validate-rules.js` `checkImportBoundaries()` to match the new boundary rules.
+- Update `docs/validation/check-catalog.md` check 2 with the new forbidden list.
+
+---
+
+## 7. New shadcn/App Component Wrapper
+
+**Trigger:** A new component was added to `src/components/ui/` or `src/shared/components/`.
+
+**Actions:**
+- If it is a new App wrapper (AppXxx), update `components.mdc` "App wrappers" section to include it.
+- If it replaces a raw HTML element, add the raw element to the detection list in `scripts/validate-rules.js` `checkRawHtmlElements()`.
+
+---
+
+## 8. New i18n Namespace or Key Pattern
+
+**Trigger:** A new top-level namespace was added to `src/i18n/translations/en.js`.
+
+**Actions:**
+- Verify the same namespace exists in `hi.js` and `te.js`. If missing, add it with placeholder keys.
+- Update `i18n.mdc` "Common namespaces" list to include the new namespace.
+
+---
+
+## 9. Feature Matrix Profile Changed
+
+**Trigger:** `src/config/runtime/feature-matrix.yaml` was modified.
+
+**Actions:**
+- If a new profile was added (beyond `live` and `demo`), update `feature-flags.mdc` to document it.
+- Update `scripts/validate-rules.js` `checkFeatureMatrix()` to validate the new profile structure.
+
+---
+
+## 10. Redux Slice or API Module Added
+
+**Trigger:** A new directory was created under `src/redux/` or a new file under `src/infrastructure/api/`.
+
+**Actions:**
+- If new Redux slice: verify it follows `*.actionTypes.js`, `*.actions.js`, `*.reducer.js` convention. If not, flag it.
+- If new API module: verify it uses `safeApiCall` pattern. If not, flag it.
+- Update `redux-and-api.mdc` feature folder list if a new slice domain was added.
+
+---
+
+## 11. Route or Navigation Change
+
+**Trigger:** `src/app/routing/routeCatalog.js` or route-related files were modified.
+
+**Actions:**
+- If a new route was added, verify it has a `featureFlagKey` mapping in the route feature maps (`SIDEBAR_ROUTE_FEATURE`, `BOTTOM_NAV_ROUTE_FEATURE`, `MORE_MENU_ROUTE_FEATURE`).
+- Verify the route's feature page exists and is lazy-loaded in `src/app/routes.jsx`.
+
+---
+
+## 12. Validation Script Changed
+
+**Trigger:** `scripts/validate-rules.js` was modified.
+
+**Actions:**
+- Update `docs/validation/check-catalog.md` if a check was added, removed, or modified.
+- Update `.cursor/skills/smart-validator.md` check table if the count or categories changed.
+- Update `audit-persona.mdc` Phase 1 category table if categories changed.
+
+---
+
+## 13. Component or Hook Pattern Changed
+
+**Trigger:** Files in `src/shared/patterns/` or `src/shared/hooks/` were added or modified.
+
+**Actions:**
+- If a new Entity pattern was added (EntityXxxPage), update `components.mdc` "Entity patterns" section.
+- If a new shared hook was added, verify it follows `useXxx` naming and has proper JSDoc.
+
+---
+
+## 14. Global Coding Standards Drift
+
+**Trigger:** Any file was created or modified under `src/`.
+
+**Actions (lightweight — run only when you notice these in code you touched):**
+- If you see `console.log` in code you wrote or edited, remove it.
+- If you see a function exceeding 30 lines (logic) or 80 lines (component), refactor it.
+- If you see hard-coded English strings in JSX, wrap with `t()`.
+- If you see `window.innerWidth`, replace with the appropriate hook.
+- If you see `.toFixed()` in a JSX component, replace with `useMoneyFormatter`.
+
+---
+
+## Response Format
+
+When syncs were applied, append this to your response:
+
+```
+Auto-synced:
+  - [file updated] reason
+  - [file updated] reason
+```
+
+When no syncs are needed, say nothing about auto-sync.
