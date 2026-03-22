@@ -3,7 +3,7 @@ import { useEntityList } from "@/shared/patterns";
 import { fetchBudgetsAction } from "@/redux/budgets/budgets.actions";
 import { selectBudgetList, selectBudgetLoading } from "@/redux/selectors";
 import { toListItem } from "@/domain/budgets/budget.transformers";
-import { BUDGET_SEARCH_FIELDS, BUDGET_SORT_OPTIONS } from "../config/budgetConfig";
+import { BUDGET_SEARCH_FIELDS, BUDGET_SORT_OPTIONS } from "../../config/budgetConfig";
 
 export function useBudgetList(options = {}) {
   const { transformItem, ...rest } = options;

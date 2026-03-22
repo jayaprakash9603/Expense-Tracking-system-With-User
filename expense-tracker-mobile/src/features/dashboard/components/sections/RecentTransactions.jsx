@@ -8,7 +8,7 @@ import { EmptyState } from "@/shared/components/feedback/EmptyState";
 import { Skeleton } from "@/shared/components/app-shadcn";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
-import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { useDashboardData } from "@/features/dashboard/hooks/data/useDashboardData";
 import { RecentTransactionCard } from "./RecentTransactionCard";
 
 const RECENT_TXN_MOBILE_MAX_WIDTH_PX = 600;

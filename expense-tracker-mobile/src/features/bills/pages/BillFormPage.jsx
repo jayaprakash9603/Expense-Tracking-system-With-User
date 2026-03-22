@@ -15,8 +15,8 @@ import {
   filterValidBillExpenses,
 } from "@/domain/bills/billExpenseLineUtils";
 import { BILL_FORM_LABELS, BILL_FORM_MODE_CONFIG, BILL_FORM_PLACEHOLDERS } from "../config/billConfig";
-import { useBillForm } from "../hooks/useBillForm";
-import { useBillExpenseItems } from "../hooks/useBillExpenseItems";
+import { useBillForm } from "../hooks/form/useBillForm";
+import { useBillExpenseItems } from "../hooks/form/useBillExpenseItems";
 import { BillFormFields } from "../components/form/BillFormFields";
 import { BillFormLoadingState } from "../components/form/BillFormLoadingState";
 import { BillExpenseItemsTable } from "../components/table/BillExpenseItemsTable";

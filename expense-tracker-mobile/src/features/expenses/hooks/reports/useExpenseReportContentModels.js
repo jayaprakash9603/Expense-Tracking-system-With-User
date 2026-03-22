@@ -1,5 +1,5 @@
-import { useExpenseReportAccordionModels } from "@/features/expenses/hooks/useExpenseReportAccordionModels";
-import { useExpenseReportChartModels } from "@/features/expenses/hooks/useExpenseReportChartModels";
+import { useExpenseReportAccordionModels } from "./useExpenseReportAccordionModels";
+import { useExpenseReportChartModels } from "./useExpenseReportChartModels";
 
 export function useExpenseReportContentModels(props) {
   const charts = useExpenseReportChartModels(props);

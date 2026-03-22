@@ -11,19 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/components/app-shadcn";
-
-function BudgetProgressBar({ budget }) {
-  const w = budget.progressWidth ?? 0;
-  const over = budget.isOverBudget;
-  return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
-      <div
-        className={cn("h-full rounded-full transition-all", over ? "bg-destructive" : "bg-primary")}
-        style={{ width: `${Math.min(100, w)}%` }}
-      />
-    </div>
-  );
-}
+import { BudgetProgressBar } from "./BudgetProgressBar";
 
 export function BudgetCard({ budget, onEdit, onDelete, className }) {
   const { t } = useLanguage();

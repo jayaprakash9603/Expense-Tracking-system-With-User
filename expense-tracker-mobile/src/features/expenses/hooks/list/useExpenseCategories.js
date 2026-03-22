@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategoriesAction } from "@/redux/categories/categories.actions";
-import { deduplicateCategories } from "../utils/expenseCategoryUtils";
+import { deduplicateCategories } from "../../utils/expenseCategoryUtils";
 
 export function useExpenseCategories(friendId = "", autofetch = true) {
   const dispatch = useDispatch();

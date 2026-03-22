@@ -1,7 +1,7 @@
 import React from "react";
 import { DEFAULT_EXPENSE_REPORT_VIEW_FILTERS } from "@/features/expenses/constants/expenseReportViewFilterDefaults";
-import { useStandardExpenseColumns } from "@/features/expenses/hooks/useStandardExpenseColumns";
-import { useExpenseReportContentModels } from "@/features/expenses/hooks/useExpenseReportContentModels";
+import { useStandardExpenseColumns } from "@/features/expenses/hooks/list/useStandardExpenseColumns";
+import { useExpenseReportContentModels } from "@/features/expenses/hooks/reports/useExpenseReportContentModels";
 import { ExpenseReportContentLoading } from "./ExpenseReportContentLoading";
 import { ExpenseReportSummaryAndCharts } from "./ExpenseReportSummaryAndCharts";
 import { ExpenseReportGroupedPanel } from "./ExpenseReportGroupedPanel";

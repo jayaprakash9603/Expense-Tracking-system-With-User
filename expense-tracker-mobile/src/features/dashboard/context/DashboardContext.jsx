@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback } from "react";
-import { useDashboardFetch } from "@/features/dashboard/hooks/useDashboardFetch";
-import { useApplicationOverview } from "@/features/dashboard/hooks/useApplicationOverview";
+import { useDashboardFetch } from "@/features/dashboard/hooks/data/useDashboardFetch";
+import { useApplicationOverview } from "@/features/dashboard/hooks/data/useApplicationOverview";
 
 const DashboardContext = createContext(null);
 

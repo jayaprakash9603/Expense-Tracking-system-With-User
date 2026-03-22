@@ -2,7 +2,7 @@ import { FileText } from "lucide-react";
 import { NoDataPlaceholder } from "@/shared/components/feedback/NoDataPlaceholder";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
-import { useBillAccordionListView } from "@/features/bills/hooks/useBillAccordionListView";
+import { useBillAccordionListView } from "@/features/bills/hooks/list/useBillAccordionListView";
 import { BillAccordionListInner, BillAccordionListSkeleton } from "./BillAccordionListInner";
 
 export function BillAccordionList({ rawBills, loading, onEdit, onDelete, className }) {

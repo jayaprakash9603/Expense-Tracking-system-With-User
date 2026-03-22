@@ -2,7 +2,7 @@ import { useEntityList } from "@/shared/patterns";
 import { fetchCategoriesAction } from "@/redux/categories/categories.actions";
 import { selectCategoryList } from "@/redux/selectors";
 import { toListItem } from "@/domain/categories/category.transformers";
-import { CATEGORY_SEARCH_FIELDS, CATEGORY_SORT_OPTIONS } from "../config/categoryConfig";
+import { CATEGORY_SEARCH_FIELDS, CATEGORY_SORT_OPTIONS } from "../../config/categoryConfig";
 
 export function useCategoryList(options = {}) {
   return useEntityList({

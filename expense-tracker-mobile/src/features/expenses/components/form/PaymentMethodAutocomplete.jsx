@@ -3,7 +3,7 @@ import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
-import { useExpensePaymentMethods } from "../../hooks/useExpensePaymentMethods";
+import { useExpensePaymentMethods } from "../../hooks/list/useExpensePaymentMethods";
 import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import {
   findPaymentMethodByValue,

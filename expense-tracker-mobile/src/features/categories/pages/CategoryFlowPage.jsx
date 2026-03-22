@@ -13,7 +13,7 @@ import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useIsMobile } from "@/shared/hooks/theme/useMediaQuery";
-import { useCategoryFlowData } from "@/features/categories/hooks/useCategoryFlowData";
+import { useCategoryFlowData } from "@/features/categories/hooks/flow/useCategoryFlowData";
 import { useEntityFlowDrilldown } from "@/shared/hooks/flow/useEntityFlowDrilldown";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 

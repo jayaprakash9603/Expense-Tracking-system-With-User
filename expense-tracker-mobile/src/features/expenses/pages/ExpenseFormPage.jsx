@@ -9,7 +9,7 @@ import {
   EXPENSE_FORM_MODE_CONFIG,
   EXPENSE_TYPE_OPTIONS,
 } from "../config/expenseConfig";
-import { useExpenseForm } from "../hooks/useExpenseForm";
+import { useExpenseForm } from "../hooks/form/useExpenseForm";
 import {
   ExpenseFormShell,
   ExpenseSubmitArea,

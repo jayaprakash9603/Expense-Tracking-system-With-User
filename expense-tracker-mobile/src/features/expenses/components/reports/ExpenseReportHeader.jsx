@@ -7,7 +7,7 @@ import { ExpenseReportHeaderFilters } from "@/features/expenses/components/filte
 import { ExpenseReportFilterSheet } from "@/features/expenses/components/filters/ExpenseReportFilterSheet";
 import { ExpenseReportExportMenu } from "@/features/expenses/components/export/ExpenseReportExportMenu";
 import { ExpenseReportAdvancedFilters } from "@/features/expenses/components/filters/ExpenseReportAdvancedFilters";
-import { useExpenseReportHeaderFilters } from "@/features/expenses/hooks/useExpenseReportHeaderFilters";
+import { useExpenseReportHeaderFilters } from "@/features/expenses/hooks/reports/useExpenseReportHeaderFilters";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { cn } from "@/lib/utils";
 import { Button } from "@/shared/components/app-shadcn";

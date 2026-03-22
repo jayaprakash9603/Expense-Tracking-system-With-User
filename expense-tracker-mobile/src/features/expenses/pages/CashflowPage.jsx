@@ -8,7 +8,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/features/expenses/components";
-import { useCashflowData } from "@/features/expenses/hooks/useCashflowData";
+import { useCashflowData } from "@/features/expenses/hooks/charts/useCashflowData";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function CashflowPage() {

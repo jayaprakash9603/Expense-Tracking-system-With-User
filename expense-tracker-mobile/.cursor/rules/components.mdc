@@ -6,6 +6,10 @@ alwaysApply: true
 
 # Components (expense-tracker-mobile)
 
+## Feature-local layout
+
+Feature UI under `src/features/{name}/components/` is grouped by **concern subfolders** (`form/`, `list/`, `charts/`, `reports/`, etc.). Do not add unrelated files to the feature root `components/` folder when a standard subfolder applies. Hooks for those areas live under `src/features/{name}/hooks/` with matching **concern subfolders** when the feature is large. See **Architecture** (`architecture.mdc`) for the full contract.
+
 ## shadcn-first
 
 - Primitives live in `src/components/ui/` (Button, Input, Select, Calendar, Dialog, Sheet, Popover, Table, Tabs, Switch, Checkbox, Skeleton, etc.).

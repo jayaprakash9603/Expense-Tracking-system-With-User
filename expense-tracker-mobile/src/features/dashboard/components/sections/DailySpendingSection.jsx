@@ -4,7 +4,7 @@ import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { TimeframeSelector, ChartTypeToggle } from "@/shared/components/chart/ChartControls";
 import { SPENDING_FLOW_OPTIONS } from "@/config/chart/chartConfig";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
+import { useDashboardCharts } from "@/features/dashboard/hooks/charts/useDashboardCharts";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
 import { SpendingChartTooltip } from "@/shared/components/charts/dashboard/SpendingChartTooltip";
 import { DASHBOARD_AREA_CHART_HEIGHT } from "@/features/dashboard/constants/dashboardChartHeights";

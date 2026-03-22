@@ -5,7 +5,7 @@ import { useState } from "react";
 import { EntityListPage } from "@/shared/patterns";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteCategoryAction } from "@/redux/categories/categories.actions";
-import { useCategoryList, CATEGORY_SORT_OPTIONS } from "../hooks/useCategoryList";
+import { useCategoryList, CATEGORY_SORT_OPTIONS } from "../hooks/list/useCategoryList";
 import { CategoryCard } from "../components/list/CategoryCard";
 import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 

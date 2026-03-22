@@ -7,7 +7,7 @@ import { AppRadialChart } from "@/shared/components/chart/AppRadialChart";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { usePresentation } from "@/shared/hooks/settings/usePresentation";
-import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
+import { useDashboardData } from "@/features/dashboard/hooks/data/useDashboardData";
 import { cn } from "@/lib/utils";
 
 const RADIAL_HEIGHT = 180;

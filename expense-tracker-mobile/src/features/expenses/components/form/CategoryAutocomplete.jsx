@@ -4,7 +4,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { getCategoryIcon } from "@/config/navigation/iconMapping";
 import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
-import { useExpenseCategories } from "../../hooks/useExpenseCategories";
+import { useExpenseCategories } from "../../hooks/list/useExpenseCategories";
 import {
   deduplicateCategories,
   filterCategoriesWithDeduplication,

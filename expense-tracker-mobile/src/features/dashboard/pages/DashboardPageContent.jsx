@@ -7,9 +7,9 @@ import { SummaryCard, SummaryCardGrid } from "@/shared/components/display/Summar
 import { SectionCustomizationModal } from "@/shared/components/customization/SectionCustomizationModal";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useDashboardContext } from "@/features/dashboard/context/DashboardContext";
-import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData";
-import { useDashboardLayout } from "@/features/dashboard/hooks/useDashboardLayout";
-import { useDashboardCharts } from "@/features/dashboard/hooks/useDashboardCharts";
+import { useDashboardData } from "@/features/dashboard/hooks/data/useDashboardData";
+import { useDashboardLayout } from "@/features/dashboard/hooks/layout/useDashboardLayout";
+import { useDashboardCharts } from "@/features/dashboard/hooks/charts/useDashboardCharts";
 import { DashboardHeader } from "@/features/dashboard/components/header/DashboardHeader";
 import { QuickAccess } from "@/features/dashboard/components/quick-access/QuickAccess";
 import { ApplicationOverview } from "@/features/dashboard/components/sections/ApplicationOverview";

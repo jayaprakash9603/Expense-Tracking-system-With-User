@@ -11,7 +11,7 @@ import {
   ExpenseThemedDatePicker,
   ExpenseThemedCommentField,
 } from "@/features/expenses/components";
-import { useBudgetForm } from "../hooks/useBudgetForm";
+import { useBudgetForm } from "../hooks/form/useBudgetForm";
 import { BudgetFormPageSkeleton } from "../components/form/BudgetFormPageSkeleton";
 import { ExpenseSelectionTable } from "../components/form/ExpenseSelectionTable";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";

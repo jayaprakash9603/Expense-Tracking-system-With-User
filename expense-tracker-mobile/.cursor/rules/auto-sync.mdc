@@ -23,7 +23,7 @@ analytics, auth, bills, budgets, categories, dashboard, errors, expenses, groups
 
 **Actions:**
 - Update `docs/architecture/FOLDER-OWNERSHIP.md` — add/remove the feature row with its owner.
-- Verify the new feature has `pages/`, `components/`, `hooks/` subdirectories. If missing, create them.
+- Verify the new feature has `pages/`, `components/`, `hooks/` subdirectories. If missing, create them. As soon as multiple components or hooks exist, split them into **concern subfolders** under `components/` and `hooks/` per `architecture.mdc` (not a flat dump in the feature root).
 - If the feature has a `featureFlagKey`, verify it exists in `src/config/runtime/feature-matrix.yaml` under `defaults`.
 
 ---

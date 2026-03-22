@@ -2,7 +2,7 @@ import { useEntityList } from "@/shared/patterns";
 import { fetchExpensesAction } from "@/redux/expenses/expenses.actions";
 import { selectExpenseList } from "@/redux/selectors";
 import { toListItem } from "@/domain/expenses/expense.transformers";
-import { EXPENSE_SEARCH_FIELDS, EXPENSE_SORT_OPTIONS } from "../config/expenseConfig";
+import { EXPENSE_SEARCH_FIELDS, EXPENSE_SORT_OPTIONS } from "../../config/expenseConfig";
 
 export function useExpenseList(options = {}) {
   return useEntityList({

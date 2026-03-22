@@ -3,7 +3,7 @@ import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { ExpenseReportHeader } from "@/features/expenses/components/reports/ExpenseReportHeader";
 import { ExpenseReportContent } from "@/features/expenses/components/reports/ExpenseReportContent";
 import { ExpenseReportErrorBanner } from "@/features/expenses/components/reports/ExpenseReportErrorBanner";
-import { useExpenseReportsPageController } from "@/features/expenses/hooks/useExpenseReportsPageController";
+import { useExpenseReportsPageController } from "@/features/expenses/hooks/reports/useExpenseReportsPageController";
 
 export function ExpenseReportsPage() {
   const {

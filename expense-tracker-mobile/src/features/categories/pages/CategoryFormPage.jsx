@@ -3,7 +3,7 @@ import { EntityFormPage } from "@/shared/patterns";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { FormField } from "@/shared/components/form/FormField";
 import { AppInput } from "@/shared/components/form/AppInput";
-import { useCategoryForm } from "../hooks/useCategoryForm";
+import { useCategoryForm } from "../hooks/form/useCategoryForm";
 import { CATEGORY_FORM_FIELDS } from "../config/categoryConfig";
 import { toast } from "sonner";
 
