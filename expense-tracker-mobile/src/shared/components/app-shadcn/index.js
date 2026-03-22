@@ -1,4 +1,11 @@
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 export { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+export { Badge } from "@/components/ui/badge";
 export { Separator } from "@/components/ui/separator";
 export { Button, buttonVariants } from "@/components/ui/button";
 export { Calendar, CalendarDayButton } from "@/components/ui/calendar";

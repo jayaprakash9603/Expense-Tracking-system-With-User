@@ -3,11 +3,13 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Link2, ListPlus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { ExpenseFormShell } from "@/features/expenses/components/form/ExpenseFormShell";
-import { ExpenseSubmitArea } from "@/features/expenses/components/form/ExpenseSubmitArea";
-import { PreviousExpenseIndicator } from "@/features/expenses/components/form/PreviousExpenseIndicator";
-import { BudgetSelectionTable } from "@/features/expenses/components/budget/BudgetSelectionTable";
-import { Button } from "@/components/ui/button";
+import {
+  ExpenseFormShell,
+  ExpenseSubmitArea,
+  PreviousExpenseIndicator,
+} from "@/shared/components/entity-form";
+import { BudgetSelectionTable } from "@/shared/components/entity-form/budget/BudgetSelectionTable";
+import { Button } from "@/shared/components/app-shadcn";
 import {
   computeBillExpensesTotal,
   filterValidBillExpenses,
@@ -15,10 +17,10 @@ import {
 import { BILL_FORM_LABELS, BILL_FORM_MODE_CONFIG, BILL_FORM_PLACEHOLDERS } from "../config/billConfig";
 import { useBillForm } from "../hooks/useBillForm";
 import { useBillExpenseItems } from "../hooks/useBillExpenseItems";
-import { BillFormFields } from "../components/BillFormFields";
-import { BillFormLoadingState } from "../components/BillFormLoadingState";
-import { BillExpenseItemsTable } from "../components/BillExpenseItemsTable";
-import { BillExpenseItemsSummary } from "../components/BillExpenseItemsSummary";
+import { BillFormFields } from "../components/form/BillFormFields";
+import { BillFormLoadingState } from "../components/form/BillFormLoadingState";
+import { BillExpenseItemsTable } from "../components/table/BillExpenseItemsTable";
+import { BillExpenseItemsSummary } from "../components/table/BillExpenseItemsSummary";
 
 export function BillFormPage({ mode: modeProp }) {
   const { t } = useLanguage();

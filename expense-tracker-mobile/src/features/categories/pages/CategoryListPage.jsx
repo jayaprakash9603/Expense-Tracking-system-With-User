@@ -6,7 +6,7 @@ import { EntityListPage } from "@/shared/patterns";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { deleteCategoryAction } from "@/redux/categories/categories.actions";
 import { useCategoryList, CATEGORY_SORT_OPTIONS } from "../hooks/useCategoryList";
-import { CategoryCard } from "../components/CategoryCard";
+import { CategoryCard } from "../components/list/CategoryCard";
 import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
 
 export function CategoryListPageView() {

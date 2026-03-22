@@ -1,8 +1,8 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
-import { ProfileHeader } from "../components/ProfileHeader";
-import { ProfileForm } from "../components/ProfileForm";
+import { ProfileHeader } from "../components/common/ProfileHeader";
+import { ProfileForm } from "../components/form/ProfileForm";
 import { useProfileForm } from "../hooks/useProfileForm";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 

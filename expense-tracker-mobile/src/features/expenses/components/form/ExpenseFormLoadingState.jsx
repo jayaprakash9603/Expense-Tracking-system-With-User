@@ -1,5 +1,5 @@
 import React from "react";
-import { ExpenseFormShell } from "./ExpenseFormShell";
+import { ExpenseFormShell } from "@/shared/components/entity-form/ExpenseFormShell";
 
 export function ExpenseFormLoadingState({ title, loadingLabel, onClose }) {
   return (

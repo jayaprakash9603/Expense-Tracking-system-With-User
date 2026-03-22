@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { ExpenseQuickActions } from "@/features/expenses/components";
+import { ExpenseQuickActions } from "@/shared/components/entity-form";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useBudgetList } from "../hooks/useBudgetList";
 import { useBudgetsFlowData } from "../hooks/useBudgetsFlowData";
 import { useBudgetListViewMode } from "../hooks/useBudgetListViewMode";
-import { BudgetViewModeToggle } from "../components/BudgetViewModeToggle";
-import { BudgetOverviewPage } from "../components/BudgetOverviewPage";
-import { BudgetOverviewStatCards } from "../components/BudgetOverviewStatCards";
+import { BudgetViewModeToggle } from "../components/overview/BudgetViewModeToggle";
+import { BudgetOverviewPage } from "../components/overview/BudgetOverviewPage";
+import { BudgetOverviewStatCards } from "../components/overview/BudgetOverviewStatCards";
 import { toBudgetCardModel } from "@/domain/budgets/budget.transformers";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 

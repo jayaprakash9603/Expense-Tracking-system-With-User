@@ -1,4 +1,4 @@
-import { normalizePaymentMethod } from "@/features/expenses/utils/expensePaymentMethodUtils";
+import { normalizePaymentMethod } from "@/domain/shared/paymentMethod.utils";
 import { normalizeExpenseDateForForm } from "@/domain/expenses/expense.transformers";
 import { computeBillExpensesTotal, resolveExpensesFromApi } from "./billExpenseLineUtils";
 

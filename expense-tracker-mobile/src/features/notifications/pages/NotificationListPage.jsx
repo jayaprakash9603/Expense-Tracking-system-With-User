@@ -10,7 +10,7 @@ import {
 } from "@/redux/notifications/notifications.actions";
 import { selectUnreadCount } from "@/redux/selectors";
 import { useNotificationList } from "../hooks/useNotificationList";
-import { NotificationCard } from "../components/NotificationCard";
+import { NotificationCard } from "../components/list/NotificationCard";
 
 export function NotificationListPageView() {
   const { t } = useLanguage();

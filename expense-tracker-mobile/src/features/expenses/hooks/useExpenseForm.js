@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { budgetApi, expenseApi } from "@/infrastructure/api";
 import { getToday } from "@/shared/utils/format/dateUtils";
-import { normalizePaymentMethod } from "../utils/expensePaymentMethodUtils";
-import { usePreviousExpense } from "./usePreviousExpense";
+import { normalizePaymentMethod } from "@/domain/shared/paymentMethod.utils";
+import { usePreviousExpense } from "@/shared/hooks/usePreviousExpense";
 import { useExpenseAutoFill } from "./useExpenseAutoFill";
 import { EXPENSE_FORM_VALIDATION_MESSAGES } from "@/features/expenses/config/expenseConfig";
 import { normalizeApiList } from "@/shared/utils/api/normalizeApiList";
@@ -13,7 +13,7 @@ import {
   createEmptyExpenseFormErrors,
   mapExpenseToFormData,
   normalizeExpenseTransactionType,
-} from "./expenseFormState";
+} from "@/features/expenses/utils/expenseFormState";
 
 export function useExpenseForm({
   mode = "create",

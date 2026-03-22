@@ -16,9 +16,9 @@ import {
   updateBillAction,
 } from "@/redux/bills/bills.actions";
 import { useFormFields, useEditLoader, useSyncedRef } from "@/shared/hooks/form/useFormState";
-import { usePreviousExpense } from "@/features/expenses/hooks/usePreviousExpense";
+import { usePreviousExpense } from "@/shared/hooks/usePreviousExpense";
 import { useBillAutoFill } from "./useBillAutoFill";
-import { buildEmptyBillFormData, createEmptyBillFormErrors } from "./billFormState";
+import { buildEmptyBillFormData, createEmptyBillFormErrors } from "@/features/bills/utils/billFormState";
 
 export function useBillForm({
   mode = "create",

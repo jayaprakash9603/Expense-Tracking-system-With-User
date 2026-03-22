@@ -12,8 +12,8 @@ import {
   ExpenseThemedCommentField,
 } from "@/features/expenses/components";
 import { useBudgetForm } from "../hooks/useBudgetForm";
-import { BudgetFormPageSkeleton } from "../components/BudgetFormPageSkeleton";
-import { ExpenseSelectionTable } from "../components/ExpenseSelectionTable";
+import { BudgetFormPageSkeleton } from "../components/form/BudgetFormPageSkeleton";
+import { ExpenseSelectionTable } from "../components/form/ExpenseSelectionTable";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

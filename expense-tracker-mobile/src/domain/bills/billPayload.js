@@ -1,4 +1,4 @@
-import { normalizePaymentMethod } from "@/features/expenses/utils/expensePaymentMethodUtils";
+import { normalizePaymentMethod } from "@/domain/shared/paymentMethod.utils";
 import { computeBillExpensesTotal, filterValidBillExpenses } from "./billExpenseLineUtils";
 
 export function computeBillCreditDue(type, paymentMethod, totalAmount) {

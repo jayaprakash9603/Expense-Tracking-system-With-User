@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { extractExpenseDetails } from "@/domain/expenses/expense.utils";
-import { normalizePaymentMethod } from "@/features/expenses/utils/expensePaymentMethodUtils";
-import { normalizeExpenseTransactionType } from "@/features/expenses/hooks/expenseFormState";
+import { normalizePaymentMethod } from "@/domain/shared/paymentMethod.utils";
+import { normalizeExpenseTransactionType } from "@/domain/expenses/expenseTransaction.utils";
 
 const EMPTY_FLAGS = {
   categoryId: false,

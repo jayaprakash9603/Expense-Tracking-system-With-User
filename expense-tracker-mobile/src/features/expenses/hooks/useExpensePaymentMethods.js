@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPaymentMethodsAction } from "@/redux/paymentMethods/paymentMethods.actions";
-import { processPaymentMethods } from "../utils/expensePaymentMethodUtils";
+import { processPaymentMethods } from "@/domain/shared/paymentMethod.utils";
 
 export function useExpensePaymentMethods(
   friendId = "",

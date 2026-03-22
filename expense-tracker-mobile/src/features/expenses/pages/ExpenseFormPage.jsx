@@ -10,9 +10,11 @@ import {
   EXPENSE_TYPE_OPTIONS,
 } from "../config/expenseConfig";
 import { useExpenseForm } from "../hooks/useExpenseForm";
-import { ExpenseFormShell } from "../components/form/ExpenseFormShell";
-import { ExpenseSubmitArea } from "../components/form/ExpenseSubmitArea";
-import { PreviousExpenseIndicator } from "../components/form/PreviousExpenseIndicator";
+import {
+  ExpenseFormShell,
+  ExpenseSubmitArea,
+  PreviousExpenseIndicator,
+} from "@/shared/components/entity-form";
 import { ExpenseFormFields } from "../components/form/ExpenseFormFields";
 import { ExpenseFormLoadingState } from "../components/form/ExpenseFormLoadingState";
 

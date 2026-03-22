@@ -1,7 +1,7 @@
 import React from "react";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { useReportCharts } from "@/features/reports/hooks/useReportCharts";
-import { MonthlyReportCharts } from "@/features/reports/components/MonthlyReportCharts";
+import { MonthlyReportCharts } from "@/features/reports/components/charts/MonthlyReportCharts";
 
 export function MonthlyReportPage() {
   const { monthly, category } = useReportCharts("monthly");

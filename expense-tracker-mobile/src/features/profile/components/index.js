@@ -1,2 +1,2 @@
-export * from "./ProfileForm";
-export * from "./ProfileHeader";
+export * from "./form/ProfileForm";
+export * from "./common/ProfileHeader";

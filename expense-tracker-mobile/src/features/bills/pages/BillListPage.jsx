@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
-import { ExpenseQuickActions } from "@/features/expenses/components";
+import { ExpenseQuickActions } from "@/shared/components/entity-form";
 import { useBillsFlowData } from "@/features/bills/hooks/useBillsFlowData";
 import { useBillListViewMode } from "@/features/bills/hooks/useBillListViewMode";
-import { BillViewModeToggle } from "@/features/bills/components/BillViewModeToggle";
-import { BillOverviewPage } from "@/features/bills/components/BillOverviewPage";
+import { BillViewModeToggle } from "@/features/bills/components/overview/BillViewModeToggle";
+import { BillOverviewPage } from "@/features/bills/components/overview/BillOverviewPage";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function BillListPageView() {

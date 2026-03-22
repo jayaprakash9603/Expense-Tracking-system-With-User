@@ -3,17 +3,17 @@ import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { cn } from "@/lib/utils";
 import { EXPENSE_FORM_LAYOUT } from "@/shared/constants/expenseFormLayout";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
-import { BudgetSelectionTable } from "../budget/BudgetSelectionTable";
-import { ExpenseFormRow } from "./ExpenseFormRow";
-import { ExpenseFieldLayout } from "./ExpenseFieldLayout";
+import { BudgetSelectionTable } from "@/shared/components/entity-form/budget/BudgetSelectionTable";
+import { ExpenseFormRow } from "@/shared/components/entity-form/ExpenseFormRow";
+import { ExpenseFieldLayout } from "@/shared/components/entity-form/ExpenseFieldLayout";
 import { ExpenseThemedAmountField } from "./ExpenseThemedAmountField";
-import { ExpenseThemedDatePicker } from "./ExpenseThemedDatePicker";
+import { ExpenseThemedDatePicker } from "@/shared/components/entity-form/ExpenseThemedDatePicker";
 import { ExpenseThemedCommentField } from "./ExpenseThemedCommentField";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
-import { ExpenseNameAutocomplete } from "./ExpenseNameAutocomplete";
+import { ExpenseNameAutocomplete } from "@/shared/components/entity-form/ExpenseNameAutocomplete";
 import { CategoryAutocomplete } from "./CategoryAutocomplete";
 import { PaymentMethodAutocomplete } from "./PaymentMethodAutocomplete";
-import { AutoFillBadge } from "./AutoFillBadge";
+import { AutoFillBadge } from "@/shared/components/entity-form/AutoFillBadge";
 
 export function ExpenseFormFields({
   t,

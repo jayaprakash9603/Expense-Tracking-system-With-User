@@ -9,8 +9,8 @@ import {
   findPaymentMethodByValue,
   arePaymentMethodsEqual,
   getPaymentMethodDisplayLabel,
-  getPaymentMethodIcon,
-} from "../../utils/expensePaymentMethodUtils";
+} from "@/domain/shared/paymentMethod.utils";
+import { getPaymentMethodIcon } from "@/shared/utils/paymentMethodIcon";
 
 function PaymentIcon({ option, className }) {
   const Icon = getPaymentMethodIcon(option?.value || option?.label || option?.name);
