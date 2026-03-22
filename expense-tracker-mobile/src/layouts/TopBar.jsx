@@ -46,7 +46,7 @@ export function TopBar({ showBack = false, breadcrumbItems }) {
           onClick={handleOpenUniversalSearch}
           className={cn(
             "flex items-center justify-center rounded-full hover:bg-accent tap-highlight-none",
-            isMinLg ? "h-9 min-w-[110px] px-3" : "h-9 w-9",
+            isMinLg ? "h-9 min-w-[6.875rem] px-3" : "h-9 w-9",
           )}
           aria-label={t("common.aria.openSearch")}
         >

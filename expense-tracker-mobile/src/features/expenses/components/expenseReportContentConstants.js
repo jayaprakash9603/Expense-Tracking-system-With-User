@@ -27,7 +27,7 @@ export const EMPTY_CARDS = {
   },
 };
 
-export const CONTROL_TF_CLASS = "h-8 w-[min(100%,9.5rem)] min-w-0 text-xs sm:w-[110px]";
+export const CONTROL_TF_CLASS = "h-8 w-[min(100%,9.5rem)] min-w-0 text-xs sm:w-[6.875rem]";
 export const REPORT_AREA_MARGIN = { top: 28, right: 8, left: 0, bottom: 28 };
 
 export function reportFlowToLossGain(flow) {

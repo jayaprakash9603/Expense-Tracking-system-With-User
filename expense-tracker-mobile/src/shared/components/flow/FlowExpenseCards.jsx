@@ -134,7 +134,7 @@ function expenseMatchesSearchQuery(expense, rawQuery) {
 }
 
 const DEFAULT_LIST_SCROLL_CLASS =
-  "flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[280px] sm:max-h-[320px] md:max-h-[360px] lg:max-h-[390px] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
+  "flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[17.5rem] sm:max-h-[20rem] md:max-h-[22.5rem] lg:max-h-[24.375rem] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
 
 export function FlowExpenseCards({
   data = [],
@@ -390,7 +390,7 @@ export function FlowExpenseCards({
             <button
               type="button"
               onClick={() => setIsMonthSheetOpen(true)}
-              className="w-[104px] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
+              className="w-[6.5rem] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-2.5 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
             >
               <span className="truncate">{currentMonthCompact}</span>
               <ChevronsUpDown className="h-3.5 w-3.5 shrink-0" />
@@ -409,7 +409,7 @@ export function FlowExpenseCards({
               <button
                 type="button"
                 onClick={() => setIsDateSheetOpen(true)}
-                className="min-w-0 flex-1 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/30 px-2 py-1 rounded-full inline-flex items-center justify-center gap-1 hover:bg-primary/20 transition-colors"
+                className="min-w-0 flex-1 text-[0.6875rem] font-semibold text-primary bg-primary/10 border border-primary/30 px-2 py-1 rounded-full inline-flex items-center justify-center gap-1 hover:bg-primary/20 transition-colors"
                 aria-label={t("common.selectDate") || "Select date"}
                 title={currentDateCompact || currentDate}
               >
@@ -457,14 +457,14 @@ export function FlowExpenseCards({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="max-w-[150px] sm:max-w-[190px] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
+                  className="max-w-[9.375rem] sm:max-w-[11.875rem] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
                 >
                   <span className="truncate">{currentMonth}</span>
                   <ChevronsUpDown className="h-3.5 w-3.5 shrink-0" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="start" sideOffset={6} className="w-[220px] p-2">
-                <div className="max-h-[240px] overflow-y-auto theme-scrollbar pr-1 space-y-1">
+              <PopoverContent align="start" sideOffset={6} className="w-[13.75rem] p-2">
+                <div className="max-h-[15rem] overflow-y-auto theme-scrollbar pr-1 space-y-1">
                   {monthGroups.map((month) => (
                     <button
                       key={month.monthKey}
@@ -508,7 +508,7 @@ export function FlowExpenseCards({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="max-w-[140px] sm:max-w-[170px] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
+                  className="max-w-[8.75rem] sm:max-w-[10.625rem] text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full inline-flex items-center gap-1 hover:bg-primary/20 transition-colors"
                 >
                   <span className="truncate">{currentDate}</span>
                   <ChevronsUpDown className="h-3.5 w-3.5 shrink-0" />

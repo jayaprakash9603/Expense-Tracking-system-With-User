@@ -18,7 +18,7 @@ export function NotificationCard({ notification, onMarkRead, onDelete }) {
               {notification.title}
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notification.subtitle}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">{notification.date}</p>
+            <p className="text-[0.625rem] text-muted-foreground mt-1">{notification.date}</p>
           </div>
         </div>
         <div className="flex gap-1 flex-shrink-0">

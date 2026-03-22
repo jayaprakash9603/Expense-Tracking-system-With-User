@@ -7,6 +7,7 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { EmptyState } from "@/shared/components/feedback/EmptyState";
 import { LoadingSpinner } from "@/shared/components/feedback/LoadingSpinner";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
+import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function EntityListPage({
@@ -22,6 +23,8 @@ export function EntityListPage({
   headerActions = null,
   floatingSlot = null,
   className,
+  itemLayout = "list",
+  gridPreset = "cards",
 }) {
   const { t } = useLanguage();
   const resolvedSearchPlaceholder = searchPlaceholder ?? t("common.searchPlaceholderShort");
@@ -104,12 +107,22 @@ export function EntityListPage({
         />
       )}
 
-      {!isEmpty && !isSearchEmpty && (
+      {!isEmpty && !isSearchEmpty && itemLayout === "list" && (
         <div className="space-y-3">
           {items.map((item, index) => (
             <div key={item.id || index}>{renderItem(item)}</div>
           ))}
         </div>
+      )}
+
+      {!isEmpty && !isSearchEmpty && itemLayout === "grid" && (
+        <ResponsiveGrid preset={gridPreset}>
+          {items.map((item, index) => (
+            <div key={item.id || index} className="min-w-0">
+              {renderItem(item)}
+            </div>
+          ))}
+        </ResponsiveGrid>
       )}
 
       {loading && items.length > 0 && (

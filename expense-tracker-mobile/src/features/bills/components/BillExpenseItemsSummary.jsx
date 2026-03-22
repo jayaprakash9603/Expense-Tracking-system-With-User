@@ -36,17 +36,17 @@ export function BillExpenseItemsSummary({ expenses, t, errorMessage }) {
       <p className="mb-1.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
         {t("billForm.summary.title")}
       </p>
-      <div className={`space-y-1.5 ${BILL_EXPENSE_SCROLL.summaryList}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 pr-1 ${BILL_EXPENSE_SCROLL.summaryList}`}>
         {expenses.map((row, i) => (
-          <Card key={`${row.itemName}-${i}`} className="border-border/60 shadow-sm">
-            <CardContent className="space-y-1.5 p-2 sm:p-2.5">
+          <Card key={`${row.itemName}-${i}`} className="border-border/60 shadow-sm flex flex-col">
+            <CardContent className="space-y-1.5 p-2 sm:p-2.5 flex-1 flex flex-col">
               <div className="flex items-start gap-2">
                 <span className="flex h-6 min-w-[1.5rem] shrink-0 items-center justify-center rounded-md bg-primary/15 text-[0.65rem] font-semibold text-primary">
                   {i + 1}
                 </span>
                 <p className="min-w-0 flex-1 text-xs font-semibold leading-snug sm:text-sm">{row.itemName}</p>
               </div>
-              <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[0.65rem]">
+              <div className="grid grid-cols-3 gap-x-2 gap-y-0.5 text-[0.65rem] mt-auto">
                 <div className="min-w-0">
                   <Label className="text-[0.55rem] uppercase text-muted-foreground">
                     {t("billForm.lineItems.qty")}
@@ -67,7 +67,7 @@ export function BillExpenseItemsSummary({ expenses, t, errorMessage }) {
                 </div>
               </div>
               {String(row.comments || "").trim() ? (
-                <div className="border-t border-border/50 pt-1.5">
+                <div className="border-t border-border/50 pt-1.5 mt-1.5">
                   <Label className="text-[0.55rem] uppercase text-muted-foreground">
                     {t("billForm.lineItems.comments")}
                   </Label>

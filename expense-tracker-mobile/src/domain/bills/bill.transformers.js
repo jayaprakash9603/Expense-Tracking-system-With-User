@@ -16,17 +16,24 @@ export function fromApiResponse(raw, fallbackDate = "") {
   const amountStr =
     expenses.length > 0 ? String(totalFromLines) : amountRaw === "" ? "" : String(amountRaw);
   const dateValue = normalizeExpenseDateForForm(raw.date, fallbackDate);
+  const netNum = raw.netAmount != null && raw.netAmount !== "" ? Number(raw.netAmount) : null;
+  const creditNum = raw.creditDue != null && raw.creditDue !== "" ? Number(raw.creditDue) : null;
+  const typeLower = String(raw.type || "loss").toLowerCase();
+  const absAmt = Math.abs(Number(amountStr) || 0);
+  const defaultNet = typeLower === "gain" ? absAmt : -absAmt;
   return {
     id: raw.id,
     name: raw.name || raw.billName || raw.title || "",
     description: raw.description || "",
     amount: amountStr,
     date: dateValue,
-    type: String(raw.type || "loss").toLowerCase(),
+    type: typeLower,
     paymentMethod: normalizePaymentMethod(raw.paymentMethod || "cash"),
     categoryId: raw.categoryId != null && raw.categoryId !== 0 ? String(raw.categoryId) : "",
     expenses,
     budgetIds: normalizeBudgetIds(raw.budgetIds),
+    netAmount: netNum != null && !Number.isNaN(netNum) ? netNum : defaultNet,
+    creditDue: creditNum != null && !Number.isNaN(creditNum) ? creditNum : 0,
   };
 }
 
@@ -43,6 +50,7 @@ export function toListItem(raw) {
       const d = new Date(dateStr);
       return !Number.isNaN(d.getTime()) && d < new Date(new Date().toDateString());
     })();
+  const flowType = bill.type === "gain" ? "gain" : "loss";
   return {
     id: bill.id,
     title: bill.name,
@@ -52,5 +60,6 @@ export function toListItem(raw) {
     date: dateStr,
     status: isPaid ? "PAID" : overdue ? "OVERDUE" : "PENDING",
     isOverdue: overdue,
+    flowType,
   };
 }

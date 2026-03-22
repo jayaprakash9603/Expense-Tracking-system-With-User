@@ -47,7 +47,7 @@ export function ResultItem({ action, isActive, onClick, onMouseEnter, query, ite
           {action.section} · {action.category}
         </p>
       </div>
-      <span className="rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[10px] text-muted-foreground">
+      <span className="rounded-md border border-border/60 bg-background px-1.5 py-0.5 text-[0.625rem] text-muted-foreground">
         {action.category}
       </span>
       {hasChildren ? <span className="text-xs text-muted-foreground">&gt;</span> : null}

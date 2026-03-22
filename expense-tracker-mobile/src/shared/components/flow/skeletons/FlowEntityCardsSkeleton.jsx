@@ -6,7 +6,7 @@ function FlowEntityCardSkeletonCell({ delayMs, compact }) {
   if (compact) {
     return (
       <div
-        className="h-full min-h-[88px] animate-pulse overflow-hidden rounded-lg border bg-card"
+        className="h-full min-h-[5.5rem] animate-pulse overflow-hidden rounded-lg border bg-card"
         style={{ animationDelay: `${delayMs}ms` }}
       >
         <div className="flex h-full items-stretch">

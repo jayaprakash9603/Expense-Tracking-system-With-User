@@ -118,7 +118,7 @@ export function MonthlyComparisonChart({ data }) {
       </div>
 
       <CardContent className="flex min-h-0 flex-1 flex-col px-2 pb-4 pt-0 md:px-4">
-        <ChartContainer config={chartConfig} className="aspect-auto h-[420px] w-full">
+        <ChartContainer config={chartConfig} className="aspect-auto h-[26.25rem] w-full">
           <BarChart
             data={chartData}
             margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
@@ -154,7 +154,7 @@ export function MonthlyComparisonChart({ data }) {
                 label={{
                   value: `Avg`,
                   position: "insideTopRight",
-                  className: "fill-muted-foreground text-[10px]",
+                  className: "fill-muted-foreground text-[0.625rem]",
                 }}
               />
             )}

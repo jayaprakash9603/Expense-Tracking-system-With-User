@@ -96,7 +96,7 @@ export function BottomNavigation() {
                   )}
                   <span
                     className={cn(
-                      "text-[10px] font-medium leading-tight text-center",
+                      "text-[0.625rem] font-medium leading-tight text-center",
                       active ? "icon-primary" : "text-muted-foreground",
                     )}
                   >
@@ -122,7 +122,7 @@ export function BottomNavigation() {
       )}
 
       <nav className="shrink-0 border-t border-border bg-card safe-bottom">
-        <div className="flex h-[60px] items-stretch justify-around px-1">
+        <div className="flex h-[3.75rem] items-stretch justify-around px-1">
           {primaryTabs.map((item) => (
             <BottomTab
               key={item.key}
@@ -161,7 +161,7 @@ function BottomTab({ item, labelKey, active, onPress, t }) {
       </span>
       <span
         className={cn(
-          "text-[10px] font-medium transition-colors",
+          "text-[0.625rem] font-medium transition-colors",
           active ? "icon-primary" : "text-muted-foreground",
         )}
       >
@@ -188,7 +188,7 @@ function MoreTab({ active, onPress, t }) {
       </span>
       <span
         className={cn(
-          "text-[10px] font-medium transition-colors",
+          "text-[0.625rem] font-medium transition-colors",
           active ? "icon-primary" : "text-muted-foreground",
         )}
       >

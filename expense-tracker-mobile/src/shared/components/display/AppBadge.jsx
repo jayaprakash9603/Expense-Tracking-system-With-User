@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 export function AppBadge({ children, variant = "default", size = "default", className = "", ...props }) {
   const sizeClasses = {
-    sm: "text-[10px] px-1.5 py-0",
+    sm: "text-[0.625rem] px-1.5 py-0",
     default: "text-xs px-2.5 py-0.5",
     lg: "text-sm px-3 py-1",
   };

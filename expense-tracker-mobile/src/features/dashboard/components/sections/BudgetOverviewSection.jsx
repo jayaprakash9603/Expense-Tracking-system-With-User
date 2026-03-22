@@ -109,7 +109,7 @@ function BudgetStatCard({ icon: Icon, label, value, accent = "primary" }) {
             accent === "destructive" ? "text-destructive" : "text-primary",
           )}
         />
-        <span className="text-[11px] leading-tight text-muted-foreground">{label}</span>
+        <span className="text-[0.6875rem] leading-tight text-muted-foreground">{label}</span>
       </div>
       <span
         className={cn(

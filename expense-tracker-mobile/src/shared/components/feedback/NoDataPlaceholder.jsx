@@ -7,10 +7,10 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const SIZE_HEIGHTS = {
   xs: "min-h-0",
-  sm: "min-h-[140px]",
-  md: "min-h-[180px]",
-  lg: "min-h-[260px]",
-  fill: "min-h-[320px]",
+  sm: "min-h-[8.75rem]",
+  md: "min-h-[11.25rem]",
+  lg: "min-h-[16.25rem]",
+  fill: "min-h-[20rem]",
 };
 
 export function NoDataPlaceholder({
@@ -50,7 +50,7 @@ export function NoDataPlaceholder({
       <p className={messageClass}>{resolvedMessage}</p>
 
       {subMessage && (
-        <p className="text-sm text-muted-foreground max-w-[360px]">{subMessage}</p>
+        <p className="text-sm text-muted-foreground max-w-[22.5rem]">{subMessage}</p>
       )}
 
       {onRetry && (

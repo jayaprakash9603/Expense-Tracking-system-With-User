@@ -16,7 +16,7 @@ export function RoutePlaceholderPage({ title: overrideTitle, description: overri
 
   return (
     <PageContainer>
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[25rem]">
         <AppCard className="max-w-sm text-center">
           <AppCard.Content className="py-12 flex flex-col items-center gap-4">
             <AppIcon icon={Construction} color="primary" size="xl" />

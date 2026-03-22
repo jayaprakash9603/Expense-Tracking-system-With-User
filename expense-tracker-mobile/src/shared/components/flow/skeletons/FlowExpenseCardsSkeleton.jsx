@@ -19,7 +19,7 @@ export function FlowExpenseCardsSkeleton({ count = 5, className }) {
     <div className={cn("flex flex-col min-h-0 gap-2 sm:gap-3", className)}>
       <div className="rounded-lg bg-card border px-2.5 sm:px-3 py-1.5 sm:py-2 animate-pulse">
         <div className="sm:hidden flex items-center gap-1.5">
-          <div className="h-6 w-[104px] rounded-full bg-muted" />
+          <div className="h-6 w-[6.5rem] rounded-full bg-muted" />
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <div className="h-7 w-7 rounded-full bg-muted" />
             <div className="h-6 flex-1 rounded-full bg-muted" />
@@ -45,7 +45,7 @@ export function FlowExpenseCardsSkeleton({ count = 5, className }) {
         </div>
       </div>
 
-      <div className="flex flex-col min-h-0 gap-3 sm:gap-4 h-[280px] sm:h-[320px] md:h-[360px] lg:h-[390px] overflow-hidden pr-1 pb-2">
+      <div className="flex flex-col min-h-0 gap-3 sm:gap-4 h-[17.5rem] sm:h-[20rem] md:h-[22.5rem] lg:h-[24.375rem] overflow-hidden pr-1 pb-2">
         {groups.map((group, groupIdx) => (
           <div key={group.id}>
             {group.showDivider && (

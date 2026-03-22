@@ -101,7 +101,7 @@ export function ProfileDropdown() {
                     {user?.email ? (
                       <p className="truncate text-xs font-medium text-foreground/80">{user.email}</p>
                     ) : null}
-                    <span className="mt-1.5 inline-flex rounded-md bg-primary px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-primary-foreground">
+                    <span className="mt-1.5 inline-flex rounded-md bg-primary px-2 py-0.5 text-[0.6875rem] font-bold uppercase tracking-wide text-primary-foreground">
                       {currentMode}
                     </span>
                   </>

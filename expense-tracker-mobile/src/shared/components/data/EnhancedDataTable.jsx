@@ -57,6 +57,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { DataTableFilterPopover } from "@/shared/components/data/DataTableFilterPopover";
 import { DataTablePagination } from "@/shared/components/data/DataTablePagination";
 import { cn } from "@/lib/utils";
+import { pxToRem } from "@/shared/constants/expenseFormLayout";
 
 function DragHandle({ id }) {
   const { attributes, listeners } = useSortable({ id });
@@ -103,7 +104,7 @@ function TableSkeleton({ colCount, rows = 5, rowHeightPx = null }) {
   const fixedStyle =
     rowHeightPx == null
       ? undefined
-      : { height: rowHeightPx, maxHeight: rowHeightPx };
+      : { height: pxToRem(rowHeightPx), maxHeight: pxToRem(rowHeightPx) };
   const fixedClass =
     rowHeightPx == null
       ? undefined
@@ -274,6 +275,7 @@ export function EnhancedDataTable({
   scrollBodyAlwaysSized = false,
   filterRowGlobalFn,
   flexColumnSizing = false,
+  lockColumnWidths: lockColumnWidthsProp,
 }) {
   const { t } = useLanguage();
   const [data, setData] = useState(initialData);
@@ -334,7 +336,7 @@ export function EnhancedDataTable({
     useSensor(KeyboardSensor, {}),
   );
 
-  const lockColumnWidths = scrollBodyMaxRows != null;
+  const lockColumnWidths = lockColumnWidthsProp ?? (scrollBodyMaxRows != null);
 
   const enhancedColumns = useMemo(() => {
     const cols = [];
@@ -494,7 +496,9 @@ export function EnhancedDataTable({
       : null;
 
   const tableContainerStyle =
-    tableScrollMaxHeightPx == null ? undefined : { maxHeight: tableScrollMaxHeightPx };
+    tableScrollMaxHeightPx == null
+      ? undefined
+      : { maxHeight: pxToRem(tableScrollMaxHeightPx) };
 
   const emptyTableBodyMinHeightPx =
     !loading && table.getRowModel().rows.length === 0 && sizedBodyViewportHeightPx != null
@@ -503,7 +507,10 @@ export function EnhancedDataTable({
 
   const useFixedBodyRowMetrics = lockColumnWidths;
   const fixedDataRowStyle = useFixedBodyRowMetrics
-    ? { height: scrollBodyRowHeightPx, maxHeight: scrollBodyRowHeightPx }
+    ? {
+        height: pxToRem(scrollBodyRowHeightPx),
+        maxHeight: pxToRem(scrollBodyRowHeightPx),
+      }
     : null;
   const fixedDataRowClassName = useFixedBodyRowMetrics
     ? "overflow-hidden [&>td]:overflow-hidden [&>td]:align-middle [&>td]:py-1.5"
@@ -591,7 +598,7 @@ export function EnhancedDataTable({
 
   const resolveColumnWidthStyle = (sizePx) => {
     if (!flexColumnSizing || !tableTotalWidth) {
-      return { width: sizePx };
+      return { width: pxToRem(sizePx) };
     }
     return { width: `${(sizePx / tableTotalWidth) * 100}%` };
   };
@@ -637,8 +644,8 @@ export function EnhancedDataTable({
               style={
                 emptyTableBodyMinHeightPx != null
                   ? {
-                      height: emptyTableBodyMinHeightPx,
-                      minHeight: emptyTableBodyMinHeightPx,
+                      height: pxToRem(emptyTableBodyMinHeightPx),
+                      minHeight: pxToRem(emptyTableBodyMinHeightPx),
                     }
                   : undefined
               }
@@ -736,7 +743,7 @@ export function EnhancedDataTable({
                 value={globalFilter}
                 onChange={(val) => setGlobalFilter(val)}
                 placeholder={searchPlaceholder}
-                className="flex-1 min-w-[200px] max-w-sm"
+                className="flex-1 min-w-[12.5rem] max-w-sm"
               />
             )}
           </div>

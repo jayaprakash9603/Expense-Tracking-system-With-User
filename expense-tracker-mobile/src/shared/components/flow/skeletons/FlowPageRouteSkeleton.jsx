@@ -9,7 +9,7 @@ import { FlowEntityCardsSkeleton } from "./FlowEntityCardsSkeleton";
 function FlowToolbarSkeleton() {
   return (
     <div className="flex w-full flex-col gap-3">
-      <div className="relative flex min-h-[44px] w-full flex-col gap-3 sm:min-h-[40px] md:block md:min-h-[44px]">
+      <div className="relative flex min-h-[2.75rem] w-full flex-col gap-3 sm:min-h-[2.5rem] md:block md:min-h-[2.75rem]">
         <div className="flex w-full items-center justify-between gap-2 md:pointer-events-none md:absolute md:left-0 md:right-0 md:top-1/2 md:z-[1] md:-translate-y-1/2">
           <div className="flex gap-1.5 md:pointer-events-auto">
             <div className="h-8 w-14 animate-pulse rounded-md bg-muted sm:w-16" />

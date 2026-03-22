@@ -8,7 +8,7 @@ export function TimeframeSelector({ value, onChange, options = DEFAULT_TIMEFRAME
   const { t } = useLanguage();
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={cn("w-[110px] h-8 text-xs", className)}>
+      <SelectTrigger className={cn("w-[6.875rem] h-8 text-xs", className)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

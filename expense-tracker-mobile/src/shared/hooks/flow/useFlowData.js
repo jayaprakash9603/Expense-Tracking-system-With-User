@@ -28,6 +28,7 @@ export function useFlowData({
   defaultRange = "month",
   defaultFlowTab = "all",
   paramsBuilder,
+  refetchOnFlowTabChange = true,
 } = {}) {
   const dispatch = useDispatch();
   const storageKey = buildStorageKey(storagePrefix, "self");
@@ -97,7 +98,14 @@ export function useFlowData({
       setRawData(result.data);
     }
     setLoading(false);
-  }, [dispatch, fetchAction, activeRange, offset, apiFlowType, paramsBuilder]);
+  }, [
+    dispatch,
+    fetchAction,
+    activeRange,
+    offset,
+    paramsBuilder,
+    ...(refetchOnFlowTabChange ? [apiFlowType] : []),
+  ]);
 
   useEffect(() => {
     fetchData();

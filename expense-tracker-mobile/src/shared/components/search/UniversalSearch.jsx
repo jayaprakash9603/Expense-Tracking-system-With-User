@@ -65,7 +65,7 @@ export function UniversalSearch({
                 {action.icon && <AppIcon icon={action.icon} size="sm" color="muted" />}
                 <span>{action.label}</span>
                 {action.shortcut && (
-                  <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                  <kbd className="ml-auto rounded bg-muted px-1.5 py-0.5 text-[0.625rem] text-muted-foreground">
                     {action.shortcut}
                   </kbd>
                 )}

@@ -13,11 +13,11 @@ export function ExpenseReportContentLoading() {
       </div>
       <div className="rounded-xl border border-border p-4">
         <div className="mb-4 h-5 w-40 animate-pulse rounded bg-muted" />
-        <div className="h-[320px] w-full animate-pulse rounded-lg bg-muted sm:h-[360px]" />
+        <div className="h-[20rem] w-full animate-pulse rounded-lg bg-muted sm:h-[22.5rem]" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="h-[420px] w-full animate-pulse rounded-xl bg-muted" />
-        <div className="h-[420px] w-full animate-pulse rounded-xl bg-muted" />
+        <div className="h-[26.25rem] w-full animate-pulse rounded-xl bg-muted" />
+        <div className="h-[26.25rem] w-full animate-pulse rounded-xl bg-muted" />
       </div>
       <div className="space-y-3 pt-2">
         <div className="h-5 w-56 max-w-full animate-pulse rounded bg-muted" />

@@ -84,6 +84,7 @@ export function BillFormFields({
               }}
               placeholder={t(placeholders.description)}
               intent="default"
+              className="h-12 rounded-lg border-2 border-primary/55 bg-card px-3 text-sm font-medium shadow-sm transition-[border-color,box-shadow] focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25"
             />
             <AutoFillBadge
               key={`bill-af-desc-${autoFillNoticeToken}`}

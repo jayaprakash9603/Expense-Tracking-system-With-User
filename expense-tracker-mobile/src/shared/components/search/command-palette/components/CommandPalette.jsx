@@ -126,7 +126,7 @@ export function CommandPalette({
           </aside>
         </div>
 
-        <footer className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-3 py-2 text-[11px] text-muted-foreground">
+        <footer className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-3 py-2 text-[0.6875rem] text-muted-foreground">
           <div className="flex items-center gap-3">
             <span className="rounded bg-background px-1.5 py-0.5 font-mono">Ctrl/Cmd + K</span>
             <span className="rounded bg-background px-1.5 py-0.5 font-mono">/</span>

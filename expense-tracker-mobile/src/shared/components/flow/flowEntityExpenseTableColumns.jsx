@@ -88,7 +88,7 @@ export function buildFlowEntityExpenseTableColumns({
           <Badge
             variant={income ? "outline" : "destructive"}
             className={cn(
-              "text-[10px]",
+              "text-[0.625rem]",
               income && "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
             )}
           >

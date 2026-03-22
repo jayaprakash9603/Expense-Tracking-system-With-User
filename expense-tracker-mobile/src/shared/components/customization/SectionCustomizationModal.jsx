@@ -217,7 +217,7 @@ function ColumnPanel({
   animated,
 }) {
   return (
-    <div className="flex-1 flex flex-col min-w-0 min-h-0 sm:min-h-[300px]">
+    <div className="flex-1 flex flex-col min-w-0 min-h-0 sm:min-h-[18.75rem]">
       <div className="px-4 py-2.5 border-b border-border">
         <h4 className={cn("text-xs font-bold uppercase tracking-wider", isActive ? "text-primary" : "text-muted-foreground")}>
           {title}
@@ -273,7 +273,7 @@ function SectionItem({ section, isSelected, onSelect, onToggle, onMoveUp, onMove
 
       <span className="text-sm font-medium flex-1 truncate">{section.name}</span>
 
-      <Badge variant={TYPE_VARIANT[section.type] || "secondary"} className="text-[10px] px-1.5 py-0 h-5 shrink-0">
+      <Badge variant={TYPE_VARIANT[section.type] || "secondary"} className="text-[0.625rem] px-1.5 py-0 h-5 shrink-0">
         {section.type === "full"
           ? t("customization.sectionModal.sectionTypeFull")
           : t("customization.sectionModal.sectionTypeHalf")}

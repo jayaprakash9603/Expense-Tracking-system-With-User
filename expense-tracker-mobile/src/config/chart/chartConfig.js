@@ -49,7 +49,7 @@ export const CHART_HEIGHTS = {
 export const FLOW_PAGE_CHART_HEIGHT = 280;
 
 const FLOW_INLINE_DRILLDOWN_VIEWPORT_CLASS =
-  "min-h-[calc(100dvh-14rem-30px)] max-h-[calc(100dvh-14rem-30px)] sm:min-h-[calc(100dvh-16rem-30px)] sm:max-h-[calc(100dvh-16rem-30px)] md:min-h-[calc(100dvh-21rem-30px)] md:max-h-[calc(100dvh-21rem-30px)] lg:min-h-[calc(100dvh-23rem-130px)] lg:max-h-[calc(100dvh-23rem-130px)] xl:min-h-[calc(100dvh-23rem-130px)] xl:max-h-[calc(100dvh-23rem-130px)]";
+  "min-h-[calc(100dvh-14rem-1.875rem)] max-h-[calc(100dvh-14rem-1.875rem)] sm:min-h-[calc(100dvh-16rem-1.875rem)] sm:max-h-[calc(100dvh-16rem-1.875rem)] md:min-h-[calc(100dvh-21rem-1.875rem)] md:max-h-[calc(100dvh-21rem-1.875rem)] lg:min-h-[calc(100dvh-23rem-8.125rem)] lg:max-h-[calc(100dvh-23rem-8.125rem)] xl:min-h-[calc(100dvh-23rem-8.125rem)] xl:max-h-[calc(100dvh-23rem-8.125rem)]";
 
 export const FLOW_INLINE_DRILLDOWN_MAX_HEIGHT_CLASS = FLOW_INLINE_DRILLDOWN_VIEWPORT_CLASS;
 

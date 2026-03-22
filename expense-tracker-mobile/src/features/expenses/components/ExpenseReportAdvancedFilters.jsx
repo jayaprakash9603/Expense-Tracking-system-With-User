@@ -29,10 +29,10 @@ export function ExpenseReportAdvancedFilters({ value, onChange, className }) {
         <p className="mb-2 text-xs font-medium text-foreground">{t("reports.viewFilters.sectionTitle")}</p>
         <div className="flex flex-col gap-3">
           <div>
-            <p className="mb-1.5 text-[11px] text-muted-foreground">{t("reports.viewFilters.categorySection")}</p>
+            <p className="mb-1.5 text-[0.6875rem] text-muted-foreground">{t("reports.viewFilters.categorySection")}</p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-muted-foreground">
                   {t("reports.viewFilters.categoryTop")}
                 </p>
                 <AppSelect
@@ -43,7 +43,7 @@ export function ExpenseReportAdvancedFilters({ value, onChange, className }) {
                 />
               </div>
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-muted-foreground">
                   {t("reports.viewFilters.categoryCombine")}
                 </p>
                 <AppSelect
@@ -56,10 +56,10 @@ export function ExpenseReportAdvancedFilters({ value, onChange, className }) {
             </div>
           </div>
           <div>
-            <p className="mb-1.5 text-[11px] text-muted-foreground">{t("reports.viewFilters.paymentSection")}</p>
+            <p className="mb-1.5 text-[0.6875rem] text-muted-foreground">{t("reports.viewFilters.paymentSection")}</p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-muted-foreground">
                   {t("reports.viewFilters.paymentTop")}
                 </p>
                 <AppSelect
@@ -70,7 +70,7 @@ export function ExpenseReportAdvancedFilters({ value, onChange, className }) {
                 />
               </div>
               <div>
-                <p className="mb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                <p className="mb-1 text-[0.625rem] uppercase tracking-wide text-muted-foreground">
                   {t("reports.viewFilters.paymentCombine")}
                 </p>
                 <AppSelect
@@ -83,14 +83,14 @@ export function ExpenseReportAdvancedFilters({ value, onChange, className }) {
             </div>
           </div>
           <div>
-            <p className="mb-1.5 text-[11px] text-muted-foreground">{t("reports.viewFilters.trendFloor")}</p>
+            <p className="mb-1.5 text-[0.6875rem] text-muted-foreground">{t("reports.viewFilters.trendFloor")}</p>
             <AppSelect
               value={value.trendMinAmount}
               onChange={(v) => patch({ trendMinAmount: v })}
               options={trendOpts}
               triggerClassName={SELECT_CLASS}
             />
-            <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">
+            <p className="mt-1.5 text-[0.6875rem] leading-snug text-muted-foreground">
               {t("reports.viewFilters.trendFloorHint")}
             </p>
           </div>

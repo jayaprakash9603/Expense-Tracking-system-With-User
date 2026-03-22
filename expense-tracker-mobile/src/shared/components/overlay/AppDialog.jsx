@@ -11,7 +11,7 @@ import {
 export function AppDialog({ open, onOpenChange, title, description, footer, children, className = "" }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-[425px] ${className}`}>
+      <DialogContent className={`sm:max-w-[26.5625rem] ${className}`}>
         {(title || description) && (
           <DialogHeader>
             {title && <DialogTitle>{title}</DialogTitle>}

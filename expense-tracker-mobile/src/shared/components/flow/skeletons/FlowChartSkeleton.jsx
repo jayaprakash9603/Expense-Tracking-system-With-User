@@ -5,7 +5,7 @@ const BAR_HEIGHTS = [65, 40, 85, 55, 70, 30, 90, 45, 75, 50, 60, 35];
 
 export function FlowChartSkeleton({ className }) {
   return (
-    <div className={cn("w-full animate-pulse", className)} style={{ height: 280 }}>
+    <div className={cn("w-full animate-pulse", className)} style={{ height: "17.5rem" }}>
       <div className="flex h-full gap-2 p-4">
         <div className="flex flex-col justify-between items-end w-8 pb-6">
           {[1, 2, 3, 4].map((i) => (

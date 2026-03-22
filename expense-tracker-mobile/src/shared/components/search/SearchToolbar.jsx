@@ -88,7 +88,7 @@ export function SearchToolbar({
         >
           <AppIcon icon={SlidersHorizontal} size="sm" />
           {filterCount > 0 && (
-            <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[10px] flex items-center justify-center">
+            <Badge className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 text-[0.625rem] flex items-center justify-center">
               {filterCount}
             </Badge>
           )}

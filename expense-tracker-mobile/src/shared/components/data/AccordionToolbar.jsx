@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { ACCORDION_SELECTION_CHECKBOX_CLASS } from "./accordionSelectionCheckboxClass";
 
 const SELECT_BTN_CLASS =
-  "h-6 min-h-6 shrink-0 px-1.5 text-[10px] font-medium leading-none sm:px-2 sm:text-[11px]";
+  "h-6 min-h-6 shrink-0 px-1.5 text-[0.625rem] font-medium leading-none sm:px-2 sm:text-[0.6875rem]";
 
 const CLEAR_ALL_BTN_CLASS =
   "border-destructive/55 text-destructive hover:bg-destructive/10 hover:text-destructive";
@@ -76,7 +76,7 @@ export function AccordionToolbar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[5.5rem] text-xs sm:w-[100px]">
+        <SelectTrigger className="h-8 w-[5.5rem] text-xs sm:w-[6.25rem]">
           <SelectValue placeholder={t("common.default") || "Default"} />
         </SelectTrigger>
         <SelectContent>
@@ -96,7 +96,7 @@ export function AccordionToolbar({
           })
         }
       >
-        <SelectTrigger className="h-8 w-[4.25rem] text-xs sm:w-[80px]">
+        <SelectTrigger className="h-8 w-[4.25rem] text-xs sm:w-[5rem]">
           <SelectValue placeholder={t("common.desc") || "Desc"} />
         </SelectTrigger>
         <SelectContent>

@@ -76,7 +76,7 @@ export function SettingItem({ item, value, onChange, onAction, disabled = false,
           </div>
         </div>
         <Select value={value} onValueChange={onChange} disabled={disabled}>
-          <SelectTrigger className="w-[120px] md:w-[160px] h-9">
+          <SelectTrigger className="w-[7.5rem] md:w-[10rem] h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

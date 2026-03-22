@@ -177,7 +177,7 @@ export function DataTableFilterPopover({
           <Filter className="h-3.5 w-3.5" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(100vw-2rem,340px)] max-w-[340px] p-4">
+      <PopoverContent align="end" className="w-[min(100vw-2rem,21.25rem)] max-w-[21.25rem] p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold">{dialogTitle}</p>
           <Button

@@ -208,24 +208,24 @@ export function BillFormPage({ mode: modeProp }) {
         noOptionsLabel={noOptionsLabel}
       />
 
-      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div className="mt-4 flex flex-row gap-2 sm:justify-between">
         <Button
           type="button"
           variant={showBudgetPanel ? "secondary" : "outline"}
-          className="h-11 w-full justify-center gap-2 sm:w-auto"
+          className="h-11 sm:h-9 flex-1 sm:flex-none justify-center gap-2 sm:px-4"
           onClick={toggleBudgetPanel}
         >
           <Link2 className="h-4 w-4 shrink-0" aria-hidden />
-          {budgetButtonLabel}
+          <span className="truncate">{budgetButtonLabel}</span>
         </Button>
         <Button
           type="button"
           variant={showExpenseTable ? "secondary" : "outline"}
-          className="h-11 w-full justify-center gap-2 sm:w-auto"
+          className="h-11 sm:h-9 flex-1 sm:flex-none justify-center gap-2 sm:px-4"
           onClick={toggleExpensePanel}
         >
           <ListPlus className="h-4 w-4 shrink-0" aria-hidden />
-          {expenseButtonLabel}
+          <span className="truncate">{expenseButtonLabel}</span>
         </Button>
       </div>
 

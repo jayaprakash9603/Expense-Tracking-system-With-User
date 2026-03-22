@@ -52,7 +52,7 @@ export function GenericFlowLayout({
         <div
           className={cn(
             "w-full rounded-lg bg-card p-4",
-            isMobile ? "h-[140px]" : isTablet ? "h-[180px]" : "h-[240px]"
+            isMobile ? "h-[8.75rem]" : isTablet ? "h-[11.25rem]" : "h-[15rem]"
           )}
         >
           {loading ? (

@@ -16,7 +16,7 @@ export function useStandardExpenseColumns(options = {}) {
         label: t("expenses.columns.date"),
         meta: { filterType: "date" },
         sortable: true,
-        width: "100px",
+        width: "6.25rem",
         value: (row) => extractExpenseDetails(row).date || row.date,
         render: (val) => (val ? formatDate(val) : "-"),
         sortValue: (row) => {
@@ -38,7 +38,7 @@ export function useStandardExpenseColumns(options = {}) {
         label: t("expenses.columns.name"),
         meta: { filterType: "text" },
         sortable: true,
-        width: "230px",
+        width: "14.375rem",
         value: (row) => extractExpenseDetails(row).expenseName || extractExpenseDetails(row).name || row.expenseName || row.name,
         sortValue: (row) => {
           const name = extractExpenseDetails(row).expenseName || extractExpenseDetails(row).name || row.expenseName || row.name || "";
@@ -51,7 +51,7 @@ export function useStandardExpenseColumns(options = {}) {
         label: t("expenses.columns.amount"),
         meta: { filterType: "number" },
         sortable: true,
-        width: "100px",
+        width: "6.25rem",
         value: (row) => {
           const d = extractExpenseDetails(row);
           return Number(d.amount ?? d.netAmount ?? row.amount ?? 0);
@@ -77,7 +77,7 @@ export function useStandardExpenseColumns(options = {}) {
         key: "netAmount",
         label: t("expenses.columns.netAmount"),
         meta: { filterType: "number" },
-        width: "100px",
+        width: "6.25rem",
         sortable: true,
         value: (row) => {
           const d = extractExpenseDetails(row);
@@ -101,7 +101,7 @@ export function useStandardExpenseColumns(options = {}) {
         key: "creditDue",
         label: t("expenses.columns.creditDue"),
         meta: { filterType: "number" },
-        width: "110px",
+        width: "6.875rem",
         sortable: true,
         value: (row) => {
           const val = extractExpenseDetails(row).creditDue ?? row.creditDue;
@@ -120,7 +120,7 @@ export function useStandardExpenseColumns(options = {}) {
       label: t("expenses.columns.comments"),
       meta: { filterType: "text" },
       sortable: true,
-      width: "240px",
+      width: "15rem",
       value: (row) => extractExpenseDetails(row).comments || row.comments,
       render: (val) => val || "-",
     });

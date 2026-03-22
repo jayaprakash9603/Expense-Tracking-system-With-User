@@ -52,7 +52,7 @@ CommandInput.displayName = CommandPrimitive.Input.displayName
 const CommandList = React.forwardRef(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("theme-scrollbar max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    className={cn("theme-scrollbar max-h-[18.75rem] overflow-y-auto overflow-x-hidden", className)}
     {...props} />
 ))
 

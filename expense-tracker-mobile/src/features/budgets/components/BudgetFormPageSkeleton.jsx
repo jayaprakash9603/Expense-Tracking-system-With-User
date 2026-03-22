@@ -4,7 +4,7 @@ import { ExpenseFormRow } from "@/features/expenses/components/form/ExpenseFormR
 function BudgetFieldSkeleton() {
   return (
     <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-center lg:gap-0">
-      <Skeleton className="h-4 w-28 shrink-0 lg:w-[150px]" />
+      <Skeleton className="h-4 w-28 shrink-0 lg:w-[9.375rem]" />
       <Skeleton className="h-12 w-full flex-1 rounded-md" />
     </div>
   );
@@ -13,8 +13,8 @@ function BudgetFieldSkeleton() {
 function BudgetDescriptionSkeleton() {
   return (
     <div className="flex w-full flex-col gap-2 lg:flex-row lg:items-start lg:gap-0">
-      <Skeleton className="mt-0.5 h-4 w-28 shrink-0 lg:w-[150px]" />
-      <Skeleton className="min-h-[72px] w-full max-w-full flex-1 rounded-lg lg:max-w-[760px]" />
+      <Skeleton className="mt-0.5 h-4 w-28 shrink-0 lg:w-[9.375rem]" />
+      <Skeleton className="min-h-[4.5rem] w-full max-w-full flex-1 rounded-lg lg:max-w-[47.5rem]" />
     </div>
   );
 }
@@ -44,7 +44,7 @@ export function BudgetFormPageSkeleton() {
         <Skeleton className="h-28 w-full rounded-md sm:h-36" />
       </div>
       <div className="flex justify-end pb-2 pt-4">
-        <Skeleton className="h-11 w-full max-w-[200px] rounded-md sm:w-44" />
+        <Skeleton className="h-11 w-full max-w-[12.5rem] rounded-md sm:w-44" />
       </div>
     </div>
   );

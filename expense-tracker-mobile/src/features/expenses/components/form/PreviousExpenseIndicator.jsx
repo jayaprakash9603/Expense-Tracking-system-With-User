@@ -71,22 +71,22 @@ export function PreviousExpenseIndicator({
   const indicator = (
     <div
       className={cn(
-        "inline-flex items-center gap-2 rounded-r-md border-l-4 px-3 py-2 shadow-sm",
+        "inline-flex items-center gap-1.5 rounded-r-md border-l-4 px-2 py-0.5 shadow-sm",
         position === "left" ? "justify-start" : "justify-end",
         className,
       )}
       style={{ ...baseStyles, ...variantStyles }}
     >
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="h-3 w-3 animate-spin" />
       ) : (
-        <Icon className="h-4 w-4" />
+        <Icon className="h-3 w-3" />
       )}
-      <span className="flex flex-col leading-tight">
+      <span className="flex flex-col leading-none justify-center">
         {labelPosition !== "none" ? (
-          <span className="text-[0.625rem] uppercase tracking-wide opacity-80">{label}</span>
+          <span className="text-[0.5rem] uppercase tracking-wide opacity-80 mb-[1px]">{label}</span>
         ) : null}
-        <span className="text-sm font-semibold">{isLoading ? t("common.loading") : formattedDate}</span>
+        <span className="text-[0.65rem] font-semibold">{isLoading ? t("common.loading") : formattedDate}</span>
       </span>
     </div>
   );

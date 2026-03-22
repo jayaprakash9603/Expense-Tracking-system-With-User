@@ -22,9 +22,10 @@ export function BudgetSelectionTable({
         defaultPageSize={5}
         loading={loading}
         emptyMessage={t("common.noResults")}
-        flexColumnSizing
-        tableClassName="w-full min-w-0"
-        tableContainerClassName="theme-scrollbar overflow-x-hidden overflow-y-auto overscroll-contain"
+        flexColumnSizing={true}
+        lockColumnWidths={true}
+        tableClassName="w-full min-w-[55rem]"
+        tableContainerClassName="theme-scrollbar overflow-x-auto overflow-y-auto overscroll-contain"
         tableSectionClassName="max-w-full"
       />
     </div>

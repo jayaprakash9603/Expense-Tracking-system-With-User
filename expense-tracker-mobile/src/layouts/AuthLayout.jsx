@@ -41,13 +41,13 @@ export function AuthLayout() {
     <div className="min-h-screen flex bg-background">
       <div className="hidden lg:flex flex-col justify-center items-center w-[45%] xl:w-[50%] 2xl:w-[55%] p-12 xl:p-16 bg-card relative overflow-hidden border-r border-border">
         <div className="absolute inset-0 overflow-hidden opacity-30 pointer-events-none">
-          <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-primary blur-[140px]" />
-          <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-primary/70 blur-[120px]" />
+          <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-primary blur-[8.75rem]" />
+          <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-primary/70 blur-[7.5rem]" />
         </div>
 
         <div className="z-10 flex w-full max-w-[min(100%,32rem)] flex-col items-center px-4">
           <AuthBrandRow variant="desktop" />
-          <p className="mt-8 text-center text-muted-foreground text-base xl:text-lg max-w-[400px] xl:max-w-[500px] leading-relaxed font-light">
+          <p className="mt-8 text-center text-muted-foreground text-base xl:text-lg max-w-[25rem] xl:max-w-[31.25rem] leading-relaxed font-light">
             Track all your expenses in one place with a simpler, more intuitive
             way. Take control of your financial journey today.
           </p>

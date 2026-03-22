@@ -17,7 +17,7 @@ const VARIANT_STYLES = {
     icon: "h-5 w-5 text-sm",
     name: "text-xs",
     amount: "text-sm",
-    count: "text-[10px] sm:text-[11px]",
+    count: "text-[0.625rem] sm:text-[0.6875rem]",
   },
 };
 

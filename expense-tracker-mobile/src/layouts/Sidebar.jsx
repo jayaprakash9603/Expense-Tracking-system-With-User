@@ -68,7 +68,7 @@ function SidebarContent() {
         {navGroups.map((group) => (
           <div key={group.key}>
             {!collapsed && (
-              <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="px-3 mb-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
                 {t(group.labelKey)}
               </p>
             )}

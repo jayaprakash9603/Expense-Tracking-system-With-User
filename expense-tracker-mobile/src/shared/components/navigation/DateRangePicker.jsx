@@ -133,7 +133,7 @@ export function DateRangePicker({
           type="button"
           className={cn(
             "inline-flex max-w-full min-w-0 items-center justify-center gap-1 rounded-full border border-primary/30",
-            "bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs md:text-sm",
+            "bg-primary/10 px-2.5 py-1.5 text-[0.6875rem] font-medium sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs md:text-sm",
             "hover:bg-primary/20 transition-colors sm:max-w-[min(100%,22rem)]",
             className,
           )}

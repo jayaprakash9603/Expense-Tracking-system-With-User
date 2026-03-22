@@ -40,7 +40,7 @@ export function QuickAccess() {
           variant="outline"
           onClick={() => navigate(action.path)}
           className={cn(
-            "h-auto min-h-[44px] w-full min-w-0 justify-start gap-2 rounded-xl border-border bg-card px-3 py-2.5 text-left text-sm font-medium sm:px-4",
+            "h-auto min-h-[2.75rem] w-full min-w-0 justify-start gap-2 rounded-xl border-border bg-card px-3 py-2.5 text-left text-sm font-medium sm:px-4",
             animation.enabled && "transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
           )}
         >

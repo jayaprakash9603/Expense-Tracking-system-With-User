@@ -17,10 +17,10 @@ export function GroupedReportAccordionSkeleton({ rowCount = DEFAULT_SKELETON_ROW
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 py-1.5 sm:gap-3 sm:py-2">
-        <Skeleton className="h-8 min-w-[200px] flex-1 max-w-md sm:h-9" />
+        <Skeleton className="h-8 min-w-[12.5rem] flex-1 max-w-md sm:h-9" />
         <div className="flex shrink-0 items-center gap-2">
-          <Skeleton className="h-8 w-[100px]" />
-          <Skeleton className="h-8 w-[80px]" />
+          <Skeleton className="h-8 w-[6.25rem]" />
+          <Skeleton className="h-8 w-[5rem]" />
         </div>
       </div>
       <div className="space-y-2">

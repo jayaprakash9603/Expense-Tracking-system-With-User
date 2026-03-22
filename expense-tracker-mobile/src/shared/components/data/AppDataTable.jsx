@@ -78,7 +78,7 @@ export function AppDataTable({
               value={searchTerm}
               onChange={onSearchChange}
               placeholder={searchPlaceholder}
-              className="flex-1 min-w-[200px]"
+              className="flex-1 min-w-[12.5rem]"
             />
           )}
           {toolbar}

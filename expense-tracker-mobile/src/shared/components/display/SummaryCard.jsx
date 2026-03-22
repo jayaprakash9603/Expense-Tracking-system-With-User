@@ -103,7 +103,7 @@ export function SummaryCard({
     <div
       className={cn(
         "relative overflow-hidden rounded-2xl bg-gradient-to-br p-3 sm:p-4 md:p-5",
-        "min-h-[104px] sm:min-h-[118px] md:min-h-[130px] flex flex-col justify-between cursor-pointer",
+        "min-h-[6.5rem] sm:min-h-[7.375rem] md:min-h-[8.125rem] flex flex-col justify-between cursor-pointer",
         "shadow-sm",
         styles.light,
         styles.dark,
@@ -129,7 +129,7 @@ export function SummaryCard({
         </div>
 
         {percentage && (
-          <div className={cn("flex items-center gap-0.5 text-[13px] font-semibold", styles.trend)}>
+          <div className={cn("flex items-center gap-0.5 text-[0.8125rem] font-semibold", styles.trend)}>
             {isUp ? (
               <TrendingUp className="h-4 w-4" />
             ) : (
@@ -137,7 +137,7 @@ export function SummaryCard({
             )}
             <span>{percentage}</span>
             {trendLabel && (
-              <span className="text-[11px] font-normal opacity-80 ml-0.5 hidden sm:inline">
+              <span className="text-[0.6875rem] font-normal opacity-80 ml-0.5 hidden sm:inline">
                 {trendLabel}
               </span>
             )}
@@ -147,7 +147,7 @@ export function SummaryCard({
 
       <div className="flex items-end justify-between relative z-[1] mt-2 sm:mt-3 md:mt-4">
         <div className="min-w-0 flex-1 pr-1">
-          <p className={cn("text-[11px] sm:text-[13px] font-medium mb-0.5 sm:mb-1 truncate", styles.title)}>
+          <p className={cn("text-[0.6875rem] sm:text-[0.8125rem] font-medium mb-0.5 sm:mb-1 truncate", styles.title)}>
             {title}
           </p>
           <p className={cn("text-base sm:text-lg md:text-2xl font-bold leading-none truncate", styles.value)}>
@@ -206,7 +206,7 @@ export function SummaryCardSkeleton({ variant = "blue", className }) {
     <div
       className={cn(
         "relative overflow-hidden rounded-2xl bg-gradient-to-br p-3 sm:p-4 md:p-5",
-        "min-h-[104px] sm:min-h-[118px] md:min-h-[130px] flex flex-col justify-between animate-pulse",
+        "min-h-[6.5rem] sm:min-h-[7.375rem] md:min-h-[8.125rem] flex flex-col justify-between animate-pulse",
         styles.light,
         styles.dark,
         className

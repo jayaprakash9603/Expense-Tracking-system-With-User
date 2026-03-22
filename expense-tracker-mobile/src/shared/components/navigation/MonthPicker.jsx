@@ -77,7 +77,7 @@ export function MonthPicker({
           <span>{displayLabel}</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[260px] p-3" align="start">
+      <PopoverContent className="w-[16.25rem] p-3" align="start">
         <div className="flex items-center justify-between mb-3">
           <button
             type="button"

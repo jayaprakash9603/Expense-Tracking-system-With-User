@@ -1,81 +1,133 @@
-import { FileText } from "lucide-react";
-import { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { useState } from "react";
-import { EntityListPage } from "@/shared/patterns";
-import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { deleteBillAction } from "@/redux/bills/bills.actions";
-import { useBillList, BILL_SORT_OPTIONS } from "../hooks/useBillList";
-import { BillCard } from "../components/BillCard";
-import { ConfirmDialog } from "@/shared/components/overlay/ConfirmDialog";
+import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
+import { AppBarChart } from "@/shared/components/chart/AppBarChart";
+import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/features/expenses/components";
+import { useBillsFlowData } from "@/features/bills/hooks/useBillsFlowData";
+import { useBillListViewMode } from "@/features/bills/hooks/useBillListViewMode";
+import { BillViewModeToggle } from "@/features/bills/components/BillViewModeToggle";
+import { BillOverviewPage } from "@/features/bills/components/BillOverviewPage";
+import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function BillListPageView() {
-  const { t } = useLanguage();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const billList = useBillList();
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [viewMode, setViewMode] = useBillListViewMode();
+  const {
+    activeRange,
+    setActiveRange,
+    rangeLabel,
+    flowTab,
+    setFlowTab,
+    goNext,
+    goPrev,
+    resetOffset,
+    rangeOptions,
+    loading,
+    chartData,
+    cardData,
+    chartConfig,
+    overviewStats,
+    accordionRawBills,
+    refresh,
+  } = useBillsFlowData();
 
-  const goAddBill = useCallback(() => {
+  const barDataKeys = useMemo(() => {
+    if (flowTab === "inflow") return ["income"];
+    if (flowTab === "outflow") return ["expense"];
+    return ["income", "expense"];
+  }, [flowTab]);
+
+  const handleQuickAdd = useCallback(() => {
     navigate("/bills/add");
   }, [navigate]);
 
-  const goUploadBills = useCallback(() => {
+  const handleQuickUpload = useCallback(() => {
     navigate("/bill/upload");
   }, [navigate]);
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    await dispatch(deleteBillAction(deleteTarget.id));
-    setDeleteTarget(null);
-    billList.refresh();
-  };
-
-  const quickActions = (
-    <ExpenseQuickActions onAdd={goAddBill} onUpload={goUploadBills} />
+  const handleEditBill = useCallback(
+    (id) => {
+      navigate(`/bills/edit/${id}`);
+    },
+    [navigate],
   );
 
+  const viewModeToggle = useMemo(
+    () => <BillViewModeToggle value={viewMode} onChange={setViewMode} />,
+    [viewMode, setViewMode],
+  );
+
+  if (viewMode === "overview") {
+    return (
+      <BillOverviewPage
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        activeRange={activeRange}
+        setActiveRange={setActiveRange}
+        rangeLabel={rangeLabel}
+        flowTab={flowTab}
+        setFlowTab={setFlowTab}
+        goNext={goNext}
+        goPrev={goPrev}
+        resetOffset={resetOffset}
+        rangeOptions={rangeOptions}
+        loading={loading}
+        overviewStats={overviewStats}
+        accordionRawBills={accordionRawBills}
+        onAddBill={handleQuickAdd}
+        onUploadBill={handleQuickUpload}
+        onEditBill={handleEditBill}
+        onAfterDelete={refresh}
+      />
+    );
+  }
+
   return (
-    <>
-      <EntityListPage
-        title={t("bills.title")}
-        searchPlaceholder={t("bills.searchPlaceholder")}
-        hook={billList}
-        headerActions={quickActions}
-        emptyAction={{ label: t("bills.addNew"), onClick: goAddBill }}
-        floatingSlot={
-          <div className="pointer-events-none fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6">
-            <div className="pointer-events-auto">
-              <ExpenseQuickActions floating onAdd={goAddBill} onUpload={goUploadBills} />
-            </div>
-          </div>
-        }
-        renderItem={(item) => (
-          <BillCard
-            bill={item}
-            onEdit={(b) => navigate(`/bills/edit/${b.id}`)}
-            onDelete={setDeleteTarget}
+    <FlowPageLayout
+      activeRange={activeRange}
+      setActiveRange={setActiveRange}
+      rangeLabel={rangeLabel}
+      flowTab={flowTab}
+      setFlowTab={setFlowTab}
+      onPrev={goPrev}
+      onNext={goNext}
+      onReset={resetOffset}
+      rangeOptions={rangeOptions}
+      loading={loading}
+      headerActions={viewModeToggle}
+      floatingActions={
+        <ExpenseQuickActions
+          floating
+          onAdd={handleQuickAdd}
+          onUpload={handleQuickUpload}
+        />
+      }
+      chartSection={
+        <ChartCard contentClassName="px-1 sm:px-2 pb-2 pt-0">
+          <AppBarChart
+            data={chartData}
+            config={chartConfig}
+            dataKeys={barDataKeys}
+            xAxisKey="label"
+            height={FLOW_PAGE_CHART_HEIGHT}
+            className="px-0 py-1"
+            chartMargin={{ top: 8, right: 8, left: 0, bottom: 6 }}
+            yAxisProps={{ width: 34, tickMargin: 2 }}
+            stacked
+            barRadius={flowTab === "all" ? 0 : 4}
           />
-        )}
-        emptyState={{
-          icon: FileText,
-          title: t("bills.emptyTitle"),
-          description: t("bills.emptyDescription"),
-          actionLabel: t("bills.addNew"),
-        }}
-        sortOptions={BILL_SORT_OPTIONS}
-      />
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title={t("bills.deleteTitle")}
-        description={t("bills.deleteDescription")}
-        onConfirm={handleDelete}
-        destructive
-      />
-    </>
+        </ChartCard>
+      }
+      cardsSection={
+        <FlowExpenseCards
+          data={cardData}
+          loading={loading}
+          flowTab={flowTab}
+          onCardClick={(row) => navigate(`/bills/edit/${row.id}`)}
+        />
+      }
+    />
   );
 }
 

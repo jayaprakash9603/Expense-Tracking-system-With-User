@@ -134,7 +134,7 @@ function FlowEntityDrilldownToolbar({
               noDataText={noSearchMatchesText}
               maxWidth="220px"
               inputHeight="36px"
-              className="w-full max-w-[200px] px-2 text-xs font-normal sm:max-w-[220px] lg:w-48"
+              className="w-full max-w-[12.5rem] px-2 text-xs font-normal sm:max-w-[13.75rem] lg:w-48"
             />
             <FlowDrilldownViewModeToggle
               viewMode={viewMode}

@@ -40,7 +40,7 @@ export function ResultList({
 
   if (!groupedWithMetadata.length) {
     return (
-      <div className="flex h-[320px] items-center justify-center text-sm text-muted-foreground">
+      <div className="flex h-[20rem] items-center justify-center text-sm text-muted-foreground">
         No results found. Try another command.
       </div>
     );
@@ -50,7 +50,7 @@ export function ResultList({
     <div className="palette-scrollbar max-h-[55vh] overflow-y-auto px-2 pb-2">
       {groupedWithMetadata.map((section) => (
         <div key={section.category} className="mb-3 last:mb-0">
-          <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
             {section.category}
           </p>
           <div className="space-y-1">

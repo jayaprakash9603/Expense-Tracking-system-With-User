@@ -18,6 +18,7 @@ export function SelectableDataTable({
   tableContainerClassName,
   tableSectionClassName,
   flexColumnSizing = false,
+  lockColumnWidths = false,
   className,
 }) {
   const rowSelectionState = useMemo(
@@ -69,6 +70,7 @@ export function SelectableDataTable({
       tableContainerClassName={tableContainerClassName}
       tableSectionClassName={tableSectionClassName}
       flexColumnSizing={flexColumnSizing}
+      lockColumnWidths={lockColumnWidths}
       className={cn("w-full", className)}
     />
   );

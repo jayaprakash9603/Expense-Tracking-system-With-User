@@ -75,7 +75,7 @@ export function ExpenseReportContent({
   const tooltipSelectedType = dailyFlowType === "inflow" ? "gain" : "loss";
 
   const tagline = (
-    <span className="text-[11px] leading-snug text-muted-foreground md:text-xs">{t("reports.expenseReportsSubtitle")}</span>
+    <span className="text-[0.6875rem] leading-snug text-muted-foreground md:text-xs">{t("reports.expenseReportsSubtitle")}</span>
   );
 
   const accordionGroups = useMemo(

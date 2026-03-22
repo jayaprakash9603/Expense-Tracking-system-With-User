@@ -24,7 +24,7 @@ export function ExpenseCard({ expense, onEdit, onDelete, className }) {
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-medium text-sm md:text-base truncate">{expense.title}</h3>
             {expense.type && (
-              <AppBadge variant={TYPE_VARIANTS[expense.type] || "secondary"} className="text-[10px]">
+              <AppBadge variant={TYPE_VARIANTS[expense.type] || "secondary"} className="text-[0.625rem]">
                 {t(`expenses.types.${expense.type?.toLowerCase()}`)}
               </AppBadge>
             )}

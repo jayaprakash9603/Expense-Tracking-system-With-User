@@ -39,7 +39,7 @@ export function MiniStatCard({
       <div className="min-w-0 flex-1">
         <p className="text-xs text-muted-foreground truncate">{title}</p>
         <p className="text-base md:text-lg font-bold leading-tight truncate">{displayValue}</p>
-        {subtitle && <p className="text-[11px] text-muted-foreground truncate">{subtitle}</p>}
+        {subtitle && <p className="text-[0.6875rem] text-muted-foreground truncate">{subtitle}</p>}
       </div>
     </div>
   );

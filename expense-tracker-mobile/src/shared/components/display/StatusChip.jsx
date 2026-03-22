@@ -27,7 +27,7 @@ const STATUS_VARIANT_MAP = {
 };
 
 const SIZE_MAP = {
-  small: "text-[10px] px-1.5 py-0",
+  small: "text-[0.625rem] px-1.5 py-0",
   medium: "text-xs px-2 py-0.5",
   large: "text-sm px-3 py-1",
 };

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 export function FloatingNotificationItem({ item, onDismiss, className }) {
   const { t } = useLanguage();
   return (
-    <div className={cn("w-[320px] rounded-lg border border-border bg-card p-3 shadow-lg", className)}>
+    <div className={cn("w-[20rem] rounded-lg border border-border bg-card p-3 shadow-lg", className)}>
       <div className="flex items-start gap-2">
         <Bell className="mt-0.5 h-4 w-4 text-primary" />
         <div className="min-w-0 flex-1">

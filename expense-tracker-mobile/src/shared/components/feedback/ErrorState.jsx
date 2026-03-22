@@ -16,7 +16,7 @@ export function ErrorState({
   return (
     <div
       className={cn(
-        "flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center",
+        "flex min-h-[12.5rem] flex-col items-center justify-center rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-center",
         className,
       )}
     >

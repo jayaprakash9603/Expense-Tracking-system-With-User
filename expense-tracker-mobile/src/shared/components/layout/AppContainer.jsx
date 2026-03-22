@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const WIDTH_MAP = {
   content: "max-w-5xl",
   page: "max-w-7xl",
-  wide: "max-w-[1600px]",
+  wide: "max-w-[100rem]",
   fluid: "max-w-full",
 };
 

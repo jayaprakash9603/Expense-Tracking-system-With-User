@@ -20,7 +20,7 @@ export function CategoryCard({ category, onEdit, onDelete }) {
           <div className="min-w-0">
             <h3 className="font-medium text-sm md:text-base truncate">{category.title}</h3>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <AppBadge variant="outline" className="text-[10px]">
+              <AppBadge variant="outline" className="text-[0.625rem]">
                 {t(`categories.types.${category.subtitle?.toLowerCase()}`)}
               </AppBadge>
               {category.count > 0 && <span>{category.count} {t("categories.items")}</span>}

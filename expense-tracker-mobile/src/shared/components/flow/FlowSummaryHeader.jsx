@@ -49,7 +49,7 @@ function SummaryItem({ icon: Icon, label, amount, formatMoney, color, bgColor, p
       <div className={cn("h-8 w-8 rounded-full flex items-center justify-center", bgColor)}>
         <Icon className={cn("h-4 w-4", color)} />
       </div>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-[0.6875rem] text-muted-foreground">{label}</p>
       <p className={cn("text-sm font-semibold", color)}>
         {prefix}{formatMoney(amount)}
       </p>
