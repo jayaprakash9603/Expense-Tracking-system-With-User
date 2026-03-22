@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS,
-  LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_PX,
+  LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_REM,
 } from "@/shared/constants/linkedTableLayout";
 
 export function LinkedEntityTablePanel({
@@ -40,7 +40,7 @@ export function LinkedEntityTablePanel({
       {!open && summaryWhenClosed ? (
         <div
           className={cn("mt-4", LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS)}
-          style={{ minHeight: LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_PX }}
+          style={{ minHeight: LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_REM }}
           role="status"
         >
           {summaryWhenClosed}
@@ -48,7 +48,7 @@ export function LinkedEntityTablePanel({
       ) : null}
 
       {open ? (
-        <div className="relative mt-4 w-full overflow-x-auto overflow-y-visible rounded-lg border border-border/60 bg-card/50">
+        <div className="relative mt-4 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-lg border border-border/60 bg-card/50">
           <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
             <Button
               type="button"
@@ -60,7 +60,7 @@ export function LinkedEntityTablePanel({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="w-full min-w-0">{children}</div>
+          <div className="w-full min-w-0 max-w-full overflow-x-hidden">{children}</div>
         </div>
       ) : null}
 

@@ -26,7 +26,7 @@ export function AutoFillBadge({
   return (
     <span
       className={cn(
-        "pointer-events-none absolute right-[-8px] top-0 z-10 translate-x-full rounded px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground shadow-sm",
+        "pointer-events-none absolute right-[-0.5rem] top-0 z-10 translate-x-full rounded px-1.5 py-0.5 text-[0.625rem] font-semibold text-primary-foreground shadow-sm",
         "bg-gradient-to-r from-primary to-primary/80",
         className,
       )}

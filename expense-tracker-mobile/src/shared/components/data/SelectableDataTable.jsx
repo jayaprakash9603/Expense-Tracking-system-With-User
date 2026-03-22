@@ -16,6 +16,7 @@ export function SelectableDataTable({
   emptyMessage,
   tableClassName,
   tableContainerClassName,
+  tableSectionClassName,
   flexColumnSizing = false,
   className,
 }) {
@@ -66,6 +67,7 @@ export function SelectableDataTable({
       emptyMessage={emptyMessage}
       tableClassName={tableClassName}
       tableContainerClassName={tableContainerClassName}
+      tableSectionClassName={tableSectionClassName}
       flexColumnSizing={flexColumnSizing}
       className={cn("w-full", className)}
     />

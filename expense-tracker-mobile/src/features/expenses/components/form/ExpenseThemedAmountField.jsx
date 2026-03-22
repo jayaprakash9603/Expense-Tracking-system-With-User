@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { Input } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
+import { EXPENSE_FORM_LAYOUT, pxToRem } from "@/shared/constants/expenseFormLayout";
 
 const NUMBER_SPINNER_HIDE =
   "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
@@ -14,7 +15,7 @@ export function ExpenseThemedAmountField({
   placeholder,
   error = false,
   height,
-  maxWidth = "300px",
+  maxWidth = EXPENSE_FORM_LAYOUT.amountFieldMaxWidth,
   className,
   ...rest
 }) {
@@ -59,7 +60,9 @@ export function ExpenseThemedAmountField({
       style={{
         maxWidth,
         ...(height != null
-          ? { height: typeof height === "number" ? `${height}px` : height }
+          ? {
+              height: typeof height === "number" ? pxToRem(height) : height,
+            }
           : {}),
       }}
       {...rest}

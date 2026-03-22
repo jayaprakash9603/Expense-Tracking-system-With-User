@@ -17,6 +17,7 @@ import { ExpenseSelectionTable } from "../components/ExpenseSelectionTable";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { EXPENSE_FORM_LAYOUT } from "@/shared/constants/expenseFormLayout";
 
 function budgetNameInputClassName(error) {
   return cn(
@@ -112,7 +113,7 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
                 onChange={(e) => handleChange("amount", e.target.value)}
                 placeholder="0.00"
               error={Boolean(errors.amount)}
-              height={48}
+              height={EXPENSE_FORM_LAYOUT.controlHeightRem}
               maxWidth="100%"
             />
           </ExpenseFieldLayout>
@@ -137,7 +138,7 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
               error={Boolean(errors.startDate)}
               disableFuture={false}
               placeholder={t("budget.startDate")}
-              height={48}
+              height={EXPENSE_FORM_LAYOUT.controlHeightRem}
               width="100%"
             />
           </ExpenseFieldLayout>
@@ -160,7 +161,7 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
               error={Boolean(errors.endDate)}
               disableFuture={false}
               placeholder={t("budget.endDate")}
-              height={48}
+              height={EXPENSE_FORM_LAYOUT.controlHeightRem}
               width="100%"
             />
           </ExpenseFieldLayout>
@@ -173,7 +174,7 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
             layout="horizontal"
             required
             error={errors.description ? t(errors.description) : undefined}
-            contentClassName="w-full max-w-full lg:max-w-[760px]"
+            contentClassName="w-full max-w-full lg:max-w-[min(100%,47.5rem)]"
           >
             <ExpenseThemedCommentField
               id="budgetDescription"

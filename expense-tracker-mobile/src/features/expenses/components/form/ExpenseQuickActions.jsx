@@ -72,7 +72,7 @@ export function ExpenseQuickActions({ onAdd, onUpload, className, floating = fal
             className="group h-9 w-9 cursor-pointer justify-start overflow-hidden rounded-full border-primary/40 px-2 text-primary transition-all duration-200 ease-out hover:w-36 hover:bg-primary/10"
           >
             <Plus className="h-4 w-4 shrink-0" />
-            <span className="ml-2 max-w-0 overflow-hidden whitespace-nowrap text-xs font-semibold opacity-0 transition-all duration-200 ease-out group-hover:max-w-[92px] group-hover:opacity-100">
+            <span className="ml-2 max-w-0 overflow-hidden whitespace-nowrap text-xs font-semibold opacity-0 transition-all duration-200 ease-out group-hover:max-w-[5.75rem] group-hover:opacity-100">
               {quickActionsLabel}
             </span>
           </Button>

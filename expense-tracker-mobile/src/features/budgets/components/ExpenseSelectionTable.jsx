@@ -4,6 +4,7 @@ import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useMoneyFormatter } from "@/shared/hooks/settings/useMoneyFormatter";
 import { useUserSettings } from "@/shared/hooks/settings/useUserSettings";
 import { SelectableDataTable } from "@/shared/components/data/SelectableDataTable";
+import { cn } from "@/lib/utils";
 import { formatPaymentMethodName } from "@/features/expenses/utils/expensePaymentMethodUtils";
 
 export function ExpenseSelectionTable({
@@ -46,7 +47,7 @@ export function ExpenseSelectionTable({
         size: 240,
         meta: { filterType: "text", filterLabel: expenseNameLabel },
         cell: ({ row }) => (
-          <span className="block max-w-[240px] truncate font-medium">
+          <span className="block max-w-[15rem] truncate font-medium">
             {row.original.expenseName || row.original.name || "-"}
           </span>
         ),
@@ -84,7 +85,7 @@ export function ExpenseSelectionTable({
         size: 130,
         meta: { filterType: "text", filterLabel: categoryLabel },
         cell: ({ row }) => (
-          <span className="block max-w-[160px] truncate">
+          <span className="block max-w-[10rem] truncate">
             {row.original.categoryName || row.original.category || "-"}
           </span>
         ),
@@ -97,7 +98,7 @@ export function ExpenseSelectionTable({
         size: 140,
         meta: { filterType: "text", filterLabel: paymentMethodLabel },
         cell: ({ row }) => (
-          <span className="block max-w-[140px] truncate">
+          <span className="block max-w-[8.75rem] truncate">
             {formatPaymentMethodName(row.original.paymentMethod || "") || "-"}
           </span>
         ),
@@ -110,7 +111,7 @@ export function ExpenseSelectionTable({
         size: 200,
         meta: { filterType: "text", filterLabel: commentsLabel },
         cell: ({ row }) => (
-          <span className="block max-w-[220px] truncate" title={row.original.comments || ""}>
+          <span className="block max-w-[13.75rem] truncate" title={row.original.comments || ""}>
             {row.original.comments?.trim() ? row.original.comments : "-"}
           </span>
         ),
@@ -129,17 +130,22 @@ export function ExpenseSelectionTable({
   );
 
   return (
-    <SelectableDataTable
-      columns={columns}
-      data={expenses}
-      selectedIds={selectedExpenseIds}
-      onSelectionChange={onSelectionChange}
-      loading={loading}
-      defaultPageSize={defaultPageSize}
-      pageSizeOptions={[5, 10, 20, 50]}
-      emptyMessage={resolvedEmptyText}
-      tableClassName="min-w-[960px] w-full"
-    />
+    <div className="w-full min-w-0 max-w-full">
+      <SelectableDataTable
+        columns={columns}
+        data={expenses}
+        selectedIds={selectedExpenseIds}
+        onSelectionChange={onSelectionChange}
+        loading={loading}
+        defaultPageSize={defaultPageSize}
+        pageSizeOptions={[5, 10, 20, 50]}
+        emptyMessage={resolvedEmptyText}
+        flexColumnSizing
+        tableClassName={cn("w-full min-w-0")}
+        tableContainerClassName="theme-scrollbar overflow-x-hidden overflow-y-auto overscroll-contain"
+        tableSectionClassName="max-w-full"
+      />
+    </div>
   );
 }
 

@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import { CalendarDays } from "lucide-react";
 import { Button, Calendar, Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
+import { pxToRem } from "@/shared/constants/expenseFormLayout";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 export function ExpenseThemedDatePicker({
@@ -13,7 +14,7 @@ export function ExpenseThemedDatePicker({
   disableFuture = true,
   placeholder,
   width = "100%",
-  height = 48,
+  height = "3rem",
   className,
 }) {
   const { t } = useLanguage();
@@ -32,7 +33,7 @@ export function ExpenseThemedDatePicker({
   }, [value, dateFormat]);
 
   const maxWidthValue =
-    typeof width === "number" ? `${width}px` : width;
+    typeof width === "number" ? `${width / 16}rem` : width;
 
   const handleSelect = useCallback(
     (nextDate) => {
@@ -59,7 +60,10 @@ export function ExpenseThemedDatePicker({
               : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
             className,
           )}
-          style={{ height: `${height}px`, maxWidth: maxWidthValue }}
+          style={{
+            height: typeof height === "number" ? pxToRem(height) : height,
+            maxWidth: maxWidthValue,
+          }}
           aria-label={t("common.aria.selectDate")}
         >
           <CalendarDays className="mr-2 h-4 w-4 text-primary" />

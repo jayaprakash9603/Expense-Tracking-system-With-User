@@ -1,6 +1,7 @@
 import React from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { cn } from "@/lib/utils";
+import { EXPENSE_FORM_LAYOUT } from "@/shared/constants/expenseFormLayout";
 import { LinkedEntityTablePanel } from "@/shared/components/form/LinkedEntityTablePanel";
 import { BudgetSelectionTable } from "../budget/BudgetSelectionTable";
 import { ExpenseFormRow } from "./ExpenseFormRow";
@@ -82,7 +83,7 @@ export function ExpenseFormFields({
             }}
             placeholder={t(placeholders.amount)}
             error={Boolean(errors.amount)}
-            height={48}
+            height={EXPENSE_FORM_LAYOUT.controlHeightRem}
             maxWidth="100%"
           />
         </ExpenseFieldLayout>
@@ -97,7 +98,7 @@ export function ExpenseFormFields({
             error={Boolean(errors.date)}
             disableFuture
             placeholder={t(placeholders.date)}
-            height={48}
+            height={EXPENSE_FORM_LAYOUT.controlHeightRem}
             width="100%"
           />
         </ExpenseFieldLayout>
@@ -197,13 +198,13 @@ export function ExpenseFormFields({
           label={t(labels.comments)}
           htmlFor="comments"
           layout="horizontal"
-          contentClassName="w-full max-w-full lg:max-w-[760px]"
+          contentClassName="w-full max-w-full lg:max-w-[min(100%,47.5rem)]"
         >
           <div className="relative">
             <AutoFillBadge
               key={`exp-af-com-${autoFillNoticeToken}`}
               visible={isCreateMode && autoFilledFields.comments}
-              className="top-[-20px] right-0 translate-x-0 lg:right-auto lg:left-[300px]"
+              className="top-[-1.25rem] right-0 translate-x-0 lg:right-auto lg:left-[18.75rem]"
             />
             <ExpenseThemedCommentField
               id="comments"

@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { EXPENSE_FORM_LAYOUT } from "@/shared/constants/expenseFormLayout";
 
 export function ExpenseFieldLayout({
   label,
@@ -8,7 +9,7 @@ export function ExpenseFieldLayout({
   error,
   children,
   layout = "horizontal",
-  labelWidth = "150px",
+  labelWidth = EXPENSE_FORM_LAYOUT.labelWidth,
   className,
   contentClassName,
 }) {
@@ -43,7 +44,12 @@ export function ExpenseFieldLayout({
             {required ? <span className="text-destructive"> *</span> : null}
           </label>
         ) : null}
-        <div className={cn("w-full flex-1 max-w-full xl:max-w-[300px]", contentClassName)}>
+        <div
+          className={cn(
+            "w-full flex-1 max-w-full xl:max-w-[min(100%,18.75rem)]",
+            contentClassName,
+          )}
+        >
           {children}
         </div>
       </div>

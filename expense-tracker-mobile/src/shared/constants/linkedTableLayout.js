@@ -21,5 +21,7 @@ const selectableTableStackHeightPx =
 
 export const LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_PX = selectableTableStackHeightPx;
 
+export const LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_REM = `${selectableTableStackHeightPx / 16}rem`;
+
 export const LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS =
   "flex w-full flex-col items-center justify-center rounded-lg border border-dashed border-primary/30 bg-muted/20 px-3 text-center text-xs text-muted-foreground sm:text-sm";

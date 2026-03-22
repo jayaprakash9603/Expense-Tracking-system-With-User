@@ -19,7 +19,7 @@ export function ExpenseFormShell({
     <PageContainer className="pt-2 md:pt-3">
       <div
         className={cn(
-          "mx-auto w-full max-w-[1240px] rounded-xl border bg-card px-4 py-4 md:px-5 md:py-4 shadow-sm",
+          "mx-auto w-full max-w-full rounded-xl border bg-card px-4 py-4 md:px-5 md:py-4 shadow-sm sm:max-w-[min(100%,77.5rem)]",
           className,
         )}
       >

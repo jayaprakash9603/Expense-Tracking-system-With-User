@@ -9,6 +9,7 @@ import {
   sanitizeName,
 } from "@/shared/utils/expense/expenseNameUtils";
 import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
+import { EXPENSE_FORM_LAYOUT } from "@/shared/constants/expenseFormLayout";
 
 const filterExpenseNamesFuzzy = createFuzzyFilterOptions();
 
@@ -23,7 +24,7 @@ export function ExpenseNameAutocomplete({
   noDataText,
   maxSuggestions = 500,
   maxWidth = "100%",
-  inputHeight = "48px",
+  inputHeight = EXPENSE_FORM_LAYOUT.controlHeightRem,
   className,
 }) {
   const { t } = useLanguage();

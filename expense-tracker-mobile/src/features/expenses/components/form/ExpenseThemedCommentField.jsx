@@ -1,6 +1,7 @@
 import React from "react";
 import { Textarea } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
+import { EXPENSE_FORM_LAYOUT, pxToRem } from "@/shared/constants/expenseFormLayout";
 
 export function ExpenseThemedCommentField({
   id = "comments",
@@ -31,7 +32,11 @@ export function ExpenseThemedCommentField({
           : "border-primary/55 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25",
         className,
       )}
-      style={{ maxWidth, minHeight: `${Math.max(minRows, 2) * 22}px`, maxHeight: `${maxRows * 30}px` }}
+      style={{
+        maxWidth,
+        minHeight: pxToRem(Math.max(minRows, 2) * 22),
+        maxHeight: pxToRem(maxRows * 30),
+      }}
       {...rest}
     />
   );

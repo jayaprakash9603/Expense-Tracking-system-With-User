@@ -84,7 +84,7 @@ export function PreviousExpenseIndicator({
       )}
       <span className="flex flex-col leading-tight">
         {labelPosition !== "none" ? (
-          <span className="text-[10px] uppercase tracking-wide opacity-80">{label}</span>
+          <span className="text-[0.625rem] uppercase tracking-wide opacity-80">{label}</span>
         ) : null}
         <span className="text-sm font-semibold">{isLoading ? t("common.loading") : formattedDate}</span>
       </span>

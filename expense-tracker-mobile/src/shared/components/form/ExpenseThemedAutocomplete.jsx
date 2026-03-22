@@ -9,6 +9,7 @@ import {
 } from "@/shared/components/app-shadcn";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/app-shadcn";
 import { cn } from "@/lib/utils";
+import { pxToRem } from "@/shared/constants/expenseFormLayout";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function defaultGetOptionLabel(option) {
@@ -47,7 +48,7 @@ export function ExpenseThemedAutocomplete({
   freeSolo = false,
   clearOnEscape = true,
   maxWidth = "100%",
-  inputHeight = "48px",
+  inputHeight = "3rem",
   startAdornment,
   className,
 }) {
@@ -163,7 +164,8 @@ export function ExpenseThemedAutocomplete({
         ? getOptionLabel(selectedOption)
         : "";
 
-  const triggerHeight = typeof inputHeight === "number" ? `${inputHeight}px` : inputHeight;
+  const triggerHeight =
+    typeof inputHeight === "number" ? pxToRem(inputHeight) : inputHeight;
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
