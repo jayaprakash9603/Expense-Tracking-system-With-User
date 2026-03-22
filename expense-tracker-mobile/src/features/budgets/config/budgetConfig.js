@@ -10,6 +10,8 @@ export const BUDGET_FORM_FIELDS = [
   { name: "alertThreshold", label: "budgets.form.alertThreshold", type: "number", required: false, placeholder: "80" },
 ];
 
+export const BUDGET_SCROLL_CHUNK_SIZE = 12;
+
 export const BUDGET_SEARCH_FIELDS = ["name", "category"];
 
 export const BUDGET_SORT_OPTIONS = [

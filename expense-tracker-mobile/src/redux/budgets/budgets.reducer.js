@@ -1,4 +1,5 @@
 import {
+  SET_BUDGET_FLOW_EXPENSES,
   FETCH_BUDGETS_REQUEST,
   FETCH_BUDGETS_SUCCESS,
   FETCH_BUDGETS_FAILURE,
@@ -25,6 +26,7 @@ const initialState = {
   list: [],
   selected: null,
   overview: null,
+  flowExpenses: [],
   loading: false,
   error: null,
   mutating: false,
@@ -35,6 +37,8 @@ export const budgetsReducer = (state = initialState, action) => {
     case FETCH_BUDGETS_REQUEST:
     case FETCH_BUDGET_OVERVIEW_REQUEST:
       return { ...state, loading: true, error: null };
+    case SET_BUDGET_FLOW_EXPENSES:
+      return { ...state, flowExpenses: Array.isArray(action.payload) ? action.payload : [] };
     case FETCH_BUDGETS_SUCCESS:
       return {
         ...state,

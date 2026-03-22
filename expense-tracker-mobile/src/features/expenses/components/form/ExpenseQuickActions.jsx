@@ -17,13 +17,22 @@ function resolveLabel(translator, key, fallback) {
   return value;
 }
 
-export function ExpenseQuickActions({ onAdd, onUpload, className, floating = false }) {
+export function ExpenseQuickActions({
+  onAdd,
+  onUpload,
+  className,
+  floating = false,
+  addLabel: addLabelProp,
+  uploadLabel: uploadLabelProp,
+}) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
 
   const quickActionsLabel = resolveLabel(t, "common.quickActions", "Actions");
-  const addLabel = resolveLabel(t, "common.add", "Add");
-  const uploadLabel = resolveLabel(t, "navigation.upload", "Upload");
+  const addLabel =
+    addLabelProp ?? resolveLabel(t, "common.add", "Add");
+  const uploadLabel =
+    uploadLabelProp ?? resolveLabel(t, "navigation.upload", "Upload");
 
   const handleMouseEnter = useCallback(() => setOpen(true), []);
   const handleMouseLeave = useCallback(() => setOpen(false), []);

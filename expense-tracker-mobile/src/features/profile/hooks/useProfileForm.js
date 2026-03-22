@@ -3,8 +3,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { api } from "@/config/api";
 import { getProfileAction } from "@/redux/auth/auth.actions";
 import { safeApiCall } from "@/shared/utils/network/safeApiCall";
+import { getActiveJwt } from "@/shared/utils/authStorage";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 const EMPTY_FORM = {
+  id: "",
   firstName: "",
   lastName: "",
   email: "",
@@ -19,7 +22,9 @@ const EMPTY_FORM = {
 
 export function useProfileForm() {
   const dispatch = useDispatch();
+  const { t } = useLanguage();
   const user = useSelector((state) => state.auth?.user);
+  const jwtFromStore = useSelector((state) => state.auth?.jwt);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -30,6 +35,7 @@ export function useProfileForm() {
   useEffect(() => {
     if (!user) return;
     setFormData({
+      id: user.id || "",
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",
@@ -54,8 +60,21 @@ export function useProfileForm() {
     setSaveError(null);
     setSaveSuccess(false);
 
+    const token = jwtFromStore || getActiveJwt();
+    if (!token) {
+      setSaveError(t("session.expired"));
+      setIsSaving(false);
+      return { success: false };
+    }
+
+    const payload = {
+      ...formData,
+      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+    };
+
+    const authHeaders = { Authorization: `Bearer ${token}` };
     const { error } = await safeApiCall(() =>
-      api.put("/api/user/profile", formData)
+      api.put("/api/user", payload, { headers: authHeaders }),
     );
 
     if (error) {
@@ -69,11 +88,12 @@ export function useProfileForm() {
     setSaveSuccess(true);
     setIsSaving(false);
     return { success: true };
-  }, [formData, dispatch]);
+  }, [formData, dispatch, jwtFromStore, t]);
 
   const handleCancel = useCallback(() => {
     if (!user) return;
     setFormData({
+      id: user.id || "",
       firstName: user.firstName || "",
       lastName: user.lastName || "",
       email: user.email || "",

@@ -74,6 +74,7 @@ export const te = {
       goToNextPage: "తరువాతి పేజీకి వెళ్ళండి",
       morePages: "మరిన్ని పేజీలు",
       breadcrumb: "బ్రెడ్‌క్రంబ్",
+      menu: "మెనూ",
     },
     pagination: {
       first: "మొదటి పేజీ",
@@ -754,6 +755,12 @@ export const te = {
       paymentMethod: "చెల్లింపు పద్ధతి",
       comments: "వ్యాఖ్యలు",
     },
+    card: {
+      spentLabel: "ఖర్చు",
+      budgetLabel: "బడ్జెట్",
+      remainingLabel: "మిగిలినది",
+      viewReport: "నివేదిక చూడండి",
+    },
   },
   bills: {
     title: "బిల్లులు",
@@ -905,6 +912,32 @@ export const te = {
     billLinesRequired: "కనీసం ఒక ఖర్చు పంక్తిని సానుకూల మొత్తంతో జోడించండి.",
   },
   budgets: {
+    title: "బడ్జెట్లు",
+    overviewStat: {
+      totalBudgets: "మొత్తం బడ్జెట్లు",
+      totalAllocated: "మొత్తం కేటాయింపు",
+      totalSpent: "మొత్తం ఖర్చు",
+      totalRemaining: "మొత్తం మిగిలినది",
+    },
+    searchPlaceholder: "బడ్జెట్లను శోధించండి...",
+    emptyTitle: "ఇంకా బడ్జెట్లు లేవు",
+    emptyDescription: "పరిమితికి వ్యతిరేకంగా ఖర్చును ట్రాక్ చేయడానికి బడ్జెట్ సృష్టించండి.",
+    addNew: "బడ్జెట్ జోడించండి",
+    deleteTitle: "బడ్జెట్ తొలగించండి",
+    deleteDescription: "ఈ బడ్జెట్ శాశ్వతంగా తొలగించబడుతుంది.",
+    of: "లో",
+    remaining: "మిగిలినది",
+    viewModeSwitch: "చార్ట్ మరియు వివరణాత్మక బడ్జెట్ కార్డుల మధ్య మారండి",
+    scrollForMore: "మరింత చూడండి ఇలా స్క్రోల్ చేయండి",
+    viewMode: {
+      analytics: "చార్ట్",
+      overview: "వివరాలు",
+    },
+    status: {
+      active: "సక్రియం",
+      expired: "గడువు ముగిసింది",
+      upcoming: "రాబోయే",
+    },
     progress: "బడ్జెట్ ప్రగతి",
     overallUtilization: "మొత్తం బడ్జెట్ వినియోగం",
     distribution: "బడ్జెట్ పంపిణీ",

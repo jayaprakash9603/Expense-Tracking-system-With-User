@@ -29,18 +29,15 @@ export function ProfileHeader({
     : null;
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b border-border">
-      <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary/5 blur-3xl" />
-      <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-primary/8 blur-2xl" />
-
+    <div className="relative overflow-hidden border-b border-border bg-background">
       <div className={cn(
-        "relative z-10 flex gap-4",
-        isMobile ? "flex-col items-center p-4 pt-6" : "flex-row items-start p-6 lg:p-8"
+        "relative z-10 flex gap-4 lg:gap-6",
+        isMobile ? "flex-col items-center p-4 pt-6" : "flex-row items-center p-6 lg:p-8"
       )}>
         <div className="relative shrink-0">
-          <Avatar className={cn(isMobile ? "h-24 w-24" : "h-28 w-28", "border-4 border-card shadow-lg")}>
-            <AvatarImage src={formData.profileImage} alt={formData.firstName} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
+          <Avatar className={cn(isMobile ? "h-24 w-24" : "h-32 w-32", "border-none shadow-none")}>
+            <AvatarImage src={formData.profileImage} alt={formData.firstName} className="object-cover" />
+            <AvatarFallback className="bg-primary text-primary-foreground text-4xl font-bold">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -56,13 +53,13 @@ export function ProfileHeader({
           )}
         </div>
 
-        <div className={cn("flex-1 min-w-0", isMobile ? "text-center" : "text-left")}>
-          <h2 className="text-xl font-bold truncate">
+        <div className={cn("flex-1 min-w-0 flex flex-col justify-center", isMobile ? "text-center items-center" : "text-left items-start")}>
+          <h2 className="text-2xl font-bold truncate">
             {formData.firstName} {formData.lastName}
           </h2>
 
           <div className={cn(
-            "flex items-center gap-1.5 text-sm text-muted-foreground mt-0.5",
+            "flex items-center gap-1.5 text-sm text-muted-foreground mt-1",
             isMobile && "justify-center"
           )}>
             <AppIcon icon={Mail} color="soft" size="xs" />
@@ -70,31 +67,19 @@ export function ProfileHeader({
           </div>
 
           <div className={cn("flex flex-wrap gap-2 mt-3", isMobile && "justify-center")}>
-            {formData.occupation && (
-              <StatChip icon={Briefcase} value={formData.occupation} />
-            )}
-            {formData.location && (
-              <StatChip icon={MapPin} value={formData.location} />
-            )}
             {joinDate && (
               <StatChip icon={Calendar} value={t("profile.joinedWithDate", { date: joinDate })} />
             )}
           </div>
-
-          {formData.bio && (
-            <p className="mt-3 text-sm text-muted-foreground italic max-w-lg">
-              &ldquo;{formData.bio}&rdquo;
-            </p>
-          )}
         </div>
 
-        <div className={cn("flex gap-2 shrink-0", isMobile && "w-full")}>
+        <div className={cn("flex gap-2 shrink-0 self-start", isMobile && "w-full mt-4")}>
           {!isEditMode ? (
             <Button
               type="button"
               onClick={onEditToggle}
               className={cn(
-                "flex items-center gap-2 px-4 py-2 tap-highlight-none",
+                "flex items-center gap-2 px-4 py-2 tap-highlight-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full",
                 isMobile && "flex-1 justify-center",
               )}
             >
@@ -142,7 +127,7 @@ export function ProfileHeader({
 
 function StatChip({ icon, value }) {
   return (
-    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-card border border-border text-xs">
+    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 border border-border/50 text-xs text-muted-foreground">
       <AppIcon icon={icon} color="primary" size="xs" />
       <span className="font-medium">{value}</span>
     </div>

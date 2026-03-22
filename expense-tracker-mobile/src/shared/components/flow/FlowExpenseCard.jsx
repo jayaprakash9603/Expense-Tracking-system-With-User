@@ -13,10 +13,10 @@ export function FlowExpenseCard({
 }) {
   const { format: formatMoney } = useMoneyFormatter();
 
-  const type = flowTab === "all"
-    ? (expense.type || "outflow")
-    : flowTab;
-  const isGain = !["outflow", "loss"].includes(type);
+  const rawType = expense.type?.toLowerCase() || "outflow";
+  const isGain =
+    flowTab === "inflow" ||
+    (flowTab === "all" && ["gain", "income", "inflow"].includes(rawType));
   const amountColor = isGain ? "text-emerald-500" : "text-red-500";
   const ArrowIcon = isGain ? ArrowUp : ArrowDown;
 

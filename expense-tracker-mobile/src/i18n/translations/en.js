@@ -74,6 +74,7 @@ export const en = {
       goToNextPage: "Go to next page",
       morePages: "More pages",
       breadcrumb: "breadcrumb",
+      menu: "Menu",
     },
     pagination: {
       first: "First page",
@@ -707,6 +708,12 @@ export const en = {
       paymentMethod: "Payment method",
       comments: "Comments",
     },
+    card: {
+      spentLabel: "Spent",
+      budgetLabel: "Budget",
+      remainingLabel: "Remaining",
+      viewReport: "View Report",
+    },
   },
   bills: {
     title: "Bills",
@@ -858,6 +865,32 @@ export const en = {
     billLinesRequired: "Add at least one expense line with a positive total.",
   },
   budgets: {
+    title: "Budgets",
+    overviewStat: {
+      totalBudgets: "Total budgets",
+      totalAllocated: "Total allocated",
+      totalSpent: "Total spent",
+      totalRemaining: "Total remaining",
+    },
+    searchPlaceholder: "Search budgets...",
+    emptyTitle: "No budgets yet",
+    emptyDescription: "Create a budget to track spending against a limit.",
+    addNew: "Add budget",
+    deleteTitle: "Delete budget",
+    deleteDescription: "This budget will be removed permanently.",
+    of: "of",
+    remaining: "Remaining",
+    viewModeSwitch: "Switch between chart and detailed budget cards",
+    scrollForMore: "Scroll for more",
+    viewMode: {
+      analytics: "Chart",
+      overview: "Details",
+    },
+    status: {
+      active: "Active",
+      expired: "Expired",
+      upcoming: "Upcoming",
+    },
     progress: "Budget Progress",
     overallUtilization: "Overall budget utilization",
     distribution: "Budget Distribution",

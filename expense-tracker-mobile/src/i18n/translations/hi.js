@@ -74,6 +74,7 @@ export const hi = {
       goToNextPage: "अगले पृष्ठ पर जाएं",
       morePages: "और पृष्ठ",
       breadcrumb: "ब्रेडक्रंब",
+      menu: "मेनू",
     },
     pagination: {
       first: "पहला पृष्ठ",
@@ -755,6 +756,12 @@ export const hi = {
       paymentMethod: "भुगतान विधि",
       comments: "टिप्पणियाँ",
     },
+    card: {
+      spentLabel: "खर्च",
+      budgetLabel: "बजट",
+      remainingLabel: "शेष",
+      viewReport: "रिपोर्ट देखें",
+    },
   },
   bills: {
     title: "बिल",
@@ -906,6 +913,32 @@ export const hi = {
     billLinesRequired: "कम से कम एक व्यय पंक्ति सकारात्मक कुल के साथ जोड़ें।",
   },
   budgets: {
+    title: "बजट",
+    overviewStat: {
+      totalBudgets: "कुल बजट",
+      totalAllocated: "कुल आवंटित",
+      totalSpent: "कुल खर्च",
+      totalRemaining: "कुल शेष",
+    },
+    searchPlaceholder: "बजट खोजें...",
+    emptyTitle: "अभी कोई बजट नहीं",
+    emptyDescription: "सीमा के विरुद्ध खर्च ट्रैक करने के लिए बजट बनाएं।",
+    addNew: "बजट जोड़ें",
+    deleteTitle: "बजट हटाएं",
+    deleteDescription: "यह बजट स्थायी रूप से हटा दिया जाएगा।",
+    of: "का",
+    remaining: "शेष",
+    viewModeSwitch: "चार्ट और विस्तृत बजट कार्ड के बीच स्विच करें",
+    scrollForMore: "और देखने के लिए स्क्रॉल करें",
+    viewMode: {
+      analytics: "चार्ट",
+      overview: "विवरण",
+    },
+    status: {
+      active: "सक्रिय",
+      expired: "समाप्त",
+      upcoming: "आगामी",
+    },
     progress: "बजट प्रगति",
     overallUtilization: "कुल बजट उपयोग",
     distribution: "बजट वितरण",

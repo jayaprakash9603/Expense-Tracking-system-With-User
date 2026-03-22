@@ -38,6 +38,43 @@ export function toListItem(budget) {
   };
 }
 
+function parseLocalDay(iso) {
+  if (!iso) return null;
+  const s = String(iso).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export function toBudgetCardModel(raw) {
+  const b = fromApiResponse(raw);
+  const amount = Number(b.amount) || 0;
+  const spent = Number(b.spent) || 0;
+  const remaining = amount - spent;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = parseLocalDay(b.startDate);
+  const end = parseLocalDay(b.endDate);
+  let status = "active";
+  if (end && today > end) status = "expired";
+  else if (start && today < start) status = "upcoming";
+  return {
+    id: b.id,
+    title: b.name,
+    description: b.description || "",
+    category: b.category || "",
+    amount,
+    spent,
+    remaining,
+    percentage: amount ? Math.round((spent / amount) * 1000) / 10 : 0,
+    progressWidth: Math.min(100, amount ? (spent / amount) * 100 : 0),
+    isOverBudget: remaining < 0,
+    status,
+    startDate: b.startDate,
+    endDate: b.endDate,
+  };
+}
+
 export function toProgressRadialData(budgets) {
   const totalBudget = budgets.reduce((s, b) => s + Number(b.amount || 0), 0);
   const totalSpent = budgets.reduce((s, b) => s + Number(b.spent || 0), 0);

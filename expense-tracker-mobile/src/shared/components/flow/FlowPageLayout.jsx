@@ -24,6 +24,7 @@ export function FlowPageLayout({
   cardsSection,
   headerActions,
   floatingActions,
+  beforeChartSection,
   stackedMobileHeader = false,
   mobileChartTitle,
   mobileChartDescription,
@@ -102,6 +103,10 @@ export function FlowPageLayout({
           </div>
         </div>
       </ContentSection>
+
+      {beforeChartSection ? (
+        <ContentSection>{beforeChartSection}</ContentSection>
+      ) : null}
 
       <ContentSection>
         {loading ? (

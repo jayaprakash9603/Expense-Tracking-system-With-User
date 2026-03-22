@@ -1,5 +1,6 @@
-import { budgetApi } from "@/infrastructure/api";
+import { budgetApi, expenseApi } from "@/infrastructure/api";
 import {
+  SET_BUDGET_FLOW_EXPENSES,
   FETCH_BUDGETS_REQUEST,
   FETCH_BUDGETS_SUCCESS,
   FETCH_BUDGETS_FAILURE,
@@ -21,6 +22,23 @@ import {
   CLEAR_BUDGET_ERROR,
   RESET_BUDGET_STATE,
 } from "./budgets.actionTypes";
+
+export const fetchBudgetFlowExpensesAction = (params) => async (dispatch) => {
+  const from = params?.from ?? params?.startDate;
+  const to = params?.to ?? params?.endDate;
+  if (!from || !to) {
+    dispatch({ type: SET_BUDGET_FLOW_EXPENSES, payload: [] });
+    return { success: true, data: [] };
+  }
+  const { data, error } = await expenseApi.getByDate({ from, to });
+  if (error) {
+    dispatch({ type: SET_BUDGET_FLOW_EXPENSES, payload: [] });
+    return { success: false, error };
+  }
+  const list = Array.isArray(data) ? data : [];
+  dispatch({ type: SET_BUDGET_FLOW_EXPENSES, payload: list });
+  return { success: true, data: list };
+};
 
 export const fetchBudgetsAction = (params) => async (dispatch) => {
   dispatch({ type: FETCH_BUDGETS_REQUEST });

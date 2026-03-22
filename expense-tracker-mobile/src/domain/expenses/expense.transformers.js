@@ -60,18 +60,51 @@ export function normalizeExpenseSelectedState(raw) {
 }
 
 export function fromApiResponse(raw) {
+  if (!raw || typeof raw !== "object") {
+    return {
+      id: undefined,
+      name: "",
+      amount: 0,
+      date: "",
+      category: "",
+      categoryId: null,
+      type: "NEED",
+      paymentMethod: "CASH",
+      comments: "",
+      isRecurring: false,
+      recurringFrequency: null,
+      tags: [],
+      createdAt: "",
+      updatedAt: "",
+    };
+  }
+  const nested = raw.expense;
+  const details =
+    nested && typeof nested === "object" && !Array.isArray(nested) ? nested : null;
+  const amountRaw =
+    raw.amount ??
+    details?.amount ??
+    details?.netAmount ??
+    0;
+  const name =
+    raw.name ||
+    raw.itemName ||
+    raw.expenseName ||
+    details?.expenseName ||
+    "";
   return {
     id: raw.id,
-    name: raw.name || raw.itemName || "",
-    amount: Number(raw.amount || 0),
+    name,
+    amount: Number(amountRaw) || 0,
     date: raw.date || raw.expenseDate || "",
     category: raw.category || raw.categoryName || "",
-    categoryId: raw.categoryId || null,
-    type: raw.type || "NEED",
-    paymentMethod: raw.paymentMethod || "CASH",
-    comments: raw.comments || raw.description || "",
+    categoryId: raw.categoryId ?? null,
+    type: raw.type || details?.type || "NEED",
+    paymentMethod: raw.paymentMethod || details?.paymentMethod || "CASH",
+    comments: raw.comments || raw.description || details?.comments || "",
     isRecurring: Boolean(raw.isRecurring || raw.recurring),
     recurringFrequency: raw.recurringFrequency || null,
+    budgetIds: Array.isArray(raw.budgetIds) ? raw.budgetIds : [],
     tags: raw.tags || [],
     createdAt: raw.createdAt || raw.created_at || "",
     updatedAt: raw.updatedAt || raw.updated_at || "",
