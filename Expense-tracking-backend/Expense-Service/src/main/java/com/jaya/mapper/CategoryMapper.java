@@ -47,19 +47,19 @@ public class CategoryMapper {
             return null;
         }
 
-        return CategoryDTO.builder()
-                .id(entity.getId())
-                .name(entity.getName())
-                .description(entity.getDescription())
-                .type(entity.getType())
-                .isGlobal(entity.isGlobal())
-                .icon(entity.getIcon())
-                .color(entity.getColor())
-                .userId(entity.getUserId())
-                .expenseIds(entity.getExpenseIds() != null ? new HashMap<>(entity.getExpenseIds()) : new HashMap<>())
-                .userIds(entity.getUserIds() != null ? new HashSet<>(entity.getUserIds()) : new HashSet<>())
-                .editUserIds(entity.getEditUserIds() != null ? new HashSet<>(entity.getEditUserIds()) : new HashSet<>())
-                .build();
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setDescription(entity.getDescription());
+        dto.setType(entity.getType());
+        dto.setGlobal(entity.isGlobal());
+        dto.setIcon(entity.getIcon());
+        dto.setColor(entity.getColor());
+        dto.setUserId(entity.getUserId());
+        dto.setExpenseIds(entity.getExpenseIds() != null ? new HashMap<>(entity.getExpenseIds()) : new HashMap<>());
+        dto.setUserIds(entity.getUserIds() != null ? new HashSet<>(entity.getUserIds()) : new HashSet<>());
+        dto.setEditUserIds(entity.getEditUserIds() != null ? new HashSet<>(entity.getEditUserIds()) : new HashSet<>());
+        return dto;
     }
 
     public List<CategoryDTO> toDtoList(List<ExpenseCategory> entities) {

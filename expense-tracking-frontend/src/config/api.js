@@ -14,6 +14,14 @@ const isCanceledError = (error) =>
 export const API_BASE_URL =
   process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
+const isMicroservicesMode =
+  process.env.REACT_APP_MICROSERVICES === "true" ||
+  process.env.REACT_APP_MICROSERVICES === "1";
+
+const notificationServiceBaseUrl =
+  process.env.REACT_APP_NOTIFICATION_SERVICE_BASE_URL ||
+  "http://localhost:6003";
+
 // When the app is loaded over HTTPS (e.g. Netlify), browsers block insecure WebSocket (ws://).
 // SockJS requires the same protocol: use https:// so it uses wss:// under the hood.
 const ensureSecureWsUrl = (url) => {
@@ -25,14 +33,14 @@ const ensureSecureWsUrl = (url) => {
 
 const rawNotificationWs =
   process.env.REACT_APP_NOTIFICATION_WS_URL ||
-  `${API_BASE_URL}/notifications`;
+  (isMicroservicesMode
+    ? `${notificationServiceBaseUrl.replace(/\/$/, "")}/notifications`
+    : `${API_BASE_URL}/notifications`);
 const rawChatWs =
   process.env.REACT_APP_CHAT_WS_URL || `${API_BASE_URL}/chat`;
 const rawStoryWs =
   process.env.REACT_APP_STORY_WS_URL || `${API_BASE_URL}/ws-stories`;
 
-// WebSocket URL for notifications — defaults to API_BASE_URL so it works in both
-// monolithic (single host) and microservice (gateway-proxied) modes.
 export const NOTIFICATION_WS_URL = ensureSecureWsUrl(rawNotificationWs);
 
 // Chat WebSocket URL — defaults to API_BASE_URL so it works in both

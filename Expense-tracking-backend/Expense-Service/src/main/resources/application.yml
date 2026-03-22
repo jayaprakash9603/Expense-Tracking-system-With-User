@@ -26,6 +26,11 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
   # Jackson configuration to fix date format
   jackson:
     serialization:

@@ -73,25 +73,25 @@ public class CategoryMapper {
     }
 
     public CategoryDTO toResponse(Category category, Integer userId) {
-        CategoryDTO.CategoryDTOBuilder builder = CategoryDTO.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .type(category.getType())
-                .isGlobal(category.isGlobal())
-                .icon(category.getIcon())
-                .color(category.getColor())
-                .userId(category.getUserId())
-                .expenseIds(category.getExpenseIds())
-                .userIds(category.getUserIds())
-                .editUserIds(category.getEditUserIds());
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        dto.setType(category.getType());
+        dto.setGlobal(category.isGlobal());
+        dto.setIcon(category.getIcon());
+        dto.setColor(category.getColor());
+        dto.setUserId(category.getUserId());
+        dto.setExpenseIds(category.getExpenseIds());
+        dto.setUserIds(category.getUserIds());
+        dto.setEditUserIds(category.getEditUserIds());
 
         if (userId != null && category.getExpenseIds() != null) {
             Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
-            builder.expenseCount(userExpenseIds != null ? userExpenseIds.size() : 0);
+            dto.setExpenseCount(userExpenseIds != null ? userExpenseIds.size() : 0);
         }
 
-        return builder.build();
+        return dto;
     }
 
     public List<CategoryDTO> toResponseList(List<Category> categories) {
@@ -107,16 +107,16 @@ public class CategoryMapper {
     }
 
     public CategoryDTO toSearchDTO(Category category) {
-        return CategoryDTO.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .type(category.getType())
-                .isGlobal(category.isGlobal())
-                .icon(category.getIcon())
-                .color(category.getColor())
-                .userId(category.getUserId())
-                .build();
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        dto.setType(category.getType());
+        dto.setGlobal(category.isGlobal());
+        dto.setIcon(category.getIcon());
+        dto.setColor(category.getColor());
+        dto.setUserId(category.getUserId());
+        return dto;
     }
 
     public List<CategoryDTO> toSearchDTOList(List<Category> categories) {
