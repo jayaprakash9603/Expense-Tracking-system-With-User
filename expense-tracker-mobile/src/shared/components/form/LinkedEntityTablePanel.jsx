@@ -48,7 +48,7 @@ export function LinkedEntityTablePanel({
       ) : null}
 
       {open ? (
-        <div className="relative mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-card/50">
+        <div className="relative mt-4 w-full overflow-x-auto overflow-y-visible rounded-lg border border-border/60 bg-card/50">
           <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
             <Button
               type="button"

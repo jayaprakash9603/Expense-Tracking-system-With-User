@@ -1,5 +1,7 @@
 import React from "react";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { useIsDesktop } from "@/shared/hooks/theme/useMediaQuery";
+import { cn } from "@/lib/utils";
 import { SelectableDataTable } from "@/shared/components/data/SelectableDataTable";
 import { useBudgetTableConfig } from "../../hooks/useBudgetTableConfig";
 
@@ -10,6 +12,7 @@ export function BudgetSelectionTable({
   loading = false,
 }) {
   const { t } = useLanguage();
+  const isDesktop = useIsDesktop();
   const { columns, rows } = useBudgetTableConfig(budgets, t);
 
   return (
@@ -22,9 +25,12 @@ export function BudgetSelectionTable({
         defaultPageSize={5}
         loading={loading}
         emptyMessage={t("common.noResults")}
-        tableClassName="w-full min-w-0"
-        tableContainerClassName="overflow-x-hidden overflow-y-auto"
-        flexColumnSizing
+        flexColumnSizing={isDesktop}
+        tableClassName={cn("w-full", isDesktop ? "min-w-0" : "min-w-[1220px]")}
+        tableContainerClassName={cn(
+          "theme-scrollbar overflow-y-auto overscroll-contain",
+          isDesktop ? "overflow-x-hidden" : "overflow-x-auto",
+        )}
       />
     </div>
   );
