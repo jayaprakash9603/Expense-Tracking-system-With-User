@@ -1,9 +1,7 @@
 package com.jaya.common.cache;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -11,8 +9,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-@Component
-@ConditionalOnProperty(name = "redis.enabled", havingValue = "false")
 @Slf4j
 public class InMemoryKeyValueAdapter implements KeyValueStorePort {
 

@@ -1,25 +1,17 @@
 package com.jaya.common.cache;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Component
-@ConditionalOnProperty(name = "redis.enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnClass(RedisTemplate.class)
-@Slf4j
-public class RedisKeyValueAdapter implements KeyValueStorePort {
+public class RedisKeyValueStoreAdapter implements KeyValueStorePort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public RedisKeyValueAdapter(RedisTemplate<String, Object> redisTemplate) {
+    public RedisKeyValueStoreAdapter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

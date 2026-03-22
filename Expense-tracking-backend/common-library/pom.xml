@@ -13,7 +13,7 @@
 
     <groupId>com.jaya.common</groupId>
     <artifactId>expense-common-library</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <name>expense-common-library</name>
     <description>Common library for Expense Tracking System - Contains shared exceptions, DTOs, Kafka events, and utilities</description>
@@ -66,7 +66,7 @@
             <artifactId>spring-data-commons</artifactId>
         </dependency>
 
-        <!-- Spring Data Redis (optional, for RedisKeyValueAdapter) -->
+        <!-- Spring Data Redis (optional, for RedisKeyValueStoreAdapter) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
