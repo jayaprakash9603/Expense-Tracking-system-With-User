@@ -9,3 +9,7 @@ export * from "./ExpenseQuickActions";
 export * from "./PreviousExpenseIndicator";
 export * from "./ExpenseNameAutocomplete";
 export * from "./budget/BudgetSelectionTable";
+export * from "./entityVisualConfig";
+export * from "./EntityColorPalettePicker";
+export * from "./EntityIconSymbolPicker";
+export * from "./EntityCommonFormSection";

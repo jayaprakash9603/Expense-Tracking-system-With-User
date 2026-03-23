@@ -2,7 +2,11 @@ import { useEntityForm } from "@/shared/patterns";
 import { CATEGORY_DEFAULTS } from "@/domain/categories/category.model";
 import { validateCategory } from "@/domain/categories/category.validators";
 import { fromApiResponse, toApiPayload } from "@/domain/categories/category.transformers";
-import { createCategoryAction, updateCategoryAction } from "@/redux/categories/categories.actions";
+import {
+  createCategoryAction,
+  fetchCategoryByIdAction,
+  updateCategoryAction,
+} from "@/redux/categories/categories.actions";
 
 export function useCategoryForm({ mode = "create", entityId = null, onSuccess, onError } = {}) {
   return useEntityForm({
@@ -13,6 +17,7 @@ export function useCategoryForm({ mode = "create", entityId = null, onSuccess, o
     transformer: { fromApi: fromApiResponse, toApi: toApiPayload },
     createAction: createCategoryAction,
     updateAction: updateCategoryAction,
+    fetchAction: fetchCategoryByIdAction,
     onSuccess,
     onError,
   });

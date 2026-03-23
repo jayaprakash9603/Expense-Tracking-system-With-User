@@ -3,6 +3,9 @@ import {
   FETCH_PAYMENT_METHODS_REQUEST,
   FETCH_PAYMENT_METHODS_SUCCESS,
   FETCH_PAYMENT_METHODS_FAILURE,
+  FETCH_PAYMENT_METHOD_REQUEST,
+  FETCH_PAYMENT_METHOD_SUCCESS,
+  FETCH_PAYMENT_METHOD_FAILURE,
   CREATE_PAYMENT_METHOD_SUCCESS,
   UPDATE_PAYMENT_METHOD_SUCCESS,
   DELETE_PAYMENT_METHOD_SUCCESS,
@@ -26,6 +29,17 @@ export const createPaymentMethodAction = (data, friendId) => async (dispatch) =>
   if (error) return { success: false, error };
   dispatch({ type: CREATE_PAYMENT_METHOD_SUCCESS, payload: result });
   return { success: true, data: result };
+};
+
+export const fetchPaymentMethodByIdAction = (id, targetId = "") => async (dispatch) => {
+  dispatch({ type: FETCH_PAYMENT_METHOD_REQUEST });
+  const { data, error } = await paymentMethodApi.getById(id, targetId);
+  if (error) {
+    dispatch({ type: FETCH_PAYMENT_METHOD_FAILURE, payload: error.message });
+    return { success: false, error };
+  }
+  dispatch({ type: FETCH_PAYMENT_METHOD_SUCCESS, payload: data });
+  return { success: true, data };
 };
 
 export const updatePaymentMethodAction = (data, friendId) => async (dispatch) => {

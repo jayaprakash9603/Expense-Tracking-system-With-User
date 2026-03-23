@@ -2,6 +2,9 @@ import {
   FETCH_CATEGORIES_REQUEST,
   FETCH_CATEGORIES_SUCCESS,
   FETCH_CATEGORIES_FAILURE,
+  FETCH_CATEGORY_REQUEST,
+  FETCH_CATEGORY_SUCCESS,
+  FETCH_CATEGORY_FAILURE,
   CREATE_CATEGORY_REQUEST,
   CREATE_CATEGORY_SUCCESS,
   CREATE_CATEGORY_FAILURE,
@@ -22,7 +25,9 @@ import { categoriesListSliceHelpers } from "./categories.slice";
 const initialState = {
   list: [],
   flow: null,
+  selected: null,
   loading: false,
+  selectedLoading: false,
   error: null,
   mutating: false,
 };
@@ -37,6 +42,12 @@ export const categoriesReducer = (state = initialState, action) => {
     case FETCH_CATEGORIES_FAILURE:
     case FETCH_CATEGORY_FLOW_FAILURE:
       return categoriesListSliceHelpers.applyFailure(state, action);
+    case FETCH_CATEGORY_REQUEST:
+      return { ...state, selectedLoading: true, error: null };
+    case FETCH_CATEGORY_SUCCESS:
+      return { ...state, selectedLoading: false, selected: action.payload || null };
+    case FETCH_CATEGORY_FAILURE:
+      return { ...state, selectedLoading: false, error: action.payload };
     case FETCH_CATEGORY_FLOW_SUCCESS:
       return { ...state, loading: false, flow: action.payload };
 
@@ -50,10 +61,16 @@ export const categoriesReducer = (state = initialState, action) => {
       return {
         ...state,
         mutating: false,
+        selected: action.payload?.id === state.selected?.id ? action.payload : state.selected,
         list: state.list.map((c) => (c.id === action.payload.id ? action.payload : c)),
       };
     case DELETE_CATEGORY_SUCCESS:
-      return { ...state, mutating: false, list: state.list.filter((c) => c.id !== action.payload) };
+      return {
+        ...state,
+        mutating: false,
+        selected: state.selected?.id === action.payload ? null : state.selected,
+        list: state.list.filter((c) => c.id !== action.payload),
+      };
     case CREATE_CATEGORY_FAILURE:
     case UPDATE_CATEGORY_FAILURE:
     case DELETE_CATEGORY_FAILURE:

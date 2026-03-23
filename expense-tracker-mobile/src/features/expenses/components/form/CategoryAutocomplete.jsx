@@ -1,9 +1,8 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { getCategoryIcon } from "@/config/navigation/iconMapping";
-import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
+import { MappedEntityIcon } from "@/shared/components/icons";
 import { useExpenseCategories } from "../../hooks/list/useExpenseCategories";
 import {
   deduplicateCategories,
@@ -12,24 +11,6 @@ import {
   areCategoriesEqual,
   getCategoryDisplayName,
 } from "../../utils/expenseCategoryUtils";
-
-function CategoryIcon({ category, className }) {
-  const Icon = getCategoryIcon(category?.icon || category?.name);
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-        className,
-      )}
-      style={{
-        backgroundColor: category?.color ? `${category.color}20` : undefined,
-        color: category?.color || undefined,
-      }}
-    >
-      <Icon className="h-3.5 w-3.5" />
-    </span>
-  );
-}
 
 export function CategoryAutocomplete({
   value,
@@ -102,10 +83,22 @@ export function CategoryAutocomplete({
       error={error}
       loading={hasExternalOptions ? false : loading}
       maxWidth="100%"
-      startAdornment={selectedCategory ? <CategoryIcon category={selectedCategory} /> : null}
+      startAdornment={
+        selectedCategory ? (
+          <MappedEntityIcon
+            variant="category"
+            value={selectedCategory?.icon || selectedCategory?.name}
+            color={selectedCategory?.color}
+          />
+        ) : null
+      }
       renderOption={(option, state) => (
         <span className="inline-flex w-full items-center gap-2">
-          <CategoryIcon category={option} />
+          <MappedEntityIcon
+            variant="category"
+            value={option?.icon || option?.name}
+            color={option?.color}
+          />
           <HighlightedText
             text={getCategoryDisplayName(option)}
             query={state.inputValue}

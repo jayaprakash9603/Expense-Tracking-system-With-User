@@ -141,7 +141,7 @@ export function AppPagination({
   const mobilePageIndicator = `${pageCurrent} / ${pageTotal}`;
 
   return (
-    <div className={cn("rounded-lg border border-border bg-card/50 px-2 py-3 sm:px-3", className)}>
+    <div className={cn("rounded-lg border border-border bg-card/50 px-2 py-2 sm:px-3", className)}>
       <div className="flex items-center gap-2 md:hidden">
         <span
           className="shrink-0 text-xs font-semibold tabular-nums text-foreground"
@@ -168,7 +168,7 @@ export function AppPagination({
       </div>
 
       <div className="relative hidden min-h-9 items-center gap-3 md:flex">
-        <div className="relative z-[1] min-h-5 min-w-0 max-w-[42%] shrink-0 text-sm font-medium text-primary">
+        <div className="relative z-[1] min-h-5 min-w-0 max-w-[42%] shrink-0 text-xs font-medium text-primary sm:text-sm">
           {selectable ? selectedRowsText : null}
         </div>
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-2">

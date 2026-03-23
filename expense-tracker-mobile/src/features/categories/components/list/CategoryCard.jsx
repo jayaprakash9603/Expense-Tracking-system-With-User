@@ -3,6 +3,7 @@ import { AppCard } from "@/shared/components/display/AppCard";
 import { AppBadge } from "@/shared/components/display/AppBadge";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { Button } from "@/shared/components/app-shadcn";
+import { MappedEntityIcon } from "@/shared/components/icons";
 
 export function CategoryCard({ category, onEdit, onDelete }) {
   const { t } = useLanguage();
@@ -15,7 +16,12 @@ export function CategoryCard({ category, onEdit, onDelete }) {
             className="h-8 w-8 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
             style={{ backgroundColor: category.color + "20", color: category.color }}
           >
-            {category.icon}
+            <MappedEntityIcon
+              variant="category"
+              value={category.icon || category.title}
+              renderMode="bare"
+              iconClassName="h-4 w-4"
+            />
           </div>
           <div className="min-w-0">
             <h3 className="font-medium text-sm md:text-base truncate">{category.title}</h3>

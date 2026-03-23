@@ -17,7 +17,7 @@ export function LinkedEntityTablePanel({
 }) {
   return (
     <>
-      <div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2">
+      <div className="flex w-full flex-wrap items-center justify-between gap-2">
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Button type="button" className="w-full sm:w-auto" onClick={() => onOpenChange(true)}>
             {linkLabel}
@@ -39,7 +39,7 @@ export function LinkedEntityTablePanel({
 
       {!open && summaryWhenClosed ? (
         <div
-          className={cn("mt-4", LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS)}
+          className={cn("mt-2", LINKED_CLOSED_PLACEHOLDER_SURFACE_CLASS)}
           style={{ minHeight: LINKED_ENTITY_TABLE_PANEL_RESERVE_MIN_HEIGHT_REM }}
           role="status"
         >
@@ -48,7 +48,7 @@ export function LinkedEntityTablePanel({
       ) : null}
 
       {open ? (
-        <div className="relative mt-4 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-lg border border-border/60 bg-card/50">
+        <div className="relative mt-2 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-lg border border-border/60 bg-card/50">
           <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
             <Button
               type="button"

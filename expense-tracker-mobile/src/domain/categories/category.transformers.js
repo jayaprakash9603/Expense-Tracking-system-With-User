@@ -1,12 +1,17 @@
+import {
+  DEFAULT_ENTITY_COLOR,
+  DEFAULT_ENTITY_ICON_SYMBOL,
+} from "@/shared/components/entity-form/entityVisualConfig";
+
 export function fromApiResponse(raw) {
   return {
     id: raw.id,
     name: raw.name || raw.categoryName || "",
     description: raw.description || "",
     type: raw.type || "EXPENSE",
-    color: raw.color || "#00b8a0",
-    icon: raw.icon || raw.selectedIconKey || "📦",
-    isGlobal: Boolean(raw.isGlobal),
+    color: raw.color || DEFAULT_ENTITY_COLOR,
+    icon: raw.icon || raw.selectedIconKey || DEFAULT_ENTITY_ICON_SYMBOL,
+    isGlobal: Boolean(raw.isGlobal ?? raw.global),
     expenseCount: Number(raw.expenseCount || 0),
     totalAmount: Number(raw.totalAmount || 0),
   };
@@ -18,8 +23,10 @@ export function toApiPayload(formData) {
     description: formData.description?.trim() || "",
     type: formData.type,
     color: formData.color,
+    icon: formData.icon || DEFAULT_ENTITY_ICON_SYMBOL,
     selectedIconKey: formData.icon,
     isGlobal: formData.isGlobal || false,
+    global: formData.isGlobal || false,
   };
 }
 

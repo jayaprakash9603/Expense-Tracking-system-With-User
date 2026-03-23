@@ -505,7 +505,9 @@ export function EnhancedDataTable({
       ? sizedBodyViewportHeightPx
       : null;
 
-  const useFixedBodyRowMetrics = lockColumnWidths;
+  const useFixedBodyRowMetrics =
+    lockColumnWidths ||
+    (Boolean(scrollBodyAlwaysSized) && scrollBodyMaxRows != null);
   const fixedDataRowStyle = useFixedBodyRowMetrics
     ? {
         height: pxToRem(scrollBodyRowHeightPx),

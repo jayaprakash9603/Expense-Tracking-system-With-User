@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FlowPageLayout,
@@ -16,6 +16,8 @@ import { useIsMobile } from "@/shared/hooks/theme/useMediaQuery";
 import { usePaymentMethodFlowData } from "@/features/payment-methods/hooks/usePaymentMethodFlowData";
 import { useEntityFlowDrilldown } from "@/shared/hooks/flow/useEntityFlowDrilldown";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
+import { ExpenseQuickActions } from "@/features/expenses/components";
+import { MappedEntityIcon } from "@/shared/components/icons";
 
 export function PaymentMethodFlowPage() {
   const { t } = useLanguage();
@@ -59,6 +61,8 @@ export function PaymentMethodFlowPage() {
   });
 
   const showInlineDrilldown = Boolean(selectedEntity) && !isMobile;
+  const handleQuickAdd = useCallback(() => navigate("/payment-method/create"), [navigate]);
+  const handleQuickUpload = useCallback(() => navigate("/upload/payments"), [navigate]);
 
   return (
     <>
@@ -73,6 +77,14 @@ export function PaymentMethodFlowPage() {
         onReset={resetOffset}
         rangeOptions={rangeOptions}
         loading={loading}
+        floatingActions={
+          <ExpenseQuickActions
+            floating
+            onAdd={handleQuickAdd}
+            onUpload={handleQuickUpload}
+            addLabel={t("paymentMethods.addNew")}
+          />
+        }
         chartSection={
           <ChartCard contentClassName="px-1 sm:px-2 pb-2 pt-0">
             <AppBarChart
@@ -131,7 +143,14 @@ export function PaymentMethodFlowPage() {
                   amount={card.amount}
                   count={card.count}
                   color={card.color}
-                  icon={card.icon}
+                  icon={
+                    <MappedEntityIcon
+                      variant="paymentMethod"
+                      value={card.icon || card.name}
+                      renderMode="bare"
+                      iconClassName="h-4 w-4"
+                    />
+                  }
                   onClick={() => handleCardClick(card)}
                 />
               ))}

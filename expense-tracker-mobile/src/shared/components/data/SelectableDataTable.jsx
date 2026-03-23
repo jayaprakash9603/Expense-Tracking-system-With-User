@@ -71,7 +71,7 @@ export function SelectableDataTable({
       tableSectionClassName={tableSectionClassName}
       flexColumnSizing={flexColumnSizing}
       lockColumnWidths={lockColumnWidths}
-      className={cn("w-full", className)}
+      className={cn("w-full gap-3", className)}
     />
   );
 }

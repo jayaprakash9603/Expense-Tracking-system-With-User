@@ -13,6 +13,9 @@ import {
   FETCH_CATEGORY_FLOW_REQUEST,
   FETCH_CATEGORY_FLOW_SUCCESS,
   FETCH_CATEGORY_FLOW_FAILURE,
+  FETCH_CATEGORY_REQUEST,
+  FETCH_CATEGORY_SUCCESS,
+  FETCH_CATEGORY_FAILURE,
   CLEAR_CATEGORY_ERROR,
   RESET_CATEGORY_STATE,
 } from "./categories.actionTypes";
@@ -49,6 +52,17 @@ export const deleteCategoryAction = (id) => async (dispatch) => {
     return { success: false, error };
   }
   dispatch({ type: DELETE_CATEGORY_SUCCESS, payload: id });
+  return { success: true, data };
+};
+
+export const fetchCategoryByIdAction = (id) => async (dispatch) => {
+  dispatch({ type: FETCH_CATEGORY_REQUEST });
+  const { data, error } = await categoryApi.getById(id);
+  if (error) {
+    dispatch({ type: FETCH_CATEGORY_FAILURE, payload: error.message });
+    return { success: false, error };
+  }
+  dispatch({ type: FETCH_CATEGORY_SUCCESS, payload: data });
   return { success: true, data };
 };
 

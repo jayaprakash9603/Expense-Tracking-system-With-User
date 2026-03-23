@@ -540,7 +540,7 @@ export const ROUTE_CATALOG = [
     navGroup: null,
     navIcon: null,
     bottomNav: false,
-    elementMode: "placeholder",
+    elementMode: "implemented",
   },
   {
     path: "/payment-method/create/:friendId",
@@ -560,7 +560,7 @@ export const ROUTE_CATALOG = [
     navGroup: null,
     navIcon: null,
     bottomNav: false,
-    elementMode: "placeholder",
+    elementMode: "implemented",
   },
   {
     path: "/payment-method/edit/:id/friend/:friendId",

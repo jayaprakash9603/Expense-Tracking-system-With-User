@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FlowPageLayout,
@@ -16,6 +16,8 @@ import { useIsMobile } from "@/shared/hooks/theme/useMediaQuery";
 import { useCategoryFlowData } from "@/features/categories/hooks/flow/useCategoryFlowData";
 import { useEntityFlowDrilldown } from "@/shared/hooks/flow/useEntityFlowDrilldown";
 import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
+import { ExpenseQuickActions } from "@/features/expenses/components";
+import { MappedEntityIcon } from "@/shared/components/icons";
 
 export function CategoryFlowPage() {
   const { t } = useLanguage();
@@ -59,6 +61,8 @@ export function CategoryFlowPage() {
   });
 
   const showInlineDrilldown = Boolean(selectedEntity) && !isMobile;
+  const handleQuickAdd = useCallback(() => navigate("/categories/add"), [navigate]);
+  const handleQuickUpload = useCallback(() => navigate("/upload/categories"), [navigate]);
 
   return (
     <>
@@ -73,6 +77,14 @@ export function CategoryFlowPage() {
         onReset={resetOffset}
         rangeOptions={rangeOptions}
         loading={loading}
+        floatingActions={
+          <ExpenseQuickActions
+            floating
+            onAdd={handleQuickAdd}
+            onUpload={handleQuickUpload}
+            addLabel={t("categories.addNew")}
+          />
+        }
         chartSection={
           <ChartCard contentClassName="px-1 sm:px-2 pb-2 pt-0">
             <AppBarChart
@@ -131,7 +143,14 @@ export function CategoryFlowPage() {
                   amount={card.amount}
                   count={card.count}
                   color={card.color}
-                  icon={card.icon}
+                  icon={
+                    <MappedEntityIcon
+                      variant="category"
+                      value={card.icon || card.name}
+                      renderMode="bare"
+                      iconClassName="h-4 w-4"
+                    />
+                  }
                   onClick={() => handleCardClick(card)}
                 />
               ))}

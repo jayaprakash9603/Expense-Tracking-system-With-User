@@ -18,8 +18,7 @@ const SHEET_LIST_SCROLL =
 const INLINE_LIST_SCROLL =
   "flex flex-1 min-h-0 flex-col gap-3 sm:gap-4 overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
 const TABLE_PAGE_SIZE = 5;
-const TABLE_SCROLL_ROWS = 8;
-const DRILLDOWN_TABLE_VIEWPORT_EXTRA_PX = 50;
+const DRILLDOWN_TABLE_VIEWPORT_EXTRA_PX = 8;
 
 function FlowDrilldownViewModeToggle({
   viewMode,
@@ -286,7 +285,7 @@ export function FlowEntityExpenseDrilldownContent({
             showPagination
             defaultPageSize={TABLE_PAGE_SIZE}
             pageSizeOptions={[5, 10, 20]}
-            scrollBodyMaxRows={TABLE_SCROLL_ROWS}
+            scrollBodyMaxRows={TABLE_PAGE_SIZE}
             scrollBodyAlwaysSized
             scrollBodyHeightExtraPx={DRILLDOWN_TABLE_VIEWPORT_EXTRA_PX}
             emptyMessage={t("flows.expensesTable.empty")}

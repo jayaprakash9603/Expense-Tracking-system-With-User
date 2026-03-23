@@ -22,6 +22,9 @@ const BudgetListPage = lazy(() => import("@/features/budgets/pages/BudgetListPag
 const NewBudgetPage = lazy(() => import("@/features/budgets/pages/NewBudget"));
 const EditBudgetPage = lazy(() => import("@/features/budgets/pages/EditBudget"));
 const CategoryFormPage = lazy(() => import("@/features/categories/pages/CategoryFormPage"));
+const PaymentMethodFormPage = lazy(
+  () => import("@/features/payment-methods/pages/PaymentMethodFormPage"),
+);
 const BillListPage = lazy(() => import("@/features/bills/pages/BillListPage"));
 const NewBillPage = lazy(() => import("@/features/bills/pages/NewBill"));
 const EditBillPage = lazy(() => import("@/features/bills/pages/EditBill"));
@@ -80,6 +83,8 @@ const IMPLEMENTED_PAGES = {
   cashflow: CashflowPage,
   "category-flow": CategoryFlowPage,
   payments: PaymentMethodFlowPage,
+  "payments-create": PaymentMethodFormPage,
+  "payments-edit": PaymentMethodFormPage,
   "admin-dashboard": AdminDashboardPage,
   "admin-users": AdminUsersPage,
   "admin-roles": AdminRolesPage,

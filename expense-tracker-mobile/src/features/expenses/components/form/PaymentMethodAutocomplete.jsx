@@ -1,8 +1,8 @@
 import React, { useMemo, useCallback } from "react";
 import { HighlightedText } from "@/shared/components/display/HighlightedText";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { cn } from "@/lib/utils";
 import { ExpenseThemedAutocomplete } from "@/shared/components/form/ExpenseThemedAutocomplete";
+import { MappedEntityIcon } from "@/shared/components/icons";
 import { useExpensePaymentMethods } from "../../hooks/list/useExpensePaymentMethods";
 import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 import {
@@ -10,21 +10,6 @@ import {
   arePaymentMethodsEqual,
   getPaymentMethodDisplayLabel,
 } from "@/domain/shared/paymentMethod.utils";
-import { getPaymentMethodIcon } from "@/shared/utils/paymentMethodIcon";
-
-function PaymentIcon({ option, className }) {
-  const Icon = getPaymentMethodIcon(option?.value || option?.label || option?.name);
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary",
-        className,
-      )}
-    >
-      <Icon className="h-3.5 w-3.5" />
-    </span>
-  );
-}
 
 export function PaymentMethodAutocomplete({
   value,
@@ -105,10 +90,20 @@ export function PaymentMethodAutocomplete({
       error={error}
       loading={hasExternalOptions ? false : loading}
       maxWidth="100%"
-      startAdornment={selectedOption ? <PaymentIcon option={selectedOption} /> : null}
+      startAdornment={
+        selectedOption ? (
+          <MappedEntityIcon
+            variant="paymentMethod"
+            value={selectedOption?.value || selectedOption?.label || selectedOption?.name}
+          />
+        ) : null
+      }
       renderOption={(option, state) => (
         <span className="inline-flex w-full items-center gap-2">
-          <PaymentIcon option={option} />
+          <MappedEntityIcon
+            variant="paymentMethod"
+            value={option?.value || option?.label || option?.name}
+          />
           <HighlightedText
             text={getPaymentMethodDisplayLabel(option)}
             query={state.inputValue}
