@@ -22,8 +22,8 @@ export function ExpenseFieldLayout({
       <div
         className={cn(
           isVertical
-            ? "flex flex-col gap-2"
-            : "flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-0",
+            ? "flex flex-col gap-1"
+            : "flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-0",
         )}
       >
         {label ? (

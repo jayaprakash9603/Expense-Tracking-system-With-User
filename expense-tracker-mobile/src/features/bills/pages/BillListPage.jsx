@@ -136,6 +136,7 @@ export function BillListPageView() {
           flowTab={flowTab}
           onCardClick={(row) => navigate(`/bills/edit/${row.id}`)}
           className="h-full"
+          showSearch
         />
       }
     />

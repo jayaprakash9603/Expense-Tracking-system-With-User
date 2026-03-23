@@ -13,7 +13,7 @@ export function ExpenseSubmitArea({
     <div
       className={cn(
         "w-full flex justify-end",
-        "mt-2 lg:mt-3 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 bg-card/95 backdrop-blur-sm lg:backdrop-blur-0",
+        "mt-1 lg:mt-2 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-2 lg:pt-0 lg:static z-10 bg-card/95 backdrop-blur-sm lg:backdrop-blur-0",
         className,
       )}
     >

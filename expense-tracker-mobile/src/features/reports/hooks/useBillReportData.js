@@ -3,6 +3,7 @@ import { billApi } from "@/infrastructure/api";
 import { fromApiResponse } from "@/domain/bills/bill.transformers";
 import { getDateRangeForReportTimeframe } from "@/features/reports/utils/reportTimeframeRange";
 import { assignChartColorVars } from "@/shared/utils/chart/chartColors";
+import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
 function billMatchesFlow(bill, flowType) {
   if (!flowType || flowType === "all") return true;
@@ -18,7 +19,7 @@ function billInDateRange(bill, fromStr, toStr) {
   return slice >= fromStr && slice <= toStr;
 }
 
-function aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange) {
+function aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange, t) {
   const range =
     isCustomRange && dateRange?.fromDate && dateRange?.toDate
       ? { fromDate: dateRange.fromDate, toDate: dateRange.toDate }
@@ -50,7 +51,13 @@ function aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange) {
 
     const day = b.date && String(b.date).slice(0, 10);
     if (day) {
-      dailyMap.set(day, (dailyMap.get(day) || 0) + (b.type === "gain" ? -amt : amt));
+      if (!dailyMap.has(day)) {
+        dailyMap.set(day, { date: day, income: 0, expense: 0, expenses: [] });
+      }
+      const dayData = dailyMap.get(day);
+      if (b.type === "gain") dayData.income += amt;
+      else dayData.expense += amt;
+      dayData.expenses.push(b);
     }
   });
 
@@ -70,16 +77,44 @@ function aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange) {
     })),
   );
 
-  const dailyTrend = [...dailyMap.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([day, amount]) => ({ label: day, amount: Math.abs(amount) }));
+  const dailyRows = [...dailyMap.values()].sort((a, b) => a.date.localeCompare(b.date));
+
+  let displayDaily = { data: [], config: {}, dataKeys: [] };
+  const translate = (key) => {
+    if (key === "chart.labels.expense") return t("chart.labels.expense") || "Expense";
+    if (key === "chart.labels.income") return t("chart.labels.income") || "Income";
+    return t(key) || key;
+  };
+
+  if (flowType === "inflow") {
+    displayDaily = {
+      data: dailyRows.map((r) => ({ date: r.date, expense: r.income, expenses: r.expenses })),
+      config: { expense: { label: translate("chart.labels.income"), color: "hsl(142, 71%, 45%)" } },
+      dataKeys: ["expense"],
+    };
+  } else if (flowType === "outflow") {
+    displayDaily = {
+      data: dailyRows.map((r) => ({ date: r.date, expense: r.expense, expenses: r.expenses })),
+      config: { expense: { label: translate("chart.labels.expense"), color: "hsl(0, 84%, 60%)" } },
+      dataKeys: ["expense"],
+    };
+  } else {
+    displayDaily = {
+      data: dailyRows,
+      config: {
+        income: { label: translate("chart.labels.income"), color: "hsl(142, 71%, 45%)" },
+        expense: { label: translate("chart.labels.expense"), color: "hsl(0, 84%, 60%)" },
+      },
+      dataKeys: ["income", "expense"],
+    };
+  }
 
   return {
     filteredBills: filtered.map((raw) => fromApiResponse(raw)),
     rawFiltered: filtered,
     categoryData,
     paymentData,
-    dailyTrend,
+    displayDaily,
     totalLoss,
     totalGain,
     billCount: filtered.length,
@@ -88,6 +123,7 @@ function aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange) {
 }
 
 export function useBillReportData({ targetId = "" } = {}) {
+  const { t } = useLanguage();
   const [timeframe, setTimeframeState] = useState("this_month");
   const [flowType, setFlowType] = useState("all");
   const [dateRange, setDateRange] = useState(() => getDateRangeForReportTimeframe("this_month"));
@@ -138,8 +174,8 @@ export function useBillReportData({ targetId = "" } = {}) {
   }, [timeframe]);
 
   const aggregated = useMemo(
-    () => aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange),
-    [bills, timeframe, flowType, dateRange, isCustomRange],
+    () => aggregateBills(bills, timeframe, flowType, dateRange, isCustomRange, t),
+    [bills, timeframe, flowType, dateRange, isCustomRange, t],
   );
 
   return {

@@ -6,7 +6,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { FlowExpenseCard } from "./FlowExpenseCard";
 import { FlowExpenseCardsSkeleton } from "./skeletons";
+import { FlowExpenseNameSearch } from "@/shared/components/form/FlowExpenseNameSearch";
 import { getFuzzyMatchIndices } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
+import { useDebounce } from "@/shared/hooks/utility/useDebounce";
 import { cn } from "@/lib/utils";
 
 function toInputDate(value) {
@@ -146,6 +148,7 @@ export function FlowExpenseCards({
   hidePaymentMethod = false,
   listContainerClassName,
   searchQuery = "",
+  showSearch = false,
 }) {
   const { t } = useLanguage();
   const [sortOrder, setSortOrder] = useState("desc");
@@ -154,13 +157,32 @@ export function FlowExpenseCards({
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isMonthSheetOpen, setIsMonthSheetOpen] = useState(false);
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(internalSearchQuery, 1000);
   const scrollRef = useRef(null);
   const activeDateKeyRef = useRef("");
 
+  const effectiveSearchQuery = showSearch ? debouncedSearchQuery : searchQuery;
+
   const filteredData = useMemo(() => {
-    if (!searchQuery.trim()) return data;
-    return data.filter((exp) => expenseMatchesSearchQuery(exp, searchQuery));
-  }, [data, searchQuery]);
+    if (!effectiveSearchQuery.trim()) return data;
+    return data.filter((exp) => expenseMatchesSearchQuery(exp, effectiveSearchQuery));
+  }, [data, effectiveSearchQuery]);
+
+  const expenseNames = useMemo(() => {
+    if (!showSearch) return [];
+    const seen = new Set();
+    const out = [];
+    for (const r of data) {
+      const n = (r.name || "").trim();
+      if (n && !seen.has(n)) {
+        seen.add(n);
+        out.push(n);
+      }
+    }
+    out.sort((a, b) => a.localeCompare(b));
+    return out;
+  }, [data, showSearch]);
 
   const dateGroups = useMemo(
     () => groupExpensesByDate(filteredData, sortOrder),
@@ -386,7 +408,8 @@ export function FlowExpenseCards({
   return (
     <div className={cn("flex flex-col flex-1 min-h-0 gap-1.5 sm:gap-2", className)}>
       <div className="rounded-lg bg-card border px-2 sm:px-2.5 py-1 sm:py-1.5 sticky top-0 z-10 backdrop-blur-sm shrink-0">
-        <div className="sm:hidden flex items-center gap-1.5">
+        <div className="sm:hidden flex flex-col gap-1.5">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setIsMonthSheetOpen(true)}
@@ -440,9 +463,23 @@ export function FlowExpenseCards({
                 <ArrowUp className="h-3.5 w-3.5 shrink-0" />
               )}
             </button>
+          </div>
+          {showSearch && (
+            <div className="w-full">
+              <FlowExpenseNameSearch
+                options={expenseNames}
+                value={internalSearchQuery}
+                onChange={setInternalSearchQuery}
+                placeholder={t("common.search") || "Search"}
+                maxWidth="100%"
+                inputHeight="32px"
+                className="w-full min-w-0 max-w-none px-2 text-xs font-normal"
+              />
+            </div>
+          )}
         </div>
 
-        <div className="hidden sm:grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+        <div className="hidden sm:grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className="flex items-center gap-1 min-w-0">
             <button
               type="button"
@@ -535,18 +572,31 @@ export function FlowExpenseCards({
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={toggleSort}
-            className="justify-self-end flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full hover:bg-primary/20 transition-colors"
-          >
-            {sortOrder === "desc" ? (
-              <ArrowDown className="h-3.5 w-3.5" />
-            ) : (
-              <ArrowUp className="h-3.5 w-3.5" />
+          <div className="justify-self-end flex items-center gap-3 lg:gap-4 min-w-0">
+            {showSearch && (
+              <FlowExpenseNameSearch
+                options={expenseNames}
+                value={internalSearchQuery}
+                onChange={setInternalSearchQuery}
+                placeholder={t("common.search") || "Search"}
+                maxWidth="300px"
+                inputHeight="32px"
+                className="w-full min-w-[150px] md:min-w-[200px] lg:min-w-[250px] max-w-[300px] px-2 text-xs font-normal"
+              />
             )}
-            {sortOrder === "desc" ? t("common.recentFirst") || "RECENT FIRST" : t("common.oldFirst") || "OLD FIRST"}
-          </button>
+            <button
+              type="button"
+              onClick={toggleSort}
+              className="flex items-center gap-1.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full hover:bg-primary/20 transition-colors whitespace-nowrap shrink-0"
+            >
+              {sortOrder === "desc" ? (
+                <ArrowDown className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowUp className="h-3.5 w-3.5" />
+              )}
+              {sortOrder === "desc" ? t("common.recentFirst") || "RECENT FIRST" : t("common.oldFirst") || "OLD FIRST"}
+            </button>
+          </div>
         </div>
       </div>
 

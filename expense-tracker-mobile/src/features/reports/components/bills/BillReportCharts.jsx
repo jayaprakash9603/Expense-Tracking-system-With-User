@@ -1,13 +1,13 @@
 import React from "react";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { AppPieChart } from "@/shared/components/chart/AppPieChart";
-import { AppLineChart } from "@/shared/components/chart/AppLineChart";
+import { ReportSpendingAreaChart } from "@/features/reports/components/charts/ReportSpendingAreaChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
-import { buildPieChartConfig, buildChartConfig } from "@/shared/utils/chart/chartColors";
+import { buildPieChartConfig } from "@/shared/utils/chart/chartColors";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 
-export function BillReportCharts({ categoryData, paymentData, dailyTrend }) {
+export function BillReportCharts({ categoryData, paymentData, displayDaily, flowType }) {
   const { t } = useLanguage();
   const barData = categoryData.map((d) => ({ label: d.name, amount: d.amount ?? d.value ?? 0 }));
   const barConfig = { amount: { label: t("reports.chartMetric.amount"), color: "hsl(var(--chart-1))" } };
@@ -15,8 +15,8 @@ export function BillReportCharts({ categoryData, paymentData, dailyTrend }) {
     paymentData.length ? paymentData : [{ name: "-", value: 0 }],
     "name",
   );
-  const lineData = dailyTrend.map((d) => ({ label: d.label, amount: d.amount }));
-  const lineCfg = buildChartConfig(["amount"], [t("reports.chartMetric.amount")]);
+
+  const tooltipSelectedType = flowType === "inflow" ? "gain" : "loss";
 
   return (
     <div className="space-y-6">
@@ -40,9 +40,12 @@ export function BillReportCharts({ categoryData, paymentData, dailyTrend }) {
           />
         </ChartCard>
       </ResponsiveGrid>
-      <ChartCard title={t("reports.dailyTrend")}>
-        <AppLineChart data={lineData} config={lineCfg} dataKeys={["amount"]} xAxisKey="label" />
-      </ChartCard>
+      <ReportSpendingAreaChart
+        displayDaily={displayDaily}
+        areaKeys={displayDaily?.dataKeys || ["expense"]}
+        tooltipSelectedType={tooltipSelectedType}
+        dailyBreakdownMode="category"
+      />
     </div>
   );
 }

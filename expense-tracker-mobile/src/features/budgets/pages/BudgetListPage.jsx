@@ -152,6 +152,7 @@ export function BudgetListPageView() {
           flowTab={flowTab}
           onCardClick={(row) => navigate(`/expenses/edit/${row.id}`)}
           className="h-full"
+          showSearch
         />
       }
     />

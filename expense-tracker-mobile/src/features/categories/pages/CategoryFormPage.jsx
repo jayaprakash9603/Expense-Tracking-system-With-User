@@ -71,28 +71,30 @@ export function CategoryFormPageView() {
           }}
         />
 
-        <LinkedEntityTablePanel
-          linkLabel={t("budget.linkExpenses")}
-          open={showTable}
-          onOpenChange={setShowTable}
-          error={expenseError || undefined}
-          closeAriaLabel={t("common.close")}
-          summaryWhenClosed={
-            showTable
-              ? undefined
-              : selectedExpenseIds.length === 0
-                ? t("budget.noExpensesSelected")
-                : t("budget.expensesSelectedCount", { count: selectedExpenseIds.length })
-          }
-        >
-          <ExpenseSelectionTable
-            expenses={expenses}
-            selectedExpenseIds={selectedExpenseIds}
-            onSelectionChange={setSelectedExpenseIds}
-            emptyText={t("budget.noExpensesForDate")}
-            loading={expensesLoading}
-          />
-        </LinkedEntityTablePanel>
+        <div className="mt-4">
+          <LinkedEntityTablePanel
+            linkLabel={t("budget.linkExpenses")}
+            open={showTable}
+            onOpenChange={setShowTable}
+            error={expenseError || undefined}
+            closeAriaLabel={t("common.close")}
+            summaryWhenClosed={
+              showTable
+                ? undefined
+                : selectedExpenseIds.length === 0
+                  ? t("budget.noExpensesSelected")
+                  : t("budget.expensesSelectedCount", { count: selectedExpenseIds.length })
+            }
+          >
+            <ExpenseSelectionTable
+              expenses={expenses}
+              selectedExpenseIds={selectedExpenseIds}
+              onSelectionChange={setSelectedExpenseIds}
+              emptyText={t("budget.noExpensesForDate")}
+              loading={expensesLoading}
+            />
+          </LinkedEntityTablePanel>
+        </div>
       </>
     );
   };

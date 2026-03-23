@@ -213,14 +213,6 @@ export function ExpenseThemedAutocomplete({
               <div className="px-3 py-2 text-sm text-muted-foreground">{t("common.loading")}</div>
             ) : (
               <CommandGroup>
-                {showFreeSoloOption ? (
-                  <CommandItem
-                    value={inputValue}
-                    onSelect={() => selectOption(inputValue.trim())}
-                  >
-                    <span className="truncate">"{inputValue.trim()}"</span>
-                  </CommandItem>
-                ) : null}
                 {filteredOptions.map((option, index) => {
                   const optionLabel = getOptionLabel(option);
                   const selected = selectedOption ? compareOption(option, selectedOption) : false;
@@ -238,8 +230,16 @@ export function ExpenseThemedAutocomplete({
                     </CommandItem>
                   );
                 })}
+                {showFreeSoloOption ? (
+                  <CommandItem
+                    value={inputValue}
+                    onSelect={() => selectOption(inputValue.trim())}
+                  >
+                    <span className="truncate">"{inputValue.trim()}"</span>
+                  </CommandItem>
+                ) : null}
                 {!showFreeSoloOption && filteredOptions.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">{resolvedNoOptionsText}</div>
+                  <div className="px-3 py-6 text-center text-sm text-muted-foreground">{resolvedNoOptionsText}</div>
                 ) : null}
               </CommandGroup>
             )}

@@ -5,8 +5,7 @@ export function ExpenseFormRow({ children, first = false, className }) {
   return (
     <div
       className={cn(
-        "flex w-full flex-col gap-3 lg:flex-row lg:items-start lg:gap-4",
-        first ? "mt-2" : "mt-4",
+        "flex w-full flex-col gap-1.5 lg:flex-row lg:items-start lg:gap-3",
         className,
       )}
     >

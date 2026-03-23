@@ -1,7 +1,8 @@
 import React, { useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
   ENTITY_ICON_SYMBOL_CATEGORIES,
@@ -37,86 +38,107 @@ export function EntityIconSymbolPicker({
   return (
     <div className={cn("flex h-fit w-full flex-col space-y-2", className)}>
       <Label>{label}</Label>
-      <div className="flex h-fit w-full flex-col rounded-md border border-border">
-        <div className="flex shrink-0 items-center gap-1 border-b border-border p-1">
+      <Popover>
+        <PopoverTrigger asChild>
           <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={() => scrollTabs(-1)}
-            aria-label="Previous categories"
+            variant="outline"
+            className="w-full justify-between px-3 font-normal h-[2.625rem]"
           >
-            <ChevronLeft className="h-4 w-4" style={{ color: accent }} />
+            <div className="flex items-center gap-2">
+              <div
+                className="flex h-6 w-6 items-center justify-center rounded-md border text-base"
+                style={{ backgroundColor: hexWithAlpha(accent, 0.22), borderColor: accent }}
+              >
+                {selectedIcon}
+              </div>
+              <span className="text-sm">Select Icon</span>
+            </div>
+            <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
-          <div
-            ref={tabScrollRef}
-            className="no-scrollbar min-h-8 flex-1 overflow-x-auto overflow-y-hidden"
-          >
-            <div className="flex w-max min-w-0 gap-1 py-0.5">
-              {categoryNames.map((categoryName) => {
-                const isActive = categoryName === activeCategory;
-                return (
-                  <button
-                    key={categoryName}
-                    type="button"
-                    className={cn(
-                      "h-8 shrink-0 rounded-full px-2.5 py-1 text-xs transition-colors",
-                      !isActive && "bg-muted text-muted-foreground hover:bg-muted/70",
-                    )}
-                    style={
-                      isActive
-                        ? { backgroundColor: accent, color: tabFg }
-                        : undefined
-                    }
-                    onClick={() => setActiveCategory(categoryName)}
-                  >
-                    {categoryName}
-                  </button>
-                );
-              })}
+        </PopoverTrigger>
+        <PopoverContent className="w-[400px] p-0" align="start">
+          <div className="flex h-fit w-full flex-col rounded-md">
+            <div className="flex shrink-0 items-center gap-1 border-b border-border p-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => scrollTabs(-1)}
+                aria-label="Previous categories"
+              >
+                <ChevronLeft className="h-4 w-4" style={{ color: accent }} />
+              </Button>
+              <div
+                ref={tabScrollRef}
+                className="no-scrollbar min-h-8 flex-1 overflow-x-auto overflow-y-hidden"
+              >
+                <div className="flex w-max min-w-0 gap-1 py-0.5">
+                  {categoryNames.map((categoryName) => {
+                    const isActive = categoryName === activeCategory;
+                    return (
+                      <button
+                        key={categoryName}
+                        type="button"
+                        className={cn(
+                          "h-8 shrink-0 rounded-full px-2.5 py-1 text-xs transition-colors",
+                          !isActive && "bg-muted text-muted-foreground hover:bg-muted/70",
+                        )}
+                        style={
+                          isActive
+                            ? { backgroundColor: accent, color: tabFg }
+                            : undefined
+                        }
+                        onClick={() => setActiveCategory(categoryName)}
+                      >
+                        {categoryName}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => scrollTabs(1)}
+                aria-label="Next categories"
+              >
+                <ChevronRight className="h-4 w-4" style={{ color: accent }} />
+              </Button>
+            </div>
+            <div className="theme-scrollbar p-2 pt-1.5 max-h-[250px] overflow-y-auto">
+              <div className="grid grid-cols-10 gap-1.5">
+                {icons.map((iconSymbol) => {
+                  const isSelected = iconSymbol === selectedIcon;
+                  return (
+                    <button
+                      key={`${activeCategory}-${iconSymbol}`}
+                      type="button"
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-2 border-transparent text-base leading-none transition-colors",
+                        !isSelected && "hover:bg-muted",
+                      )}
+                      style={
+                        isSelected
+                          ? {
+                              backgroundColor: hexWithAlpha(accent, 0.22),
+                              borderColor: accent,
+                            }
+                          : undefined
+                      }
+                      onClick={() => onChange?.(iconSymbol)}
+                    >
+                      {iconSymbol}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 shrink-0"
-            onClick={() => scrollTabs(1)}
-            aria-label="Next categories"
-          >
-            <ChevronRight className="h-4 w-4" style={{ color: accent }} />
-          </Button>
-        </div>
-        <div className="theme-scrollbar p-2 pt-1.5">
-          <div className="grid grid-cols-8 gap-1.5">
-            {icons.map((iconSymbol) => {
-              const isSelected = iconSymbol === selectedIcon;
-              return (
-                <button
-                  key={`${activeCategory}-${iconSymbol}`}
-                  type="button"
-                  className={cn(
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border-2 border-transparent text-base leading-none transition-colors",
-                    !isSelected && "hover:bg-muted",
-                  )}
-                  style={
-                    isSelected
-                      ? {
-                          backgroundColor: hexWithAlpha(accent, 0.22),
-                          borderColor: accent,
-                        }
-                      : undefined
-                  }
-                  onClick={() => onChange?.(iconSymbol)}
-                >
-                  {iconSymbol}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

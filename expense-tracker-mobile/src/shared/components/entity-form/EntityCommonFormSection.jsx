@@ -44,11 +44,11 @@ export function EntityCommonFormSection({
   };
 
   const topFieldsGridClass = showAmount
-    ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
-    : "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3";
+    ? "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+    : "grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className={topFieldsGridClass}>
         <FieldShell label={labels.name} required error={errors?.name}>
           <div className="relative">
@@ -94,7 +94,7 @@ export function EntityCommonFormSection({
         ) : null}
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-2 lg:grid-cols-2">
         <EntityColorPalettePicker
           className="w-full self-start"
           value={formData?.color}

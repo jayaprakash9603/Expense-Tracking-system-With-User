@@ -124,7 +124,8 @@ export function BillReportPage() {
         <BillReportCharts
           categoryData={report.categoryData}
           paymentData={report.paymentData}
-          dailyTrend={report.dailyTrend}
+          displayDaily={report.displayDaily}
+          flowType={report.flowType}
         />
         <div>
           <h3 className="text-sm font-semibold mb-2">{t("reports.billDetailsTable")}</h3>

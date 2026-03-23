@@ -79,6 +79,7 @@ export function CashflowPage() {
           flowTab={flowTab}
           onCardClick={(expense) => navigate(`/expenses/${expense.id}`)}
           className="h-full"
+          showSearch
         />
       }
     />

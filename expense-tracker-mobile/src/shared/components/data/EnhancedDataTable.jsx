@@ -627,7 +627,7 @@ export function EnhancedDataTable({
                 key={header.id}
                 colSpan={header.colSpan}
                 style={resolveColumnWidthStyle(header.getSize())}
-                className="sticky top-0 z-20 min-w-0 border-b border-border bg-muted"
+                className="sticky top-0 z-20 min-w-0 border-b border-border bg-muted h-9 py-1"
               >
                 {renderHeaderCell(header)}
               </TableHead>
@@ -683,7 +683,7 @@ export function EnhancedDataTable({
                   <TableCell
                     key={cell.id}
                     onClick={() => cell.column.id !== "drag" && cell.column.id !== "select" && onRowClick?.(row.original)}
-                    className={cn(onRowClick && cell.column.id !== "drag" && cell.column.id !== "select" && "cursor-pointer")}
+                    className={cn("py-1.5", onRowClick && cell.column.id !== "drag" && cell.column.id !== "select" && "cursor-pointer")}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
@@ -704,7 +704,7 @@ export function EnhancedDataTable({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    className={cn(flexColumnSizing && "min-w-0")}
+                    className={cn("py-1.5", flexColumnSizing && "min-w-0")}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
@@ -725,6 +725,7 @@ export function EnhancedDataTable({
                     {pagePadTemplateCells.map((cell) => (
                       <TableCell
                         key={`${cell.column.id}-pad-${padIndex}`}
+                        className="py-1.5"
                         style={resolveColumnWidthStyle(cell.column.getSize())}
                       >
                         {"\u00a0"}

@@ -82,8 +82,8 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
 
   return (
     <ExpenseFormShell title={pageTitle} onClose={handleClose} className="budget-form-container">
-      <div className={cn("mt-2 flex flex-col gap-3 lg:gap-4", showTable && "pb-2")}>
-        <ExpenseFormRow first className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
+      <div className={cn("mt-1 flex flex-col gap-1 lg:gap-2", showTable && "pb-2")}>
+        <ExpenseFormRow first className="md:grid md:grid-cols-2 md:gap-2 xl:flex xl:gap-3">
           <ExpenseFieldLayout
               label={t("budget.name")}
             htmlFor="budgetName"
@@ -119,7 +119,7 @@ export function BudgetFormPageView({ mode: modeProp } = {}) {
           </ExpenseFieldLayout>
         </ExpenseFormRow>
 
-        <ExpenseFormRow className="md:grid md:grid-cols-2 md:gap-3 xl:flex xl:gap-4">
+        <ExpenseFormRow className="md:grid md:grid-cols-2 md:gap-2 xl:flex xl:gap-3">
           <ExpenseFieldLayout
             label={t("budget.startDate")}
             htmlFor="budgetStartDate"

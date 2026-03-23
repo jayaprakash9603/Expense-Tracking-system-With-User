@@ -16,10 +16,10 @@ export function ExpenseFormShell({
 }) {
   const { t } = useLanguage();
   return (
-    <PageContainer className="pt-2 md:pt-3">
+    <PageContainer className="pt-1 md:pt-2">
       <div
         className={cn(
-          "mx-auto w-full max-w-full rounded-xl border bg-card px-4 py-4 md:px-5 md:py-4 shadow-sm sm:max-w-[min(100%,77.5rem)]",
+          "mx-auto w-full max-w-full rounded-xl border bg-card px-4 py-3 md:px-5 md:py-3 shadow-sm sm:max-w-[min(100%,77.5rem)]",
           className,
         )}
       >
@@ -38,7 +38,7 @@ export function ExpenseFormShell({
               type="button"
               variant="outline"
               size="icon"
-              className="h-9 w-9 text-primary"
+              className="h-8 w-8 text-primary"
               onClick={onClose}
               aria-label={t("common.close")}
             >
@@ -46,7 +46,7 @@ export function ExpenseFormShell({
             </Button>
           </div>
         </div>
-        <Separator className="my-2.5" />
+        <Separator className="my-2" />
         {children}
       </div>
     </PageContainer>

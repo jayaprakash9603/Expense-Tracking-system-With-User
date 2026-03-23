@@ -7,9 +7,13 @@ import {
   areNamesEqual,
   sanitizeName,
 } from "@/shared/utils/expense/expenseNameUtils";
-import { createFuzzyFilterOptions } from "@/shared/utils/fuzzy/expenseFuzzyUtils";
 
-const filterExpenseNamesFuzzy = createFuzzyFilterOptions();
+function sequenceFilterOptions(options, state) {
+  const input = String(state?.inputValue || "").toLowerCase();
+  if (!input) return Array.isArray(options) ? options : [];
+  const list = Array.isArray(options) ? options : [];
+  return list.filter(option => String(option || "").toLowerCase().includes(input));
+}
 
 export function FlowExpenseNameSearch({
   value = "",
@@ -57,7 +61,7 @@ export function FlowExpenseNameSearch({
       value={value}
       onChange={handleValueChange}
       onInputChange={handleInputChange}
-      filterOptions={filterExpenseNamesFuzzy}
+      filterOptions={sequenceFilterOptions}
       placeholder={resolvedPlaceholder}
       noOptionsText={resolvedNoDataText}
       freeSolo
@@ -65,7 +69,7 @@ export function FlowExpenseNameSearch({
       inputHeight={inputHeight}
       className={className}
       renderOption={(option, state) => (
-        <HighlightedText text={option} query={state.inputValue} title={option} />
+        <HighlightedText text={option} query={state.inputValue} mode="exact" title={option} />
       )}
     />
   );
