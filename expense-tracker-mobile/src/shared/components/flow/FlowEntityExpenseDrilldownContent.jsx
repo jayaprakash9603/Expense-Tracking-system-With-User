@@ -14,9 +14,9 @@ import { FLOW_INLINE_DRILLDOWN_MAX_HEIGHT_CLASS } from "@/config/chart/chartConf
 import { cn } from "@/lib/utils";
 
 const SHEET_LIST_SCROLL =
-  "flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[min(58vh,520px)] sm:max-h-[min(62vh,560px)] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
+  "flex flex-col min-h-0 gap-2 sm:gap-3 max-h-[min(58vh,520px)] sm:max-h-[min(62vh,560px)] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-1";
 const INLINE_LIST_SCROLL =
-  "flex flex-1 min-h-0 flex-col gap-3 sm:gap-4 overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
+  "flex flex-1 min-h-0 flex-col gap-2 sm:gap-3 overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-1";
 const TABLE_PAGE_SIZE = 5;
 const DRILLDOWN_TABLE_VIEWPORT_EXTRA_PX = 8;
 
@@ -222,7 +222,7 @@ export function FlowEntityExpenseDrilldownContent({
   const hidePaymentMethod = entityVariant === "paymentMethod";
   const title = t("flows.expensesTable.entityTitle", { name: entityName || "—" });
   const listScrollClass = isInline ? INLINE_LIST_SCROLL : SHEET_LIST_SCROLL;
-  const sheetTableMaxH = "max-h-[min(52vh,480px)]";
+  const sheetTableMaxH = "min-h-0 lg:max-h-[min(52vh,480px)]";
 
   const summaryLine = t("flows.expensesTable.summary", {
     count: totals.count,
@@ -259,7 +259,7 @@ export function FlowEntityExpenseDrilldownContent({
         noSearchMatchesText={t("flows.expensesTable.nameSearchNoMatches")}
       />
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-auto overflow-y-visible lg:overflow-y-hidden">
         {viewMode === "cards" ? (
           <FlowExpenseCards
             data={rows}

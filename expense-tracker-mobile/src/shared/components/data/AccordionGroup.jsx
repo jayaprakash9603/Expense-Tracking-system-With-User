@@ -233,7 +233,7 @@ export function AccordionGroup({
       ) : (
         <div
           className={cn(
-            "min-h-0 overflow-x-hidden pr-1.5",
+            "min-h-0 overflow-x-auto pr-1.5",
             shouldClampAccordionList
               ? "overflow-y-auto overscroll-contain theme-scrollbar"
               : "overflow-y-visible",

@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FlowPageLayout,
+  FlowReportsToolbarButton,
   FlowEntityCard,
   FlowEntityCardsEmptyPanel,
   FlowEntityCardsGrid,
@@ -64,6 +65,11 @@ export function CategoryFlowPage() {
   const handleQuickAdd = useCallback(() => navigate("/categories/add"), [navigate]);
   const handleQuickUpload = useCallback(() => navigate("/upload/categories"), [navigate]);
 
+  const headerActions = useMemo(
+    () => <FlowReportsToolbarButton to="/categories/reports" />,
+    [],
+  );
+
   return (
     <>
       <FlowPageLayout
@@ -77,6 +83,7 @@ export function CategoryFlowPage() {
         onReset={resetOffset}
         rangeOptions={rangeOptions}
         loading={loading}
+        headerActions={headerActions}
         floatingActions={
           <ExpenseQuickActions
             floating

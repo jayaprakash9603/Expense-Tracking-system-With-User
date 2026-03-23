@@ -1,4 +1,5 @@
 export { FlowPageLayout } from "./FlowPageLayout";
+export { FlowReportsToolbarButton } from "./FlowReportsToolbarButton";
 export {
   FlowRangeNavigator,
   FlowRangeGranularityTabs,

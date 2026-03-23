@@ -134,7 +134,7 @@ function expenseMatchesSearchQuery(expense, rawQuery) {
 }
 
 const DEFAULT_LIST_SCROLL_CLASS =
-  "flex flex-col min-h-0 gap-3 sm:gap-4 max-h-[17.5rem] sm:max-h-[20rem] md:max-h-[22.5rem] lg:max-h-[24.375rem] overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-2";
+  "flex flex-col min-h-0 flex-1 gap-2 sm:gap-3 overflow-y-auto overflow-x-hidden overscroll-contain theme-scrollbar pr-1 pb-4";
 
 export function FlowExpenseCards({
   data = [],
@@ -384,8 +384,8 @@ export function FlowExpenseCards({
   }
 
   return (
-    <div className={cn("flex flex-col min-h-0 gap-2 sm:gap-3", className)}>
-      <div className="rounded-lg bg-card border px-2.5 sm:px-3 py-1.5 sm:py-2 sticky top-0 z-10 backdrop-blur-sm">
+    <div className={cn("flex flex-col flex-1 min-h-0 gap-1.5 sm:gap-2", className)}>
+      <div className="rounded-lg bg-card border px-2 sm:px-2.5 py-1 sm:py-1.5 sticky top-0 z-10 backdrop-blur-sm shrink-0">
         <div className="sm:hidden flex items-center gap-1.5">
             <button
               type="button"
@@ -639,15 +639,15 @@ export function FlowExpenseCards({
       >
         {dateGroups.map((group, groupIdx) => (
           <div key={group.dateKey} data-date-key={group.dateKey}>
-            <div className={cn("flex items-center gap-4", groupIdx === 0 ? "mb-3" : "my-4")}>
+            <div className={cn("flex items-center gap-3", groupIdx === 0 ? "mb-2" : "my-3")}>
               <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent to-primary/40" />
-              <span className="text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-4 py-1.5 rounded-full whitespace-nowrap">
+              <span className="text-xs font-semibold text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full whitespace-nowrap">
                 {group.displayDate}
               </span>
               <div className="flex-1 h-0.5 bg-gradient-to-l from-transparent to-primary/40" />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-1.5 items-start">
               {group.expenses.map((expense) => (
                 <FlowExpenseCard
                   key={expense.id || expense.expenseId}

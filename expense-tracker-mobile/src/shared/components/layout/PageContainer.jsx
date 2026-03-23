@@ -29,8 +29,8 @@ export function PageContainer({
   const paddingClass = PADDING_MAP[padding] || PADDING_MAP.default;
 
   return (
-    <div className={cn("flex-1 overflow-y-auto pb-6 md:pb-8 no-scrollbar", paddingClass, className)}>
-      <div className={cn("w-full", centered && "mx-auto", widthClass)}>
+    <div className={cn("flex-1 overflow-y-hidden pb-6 md:pb-8 flex flex-col", paddingClass, className)}>
+      <div className={cn("w-full flex-1 flex flex-col min-h-0", centered && "mx-auto", widthClass)}>
         {children}
       </div>
     </div>

@@ -5,10 +5,17 @@ import { AppCard } from "@/shared/components/display/AppCard";
 import { ResponsiveGrid } from "@/shared/components/layout/ResponsiveGrid";
 import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
-import { BarChart3, PieChart, TrendingUp, CreditCard } from "lucide-react";
+import { BarChart3, PieChart, TrendingUp, CreditCard, Wallet, Receipt } from "lucide-react";
 import { REPORT_TYPES } from "@/features/reports/config/reportConfig";
 
-const ICONS = { monthly: BarChart3, category: PieChart, payment: CreditCard, trend: TrendingUp };
+const ICONS = {
+  monthly: BarChart3,
+  category: PieChart,
+  payment: CreditCard,
+  trend: TrendingUp,
+  allBudgets: Wallet,
+  bills: Receipt,
+};
 
 export function ReportsPage() {
   const { t } = useLanguage();
@@ -25,7 +32,7 @@ export function ReportsPage() {
         description: t("reports.noData"),
       }}
     >
-      <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 4 }} gap="md" preset="">
+      <ResponsiveGrid cols={{ default: 1, sm: 2, lg: 3 }} gap="md" preset="">
         {REPORT_TYPES.map((report) => (
           <AppCard
             key={report.id}

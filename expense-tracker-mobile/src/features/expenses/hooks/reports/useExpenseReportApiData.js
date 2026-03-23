@@ -74,6 +74,7 @@ export function useExpenseReportApiData({
   categoryFlowType,
   paymentTimeframe,
   paymentFlowType,
+  refreshSignal = 0,
 }) {
   const { t } = useLanguage();
   const [error, setError] = useState(null);
@@ -167,7 +168,7 @@ export function useExpenseReportApiData({
     return () => {
       cancelled = true;
     };
-  }, [cfParams]);
+  }, [cfParams, refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,7 +193,7 @@ export function useExpenseReportApiData({
     return () => {
       cancelled = true;
     };
-  }, [cfParams]);
+  }, [cfParams, refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -216,7 +217,7 @@ export function useExpenseReportApiData({
     return () => {
       cancelled = true;
     };
-  }, [catParams]);
+  }, [catParams, refreshSignal]);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,7 +241,7 @@ export function useExpenseReportApiData({
     return () => {
       cancelled = true;
     };
-  }, [payParams]);
+  }, [payParams, refreshSignal]);
 
   const areaModelBase = useMemo(
     () => buildAreaChartModelFromCashflowApi(cashflowRaw, dailyApiKind, t),

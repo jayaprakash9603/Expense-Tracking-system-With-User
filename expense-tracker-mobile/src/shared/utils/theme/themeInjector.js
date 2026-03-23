@@ -1,10 +1,10 @@
 import { generateShadcnVars } from "@/config/theme/themeTokens";
 
-const FONT_SIZE_MAP = {
-  small: "14px",
-  medium: "16px",
-  large: "18px",
-  "extra-large": "20px",
+const FONT_SIZE_SCALE_MAP = {
+  small: "0.875",
+  medium: "1",
+  large: "1.125",
+  "extra-large": "1.25",
 };
 
 const FONT_FAMILY_MAP = {
@@ -38,8 +38,8 @@ export function injectTheme(paletteId, mode) {
 
 export function injectFontSize(fontSize) {
   const root = document.documentElement;
-  const size = FONT_SIZE_MAP[fontSize] || FONT_SIZE_MAP.medium;
-  root.style.setProperty("--app-font-size", size);
+  const scale = FONT_SIZE_SCALE_MAP[fontSize] ?? FONT_SIZE_SCALE_MAP.medium;
+  root.style.setProperty("--app-font-scale", scale);
 }
 
 export function injectFontFamily(fontFamily) {

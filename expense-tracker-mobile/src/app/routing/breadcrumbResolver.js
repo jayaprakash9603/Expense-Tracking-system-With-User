@@ -5,6 +5,7 @@ const HUB = { to: "/dashboard", labelKey: "dashboard.title" };
 
 const NESTED_PARENT = {
   expenses: { to: "/expenses", labelKey: "navigation.expenses" },
+  budget: { to: "/budgets", labelKey: "navigation.budget" },
   budgets: { to: "/budgets", labelKey: "navigation.budget" },
   categories: { to: "/categories", labelKey: "navigation.categories" },
   "category-flow": { to: "/category-flow", labelKey: "navigation.categories" },
@@ -12,7 +13,7 @@ const NESTED_PARENT = {
   settings: { to: "/settings", labelKey: "settings.title" },
   reports: { to: "/reports", labelKey: "navigation.reports" },
   analytics: { to: "/analytics", labelKey: "navigation.insights" },
-  "payment-method": { to: "/payment-method", labelKey: "navigation.payments" },
+  "payment-method": { to: "/payment-method", labelKey: "dashboard.paymentMethods" },
   friends: { to: "/friends", labelKey: "navigation.friends" },
   groups: { to: "/groups", labelKey: "navigation.groups" },
   notifications: { to: "/notifications", labelKey: "navigation.notifications" },
@@ -26,14 +27,26 @@ export function normalizePathname(pathname) {
   return pathname;
 }
 
+function countPathParams(path) {
+  return (path.match(/:/g) || []).length;
+}
+
 export function findMatchedRoute(pathname) {
   const normalized = normalizePathname(pathname);
-  const sorted = [...ROUTE_CATALOG].sort((a, b) => b.path.length - a.path.length);
+  const sorted = [...ROUTE_CATALOG].sort((a, b) => {
+    const paramsDiff = countPathParams(a.path) - countPathParams(b.path);
+    if (paramsDiff !== 0) return paramsDiff;
+    return b.path.length - a.path.length;
+  });
   for (const route of sorted) {
     const m = matchPath({ path: route.path, end: true }, normalized);
     if (m) return route;
   }
   return null;
+}
+
+function labelKeyForRoute(route) {
+  return route?.breadcrumbKey ?? route?.titleKey;
 }
 
 function adminSegments(pathname, route) {
@@ -43,7 +56,7 @@ function adminSegments(pathname, route) {
   return [
     HUB,
     { to: "/admin/dashboard", labelKey: "navigation.adminShort" },
-    { labelKey: route.titleKey },
+    { labelKey: labelKeyForRoute(route) },
   ];
 }
 
@@ -64,14 +77,14 @@ export function getBreadcrumbSegments(pathname) {
 
   const parts = normalized.split("/").filter(Boolean);
   if (parts.length <= 1) {
-    return [HUB, { labelKey: route.titleKey }];
+    return [HUB, { labelKey: labelKeyForRoute(route) }];
   }
 
   const first = parts[0];
   const parent = NESTED_PARENT[first];
   if (parent) {
-    return [HUB, parent, { labelKey: route.titleKey }];
+    return [HUB, parent, { labelKey: labelKeyForRoute(route) }];
   }
 
-  return [HUB, { labelKey: route.titleKey }];
+  return [HUB, { labelKey: labelKeyForRoute(route) }];
 }

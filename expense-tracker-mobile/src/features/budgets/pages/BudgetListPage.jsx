@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
+import { FlowPageLayout, FlowExpenseCards, FlowReportsToolbarButton } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/shared/components/entity-form";
@@ -45,6 +45,16 @@ export function BudgetListPageView() {
   const viewModeToggle = useMemo(
     () => <BudgetViewModeToggle value={viewMode} onChange={setViewMode} />,
     [viewMode, setViewMode],
+  );
+
+  const headerActions = useMemo(
+    () => (
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <FlowReportsToolbarButton to="/budget/reports" />
+        {viewModeToggle}
+      </div>
+    ),
+    [viewModeToggle],
   );
 
   const handleAdd = useCallback(() => navigate("/budgets/add"), [navigate]);
@@ -109,7 +119,7 @@ export function BudgetListPageView() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
-      headerActions={viewModeToggle}
+      headerActions={headerActions}
       floatingActions={
         <ExpenseQuickActions
           floating
@@ -141,6 +151,7 @@ export function BudgetListPageView() {
           loading={loading}
           flowTab={flowTab}
           onCardClick={(row) => navigate(`/expenses/edit/${row.id}`)}
+          className="h-full"
         />
       }
     />

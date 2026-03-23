@@ -8,6 +8,7 @@ import {
   FlowPeriodNavigation,
 } from "@/shared/components/flow/FlowRangeNavigator";
 import { FlowToggle } from "@/shared/components/flow/FlowToggle";
+import { FlowReportsToolbarButton } from "@/shared/components/flow";
 import { BudgetViewModeToggle } from "@/features/budgets/components/overview/BudgetViewModeToggle";
 import { BudgetOverviewStatCards } from "@/features/budgets/components/overview/BudgetOverviewStatCards";
 import { BudgetCard } from "@/features/budgets/components/list/BudgetCard";
@@ -156,6 +157,7 @@ export function BudgetOverviewPage({
                   />
                 </div>
                 <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2 lg:pointer-events-auto">
+                  <FlowReportsToolbarButton to="/budget/reports" />
                   <BudgetViewModeToggle value={viewMode} onChange={onViewModeChange} />
                   <FlowToggle value={flowTab} onChange={setFlowTab} className="w-auto" />
                 </div>

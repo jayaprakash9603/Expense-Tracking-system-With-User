@@ -1,5 +1,5 @@
-import React, { Suspense, lazy } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import React, { Suspense, lazy, useMemo } from "react";
+import { Routes, Route, Navigate, generatePath, useParams } from "react-router-dom";
 import { AuthLayout } from "@/layouts/AuthLayout";
 import { AppShell } from "@/layouts/AppShell";
 import { ProtectedRoute } from "@/app/guards/ProtectedRoute";
@@ -36,6 +36,9 @@ const MonthlyReportPage = lazy(() => import("@/features/reports/pages/MonthlyRep
 const CategoryReportPage = lazy(() => import("@/features/reports/pages/CategoryReportPage"));
 const PaymentReportPage = lazy(() => import("@/features/reports/pages/PaymentReportPage"));
 const TrendReportPage = lazy(() => import("@/features/reports/pages/TrendReportPage"));
+const AllBudgetsReportPage = lazy(() => import("@/features/reports/pages/AllBudgetsReportPage"));
+const BudgetDetailReportPage = lazy(() => import("@/features/reports/pages/BudgetDetailReportPage"));
+const BillReportPage = lazy(() => import("@/features/reports/pages/BillReportPage"));
 const OverviewPage = lazy(() => import("@/features/analytics/pages/OverviewPage"));
 const CashflowPage = lazy(() => import("@/features/expenses/pages/CashflowPage"));
 const ExpenseReportsPage = lazy(() => import("@/features/expenses/pages/ExpenseReportsPage"));
@@ -75,9 +78,20 @@ const IMPLEMENTED_PAGES = {
   notifications: NotificationListPage,
   reports: ReportsPage,
   "reports-monthly": MonthlyReportPage,
-  "reports-category": CategoryReportPage,
-  "reports-payment": PaymentReportPage,
   "reports-trend": TrendReportPage,
+  "reports-budget-detail": BudgetDetailReportPage,
+  "budget-reports": AllBudgetsReportPage,
+  "budget-reports-friend": AllBudgetsReportPage,
+  "budget-report": BudgetDetailReportPage,
+  "budget-report-friend": BudgetDetailReportPage,
+  "budget-detail-report": BudgetDetailReportPage,
+  "budget-detail-report-friend": BudgetDetailReportPage,
+  "bill-report": BillReportPage,
+  "bill-report-friend": BillReportPage,
+  "category-reports": CategoryReportPage,
+  "category-reports-friend": CategoryReportPage,
+  "payments-reports": PaymentReportPage,
+  "payments-reports-friend": PaymentReportPage,
   profile: ProfilePage,
   analytics: OverviewPage,
   cashflow: CashflowPage,
@@ -118,15 +132,37 @@ function LazyWrap({ routeKey, Component }) {
   );
 }
 
+function CatalogRedirect({ pathTemplate }) {
+  const params = useParams();
+  const to = useMemo(() => {
+    try {
+      if (!pathTemplate.includes(":")) {
+        return pathTemplate;
+      }
+      return generatePath(pathTemplate, params);
+    } catch {
+      return pathTemplate;
+    }
+  }, [pathTemplate, params]);
+  return <Navigate to={to} replace />;
+}
+
 function buildProtectedRoutes() {
   return ROUTE_CATALOG.filter((r) => r.guard === "protected" || r.guard === "admin")
     .map((route) => {
       if (route.elementMode === "redirect" && route.redirectTo) {
+        const usesParams = route.redirectTo.includes(":");
         return (
           <Route
             key={route.key}
             path={route.path}
-            element={<Navigate to={route.redirectTo} replace />}
+            element={
+              usesParams ? (
+                <CatalogRedirect pathTemplate={route.redirectTo} />
+              ) : (
+                <Navigate to={route.redirectTo} replace />
+              )
+            }
           />
         );
       }

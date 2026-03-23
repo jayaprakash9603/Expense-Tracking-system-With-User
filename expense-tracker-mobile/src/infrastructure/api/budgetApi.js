@@ -33,8 +33,20 @@ export const budgetApi = {
     safeApiCall(() => api.get(`/api/budgets/${id}/expenses`, { params })),
   filterByDate: (params) => safeApiCall(() => api.get("/api/budgets/filter-by-date", { params })),
   getByExpenseId: (params) => safeApiCall(() => api.get("/api/budgets/expenses", { params })),
-  getReport: (id) => safeApiCall(() => api.get(`/api/budgets/report/${id}`)),
-  getDetailedReport: (id) => safeApiCall(() => api.get(`/api/budgets/detailed-report/${id}`)),
+  getReport: (id, targetId = "") =>
+    safeApiCall(() =>
+      api.get(`/api/budgets/report/${id}`, {
+        params: { targetId: targetId || "" },
+      }),
+    ),
+  getDetailedReport: (id, params = {}) => {
+    const { targetId = "", ...rest } = params;
+    return safeApiCall(() =>
+      api.get(`/api/budgets/detailed-report/${id}`, {
+        params: { targetId, ...rest },
+      }),
+    );
+  },
   getFilteredReport: (params) =>
     safeApiCall(() => api.get("/api/budgets/all-with-expenses/detailed/filtered", { params })),
 };

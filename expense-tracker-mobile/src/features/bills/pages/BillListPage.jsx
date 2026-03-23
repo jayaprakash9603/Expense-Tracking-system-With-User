@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
+import { FlowPageLayout, FlowExpenseCards, FlowReportsToolbarButton } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/shared/components/entity-form";
@@ -58,6 +58,16 @@ export function BillListPageView() {
     [viewMode, setViewMode],
   );
 
+  const headerActions = useMemo(
+    () => (
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <FlowReportsToolbarButton to="/bills/reports" />
+        {viewModeToggle}
+      </div>
+    ),
+    [viewModeToggle],
+  );
+
   if (viewMode === "overview") {
     return (
       <BillOverviewPage
@@ -95,7 +105,7 @@ export function BillListPageView() {
       onReset={resetOffset}
       rangeOptions={rangeOptions}
       loading={loading}
-      headerActions={viewModeToggle}
+      headerActions={headerActions}
       floatingActions={
         <ExpenseQuickActions
           floating
@@ -125,6 +135,7 @@ export function BillListPageView() {
           loading={loading}
           flowTab={flowTab}
           onCardClick={(row) => navigate(`/bills/edit/${row.id}`)}
+          className="h-full"
         />
       }
     />

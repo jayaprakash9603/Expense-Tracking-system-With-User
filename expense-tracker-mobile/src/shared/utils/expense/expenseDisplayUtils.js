@@ -39,3 +39,10 @@ export function resolveExpenseCategoryLabel(details) {
   }
   return details.categoryName || "";
 }
+
+export function resolveExpensePaymentMethodLabel(details) {
+  if (!details || typeof details !== "object") return "";
+  const raw =
+    details.paymentMethodInfo?.name || details.paymentMethod || details.paymentMethodName || "";
+  return String(raw).trim();
+}

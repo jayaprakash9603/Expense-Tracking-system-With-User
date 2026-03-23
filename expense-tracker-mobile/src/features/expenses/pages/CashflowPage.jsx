@@ -1,10 +1,6 @@
 import React, { useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
-import { FlowPageLayout, FlowExpenseCards } from "@/shared/components/flow";
-import { AppButton } from "@/shared/components/form/AppButton";
-import { AppIcon } from "@/shared/components/display/AppIcon";
-import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { FlowPageLayout, FlowExpenseCards, FlowReportsToolbarButton } from "@/shared/components/flow";
 import { AppBarChart } from "@/shared/components/chart/AppBarChart";
 import { ChartCard } from "@/shared/components/chart/ChartCard";
 import { ExpenseQuickActions } from "@/features/expenses/components";
@@ -13,7 +9,6 @@ import { FLOW_PAGE_CHART_HEIGHT } from "@/config/chart/chartConfig";
 
 export function CashflowPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
   const {
     activeRange, setActiveRange, rangeLabel, flowTab, setFlowTab,
     goNext, goPrev, resetOffset, rangeOptions, loading,
@@ -36,19 +31,9 @@ export function CashflowPage() {
 
   const headerActions = useMemo(
     () => (
-      <AppButton
-        type="button"
-        variant="outline"
-        size="icon"
-        className="h-9 w-9 shrink-0 border-primary/40"
-        aria-label={t("expenses.expenseReportsAria")}
-        title={t("expenses.expenseReportsAria")}
-        onClick={() => navigate("/expenses/reports")}
-      >
-        <AppIcon icon={BarChart3} color="primary" size="sm" />
-      </AppButton>
+      <FlowReportsToolbarButton to="/expenses/reports" ariaLabelKey="expenses.expenseReportsAria" />
     ),
-    [navigate, t],
+    [],
   );
 
   return (
@@ -93,6 +78,7 @@ export function CashflowPage() {
           loading={loading}
           flowTab={flowTab}
           onCardClick={(expense) => navigate(`/expenses/${expense.id}`)}
+          className="h-full"
         />
       }
     />

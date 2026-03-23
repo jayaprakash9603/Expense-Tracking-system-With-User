@@ -14,3 +14,11 @@ export const DEFAULT_REPORT_FLOW_TYPES = [
   { value: "outflow", labelKey: "reports.flow.expenses" },
   { value: "inflow", labelKey: "reports.flow.income" },
 ];
+
+export const BUDGET_DETAIL_TIMEFRAMES = [
+  { value: "budget", labelKey: "reports.budgetDetail.budgetPeriod" },
+  { value: "week", labelKey: "chart.thisWeek" },
+  { value: "month", labelKey: "chart.thisMonth" },
+  { value: "quarter", labelKey: "chart.quarter" },
+  { value: "year", labelKey: "chart.year" },
+];

@@ -54,6 +54,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NoDataPlaceholder } from "@/shared/components/feedback/NoDataPlaceholder";
 import { SearchToolbar } from "@/shared/components/search/SearchToolbar";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
+import { useIsDesktop } from "@/shared/hooks/theme/useMediaQuery";
 import { DataTableFilterPopover } from "@/shared/components/data/DataTableFilterPopover";
 import { DataTablePagination } from "@/shared/components/data/DataTablePagination";
 import { cn } from "@/lib/utils";
@@ -278,6 +279,7 @@ export function EnhancedDataTable({
   lockColumnWidths: lockColumnWidthsProp,
 }) {
   const { t } = useLanguage();
+  const isDesktop = useIsDesktop();
   const [data, setData] = useState(initialData);
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -336,7 +338,8 @@ export function EnhancedDataTable({
     useSensor(KeyboardSensor, {}),
   );
 
-  const lockColumnWidths = lockColumnWidthsProp ?? (scrollBodyMaxRows != null);
+  const lockColumnWidths =
+    lockColumnWidthsProp ?? (scrollBodyMaxRows != null && isDesktop);
 
   const enhancedColumns = useMemo(() => {
     const cols = [];
@@ -478,6 +481,7 @@ export function EnhancedDataTable({
     ? (scrollBodyMaxRows ?? DEFAULT_SCROLL_BODY_MAX_ROWS)
     : table.getRowModel().rows.length;
   const shouldApplyBodyScrollCap =
+    isDesktop &&
     scrollBodyMaxRows != null &&
     (scrollBodyAlwaysSized || pageBodyRowCount > scrollBodyMaxRows);
 
@@ -507,7 +511,7 @@ export function EnhancedDataTable({
 
   const useFixedBodyRowMetrics =
     lockColumnWidths ||
-    (Boolean(scrollBodyAlwaysSized) && scrollBodyMaxRows != null);
+    (isDesktop && Boolean(scrollBodyAlwaysSized) && scrollBodyMaxRows != null);
   const fixedDataRowStyle = useFixedBodyRowMetrics
     ? {
         height: pxToRem(scrollBodyRowHeightPx),
@@ -778,7 +782,7 @@ export function EnhancedDataTable({
         </div>
       )}
 
-      <div className={cn("overflow-hidden rounded-lg border", tableSectionClassName)}>
+      <div className={cn("min-w-0 overflow-x-auto overflow-y-hidden rounded-lg border", tableSectionClassName)}>
         {draggable ? (
           <DndContext
             collisionDetection={closestCenter}

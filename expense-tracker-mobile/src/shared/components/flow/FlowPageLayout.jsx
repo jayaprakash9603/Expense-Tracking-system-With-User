@@ -31,10 +31,10 @@ export function FlowPageLayout({
   className,
 }) {
   return (
-    <PageContainer className={cn("relative overflow-y-visible pt-2 md:pt-3 lg:pt-3 xl:pt-4 pb-2 md:pb-2", className)}>
+    <PageContainer className={cn("relative overflow-y-hidden pt-2 md:pt-3 lg:pt-3 xl:pt-4 pb-2 md:pb-2 flex flex-col h-full min-h-0", className)}>
       {floatingActions}
 
-      <ContentSection className="sticky top-0 z-20 -mx-4 mb-3 px-4 pb-2 pt-2 lg:static lg:mx-0 lg:mb-5 lg:p-0 lg:backdrop-blur-none bg-background/95 backdrop-blur lg:bg-transparent">
+      <ContentSection className="sticky top-0 z-20 shrink-0 -mx-4 mb-3 px-4 pb-2 pt-2 lg:static lg:mx-0 lg:mb-5 lg:p-0 lg:backdrop-blur-none bg-background/95 backdrop-blur lg:bg-transparent">
         <div className="flex w-full flex-col gap-3">
           <div className="flex w-full flex-col gap-3 lg:hidden">
             {stackedMobileHeader && (mobileChartTitle || mobileChartDescription) ? (
@@ -105,10 +105,10 @@ export function FlowPageLayout({
       </ContentSection>
 
       {beforeChartSection ? (
-        <ContentSection>{beforeChartSection}</ContentSection>
+        <ContentSection className="shrink-0">{beforeChartSection}</ContentSection>
       ) : null}
 
-      <ContentSection>
+      <ContentSection className="shrink-0">
         {loading ? (
           <div className="overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm">
             <div className="px-1 pb-2 pt-0 sm:px-2">
@@ -122,7 +122,7 @@ export function FlowPageLayout({
         )}
       </ContentSection>
 
-      {cardsSection ? <ContentSection className="mb-0 md:mb-0">{cardsSection}</ContentSection> : null}
+      {cardsSection ? <ContentSection className="mb-0 md:mb-0 flex-1 min-h-0 flex flex-col">{cardsSection}</ContentSection> : null}
     </PageContainer>
   );
 }

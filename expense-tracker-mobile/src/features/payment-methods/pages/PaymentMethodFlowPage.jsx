@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FlowPageLayout,
+  FlowReportsToolbarButton,
   FlowEntityCard,
   FlowEntityCardsEmptyPanel,
   FlowEntityCardsGrid,
@@ -64,6 +65,11 @@ export function PaymentMethodFlowPage() {
   const handleQuickAdd = useCallback(() => navigate("/payment-method/create"), [navigate]);
   const handleQuickUpload = useCallback(() => navigate("/upload/payments"), [navigate]);
 
+  const headerActions = useMemo(
+    () => <FlowReportsToolbarButton to="/payment-method/reports" />,
+    [],
+  );
+
   return (
     <>
       <FlowPageLayout
@@ -77,6 +83,7 @@ export function PaymentMethodFlowPage() {
         onReset={resetOffset}
         rangeOptions={rangeOptions}
         loading={loading}
+        headerActions={headerActions}
         floatingActions={
           <ExpenseQuickActions
             floating

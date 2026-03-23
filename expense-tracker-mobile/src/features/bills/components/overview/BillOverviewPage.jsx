@@ -7,6 +7,7 @@ import {
   FlowPeriodNavigation,
 } from "@/shared/components/flow/FlowRangeNavigator";
 import { FlowToggle } from "@/shared/components/flow/FlowToggle";
+import { FlowReportsToolbarButton } from "@/shared/components/flow";
 import { BillViewModeToggle } from "@/features/bills/components/overview/BillViewModeToggle";
 import { BillOverviewStatCards } from "@/features/bills/components/overview/BillOverviewStatCards";
 import { BillAccordionList } from "@/features/bills/components/accordion/BillAccordionList";
@@ -80,7 +81,8 @@ export function BillOverviewPage({
                   onReset={resetOffset}
                   className="min-w-0 max-w-full shrink"
                 />
-                <div className="flex min-w-0 flex-1 justify-end">
+                <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                  <FlowReportsToolbarButton to="/bills/reports" />
                   <BillViewModeToggle value={viewMode} onChange={onViewModeChange} />
                 </div>
               </div>
@@ -95,6 +97,7 @@ export function BillOverviewPage({
                   />
                 </div>
                 <div className="flex max-w-full shrink-0 flex-wrap items-center justify-end gap-2 lg:pointer-events-auto">
+                  <FlowReportsToolbarButton to="/bills/reports" />
                   <BillViewModeToggle value={viewMode} onChange={onViewModeChange} />
                   <FlowToggle value={flowTab} onChange={setFlowTab} className="w-auto" />
                 </div>

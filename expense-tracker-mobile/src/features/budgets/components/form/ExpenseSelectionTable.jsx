@@ -142,7 +142,7 @@ export function ExpenseSelectionTable({
         emptyMessage={resolvedEmptyText}
         flexColumnSizing
         tableClassName={cn("w-full min-w-0")}
-        tableContainerClassName="theme-scrollbar overflow-x-hidden overflow-y-auto overscroll-contain"
+        tableContainerClassName="theme-scrollbar overflow-x-auto overflow-y-auto overscroll-contain"
         tableSectionClassName="max-w-full"
       />
     </div>

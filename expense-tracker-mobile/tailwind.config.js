@@ -11,6 +11,10 @@ export default {
       },
     },
     extend: {
+      screens: {
+        xs: "475px",
+        "3xl": "1920px",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -56,14 +56,14 @@ export function FlowExpenseCardsSkeleton({ count = 5, className }) {
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-2 items-start">
               {Array.from({ length: group.cards }).map((_, cardIdx) => (
                 <div
                   key={`${group.id}-${cardIdx}`}
-                  className="rounded-lg border bg-card p-2.5 sm:p-3 flex flex-col gap-1.5 animate-pulse"
+                  className="rounded-lg border bg-card p-2 sm:p-2.5 flex flex-col gap-1 w-full animate-pulse"
                   style={{ animationDelay: `${(groupIdx * 4 + cardIdx) * 70}ms` }}
                 >
-                  <div className="border-b border-border pb-1.5">
+                  <div className="border-b border-border pb-1">
                     <div className="h-3.5 w-3/4 rounded bg-muted" />
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -80,7 +80,7 @@ export function FlowExpenseCardsSkeleton({ count = 5, className }) {
                       <div className="h-3 w-16 rounded bg-muted/60" />
                     </div>
                   </div>
-                  <div className="border-t border-border pt-1">
+                  <div className="border-t border-border pt-0.5">
                     <div className="h-3 w-11/12 rounded bg-muted/50" />
                   </div>
                 </div>

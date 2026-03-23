@@ -48,7 +48,7 @@ export function LinkedEntityTablePanel({
       ) : null}
 
       {open ? (
-        <div className="relative mt-2 w-full max-w-full overflow-x-hidden overflow-y-visible rounded-lg border border-border/60 bg-card/50">
+        <div className="relative mt-2 w-full min-w-0 max-w-full overflow-x-auto overflow-y-visible rounded-lg border border-border/60 bg-card/50">
           <div className="mb-2 flex justify-end px-1 pt-1 sm:hidden">
             <Button
               type="button"
@@ -60,7 +60,7 @@ export function LinkedEntityTablePanel({
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="w-full min-w-0 max-w-full overflow-x-hidden">{children}</div>
+          <div className="w-full min-w-0 max-w-full overflow-x-auto">{children}</div>
         </div>
       ) : null}
 
