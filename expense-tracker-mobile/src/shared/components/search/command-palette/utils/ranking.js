@@ -1,5 +1,5 @@
-export const GROUP_ORDER = ["Recent", "Navigation", "Actions", "Settings"];
-export const MAX_RESULTS_PER_CATEGORY = 3;
+export const GROUP_ORDER = ["Recent", "Navigation", "Actions", "Expenses", "Budgets", "Categories", "Bills", "Payment Methods", "Friends", "Users", "Settings"];
+export const MAX_RESULTS_PER_CATEGORY = 10;
 
 function recencyBoost(actionId, recentIds) {
   const index = recentIds.indexOf(actionId);
@@ -29,14 +29,36 @@ function priorityBoost(priority) {
   return Math.max(0, 10 - Number(priority || 10)) * 0.02;
 }
 
-export function calculateSmartScore({ action, fuseScore, recentIds, frequencyMap, currentRoute }) {
+function exactMatchBoost(action, query) {
+  if (!query) return 0;
+  const q = query.toLowerCase();
+  const name = action.name?.toLowerCase() || "";
+  const subtitle = action.subtitle?.toLowerCase() || "";
+  
+  if (name === q) return 5.0; // Exact match gets huge boost
+  if (name.startsWith(q)) return 3.0; // Starts with gets big boost
+  if (name.includes(q)) return 2.0; // Substring gets good boost
+  
+  if (subtitle === q) return 2.5;
+  if (subtitle.startsWith(q)) return 1.5;
+  if (subtitle.includes(q)) return 1.0;
+  
+  const keywords = action.keywords || [];
+  if (keywords.some(k => k?.toLowerCase() === q)) return 1.5;
+  if (keywords.some(k => k?.toLowerCase().includes(q))) return 1.0;
+  
+  return 0;
+}
+
+export function calculateSmartScore({ action, fuseScore, recentIds, frequencyMap, currentRoute, query }) {
   const relevance = 1 - Math.min(1, Number(fuseScore ?? 0.7));
   return (
     relevance +
     recencyBoost(action.id, recentIds) +
     frequencyBoost(action.id, frequencyMap) +
     contextBoost(action, currentRoute) +
-    priorityBoost(action.priority)
+    priorityBoost(action.priority) +
+    exactMatchBoost(action, query)
   );
 }
 

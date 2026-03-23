@@ -51,6 +51,8 @@ function normalizeResultItem(raw, fallbackType) {
     type: itemType,
     icon: raw.icon,
     color: raw.color,
+    title: label,
+    subtitle: description,
     label,
     description,
     route,

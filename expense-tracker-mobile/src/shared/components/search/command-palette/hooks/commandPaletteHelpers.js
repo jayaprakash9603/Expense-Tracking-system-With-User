@@ -30,7 +30,7 @@ export function mapBackendItemTypeToIcon(type, sectionKey) {
   return "➡️";
 }
 
-export function mapBackendSectionsToActions(sections) {
+export function mapBackendSectionsToActions(sections, currencySymbol = "$") {
   if (!Array.isArray(sections)) return [];
 
   return sections.flatMap((section) => {
@@ -38,18 +38,29 @@ export function mapBackendSectionsToActions(sections) {
     const sectionLabel = section?.label || "Search";
     return normalizeCollection(section?.items).map((item) => {
       const type = item?.type || "ACTION";
-      const name = item?.label || "Result";
-      const description = item?.description || "";
-      const category = sectionKey === "help" ? "Settings" : "Actions";
+      const name = item?.title || item?.label || "Result";
+      const description = item?.subtitle || item?.description || "";
+      let category = sectionLabel;
+      if (sectionKey === "help") category = "Settings";
+      else if (sectionKey === "search") category = "Actions";
+      
+      const metadata = item?.metadata || {};
+      
       return {
         id: `api-${sectionKey}-${item?.id || name}`,
         name,
+        subtitle: description,
         keywords: [name, description, type, sectionLabel],
         category,
         section: sectionLabel,
         icon: item?.icon || mapBackendItemTypeToIcon(type, sectionKey),
         route: item?.route || "",
         priority: 2,
+        isRemote: true,
+        type: type,
+        amount: metadata?.amount != null ? (metadata.amount < 0 ? `-${currencySymbol}${Math.abs(metadata.amount).toFixed(2)}` : `${currencySymbol}${metadata.amount.toFixed(2)}`) : null,
+        date: metadata?.date,
+        isGain: metadata?.type?.toLowerCase() === "gain",
       };
     });
   });
@@ -79,6 +90,7 @@ export function filterLocalEntityActions({
     .map((item) => ({
       id: `local-expense-${item?.id}`,
       name: item?.name || "Expense",
+      subtitle: item?.comments || item?.description || "",
       keywords: [item?.name, item?.description, item?.comments, item?.categoryName],
       category: "Actions",
       section: "Expenses",
@@ -93,6 +105,7 @@ export function filterLocalEntityActions({
     .map((item) => ({
       id: `local-budget-${item?.id}`,
       name: item?.name || "Budget",
+      subtitle: item?.categoryName || "",
       keywords: [item?.name, item?.categoryName],
       category: "Actions",
       section: "Budgets",
@@ -107,6 +120,7 @@ export function filterLocalEntityActions({
     .map((item) => ({
       id: `local-category-${item?.id}`,
       name: item?.name || "Category",
+      subtitle: item?.type || "",
       keywords: [item?.name, item?.type],
       category: "Actions",
       section: "Categories",
@@ -123,6 +137,7 @@ export function filterLocalEntityActions({
     .map((item) => ({
       id: `local-bill-${item?.id}`,
       name: item?.name || "Bill",
+      subtitle: item?.description || item?.frequency || "",
       keywords: [item?.name, item?.description, item?.frequency],
       category: "Actions",
       section: "Bills",
@@ -137,6 +152,7 @@ export function filterLocalEntityActions({
     .map((item) => ({
       id: `local-payment-${item?.id}`,
       name: item?.name || "Payment Method",
+      subtitle: item?.type || "",
       keywords: [item?.name, item?.type],
       category: "Actions",
       section: "Payment Methods",
@@ -156,6 +172,7 @@ export function filterLocalEntityActions({
       return {
         id: `local-friend-${item?.id}`,
         name: fullName || item?.email || "Friend",
+        subtitle: item?.email || "",
         keywords: [fullName, item?.email],
         category: "Actions",
         section: "Friends",
@@ -178,7 +195,8 @@ export function filterLocalEntityActions({
 export function dedupeActions(actions) {
   const uniqueMap = new Map();
   actions.forEach((action) => {
-    const dedupeKey = `${action?.name || ""}::${action?.route || ""}::${action?.section || ""}`;
+    // Dedupe by ID if available, otherwise by name and section
+    const dedupeKey = action.id ? `id::${action.id}` : `${action?.name || ""}::${action?.section || ""}`;
     if (!uniqueMap.has(dedupeKey)) {
       uniqueMap.set(dedupeKey, action);
     }

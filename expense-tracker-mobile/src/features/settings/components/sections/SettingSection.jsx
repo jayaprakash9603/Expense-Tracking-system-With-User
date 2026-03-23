@@ -6,7 +6,7 @@ export function SettingSection({ icon: Icon, titleKey, children }) {
   const { t } = useLanguage();
 
   return (
-    <section>
+    <section className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-sm h-full">
       <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-border">
         <AppIcon icon={Icon} color="primary" size="md" />
         <h2 className="text-base md:text-lg font-semibold">{t(titleKey)}</h2>

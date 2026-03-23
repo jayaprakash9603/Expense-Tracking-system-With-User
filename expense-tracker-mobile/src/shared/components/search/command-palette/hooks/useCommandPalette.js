@@ -24,7 +24,7 @@ import {
 import { useFuseSearch } from "./useFuseSearch";
 import { useKeyboardNavigation } from "./useKeyboardNavigation";
 
-export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], searchRemote }) {
+export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], searchRemote, currencySymbol = "$" }) {
   const currentMode = useSelector((state) => state.auth?.currentMode || SEARCH_MODES.USER);
   const expenses = useSelector((state) => state.expenses?.list || []);
   const budgets = useSelector((state) => state.budgets?.list || []);
@@ -66,17 +66,52 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
     let active = true;
     setRemoteLoading(true);
     const timeoutId = window.setTimeout(async () => {
-      const response = await searchRemote?.({
-        query: normalizedQuery,
-        mode: currentMode,
-        limit: REMOTE_SEARCH_LIMIT,
-      });
+      try {
+        const response = await searchRemote?.({
+          query: normalizedQuery,
+          mode: currentMode,
+          limit: REMOTE_SEARCH_LIMIT,
+        });
 
-      const sections = response?.sections || [];
+        // Map API response directly to sections if it matches the new format
+        let sections = response?.sections || [];
+        
+        // Handle direct entity arrays from API response
+        if (!sections.length && response) {
+          const newSections = [];
+          
+          if (response.expenses?.length) {
+            newSections.push({ key: "expenses", label: "Expenses", items: response.expenses });
+          }
+          if (response.budgets?.length) {
+            newSections.push({ key: "budgets", label: "Budgets", items: response.budgets });
+          }
+          if (response.categories?.length) {
+            newSections.push({ key: "categories", label: "Categories", items: response.categories });
+          }
+          if (response.bills?.length) {
+            newSections.push({ key: "bills", label: "Bills", items: response.bills });
+          }
+          if (response.paymentMethods?.length) {
+            newSections.push({ key: "paymentMethods", label: "Payment Methods", items: response.paymentMethods });
+          }
+          if (response.friends?.length) {
+            newSections.push({ key: "friends", label: "Friends", items: response.friends });
+          }
+          if (response.users?.length) {
+            newSections.push({ key: "users", label: "Users", items: response.users });
+          }
+          
+          sections = newSections;
+        }
 
-      if (!active) return;
-      setRemoteActions(mapBackendSectionsToActions(sections));
-      setRemoteLoading(false);
+        if (!active) return;
+        setRemoteActions(mapBackendSectionsToActions(sections, currencySymbol));
+      } catch (error) {
+        console.error("Search remote error:", error);
+      } finally {
+        if (active) setRemoteLoading(false);
+      }
     }, REMOTE_DEBOUNCE_MS);
 
     return () => {
@@ -102,7 +137,7 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
     currentRoute,
     recentIds,
     frequencyMap,
-    debounceMs: 200,
+    debounceMs: 300,
   });
 
   const recentActions = useMemo(

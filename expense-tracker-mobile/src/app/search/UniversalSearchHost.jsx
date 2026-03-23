@@ -11,10 +11,10 @@ import { buildBaseCommandActions } from "@/shared/components/search/command-pale
 function dedupeActions(actions) {
   const map = new Map();
   actions.forEach((action) => {
-    const key = `${action?.name || ""}::${action?.route || ""}::${action?.section || ""}`;
-    if (!map.has(key)) {
-      map.set(key, action);
-    }
+    // Dedupe by route if it exists, otherwise by name
+    const key = action.route ? `route::${action.route}` : `name::${action.name}`;
+    // Overwrite so later items (quickActions) take precedence over routeCatalog items
+    map.set(key, action);
   });
   return Array.from(map.values());
 }
@@ -23,6 +23,7 @@ export function UniversalSearchHost() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentMode = useSelector((state) => state.auth?.currentMode || SEARCH_MODES.USER);
+  const currencySymbol = useSelector((state) => state.userSettings?.settings?.currencySymbol || "₹");
 
   const baseActions = useMemo(() => {
     const routeActions = buildBaseCommandActions(ROUTE_CATALOG, currentMode);
@@ -46,6 +47,7 @@ export function UniversalSearchHost() {
       onNavigate={navigate}
       baseActions={baseActions}
       searchRemote={searchRemote}
+      currencySymbol={currencySymbol}
     />
   );
 }

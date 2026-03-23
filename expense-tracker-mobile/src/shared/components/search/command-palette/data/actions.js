@@ -54,7 +54,8 @@ function getRouteCategory(path) {
     path.includes("/add") ||
     path.includes("/create") ||
     path.includes("/new") ||
-    path.includes("/edit")
+    path.includes("/edit") ||
+    path.includes("/upload")
   ) {
     return "Actions";
   }

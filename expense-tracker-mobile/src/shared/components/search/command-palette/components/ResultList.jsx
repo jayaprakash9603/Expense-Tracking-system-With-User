@@ -29,14 +29,23 @@ export function ResultList({
     }
   }, [flatResults, selectedIndex]);
 
-  const groupedWithMetadata = useMemo(
-    () =>
-      GROUP_ORDER.map((category) => ({
-        category,
-        items: groupedResults[category] || [],
-      })).filter((section) => section.items.length > 0),
-    [groupedResults],
-  );
+  const groupedWithMetadata = useMemo(() => {
+    const sections = GROUP_ORDER.map((category) => ({
+      category,
+      items: groupedResults[category] || [],
+    })).filter((section) => section.items.length > 0);
+
+    // If there's an active query, sort sections so the ones with the highest scoring items appear at the top
+    if (query?.trim()) {
+      sections.sort((a, b) => {
+        const maxScoreA = a.items[0]?._score || 0;
+        const maxScoreB = b.items[0]?._score || 0;
+        return maxScoreB - maxScoreA;
+      });
+    }
+
+    return sections;
+  }, [groupedResults, query]);
 
   if (!groupedWithMetadata.length) {
     return (
@@ -47,13 +56,15 @@ export function ResultList({
   }
 
   return (
-    <div className="palette-scrollbar max-h-[55vh] overflow-y-auto px-2 pb-2">
+    <div className="palette-scrollbar max-h-[55vh] overflow-y-auto pb-2">
       {groupedWithMetadata.map((section) => (
-        <div key={section.category} className="mb-3 last:mb-0">
-          <p className="px-2 py-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted-foreground">
-            {section.category}
-          </p>
-          <div className="space-y-1">
+        <div key={section.category} className="mb-2">
+          <div className="sticky top-0 z-10 bg-card px-4 py-2 border-b border-border/40 mb-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+              {section.category}
+            </p>
+          </div>
+          <div className="px-2 space-y-1">
             {section.items.map((action) => {
               const idx = indexById[action.id] ?? -1;
               return (

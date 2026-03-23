@@ -22,17 +22,17 @@ export function SearchInput({
   }, [isOpen]);
 
   return (
-    <div className="flex items-center gap-2 border-b border-border/60 px-3 py-2.5">
+    <div className="flex items-center gap-3 border-b border-border/60 px-4 py-3">
       {canGoBack ? (
         <button
           onClick={onGoBack}
           className="rounded-md p-1.5 text-muted-foreground transition hover:bg-accent hover:text-foreground"
           aria-label={t("common.aria.goBack")}
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-5 w-5" />
         </button>
       ) : (
-        <Search className="h-4 w-4 text-muted-foreground" />
+        <Search className="h-5 w-5 text-muted-foreground" />
       )}
 
       <input
@@ -40,10 +40,10 @@ export function SearchInput({
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
         placeholder={resolvedPlaceholder}
-        className="h-8 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+        className="h-10 w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
       />
 
-      {loading ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+      {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : null}
 
       {query ? (
         <button

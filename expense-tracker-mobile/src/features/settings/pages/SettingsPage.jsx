@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
+import { useLocation } from "react-router-dom";
 import { PageContainer } from "@/shared/components/layout/PageContainer";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { SETTINGS_SECTIONS } from "@/features/settings/constants/settingsConfig";
@@ -16,6 +17,7 @@ import { applyUserSettingsEnhancements } from "@/shared/utils/theme/themeInjecto
 
 export function SettingsPage() {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { t } = useLanguage();
   const { settings, updateSetting } = useSettingsState();
   const {
@@ -28,6 +30,8 @@ export function SettingsPage() {
     setDeleteAccountOpen,
   } = useSettingsActions(updateSetting);
 
+  const itemRefs = useRef({});
+
   useEffect(() => {
     dispatch(fetchOrCreateUserSettings());
   }, [dispatch]);
@@ -35,6 +39,28 @@ export function SettingsPage() {
   useEffect(() => {
     applyUserSettingsEnhancements(settings);
   }, [settings]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const highlightId = params.get("highlight");
+    
+    if (highlightId && itemRefs.current[highlightId]) {
+      const element = itemRefs.current[highlightId];
+      
+      // Add highlight class
+      element.classList.add("bg-primary/10", "ring-2", "ring-primary/50", "rounded-lg", "transition-all", "duration-1000");
+      
+      // Scroll into view
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        
+        // Remove highlight after a few seconds
+        setTimeout(() => {
+          element.classList.remove("bg-primary/10", "ring-2", "ring-primary/50");
+        }, 3000);
+      }, 100);
+    }
+  }, [location.search]);
 
   const getChangeHandler = (item) => {
     if (item.id === "themeMode") return handleThemeToggle;
@@ -56,22 +82,27 @@ export function SettingsPage() {
     return (
       <SettingSection key={section.id} icon={section.icon} titleKey={section.titleKey}>
         {section.items.map((item) => (
-          <SettingItem
-            key={item.id}
-            item={item}
-            value={settings[item.stateKey]}
-            onChange={getChangeHandler(item)}
-            onAction={executeAction}
-            disabled={isItemDisabled(item)}
-          />
+          <div 
+            key={item.id} 
+            ref={(el) => (itemRefs.current[item.id] = el)}
+            className="px-2 -mx-2"
+          >
+            <SettingItem
+              item={item}
+              value={settings[item.stateKey]}
+              onChange={getChangeHandler(item)}
+              onAction={executeAction}
+              disabled={isItemDisabled(item)}
+            />
+          </div>
         ))}
       </SettingSection>
     );
   };
 
   return (
-    <PageContainer maxWidth="full" className="pb-8">
-      <div className="settings-grid">
+    <PageContainer maxWidth="full" className="pb-8 overflow-y-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         {SETTINGS_SECTIONS.map((section) => (
           <FeatureGate key={section.id} flagKey={section.featureFlagKey}>
             {renderSection(section)}
