@@ -13,8 +13,11 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Map;
 
+@Component
 public class ScenarioIdUiSteps extends StepDataSupport {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(ScenarioIdUiSteps.class);
 
@@ -189,8 +192,7 @@ public class ScenarioIdUiSteps extends StepDataSupport {
         RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
         RetryExecutor.executeVoidWithBackoff(
                 () -> BddWorld.uiActionExecutor().clickAction(actionKey),
-                policy
-        );
+                policy);
         LOG.info("Resilient click '{}' completed for scenarioID: {}", actionKey, scenarioId);
     }
 
@@ -221,8 +223,7 @@ public class ScenarioIdUiSteps extends StepDataSupport {
         BddWorld.registerScenarioId(scenarioId);
         RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
         BddWorld.uiActionExecutor().waitForWithRefresh(
-                elementKey, policy.maxAttempts(), policy.initialDelayMs()
-        );
+                elementKey, policy.maxAttempts(), policy.initialDelayMs());
         LOG.info("Element '{}' found after refresh polling for scenarioID: {}", elementKey, scenarioId);
     }
 

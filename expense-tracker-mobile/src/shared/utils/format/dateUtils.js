@@ -28,7 +28,7 @@ export function formatRelative(date) {
 }
 
 export function setDateLocale(locale) {
-  import(`dayjs/locale/${locale}.js`)
+  import(/* @vite-ignore */ `dayjs/locale/${locale}.js`)
     .then(() => dayjs.locale(locale))
     .catch(() => dayjs.locale("en"));
 }

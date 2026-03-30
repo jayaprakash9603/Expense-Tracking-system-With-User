@@ -43,21 +43,3 @@ export function mapExpenseOut(e, categories) {
     expenseName: e.name,
   };
 }
-
-export function buildCategoryDistribution(store) {
-  const map = new Map();
-  for (const e of store.expenses) {
-    const label = e.categoryName || "Other";
-    map.set(label, (map.get(label) || 0) + Number(e.amount || 0));
-  }
-  return [...map.entries()].map(([name, value]) => ({ name, value }));
-}
-
-export function buildPaymentMethodDistribution(store) {
-  const map = new Map();
-  for (const e of store.expenses) {
-    const label = e.paymentMethod || "OTHER";
-    map.set(label, (map.get(label) || 0) + Number(e.amount || 0));
-  }
-  return [...map.entries()].map(([name, value]) => ({ name, value }));
-}

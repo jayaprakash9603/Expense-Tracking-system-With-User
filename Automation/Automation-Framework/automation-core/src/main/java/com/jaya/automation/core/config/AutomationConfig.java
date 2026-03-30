@@ -41,6 +41,17 @@ public record AutomationConfig(
         return dataSettings != null && dataSettings.isEnabled();
     }
 
+    public AutomationConfig withHeadless(boolean headless) {
+        return new AutomationConfig(
+                automationEngine, environmentType, baseUrl, apiBaseUrl,
+                browserType, headless, explicitWait, retryCount,
+                testUsername, testPassword, otpProvider, mfaProvider,
+                parallelThreads, runnerSettings, retrySettings,
+                artifactSettings, dataSettings, observabilitySettings,
+                appBootstrapSettings, httpClientSettings, sslSettings
+        );
+    }
+
     private boolean hasValue(String value) {
         return value != null && !value.isBlank();
     }

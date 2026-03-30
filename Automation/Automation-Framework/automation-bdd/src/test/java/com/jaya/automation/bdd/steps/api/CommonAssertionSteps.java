@@ -2,7 +2,9 @@ package com.jaya.automation.bdd.steps.api;
 
 import com.jaya.automation.bdd.context.BddWorld;
 import io.cucumber.java.en.Then;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CommonAssertionSteps {
     @Then("the response time should be less than {long} ms")
     public void responseTimeShouldBeLessThan(long maxMillis) {

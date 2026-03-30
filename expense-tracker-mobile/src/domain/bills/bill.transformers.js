@@ -21,10 +21,11 @@ export function fromApiResponse(raw, fallbackDate = "") {
   const typeLower = String(raw.type || "loss").toLowerCase();
   const absAmt = Math.abs(Number(amountStr) || 0);
   const defaultNet = typeLower === "gain" ? absAmt : -absAmt;
+  const descriptionText = raw.description ?? raw.notes ?? "";
   return {
     id: raw.id,
     name: raw.name || raw.billName || raw.title || "",
-    description: raw.description || "",
+    description: String(descriptionText || "").trim(),
     amount: amountStr,
     date: dateValue,
     type: typeLower,
@@ -54,7 +55,7 @@ export function toListItem(raw) {
   return {
     id: bill.id,
     title: bill.name,
-    subtitle: bill.description || bill.type || "",
+    subtitle: bill.description || raw.notes || bill.type || "",
     amount: Number(bill.amount) || 0,
     dueDate,
     date: dateStr,

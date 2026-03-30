@@ -19,7 +19,14 @@ export default defineConfig({
     dedupe: ["react", "react-dom"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react-redux", "recharts"],
+    include: [
+      "react",
+      "react-dom",
+      "react-redux",
+      "recharts",
+      "@tanstack/react-virtual",
+      "@tanstack/react-table",
+    ],
   },
   server: {
     port: 3000,

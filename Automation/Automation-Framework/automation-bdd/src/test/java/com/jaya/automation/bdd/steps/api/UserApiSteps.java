@@ -15,7 +15,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserApiSteps extends StepDataSupport {
     @Given("a disposable user is created with aliases {string}, {string}, {string}")
     public void createDisposableUserWithAliases(String idAlias, String emailAlias, String tokenAlias) {
@@ -91,8 +93,7 @@ public class UserApiSteps extends StepDataSupport {
                 "firstName", "Auto",
                 "lastName", "User",
                 "email", email,
-                "password", "ChangeMe123!"
-        );
+                "password", "ChangeMe123!");
         ApiExecutionResult signup = execute("auth.signup", "", builder -> builder.body(signupPayload));
         ensureStatus(signup, 200, 201);
         String token = stringValue(signup, "jwt", "Signup token is missing");
@@ -151,7 +152,8 @@ public class UserApiSteps extends StepDataSupport {
     }
 
     private ApiExecutionResult createRole(String roleName) {
-        Map<String, Object> body = Map.of("name", normalizeRoleName(roleName), "description", "Automation generated role");
+        Map<String, Object> body = Map.of("name", normalizeRoleName(roleName), "description",
+                "Automation generated role");
         return execute("roles.create", adminToken(), builder -> builder.body(body));
     }
 

@@ -10,8 +10,10 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
+import org.springframework.stereotype.Component;
 import org.testng.SkipException;
 
+@Component
 public class AuthApiSteps extends StepDataSupport {
     @Given("the sign-in api is ready")
     public void apiAuthClientsAreReady() {

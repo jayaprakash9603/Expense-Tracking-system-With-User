@@ -11,8 +11,11 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Map;
 
+@Component
 public class HybridUiSteps extends StepDataSupport {
     private final UiDataRowMapper uiDataRowMapper = new UiDataRowMapper();
 
@@ -176,8 +179,7 @@ public class HybridUiSteps extends StepDataSupport {
         RetryPolicy policy = BddWorld.config().retrySettings().uiPollRetryPolicy();
         RetryExecutor.executeVoidWithBackoff(
                 () -> BddWorld.uiActionExecutor().clickAction(actionKey),
-                policy
-        );
+                policy);
     }
 
     @When("the user waits for page to be ready at {string}")

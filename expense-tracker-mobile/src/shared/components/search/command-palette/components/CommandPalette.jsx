@@ -35,6 +35,8 @@ export function CommandPalette({
     goBackLevel,
     executeAction,
     flatResults,
+    loadMore,
+    hasMore,
   } = useCommandPalette({ currentRoute, onNavigate, baseActions, searchRemote, currencySymbol });
 
   if (!isOpen) return null;
@@ -68,6 +70,8 @@ export function CommandPalette({
             selectedIndex={selectedIndex}
             onHover={setSelectedIndex}
             onSelect={executeAction}
+            loadMore={loadMore}
+            hasMore={hasMore}
           />
         </div>
 

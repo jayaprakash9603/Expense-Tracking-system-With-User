@@ -6,8 +6,11 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import org.springframework.stereotype.Component;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Component
 public class BudgetUiSteps extends StepDataSupport {
     private final BudgetScenarioCoordinator coordinator = new BudgetScenarioCoordinator();
 

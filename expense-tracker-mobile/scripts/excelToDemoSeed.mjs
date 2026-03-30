@@ -137,6 +137,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Utilities",
       notes: "Budget: demo-bud-5 (Utilities pool)",
+      comments: "Budget: demo-bud-5 (Utilities pool)",
       budgetId: "demo-bud-5",
     },
     {
@@ -147,6 +148,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Utilities",
       notes: "Budget: demo-bud-5",
+      comments: "Budget: demo-bud-5",
       budgetId: "demo-bud-5",
     },
     {
@@ -157,6 +159,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Housing",
       notes: "Budget: demo-bud-6 partial overlap",
+      comments: "Budget: demo-bud-6 partial overlap",
       budgetId: "demo-bud-6",
     },
     {
@@ -167,6 +170,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Utilities",
       notes: "Budget: demo-bud-5",
+      comments: "Budget: demo-bud-5",
       budgetId: "demo-bud-5",
     },
     {
@@ -177,6 +181,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Insurance",
       notes: "Budget: demo-bud-6",
+      comments: "Budget: demo-bud-6",
       budgetId: "demo-bud-6",
     },
     {
@@ -187,6 +192,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Entertainment",
       notes: "Budget: demo-bud-4",
+      comments: "Budget: demo-bud-4",
       budgetId: "demo-bud-4",
     },
     {
@@ -197,6 +203,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Health",
       notes: "Budget: demo-bud-3",
+      comments: "Budget: demo-bud-3",
       budgetId: "demo-bud-3",
     },
     {
@@ -207,6 +214,7 @@ function buildDemoDataset() {
       status: "PENDING",
       category: "Transport",
       notes: "Budget: demo-bud-2",
+      comments: "Budget: demo-bud-2",
       budgetId: "demo-bud-2",
     },
   ];
@@ -267,6 +275,10 @@ function buildDemoDataset() {
       ? num(120 + (i % 50) * 40 + (i % 3) * 15)
       : Math.round((8 + (i % 9) * 6.2 + (i % 5) * 2.1) * 10) / 10;
     const paymentMethod = ["CARD", "CASH", "BANK", "CARD", "CARD"][i % 5];
+    const budgetComment = budgetIds ? `Budgets: ${budgetIds}` : "";
+    const noteLine = isGain
+      ? "Recorded income / credit"
+      : `Spend note · ${name}${i % 7 === 0 ? " · reviewed" : ""}`;
     expenses.push({
       id: `demo-exp-${String(i + 1).padStart(3, "0")}`,
       name,
@@ -276,7 +288,8 @@ function buildDemoDataset() {
       paymentMethod,
       type,
       budgetIds,
-      comments: budgetIds ? `Budgets: ${budgetIds}` : "",
+      notes: noteLine,
+      comments: [noteLine, budgetComment].filter(Boolean).join(" | "),
       isRecurring: i % 31 === 0,
       createdAtOffsetDays: dateOffsetDays,
       updatedAtOffsetDays: dateOffsetDays,
@@ -434,13 +447,16 @@ function rowsToSeedEntities(rowsBySheet) {
   const bills = rowsBySheet.Bills.map((r) => {
     const bid = r.budgetId != null && String(r.budgetId).trim() !== "" ? String(r.budgetId) : "";
     if (bid && !budSet.has(bid)) throw new Error(`Bill ${r.id} unknown budgetId ${bid}`);
+    const noteText = String(r.notes || r.comments || "").trim();
     const bill = {
       id: String(r.id),
       name: String(r.name),
       amount: num(r.amount),
       status: String(r.status || "PENDING"),
       category: String(r.category || ""),
-      notes: String(r.notes || ""),
+      notes: noteText,
+      comments: noteText,
+      description: noteText,
     };
     if (bid) bill.budgetId = bid;
     if (r.dueInDays !== "" && r.dueInDays != null) bill.dueInDays = num(r.dueInDays);
@@ -466,7 +482,7 @@ function rowsToSeedEntities(rowsBySheet) {
       category: rowsBySheet.Categories.find((c) => c.id === r.categoryId)?.name || "",
       type: String(r.type || "NEED"),
       paymentMethod: String(r.paymentMethod || "CASH"),
-      comments: String(r.comments || ""),
+      comments: String(r.comments || r.notes || ""),
       isRecurring:
         r.isRecurring === true ||
         r.isRecurring === 1 ||

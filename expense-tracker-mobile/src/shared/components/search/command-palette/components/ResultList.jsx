@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { GROUP_ORDER } from "../utils/ranking";
 import { ResultItem } from "./ResultItem";
 
@@ -9,26 +10,11 @@ export function ResultList({
   selectedIndex,
   onHover,
   onSelect,
+  loadMore,
+  hasMore,
 }) {
-  const itemRefs = useRef({});
-  const indexById = useMemo(
-    () =>
-      flatResults.reduce((acc, item, index) => {
-        acc[item.id] = index;
-        return acc;
-      }, {}),
-    [flatResults],
-  );
-
-  useEffect(() => {
-    const selected = flatResults[selectedIndex];
-    if (!selected) return;
-    const node = itemRefs.current[selected.id];
-    if (node && typeof node.scrollIntoView === "function") {
-      node.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [flatResults, selectedIndex]);
-
+  const parentRef = useRef(null);
+  
   const groupedWithMetadata = useMemo(() => {
     const sections = GROUP_ORDER.map((category) => ({
       category,
@@ -47,7 +33,64 @@ export function ResultList({
     return sections;
   }, [groupedResults, query]);
 
-  if (!groupedWithMetadata.length) {
+  // Flatten items and headers for virtualization
+  const virtualItems = useMemo(() => {
+    const items = [];
+    groupedWithMetadata.forEach((section) => {
+      items.push({ type: 'header', category: section.category });
+      section.items.forEach((action) => {
+        items.push({ type: 'item', action });
+      });
+    });
+    return items;
+  }, [groupedWithMetadata]);
+
+  const indexById = useMemo(
+    () =>
+      flatResults.reduce((acc, item, index) => {
+        acc[item.id] = index;
+        return acc;
+      }, {}),
+    [flatResults],
+  );
+
+  const rowVirtualizer = useVirtualizer({
+    count: hasMore ? virtualItems.length + 1 : virtualItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: useCallback((index) => {
+      if (index >= virtualItems.length) return 50; // Loading indicator size
+      const item = virtualItems[index];
+      return item.type === 'header' ? 32 : 68; // Header size vs Item size
+    }, [virtualItems]),
+    overscan: 5,
+  });
+
+  // Infinite scroll logic
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  useEffect(() => {
+    const lastItem = virtualRows[virtualRows.length - 1];
+    if (!lastItem) return;
+
+    if (lastItem.index >= virtualItems.length - 1 && hasMore && loadMore) {
+      loadMore();
+    }
+  }, [virtualRows, virtualItems.length, hasMore, loadMore]);
+
+  // Scroll to selected index
+  useEffect(() => {
+    if (selectedIndex < 0 || !flatResults[selectedIndex]) return;
+    
+    const selectedAction = flatResults[selectedIndex];
+    const virtualIndex = virtualItems.findIndex(
+      (item) => item.type === 'item' && item.action.id === selectedAction.id
+    );
+    
+    if (virtualIndex !== -1) {
+      rowVirtualizer.scrollToIndex(virtualIndex, { align: 'auto' });
+    }
+  }, [selectedIndex, flatResults, virtualItems, rowVirtualizer]);
+
+  if (!virtualItems.length) {
     return (
       <div className="flex h-[20rem] items-center justify-center text-sm text-muted-foreground">
         No results found. Try another command.
@@ -56,34 +99,89 @@ export function ResultList({
   }
 
   return (
-    <div className="palette-scrollbar max-h-[55vh] overflow-y-auto pb-2">
-      {groupedWithMetadata.map((section) => (
-        <div key={section.category} className="mb-2">
-          <div className="sticky top-0 z-10 bg-card px-4 py-2 border-b border-border/40 mb-1">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
-              {section.category}
-            </p>
-          </div>
-          <div className="px-2 space-y-1">
-            {section.items.map((action) => {
-              const idx = indexById[action.id] ?? -1;
-              return (
-                <ResultItem
-                  key={action.id}
-                  action={action}
-                  query={query}
-                  isActive={idx === selectedIndex}
-                  onMouseEnter={() => onHover(idx)}
-                  onClick={() => onSelect(action)}
-                  itemRef={(node) => {
-                    itemRefs.current[action.id] = node;
-                  }}
-                />
-              );
-            })}
-          </div>
-        </div>
-      ))}
+    <div 
+      ref={parentRef}
+      className="palette-scrollbar max-h-[55vh] overflow-y-auto pb-2"
+    >
+      <div
+        style={{
+          height: `${rowVirtualizer.getTotalSize()}px`,
+          width: '100%',
+          position: 'relative',
+        }}
+      >
+        {virtualRows.map((virtualRow) => {
+          const isLoaderRow = virtualRow.index > virtualItems.length - 1;
+          
+          if (isLoaderRow) {
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                className="flex items-center justify-center py-4"
+              >
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              </div>
+            );
+          }
+
+          const item = virtualItems[virtualRow.index];
+
+          if (item.type === 'header') {
+            return (
+              <div
+                key={virtualRow.key}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+                className="bg-card px-4 py-2 border-b border-border/40"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+                  {item.category}
+                </p>
+              </div>
+            );
+          }
+
+          const action = item.action;
+          const idx = indexById[action.id] ?? -1;
+
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className="px-2 pt-1"
+            >
+              <ResultItem
+                action={action}
+                query={query}
+                isActive={idx === selectedIndex}
+                onMouseEnter={() => onHover(idx)}
+                onClick={() => onSelect(action)}
+              />
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

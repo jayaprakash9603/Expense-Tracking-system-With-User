@@ -5,6 +5,7 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,7 +16,8 @@ import java.nio.charset.StandardCharsets;
 
 @RestControllerAdvice
 @Slf4j
-@ConditionalOnClass(FeignException.class)
+@ConditionalOnClass(name = "feign.FeignException")
+@ConditionalOnProperty(name = "common-library.feign.enabled", havingValue = "true", matchIfMissing = true)
 public class FeignExceptionHandler {
 
     @Value("${spring.application.name:unknown-service}")
@@ -48,12 +50,16 @@ public class FeignExceptionHandler {
     private String extractMessage(FeignException ex) {
         try {
             byte[] body = ex.responseBody()
-                    .map(buf -> { byte[] b = new byte[buf.remaining()]; buf.get(b); return b; })
+                    .map(buf -> {
+                        byte[] b = new byte[buf.remaining()];
+                        buf.get(b);
+                        return b;
+                    })
                     .orElse(null);
             if (body != null && body.length > 0) {
                 String json = new String(body, StandardCharsets.UTF_8);
-                com.fasterxml.jackson.databind.JsonNode node =
-                        new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
+                com.fasterxml.jackson.databind.JsonNode node = new com.fasterxml.jackson.databind.ObjectMapper()
+                        .readTree(json);
                 if (node.has("message") && !node.get("message").isNull()) {
                     return node.get("message").asText();
                 }

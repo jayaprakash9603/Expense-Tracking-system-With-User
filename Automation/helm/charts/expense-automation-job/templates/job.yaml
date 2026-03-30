@@ -40,6 +40,24 @@ spec:
               value: "{{ .Values.runner.featuresPath }}"
             - name: ADDITIONAL_MAVEN_ARGS
               value: "{{ .Values.runner.additionalMavenArgs }}"
+            - name: JVM_HEAP
+              value: "{{ .Values.jvm.heapSize }}"
+            - name: JVM_GC_OPTS
+              value: "{{ .Values.jvm.gcOptions }}"
+            - name: EXTRA_JAVA_OPTS
+              value: "{{ .Values.jvm.extraJavaOpts }}"
+            {{- if .Values.debug.enabled }}
+            - name: DEBUG_ENABLED
+              value: "true"
+            - name: DEBUG_PORT
+              value: "{{ .Values.debug.port }}"
+            {{- end }}
+            {{- if .Values.observabilityAgent.enabled }}
+            - name: OBSERVABILITY_AGENT_JAR
+              value: "{{ .Values.observabilityAgent.jarPath }}"
+            - name: OBSERVABILITY_AGENT_EXTRA
+              value: "{{ .Values.observabilityAgent.extraArgs }}"
+            {{- end }}
             - name: APP_START_CMD
               value: "{{ .Values.app.startCommand }}"
             - name: APP_STOP_CMD

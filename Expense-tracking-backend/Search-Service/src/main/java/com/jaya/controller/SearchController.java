@@ -42,7 +42,8 @@ public class SearchController {
     @GetMapping
     public ResponseEntity<UniversalSearchResponse> search(
             @RequestParam("q") String query,
-            @RequestParam(value = "limit", defaultValue = "5") Integer limit,
+            @RequestParam(value = "limit", defaultValue = "20") Integer limit,
+            @RequestParam(value = "offset", defaultValue = "0") Integer offset,
             @RequestParam(value = "sections", required = false) String sections,
             @RequestParam(value = "startDate", required = false) LocalDate startDate,
             @RequestParam(value = "endDate", required = false) LocalDate endDate,
@@ -60,13 +61,17 @@ public class SearchController {
         
         if (limit < 1)
             limit = 5;
-        if (limit > 20)
-            limit = 20;
+        if (limit > 50)
+            limit = 50;
+            
+        if (offset < 0)
+            offset = 0;
 
         
         SearchRequestDTO request = SearchRequestDTO.builder()
                 .query(query.trim())
                 .limit(limit)
+                .offset(offset)
                 .sections(sections)
                 .startDate(startDate)
                 .endDate(endDate)

@@ -2,8 +2,10 @@ import { recalculateBudgetSpent } from "@/infrastructure/demo/domain/demoBudgetA
 import { nextDemoId, saveDemoStore } from "@/infrastructure/demo/store/demoStore";
 import { buildDemoCashflowResponse } from "@/infrastructure/demo/domain/buildDemoCashflowResponse";
 import {
-  buildCategoryDistribution,
-  buildPaymentMethodDistribution,
+  buildDemoCategoryDetailedResponse,
+  buildDemoPaymentMethodDetailedResponse,
+} from "@/infrastructure/demo/domain/buildDemoEntityFlowResponses";
+import {
   mapExpenseOut,
   matchExpenseDelete,
   matchExpenseEdit,
@@ -179,11 +181,13 @@ function tryExpenseAggregates(ctx) {
   }
 
   if (method === "GET" && path === "/api/expenses/all-by-categories/detailed/filtered") {
-    return resolveDemoData(buildCategoryDistribution(store));
+    const params = config?.params && typeof config.params === "object" ? config.params : {};
+    return resolveDemoData(buildDemoCategoryDetailedResponse(store, params));
   }
 
   if (method === "GET" && path === "/api/expenses/all-by-payment-method/detailed/filtered") {
-    return resolveDemoData(buildPaymentMethodDistribution(store));
+    const params = config?.params && typeof config.params === "object" ? config.params : {};
+    return resolveDemoData(buildDemoPaymentMethodDetailedResponse(store, params));
   }
 
   return null;

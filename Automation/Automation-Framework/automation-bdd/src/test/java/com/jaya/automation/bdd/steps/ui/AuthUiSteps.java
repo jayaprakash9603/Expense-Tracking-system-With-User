@@ -10,7 +10,9 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AuthUiSteps extends StepDataSupport {
     private final AuthSessionCoordinator authSessionCoordinator = new AuthSessionCoordinator();
     private final SignupPayloadFactory signupPayloadFactory = new SignupPayloadFactory();
@@ -18,8 +20,7 @@ public class AuthUiSteps extends StepDataSupport {
     @Given("an authenticated dashboard session is ready")
     public void authenticatedDashboardSessionIsReady() {
         authSessionCoordinator.ensureAuthenticatedDashboardSession(
-                signupPayloadFactory.valid(BddWorld.dataRow(), this::resolveDynamic)
-        );
+                signupPayloadFactory.valid(BddWorld.dataRow(), this::resolveDynamic));
     }
 
     @When("the user logs in with test credentials")

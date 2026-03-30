@@ -11,7 +11,9 @@ import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
 import java.util.Map;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ScenarioIdApiSteps extends StepDataSupport {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(ScenarioIdApiSteps.class);
 
@@ -87,8 +89,7 @@ public class ScenarioIdApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonPathEquals(
                 BddWorld.apiExecutionResult(),
                 jsonPath,
-                resolveDynamic(expectedValue)
-        );
+                resolveDynamic(expectedValue));
     }
 
     @Then("the response field {string} should contain {string} for scenarioID {string}")
@@ -97,8 +98,7 @@ public class ScenarioIdApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonPathContains(
                 BddWorld.apiExecutionResult(),
                 jsonPath,
-                resolveDynamic(expectedFragment)
-        );
+                resolveDynamic(expectedFragment));
     }
 
     @When("I want to wait for {int} seconds for API scenarioID {string}")
@@ -116,7 +116,8 @@ public class ScenarioIdApiSteps extends StepDataSupport {
     @Then("the scoped value {string} for scenarioID {string} should equal {string}")
     public void verifyScopedValueForScenarioId(String key, String scenarioId, String expectedValue) {
         Object actual = BddWorld.scopedValue(scenarioId, key)
-                .orElseThrow(() -> new AssertionError("No scoped value for key '" + key + "' in scenarioID: " + scenarioId));
+                .orElseThrow(
+                        () -> new AssertionError("No scoped value for key '" + key + "' in scenarioID: " + scenarioId));
         Assertions.assertThat(String.valueOf(actual))
                 .as("Scoped value '%s' for scenarioID '%s'", key, scenarioId)
                 .isEqualTo(resolveDynamic(expectedValue));

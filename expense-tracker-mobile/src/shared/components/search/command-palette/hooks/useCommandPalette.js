@@ -16,7 +16,6 @@ import {
 import {
   buildActionMap,
   dedupeActions,
-  filterLocalEntityActions,
   getDefaultGroupedResults,
   getRecentActions,
   mapBackendSectionsToActions,
@@ -26,40 +25,24 @@ import { useKeyboardNavigation } from "./useKeyboardNavigation";
 
 export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], searchRemote, currencySymbol = "$" }) {
   const currentMode = useSelector((state) => state.auth?.currentMode || SEARCH_MODES.USER);
-  const expenses = useSelector((state) => state.expenses?.list || []);
-  const budgets = useSelector((state) => state.budgets?.list || []);
-  const categories = useSelector((state) => state.categories?.list || []);
-  const bills = useSelector((state) => state.bills?.list || []);
-  const paymentMethods = useSelector((state) => state.paymentMethods?.list || []);
-  const friends = useSelector((state) => state.friends?.list || []);
 
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [remoteActions, setRemoteActions] = useState([]);
   const [remoteLoading, setRemoteLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [recentIds, setRecentIds] = useState(() => getRecentActionIds());
   const [frequencyMap, setFrequencyMap] = useState(() => getActionFrequencyMap());
   const [commandStack, setCommandStack] = useState([{ id: "root", title: "All Commands" }]);
-
-  const localEntityActions = useMemo(
-    () =>
-      filterLocalEntityActions({
-        query,
-        expenses,
-        budgets,
-        categories,
-        bills,
-        paymentMethods,
-        friends,
-      }),
-    [query, expenses, budgets, categories, bills, paymentMethods, friends],
-  );
 
   useEffect(() => {
     const normalizedQuery = query.trim();
     if (normalizedQuery.length < MIN_REMOTE_QUERY_LENGTH) {
       setRemoteActions([]);
       setRemoteLoading(false);
+      setPage(0);
+      setHasMore(true);
       return;
     }
 
@@ -71,6 +54,7 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
           query: normalizedQuery,
           mode: currentMode,
           limit: REMOTE_SEARCH_LIMIT,
+          offset: 0,
         });
 
         // Map API response directly to sections if it matches the new format
@@ -106,7 +90,10 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
         }
 
         if (!active) return;
-        setRemoteActions(mapBackendSectionsToActions(sections, currencySymbol));
+        const newActions = mapBackendSectionsToActions(sections, currencySymbol);
+        setRemoteActions(newActions);
+        setPage(0);
+        setHasMore(newActions.length >= REMOTE_SEARCH_LIMIT);
       } catch (error) {
         console.error("Search remote error:", error);
       } finally {
@@ -118,12 +105,56 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
       active = false;
       window.clearTimeout(timeoutId);
     };
-  }, [query, currentMode, searchRemote]);
+  }, [query, currentMode, searchRemote, currencySymbol]);
+
+  const loadMore = useCallback(async () => {
+    const normalizedQuery = query.trim();
+    if (normalizedQuery.length < MIN_REMOTE_QUERY_LENGTH || remoteLoading || !hasMore) {
+      return;
+    }
+
+    setRemoteLoading(true);
+    try {
+      const nextPage = page + 1;
+      const response = await searchRemote?.({
+        query: normalizedQuery,
+        mode: currentMode,
+        limit: REMOTE_SEARCH_LIMIT,
+        offset: nextPage * REMOTE_SEARCH_LIMIT,
+      });
+
+      let sections = response?.sections || [];
+      if (!sections.length && response) {
+        const newSections = [];
+        if (response.expenses?.length) newSections.push({ key: "expenses", label: "Expenses", items: response.expenses });
+        if (response.budgets?.length) newSections.push({ key: "budgets", label: "Budgets", items: response.budgets });
+        if (response.categories?.length) newSections.push({ key: "categories", label: "Categories", items: response.categories });
+        if (response.bills?.length) newSections.push({ key: "bills", label: "Bills", items: response.bills });
+        if (response.paymentMethods?.length) newSections.push({ key: "paymentMethods", label: "Payment Methods", items: response.paymentMethods });
+        if (response.friends?.length) newSections.push({ key: "friends", label: "Friends", items: response.friends });
+        if (response.users?.length) newSections.push({ key: "users", label: "Users", items: response.users });
+        sections = newSections;
+      }
+
+      const newActions = mapBackendSectionsToActions(sections, currencySymbol);
+      if (newActions.length > 0) {
+        setRemoteActions(prev => dedupeActions([...prev, ...newActions]));
+        setPage(nextPage);
+        setHasMore(newActions.length >= REMOTE_SEARCH_LIMIT);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Search remote error:", error);
+    } finally {
+      setRemoteLoading(false);
+    }
+  }, [query, currentMode, searchRemote, currencySymbol, remoteLoading, hasMore, page]);
 
   const rootActions = useMemo(() => {
     if (!query.trim()) return baseActions;
-    return dedupeActions([...baseActions, ...localEntityActions, ...remoteActions]);
-  }, [baseActions, localEntityActions, query, remoteActions]);
+    return dedupeActions([...baseActions, ...remoteActions]);
+  }, [baseActions, query, remoteActions]);
 
   const currentLevel = commandStack[commandStack.length - 1];
   const currentActions = currentLevel.id === "root" ? rootActions : currentLevel.actions || [];
@@ -286,6 +317,8 @@ export function useCommandPalette({ currentRoute, onNavigate, baseActions = [], 
     goBackLevel,
     executeAction,
     flatResults,
+    loadMore,
+    hasMore,
   };
 }
 

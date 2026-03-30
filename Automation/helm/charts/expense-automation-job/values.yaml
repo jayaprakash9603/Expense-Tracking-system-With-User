@@ -10,8 +10,8 @@ job:
   configurationPath: "/opt/automation/config"
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 1000m
+      memory: 2Gi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -26,6 +26,25 @@ runner:
   rerunFailures: "false"
   featuresPath: ""
   additionalMavenArgs: ""
+
+jvm:
+  moduleOpens:
+    - "java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED"
+    - "java.base/java.lang=ALL-UNNAMED"
+    - "java.base/java.math=ALL-UNNAMED"
+  gcOptions: "-XX:+UseG1GC -XX:ParallelGCThreads=4 -XX:G1MaxNewSizePercent=25 -XX:InitiatingHeapOccupancyPercent=25 -XX:+ExitOnOutOfMemoryError"
+  heapSize: "-Xms1G -Xmx1G"
+  extraJavaOpts: ""
+
+debug:
+  enabled: false
+  port: 9090
+
+observabilityAgent:
+  enabled: false
+  type: ""
+  jarPath: ""
+  extraArgs: ""
 
 app:
   startCommand: ""

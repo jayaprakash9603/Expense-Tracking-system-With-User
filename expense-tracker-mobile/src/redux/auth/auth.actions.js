@@ -173,18 +173,6 @@ export const logoutAction = () => (dispatch) => {
 
 export const switchUserModeAction = (newMode) => async (dispatch, getState) => {
   const target = normalizeAppMode(newMode);
-  if (getAppConfig().isDemo) {
-    const user = getState().auth?.user;
-    const nextUser = user ? { ...user, currentMode: target } : null;
-    dispatch({
-      type: SWITCH_MODE_SUCCESS,
-      payload: { currentMode: target, user: nextUser },
-    });
-    return {
-      success: true,
-      data: { currentMode: target, user: nextUser },
-    };
-  }
 
   const { data, error } = await safeApiCall(() =>
     api.put("/api/user/switch-mode", null, {

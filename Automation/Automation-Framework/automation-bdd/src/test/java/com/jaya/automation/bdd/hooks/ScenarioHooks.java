@@ -24,6 +24,7 @@ import com.jaya.automation.bdd.context.ScenarioDataBinder;
 import com.jaya.automation.bdd.context.SuiteDataCatalog;
 import com.jaya.automation.bdd.context.UiEngineFactory;
 import com.jaya.automation.bdd.runner.StepExecutionLoggerPlugin;
+import com.jaya.automation.bdd.steps.common.AbstractStepDefinition;
 import com.jaya.automation.core.config.AutomationConfig;
 import com.jaya.automation.core.config.ConfigLoader;
 import com.jaya.automation.core.logging.AutomationLogger;
@@ -107,6 +108,7 @@ public class ScenarioHooks {
             captureFailureScreenshot(scenario);
         } finally {
             stopUiEngine();
+            AbstractStepDefinition.clearContextMap();
             BddWorld.clear();
         }
     }
@@ -133,8 +135,7 @@ public class ScenarioHooks {
         AuthUiFlowService authFlow = new AuthUiFlowService(
                 uiEngine,
                 AuthProviderFactory.otpProvider(config),
-                AuthProviderFactory.mfaProvider(config)
-        );
+                AuthProviderFactory.mfaProvider(config));
         BddWorld.setAuthUiFlowService(authFlow);
         DomainNavigationFlowService domainNavigationFlowService = new DomainNavigationFlowService(uiEngine);
         BddWorld.setDomainNavigationFlow(domainNavigationFlowService);
@@ -310,8 +311,7 @@ public class ScenarioHooks {
                 endpointRegistry,
                 apiRequestExecutor,
                 apiResponseValidator,
-                jsonSchemaValidator
-        );
+                jsonSchemaValidator);
     }
 
     private SuiteDataCatalog resolveSharedSuiteDataCatalog(AutomationConfig config) {
@@ -342,8 +342,7 @@ public class ScenarioHooks {
                 config.automationEngine().name(),
                 config.browserType().name(),
                 String.valueOf(config.headless()),
-                String.valueOf(config.parallelThreads())
-        );
+                String.valueOf(config.parallelThreads()));
     }
 
     private static void prewarmSuiteDependencies(AutomationConfig config) {
@@ -356,8 +355,7 @@ public class ScenarioHooks {
                 config.browserType().name(),
                 String.valueOf(config.headless()),
                 String.valueOf(config.parallelThreads()),
-                String.valueOf(config.runnerSettings().reuseBrowserSession())
-        );
+                String.valueOf(config.runnerSettings().reuseBrowserSession()));
         if (PREWARM_COMPLETED && prewarmConfigKey.equals(PREWARMED_CONFIG_KEY)) {
             return;
         }
@@ -402,8 +400,7 @@ public class ScenarioHooks {
             ApiEndpointRegistry endpointRegistry,
             ApiRequestExecutor apiRequestExecutor,
             ApiResponseValidator apiResponseValidator,
-            JsonSchemaValidator jsonSchemaValidator
-    ) {
+            JsonSchemaValidator jsonSchemaValidator) {
         private void bind() {
             BddWorld.setAuthApiClient(authApiClient);
             BddWorld.setUserProfileApiClient(userProfileApiClient);

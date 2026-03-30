@@ -2,10 +2,14 @@ package com.jaya.common.config;
 
 import feign.RequestInterceptor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnClass(name = "feign.RequestInterceptor")
+@ConditionalOnProperty(name = "common-library.feign.enabled", havingValue = "true", matchIfMissing = true)
 public class UserServiceFeignConfig {
 
     @Bean

@@ -9,8 +9,8 @@ Authoring workbook for demo seed data. Regenerate [`seed.entities.json`](./seed.
 | Categories | id, name, color, type | type: NEED or WANT |
 | PaymentMethods | id, name, type | e.g. CARD, BANK, CASH |
 | Budgets | id, name, amount, period, startDateOffsetDays, endDateOffsetDays, description, categoryIds, comments, spent | endDateOffsetDays empty = open-ended; categoryIds comma-separated category id; spent optional (recomputed on export) |
-| Bills | id, name, amount, dueInDays, status, category, notes, budgetId | budgetId optional FK to Budgets.id; dueInDays relative to export “today” in app hydration |
-| Expenses | id, name, amount, dateOffsetDays, categoryId, paymentMethod, type, budgetIds, comments | budgetIds comma-separated; type NEED, WANT, or gain; isRecurring optional (true/false) |
+| Bills | id, name, amount, dueInDays, status, category, notes, comments, budgetId | Workbook includes both **notes** and **comments** (same text). budgetId optional FK to Budgets.id; dueInDays relative to export “today” in app hydration. Seed JSON includes `description` for the bill form. |
+| Expenses | id, name, amount, dateOffsetDays, categoryId, paymentMethod, type, budgetIds, notes, comments | Both `notes` and `comments` columns appear in the workbook; on import, either populates the app `comments` field. budgetIds comma-separated; type NEED, WANT, or gain; isRecurring optional. After editing, run `npm run demo:seed:from-xlsx` and reload the app. |
 | Friends | id, friendUserId, displayName, email, status | |
 | Groups | id, name, description, memberCount | memberCount numeric |
 | FriendRequests | id, senderId, senderName, senderEmail, status | |

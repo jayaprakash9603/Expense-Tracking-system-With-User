@@ -16,6 +16,8 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import org.springframework.stereotype.Component;
+
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Component
 public class GenericApiSteps extends StepDataSupport {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,8 +43,7 @@ public class GenericApiSteps extends StepDataSupport {
             Map.entry("not found", 404),
             Map.entry("a conflict", 409),
             Map.entry("conflict", 409),
-            Map.entry("server error", 500)
-    );
+            Map.entry("server error", 500));
 
     @Given("api testing is ready")
     public void genericApiExecutorIsReady() {
@@ -125,8 +127,7 @@ public class GenericApiSteps extends StepDataSupport {
             String method,
             String endpointKey,
             String payloadAlias,
-            DataTable dataTable
-    ) {
+            DataTable dataTable) {
         Map<String, Object> payload = new LinkedHashMap<>(requirePayloadAlias(payloadAlias));
         ApiRequest request = buildRequest(endpointKey, textMap(dataTable), payload);
         execute(method, request);
@@ -167,8 +168,7 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonPathEquals(
                 BddWorld.apiExecutionResult(),
                 jsonPath,
-                resolveDynamic(expectedValue)
-        );
+                resolveDynamic(expectedValue));
     }
 
     @Then("the response field {string} should contain {string}")
@@ -176,8 +176,7 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonPathContains(
                 BddWorld.apiExecutionResult(),
                 jsonPath,
-                resolveDynamic(expectedFragment)
-        );
+                resolveDynamic(expectedFragment));
     }
 
     @Then("the response field {string} should be present")
@@ -200,8 +199,7 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonArrayContains(
                 BddWorld.apiExecutionResult(),
                 jsonPath,
-                resolveDynamic(expectedFragment)
-        );
+                resolveDynamic(expectedFragment));
     }
 
     @Then("the response body should equal {string}")
@@ -211,7 +209,8 @@ public class GenericApiSteps extends StepDataSupport {
 
     @Then("the response body should contain {string}")
     public void apiResponseBodyShouldContain(String expectedFragment) {
-        BddWorld.apiResponseValidator().assertBodyContains(BddWorld.apiExecutionResult(), resolveDynamic(expectedFragment));
+        BddWorld.apiResponseValidator().assertBodyContains(BddWorld.apiExecutionResult(),
+                resolveDynamic(expectedFragment));
     }
 
     @Then("the response should contain error message {string}")
@@ -220,14 +219,12 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.apiResponseValidator().assertJsonPathOrBodyContains(
                 BddWorld.apiExecutionResult(),
                 "error",
-                resolvedFragment
-        );
+                resolvedFragment);
         if (isJsonPathMissing("error")) {
             BddWorld.apiResponseValidator().assertJsonPathOrBodyContains(
                     BddWorld.apiExecutionResult(),
                     "message",
-                    resolvedFragment
-            );
+                    resolvedFragment);
         }
     }
 
@@ -260,7 +257,8 @@ public class GenericApiSteps extends StepDataSupport {
         BddWorld.putAliasValue(alias, bodyText);
     }
 
-    private ApiRequest buildRequest(String endpointKey, Map<String, String> inputData, Map<String, Object> payloadSeed) {
+    private ApiRequest buildRequest(String endpointKey, Map<String, String> inputData,
+            Map<String, Object> payloadSeed) {
         ApiRequestBuilder requestBuilder = ApiRequestBuilder.forEndpoint(endpointKey);
         Map<String, Object> payload = new LinkedHashMap<>(payloadSeed);
         inputData.forEach((key, value) -> applyValue(requestBuilder, payload, key, value));
