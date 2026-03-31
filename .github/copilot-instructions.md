@@ -181,7 +181,7 @@ public User getUserById(Long id) {
 /**
  * Validates budget threshold and sends notification if exceeded.
  * Uses 80% threshold to give users advance warning before full depletion.
- * 
+ *
  * Business Rule: Notifications sent once per threshold crossing to avoid spam.
  */
 public void checkBudgetThreshold(Budget budget) {
@@ -220,24 +220,24 @@ public void checkBudgetThreshold(Budget budget) {
 public class ServiceExample {
     // 1. Static constants
     private static final String DEFAULT_VALUE = "value";
-    
+
     // 2. Instance variables
     private final DependencyA dependencyA;
     private final DependencyB dependencyB;
-    
+
     // 3. Constructor (with dependency injection)
     public ServiceExample(DependencyA dependencyA, DependencyB dependencyB) {
         this.dependencyA = dependencyA;
         this.dependencyB = dependencyB;
     }
-    
+
     // 4. Public methods
     public Result performOperation() {
         // High-level orchestration
         validateInput();
         return processData();
     }
-    
+
     // 5. Private helper methods
     private void validateInput() { }
     private Result processData() { }
@@ -274,12 +274,12 @@ try {
 public class YourNotificationProducer extends NotificationEventProducer<YourEvent> {
     @Value("${kafka.topics.your-events:your-events}")
     private String topicName;
-    
+
     @Override
     protected String getTopicName() {
         return topicName;
     }
-    
+
     @Override
     protected String generatePartitionKey(YourEvent event) {
         return event.getUserId().toString(); // Partition by user for ordering
@@ -300,28 +300,28 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final BudgetNotificationProducer notificationProducer;
     private final BudgetMapper budgetMapper;
-    
+
     @Transactional
     public BudgetDTO createBudget(CreateBudgetRequest request, Long userId) {
         // Validate
         validateBudgetRequest(request);
-        
+
         // Business logic
         Budget budget = budgetMapper.toEntity(request);
         budget.setUserId(userId);
         budget.setCreatedAt(LocalDateTime.now());
-        
+
         // Persist
         Budget savedBudget = budgetRepository.save(budget);
         log.info("Budget created: budgetId={}, userId={}", savedBudget.getId(), userId);
-        
+
         // Async notification
         notificationProducer.sendEvent(buildCreatedEvent(savedBudget));
-        
+
         // Return DTO
         return budgetMapper.toDTO(savedBudget);
     }
-    
+
     private void validateBudgetRequest(CreateBudgetRequest request) {
         if (request.getAmount() == null || request.getAmount() <= 0) {
             throw new InvalidBudgetException("Budget amount must be positive");
@@ -345,12 +345,12 @@ public class BudgetService {
 @Slf4j
 public class BudgetController {
     private final BudgetService budgetService;
-    
+
     @PostMapping
     public ResponseEntity<BudgetDTO> createBudget(
             @Valid @RequestBody CreateBudgetRequest request,
             @AuthenticationPrincipal UserPrincipal user) {
-        
+
         log.debug("Creating budget for user: userId={}", user.getId());
         BudgetDTO budget = budgetService.createBudget(request, user.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(budget);
@@ -373,18 +373,18 @@ import { useTheme } from '../../hooks/useTheme';
 export default function BudgetCard({ budgetId, onEdit, onDelete }) {
   const { colors } = useTheme();
   const dispatch = useDispatch();
-  
+
   // Memoized selectors
-  const budget = useSelector(state => 
+  const budget = useSelector(state =>
     state.budget.budgets.find(b => b.id === budgetId)
   );
-  
+
   // Memoized calculations
   const progressPercentage = useMemo(() => {
     if (!budget) return 0;
     return (budget.spentAmount / budget.amount) * 100;
   }, [budget]);
-  
+
   // Memoized callbacks
   const handleDelete = useCallback(() => {
     if (window.confirm('Delete this budget?')) {
@@ -392,9 +392,9 @@ export default function BudgetCard({ budgetId, onEdit, onDelete }) {
       onDelete?.(budgetId);
     }
   }, [budgetId, dispatch, onDelete]);
-  
+
   if (!budget) return null;
-  
+
   return (
     <div style={{ backgroundColor: colors.cardBackground }}>
       {/* Component JSX */}
@@ -413,14 +413,14 @@ function ExpenseForm() {
   // Global state - persisted data
   const categories = useSelector(state => state.category.categories);
   const dispatch = useDispatch();
-  
+
   // Local state - UI only
   const [formData, setFormData] = useState({ amount: '', description: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Custom hook - reusable logic
   const { formatCurrency } = useCurrency();
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -446,22 +446,22 @@ import { api } from '../../config/api';
 
 export const fetchBudgetReport = (budgetId) => async (dispatch) => {
   dispatch({ type: FETCH_BUDGET_REPORT_REQUEST });
-  
+
   try {
     const { data } = await api.get(`/api/budgets/${budgetId}/report`);
-    
+
     dispatch({
       type: FETCH_BUDGET_REPORT_SUCCESS,
       payload: data
     });
   } catch (error) {
     const errorMessage = error.response?.data?.message || 'Failed to fetch report';
-    
+
     dispatch({
       type: FETCH_BUDGET_REPORT_FAILURE,
       payload: errorMessage
     });
-    
+
     // Optional: Show toast notification
     console.error('Budget report fetch error:', error);
   }
@@ -479,7 +479,7 @@ const response = await fetch('http://localhost:8080/api/budgets'); // ❌ Hardco
 // Good - Theme-aware styling
 function ExpenseCard({ expense }) {
   const { colors } = useTheme();
-  
+
   return (
     <Card sx={{
       backgroundColor: colors.cardBackground,
@@ -546,7 +546,7 @@ function useExpenseForm(initialValues) {
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const validate = () => {
     const newErrors = {};
     if (!formData.amount || formData.amount <= 0) {
@@ -555,7 +555,7 @@ function useExpenseForm(initialValues) {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
+
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user types
@@ -563,7 +563,7 @@ function useExpenseForm(initialValues) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
-  
+
   return { formData, errors, isSubmitting, setIsSubmitting, validate, handleChange };
 }
 
@@ -610,13 +610,13 @@ function ExpenseCard({ expense, onEdit, onDelete, showActions = true }) {
 public abstract class NotificationEventProducer<T extends NotificationEvent> {
     protected final KafkaTemplate<String, Object> kafkaTemplate;
     protected final ObjectMapper objectMapper;
-    
+
     // Template method - defines algorithm structure
     public void sendEvent(T event) {
         validateEvent(event);
         beforeSend(event);
         String partitionKey = generatePartitionKey(event);
-        
+
         kafkaTemplate.send(getTopicName(), partitionKey, event)
             .whenComplete((result, ex) -> {
                 if (ex != null) {
@@ -626,11 +626,11 @@ public abstract class NotificationEventProducer<T extends NotificationEvent> {
                 }
             });
     }
-    
+
     // Abstract methods - subclasses must implement
     protected abstract String getTopicName();
     protected abstract String generatePartitionKey(T event);
-    
+
     // Hook methods - subclasses can override
     protected void validateEvent(T event) { /* default validation */ }
     protected void beforeSend(T event) { /* hook */ }
@@ -643,17 +643,17 @@ public abstract class NotificationEventProducer<T extends NotificationEvent> {
 public class BudgetNotificationProducer extends NotificationEventProducer<BudgetNotificationEvent> {
     @Value("${kafka.topics.budget-events:budget-events}")
     private String topicName;
-    
+
     @Override
     protected String getTopicName() {
         return topicName;
     }
-    
+
     @Override
     protected String generatePartitionKey(BudgetNotificationEvent event) {
         return event.getUserId().toString(); // Partition by user
     }
-    
+
     @Override
     protected void validateEvent(BudgetNotificationEvent event) {
         super.validateEvent(event);
@@ -696,7 +696,7 @@ public class BudgetService {
     private final NotificationEventProducer<BudgetNotificationEvent> notificationProducer;  // Interface
     private final BudgetMapper budgetMapper;  // Interface
     private final BudgetValidator budgetValidator;  // Interface
-    
+
     // All dependencies injected, easy to test with mocks
 }
 ```
@@ -708,10 +708,10 @@ function useDataFetch(url, dependencies = []) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   useEffect(() => {
     let cancelled = false;
-    
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -728,11 +728,11 @@ function useDataFetch(url, dependencies = []) {
         if (!cancelled) setLoading(false);
       }
     };
-    
+
     fetchData();
     return () => { cancelled = true; };
   }, dependencies);
-  
+
   return { data, loading, error };
 }
 
@@ -803,7 +803,7 @@ How to verify it works
 public class BudgetNotificationProducer extends NotificationEventProducer<BudgetNotificationEvent> {
     @Value("${kafka.topics.budget-events:budget-events}")
     private String topicName;
-    
+
     @Override
     protected String generatePartitionKey(BudgetNotificationEvent event) {
         return event.getUserId().toString(); // Ensures event ordering per user
@@ -812,6 +812,8 @@ public class BudgetNotificationProducer extends NotificationEventProducer<Budget
 ```
 
 **Kafka Topics**: `{domain}-events` pattern (e.g., `expense-events`, `budget-events`). Notification service consumes all events with dedicated consumer groups (`notification-{domain}-group`).
+
+**Common Library Optional Integrations**: All services scan `com.jaya` packages, so classes under `com.jaya.common` are discovered even without explicit imports. For optional integrations such as Redis, Feign, Security, or JPA, guard config/advice classes with string-based `@ConditionalOnClass` or `@ConditionalOnProperty`, and avoid optional-class method signatures inside always-scanned fallback configs. Otherwise services that do not carry those dependencies can fail during bean introspection at startup.
 
 ### Frontend Patterns
 
@@ -918,13 +920,13 @@ docker-compose logs -f {service-name}
 // Generate JWT token after successful authentication
 public class JwtProvider {
     private static final String SECRET_KEY = "your-secret-key"; // Use environment variable in production
-    
+
     public static String generateToken(Authentication auth) {
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
         String roles = authorities.stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(","));
-        
+
         String jwt = Jwts.builder()
             .setIssuedAt(new Date())
             .setExpiration(new Date(new Date().getTime() + 86400000)) // 24 hours
@@ -932,7 +934,7 @@ public class JwtProvider {
             .claim("authorities", roles)
             .signWith(key)
             .compact();
-        
+
         return jwt;
     }
 }
@@ -946,10 +948,10 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String jwt = request.getHeader("Authorization");
-        
+
         if (jwt != null && jwt.startsWith("Bearer ")) {
             jwt = jwt.substring(7);
-            
+
             try {
                 SecretKey key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
                 Claims claims = Jwts.parserBuilder()
@@ -957,16 +959,16 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                     .build()
                     .parseClaimsJws(jwt)
                     .getBody();
-                
+
                 String email = String.valueOf(claims.get("email"));
                 String authorities = String.valueOf(claims.get("authorities"));
-                
+
                 List<GrantedAuthority> auths = AuthorityUtils
                     .commaSeparatedStringToAuthorityList(authorities);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(
                     email, null, auths);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                
+
             } catch (ExpiredJwtException e) {
                 handleJwtException(response, 401, "Token has expired. Please login again.");
                 return;
@@ -975,7 +977,7 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 return;
             }
         }
-        
+
         filterChain.doFilter(request, response);
     }
 }
@@ -1015,21 +1017,21 @@ api.interceptors.response.use(
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-    
+
     // Only ADMIN role can access
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         // Implementation
     }
-    
+
     // Multiple roles allowed
     @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @PostMapping("/approve")
     public ResponseEntity<?> approveExpense(@RequestParam Long expenseId) {
         // Implementation
     }
-    
+
     // Check specific permission
     @PreAuthorize("hasAuthority('EXPENSE_DELETE')")
     @DeleteMapping("/expenses/{id}")
@@ -1044,15 +1046,15 @@ public class AdminController {
 // ProtectedRoute component
 function ProtectedRoute({ children, requiredRole }) {
   const user = useSelector(state => state.auth.user);
-  
+
   if (!user) {
     return <Navigate to="/login" />;
   }
-  
+
   if (requiredRole && !user.roles.includes(requiredRole)) {
     return <Navigate to="/unauthorized" />;
   }
-  
+
   return children;
 }
 
@@ -1071,7 +1073,7 @@ function ProtectedRoute({ children, requiredRole }) {
 @Configuration
 @EnableWebSecurity
 public class ApplicationConfiguration {
-    
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -1082,10 +1084,10 @@ public class ApplicationConfiguration {
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll())
             .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class);
-        
+
         return http.build();
     }
-    
+
     private CorsConfigurationSource corsConfigurationSource() {
         return request -> {
             CorsConfiguration cfg = new CorsConfiguration();
@@ -1117,25 +1119,25 @@ public class BudgetService {
     private final BudgetRepository budgetRepository;
     private final ExpenseRepository expenseRepository;
     private final BudgetNotificationProducer notificationProducer;
-    
+
     // Basic transaction - auto rollback on exception
     @Transactional
     public BudgetDTO createBudget(CreateBudgetRequest request, Long userId) {
         // All database operations in single transaction
         Budget budget = budgetMapper.toEntity(request);
         budget.setUserId(userId);
-        
+
         Budget savedBudget = budgetRepository.save(budget);
-        
+
         // If this throws exception, budget save will rollback
         updateRelatedExpenses(savedBudget.getId());
-        
+
         // Kafka events sent AFTER transaction commits
         notificationProducer.sendEvent(buildCreatedEvent(savedBudget));
-        
+
         return budgetMapper.toDTO(savedBudget);
     }
-    
+
     // Read-only transaction (optimization)
     @Transactional(readOnly = true)
     public BudgetDTO getBudgetById(Long budgetId) {
@@ -1143,17 +1145,17 @@ public class BudgetService {
             .map(budgetMapper::toDTO)
             .orElseThrow(() -> new BudgetNotFoundException("Budget not found: " + budgetId));
     }
-    
+
     // Transaction with specific isolation level
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public void updateBudgetSpent(Long budgetId, BigDecimal amount) {
         Budget budget = budgetRepository.findById(budgetId)
             .orElseThrow(() -> new BudgetNotFoundException("Budget not found"));
-        
+
         budget.setSpentAmount(budget.getSpentAmount().add(amount));
         budgetRepository.save(budget);
     }
-    
+
     // Transaction with custom rollback rules
     @Transactional(rollbackFor = {BusinessException.class, DataException.class},
                    noRollbackFor = {ValidationException.class})
@@ -1221,14 +1223,14 @@ eureka:
 ```java
 @Component
 public class BudgetNotificationProducer {
-    
+
     // Inject with default value
     @Value("${kafka.topics.budget-events:budget-events}")
     private String topicName;
-    
+
     @Value("${app.notification.retry.max-attempts:3}")
     private int maxRetryAttempts;
-    
+
     @Value("${app.budget.threshold.warning:80.0}")
     private Double warningThreshold;
 }
@@ -1242,13 +1244,13 @@ public class BudgetNotificationProducer {
 public class BudgetConfigProperties {
     private Threshold threshold = new Threshold();
     private Notification notification = new Notification();
-    
+
     @Data
     public static class Threshold {
         private Double warning = 80.0;
         private Double critical = 95.0;
     }
-    
+
     @Data
     public static class Notification {
         private Boolean enabled = true;
@@ -1261,7 +1263,7 @@ public class BudgetConfigProperties {
 @RequiredArgsConstructor
 public class BudgetService {
     private final BudgetConfigProperties config;
-    
+
     public void checkThreshold(Budget budget) {
         if (budget.getPercentageUsed() >= config.getThreshold().getWarning()) {
             // Send warning
@@ -1279,13 +1281,13 @@ public class BudgetService {
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
         config.setApplicationDestinationPrefixes("/app");
     }
-    
+
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-notifications")
@@ -1301,7 +1303,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 @RequiredArgsConstructor
 public class NotificationWebSocketService {
     private final SimpMessagingTemplate messagingTemplate;
-    
+
     public void sendNotificationToUser(Long userId, NotificationDTO notification) {
         // Send to specific user
         messagingTemplate.convertAndSendToUser(
@@ -1310,7 +1312,7 @@ public class NotificationWebSocketService {
             notification
         );
     }
-    
+
     public void broadcastNotification(NotificationDTO notification) {
         // Broadcast to all connected users
         messagingTemplate.convertAndSend(
@@ -1333,39 +1335,39 @@ export function useWebSocket(userId) {
   const [stompClient, setStompClient] = useState(null);
   const [connected, setConnected] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  
+
   useEffect(() => {
     if (!userId) return;
-    
+
     const socket = new SockJS('http://localhost:6003/ws-notifications');
     const client = Stomp.over(socket);
-    
+
     client.connect({}, () => {
       console.log('WebSocket connected');
       setConnected(true);
-      
+
       // Subscribe to user-specific notifications
       client.subscribe(`/user/${userId}/queue/notifications`, (message) => {
         const notification = JSON.parse(message.body);
         setNotifications(prev => [notification, ...prev]);
       });
-      
+
       // Subscribe to broadcast notifications
       client.subscribe('/topic/notifications', (message) => {
         const notification = JSON.parse(message.body);
         setNotifications(prev => [notification, ...prev]);
       });
     });
-    
+
     setStompClient(client);
-    
+
     return () => {
       if (client) {
         client.disconnect();
       }
     };
   }, [userId]);
-  
+
   return { connected, notifications, stompClient };
 }
 
@@ -1373,7 +1375,7 @@ export function useWebSocket(userId) {
 function NotificationPanel() {
   const userId = useSelector(state => state.auth.user?.id);
   const { connected, notifications } = useWebSocket(userId);
-  
+
   return (
     <div>
       <div>Status: {connected ? 'Connected' : 'Disconnected'}</div>
@@ -1400,21 +1402,21 @@ public class Budget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private Long userId;
     private String name;
     private BigDecimal amount;
     private BigDecimal spentAmount;
-    
+
     @Enumerated(EnumType.STRING)
     private BudgetPeriod period;
-    
+
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    
+
     @CreatedDate
     private LocalDateTime createdAt;
-    
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }
@@ -1435,7 +1437,7 @@ public class BudgetDTO {
     private String period;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    
+
     // Computed fields not in database
     private Integer daysRemaining;
     private Boolean isExpired;
@@ -1447,26 +1449,26 @@ public class BudgetDTO {
 ```java
 @Component
 public class BudgetMapper {
-    
+
     public BudgetDTO toDTO(Budget entity) {
         if (entity == null) return null;
-        
+
         BudgetDTO dto = new BudgetDTO();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setAmount(entity.getAmount());
         dto.setSpentAmount(entity.getSpentAmount());
-        
+
         // Computed fields
         BigDecimal remaining = entity.getAmount().subtract(entity.getSpentAmount());
         dto.setRemainingAmount(remaining);
-        
+
         double percentage = entity.getSpentAmount()
             .divide(entity.getAmount(), 2, RoundingMode.HALF_UP)
             .multiply(BigDecimal.valueOf(100))
             .doubleValue();
         dto.setPercentageUsed(percentage);
-        
+
         // Status logic
         if (LocalDateTime.now().isAfter(entity.getEndDate())) {
             dto.setStatus("EXPIRED");
@@ -1475,20 +1477,20 @@ public class BudgetMapper {
         } else {
             dto.setStatus("ACTIVE");
         }
-        
+
         return dto;
     }
-    
+
     public Budget toEntity(BudgetDTO dto) {
         if (dto == null) return null;
-        
+
         Budget entity = new Budget();
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setAmount(dto.getAmount());
         entity.setSpentAmount(dto.getSpentAmount());
         // Don't map computed fields
-        
+
         return entity;
     }
 }
@@ -1500,22 +1502,22 @@ public class BudgetMapper {
 ```java
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    
+
     // Query methods - Spring Data JPA generates implementation
     List<Budget> findByUserId(Long userId);
-    
+
     List<Budget> findByUserIdAndEndDateAfter(Long userId, LocalDateTime date);
-    
+
     @Query("SELECT b FROM Budget b WHERE b.userId = :userId AND b.spentAmount >= b.amount")
     List<Budget> findExceededBudgets(@Param("userId") Long userId);
-    
+
     // Custom query with pagination
     @Query("SELECT b FROM Budget b WHERE b.userId = :userId ORDER BY b.createdAt DESC")
     Page<Budget> findByUserIdOrderByCreatedAtDesc(
-        @Param("userId") Long userId, 
+        @Param("userId") Long userId,
         Pageable pageable
     );
-    
+
     // Modifying query
     @Modifying
     @Query("UPDATE Budget b SET b.spentAmount = :amount WHERE b.id = :id")
@@ -1546,7 +1548,7 @@ public interface BudgetRepository extends JpaRepository<Budget, Long> {
 @Configuration
 @EnableCaching
 public class RedisCacheConfig {
-    
+
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
@@ -1555,7 +1557,7 @@ public class RedisCacheConfig {
                 .fromSerializer(new StringRedisSerializer()))
             .serializeValuesWith(RedisSerializationContext.SerializationPair
                 .fromSerializer(new GenericJackson2JsonRedisSerializer()));
-        
+
         return RedisCacheManager.builder(connectionFactory)
             .cacheDefaults(config)
             .build();
@@ -1568,7 +1570,7 @@ public class RedisCacheConfig {
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    
+
     @Cacheable(value = "chatHistory", key = "#userId")
     public List<ChatMessageDTO> getChatHistory(Long userId) {
         return chatRepository.findByUserId(userId)
@@ -1576,12 +1578,12 @@ public class ChatService {
             .map(chatMapper::toDTO)
             .collect(Collectors.toList());
     }
-    
+
     @CacheEvict(value = "chatHistory", key = "#userId")
     public void sendMessage(Long userId, ChatMessage message) {
         chatRepository.save(message);
     }
-    
+
     @CacheEvict(value = "chatHistory", allEntries = true)
     public void clearAllChats() {
         chatRepository.deleteAll();
@@ -1613,11 +1615,11 @@ public ResponseEntity<Page<ExpenseDTO>> getExpenses(
         @RequestParam Long userId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "20") int size) {
-    
+
     Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
     Page<Expense> expenses = expenseRepository.findByUserId(userId, pageable);
     Page<ExpenseDTO> dtoPage = expenses.map(expenseMapper::toDTO);
-    
+
     return ResponseEntity.ok(dtoPage);
 }
 ```
@@ -1626,15 +1628,15 @@ public ResponseEntity<Page<ExpenseDTO>> getExpenses(
 ```java
 @Service
 public class BudgetBatchService {
-    
+
     @Scheduled(cron = "0 0 * * * *") // Every hour
     @Transactional
     public void processExceededBudgets() {
         List<Budget> exceededBudgets = budgetRepository.findExceededBudgets();
-        
+
         // Process in batches of 100
         List<List<Budget>> batches = Lists.partition(exceededBudgets, 100);
-        
+
         for (List<Budget> batch : batches) {
             batch.forEach(this::sendExceededNotification);
         }
@@ -1650,44 +1652,44 @@ public class BudgetBatchService {
 ```java
 @ExtendWith(MockitoExtension.class)
 class BudgetServiceTest {
-    
+
     @Mock
     private BudgetRepository budgetRepository;
-    
+
     @Mock
     private BudgetNotificationProducer notificationProducer;
-    
+
     @InjectMocks
     private BudgetService budgetService;
-    
+
     @Test
     void createBudget_ShouldSaveAndSendNotification() {
         // Given
         CreateBudgetRequest request = new CreateBudgetRequest();
         request.setName("Monthly Budget");
         request.setAmount(BigDecimal.valueOf(1000));
-        
+
         Budget savedBudget = new Budget();
         savedBudget.setId(1L);
-        
+
         when(budgetRepository.save(any(Budget.class))).thenReturn(savedBudget);
-        
+
         // When
         BudgetDTO result = budgetService.createBudget(request, 1L);
-        
+
         // Then
         assertNotNull(result);
         verify(budgetRepository).save(any(Budget.class));
         verify(notificationProducer).sendEvent(any(BudgetNotificationEvent.class));
     }
-    
+
     @Test
     void getBudgetById_WhenNotFound_ShouldThrowException() {
         // Given
         when(budgetRepository.findById(1L)).thenReturn(Optional.empty());
-        
+
         // When & Then
-        assertThrows(BudgetNotFoundException.class, 
+        assertThrows(BudgetNotFoundException.class,
             () -> budgetService.getBudgetById(1L));
     }
 }
@@ -1697,25 +1699,25 @@ class BudgetServiceTest {
 ```java
 @WebMvcTest(BudgetController.class)
 class BudgetControllerTest {
-    
+
     @Autowired
     private MockMvc mockMvc;
-    
+
     @MockBean
     private BudgetService budgetService;
-    
+
     @Test
     void createBudget_ShouldReturn201() throws Exception {
         // Given
         CreateBudgetRequest request = new CreateBudgetRequest();
         request.setName("Monthly Budget");
         request.setAmount(BigDecimal.valueOf(1000));
-        
+
         BudgetDTO response = new BudgetDTO();
         response.setId(1L);
-        
+
         when(budgetService.createBudget(any(), any())).thenReturn(response);
-        
+
         // When & Then
         mockMvc.perform(post("/api/budgets")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1744,29 +1746,30 @@ describe('BudgetCard', () => {
       spentAmount: 500,
       percentageUsed: 50
     };
-    
+
     render(
       <Provider store={store}>
         <BudgetCard budget={budget} />
       </Provider>
     );
-    
+
     expect(screen.getByText('Monthly Budget')).toBeInTheDocument();
     expect(screen.getByText('$1,000')).toBeInTheDocument();
     expect(screen.getByText('50%')).toBeInTheDocument();
   });
-  
+
   it('should call onEdit when edit button clicked', () => {
     const onEdit = jest.fn();
-    
+
     render(
       <Provider store={store}>
         <BudgetCard budget={budget} onEdit={onEdit} />
       </Provider>
     );
-    
+
     fireEvent.click(screen.getByRole('button', { name: /edit/i }));
     expect(onEdit).toHaveBeenCalledWith(1);
   });
 });
 ```
+````
