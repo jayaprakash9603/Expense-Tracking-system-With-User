@@ -27,7 +27,7 @@ export default function FormField({
             className={
               isVertical
                 ? "w-full"
-                : "w-full lg:min-w-[150px] shrink-0"
+                : "w-full shrink-0"
             }
             style={{
               color: colors.primary_text,
@@ -48,7 +48,10 @@ export default function FormField({
         </div>
       </div>
       {error && (
-        <span className="text-red-500 text-sm mt-1 lg:mt-0 lg:ml-[150px]">
+        <span
+          className="text-red-500 text-sm mt-1 lg:mt-0"
+          style={{ marginLeft: isVertical ? undefined : labelWidth }}
+        >
           {typeof error === "string" ? error : ""}
         </span>
       )}

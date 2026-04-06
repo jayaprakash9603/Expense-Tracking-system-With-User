@@ -9,6 +9,8 @@ import {
   editBudgetAction,
 } from "../../../Redux/Budget/budget.action";
 import { useSelector } from "react-redux";
+import { IconButton } from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
 import useFormPage from "../../../shared/form/hooks/useFormPage";
 import useFormState from "../../../shared/form/hooks/useFormState";
 import FormPageShell from "../../../shared/form/components/FormPageShell";
@@ -220,7 +222,6 @@ export default function BudgetFormPage({ mode }) {
   const linkExpensesLabel = t(`${i18nPrefix}.actions.linkExpenses`);
   const submitLabel = t(`${i18nPrefix}.actions.submit`);
   const submittingLabel = t(`${i18nPrefix}.actions.submitting`);
-  const closeLabel = t("common.close");
   const pageTitle = t(`${i18nPrefix}.title`);
   const successMessage = isEditMode
     ? t("editBudget.messages.updateSuccess")
@@ -452,17 +453,14 @@ export default function BudgetFormPage({ mode }) {
         <div className="flex-1">
           <FormRow first>
             {renderInput("name")}
-            <div className="flex-1 hidden sm:block" />
-          </FormRow>
-          <FormRow>
             {renderDateInput("startDate")}
             {renderDateInput("endDate")}
           </FormRow>
           <FormRow className="mb-4">
             {renderAmountInput()}
-            <div className="flex-1 hidden sm:block" />
+            {renderDescriptionField()}
+            <div className="flex-1 hidden lg:block" />
           </FormRow>
-          <FormRow className="mb-4">{renderDescriptionField()}</FormRow>
           {budgetError && (
             <div className="text-red-500 text-sm mb-4">
               {budgetError.message || budgetErrorFallback}
@@ -495,27 +493,16 @@ export default function BudgetFormPage({ mode }) {
               {linkExpensesLabel}
             </button>
             {showTable && (
-              <button
+              <IconButton
                 onClick={handleCloseTable}
-                className="px-2 py-1 border rounded mt-2 sm:mt-0 hidden sm:block"
-                style={{
-                  backgroundColor: colors.active_bg,
-                  color: colors.primary_text,
-                  borderColor: colors.border_color,
-                  whiteSpace: "nowrap",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                className="hidden sm:flex"
+                sx={{
+                  color: "#ff4444",
+                  "&:hover": { backgroundColor: "#ff444420" },
                 }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = colors.hover_bg)
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = colors.active_bg)
-                }
               >
-                {closeLabel}
-              </button>
+                <CloseIcon />
+              </IconButton>
             )}
           </div>
           {showTable && (
@@ -534,20 +521,16 @@ export default function BudgetFormPage({ mode }) {
                 "--pm-scrollbar-track": colors.secondary_bg,
               }}
             >
-              <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
-                <div className="block sm:hidden self-end">
-                  <button
-                    onClick={handleCloseTable}
-                    className="px-2 py-1 border rounded"
-                    style={{
-                      backgroundColor: colors.active_bg,
-                      color: colors.primary_text,
-                      borderColor: colors.border_color,
-                    }}
-                  >
-                    {closeLabel}
-                  </button>
-                </div>
+              <div className="flex justify-end mb-4 sm:hidden">
+                <IconButton
+                  onClick={handleCloseTable}
+                  sx={{
+                    color: "#ff4444",
+                    "&:hover": { backgroundColor: "#ff444420" },
+                  }}
+                >
+                  <CloseIcon />
+                </IconButton>
               </div>
               <GroupedDataTable
                 rows={filteredRows}

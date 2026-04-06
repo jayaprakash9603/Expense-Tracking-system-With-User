@@ -6,3 +6,4 @@
 debug-*.log
 *.log
 .playwright-cli
+.code-review-graph

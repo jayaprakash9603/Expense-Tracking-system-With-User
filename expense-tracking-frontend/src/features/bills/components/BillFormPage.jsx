@@ -246,7 +246,7 @@ export default function BillFormPage({ mode, onClose, onSuccess, billId: propBil
                   {t("billCommon.fields.name")}
                   <span className="text-red-500"> *</span>
                 </label>
-                <div style={isEditMode ? { width: "100%", maxWidth: 300 } : undefined}>
+                <div className="relative flex-1" style={{ maxWidth: "300px" }}>
                   <ExpenseNameAutocomplete
                     value={billData.name}
                     onChange={(val) => {

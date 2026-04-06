@@ -185,9 +185,6 @@ public class BudgetServiceImpl implements BudgetService {
         Set<Integer> expenseIdsToRemove = new HashSet<>(oldExpenseIds);
         expenseIdsToRemove.removeAll(validExpenseIds);
 
-        Set<Integer> expenseIdsToAdd = new HashSet<>(validExpenseIds);
-        expenseIdsToAdd.removeAll(oldExpenseIds);
-
         existingBudget.setExpenseIds(validExpenseIds);
         existingBudget.setBudgetHasExpenses(!validExpenseIds.isEmpty());
 
@@ -196,9 +193,10 @@ public class BudgetServiceImpl implements BudgetService {
             publishBatchExpenseBudgetRemove(expenseIdsToRemove, budgetId.longValue(), userId);
         }
 
-        if (!expenseIdsToAdd.isEmpty()) {
-            log.info("Publishing batch link for {} expenses to budget {}", expenseIdsToAdd.size(), budgetId);
-            publishBatchExpenseBudgetLink(expenseIdsToAdd, budgetId.longValue(), userId);
+        if (!validExpenseIds.isEmpty()) {
+            log.info("Publishing batch link for all {} valid expenses to budget {} (ensures bidirectional sync)",
+                    validExpenseIds.size(), budgetId);
+            publishBatchExpenseBudgetLink(validExpenseIds, budgetId.longValue(), userId);
         }
 
         BudgetReport budgetReport = calculateBudgetReport(userId, budgetId);
@@ -2119,6 +2117,50 @@ public class BudgetServiceImpl implements BudgetService {
                 subsequencePattern, limit);
         List<BudgetSearchDTO> results = budgetRepository.searchBudgetsFuzzyWithLimit(userId, subsequencePattern);
         return results.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> reconcileBudgetExpenseLinks(Integer userId) {
+        log.info("Starting budget-expense link reconciliation for userId={}", userId);
+
+        List<Budget> budgets = budgetRepository.findByUserId(userId);
+        int totalBudgets = budgets.size();
+        int budgetsWithExpenses = 0;
+        int totalExpensesReconciled = 0;
+        List<Map<String, Object>> reconciled = new ArrayList<>();
+
+        for (Budget budget : budgets) {
+            Set<Integer> expenseIds = budget.getExpenseIds();
+            if (expenseIds == null || expenseIds.isEmpty()) {
+                continue;
+            }
+
+            budgetsWithExpenses++;
+            int expenseCount = expenseIds.size();
+            totalExpensesReconciled += expenseCount;
+
+            publishBatchExpenseBudgetLink(expenseIds, budget.getId().longValue(), userId);
+
+            Map<String, Object> entry = new LinkedHashMap<>();
+            entry.put("budgetId", budget.getId());
+            entry.put("budgetName", budget.getName());
+            entry.put("expenseCount", expenseCount);
+            entry.put("expenseIds", expenseIds);
+            reconciled.add(entry);
+
+            log.info("Reconciled budgetId={} '{}' with {} expenses", budget.getId(), budget.getName(), expenseCount);
+        }
+
+        log.info("Reconciliation complete for userId={}: {} budgets processed, {} had expenses, {} expense links published",
+                userId, totalBudgets, budgetsWithExpenses, totalExpensesReconciled);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("userId", userId);
+        result.put("totalBudgets", totalBudgets);
+        result.put("budgetsWithExpenses", budgetsWithExpenses);
+        result.put("totalExpenseLinksPublished", totalExpensesReconciled);
+        result.put("details", reconciled);
+        return result;
     }
 
     private String convertToSubsequencePattern(String query) {

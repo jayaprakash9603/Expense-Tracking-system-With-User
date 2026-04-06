@@ -312,4 +312,16 @@ public class BudgetController {
         return ResponseEntity.ok(budgets);
     }
 
+    @PostMapping("/reconcile-expense-links")
+    public ResponseEntity<?> reconcileBudgetExpenseLinks(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+        UserDTO reqUser = authenticate(jwt);
+        UserDTO targetUser = getTargetUserWithPermissionCheck(targetId, reqUser, true);
+
+        log.info("Reconciliation requested by userId={} for targetUserId={}", reqUser.getId(), targetUser.getId());
+        Map<String, Object> result = budgetService.reconcileBudgetExpenseLinks(targetUser.getId());
+        return ResponseEntity.ok(result);
+    }
+
 }

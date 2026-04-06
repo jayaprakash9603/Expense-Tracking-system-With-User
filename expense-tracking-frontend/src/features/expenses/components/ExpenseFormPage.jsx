@@ -401,6 +401,8 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
     );
   };
 
+  const editLabelWidth = isEditMode ? "120px" : undefined;
+
   const renderExpenseNameWithSuggestions = () => (
     <FormField
       label={fieldLabels.expenseName}
@@ -408,6 +410,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.expenseName}
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <ExpenseNameAutocomplete
         value={formData.expenseName}
@@ -432,6 +435,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.amount}
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <ThemedAmountField
         id="amount"
@@ -459,6 +463,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.date}
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <ThemedDatePicker
         value={formData.date}
@@ -481,6 +486,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.transactionType}
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <div className="relative">
         <ThemedAutocomplete
@@ -542,6 +548,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       htmlFor="category"
       error={errors.category}
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <div className="relative">
         <CategoryAutocomplete
@@ -565,6 +572,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       label={fieldLabels.paymentMethod}
       htmlFor="paymentMethod"
       colors={colors}
+      labelWidth={editLabelWidth}
     >
       <div className="relative">
         <PaymentMethodAutocomplete
@@ -589,6 +597,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       htmlFor="comments"
       colors={colors}
       layout={isCreateMode ? "horizontal" : undefined}
+      labelWidth={editLabelWidth}
     >
       <div className="relative">
         {isCreateMode && autoFilledFields.comments && (
@@ -738,7 +747,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
             className={`w-full relative ${
               isCreateMode
                 ? "mt-2 sm:mt-3 overflow-x-auto overflow-y-hidden mb-20 lg:mb-0"
-                : "mt-4 sm:mt-6"
+                : "mt-4 sm:mt-6 overflow-x-auto"
             }`}
             style={tableVars}
           >

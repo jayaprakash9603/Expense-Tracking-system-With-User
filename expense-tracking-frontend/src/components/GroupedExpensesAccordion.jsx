@@ -36,18 +36,12 @@ const GroupedExpensesAccordion = ({
   }, [dispatch]);
 
   const handleSelectionChange = useCallback(
-    ({ selectedRowsByGroup }) => {
-      // Flatten the selected keys across all groups
-      const allSelectedIds = [];
-      Object.values(selectedRowsByGroup).forEach(groupSelection => {
-        Object.keys(groupSelection).forEach(id => {
-          if (groupSelection[id]) {
-            allSelectedIds.push(id); // assuming id is string, might need parsing depending on actual id
-          }
-        });
-      });
-      // Deduplicate
-      const uniqueIds = Array.from(new Set(allSelectedIds));
+    (selectedIds) => {
+      if (!selectedIds || !Array.isArray(selectedIds)) {
+        dispatch(setExpenseSelection([]));
+        return;
+      }
+      const uniqueIds = Array.from(new Set(selectedIds));
       dispatch(setExpenseSelection(uniqueIds));
     },
     [dispatch]
@@ -194,7 +188,6 @@ const GroupedExpensesAccordion = ({
           enableRowSortControls
           enableSelection
           selectedGlobalIds={selectedGlobalIds}
-          onSelectionChange={handleSelectionChange}
           onSelectionChange={handleSelectionChange}
           classify={classify}
           columns={columns}
