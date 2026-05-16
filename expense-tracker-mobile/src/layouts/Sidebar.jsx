@@ -86,6 +86,23 @@ function SidebarContent() {
                 )}
               </div>
             )}
+            {collapsed && idx === 0 && !isTablet && (
+              <div className="flex justify-center mb-2">
+                <button
+                  onClick={toggleSidebar}
+                  className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent transition-colors"
+                  title={t("sidebar.expand")}
+                >
+                  <AppIcon icon={PanelLeftOpen} color="soft" size="sm" />
+                </button>
+              </div>
+            )}
+                  >
+                    <AppIcon icon={PanelLeftClose} color="soft" size="sm" />
+                  </button>
+                )}
+              </div>
+            )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const active = isActiveRoute(location.pathname, item.path);
@@ -122,15 +139,6 @@ function SidebarContent() {
       </nav>
 
       <div className="shrink-0 border-t border-border p-2 space-y-1.5">
-        {!isTablet && collapsed && (
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent transition-colors mx-auto"
-            title={t("sidebar.expand")}
-          >
-            <AppIcon icon={PanelLeftOpen} color="soft" size="sm" />
-          </button>
-        )}
 
         <Separator />
 
