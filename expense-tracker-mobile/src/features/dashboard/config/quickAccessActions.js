@@ -58,7 +58,6 @@ export const DASHBOARD_QUICK_ACCESS_ACTIONS = [
     path: "/reports",
     labelKey: "navigation.reports",
     color: "sky",
-    featureFlag: "sidebarInsights",
   },
   {
     key: "expense-list",

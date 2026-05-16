@@ -54,7 +54,7 @@ export function QuickAccess() {
           </div>
           <span className="flex min-w-0 items-center gap-1">
             <Plus className="h-3 w-3 shrink-0" />
-            <span className="truncate">{t(action.labelKey)}</span>
+            <span className="whitespace-nowrap">{t(action.labelKey)}</span>
           </span>
         </Button>
       ))}
