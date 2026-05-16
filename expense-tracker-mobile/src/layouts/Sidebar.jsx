@@ -65,24 +65,26 @@ function SidebarContent() {
             {APP_NAME}
           </h2>
         </div>
-        {!isTablet && !collapsed && (
-          <button
-            onClick={toggleSidebar}
-            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent transition-colors shrink-0"
-            title={t("sidebar.collapse")}
-          >
-            <AppIcon icon={PanelLeftClose} color="soft" size="sm" />
-          </button>
-        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4 sidebar-scrollbar">
-        {navGroups.map((group) => (
+        {navGroups.map((group, idx) => (
           <div key={group.key}>
             {!collapsed && (
-              <p className="px-3 mb-1.5 text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
-                {t(group.labelKey)}
-              </p>
+              <div className="flex items-center justify-between px-3 mb-1.5">
+                <p className="text-[0.625rem] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {t(group.labelKey)}
+                </p>
+                {idx === 0 && !isTablet && (
+                  <button
+                    onClick={toggleSidebar}
+                    className="flex items-center justify-center w-6 h-6 rounded-md hover:bg-accent transition-colors"
+                    title={t("sidebar.collapse")}
+                  >
+                    <AppIcon icon={PanelLeftClose} color="soft" size="sm" />
+                  </button>
+                )}
+              </div>
             )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
