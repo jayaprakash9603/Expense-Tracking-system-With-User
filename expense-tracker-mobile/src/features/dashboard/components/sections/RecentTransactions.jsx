@@ -35,9 +35,9 @@ function RecentTransactionsSkeleton({ count }) {
       {items.map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 rounded-lg border border-border p-3"
+          className="flex items-center gap-2.5 rounded-lg border border-border px-3 py-2"
         >
-          <Skeleton className="h-11 w-11 shrink-0 rounded-full" />
+          <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
           <div className="min-w-0 flex-1 space-y-2">
             <Skeleton className="h-4 w-[min(100%,14rem)]" />
             <Skeleton className="h-3 w-24" />

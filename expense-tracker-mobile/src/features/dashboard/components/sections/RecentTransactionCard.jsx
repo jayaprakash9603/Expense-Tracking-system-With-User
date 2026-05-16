@@ -17,17 +17,17 @@ export function RecentTransactionCard({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-border p-3",
-        row.variant === "loss" && "bg-red-500/[0.1]",
-        row.variant === "gain" && "bg-emerald-500/[0.12]",
+        "flex items-center gap-2.5 rounded-lg border border-border px-3 py-2",
+        row.variant === "loss" && "bg-red-50 dark:bg-red-500/[0.06]",
+        row.variant === "gain" && "bg-emerald-50 dark:bg-emerald-500/[0.06]",
         animated && "transition-colors duration-200",
       )}
     >
       <div
         className={cn(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl leading-none",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base leading-none",
           row.variant === "loss" && "bg-muted",
-          row.variant === "gain" && "bg-emerald-500/15",
+          row.variant === "gain" && "bg-emerald-100 dark:bg-emerald-500/15",
         )}
         aria-hidden
       >
