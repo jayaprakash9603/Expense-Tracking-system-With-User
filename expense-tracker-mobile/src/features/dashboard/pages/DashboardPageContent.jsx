@@ -46,18 +46,11 @@ function MetricsSection() {
   return (
     <SummaryCardGrid>
       <SummaryCard
-        title={t("analytics.totalBalance")}
+        title={t("dashboard.totalSpending")}
         rawAmount={totalExpenses}
         icon={Receipt}
         variant="blue"
         sparklineData={[3, 4, 3, 5, 8, 6, 7]}
-      />
-      <SummaryCard
-        title={t("analytics.monthlySpending")}
-        rawAmount={totalSpent}
-        icon={Wallet}
-        variant="emerald"
-        sparklineData={[5, 6, 4, 7, 8, 5, 9]}
       />
       <SummaryCard
         title={t("analytics.creditDue")}
@@ -67,7 +60,14 @@ function MetricsSection() {
         sparklineData={[2, 3, 2, 4, 3, 5, 6]}
       />
       <SummaryCard
-        title={t("analytics.billsPaid")}
+        title={t("dashboard.budgetUsed")}
+        rawAmount={totalSpent}
+        icon={Wallet}
+        variant="emerald"
+        sparklineData={[5, 6, 4, 7, 8, 5, 9]}
+      />
+      <SummaryCard
+        title={t("dashboard.upcomingBills")}
         rawAmount={upcomingBillsAmount}
         icon={PiggyBank}
         variant="rose"

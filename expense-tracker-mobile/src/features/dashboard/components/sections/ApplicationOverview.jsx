@@ -23,7 +23,7 @@ export function ApplicationOverview() {
   } = useDashboardData();
 
   const primaryStats = [
-    { key: "expenses", icon: Receipt, iconColor: "primary", title: t("analytics.totalBalance"), rawAmount: totalExpenses },
+    { key: "expenses", icon: Receipt, iconColor: "primary", title: t("dashboard.totalSpending"), rawAmount: totalExpenses },
     { key: "credit", icon: CreditCard, iconColor: "warning", title: t("analytics.creditDue"), rawAmount: creditDue },
     { key: "budgets", icon: Wallet, iconColor: "success", title: t("dashboard.activeBudgets"), value: String(activeBudgets) },
     { key: "friends", icon: Users, iconColor: "info", title: t("dashboard.friends"), value: String(friendsCount) },
