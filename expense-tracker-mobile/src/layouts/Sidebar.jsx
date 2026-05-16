@@ -112,17 +112,10 @@ function SidebarContent() {
         {!isTablet && (
           <button
             onClick={toggleSidebar}
-            className="flex items-center gap-3 w-full rounded-lg px-3 py-2 hover:bg-accent transition-colors"
+            className="flex items-center justify-center w-7 h-7 rounded-full border border-border hover:bg-accent transition-colors mx-auto"
             title={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
           >
-            {collapsed ? (
-              <AppIcon icon={ChevronRight} color="soft" size="sm" className="mx-auto" />
-            ) : (
-              <>
-                <AppIcon icon={ChevronLeft} color="soft" size="sm" />
-                <span className="text-sm text-muted-foreground">{t("sidebar.collapse")}</span>
-              </>
-            )}
+            <AppIcon icon={collapsed ? ChevronRight : ChevronLeft} color="soft" size="sm" />
           </button>
         )}
 
