@@ -44,7 +44,7 @@ export function ApplicationOverview() {
       icon: PiggyBank,
       iconColor: "success",
       title: t("dashboard.savingsRate"),
-      value: `${savingsRate}%`,
+      value: `${Number(savingsRate || 0).toFixed(1)}%`,
       subtitle: t("dashboard.ofIncome"),
     },
     {
@@ -64,7 +64,7 @@ export function ApplicationOverview() {
       </AppCard.Header>
       <AppCard.Content className="flex min-h-0 flex-1 flex-col gap-4 pt-0">
         <div className="shrink-0 space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
             {primaryStats.map((stat) => (
               <MiniStatCard key={stat.key} {...stat} />
             ))}

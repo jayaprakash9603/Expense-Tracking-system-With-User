@@ -37,9 +37,9 @@ export function MiniStatCard({
         <AppIcon icon={icon} color={iconColor} size="md" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-xs text-muted-foreground truncate">{title}</p>
-        <p className="text-base md:text-lg font-bold leading-tight truncate">{displayValue}</p>
-        {subtitle && <p className="text-[0.6875rem] text-muted-foreground truncate">{subtitle}</p>}
+        <p className="text-xs text-muted-foreground whitespace-nowrap">{title}</p>
+        <p className="text-base md:text-lg font-bold leading-tight whitespace-nowrap">{displayValue}</p>
+        {subtitle && <p className="text-[0.6875rem] text-muted-foreground whitespace-nowrap">{subtitle}</p>}
       </div>
     </div>
   );
