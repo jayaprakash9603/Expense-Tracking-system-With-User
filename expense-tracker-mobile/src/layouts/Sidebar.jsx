@@ -97,12 +97,6 @@ function SidebarContent() {
                 </button>
               </div>
             )}
-                  >
-                    <AppIcon icon={PanelLeftClose} color="soft" size="sm" />
-                  </button>
-                )}
-              </div>
-            )}
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const active = isActiveRoute(location.pathname, item.path);
