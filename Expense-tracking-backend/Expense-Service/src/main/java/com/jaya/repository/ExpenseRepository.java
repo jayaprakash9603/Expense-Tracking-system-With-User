@@ -344,6 +344,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         List<Expense> findAllByUserIdAndIdIn(@Param("userId") Integer userId,
                         @Param("expenseIds") Set<Integer> expenseIds);
 
+        @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.userId = :userId AND e.categoryId = :categoryId")
+        List<Expense> findByUserIdAndCategoryId(@Param("userId") Integer userId,
+                        @Param("categoryId") Integer categoryId);
+
         /**
          * Batch fetch expenses by IDs with JOIN FETCH to avoid N+1 queries.
          * Used for bulk operations like updateMultipleExpenses and deleteAllExpenses.

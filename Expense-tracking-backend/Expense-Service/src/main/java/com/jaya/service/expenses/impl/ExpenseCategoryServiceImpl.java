@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
@@ -42,11 +43,18 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
                 expenseIds = category.getExpenseIds().get(userId);
             }
 
-            if (expenseIds.isEmpty()) {
+            List<Expense> expensesByCategory = expenseRepository.findByUserIdAndCategoryId(userId, categoryId);
+
+            if (expenseIds.isEmpty() && expensesByCategory.isEmpty()) {
                 return new ArrayList<>();
             }
 
-            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, expenseIds);
+            Set<Integer> allExpenseIds = new HashSet<>(expenseIds);
+            for (Expense e : expensesByCategory) {
+                allExpenseIds.add(e.getId());
+            }
+
+            List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, allExpenseIds);
 
             return expenses;
         } catch (Exception e) {
@@ -63,6 +71,9 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
         List<Expense> userExpenses = expenseCoreService.getAllExpenses(userId);
 
+        Map<Integer, ExpenseCategory> categoryById = userCategories.stream()
+                .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
+
         Map<ExpenseCategory, List<Expense>> categoryExpensesMap = new HashMap<>();
 
         for (ExpenseCategory category : userCategories) {
@@ -70,14 +81,25 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
         }
 
         for (Expense expense : userExpenses) {
-            for (ExpenseCategory category : userCategories) {
-                
-                
-                
-                if (category.getExpenseIds() != null) {
-                    Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
-                    if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
-                        categoryExpensesMap.get(category).add(expense);
+            boolean matched = false;
+
+            if (expense.getCategoryId() != null && expense.getCategoryId() != 0) {
+                ExpenseCategory matchedCategory = categoryById.get(expense.getCategoryId());
+                if (matchedCategory != null) {
+                    categoryExpensesMap.get(matchedCategory).add(expense);
+                    matched = true;
+                }
+            }
+
+            if (!matched) {
+                for (ExpenseCategory category : userCategories) {
+                    if (category.getExpenseIds() != null) {
+                        Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
+                        if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            matched = true;
+                            break;
+                        }
                     }
                 }
             }

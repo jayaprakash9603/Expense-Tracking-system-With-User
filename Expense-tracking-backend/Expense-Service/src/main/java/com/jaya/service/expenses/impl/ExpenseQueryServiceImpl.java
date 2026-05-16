@@ -1148,14 +1148,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         for (Expense expense : filteredExpenses) {
-            for (ExpenseCategory category : userCategories) {
-                
-                
-                
-                if (category.getExpenseIds() != null) {
-                    Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
-                    if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
-                        categoryExpensesMap.get(category).add(expense);
+            boolean matched = false;
+
+            if (expense.getCategoryId() != null && expense.getCategoryId() != 0) {
+                ExpenseCategory matchedCategory = categoryMap.get(expense.getCategoryId());
+                if (matchedCategory != null) {
+                    categoryExpensesMap.get(matchedCategory).add(expense);
+                    matched = true;
+                }
+            }
+
+            if (!matched) {
+                for (ExpenseCategory category : userCategories) {
+                    if (category.getExpenseIds() != null) {
+                        Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
+                        if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            matched = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1219,6 +1230,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
+        Map<Integer, ExpenseCategory> categoryById = userCategories.stream()
+                .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
+
         Map<ExpenseCategory, List<Expense>> categoryExpensesMap = new HashMap<>();
 
         for (ExpenseCategory category : userCategories) {
@@ -1226,27 +1240,25 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
 
         for (Expense expense : filteredExpenses) {
-            if (flowType != null && !flowType.isEmpty()) {
-                String expenseType = expense.getExpense().getType();
+            boolean matched = false;
 
-                if (flowType.equalsIgnoreCase("inflow") && !expenseType.equalsIgnoreCase("gain")) {
-                    continue;
-                } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
-                    continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
-                        && !expenseType.equalsIgnoreCase(flowType)) {
-                    continue;
+            if (expense.getCategoryId() != null && expense.getCategoryId() != 0) {
+                ExpenseCategory matchedCategory = categoryById.get(expense.getCategoryId());
+                if (matchedCategory != null) {
+                    categoryExpensesMap.get(matchedCategory).add(expense);
+                    matched = true;
                 }
             }
 
-            for (ExpenseCategory category : userCategories) {
-                
-                
-                
-                if (category.getExpenseIds() != null) {
-                    Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
-                    if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
-                        categoryExpensesMap.get(category).add(expense);
+            if (!matched) {
+                for (ExpenseCategory category : userCategories) {
+                    if (category.getExpenseIds() != null) {
+                        Set<Integer> userExpenseIds = category.getExpenseIds().get(userId);
+                        if (userExpenseIds != null && userExpenseIds.contains(expense.getId())) {
+                            categoryExpensesMap.get(category).add(expense);
+                            matched = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -1326,20 +1338,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
         final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
 
-        
         Map<String, List<Expense>> paymentMethodExpensesMap = new HashMap<>();
         for (Expense expense : filteredExpenses) {
-            if (flowType != null && !flowType.isEmpty()) {
-                String expenseType = expense.getExpense().getType();
-                if (flowType.equalsIgnoreCase("inflow") && !expenseType.equalsIgnoreCase("gain")) {
-                    continue;
-                } else if (flowType.equalsIgnoreCase("outflow") && !expenseType.equalsIgnoreCase("loss")) {
-                    continue;
-                } else if (!flowType.equalsIgnoreCase("inflow") && !flowType.equalsIgnoreCase("outflow")
-                        && !expenseType.equalsIgnoreCase(flowType)) {
-                    continue;
-                }
-            }
             String paymentMethod = expense.getExpense() != null && expense.getExpense().getPaymentMethod() != null
                     ? expense.getExpense().getPaymentMethod()
                     : "Unknown";
