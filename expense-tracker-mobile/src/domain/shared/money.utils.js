@@ -13,13 +13,32 @@ export function formatMoney(amount, currencyCode = "INR", options = {}) {
   const absAmount = Math.abs(amount);
   const sign = amount < 0 ? "-" : showSign ? "+" : "";
 
-  if (compact && absAmount >= 1_000_000) {
-    const val = absAmount / 1_000_000;
-    return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
-  }
-  if (compact && absAmount >= 1_000) {
-    const val = absAmount / 1_000;
-    return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+  if (compact) {
+    const isIndian = currency.code === "INR";
+
+    if (isIndian) {
+      if (absAmount >= 1_00_00_000) {
+        const val = absAmount / 1_00_00_000;
+        return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}Cr`;
+      }
+      if (absAmount >= 1_00_000) {
+        const val = absAmount / 1_00_000;
+        return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}L`;
+      }
+      if (absAmount >= 1_000) {
+        const val = absAmount / 1_000;
+        return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+      }
+    } else {
+      if (absAmount >= 1_000_000) {
+        const val = absAmount / 1_000_000;
+        return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
+      }
+      if (absAmount >= 1_000) {
+        const val = absAmount / 1_000;
+        return `${sign}${currency.symbol}${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}K`;
+      }
+    }
   }
 
   try {

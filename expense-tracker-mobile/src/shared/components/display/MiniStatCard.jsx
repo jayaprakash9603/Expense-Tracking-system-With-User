@@ -13,8 +13,10 @@ export function MiniStatCard({
   className,
   onClick,
 }) {
-  const { format, animation, hoverClass } = usePresentation();
-  const displayValue = rawAmount !== undefined ? format(rawAmount) : value;
+  const { format, formatCompact, animation, hoverClass } = usePresentation();
+  const displayValue = rawAmount !== undefined
+    ? (Math.abs(rawAmount) >= 1_00_000 ? formatCompact(rawAmount) : format(rawAmount))
+    : value;
 
   return (
     <div
