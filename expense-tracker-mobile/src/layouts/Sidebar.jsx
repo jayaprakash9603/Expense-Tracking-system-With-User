@@ -1,6 +1,6 @@
 import React, { useTransition } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useSelector } from "react-redux";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { useLayout } from "@/shared/hooks/layout/useLayout";
@@ -49,20 +49,31 @@ function SidebarContent() {
       <div
         className={cn(
           "flex items-center shrink-0 border-b border-border h-14 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-          collapsed ? "justify-center px-2" : "px-4",
+          collapsed ? "justify-center px-2" : "justify-between px-4",
         )}
       >
-        <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
-          <span className="text-sm text-primary-foreground font-black font-display">E</span>
+        <div className="flex items-center min-w-0">
+          <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
+            <span className="text-sm text-primary-foreground font-black font-display">E</span>
+          </div>
+          <h2
+            className={cn(
+              "text-sm font-bold truncate transition-[opacity,max-width,margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+              collapsed ? "opacity-0 max-w-0 ml-0 overflow-hidden" : "opacity-100 max-w-[200px] ml-3",
+            )}
+          >
+            {APP_NAME}
+          </h2>
         </div>
-        <h2
-          className={cn(
-            "text-sm font-bold truncate transition-[opacity,max-width,margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-            collapsed ? "opacity-0 max-w-0 ml-0 overflow-hidden" : "opacity-100 max-w-[200px] ml-3",
-          )}
-        >
-          {APP_NAME}
-        </h2>
+        {!isTablet && !collapsed && (
+          <button
+            onClick={toggleSidebar}
+            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent transition-colors shrink-0"
+            title={t("sidebar.collapse")}
+          >
+            <AppIcon icon={PanelLeftClose} color="soft" size="sm" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4 sidebar-scrollbar">
@@ -109,13 +120,13 @@ function SidebarContent() {
       </nav>
 
       <div className="shrink-0 border-t border-border p-2 space-y-1.5">
-        {!isTablet && (
+        {!isTablet && collapsed && (
           <button
             onClick={toggleSidebar}
-            className="flex items-center justify-center w-7 h-7 rounded-full border border-border hover:bg-accent transition-colors mx-auto"
-            title={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
+            className="flex items-center justify-center w-7 h-7 rounded-md hover:bg-accent transition-colors mx-auto"
+            title={t("sidebar.expand")}
           >
-            <AppIcon icon={collapsed ? ChevronRight : ChevronLeft} color="soft" size="sm" />
+            <AppIcon icon={PanelLeftOpen} color="soft" size="sm" />
           </button>
         )}
 
