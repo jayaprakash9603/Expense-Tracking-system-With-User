@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, useTransition } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MoreHorizontal, X, LogOut } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,6 +6,7 @@ import { AppIcon } from "@/shared/components/display/AppIcon";
 import { useLanguage } from "@/shared/hooks/i18n/useLanguage";
 import { getBottomNavItems, getMoreMenuItems, isActiveRoute } from "@/app/routing/routeCatalog";
 import { logoutAction } from "@/redux/auth/auth.actions";
+import { preloadRoute } from "@/app/routing/routePreloader";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ export function BottomNavigation() {
   const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
   const { t } = useLanguage();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [, startTransition] = useTransition();
   const sheetRef = useRef(null);
 
   const primaryTabs = getBottomNavItems(currentMode);
@@ -29,9 +31,9 @@ export function BottomNavigation() {
   const handleNavigate = useCallback(
     (path) => {
       setMoreOpen(false);
-      navigate(path);
+      startTransition(() => navigate(path));
     },
-    [navigate],
+    [navigate, startTransition],
   );
 
   const handleLogout = useCallback(() => {
@@ -86,6 +88,7 @@ export function BottomNavigation() {
                 <button
                   key={item.key}
                   onClick={() => handleNavigate(item.path)}
+                  onTouchStart={() => preloadRoute(item.path)}
                   className={cn(
                     "flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-colors tap-highlight-none",
                     active ? "bg-primary/10" : "hover:bg-accent active:bg-accent",
@@ -148,6 +151,7 @@ function BottomTab({ item, labelKey, active, onPress, t }) {
   return (
     <button
       onClick={onPress}
+      onTouchStart={() => preloadRoute(item.path)}
       className={cn(
         "relative flex flex-col items-center justify-center gap-0.5 flex-1 tap-highlight-none transition-colors",
         active ? "icon-primary" : "icon-muted",
