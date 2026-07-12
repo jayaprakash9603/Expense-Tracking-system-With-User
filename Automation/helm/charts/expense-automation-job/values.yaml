@@ -7,10 +7,11 @@ job:
   name: expense-automation-job
   backoffLimit: 0
   ttlSecondsAfterFinished: 300
+  configurationPath: "/opt/automation/config"
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 1000m
+      memory: 2Gi
     limits:
       cpu: 1000m
       memory: 2Gi
@@ -26,11 +27,127 @@ runner:
   featuresPath: ""
   additionalMavenArgs: ""
 
+jvm:
+  moduleOpens:
+    - "java.xml/com.sun.org.apache.xerces.internal.jaxp.datatype=ALL-UNNAMED"
+    - "java.base/java.lang=ALL-UNNAMED"
+    - "java.base/java.math=ALL-UNNAMED"
+  gcOptions: "-XX:+UseG1GC -XX:ParallelGCThreads=4 -XX:G1MaxNewSizePercent=25 -XX:InitiatingHeapOccupancyPercent=25 -XX:+ExitOnOutOfMemoryError"
+  heapSize: "-Xms1G -Xmx1G"
+  extraJavaOpts: ""
+
+debug:
+  enabled: false
+  port: 9090
+
+observabilityAgent:
+  enabled: false
+  type: ""
+  jarPath: ""
+  extraArgs: ""
+
 app:
   startCommand: ""
   stopCommand: ""
+  workDir: ""
   readyUrl: ""
   readyTimeoutSec: "180"
+
+automation:
+  baseUrl: "https://jjayaprakash.netlify.app"
+  apiBaseUrl: "http://localhost:8080"
+
+  browser:
+    type: "chrome"
+    headless: true
+    explicitWaitSec: 15
+    reuseBrowserSession: true
+
+  credentials:
+    otpProvider: ""
+    mfaProvider: ""
+
+  httpClient:
+    connectTimeoutSec: 30
+    readTimeoutSec: 30
+    writeTimeoutSec: 30
+    connectionPoolSize: 50
+    sleepTimeoutMs: 30000
+    maxRetries: 5
+
+  ssl:
+    skipCertificateValidation: false
+    truststorePath: ""
+    truststorePassword: ""
+
+  retry:
+    retryCount: 3
+    rerunFailedCount: 0
+    api:
+      maxAttempts: 5
+      intervalMs: 5000
+      backoffMultiplier: 1.5
+      maxDelayMs: 30000
+    uiPoll:
+      maxAttempts: 10
+      intervalMs: 2000
+      backoffMultiplier: 1.0
+      maxDelayMs: 5000
+
+  data:
+    workbookPath: ""
+    sheetName: "default"
+    iteration: 0
+    partitionIndex: 0
+    partitions: 1
+
+  observability:
+    recordVideo: false
+    recordTrace: false
+    captureScreenshotAlways: false
+
+  artifacts:
+    rootDirectory: "target/artifacts"
+
+  cucumber:
+    features: ""
+    filterTags: "@smoke"
+    threadCount: 1
+
+  env:
+    timezone: "UTC"
+
+  suiteData:
+    auth:
+      username: "jaya@gmail.com"
+      invalidUsername: "invalid@example.test"
+      invalidPassword: "invalid-pass"
+      testEmail: "jaya@gmail.com"
+    api:
+      defaultPage: 0
+      defaultLimit: 20
+    expenses:
+      defaultType: "LOSS"
+      defaultPaymentMethod: "CASH"
+    budgets:
+      defaultName: "Monthly Budget"
+      defaultAmount: 5000
+    bills:
+      defaultType: "purchase"
+    categories:
+      defaultType: "expense"
+    payments:
+      defaultType: "credit_card"
+    friends:
+      defaultRecipientId: 2
+    groups:
+      defaultName: "QA Group"
+    sharing:
+      defaultPublic: false
+    chat:
+      defaultMessage: "Automated chat message"
+    presence:
+      defaultUserId: 2
 
 reports:
   hostPath: /var/automation/expense-tracking/reports

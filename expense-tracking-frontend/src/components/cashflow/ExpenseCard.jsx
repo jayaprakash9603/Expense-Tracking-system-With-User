@@ -9,6 +9,7 @@ import { useMasking } from "../../hooks/useMasking";
 import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/iconMapping";
+import { handleSelectableSurfaceMouseDown } from "../../utils/selectableSurface";
 
 const sanitizeAttributeValue = (value) =>
   String(value ?? "")
@@ -289,6 +290,8 @@ const ExpenseCard = React.memo(
           "--selection-outline-color": isGain ? "#06d6a0" : "#ff4d4f",
         }}
         onClick={handleClick}
+        onMouseDown={handleSelectableSurfaceMouseDown}
+        onDragStart={(event) => event.preventDefault()}
         onFocus={(e) => {
           e.preventDefault();
           e.stopPropagation();

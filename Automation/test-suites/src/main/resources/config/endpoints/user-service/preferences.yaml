@@ -1,0 +1,106 @@
+endpoints:
+
+  - key: pref.dashboard.get
+    method: GET
+    path: /api/user/dashboard-preferences
+    auth: true
+
+  - key: pref.dashboard.save
+    method: POST
+    path: /api/user/dashboard-preferences
+    auth: true
+
+  - key: pref.dashboard.delete
+    method: DELETE
+    path: /api/user/dashboard-preferences
+    auth: true
+
+  - key: pref.expense.get
+    method: GET
+    path: /api/user/expense-report-preferences
+    auth: true
+
+  - key: pref.expense.save
+    method: POST
+    path: /api/user/expense-report-preferences
+    auth: true
+
+  - key: pref.expense.delete
+    method: DELETE
+    path: /api/user/expense-report-preferences
+    auth: true
+
+  - key: pref.category.get
+    method: GET
+    path: /api/user/category-report-preferences
+    auth: true
+
+  - key: pref.category.save
+    method: POST
+    path: /api/user/category-report-preferences
+    auth: true
+
+  - key: pref.category.delete
+    method: DELETE
+    path: /api/user/category-report-preferences
+    auth: true
+
+  - key: pref.payment.get
+    method: GET
+    path: /api/user/payment-report-preferences
+    auth: true
+
+  - key: pref.payment.save
+    method: POST
+    path: /api/user/payment-report-preferences
+    auth: true
+
+  - key: pref.payment.delete
+    method: DELETE
+    path: /api/user/payment-report-preferences
+    auth: true
+
+  - key: pref.friendship.get
+    method: GET
+    path: /api/user/friendship-report-preferences
+    auth: true
+
+  - key: pref.friendship.save
+    method: POST
+    path: /api/user/friendship-report-preferences
+    auth: true
+
+  - key: pref.friendship.delete
+    method: DELETE
+    path: /api/user/friendship-report-preferences
+    auth: true
+
+  - key: pref.budget.get
+    method: GET
+    path: /api/user/budget-report-preferences
+    auth: true
+
+  - key: pref.budget.save
+    method: POST
+    path: /api/user/budget-report-preferences
+    auth: true
+
+  - key: pref.budget.delete
+    method: DELETE
+    path: /api/user/budget-report-preferences
+    auth: true
+
+  - key: pref.bill.get
+    method: GET
+    path: /api/user/bill-report-preferences
+    auth: true
+
+  - key: pref.bill.save
+    method: POST
+    path: /api/user/bill-report-preferences
+    auth: true
+
+  - key: pref.bill.delete
+    method: DELETE
+    path: /api/user/bill-report-preferences
+    auth: true

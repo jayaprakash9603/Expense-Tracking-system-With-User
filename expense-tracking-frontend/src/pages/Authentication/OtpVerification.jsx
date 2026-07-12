@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
 import { useDispatch } from "react-redux";
 import { verifyTwoFactorOtpAction } from "../../Redux/Auth/auth.action";
-import ToastNotification from "../../shared/components/ToastNotification";
+import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 30; // 30 seconds
@@ -148,9 +148,11 @@ const OtpVerification = () => {
 
       const result = await dispatch(verifyTwoFactorOtpAction({ email, otp }));
       if (!result.success) {
+        const message = result.message || "Invalid verification code. Please try again.";
+        setError(message);
         setToast({
           open: true,
-          message: result.message || "OTP verification failed",
+          message,
           severity: "error",
         });
         return;
@@ -158,22 +160,39 @@ const OtpVerification = () => {
 
       // Auth action already fetched profile; route accordingly
       const { currentMode, role, user } = result;
+      const normalizedMode = String(currentMode || "").toUpperCase();
+      const normalizedRole = String(role || user?.role || "").toUpperCase();
+      const roles = user?.roles || [];
       const isActuallyAdminMode = 
-        currentMode === "ADMIN" || 
-        (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
+        normalizedMode === "ADMIN" ||
+        (!normalizedMode &&
+          (["ADMIN", "ROLE_ADMIN"].includes(normalizedRole) ||
+            roles.some((userRole) =>
+              ["ADMIN", "ROLE_ADMIN"].includes(String(userRole).toUpperCase()),
+            )));
 
-      if (isActuallyAdminMode) {
-        navigate("/admin/dashboard", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    } catch (err) {
       setToast({
         open: true,
-        message:
-          err?.response?.data?.error ||
-          err?.message ||
-          "OTP verification failed",
+        message: "Two-factor authentication verified. Login successful!",
+        severity: "success",
+      });
+      setTimeout(
+        () =>
+          navigate(isActuallyAdminMode ? "/admin/dashboard" : "/dashboard", {
+            replace: true,
+          }),
+        1200,
+      );
+    } catch (err) {
+      const message =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Invalid verification code. Please try again.";
+      setError(message);
+      setToast({
+        open: true,
+        message,
         severity: "error",
       });
     } finally {
@@ -274,6 +293,12 @@ const OtpVerification = () => {
             ? "Resend available"
             : `Time remaining: ${formatTime(timeLeft)}`}
         </Typography>
+
+        {error && (
+          <Alert severity="error" role="alert" sx={{ mb: 2, textAlign: "left" }}>
+            {error}
+          </Alert>
+        )}
 
         <Box
           className="otp-input"

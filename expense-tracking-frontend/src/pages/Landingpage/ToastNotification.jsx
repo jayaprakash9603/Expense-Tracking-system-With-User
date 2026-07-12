@@ -1,1 +1,1 @@
-export { default } from "../../shared/components/ToastNotification";
+export { default } from "../../shared/ui/feedback/ToastNotification";

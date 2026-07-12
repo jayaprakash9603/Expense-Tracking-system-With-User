@@ -1,0 +1,21 @@
+endpoints:
+
+  - key: budgets.report
+    method: GET
+    path: /api/budgets/report/{budgetId}
+    auth: true
+
+  - key: budgets.reports
+    method: GET
+    path: /api/budgets/reports
+    auth: true
+
+  - key: budgets.detailed-report
+    method: GET
+    path: /api/budgets/detailed-report/{budgetId}
+    auth: true
+
+  - key: budgets.filtered-overview
+    method: GET
+    path: /api/budgets/all-with-expenses/detailed/filtered
+    auth: true

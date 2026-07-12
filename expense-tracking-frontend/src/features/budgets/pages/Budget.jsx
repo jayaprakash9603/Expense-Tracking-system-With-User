@@ -41,7 +41,6 @@ import {
   Grid,
   Popover,
   MenuList,
-  Checkbox,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -64,15 +63,20 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
-import Modal from "../../../shared/components/Modal";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import Modal from "../../../shared/ui/overlays/Modal";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import BudgetCardsSkeleton from "../../../components/skeletons/BudgetCardsSkeleton";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
+import { useOrderedSelection } from "../../../hooks/useOrderedSelection";
 import { setBudgetSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
+import {
+  handleSelectableSurfaceMouseDown,
+  selectableSurfaceStyles,
+} from "../../../utils/selectableSurface";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
@@ -254,6 +258,12 @@ const Budget = () => {
 
     return filtered;
   }, [budgets, searchQuery, activeTab, sortBy, sortOrder]);
+  const { selectAt: selectBudgetAt } = useOrderedSelection({
+    items: filteredBudgets,
+    selectedKeys: selectedRows,
+    getKey: (budget) => budget.id,
+    onChange: setSelectedRows,
+  });
 
   // Prepare data for SharedOverviewCards (budget mode)
   const overviewCardsData = useMemo(() => {
@@ -387,29 +397,71 @@ const Budget = () => {
   };
 
   // Render Budget Card
-  const renderBudgetCard = (budget) => {
+  const renderBudgetCard = (budget, index) => {
     const statusInfo = getBudgetStatus(budget);
     const spent = (budget.amount || 0) - (budget.remainingAmount || 0);
     const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
+    const isSelected = selectedRows.includes(budget.id);
+    const toggleBudgetSelection = (event) => selectBudgetAt(index, event);
 
     return (
       <Card
         key={budget.id}
+        onClick={toggleBudgetSelection}
+        onMouseDown={handleSelectableSurfaceMouseDown}
+        role="checkbox"
+        aria-checked={isSelected}
+        aria-label={`${isSelected ? "Deselect" : "Select"} ${budget.name}`}
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleBudgetSelection(event);
+          }
+        }}
         sx={{
-          background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
-          border: `1px solid ${colors.border_color}`,
+          ...selectableSurfaceStyles,
+          cursor: "pointer",
+          background: isSelected
+            ? `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_bg} 100%)`
+            : `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
+          border: isSelected
+            ? `2px solid ${colors.primary_accent}`
+            : `1px solid ${colors.border_color}`,
           borderRadius: "12px",
-          transition: "all 0.3s ease",
+          transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
           position: "relative",
           zIndex: 1,
+          boxShadow: isSelected
+            ? `0 8px 22px ${colors.primary_accent}25`
+            : "none",
+          "&:focus-visible": {
+            outline: `3px solid ${colors.primary_accent}55`,
+            outlineOffset: "2px",
+          },
           "&:hover": {
-            transform: "translateY(-4px)",
+            transform: "translateY(-2px)",
             boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
             borderColor: colors.primary_accent,
-            zIndex: 1000,
+            zIndex: 2,
           },
         }}
       >
+        {isSelected && (
+          <CheckCircleIcon
+            aria-hidden
+            sx={{
+              position: "absolute",
+              top: 14,
+              right: hasWriteAccess ? 48 : 14,
+              zIndex: 3,
+              color: colors.primary_accent,
+              backgroundColor: colors.primary_bg,
+              borderRadius: "50%",
+              fontSize: 22,
+            }}
+          />
+        )}
         <CardContent sx={{ pb: 1 }}>
           {/* Header */}
           <Box
@@ -445,27 +497,13 @@ const Budget = () => {
               />
             </Box>
             <Box sx={{ display: "flex", gap: 0.5 }}>
-              <Checkbox
-                size="small"
-                checked={selectedRows.includes(budget.id)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedRows([...selectedRows, budget.id]);
-                  } else {
-                    setSelectedRows(selectedRows.filter((id) => id !== budget.id));
-                  }
-                }}
-                sx={{
-                  color: colors.icon_muted,
-                  '&.Mui-checked': {
-                    color: colors.primary_accent,
-                  },
-                  p: 0.5,
-                }}
-              />
               {hasWriteAccess && (
                 <IconButton
-                  onClick={(e) => handleMenuClick(e, budget.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuClick(e, budget.id);
+                  }}
+                  aria-label={`Actions for ${budget.name}`}
                   sx={{
                     color: colors.primary_accent,
                     "&:hover": { bgcolor: colors.hover_bg },
@@ -595,7 +633,10 @@ const Budget = () => {
           <Button
             size="small"
             startIcon={<ReportIcon fontSize="small" />}
-            onClick={() => handleReport(budget.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleReport(budget.id);
+            }}
             sx={{
               color: colors.primary_accent,
               textTransform: "none",
@@ -1603,7 +1644,7 @@ const Budget = () => {
             </Box>
           ) : viewMode === "cards" ? (
             <Grid container spacing={2}>
-              {filteredBudgets.map((budget) => (
+              {filteredBudgets.map((budget, index) => (
                 <Grid
                   item
                   xs={12}
@@ -1611,7 +1652,7 @@ const Budget = () => {
                   md={isMediumScreen ? 6 : 4}
                   key={budget.id}
                 >
-                  {renderBudgetCard(budget)}
+                  {renderBudgetCard(budget, index)}
                 </Grid>
               ))}
             </Grid>

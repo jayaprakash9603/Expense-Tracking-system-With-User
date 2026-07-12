@@ -48,6 +48,7 @@ import {
   Badge as BadgeIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 // =============================================================================
 // Icon Mapping
@@ -79,7 +80,7 @@ const VISIBILITY_LABELS = {
 // Helper Component for Details
 // =============================================================================
 
-const DetailCard = ({ icon, title, value, valueColor, isDark, colors }) => (
+const DetailCard = ({ icon, title, value, valueColor, colors }) => (
   <Box
     sx={{
       display: "flex",
@@ -87,8 +88,9 @@ const DetailCard = ({ icon, title, value, valueColor, isDark, colors }) => (
       gap: 2,
       p: 2,
       borderRadius: "16px",
-      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-      border: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)"}`,
+      backgroundColor: colors.card_bg,
+      border: `1px solid ${colors.border_color}`,
+      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
       height: "100%",
     }}
   >
@@ -143,7 +145,7 @@ const DetailCard = ({ icon, title, value, valueColor, isDark, colors }) => (
 const ShareReviewStep = ({
   shareName,
   resourceType,
-  selectedItems,
+  selectedItems = [],
   permission,
   expiryOption,
   customExpiry,
@@ -264,8 +266,8 @@ const ShareReviewStep = ({
                   p: 1,
                   pr: 2,
                   borderRadius: "50px",
-                  backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#ffffff",
-                  border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+                  backgroundColor: colors.card_bg,
+                  border: `1px solid ${colors.border_color}`,
                 }}
               >
                 <Avatar src={friend.image} sx={{ width: 28, height: 28, fontSize: "0.8rem", bgcolor: colors.primary_accent }}>
@@ -299,8 +301,8 @@ const ShareReviewStep = ({
           sx={{
             flex: 1,
             overflow: "auto",
-            backgroundColor: isDark ? "rgba(0,0,0,0.2)" : "#ffffff",
-            borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.1)",
+            backgroundColor: colors.card_bg,
+            borderColor: colors.border_color,
             borderRadius: "16px",
             "&::-webkit-scrollbar": { width: "6px" },
             "&::-webkit-scrollbar-track": { background: "transparent" },
@@ -310,6 +312,16 @@ const ShareReviewStep = ({
             },
           }}
         >
+          {selectedItems.length === 0 ? (
+            <NoDataPlaceholder
+              message="No items selected"
+              subMessage="Return to the selection step and choose at least one item."
+              size="sm"
+              height={160}
+              fullWidth
+              dense
+            />
+          ) : (
           <List disablePadding>
             {selectedItems.map((item, index) => (
               <React.Fragment key={item.externalRef}>
@@ -346,11 +358,12 @@ const ShareReviewStep = ({
                   />
                 </ListItem>
                 {index < selectedItems.length - 1 && (
-                  <Divider sx={{ borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)" }} />
+                  <Divider sx={{ borderColor: colors.border_color }} />
                 )}
               </React.Fragment>
             ))}
           </List>
+          )}
         </Paper>
       </Box>
 

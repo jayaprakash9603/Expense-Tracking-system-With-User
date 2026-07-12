@@ -21,8 +21,7 @@ import java.util.List;
 @Component
 public class ExpenseExcelParser {
 
-    
-
+    private static final int MAX_DATA_ROWS = 10000;
 
     public List<Expense> parseExpenses(MultipartFile file) throws IOException {
         List<Expense> expenses = new ArrayList<>();
@@ -39,12 +38,12 @@ public class ExpenseExcelParser {
 
             ExcelColumnMapper columnMapper = new ExcelColumnMapper(headerRow, evaluator);
 
-            
-            for (Row row : sheet) {
-                if (row.getRowNum() == 0) {
-                    continue; 
+            int lastRow = Math.min(sheet.getLastRowNum(), MAX_DATA_ROWS + 1);
+            for (int r = 1; r <= lastRow && expenses.size() < MAX_DATA_ROWS; r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) {
+                    continue;
                 }
-
                 Expense expense = parseExpenseRow(row, columnMapper, evaluator);
                 if (expense != null) {
                     expenses.add(expense);

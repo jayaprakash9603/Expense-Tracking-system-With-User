@@ -41,7 +41,7 @@ Environment and feature based test data:
 - `test-suites/src/main/resources/testdata/<env>/<feature>/*`
 - `test-suites/src/main/resources/testdata/request-templates/<domain>/*`
 - `test-suites/src/main/resources/testdata/expected-fragments/<domain>/*`
-- `test-suites/src/main/resources/config/suite-data*.properties`
+- `helm/charts/expense-automation-job/resources/AutomationConfiguration.properties`
 
 ## Artifacts
 

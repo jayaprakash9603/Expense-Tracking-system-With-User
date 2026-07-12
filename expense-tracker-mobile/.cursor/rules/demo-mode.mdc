@@ -1,0 +1,45 @@
+---
+description: Demo runtime, Axios adapter, safeApiCall, handlers, fixtures, session auth for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/infrastructure/demo/**/*.js
+alwaysApply: false
+---
+
+# Demo mode (expense-tracker-mobile)
+
+## Activation
+
+- `VITE_APP_RUNTIME_MODE=demo` — merged into app config via `src/config/runtime/parseAppConfig.js` (`getAppConfig().isDemo`).
+- HTTP traffic is intercepted by `src/config/api/demoAdapter.js`, which calls `handleDemoRequest` in `src/infrastructure/demo/runtime/handleDemoRequest.js`; no real backend required for demos.
+
+## safeApiCall
+
+- API modules use `safeApiCall` from `src/shared/utils/safeApiCall.js` (re-export of `network/safeApiCall`) returning `{ data, error }`.
+- Callers must handle **both** success and error; never assume `data` is always present.
+
+## Adding demo behavior
+
+- Implement a handler in `src/infrastructure/demo/handlers/` (or extend existing).
+- Wire it from `src/infrastructure/demo/runtime/handleDemoRequest.js` so `method` + `path` resolve (see README in `src/infrastructure/demo/`).
+- Handlers receive a **ctx** object: `method`, `path`, `body`, `store`, `cfg`, etc. — follow existing handler signatures.
+- For parity with Postman collections, `generated/postmanRoutes.manifest.json` may list routes; keep demo handlers aligned.
+
+## Data
+
+- Seed / fixtures: `src/infrastructure/demo/fixtures/seed.entities.json` — dates are often relative and hydrated on load (`src/infrastructure/demo/seed/`).
+- Session entities persist under `sessionStorage` key `expensio_demo_store_v1` — see `src/infrastructure/demo/store/demoStore.js`.
+
+## Auth in demo
+
+- Prefer session-scoped patterns documented in `src/infrastructure/demo/README.md` and `src/infrastructure/auth/authStorage.js` where applicable.
+
+## Feature matrix
+
+- Demo profile in `src/config/runtime/feature-matrix.yaml` disables risky flags (`googleOAuth`, `uploads`, `dataStorage`, etc.). New features that hit real backends must be **off** or stubbed in demo.
+
+## Verification
+
+- After changes, run the app with `VITE_APP_RUNTIME_MODE=demo` and smoke-test affected flows.
+
+## References
+
+- `src/infrastructure/demo/runtime/handleDemoRequest.js`, `src/config/api/demoAdapter.js`, `src/config/api/apiClient.js`, `src/config/runtime/parseAppConfig.js`

@@ -35,7 +35,7 @@ import {
 } from "../../../Redux/Expenses/expense.action";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import createAppTheme from "../../../shared/theme/createAppTheme";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 
 const HistoryTable = ({ friendId }) => {
   const dispatch = useDispatch();

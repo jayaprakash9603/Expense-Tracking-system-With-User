@@ -41,7 +41,7 @@ Runner flags:
 Set workbook properties:
 
 ```bash
-mvn -pl automation-bdd test -DTEST_ENV=local -DDATA_WORKBOOK_PATH=automation-data/src/test/resources/testdata/local/auth/auth-dataset.xlsx -DDATA_SHEET=default -DDATA_ITERATION=0 -DDATA_PARTITION_INDEX=0 -DDATA_PARTITIONS=1
+mvn -pl automation-bdd test -DTEST_ENV=local -DDATA_WORKBOOK_PATH=Automation-Framework/automation-data/src/test/resources/testdata/local/auth/auth-dataset.xlsx -DDATA_SHEET=default -DDATA_ITERATION=0 -DDATA_PARTITION_INDEX=0 -DDATA_PARTITIONS=1
 ```
 
 Excel requirements:
@@ -55,7 +55,7 @@ Excel requirements:
 
 Artifacts are stored under:
 
-- `ARTIFACTS_ROOT/<runId>/automation-bdd/...`
+- `ARTIFACTS_ROOT/<runId>/Automation-Framework/automation-bdd/...`
 - `.../screenshots`
 - `.../videos`
 - `.../traces`
@@ -90,7 +90,7 @@ mvn -pl automation-app exec:java -Dexec.args="--run-only --rerun-failures"
 
 The rerun source file is:
 
-- `automation-bdd/target/reports/rerun/rerun.txt`
+- `Automation-Framework/automation-bdd/target/reports/rerun/rerun.txt`
 
 ## 5) Endpoint-Key and DataTable Authoring
 
@@ -103,5 +103,6 @@ Preferred feature model:
 
 Template scenarios:
 
-- `@template` scenarios in `test-suites/src/main/resources/features/templates` are intentionally skipped and act as reusable authoring references.
+- `@template` scenarios in `test-suites/src/main/resources/features/api/templates` are intentionally skipped and act as reusable authoring references.
 - detailed authoring policy is in `docs/FEATURE_AUTHORING_GUIDE.md`.
+

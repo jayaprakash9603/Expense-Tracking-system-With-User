@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.ExpenseNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 
@@ -29,9 +29,9 @@ public class ExpenseNotificationProducer extends NotificationEventProducer<Expen
     private String topicName;
 
     public ExpenseNotificationProducer(
-            KafkaTemplate<String, Object> kafkaTemplate,
+            MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
     }
 
     @Override

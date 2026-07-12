@@ -1,0 +1,107 @@
+runner:
+  engine: {{ .Values.runner.engine }}
+  testEnv: {{ .Values.runner.testEnv }}
+
+automation:
+  baseUrl: {{ .Values.automation.baseUrl }}
+  apiBaseUrl: {{ .Values.automation.apiBaseUrl }}
+
+  browser:
+    type: {{ .Values.automation.browser.type }}
+    headless: {{ .Values.automation.browser.headless }}
+    explicitWaitSec: {{ .Values.automation.browser.explicitWaitSec }}
+    reuseBrowserSession: {{ .Values.automation.browser.reuseBrowserSession }}
+
+  credentials:
+    testUsername: ${TEST_USERNAME}
+    testPassword: ${TEST_PASSWORD}
+    otpProvider: {{ .Values.automation.credentials.otpProvider }}
+    mfaProvider: {{ .Values.automation.credentials.mfaProvider }}
+
+  httpClient:
+    connectTimeoutSec: {{ .Values.automation.httpClient.connectTimeoutSec }}
+    readTimeoutSec: {{ .Values.automation.httpClient.readTimeoutSec }}
+    writeTimeoutSec: {{ .Values.automation.httpClient.writeTimeoutSec }}
+    connectionPoolSize: {{ .Values.automation.httpClient.connectionPoolSize }}
+    sleepTimeoutMs: {{ .Values.automation.httpClient.sleepTimeoutMs }}
+    maxRetries: {{ .Values.automation.httpClient.maxRetries }}
+
+  ssl:
+    skipCertificateValidation: {{ .Values.automation.ssl.skipCertificateValidation }}
+    truststorePath: {{ .Values.automation.ssl.truststorePath }}
+    truststorePassword: {{ .Values.automation.ssl.truststorePassword }}
+
+  retry:
+    retryCount: {{ .Values.automation.retry.retryCount }}
+    rerunFailedCount: {{ .Values.automation.retry.rerunFailedCount }}
+    api:
+      maxAttempts: {{ .Values.automation.retry.api.maxAttempts }}
+      intervalMs: {{ .Values.automation.retry.api.intervalMs }}
+      backoffMultiplier: {{ .Values.automation.retry.api.backoffMultiplier }}
+      maxDelayMs: {{ .Values.automation.retry.api.maxDelayMs }}
+    uiPoll:
+      maxAttempts: {{ .Values.automation.retry.uiPoll.maxAttempts }}
+      intervalMs: {{ .Values.automation.retry.uiPoll.intervalMs }}
+      backoffMultiplier: {{ .Values.automation.retry.uiPoll.backoffMultiplier }}
+      maxDelayMs: {{ .Values.automation.retry.uiPoll.maxDelayMs }}
+
+  data:
+    workbookPath: {{ .Values.automation.data.workbookPath }}
+    sheetName: {{ .Values.automation.data.sheetName }}
+    iteration: {{ .Values.automation.data.iteration }}
+    partitionIndex: {{ .Values.automation.data.partitionIndex }}
+    partitions: {{ .Values.automation.data.partitions }}
+
+  observability:
+    recordVideo: {{ .Values.automation.observability.recordVideo }}
+    recordTrace: {{ .Values.automation.observability.recordTrace }}
+    captureScreenshotAlways: {{ .Values.automation.observability.captureScreenshotAlways }}
+
+  artifacts:
+    rootDirectory: {{ .Values.automation.artifacts.rootDirectory }}
+
+  cucumber:
+    features: {{ .Values.automation.cucumber.features }}
+    filterTags: {{ .Values.automation.cucumber.filterTags }}
+    threadCount: {{ .Values.automation.cucumber.threadCount }}
+
+app:
+  startCommand: {{ .Values.app.startCommand }}
+  stopCommand: {{ .Values.app.stopCommand }}
+  workDir: {{ .Values.app.workDir }}
+  readyUrl: {{ .Values.app.readyUrl }}
+  readyTimeoutSec: {{ .Values.app.readyTimeoutSec }}
+
+suiteData:
+  auth:
+    username: {{ .Values.automation.suiteData.auth.username }}
+    password: ${TEST_PASSWORD}
+    invalidUsername: {{ .Values.automation.suiteData.auth.invalidUsername }}
+    invalidPassword: {{ .Values.automation.suiteData.auth.invalidPassword }}
+    testEmail: {{ .Values.automation.suiteData.auth.testEmail }}
+  api:
+    defaultPage: {{ .Values.automation.suiteData.api.defaultPage }}
+    defaultLimit: {{ .Values.automation.suiteData.api.defaultLimit }}
+    baseUrl: {{ .Values.automation.apiBaseUrl }}
+  expenses:
+    defaultType: {{ .Values.automation.suiteData.expenses.defaultType }}
+    defaultPaymentMethod: {{ .Values.automation.suiteData.expenses.defaultPaymentMethod }}
+  budgets:
+    defaultName: {{ .Values.automation.suiteData.budgets.defaultName }}
+    defaultAmount: {{ .Values.automation.suiteData.budgets.defaultAmount }}
+  bills:
+    defaultType: {{ .Values.automation.suiteData.bills.defaultType }}
+  categories:
+    defaultType: {{ .Values.automation.suiteData.categories.defaultType }}
+  payments:
+    defaultType: {{ .Values.automation.suiteData.payments.defaultType }}
+  friends:
+    defaultRecipientId: {{ .Values.automation.suiteData.friends.defaultRecipientId }}
+  groups:
+    defaultName: {{ .Values.automation.suiteData.groups.defaultName }}
+  sharing:
+    defaultPublic: {{ .Values.automation.suiteData.sharing.defaultPublic }}
+  chat:
+    defaultMessage: {{ .Values.automation.suiteData.chat.defaultMessage }}
+  presence:
+    defaultUserId: {{ .Values.automation.suiteData.presence.defaultUserId }}

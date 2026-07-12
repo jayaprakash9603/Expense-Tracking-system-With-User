@@ -1,0 +1,7 @@
+{
+  "name": "Auto Budget ${random.number:4}",
+  "amount": 5000.00,
+  "startDate": "${now:yyyy-MM-dd}",
+  "endDate": "${now+30d:yyyy-MM-dd}",
+  "description": "Created by automation"
+}

@@ -7,7 +7,7 @@ import {
   ProfileContent,
   useProfileForm,
 } from "../../../components/Profile";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 
 /**
  * Profile Component

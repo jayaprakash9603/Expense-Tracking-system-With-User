@@ -1,0 +1,46 @@
+endpoints:
+
+  - key: stories.create
+    method: POST
+    path: /api/stories
+    auth: true
+
+  - key: stories.list
+    method: GET
+    path: /api/stories
+    auth: true
+
+  - key: stories.by-id
+    method: GET
+    path: /api/stories/{id}
+    auth: true
+
+  - key: stories.update
+    method: PUT
+    path: /api/stories/{id}
+    auth: true
+
+  - key: stories.delete
+    method: DELETE
+    path: /api/stories/{id}
+    auth: true
+
+  - key: stories.admin-list
+    method: GET
+    path: /api/admin/stories
+    auth: true
+
+  - key: stories.admin-create
+    method: POST
+    path: /api/admin/stories
+    auth: true
+
+  - key: stories.admin-update
+    method: PUT
+    path: /api/admin/stories/{id}
+    auth: true
+
+  - key: stories.admin-delete
+    method: DELETE
+    path: /api/admin/stories/{id}
+    auth: true

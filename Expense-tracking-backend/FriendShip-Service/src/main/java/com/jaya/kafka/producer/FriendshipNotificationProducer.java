@@ -6,8 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.kafka.events.FriendshipNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
+import com.jaya.common.messaging.MessagingPort;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -17,9 +16,9 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
     @Value("${kafka.topics.friendship-events:friendship-events}")
     private String topicName;
 
-    public FriendshipNotificationProducer(KafkaTemplate<String, Object> kafkaTemplate,
+    public FriendshipNotificationProducer(MessagingPort messagingPort,
             ObjectMapper objectMapper) {
-        super(kafkaTemplate, objectMapper);
+        super(messagingPort, objectMapper);
         log.info("FriendshipNotificationProducer initialized");
     }
 
@@ -54,14 +53,12 @@ public class FriendshipNotificationProducer extends NotificationEventProducer<Fr
     }
 
     @Override
-    protected void afterSendSuccess(FriendshipNotificationEvent event, SendResult<String, Object> result) {
+    protected void afterSendSuccess(FriendshipNotificationEvent event) {
         log.info(
-                "Friendship {} notification sent successfully: User {} notified about action by {} (Topic: {}, Partition: {})",
+                "Friendship {} notification sent successfully: User {} notified about action by {}",
                 event.getAction(),
                 event.getUserId(),
-                event.getActorName() != null ? event.getActorName() : event.getActorId(),
-                result.getRecordMetadata().topic(),
-                result.getRecordMetadata().partition());
+                event.getActorName() != null ? event.getActorName() : event.getActorId());
     }
 
     @Override

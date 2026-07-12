@@ -28,6 +28,9 @@ public class SearchRequestDTO {
     @Builder.Default
     private Integer limit = 5;
 
+    @Builder.Default
+    private Integer offset = 0;
+
     
 
 

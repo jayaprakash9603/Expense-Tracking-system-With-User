@@ -1,0 +1,10 @@
+{
+  "cucumberautocomplete.steps": [
+    "Automation/Automation-Framework/automation-bdd/src/test/java/**/*.java"
+  ],
+  "cucumberautocomplete.syncfeatures": "Automation/test-suites/src/main/resources/features/**/*.feature",
+  "cucumberautocomplete.strictGherkinCompletion": true,
+  "cucumberautocomplete.smartSnippets": true,
+  "cucumberautocomplete.gherkinDefinitionPart": "(Given|When|Then|And|But)\\(",
+  "cucumberautocomplete.skipDocStringsFormat": true
+}

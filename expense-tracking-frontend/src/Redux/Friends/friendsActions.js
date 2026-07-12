@@ -74,6 +74,33 @@ import {
   FETCH_FRIENDSHIP_REPORT_SUCCESS,
   FETCH_FRIENDSHIP_REPORT_FAILURE,
   CLEAR_FRIENDSHIP_REPORT,
+  CHECK_ARE_FRIENDS_REQUEST,
+  CHECK_ARE_FRIENDS_SUCCESS,
+  CHECK_ARE_FRIENDS_FAILURE,
+  FETCH_FRIEND_IDS_REQUEST,
+  FETCH_FRIEND_IDS_SUCCESS,
+  FETCH_FRIEND_IDS_FAILURE,
+  FETCH_ALL_PENDING_REQUESTS_REQUEST,
+  FETCH_ALL_PENDING_REQUESTS_SUCCESS,
+  FETCH_ALL_PENDING_REQUESTS_FAILURE,
+  CHECK_FRIENDSHIP_STATUS_REQUEST,
+  CHECK_FRIENDSHIP_STATUS_SUCCESS,
+  CHECK_FRIENDSHIP_STATUS_FAILURE,
+  CHECK_EXPENSE_ACCESS_REQUEST,
+  CHECK_EXPENSE_ACCESS_SUCCESS,
+  CHECK_EXPENSE_ACCESS_FAILURE,
+  CHECK_CAN_ACCESS_EXPENSES_REQUEST,
+  CHECK_CAN_ACCESS_EXPENSES_SUCCESS,
+  CHECK_CAN_ACCESS_EXPENSES_FAILURE,
+  CHECK_CAN_MODIFY_EXPENSES_REQUEST,
+  CHECK_CAN_MODIFY_EXPENSES_SUCCESS,
+  CHECK_CAN_MODIFY_EXPENSES_FAILURE,
+  FETCH_USER_ACCESS_LEVEL_REQUEST,
+  FETCH_USER_ACCESS_LEVEL_SUCCESS,
+  FETCH_USER_ACCESS_LEVEL_FAILURE,
+  FETCH_FRIENDSHIP_BY_ID_REQUEST,
+  FETCH_FRIENDSHIP_BY_ID_SUCCESS,
+  FETCH_FRIENDSHIP_BY_ID_FAILURE,
 } from "./friendsActionTypes";
 
 // Fetch friend suggestions
@@ -867,3 +894,129 @@ export const fetchFriendshipReport =
 export const clearFriendshipReport = () => ({
   type: CLEAR_FRIENDSHIP_REPORT,
 });
+
+// Check if two users are friends
+export const checkAreFriends = (userId1, userId2) => async (dispatch) => {
+  dispatch({ type: CHECK_ARE_FRIENDS_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/are-friends/${userId1}/${userId2}`);
+    dispatch({ type: CHECK_ARE_FRIENDS_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to check if friends";
+    dispatch({ type: CHECK_ARE_FRIENDS_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Fetch friend IDs for a user
+export const fetchFriendIds = (userId) => async (dispatch) => {
+  dispatch({ type: FETCH_FRIEND_IDS_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/friend-ids?userId=${userId}`);
+    dispatch({ type: FETCH_FRIEND_IDS_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to fetch friend IDs";
+    dispatch({ type: FETCH_FRIEND_IDS_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Fetch all pending requests (incoming and outgoing)
+export const fetchAllPendingRequests = () => async (dispatch) => {
+  dispatch({ type: FETCH_ALL_PENDING_REQUESTS_REQUEST });
+  try {
+    const response = await api.get("/api/friendships/pending");
+    dispatch({ type: FETCH_ALL_PENDING_REQUESTS_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to fetch pending requests";
+    dispatch({ type: FETCH_ALL_PENDING_REQUESTS_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Check friendship status with a specific user
+export const checkFriendshipStatus = (userId) => async (dispatch) => {
+  dispatch({ type: CHECK_FRIENDSHIP_STATUS_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/check/${userId}`);
+    dispatch({ type: CHECK_FRIENDSHIP_STATUS_SUCCESS, payload: { userId, data: response.data } });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to check friendship status";
+    dispatch({ type: CHECK_FRIENDSHIP_STATUS_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Check expense access for a specific user
+export const checkExpenseAccess = (userId) => async (dispatch) => {
+  dispatch({ type: CHECK_EXPENSE_ACCESS_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/access-check/${userId}`);
+    dispatch({ type: CHECK_EXPENSE_ACCESS_SUCCESS, payload: { userId, data: response.data } });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to check expense access";
+    dispatch({ type: CHECK_EXPENSE_ACCESS_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Check if user can access expenses
+export const checkCanAccessExpenses = (targetUserId, requesterId) => async (dispatch) => {
+  dispatch({ type: CHECK_CAN_ACCESS_EXPENSES_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/can-access-expenses?targetUserId=${targetUserId}&requesterId=${requesterId}`);
+    dispatch({ type: CHECK_CAN_ACCESS_EXPENSES_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to check if can access expenses";
+    dispatch({ type: CHECK_CAN_ACCESS_EXPENSES_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Check if user can modify expenses
+export const checkCanModifyExpenses = (targetUserId, requesterId) => async (dispatch) => {
+  dispatch({ type: CHECK_CAN_MODIFY_EXPENSES_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/can-modify-expenses?targetUserId=${targetUserId}&requesterId=${requesterId}`);
+    dispatch({ type: CHECK_CAN_MODIFY_EXPENSES_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to check if can modify expenses";
+    dispatch({ type: CHECK_CAN_MODIFY_EXPENSES_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Fetch user access level
+export const fetchUserAccessLevel = (userId, viewerId) => async (dispatch) => {
+  dispatch({ type: FETCH_USER_ACCESS_LEVEL_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/get-access-level?userId=${userId}&viewerId=${viewerId}`);
+    dispatch({ type: FETCH_USER_ACCESS_LEVEL_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to fetch user access level";
+    dispatch({ type: FETCH_USER_ACCESS_LEVEL_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};
+
+// Fetch friendship by ID
+export const fetchFriendshipById = (friendshipId) => async (dispatch) => {
+  dispatch({ type: FETCH_FRIENDSHIP_BY_ID_REQUEST });
+  try {
+    const response = await api.get(`/api/friendships/${friendshipId}`);
+    dispatch({ type: FETCH_FRIENDSHIP_BY_ID_SUCCESS, payload: response.data });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to fetch friendship by ID";
+    dispatch({ type: FETCH_FRIENDSHIP_BY_ID_FAILURE, payload: errorMessage });
+    return { success: false, error: errorMessage };
+  }
+};

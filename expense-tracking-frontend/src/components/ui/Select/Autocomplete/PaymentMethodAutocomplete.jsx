@@ -82,15 +82,22 @@ const PaymentMethodAutocomplete = ({
     return findPaymentMethodByValue(processedPaymentMethods, value);
   }, [value, processedPaymentMethods]);
 
-  // Handle payment method selection change
   const handleChange = (event, newValue) => {
-    const paymentMethodValue = newValue ? newValue.value : "cash";
+    const paymentMethodValue = newValue ? newValue.value : "";
     onChange(paymentMethodValue);
 
-    // Call optional callback with full payment method object
     if (onPaymentMethodChange) {
       onPaymentMethodChange(newValue);
     }
+  };
+
+  const handleInputChange = (event, newValue, reason) => {
+    if (reason === "clear") {
+      onChange("");
+    }
+  };
+
+  const handleClose = () => {
   };
 
   // Custom render option with highlighting and icon
@@ -169,6 +176,8 @@ const PaymentMethodAutocomplete = ({
         options={processedPaymentMethods}
         value={selectedPaymentMethod}
         onChange={handleChange}
+        onInputChange={handleInputChange}
+        onClose={handleClose}
         getOptionLabel={getPaymentMethodDisplayLabel}
         isOptionEqualToValue={arePaymentMethodsEqual}
         filterOptions={filterOptions}

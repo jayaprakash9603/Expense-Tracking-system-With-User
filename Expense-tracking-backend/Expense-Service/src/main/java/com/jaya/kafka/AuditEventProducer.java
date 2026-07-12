@@ -4,25 +4,23 @@ package com.jaya.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.jaya.common.messaging.MessagingPort;
 import com.jaya.models.AuditEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuditEventProducer {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final MessagingPort messagingPort;
     private final ObjectMapper objectMapper;
 
     @Value("${audit.kafka.topic:audit-events}")
@@ -87,25 +85,9 @@ public class AuditEventProducer {
     private void publishToTopic(AuditEvent auditEvent, String topic) {
         try {
             enrichAuditEvent(auditEvent);
-
             String auditEventJson = objectMapper.writeValueAsString(auditEvent);
-
-            CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic,
-                    auditEvent.getCorrelationId(), auditEventJson);
-
-            future.whenComplete((result, exception) -> {
-                if (exception == null) {
-                    log.debug("Audit event published successfully: correlationId={}, topic={}, partition={}, offset={}",
-                            auditEvent.getCorrelationId(),
-                            result.getRecordMetadata().topic(),
-                            result.getRecordMetadata().partition(),
-                            result.getRecordMetadata().offset());
-                } else {
-                    log.error("Failed to publish audit event: correlationId={}, topic={}, error={}",
-                            auditEvent.getCorrelationId(), topic, exception.getMessage(), exception);
-                }
-            });
-
+            messagingPort.send(topic, auditEvent.getCorrelationId(), auditEventJson);
+            log.debug("Audit event published: correlationId={}, topic={}", auditEvent.getCorrelationId(), topic);
         } catch (JsonProcessingException e) {
             log.error("Error serializing audit event to JSON: correlationId={}, topic={}",
                     auditEvent.getCorrelationId(), topic, e);
@@ -118,18 +100,9 @@ public class AuditEventProducer {
     private void publishToTopicSync(AuditEvent auditEvent, String topic) {
         try {
             enrichAuditEvent(auditEvent);
-
             String auditEventJson = objectMapper.writeValueAsString(auditEvent);
-
-            SendResult<String, String> result = kafkaTemplate.send(topic, auditEvent.getCorrelationId(), auditEventJson)
-                    .get();
-
-            log.debug("Audit event published synchronously: correlationId={}, topic={}, partition={}, offset={}",
-                    auditEvent.getCorrelationId(),
-                    result.getRecordMetadata().topic(),
-                    result.getRecordMetadata().partition(),
-                    result.getRecordMetadata().offset());
-
+            messagingPort.sendAsync(topic, auditEvent.getCorrelationId(), auditEventJson).get();
+            log.debug("Audit event published synchronously: correlationId={}, topic={}", auditEvent.getCorrelationId(), topic);
         } catch (Exception e) {
             log.error("Error publishing audit event synchronously: correlationId={}, topic={}",
                     auditEvent.getCorrelationId(), topic, e);

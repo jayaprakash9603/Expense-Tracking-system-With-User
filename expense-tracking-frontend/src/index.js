@@ -12,6 +12,7 @@ import { getStore, setStore } from "./utils/store";
 import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/googleOAuth";
+import { RootErrorBoundary } from "./features/errors";
 
 // Log the Google Client ID for debugging (remove in production)
 console.log(
@@ -53,13 +54,15 @@ const ThemedApp = () => {
 
 root.render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-        <Provider store={store}>
-          <ThemedApp />
-        </Provider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+    <RootErrorBoundary>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <BrowserRouter>
+          <Provider store={store}>
+            <ThemedApp />
+          </Provider>
+        </BrowserRouter>
+      </GoogleOAuthProvider>
+    </RootErrorBoundary>
   </React.StrictMode>,
 );
 

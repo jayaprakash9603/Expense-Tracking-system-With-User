@@ -31,13 +31,16 @@ import SchoolIcon from "@mui/icons-material/School";
 import FlightIcon from "@mui/icons-material/Flight";
 import SportsEsportsIcon from "@mui/icons-material/SportsEsports";
 import ReceiptIcon from "@mui/icons-material/Receipt";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CategoryIcon from "@mui/icons-material/Category";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import dayjs from "dayjs";
 
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
 import CustomDataTable from "../../components/common/CustomDataTable";
 import CategoryAnalyticsSkeleton from "../../components/skeletons/CategoryAnalyticsSkeleton";
+import { getFunctionalIcon } from "../../utils/iconMapping";
 import {
   AnalyticsKPICard,
   BudgetStatusCard,
@@ -372,51 +375,23 @@ const CategoryAnalyticsView = ({
     flexDirection: "column",
   };
 
-  // Transaction table columns
-  const transactionColumns = useMemo(
+  // Compact columns for the narrow Recent Transactions panel
+  const recentTransactionColumns = useMemo(
     () => [
       {
-        field: "expenseName",
-        label: "Expense",
-        sortable: true,
-        width: "25%",
-        tooltip: true,
-        bold: true,
-      },
-      {
-        field: "amount",
-        label: "Amount",
-        sortable: true,
-        width: "15%",
-        sortType: "number",
-        bold: true,
-        getColor: (row) => (row.type === "CREDIT" ? "#52c41a" : "#ff4d4f"),
-        render: (row) => formatCurrency(row.amount),
-      },
-      {
-        field: "date",
+        key: "date",
         label: "Date",
-        sortable: true,
-        width: "15%",
-        sortType: "date",
-        render: (row) => formatDate(row.date),
+        width: "38%",
+        value: (row) => formatDate(row.date),
       },
       {
-        field: "paymentMethodName",
-        label: "Payment Method",
-        sortable: true,
-        width: "20%",
-      },
-      {
-        field: "description",
-        label: "Description",
-        sortable: false,
-        width: "25%",
-        tooltip: true,
-        getColor: () => colors.secondary_text,
+        key: "expenseName",
+        label: "Expense",
+        width: "62%",
+        value: (row) => row.expenseName || row.name || "Expense",
       },
     ],
-    [colors, formatDate, formatCurrency],
+    [formatDate],
   );
 
   // Extract data from analytics response (with defaults for when data is not available)
@@ -1043,22 +1018,89 @@ const CategoryAnalyticsView = ({
               minHeight: 0,
             }}
           >
-            <Typography
+            <Box
               sx={{
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                color: colors.primary_text,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
                 marginBottom: 1,
               }}
             >
-              📋 Recent Transactions
-            </Typography>
-            <Box sx={{ flex: 1, overflow: "auto" }}>
-              <ExpenseListTable
-                rows={transactionData?.recentTransactions || []}
-                loading={categoryAnalyticsLoading}
-                showPagination={false}
+              <ReceiptLongIcon
+                sx={{ fontSize: 16, color: colors.primary_accent }}
               />
+              <Typography
+                sx={{
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  color: colors.primary_text,
+                }}
+              >
+                Recent Transactions
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, overflow: "auto" }}>
+              {(!categoryAnalyticsLoading &&
+                (transactionData?.recentTransactions?.length || 0) === 0) ? (
+                <Box
+                  sx={{
+                    height: "100%",
+                    minHeight: 160,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    padding: "16px",
+                    borderRadius: "10px",
+                    border: `1px dashed ${colors.border_color}`,
+                    backgroundColor: colors.tertiary_bg,
+                    color: colors.primary_text,
+                    gap: 0.75,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: colors.hover_bg,
+                      color: colors.secondary_accent,
+                    }}
+                  >
+                    <InboxOutlinedIcon fontSize="small" />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      color: colors.primary_text,
+                    }}
+                  >
+                    No recent transactions
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.72rem",
+                      color: colors.secondary_text,
+                      lineHeight: 1.4,
+                      maxWidth: 220,
+                    }}
+                  >
+                    Transactions linked to this {entityLabel?.toLowerCase() || "item"} will appear here.
+                  </Typography>
+                </Box>
+              ) : (
+                <ExpenseListTable
+                  rows={transactionData?.recentTransactions || []}
+                  loading={categoryAnalyticsLoading}
+                  columns={recentTransactionColumns}
+                  showPagination={false}
+                />
+              )}
             </Box>
           </Box>
         </Box>
@@ -1094,7 +1136,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>⏰</Typography>
+                  {getFunctionalIcon("schedule", {
+                    sx: { fontSize: 14, color: colors.primary_accent },
+                  })}
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1175,7 +1219,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>📈</Typography>
+                  {getFunctionalIcon("trend", {
+                    sx: { fontSize: 14, color: colors.primary_accent },
+                  })}
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1215,7 +1261,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>💰</Typography>
+                  {getFunctionalIcon("expense", {
+                    sx: { fontSize: 14, color: colors.primary_accent },
+                  })}
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1338,7 +1386,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>⬇️</Typography>
+                  {getFunctionalIcon("⬇️", {
+                    sx: { fontSize: 14, color: colors.primary_accent },
+                  })}
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1378,7 +1428,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>⬆️</Typography>
+                  {getFunctionalIcon("⬆️", {
+                    sx: { fontSize: 14, color: colors.primary_accent },
+                  })}
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1438,7 +1490,9 @@ const CategoryAnalyticsView = ({
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Typography sx={{ fontSize: "0.8rem" }}>💰</Typography>
+                    {getFunctionalIcon("expense", {
+                      sx: { fontSize: 15, color: colors.primary_accent },
+                    })}
                     <Typography
                       sx={{
                         fontSize: "0.8rem",
@@ -1567,6 +1621,9 @@ const CategoryAnalyticsView = ({
                     fontWeight: 600,
                     color: colors.primary_text,
                     marginBottom: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.75,
                   }}
                 >
                   💡 Insights
@@ -1642,9 +1699,15 @@ const CategoryAnalyticsView = ({
                     fontWeight: 600,
                     color: colors.primary_text,
                     marginBottom: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.75,
                   }}
                 >
-                  📊 Overview & Patterns
+                  {getFunctionalIcon("analytics", {
+                    sx: { fontSize: 16, color: colors.primary_accent },
+                  })}
+                  Overview & Patterns
                 </Typography>
                 <Grid container spacing={0.75}>
                   <Grid item xs={6}>

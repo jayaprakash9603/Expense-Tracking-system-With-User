@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer" },
+      "date": { "type": ["string", "null"] },
+      "includeInBudget": { "type": "boolean" },
+      "budgetIds": { "type": ["array", "null"], "items": { "type": "integer" } },
+      "categoryId": { "type": ["integer", "null"] },
+      "categoryName": { "type": ["string", "null"] },
+      "expense": {
+        "type": ["object", "null"],
+        "properties": {
+          "id": { "type": ["integer", "null"] },
+          "expenseName": { "type": ["string", "null"] },
+          "amount": {},
+          "type": { "type": ["string", "null"] },
+          "paymentMethod": { "type": ["string", "null"] },
+          "netAmount": {},
+          "comments": { "type": ["string", "null"] },
+          "creditDue": {}
+        },
+        "additionalProperties": true
+      },
+      "bill": { "type": "boolean" },
+      "userId": { "type": ["integer", "null"] }
+    },
+    "additionalProperties": true
+  }
+}

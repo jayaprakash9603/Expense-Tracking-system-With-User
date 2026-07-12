@@ -1,0 +1,4447 @@
+{
+  "generatedAt": "2026-03-20T15:05:27.205Z",
+  "source": "expense-tracking-backend/postman-collection.json",
+  "routeCount": 555,
+  "routes": [
+    {
+      "id": "DELETE:/api/admin/reports/1",
+      "method": "DELETE",
+      "pathTemplate": "/api/admin/reports/1",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Delete Report"
+    },
+    {
+      "id": "DELETE:/api/admin/stories/:storyid",
+      "method": "DELETE",
+      "pathTemplate": "/api/admin/stories/:storyid",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Delete Story"
+    },
+    {
+      "id": "DELETE:/api/admin/users/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/admin/users/:userid",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Delete User"
+    },
+    {
+      "id": "DELETE:/api/bills",
+      "method": "DELETE",
+      "pathTemplate": "/api/bills",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Delete All Bills"
+    },
+    {
+      "id": "DELETE:/api/bills/:billid",
+      "method": "DELETE",
+      "pathTemplate": "/api/bills/:billid",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Delete Bill"
+    },
+    {
+      "id": "DELETE:/api/budgets",
+      "method": "DELETE",
+      "pathTemplate": "/api/budgets",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Delete All Budgets"
+    },
+    {
+      "id": "DELETE:/api/budgets/:budgetid",
+      "method": "DELETE",
+      "pathTemplate": "/api/budgets/:budgetid",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Delete Budget"
+    },
+    {
+      "id": "DELETE:/api/categories",
+      "method": "DELETE",
+      "pathTemplate": "/api/categories",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Delete All Categories"
+    },
+    {
+      "id": "DELETE:/api/categories/:categoryid",
+      "method": "DELETE",
+      "pathTemplate": "/api/categories/:categoryid",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Delete Category"
+    },
+    {
+      "id": "DELETE:/api/categories/all/global",
+      "method": "DELETE",
+      "pathTemplate": "/api/categories/all/global",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Delete All Global Categories"
+    },
+    {
+      "id": "DELETE:/api/categories/bulk",
+      "method": "DELETE",
+      "pathTemplate": "/api/categories/bulk",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Delete Bulk Categories"
+    },
+    {
+      "id": "DELETE:/api/chats/:chatid",
+      "method": "DELETE",
+      "pathTemplate": "/api/chats/:chatid",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Delete Chat"
+    },
+    {
+      "id": "DELETE:/api/chats/:chatid/reactions",
+      "method": "DELETE",
+      "pathTemplate": "/api/chats/:chatid/reactions",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Remove Reaction"
+    },
+    {
+      "id": "DELETE:/api/chats/bulk",
+      "method": "DELETE",
+      "pathTemplate": "/api/chats/bulk",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Delete Bulk Chats"
+    },
+    {
+      "id": "DELETE:/api/events/:eventid/user/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/events/:eventid/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Delete Event"
+    },
+    {
+      "id": "DELETE:/api/events/budgets/1/user/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/events/budgets/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Delete Event Budget"
+    },
+    {
+      "id": "DELETE:/api/events/donations/1/user/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/events/donations/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Delete Donation"
+    },
+    {
+      "id": "DELETE:/api/events/expenses/1/user/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/events/expenses/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Delete Event Expense"
+    },
+    {
+      "id": "DELETE:/api/expenses/:expenseid/remove-comment",
+      "method": "DELETE",
+      "pathTemplate": "/api/expenses/:expenseid/remove-comment",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Remove Comment"
+    },
+    {
+      "id": "DELETE:/api/expenses/delete-all",
+      "method": "DELETE",
+      "pathTemplate": "/api/expenses/delete-all",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Delete All Expenses"
+    },
+    {
+      "id": "DELETE:/api/expenses/delete-expenses-with-bill-service",
+      "method": "DELETE",
+      "pathTemplate": "/api/expenses/delete-expenses-with-bill-service",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Delete With Bill Service"
+    },
+    {
+      "id": "DELETE:/api/expenses/delete-multiple",
+      "method": "DELETE",
+      "pathTemplate": "/api/expenses/delete-multiple",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Delete Multiple Expenses"
+    },
+    {
+      "id": "DELETE:/api/expenses/delete/:expenseid",
+      "method": "DELETE",
+      "pathTemplate": "/api/expenses/delete/:expenseid",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Delete Expense"
+    },
+    {
+      "id": "DELETE:/api/friendships/:friendshipid",
+      "method": "DELETE",
+      "pathTemplate": "/api/friendships/:friendshipid",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Remove Friendship"
+    },
+    {
+      "id": "DELETE:/api/friendships/request/:friendshipid/cancel",
+      "method": "DELETE",
+      "pathTemplate": "/api/friendships/request/:friendshipid/cancel",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Cancel Friend Request"
+    },
+    {
+      "id": "DELETE:/api/groups/:groupid",
+      "method": "DELETE",
+      "pathTemplate": "/api/groups/:groupid",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Delete Group"
+    },
+    {
+      "id": "DELETE:/api/groups/:groupid/members/2",
+      "method": "DELETE",
+      "pathTemplate": "/api/groups/:groupid/members/2",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Remove Member"
+    },
+    {
+      "id": "DELETE:/api/groups/:groupid/members/bulk-remove",
+      "method": "DELETE",
+      "pathTemplate": "/api/groups/:groupid/members/bulk-remove",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Bulk Remove Members"
+    },
+    {
+      "id": "DELETE:/api/groups/invitations/1/cancel",
+      "method": "DELETE",
+      "pathTemplate": "/api/groups/invitations/1/cancel",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Cancel Invitation (DELETE)"
+    },
+    {
+      "id": "DELETE:/api/notification-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/notification-preferences",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Delete Preferences"
+    },
+    {
+      "id": "DELETE:/api/notifications/:notificationid",
+      "method": "DELETE",
+      "pathTemplate": "/api/notifications/:notificationid",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Delete Notification"
+    },
+    {
+      "id": "DELETE:/api/notifications/all",
+      "method": "DELETE",
+      "pathTemplate": "/api/notifications/all",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Delete All"
+    },
+    {
+      "id": "DELETE:/api/notifications/cleanup",
+      "method": "DELETE",
+      "pathTemplate": "/api/notifications/cleanup",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Cleanup Old"
+    },
+    {
+      "id": "DELETE:/api/payment-methods/:paymentMethodid",
+      "method": "DELETE",
+      "pathTemplate": "/api/payment-methods/:paymentMethodid",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Delete Payment Method"
+    },
+    {
+      "id": "DELETE:/api/payment-methods/all",
+      "method": "DELETE",
+      "pathTemplate": "/api/payment-methods/all",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Delete All Payment Methods"
+    },
+    {
+      "id": "DELETE:/api/roles/:roleid",
+      "method": "DELETE",
+      "pathTemplate": "/api/roles/:roleid",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Delete Role"
+    },
+    {
+      "id": "DELETE:/api/settings",
+      "method": "DELETE",
+      "pathTemplate": "/api/settings",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Delete Settings"
+    },
+    {
+      "id": "DELETE:/api/shares/TOKEN_HERE",
+      "method": "DELETE",
+      "pathTemplate": "/api/shares/TOKEN_HERE",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Revoke Share"
+    },
+    {
+      "id": "DELETE:/api/shares/TOKEN_HERE/added-items/exp-1",
+      "method": "DELETE",
+      "pathTemplate": "/api/shares/TOKEN_HERE/added-items/exp-1",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Untrack Item"
+    },
+    {
+      "id": "DELETE:/api/user/:userid",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/:userid",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Delete User"
+    },
+    {
+      "id": "DELETE:/api/user/:userid/roles/:roleid",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/:userid/roles/:roleid",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Remove Role From User"
+    },
+    {
+      "id": "DELETE:/api/user/bill-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/bill-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Bill Report Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/budget-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/budget-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Budget Report Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/category-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/category-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Category Report Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/dashboard-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/dashboard-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Dashboard Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/expense-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/expense-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Expense Report Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/friendship-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/friendship-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Friendship Report Preferences"
+    },
+    {
+      "id": "DELETE:/api/user/payment-report-preferences",
+      "method": "DELETE",
+      "pathTemplate": "/api/user/payment-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Reset Payment Report Preferences"
+    },
+    {
+      "id": "GET:/api/activities",
+      "method": "GET",
+      "pathTemplate": "/api/activities",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Get Activities"
+    },
+    {
+      "id": "GET:/api/activities/friend/2",
+      "method": "GET",
+      "pathTemplate": "/api/activities/friend/2",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Activities By Friend"
+    },
+    {
+      "id": "GET:/api/activities/paged",
+      "method": "GET",
+      "pathTemplate": "/api/activities/paged",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Get Activities Paged"
+    },
+    {
+      "id": "GET:/api/activities/recent",
+      "method": "GET",
+      "pathTemplate": "/api/activities/recent",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Recent Activities"
+    },
+    {
+      "id": "GET:/api/activities/service/EXPENSE",
+      "method": "GET",
+      "pathTemplate": "/api/activities/service/EXPENSE",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Activities By Service"
+    },
+    {
+      "id": "GET:/api/activities/summary",
+      "method": "GET",
+      "pathTemplate": "/api/activities/summary",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Activity Summary"
+    },
+    {
+      "id": "GET:/api/activities/unread",
+      "method": "GET",
+      "pathTemplate": "/api/activities/unread",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Unread Activities"
+    },
+    {
+      "id": "GET:/api/activities/unread/count",
+      "method": "GET",
+      "pathTemplate": "/api/activities/unread/count",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Unread Count"
+    },
+    {
+      "id": "GET:/api/admin/all",
+      "method": "GET",
+      "pathTemplate": "/api/admin/all",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Get All Users (Simple)"
+    },
+    {
+      "id": "GET:/api/admin/analytics/dashboard",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/dashboard",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "Dashboard Analytics"
+    },
+    {
+      "id": "GET:/api/admin/analytics/overview",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/overview",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "Analytics Overview"
+    },
+    {
+      "id": "GET:/api/admin/analytics/recent-activity",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/recent-activity",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "Recent Activity"
+    },
+    {
+      "id": "GET:/api/admin/analytics/top-categories",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/top-categories",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "Top Categories"
+    },
+    {
+      "id": "GET:/api/admin/analytics/top-users",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/top-users",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "Top Users"
+    },
+    {
+      "id": "GET:/api/admin/analytics/user-stats",
+      "method": "GET",
+      "pathTemplate": "/api/admin/analytics/user-stats",
+      "sectionSlug": "07.-admin-analytics",
+      "sectionTitle": "07. Admin Analytics",
+      "requestName": "User Stats"
+    },
+    {
+      "id": "GET:/api/admin/audit-logs",
+      "method": "GET",
+      "pathTemplate": "/api/admin/audit-logs",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Get All Audit Logs (Admin)"
+    },
+    {
+      "id": "GET:/api/admin/audit-logs/entity",
+      "method": "GET",
+      "pathTemplate": "/api/admin/audit-logs/entity",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Audit Logs For Entity"
+    },
+    {
+      "id": "GET:/api/admin/audit-logs/stats",
+      "method": "GET",
+      "pathTemplate": "/api/admin/audit-logs/stats",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Audit Log Stats"
+    },
+    {
+      "id": "GET:/api/admin/audit-logs/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/admin/audit-logs/user/:userid",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Audit Logs For User"
+    },
+    {
+      "id": "GET:/api/admin/reports",
+      "method": "GET",
+      "pathTemplate": "/api/admin/reports",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Get All Reports (Admin)"
+    },
+    {
+      "id": "GET:/api/admin/reports/1",
+      "method": "GET",
+      "pathTemplate": "/api/admin/reports/1",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Get Report By ID"
+    },
+    {
+      "id": "GET:/api/admin/reports/1/download",
+      "method": "GET",
+      "pathTemplate": "/api/admin/reports/1/download",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Download Report"
+    },
+    {
+      "id": "GET:/api/admin/stories",
+      "method": "GET",
+      "pathTemplate": "/api/admin/stories",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Get All Stories"
+    },
+    {
+      "id": "GET:/api/admin/stories/:storyid",
+      "method": "GET",
+      "pathTemplate": "/api/admin/stories/:storyid",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Get Story By ID"
+    },
+    {
+      "id": "GET:/api/admin/stories/status/ACTIVE",
+      "method": "GET",
+      "pathTemplate": "/api/admin/stories/status/ACTIVE",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Stories By Status"
+    },
+    {
+      "id": "GET:/api/admin/stories/type/FEATURE",
+      "method": "GET",
+      "pathTemplate": "/api/admin/stories/type/FEATURE",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Stories By Type"
+    },
+    {
+      "id": "GET:/api/admin/users",
+      "method": "GET",
+      "pathTemplate": "/api/admin/users",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Get All Users (Paginated)"
+    },
+    {
+      "id": "GET:/api/admin/users/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/admin/users/:userid",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Get User By ID"
+    },
+    {
+      "id": "GET:/api/admin/users/search",
+      "method": "GET",
+      "pathTemplate": "/api/admin/users/search",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Search Users"
+    },
+    {
+      "id": "GET:/api/admin/users/stats",
+      "method": "GET",
+      "pathTemplate": "/api/admin/users/stats",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Get User Stats"
+    },
+    {
+      "id": "GET:/api/analytics/overview",
+      "method": "GET",
+      "pathTemplate": "/api/analytics/overview",
+      "sectionSlug": "30.-analytics",
+      "sectionTitle": "30. Analytics",
+      "requestName": "Application Overview"
+    },
+    {
+      "id": "GET:/api/analytics/report/excel",
+      "method": "GET",
+      "pathTemplate": "/api/analytics/report/excel",
+      "sectionSlug": "30.-analytics",
+      "sectionTitle": "30. Analytics",
+      "requestName": "Download Visual Report"
+    },
+    {
+      "id": "GET:/api/audit-logs/all",
+      "method": "GET",
+      "pathTemplate": "/api/audit-logs/all",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Get All User Audit Logs"
+    },
+    {
+      "id": "GET:/api/audit-logs/audit-types",
+      "method": "GET",
+      "pathTemplate": "/api/audit-logs/audit-types",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Get Audit Log Types"
+    },
+    {
+      "id": "GET:/api/bills",
+      "method": "GET",
+      "pathTemplate": "/api/bills",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Get All Bills"
+    },
+    {
+      "id": "GET:/api/bills/:billid",
+      "method": "GET",
+      "pathTemplate": "/api/bills/:billid",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Get Bill By ID"
+    },
+    {
+      "id": "GET:/api/bills/add-multiple/progress/job-123",
+      "method": "GET",
+      "pathTemplate": "/api/bills/add-multiple/progress/job-123",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Add Multiple Progress"
+    },
+    {
+      "id": "GET:/api/bills/expenses/:expenseid",
+      "method": "GET",
+      "pathTemplate": "/api/bills/expenses/:expenseid",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Get Bill By Expense"
+    },
+    {
+      "id": "GET:/api/bills/export/excel",
+      "method": "GET",
+      "pathTemplate": "/api/bills/export/excel",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Export Excel"
+    },
+    {
+      "id": "GET:/api/bills/items",
+      "method": "GET",
+      "pathTemplate": "/api/bills/items",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Get All Unique Items"
+    },
+    {
+      "id": "GET:/api/bills/ocr/status",
+      "method": "GET",
+      "pathTemplate": "/api/bills/ocr/status",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "OCR Status"
+    },
+    {
+      "id": "GET:/api/bills/search",
+      "method": "GET",
+      "pathTemplate": "/api/bills/search",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Search Bills"
+    },
+    {
+      "id": "GET:/api/budgets",
+      "method": "GET",
+      "pathTemplate": "/api/budgets",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Get All Budgets"
+    },
+    {
+      "id": "GET:/api/budgets/:budgetid",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/:budgetid",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Get Budget By ID"
+    },
+    {
+      "id": "GET:/api/budgets/:budgetid/expenses",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/:budgetid/expenses",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Budget Expenses"
+    },
+    {
+      "id": "GET:/api/budgets/all-with-expenses/detailed/filtered",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/all-with-expenses/detailed/filtered",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "All With Expenses Filtered"
+    },
+    {
+      "id": "GET:/api/budgets/detailed-report/:budgetid",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/detailed-report/:budgetid",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Detailed Budget Report"
+    },
+    {
+      "id": "GET:/api/budgets/expenses",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/expenses",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Budgets For Expense"
+    },
+    {
+      "id": "GET:/api/budgets/filter-by-date",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/filter-by-date",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Filter By Date"
+    },
+    {
+      "id": "GET:/api/budgets/get-by-id",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/get-by-id",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Get Budget (service)"
+    },
+    {
+      "id": "GET:/api/budgets/report/:budgetid",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/report/:budgetid",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Budget Report"
+    },
+    {
+      "id": "GET:/api/budgets/reports",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/reports",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "All Budget Reports"
+    },
+    {
+      "id": "GET:/api/budgets/search",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/search",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Search Budgets"
+    },
+    {
+      "id": "GET:/api/budgets/user",
+      "method": "GET",
+      "pathTemplate": "/api/budgets/user",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Get Budgets For User (service)"
+    },
+    {
+      "id": "GET:/api/bulk/expenses-budgets/progress/job-123",
+      "method": "GET",
+      "pathTemplate": "/api/bulk/expenses-budgets/progress/job-123",
+      "sectionSlug": "12.-bulk-expense-budget",
+      "sectionTitle": "12. Bulk Expense-Budget",
+      "requestName": "Bulk Progress"
+    },
+    {
+      "id": "GET:/api/bulk/health",
+      "method": "GET",
+      "pathTemplate": "/api/bulk/health",
+      "sectionSlug": "12.-bulk-expense-budget",
+      "sectionTitle": "12. Bulk Expense-Budget",
+      "requestName": "Bulk Health"
+    },
+    {
+      "id": "GET:/api/categories",
+      "method": "GET",
+      "pathTemplate": "/api/categories",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get All Categories"
+    },
+    {
+      "id": "GET:/api/categories/:categoryid",
+      "method": "GET",
+      "pathTemplate": "/api/categories/:categoryid",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get Category By ID"
+    },
+    {
+      "id": "GET:/api/categories/:categoryid/expenses",
+      "method": "GET",
+      "pathTemplate": "/api/categories/:categoryid/expenses",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Expenses By Category"
+    },
+    {
+      "id": "GET:/api/categories/:categoryid/filtered-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/categories/:categoryid/filtered-expenses",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Filtered Expenses With Category"
+    },
+    {
+      "id": "GET:/api/categories/get-all-for-users",
+      "method": "GET",
+      "pathTemplate": "/api/categories/get-all-for-users",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get All For User (service)"
+    },
+    {
+      "id": "GET:/api/categories/get-by-id-with-service",
+      "method": "GET",
+      "pathTemplate": "/api/categories/get-by-id-with-service",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get By ID (service)"
+    },
+    {
+      "id": "GET:/api/categories/get-by-name-with-service",
+      "method": "GET",
+      "pathTemplate": "/api/categories/get-by-name-with-service",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get By Name (service)"
+    },
+    {
+      "id": "GET:/api/categories/name/Food",
+      "method": "GET",
+      "pathTemplate": "/api/categories/name/Food",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Get Category By Name"
+    },
+    {
+      "id": "GET:/api/categories/search",
+      "method": "GET",
+      "pathTemplate": "/api/categories/search",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Search Categories"
+    },
+    {
+      "id": "GET:/api/categories/uncategorized",
+      "method": "GET",
+      "pathTemplate": "/api/categories/uncategorized",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Uncategorized Expenses"
+    },
+    {
+      "id": "GET:/api/chats",
+      "method": "GET",
+      "pathTemplate": "/api/chats",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Get My Sent Chats"
+    },
+    {
+      "id": "GET:/api/chats/between",
+      "method": "GET",
+      "pathTemplate": "/api/chats/between",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Chats Between Users"
+    },
+    {
+      "id": "GET:/api/chats/conversations",
+      "method": "GET",
+      "pathTemplate": "/api/chats/conversations",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Conversations List"
+    },
+    {
+      "id": "GET:/api/chats/group/:groupid",
+      "method": "GET",
+      "pathTemplate": "/api/chats/group/:groupid",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Get Chats For Group"
+    },
+    {
+      "id": "GET:/api/chats/group/:groupid/search",
+      "method": "GET",
+      "pathTemplate": "/api/chats/group/:groupid/search",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Search Group Chats"
+    },
+    {
+      "id": "GET:/api/chats/group/:groupid/unread",
+      "method": "GET",
+      "pathTemplate": "/api/chats/group/:groupid/unread",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Unread Group Chats"
+    },
+    {
+      "id": "GET:/api/chats/history/group/:groupid",
+      "method": "GET",
+      "pathTemplate": "/api/chats/history/group/:groupid",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Chat History (Group)"
+    },
+    {
+      "id": "GET:/api/chats/history/user/2",
+      "method": "GET",
+      "pathTemplate": "/api/chats/history/user/2",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Chat History (User)"
+    },
+    {
+      "id": "GET:/api/chats/presence/2",
+      "method": "GET",
+      "pathTemplate": "/api/chats/presence/2",
+      "sectionSlug": "27.-presence",
+      "sectionTitle": "27. Presence",
+      "requestName": "User Presence"
+    },
+    {
+      "id": "GET:/api/chats/presence/batch",
+      "method": "GET",
+      "pathTemplate": "/api/chats/presence/batch",
+      "sectionSlug": "27.-presence",
+      "sectionTitle": "27. Presence",
+      "requestName": "Batch Presence"
+    },
+    {
+      "id": "GET:/api/chats/presence/friends",
+      "method": "GET",
+      "pathTemplate": "/api/chats/presence/friends",
+      "sectionSlug": "27.-presence",
+      "sectionTitle": "27. Presence",
+      "requestName": "Friends Presence"
+    },
+    {
+      "id": "GET:/api/chats/presence/online",
+      "method": "GET",
+      "pathTemplate": "/api/chats/presence/online",
+      "sectionSlug": "27.-presence",
+      "sectionTitle": "27. Presence",
+      "requestName": "Online Users"
+    },
+    {
+      "id": "GET:/api/chats/statistics",
+      "method": "GET",
+      "pathTemplate": "/api/chats/statistics",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Chat Statistics"
+    },
+    {
+      "id": "GET:/api/chats/unread/count",
+      "method": "GET",
+      "pathTemplate": "/api/chats/unread/count",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Unread Message Count"
+    },
+    {
+      "id": "GET:/api/chats/user",
+      "method": "GET",
+      "pathTemplate": "/api/chats/user",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Get Chats For User"
+    },
+    {
+      "id": "GET:/api/chats/user/search",
+      "method": "GET",
+      "pathTemplate": "/api/chats/user/search",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Search User Chats"
+    },
+    {
+      "id": "GET:/api/chats/user/unread",
+      "method": "GET",
+      "pathTemplate": "/api/chats/user/unread",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Unread User Chats"
+    },
+    {
+      "id": "GET:/api/events/:eventid/analytics/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/analytics/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Analytics"
+    },
+    {
+      "id": "GET:/api/events/:eventid/budgets/total",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/budgets/total",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Total Budget"
+    },
+    {
+      "id": "GET:/api/events/:eventid/budgets/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/budgets/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Budgets"
+    },
+    {
+      "id": "GET:/api/events/:eventid/donations/payment-method-wise",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/donations/payment-method-wise",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Payment Method Wise Donations"
+    },
+    {
+      "id": "GET:/api/events/:eventid/donations/total",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/donations/total",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Total Donations"
+    },
+    {
+      "id": "GET:/api/events/:eventid/donations/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/donations/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Donations"
+    },
+    {
+      "id": "GET:/api/events/:eventid/expenses/category-wise",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/expenses/category-wise",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Category Wise Expenses"
+    },
+    {
+      "id": "GET:/api/events/:eventid/expenses/category/SUPPLIES",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/expenses/category/SUPPLIES",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Expenses By Category"
+    },
+    {
+      "id": "GET:/api/events/:eventid/expenses/total",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/expenses/total",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Total Expenses"
+    },
+    {
+      "id": "GET:/api/events/:eventid/expenses/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/expenses/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Expenses"
+    },
+    {
+      "id": "GET:/api/events/:eventid/financial-overview/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/financial-overview/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Financial Overview"
+    },
+    {
+      "id": "GET:/api/events/:eventid/summary/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/summary/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Summary"
+    },
+    {
+      "id": "GET:/api/events/:eventid/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/:eventid/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Get Event By ID"
+    },
+    {
+      "id": "GET:/api/events/categories",
+      "method": "GET",
+      "pathTemplate": "/api/events/categories",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Event Categories"
+    },
+    {
+      "id": "GET:/api/events/payment-methods",
+      "method": "GET",
+      "pathTemplate": "/api/events/payment-methods",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Payment Methods"
+    },
+    {
+      "id": "GET:/api/events/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "All Events By User"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/date-range",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/date-range",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Events By Date Range"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/monthly-summary/2026/3",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/monthly-summary/2026/3",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Monthly Event Summary"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/search",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/search",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Search Events"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/status-counts",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/status-counts",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Status Counts"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/status/ACTIVE",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/status/ACTIVE",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Events By Status"
+    },
+    {
+      "id": "GET:/api/events/user/:userid/type/CELEBRATION",
+      "method": "GET",
+      "pathTemplate": "/api/events/user/:userid/type/CELEBRATION",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Events By Type"
+    },
+    {
+      "id": "GET:/api/expenses/:budgetid/expenses",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/:budgetid/expenses",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Budget Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/:expenseid/comments",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/:expenseid/comments",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expense Comments"
+    },
+    {
+      "id": "GET:/api/expenses/add-multiple/progress/job-123",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/add-multiple/progress/job-123",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Add Multiple Progress"
+    },
+    {
+      "id": "GET:/api/expenses/all-by-categories/detailed",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/all-by-categories/detailed",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "All By Categories Detailed"
+    },
+    {
+      "id": "GET:/api/expenses/all-by-categories/detailed/filtered",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/all-by-categories/detailed/filtered",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "All By Categories Filtered"
+    },
+    {
+      "id": "GET:/api/expenses/all-by-payment-method/detailed/filtered",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/all-by-payment-method/detailed/filtered",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "All By Payment Method Filtered"
+    },
+    {
+      "id": "GET:/api/expenses/amount-range",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/amount-range",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Amount Range"
+    },
+    {
+      "id": "GET:/api/expenses/amount/50",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/amount/50",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Amount"
+    },
+    {
+      "id": "GET:/api/expenses/before/Groceries/2026-03-13",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/before/Groceries/2026-03-13",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Before Date"
+    },
+    {
+      "id": "GET:/api/expenses/between-dates",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/between-dates",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Between Dates Summary"
+    },
+    {
+      "id": "GET:/api/expenses/between-dates/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/between-dates/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Between Dates Email"
+    },
+    {
+      "id": "GET:/api/expenses/by-category/:categoryid",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/by-category/:categoryid",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Category"
+    },
+    {
+      "id": "GET:/api/expenses/by-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/by-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Month"
+    },
+    {
+      "id": "GET:/api/expenses/by-month/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/by-month/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Month Email"
+    },
+    {
+      "id": "GET:/api/expenses/by-name",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/by-name",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Name"
+    },
+    {
+      "id": "GET:/api/expenses/cashflow",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/cashflow",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Cashflow"
+    },
+    {
+      "id": "GET:/api/expenses/cumulative",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/cumulative",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Cumulative"
+    },
+    {
+      "id": "GET:/api/expenses/current-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/current-month-top-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month-top-expenses",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Top Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/current-month/distribution",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month/distribution",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Distribution"
+    },
+    {
+      "id": "GET:/api/expenses/current-month/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Email"
+    },
+    {
+      "id": "GET:/api/expenses/current-month/excel",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month/excel",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Excel"
+    },
+    {
+      "id": "GET:/api/expenses/current-month/totals",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/current-month/totals",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Month Totals"
+    },
+    {
+      "id": "GET:/api/expenses/daily-spending",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/daily-spending",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Daily Spending"
+    },
+    {
+      "id": "GET:/api/expenses/dropdown-values",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/dropdown-values",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Dropdown Values"
+    },
+    {
+      "id": "GET:/api/expenses/email/all",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/email/all",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "All Expenses Email"
+    },
+    {
+      "id": "GET:/api/expenses/expense/:expenseid",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expense/:expenseid",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expense By ID"
+    },
+    {
+      "id": "GET:/api/expenses/expense/:expenseid/detailed",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expense/:expenseid/detailed",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expense Detailed"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/amount-range/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/amount-range/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Amount Range Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/current-week",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/current-week",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Current Week"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/daily-summary-types",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/daily-summary-types",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Daily Summary Types"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/date/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/date/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Date Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/expenses-types",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/expenses-types",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Expense Types"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/gain/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/gain/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Gain Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/last-month/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/last-month/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Last Month Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/last-week",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/last-week",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Last Week"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/last-week/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/last-week/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Last Week Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/loss/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/loss/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Loss Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/particular-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/particular-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Particular Month"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/payment-wise-total-current-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/payment-wise-total-current-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Wise Total Current Month"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/payment-wise-total-from-to",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/payment-wise-total-from-to",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Wise Total From-To"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/payment-wise-total-last-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/payment-wise-total-last-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Wise Total Last Month"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/payment-wise-total-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/payment-wise-total-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Wise Total Month"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/search/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/search/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Search Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/summary-types",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/summary-types",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Summary Types"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/today/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/today/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Today Email"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-by-date-range",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-by-date-range",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Date Range"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-by-expense-payment-method",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-by-expense-payment-method",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Expense Payment Method"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-by-expense-payment-method-range",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-by-expense-payment-method-range",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Expense Payment Method Range"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-by-month-year",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-by-month-year",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Month Year"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-current-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-current-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total Current Month"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-expense-payment-method",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-expense-payment-method",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total Expense Payment Method (All)"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/total-today",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/total-today",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total Today"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/yesterday",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/yesterday",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Yesterday's Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/expenses/yesterday/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/expenses/yesterday/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Yesterday Email"
+    },
+    {
+      "id": "GET:/api/expenses/fetch-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/fetch-expenses",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Fetch All Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/fetch-expenses-by-date",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/fetch-expenses-by-date",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Fetch Expenses By Date"
+    },
+    {
+      "id": "GET:/api/expenses/fetch-expenses-by-date/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/fetch-expenses-by-date/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Date Range Email"
+    },
+    {
+      "id": "GET:/api/expenses/fetch-expenses-paginated",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/fetch-expenses-paginated",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Fetch Expenses Paginated"
+    },
+    {
+      "id": "GET:/api/expenses/filter",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/filter",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Filter Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/gain",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/gain",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Gain Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/generate-excel-report",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/generate-excel-report",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Generate Excel Report"
+    },
+    {
+      "id": "GET:/api/expenses/get-all-expenses-sort-with-bill-service",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/get-all-expenses-sort-with-bill-service",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get All Sort With Bill Service"
+    },
+    {
+      "id": "GET:/api/expenses/get-all-expenses-with-bill-service",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/get-all-expenses-with-bill-service",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get All With Bill Service"
+    },
+    {
+      "id": "GET:/api/expenses/get-by-id",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/get-by-id",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expense (service)"
+    },
+    {
+      "id": "GET:/api/expenses/groupedByDate",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/groupedByDate",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Grouped By Date"
+    },
+    {
+      "id": "GET:/api/expenses/included-in-BudgetModel/2026-01-01/2026-03-31",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/included-in-BudgetModel/2026-01-01/2026-03-31",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Included In Budget"
+    },
+    {
+      "id": "GET:/api/expenses/included-in-budgets/2026-01-01/2026-03-31",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/included-in-budgets/2026-01-01/2026-03-31",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Included In Budgets (service)"
+    },
+    {
+      "id": "GET:/api/expenses/insights/monthly",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/insights/monthly",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Monthly Insights"
+    },
+    {
+      "id": "GET:/api/expenses/last-month",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/last-month",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Last Month Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/loss",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/loss",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Loss Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/LOSS/CASH",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/LOSS/CASH",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Type And Payment"
+    },
+    {
+      "id": "GET:/api/expenses/LOSS/CASH/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/LOSS/CASH/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Type Payment Email"
+    },
+    {
+      "id": "GET:/api/expenses/momentum-insight",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/momentum-insight",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Momentum Insight"
+    },
+    {
+      "id": "GET:/api/expenses/monthly",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/monthly",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Monthly Chart"
+    },
+    {
+      "id": "GET:/api/expenses/monthly-summary/2026/3",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/monthly-summary/2026/3",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Monthly Summary"
+    },
+    {
+      "id": "GET:/api/expenses/monthly-summary/2026/3/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/monthly-summary/2026/3/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Monthly Summary Email"
+    },
+    {
+      "id": "GET:/api/expenses/name-over-time",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/name-over-time",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Name Over Time"
+    },
+    {
+      "id": "GET:/api/expenses/particular-date",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/particular-date",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Particular Date"
+    },
+    {
+      "id": "GET:/api/expenses/payment-method",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-method",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Methods List"
+    },
+    {
+      "id": "GET:/api/expenses/payment-method-summary",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-method-summary",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Method Summary"
+    },
+    {
+      "id": "GET:/api/expenses/payment-method-summary/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-method-summary/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Summary Email"
+    },
+    {
+      "id": "GET:/api/expenses/payment-method/CASH",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-method/CASH",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Payment Method"
+    },
+    {
+      "id": "GET:/api/expenses/payment-method/CASH/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-method/CASH/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "By Payment Method Email"
+    },
+    {
+      "id": "GET:/api/expenses/payment-methods",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-methods",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Methods Chart"
+    },
+    {
+      "id": "GET:/api/expenses/payment-methods/filtered",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/payment-methods/filtered",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Methods Filtered"
+    },
+    {
+      "id": "GET:/api/expenses/range/offset",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/range/offset",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Range Offset"
+    },
+    {
+      "id": "GET:/api/expenses/reports/history",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/reports/history",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Reports History"
+    },
+    {
+      "id": "GET:/api/expenses/reports/history/range",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/reports/history/range",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Reports History Range"
+    },
+    {
+      "id": "GET:/api/expenses/reports/history/recent",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/reports/history/recent",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Reports History Recent"
+    },
+    {
+      "id": "GET:/api/expenses/reports/history/stats",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/reports/history/stats",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Reports History Stats"
+    },
+    {
+      "id": "GET:/api/expenses/reports/history/status/COMPLETED",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/reports/history/status/COMPLETED",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Reports History By Status"
+    },
+    {
+      "id": "GET:/api/expenses/search",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/search",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Search Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/search/fuzzy",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/search/fuzzy",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Fuzzy Search"
+    },
+    {
+      "id": "GET:/api/expenses/send-excel-report",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/send-excel-report",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Send Excel Report"
+    },
+    {
+      "id": "GET:/api/expenses/sorted",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/sorted",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Sorted Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/summary-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/summary-expenses",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Summary Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/today",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/today",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Today's Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/top-expense-names",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-expense-names",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Expense Names (GET)"
+    },
+    {
+      "id": "GET:/api/expenses/top-gains",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-gains",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Gains"
+    },
+    {
+      "id": "GET:/api/expenses/top-gains/unique",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-gains/unique",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Gains Unique"
+    },
+    {
+      "id": "GET:/api/expenses/top-losses",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-losses",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Losses"
+    },
+    {
+      "id": "GET:/api/expenses/top-losses/unique",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-losses/unique",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Losses Unique"
+    },
+    {
+      "id": "GET:/api/expenses/top-n",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-n",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top N Expenses"
+    },
+    {
+      "id": "GET:/api/expenses/top-payment-methods",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/top-payment-methods",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Payment Methods"
+    },
+    {
+      "id": "GET:/api/expenses/total-by-category",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/total-by-category",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Category"
+    },
+    {
+      "id": "GET:/api/expenses/total-by-date",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/total-by-date",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Date"
+    },
+    {
+      "id": "GET:/api/expenses/total/Groceries",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/total/Groceries",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Total By Expense Name"
+    },
+    {
+      "id": "GET:/api/expenses/trend",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/trend",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Trend"
+    },
+    {
+      "id": "GET:/api/expenses/UserDTO/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/UserDTO/:userid",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expenses By User"
+    },
+    {
+      "id": "GET:/api/expenses/yearly-summary/2026",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/yearly-summary/2026",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Yearly Summary"
+    },
+    {
+      "id": "GET:/api/expenses/yearly-summary/email",
+      "method": "GET",
+      "pathTemplate": "/api/expenses/yearly-summary/email",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Yearly Summary Email"
+    },
+    {
+      "id": "GET:/api/friendships/:friendshipid",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/:friendshipid",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Get Friendship By ID"
+    },
+    {
+      "id": "GET:/api/friendships/access-check/2",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/access-check/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Check Expense Access"
+    },
+    {
+      "id": "GET:/api/friendships/are-friends/1/2",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/are-friends/1/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Are Friends"
+    },
+    {
+      "id": "GET:/api/friendships/blocked",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/blocked",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Blocked Users"
+    },
+    {
+      "id": "GET:/api/friendships/can-access-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/can-access-expenses",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Can Access Expenses (service)"
+    },
+    {
+      "id": "GET:/api/friendships/can-modify-expenses",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/can-modify-expenses",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Can Modify Expenses (service)"
+    },
+    {
+      "id": "GET:/api/friendships/check/2",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/check/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Check Friendship Status"
+    },
+    {
+      "id": "GET:/api/friendships/details",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/details",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Friendship Details"
+    },
+    {
+      "id": "GET:/api/friendships/expense-sharing-summary",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/expense-sharing-summary",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Expense Sharing Summary"
+    },
+    {
+      "id": "GET:/api/friendships/friend-ids",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/friend-ids",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Get Friend IDs (service)"
+    },
+    {
+      "id": "GET:/api/friendships/friends",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/friends",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Get User Friendships"
+    },
+    {
+      "id": "GET:/api/friendships/friends/detailed",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/friends/detailed",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Detailed Friends"
+    },
+    {
+      "id": "GET:/api/friendships/get-access-level",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/get-access-level",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Get Access Level (service)"
+    },
+    {
+      "id": "GET:/api/friendships/i-shared-with",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/i-shared-with",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "I Shared With"
+    },
+    {
+      "id": "GET:/api/friendships/mutual/2",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/mutual/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Mutual Friends"
+    },
+    {
+      "id": "GET:/api/friendships/pending",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/pending",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Pending Requests"
+    },
+    {
+      "id": "GET:/api/friendships/pending/incoming",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/pending/incoming",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Incoming Requests"
+    },
+    {
+      "id": "GET:/api/friendships/pending/outgoing",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/pending/outgoing",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Outgoing Requests"
+    },
+    {
+      "id": "GET:/api/friendships/recommended-to-share",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/recommended-to-share",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Recommended To Share"
+    },
+    {
+      "id": "GET:/api/friendships/report",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/report",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Friendship Report"
+    },
+    {
+      "id": "GET:/api/friendships/search",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/search",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Search Friends"
+    },
+    {
+      "id": "GET:/api/friendships/shared-with-me",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/shared-with-me",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Shared With Me"
+    },
+    {
+      "id": "GET:/api/friendships/stats",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/stats",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Friendship Stats"
+    },
+    {
+      "id": "GET:/api/friendships/suggestions",
+      "method": "GET",
+      "pathTemplate": "/api/friendships/suggestions",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Friend Suggestions"
+    },
+    {
+      "id": "GET:/api/groups",
+      "method": "GET",
+      "pathTemplate": "/api/groups",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get All Groups"
+    },
+    {
+      "id": "GET:/api/groups/:groupid",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get Group By ID"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/activity",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/activity",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Group Activity"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/check-permission/EDIT",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/check-permission/EDIT",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Check Permission"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/export",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/export",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Export Group"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/friends-not-in-group",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/friends-not-in-group",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Friends Not In Group"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/invitations/sent",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/invitations/sent",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Sent Invitations By Group"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/is-member",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/is-member",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Is Member"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/is-owner",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/is-owner",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Is Owner"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/members",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/members",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get Members"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/members/by-role/ADMIN",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/members/by-role/ADMIN",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Members By Role"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/members/recent",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/members/recent",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Recent Members"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/permissions",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/permissions",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get Permissions"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/role",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/role",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get User Role"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/settings",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/settings",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get Group Settings"
+    },
+    {
+      "id": "GET:/api/groups/:groupid/stats",
+      "method": "GET",
+      "pathTemplate": "/api/groups/:groupid/stats",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Group Stats"
+    },
+    {
+      "id": "GET:/api/groups/archived",
+      "method": "GET",
+      "pathTemplate": "/api/groups/archived",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Archived Groups"
+    },
+    {
+      "id": "GET:/api/groups/created",
+      "method": "GET",
+      "pathTemplate": "/api/groups/created",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Groups Created By User"
+    },
+    {
+      "id": "GET:/api/groups/get-group-by-id",
+      "method": "GET",
+      "pathTemplate": "/api/groups/get-group-by-id",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Get Group (service)"
+    },
+    {
+      "id": "GET:/api/groups/invitations/pending",
+      "method": "GET",
+      "pathTemplate": "/api/groups/invitations/pending",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Pending Invitations"
+    },
+    {
+      "id": "GET:/api/groups/invitations/sent",
+      "method": "GET",
+      "pathTemplate": "/api/groups/invitations/sent",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Sent Invitations"
+    },
+    {
+      "id": "GET:/api/groups/member",
+      "method": "GET",
+      "pathTemplate": "/api/groups/member",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Groups As Member"
+    },
+    {
+      "id": "GET:/api/groups/recommendations",
+      "method": "GET",
+      "pathTemplate": "/api/groups/recommendations",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Group Recommendations"
+    },
+    {
+      "id": "GET:/api/groups/roles",
+      "method": "GET",
+      "pathTemplate": "/api/groups/roles",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Available Roles"
+    },
+    {
+      "id": "GET:/api/groups/search",
+      "method": "GET",
+      "pathTemplate": "/api/groups/search",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Search Groups"
+    },
+    {
+      "id": "GET:/api/notification-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/notification-preferences",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Get Preferences"
+    },
+    {
+      "id": "GET:/api/notification-preferences/exists",
+      "method": "GET",
+      "pathTemplate": "/api/notification-preferences/exists",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Preferences Exist"
+    },
+    {
+      "id": "GET:/api/notifications",
+      "method": "GET",
+      "pathTemplate": "/api/notifications",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Get All Notifications"
+    },
+    {
+      "id": "GET:/api/notifications/count/unread",
+      "method": "GET",
+      "pathTemplate": "/api/notifications/count/unread",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Unread Count"
+    },
+    {
+      "id": "GET:/api/notifications/filter",
+      "method": "GET",
+      "pathTemplate": "/api/notifications/filter",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Filtered Notifications"
+    },
+    {
+      "id": "GET:/api/notifications/history",
+      "method": "GET",
+      "pathTemplate": "/api/notifications/history",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Notification History"
+    },
+    {
+      "id": "GET:/api/notifications/preferences",
+      "method": "GET",
+      "pathTemplate": "/api/notifications/preferences",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Get Preferences"
+    },
+    {
+      "id": "GET:/api/notifications/unread",
+      "method": "GET",
+      "pathTemplate": "/api/notifications/unread",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Unread Notifications"
+    },
+    {
+      "id": "GET:/api/payment-methods",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get All Payment Methods"
+    },
+    {
+      "id": "GET:/api/payment-methods/:paymentMethodid",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/:paymentMethodid",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get Payment Method By ID"
+    },
+    {
+      "id": "GET:/api/payment-methods/get-all-payment-methods",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/get-all-payment-methods",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get All (service)"
+    },
+    {
+      "id": "GET:/api/payment-methods/name",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/name",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get By Name"
+    },
+    {
+      "id": "GET:/api/payment-methods/name-and-type",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/name-and-type",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get By Name And Type"
+    },
+    {
+      "id": "GET:/api/payment-methods/names",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/names",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Get By Name (service)"
+    },
+    {
+      "id": "GET:/api/payment-methods/search",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/search",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Search Payment Methods"
+    },
+    {
+      "id": "GET:/api/payment-methods/unused",
+      "method": "GET",
+      "pathTemplate": "/api/payment-methods/unused",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Unused Payment Methods"
+    },
+    {
+      "id": "GET:/api/roles",
+      "method": "GET",
+      "pathTemplate": "/api/roles",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Get All Roles"
+    },
+    {
+      "id": "GET:/api/roles/:roleid",
+      "method": "GET",
+      "pathTemplate": "/api/roles/:roleid",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Get Role By ID"
+    },
+    {
+      "id": "GET:/api/roles/name/ROLE_ADMIN",
+      "method": "GET",
+      "pathTemplate": "/api/roles/name/ROLE_ADMIN",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Get Role By Name"
+    },
+    {
+      "id": "GET:/api/search",
+      "method": "GET",
+      "pathTemplate": "/api/search",
+      "sectionSlug": "31.-search",
+      "sectionTitle": "31. Search",
+      "requestName": "Universal Search"
+    },
+    {
+      "id": "GET:/api/search/health",
+      "method": "GET",
+      "pathTemplate": "/api/search/health",
+      "sectionSlug": "31.-search",
+      "sectionTitle": "31. Search",
+      "requestName": "Search Health"
+    },
+    {
+      "id": "GET:/api/settings",
+      "method": "GET",
+      "pathTemplate": "/api/settings",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Get Settings"
+    },
+    {
+      "id": "GET:/api/settings/exists",
+      "method": "GET",
+      "pathTemplate": "/api/settings/exists",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Settings Exist"
+    },
+    {
+      "id": "GET:/api/shares/my-shares",
+      "method": "GET",
+      "pathTemplate": "/api/shares/my-shares",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "My Shares"
+    },
+    {
+      "id": "GET:/api/shares/public",
+      "method": "GET",
+      "pathTemplate": "/api/shares/public",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Public Shares"
+    },
+    {
+      "id": "GET:/api/shares/shared-with-me",
+      "method": "GET",
+      "pathTemplate": "/api/shares/shared-with-me",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Shared With Me"
+    },
+    {
+      "id": "GET:/api/shares/stats",
+      "method": "GET",
+      "pathTemplate": "/api/shares/stats",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Share Stats"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Access Share"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE/added-items",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE/added-items",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Get Added Items"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE/added-items/exp-1",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE/added-items/exp-1",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Is Item Added"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE/paginated",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE/paginated",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Access Share Paginated"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE/qr",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE/qr",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Get QR"
+    },
+    {
+      "id": "GET:/api/shares/TOKEN_HERE/validate",
+      "method": "GET",
+      "pathTemplate": "/api/shares/TOKEN_HERE/validate",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Validate Share"
+    },
+    {
+      "id": "GET:/api/shortcuts",
+      "method": "GET",
+      "pathTemplate": "/api/shortcuts",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Get Shortcuts"
+    },
+    {
+      "id": "GET:/api/shortcuts/recommendations",
+      "method": "GET",
+      "pathTemplate": "/api/shortcuts/recommendations",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Get Recommendations"
+    },
+    {
+      "id": "GET:/api/stories",
+      "method": "GET",
+      "pathTemplate": "/api/stories",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Get Active Stories"
+    },
+    {
+      "id": "GET:/api/stories/:storyid",
+      "method": "GET",
+      "pathTemplate": "/api/stories/:storyid",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Get Story By ID"
+    },
+    {
+      "id": "GET:/api/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/api/user/:userid",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Get User By ID"
+    },
+    {
+      "id": "GET:/api/user/all",
+      "method": "GET",
+      "pathTemplate": "/api/user/all",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Get All Users"
+    },
+    {
+      "id": "GET:/api/user/bill-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/bill-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Bill Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/budget-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/budget-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Budget Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/category-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/category-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Category Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/dashboard-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/dashboard-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Dashboard Preferences"
+    },
+    {
+      "id": "GET:/api/user/email",
+      "method": "GET",
+      "pathTemplate": "/api/user/email",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Get User By Email"
+    },
+    {
+      "id": "GET:/api/user/expense-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/expense-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Expense Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/friendship-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/friendship-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Friendship Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/payment-report-preferences",
+      "method": "GET",
+      "pathTemplate": "/api/user/payment-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Get Payment Report Preferences"
+    },
+    {
+      "id": "GET:/api/user/profile",
+      "method": "GET",
+      "pathTemplate": "/api/user/profile",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Get Profile"
+    },
+    {
+      "id": "GET:/auth/:userid",
+      "method": "GET",
+      "pathTemplate": "/auth/:userid",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Find User By ID (auth/id)"
+    },
+    {
+      "id": "GET:/auth/check-auth-method",
+      "method": "GET",
+      "pathTemplate": "/auth/check-auth-method",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Check Auth Method"
+    },
+    {
+      "id": "GET:/auth/mfa/status",
+      "method": "GET",
+      "pathTemplate": "/auth/mfa/status",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Get MFA Status"
+    },
+    {
+      "id": "GET:/auth/oauth2/health",
+      "method": "GET",
+      "pathTemplate": "/auth/oauth2/health",
+      "sectionSlug": "02.-oauth2",
+      "sectionTitle": "02. OAuth2",
+      "requestName": "OAuth2 Health Check"
+    },
+    {
+      "id": "GET:/auth/user/:userid",
+      "method": "GET",
+      "pathTemplate": "/auth/user/:userid",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Find User By ID (auth/user)"
+    },
+    {
+      "id": "GET:/daily-summary/date",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/date",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Date Daily Summary"
+    },
+    {
+      "id": "GET:/daily-summary/date/email/2026-03-13",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/date/email/2026-03-13",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Date Daily Summary Email"
+    },
+    {
+      "id": "GET:/daily-summary/monthly",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/monthly",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Monthly Daily Summary"
+    },
+    {
+      "id": "GET:/daily-summary/monthly/email",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/monthly/email",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Monthly Daily Summary Email"
+    },
+    {
+      "id": "GET:/daily-summary/yearly",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/yearly",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Yearly Daily Summary"
+    },
+    {
+      "id": "GET:/daily-summary/yearly/email",
+      "method": "GET",
+      "pathTemplate": "/daily-summary/yearly/email",
+      "sectionSlug": "11.-daily-summary",
+      "sectionTitle": "11. Daily Summary",
+      "requestName": "Yearly Daily Summary Email"
+    },
+    {
+      "id": "GET:/email-logs",
+      "method": "GET",
+      "pathTemplate": "/email-logs",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "All Email Logs"
+    },
+    {
+      "id": "GET:/email-logs/current-month",
+      "method": "GET",
+      "pathTemplate": "/email-logs/current-month",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Current Month Logs"
+    },
+    {
+      "id": "GET:/email-logs/current-week",
+      "method": "GET",
+      "pathTemplate": "/email-logs/current-week",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Current Week Logs"
+    },
+    {
+      "id": "GET:/email-logs/current-year",
+      "method": "GET",
+      "pathTemplate": "/email-logs/current-year",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Current Year Logs"
+    },
+    {
+      "id": "GET:/email-logs/day/2026/3/13",
+      "method": "GET",
+      "pathTemplate": "/email-logs/day/2026/3/13",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "By Day"
+    },
+    {
+      "id": "GET:/email-logs/last-5-minutes",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-5-minutes",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last 5 Minutes"
+    },
+    {
+      "id": "GET:/email-logs/last-days/7",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-days/7",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last N Days"
+    },
+    {
+      "id": "GET:/email-logs/last-hours/24",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-hours/24",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last N Hours"
+    },
+    {
+      "id": "GET:/email-logs/last-minutes/30",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-minutes/30",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last N Minutes"
+    },
+    {
+      "id": "GET:/email-logs/last-month",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-month",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last Month Logs"
+    },
+    {
+      "id": "GET:/email-logs/last-seconds/3600",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-seconds/3600",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last N Seconds"
+    },
+    {
+      "id": "GET:/email-logs/last-week",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-week",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last Week Logs"
+    },
+    {
+      "id": "GET:/email-logs/last-year",
+      "method": "GET",
+      "pathTemplate": "/email-logs/last-year",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Last Year Logs"
+    },
+    {
+      "id": "GET:/email-logs/month/2026/3",
+      "method": "GET",
+      "pathTemplate": "/email-logs/month/2026/3",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "By Month"
+    },
+    {
+      "id": "GET:/email-logs/today",
+      "method": "GET",
+      "pathTemplate": "/email-logs/today",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "Today Logs"
+    },
+    {
+      "id": "GET:/email-logs/year/2026",
+      "method": "GET",
+      "pathTemplate": "/email-logs/year/2026",
+      "sectionSlug": "14.-email-logs",
+      "sectionTitle": "14. Email Logs",
+      "requestName": "By Year"
+    },
+    {
+      "id": "GET:/kafka/health",
+      "method": "GET",
+      "pathTemplate": "/kafka/health",
+      "sectionSlug": "15.-kafka",
+      "sectionTitle": "15. Kafka",
+      "requestName": "Kafka Health"
+    },
+    {
+      "id": "GET:/kafka/info",
+      "method": "GET",
+      "pathTemplate": "/kafka/info",
+      "sectionSlug": "15.-kafka",
+      "sectionTitle": "15. Kafka",
+      "requestName": "Kafka Info"
+    },
+    {
+      "id": "GET:/kafka/topics",
+      "method": "GET",
+      "pathTemplate": "/kafka/topics",
+      "sectionSlug": "15.-kafka",
+      "sectionTitle": "15. Kafka",
+      "requestName": "List Topics"
+    },
+    {
+      "id": "PATCH:/api/categories/admin/global/:categoryid",
+      "method": "PATCH",
+      "pathTemplate": "/api/categories/admin/global/:categoryid",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Admin Update Global Category"
+    },
+    {
+      "id": "PATCH:/auth/reset-password",
+      "method": "PATCH",
+      "pathTemplate": "/auth/reset-password",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Reset Password"
+    },
+    {
+      "id": "POST:/api/admin/reports/generate",
+      "method": "POST",
+      "pathTemplate": "/api/admin/reports/generate",
+      "sectionSlug": "28.-audit-logs",
+      "sectionTitle": "28. Audit Logs",
+      "requestName": "Generate Report"
+    },
+    {
+      "id": "POST:/api/admin/stories",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Create Story"
+    },
+    {
+      "id": "POST:/api/admin/stories/:storyid/activate",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/:storyid/activate",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Activate Story"
+    },
+    {
+      "id": "POST:/api/admin/stories/:storyid/archive",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/:storyid/archive",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Archive Story"
+    },
+    {
+      "id": "POST:/api/admin/stories/:storyid/deactivate",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/:storyid/deactivate",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Deactivate Story"
+    },
+    {
+      "id": "POST:/api/admin/stories/:storyid/unarchive",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/:storyid/unarchive",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Unarchive Story"
+    },
+    {
+      "id": "POST:/api/admin/stories/archive-expired",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/archive-expired",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Archive Expired"
+    },
+    {
+      "id": "POST:/api/admin/stories/expire",
+      "method": "POST",
+      "pathTemplate": "/api/admin/stories/expire",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Expire Stories"
+    },
+    {
+      "id": "POST:/api/admin/users/bulk-action",
+      "method": "POST",
+      "pathTemplate": "/api/admin/users/bulk-action",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Bulk User Action"
+    },
+    {
+      "id": "POST:/api/analytics/entity",
+      "method": "POST",
+      "pathTemplate": "/api/analytics/entity",
+      "sectionSlug": "30.-analytics",
+      "sectionTitle": "30. Analytics",
+      "requestName": "Entity Analytics"
+    },
+    {
+      "id": "POST:/api/bills",
+      "method": "POST",
+      "pathTemplate": "/api/bills",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Create Bill"
+    },
+    {
+      "id": "POST:/api/bills/add-multiple",
+      "method": "POST",
+      "pathTemplate": "/api/bills/add-multiple",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Add Multiple Bills"
+    },
+    {
+      "id": "POST:/api/bills/add-multiple/tracked",
+      "method": "POST",
+      "pathTemplate": "/api/bills/add-multiple/tracked",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Add Multiple Tracked"
+    },
+    {
+      "id": "POST:/api/bills/import/excel",
+      "method": "POST",
+      "pathTemplate": "/api/bills/import/excel",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Import Excel"
+    },
+    {
+      "id": "POST:/api/bills/import/excel/save",
+      "method": "POST",
+      "pathTemplate": "/api/bills/import/excel/save",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Import And Save Excel"
+    },
+    {
+      "id": "POST:/api/bills/scan-receipt",
+      "method": "POST",
+      "pathTemplate": "/api/bills/scan-receipt",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Scan Receipt"
+    },
+    {
+      "id": "POST:/api/bills/scan-receipt/multiple",
+      "method": "POST",
+      "pathTemplate": "/api/bills/scan-receipt/multiple",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Scan Multiple Receipts"
+    },
+    {
+      "id": "POST:/api/budgets",
+      "method": "POST",
+      "pathTemplate": "/api/budgets",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Create Budget"
+    },
+    {
+      "id": "POST:/api/budgets/save",
+      "method": "POST",
+      "pathTemplate": "/api/budgets/save",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Save Budget (service)"
+    },
+    {
+      "id": "POST:/api/bulk/expenses-budgets",
+      "method": "POST",
+      "pathTemplate": "/api/bulk/expenses-budgets",
+      "sectionSlug": "12.-bulk-expense-budget",
+      "sectionTitle": "12. Bulk Expense-Budget",
+      "requestName": "Bulk Expenses Budgets"
+    },
+    {
+      "id": "POST:/api/bulk/expenses-budgets/tracked",
+      "method": "POST",
+      "pathTemplate": "/api/bulk/expenses-budgets/tracked",
+      "sectionSlug": "12.-bulk-expense-budget",
+      "sectionTitle": "12. Bulk Expense-Budget",
+      "requestName": "Bulk Expenses Budgets Tracked"
+    },
+    {
+      "id": "POST:/api/bulk/recover",
+      "method": "POST",
+      "pathTemplate": "/api/bulk/recover",
+      "sectionSlug": "12.-bulk-expense-budget",
+      "sectionTitle": "12. Bulk Expense-Budget",
+      "requestName": "Bulk Recover"
+    },
+    {
+      "id": "POST:/api/categories",
+      "method": "POST",
+      "pathTemplate": "/api/categories",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Create Category"
+    },
+    {
+      "id": "POST:/api/categories/bulk",
+      "method": "POST",
+      "pathTemplate": "/api/categories/bulk",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Create Bulk Categories"
+    },
+    {
+      "id": "POST:/api/categories/create-category-with-service",
+      "method": "POST",
+      "pathTemplate": "/api/categories/create-category-with-service",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Create (service)"
+    },
+    {
+      "id": "POST:/api/categories/save",
+      "method": "POST",
+      "pathTemplate": "/api/categories/save",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Save (service)"
+    },
+    {
+      "id": "POST:/api/chats/:chatid/forward",
+      "method": "POST",
+      "pathTemplate": "/api/chats/:chatid/forward",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Forward Message"
+    },
+    {
+      "id": "POST:/api/chats/:chatid/reactions",
+      "method": "POST",
+      "pathTemplate": "/api/chats/:chatid/reactions",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Add Reaction"
+    },
+    {
+      "id": "POST:/api/chats/:chatid/reply",
+      "method": "POST",
+      "pathTemplate": "/api/chats/:chatid/reply",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Reply To Message"
+    },
+    {
+      "id": "POST:/api/chats/group",
+      "method": "POST",
+      "pathTemplate": "/api/chats/group",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Send Group Chat"
+    },
+    {
+      "id": "POST:/api/chats/mark-read",
+      "method": "POST",
+      "pathTemplate": "/api/chats/mark-read",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Mark Conversation Read"
+    },
+    {
+      "id": "POST:/api/chats/media",
+      "method": "POST",
+      "pathTemplate": "/api/chats/media",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Send Media Message"
+    },
+    {
+      "id": "POST:/api/chats/one-to-one",
+      "method": "POST",
+      "pathTemplate": "/api/chats/one-to-one",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Send One-to-One Chat"
+    },
+    {
+      "id": "POST:/api/chats/presence/batch",
+      "method": "POST",
+      "pathTemplate": "/api/chats/presence/batch",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Batch Presence"
+    },
+    {
+      "id": "POST:/api/chats/presence/heartbeat",
+      "method": "POST",
+      "pathTemplate": "/api/chats/presence/heartbeat",
+      "sectionSlug": "27.-presence",
+      "sectionTitle": "27. Presence",
+      "requestName": "Heartbeat"
+    },
+    {
+      "id": "POST:/api/chats/typing/start",
+      "method": "POST",
+      "pathTemplate": "/api/chats/typing/start",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Start Typing"
+    },
+    {
+      "id": "POST:/api/chats/typing/stop",
+      "method": "POST",
+      "pathTemplate": "/api/chats/typing/stop",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Stop Typing"
+    },
+    {
+      "id": "POST:/api/events",
+      "method": "POST",
+      "pathTemplate": "/api/events",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Create Event"
+    },
+    {
+      "id": "POST:/api/events/:eventid/update-totals",
+      "method": "POST",
+      "pathTemplate": "/api/events/:eventid/update-totals",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Update Event Totals"
+    },
+    {
+      "id": "POST:/api/events/budgets",
+      "method": "POST",
+      "pathTemplate": "/api/events/budgets",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Create Event Budget"
+    },
+    {
+      "id": "POST:/api/events/donations",
+      "method": "POST",
+      "pathTemplate": "/api/events/donations",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Add Donation"
+    },
+    {
+      "id": "POST:/api/events/expenses",
+      "method": "POST",
+      "pathTemplate": "/api/events/expenses",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Add Expense To Event"
+    },
+    {
+      "id": "POST:/api/expenses/:expenseid/copy",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/:expenseid/copy",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Copy Expense"
+    },
+    {
+      "id": "POST:/api/expenses/:expenseid/generate-report",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/:expenseid/generate-report",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Generate Expense Report"
+    },
+    {
+      "id": "POST:/api/expenses/add-expense",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/add-expense",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Add Expense"
+    },
+    {
+      "id": "POST:/api/expenses/add-expense-with-bill-service",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/add-expense-with-bill-service",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Add With Bill Service"
+    },
+    {
+      "id": "POST:/api/expenses/add-multiple",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/add-multiple",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Add Multiple Expenses"
+    },
+    {
+      "id": "POST:/api/expenses/add-multiple/tracked",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/add-multiple/tracked",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Add Multiple Tracked"
+    },
+    {
+      "id": "POST:/api/expenses/calculate-credit-due",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/calculate-credit-due",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Calculate Credit Due"
+    },
+    {
+      "id": "POST:/api/expenses/expenses/delete-and-send",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/expenses/delete-and-send",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Delete And Send"
+    },
+    {
+      "id": "POST:/api/expenses/expenses/fetch-by-ids",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/expenses/fetch-by-ids",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Fetch Expenses By IDs"
+    },
+    {
+      "id": "POST:/api/expenses/expenses/save",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/expenses/save",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Expenses Save (DTO)"
+    },
+    {
+      "id": "POST:/api/expenses/find-top-expense-names",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/find-top-expense-names",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Find Top Expense Names"
+    },
+    {
+      "id": "POST:/api/expenses/get-expenses-by-ids",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/get-expenses-by-ids",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Get Expenses By IDs (service)"
+    },
+    {
+      "id": "POST:/api/expenses/payload/find-top-payment-method",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/payload/find-top-payment-method",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Find Top Payment Method"
+    },
+    {
+      "id": "POST:/api/expenses/payload/payment-method-names",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/payload/payment-method-names",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Payment Method Names"
+    },
+    {
+      "id": "POST:/api/expenses/save",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/save",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Save Expenses"
+    },
+    {
+      "id": "POST:/api/expenses/save-single",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/save-single",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Save Single Expense"
+    },
+    {
+      "id": "POST:/api/expenses/send-monthly-report",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/send-monthly-report",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Send Monthly Report"
+    },
+    {
+      "id": "POST:/api/expenses/top-expense-names",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/top-expense-names",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Top Expense Names (POST)"
+    },
+    {
+      "id": "POST:/api/expenses/update-expense-with-bill-service",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/update-expense-with-bill-service",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Update With Bill Service"
+    },
+    {
+      "id": "POST:/api/expenses/upload",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/upload",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Upload Expenses CSV"
+    },
+    {
+      "id": "POST:/api/expenses/upload-categories",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/upload-categories",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Upload Categories CSV"
+    },
+    {
+      "id": "POST:/api/expenses/validate-and-calculate",
+      "method": "POST",
+      "pathTemplate": "/api/expenses/validate-and-calculate",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Validate And Calculate"
+    },
+    {
+      "id": "POST:/api/friendships/batch-share",
+      "method": "POST",
+      "pathTemplate": "/api/friendships/batch-share",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Batch Share"
+    },
+    {
+      "id": "POST:/api/friendships/block/2",
+      "method": "POST",
+      "pathTemplate": "/api/friendships/block/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Block User"
+    },
+    {
+      "id": "POST:/api/friendships/request",
+      "method": "POST",
+      "pathTemplate": "/api/friendships/request",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Send Friend Request"
+    },
+    {
+      "id": "POST:/api/friendships/unblock/2",
+      "method": "POST",
+      "pathTemplate": "/api/friendships/unblock/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Unblock User"
+    },
+    {
+      "id": "POST:/api/groups",
+      "method": "POST",
+      "pathTemplate": "/api/groups",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Create Group"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/duplicate",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/duplicate",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Duplicate Group"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/invite",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/invite",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Invite User"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/leave",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/leave",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Leave Group"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/members/2",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/members/2",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Add Member"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/members/2/role",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/members/2/role",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Add Member With Role"
+    },
+    {
+      "id": "POST:/api/groups/:groupid/members/bulk-add",
+      "method": "POST",
+      "pathTemplate": "/api/groups/:groupid/members/bulk-add",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Bulk Add Members"
+    },
+    {
+      "id": "POST:/api/groups/1/merge/2",
+      "method": "POST",
+      "pathTemplate": "/api/groups/1/merge/2",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Merge Groups"
+    },
+    {
+      "id": "POST:/api/investment/calculate",
+      "method": "POST",
+      "pathTemplate": "/api/investment/calculate",
+      "sectionSlug": "13.-investment",
+      "sectionTitle": "13. Investment",
+      "requestName": "Calculate Investment"
+    },
+    {
+      "id": "POST:/api/notification-preferences/default",
+      "method": "POST",
+      "pathTemplate": "/api/notification-preferences/default",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Create Defaults"
+    },
+    {
+      "id": "POST:/api/notification-preferences/reset",
+      "method": "POST",
+      "pathTemplate": "/api/notification-preferences/reset",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Reset To Defaults"
+    },
+    {
+      "id": "POST:/api/notifications/test",
+      "method": "POST",
+      "pathTemplate": "/api/notifications/test",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Send Test Notification"
+    },
+    {
+      "id": "POST:/api/payment-methods",
+      "method": "POST",
+      "pathTemplate": "/api/payment-methods",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Create Payment Method"
+    },
+    {
+      "id": "POST:/api/payment-methods/save",
+      "method": "POST",
+      "pathTemplate": "/api/payment-methods/save",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Save (service)"
+    },
+    {
+      "id": "POST:/api/roles",
+      "method": "POST",
+      "pathTemplate": "/api/roles",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Create Role"
+    },
+    {
+      "id": "POST:/api/settings/default",
+      "method": "POST",
+      "pathTemplate": "/api/settings/default",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Create Default Settings"
+    },
+    {
+      "id": "POST:/api/settings/reset",
+      "method": "POST",
+      "pathTemplate": "/api/settings/reset",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Reset Settings"
+    },
+    {
+      "id": "POST:/api/shares",
+      "method": "POST",
+      "pathTemplate": "/api/shares",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Create Share"
+    },
+    {
+      "id": "POST:/api/shares/TOKEN_HERE/added-items",
+      "method": "POST",
+      "pathTemplate": "/api/shares/TOKEN_HERE/added-items",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Track Added Item"
+    },
+    {
+      "id": "POST:/api/shares/TOKEN_HERE/added-items/bulk",
+      "method": "POST",
+      "pathTemplate": "/api/shares/TOKEN_HERE/added-items/bulk",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Track Bulk Items"
+    },
+    {
+      "id": "POST:/api/shares/TOKEN_HERE/regenerate-qr",
+      "method": "POST",
+      "pathTemplate": "/api/shares/TOKEN_HERE/regenerate-qr",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Regenerate QR"
+    },
+    {
+      "id": "POST:/api/shares/TOKEN_HERE/share-with-friend",
+      "method": "POST",
+      "pathTemplate": "/api/shares/TOKEN_HERE/share-with-friend",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Share With Friend"
+    },
+    {
+      "id": "POST:/api/shares/TOKEN_HERE/toggle-save",
+      "method": "POST",
+      "pathTemplate": "/api/shares/TOKEN_HERE/toggle-save",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Toggle Save Share"
+    },
+    {
+      "id": "POST:/api/shortcuts/recommendations/save/accept",
+      "method": "POST",
+      "pathTemplate": "/api/shortcuts/recommendations/save/accept",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Accept Recommendation"
+    },
+    {
+      "id": "POST:/api/shortcuts/recommendations/save/reject",
+      "method": "POST",
+      "pathTemplate": "/api/shortcuts/recommendations/save/reject",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Reject Recommendation"
+    },
+    {
+      "id": "POST:/api/shortcuts/reset",
+      "method": "POST",
+      "pathTemplate": "/api/shortcuts/reset",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Reset To Defaults"
+    },
+    {
+      "id": "POST:/api/shortcuts/track",
+      "method": "POST",
+      "pathTemplate": "/api/shortcuts/track",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Track Usage"
+    },
+    {
+      "id": "POST:/api/shortcuts/update",
+      "method": "POST",
+      "pathTemplate": "/api/shortcuts/update",
+      "sectionSlug": "32.-keyboard-shortcuts",
+      "sectionTitle": "32. Keyboard Shortcuts",
+      "requestName": "Update Shortcuts"
+    },
+    {
+      "id": "POST:/api/stories/:storyid/cta/CTA_ID/clicked",
+      "method": "POST",
+      "pathTemplate": "/api/stories/:storyid/cta/CTA_ID/clicked",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Mark CTA Clicked"
+    },
+    {
+      "id": "POST:/api/stories/:storyid/dismiss",
+      "method": "POST",
+      "pathTemplate": "/api/stories/:storyid/dismiss",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Dismiss Story"
+    },
+    {
+      "id": "POST:/api/stories/:storyid/seen",
+      "method": "POST",
+      "pathTemplate": "/api/stories/:storyid/seen",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Mark Story Seen"
+    },
+    {
+      "id": "POST:/api/stories/seen-bulk",
+      "method": "POST",
+      "pathTemplate": "/api/stories/seen-bulk",
+      "sectionSlug": "33.-stories",
+      "sectionTitle": "33. Stories",
+      "requestName": "Bulk Mark Seen"
+    },
+    {
+      "id": "POST:/api/user/:userid/roles/:roleid",
+      "method": "POST",
+      "pathTemplate": "/api/user/:userid/roles/:roleid",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Add Role To User"
+    },
+    {
+      "id": "POST:/api/user/bill-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/bill-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Bill Report Preferences"
+    },
+    {
+      "id": "POST:/api/user/budget-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/budget-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Budget Report Preferences"
+    },
+    {
+      "id": "POST:/api/user/category-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/category-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Category Report Preferences"
+    },
+    {
+      "id": "POST:/api/user/dashboard-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/dashboard-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Dashboard Preferences"
+    },
+    {
+      "id": "POST:/api/user/expense-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/expense-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Expense Report Preferences"
+    },
+    {
+      "id": "POST:/api/user/friendship-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/friendship-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Friendship Report Preferences"
+    },
+    {
+      "id": "POST:/api/user/payment-report-preferences",
+      "method": "POST",
+      "pathTemplate": "/api/user/payment-report-preferences",
+      "sectionSlug": "08.-report-preferences",
+      "sectionTitle": "08. Report Preferences",
+      "requestName": "Save Payment Report Preferences"
+    },
+    {
+      "id": "POST:/auth/check-email",
+      "method": "POST",
+      "pathTemplate": "/auth/check-email",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Check Email"
+    },
+    {
+      "id": "POST:/auth/mfa/disable",
+      "method": "POST",
+      "pathTemplate": "/auth/mfa/disable",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Disable MFA"
+    },
+    {
+      "id": "POST:/auth/mfa/enable",
+      "method": "POST",
+      "pathTemplate": "/auth/mfa/enable",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Enable MFA"
+    },
+    {
+      "id": "POST:/auth/mfa/regenerate-backup-codes",
+      "method": "POST",
+      "pathTemplate": "/auth/mfa/regenerate-backup-codes",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Regenerate Backup Codes"
+    },
+    {
+      "id": "POST:/auth/mfa/setup",
+      "method": "POST",
+      "pathTemplate": "/auth/mfa/setup",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Setup MFA"
+    },
+    {
+      "id": "POST:/auth/mfa/verify",
+      "method": "POST",
+      "pathTemplate": "/auth/mfa/verify",
+      "sectionSlug": "03.-mfa",
+      "sectionTitle": "03. MFA",
+      "requestName": "Verify MFA"
+    },
+    {
+      "id": "POST:/auth/oauth2/google",
+      "method": "POST",
+      "pathTemplate": "/auth/oauth2/google",
+      "sectionSlug": "02.-oauth2",
+      "sectionTitle": "02. OAuth2",
+      "requestName": "Google Login"
+    },
+    {
+      "id": "POST:/auth/refresh-token",
+      "method": "POST",
+      "pathTemplate": "/auth/refresh-token",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Refresh Token"
+    },
+    {
+      "id": "POST:/auth/resend-login-otp",
+      "method": "POST",
+      "pathTemplate": "/auth/resend-login-otp",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Resend Login OTP"
+    },
+    {
+      "id": "POST:/auth/send-otp",
+      "method": "POST",
+      "pathTemplate": "/auth/send-otp",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Send OTP"
+    },
+    {
+      "id": "POST:/auth/signin",
+      "method": "POST",
+      "pathTemplate": "/auth/signin",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Signin"
+    },
+    {
+      "id": "POST:/auth/signup",
+      "method": "POST",
+      "pathTemplate": "/auth/signup",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Signup"
+    },
+    {
+      "id": "POST:/auth/verify-login-otp",
+      "method": "POST",
+      "pathTemplate": "/auth/verify-login-otp",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Verify Login OTP"
+    },
+    {
+      "id": "POST:/auth/verify-otp",
+      "method": "POST",
+      "pathTemplate": "/auth/verify-otp",
+      "sectionSlug": "01.-auth",
+      "sectionTitle": "01. Auth",
+      "requestName": "Verify OTP"
+    },
+    {
+      "id": "POST:/kafka/send",
+      "method": "POST",
+      "pathTemplate": "/kafka/send",
+      "sectionSlug": "15.-kafka",
+      "sectionTitle": "15. Kafka",
+      "requestName": "Send Message"
+    },
+    {
+      "id": "POST:/kafka/topics/test-topic",
+      "method": "POST",
+      "pathTemplate": "/kafka/topics/test-topic",
+      "sectionSlug": "15.-kafka",
+      "sectionTitle": "15. Kafka",
+      "requestName": "Create Topic"
+    },
+    {
+      "id": "PUT:/api/activities/1/read",
+      "method": "PUT",
+      "pathTemplate": "/api/activities/1/read",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Mark As Read"
+    },
+    {
+      "id": "PUT:/api/activities/read-all",
+      "method": "PUT",
+      "pathTemplate": "/api/activities/read-all",
+      "sectionSlug": "22.-friend-activities",
+      "sectionTitle": "22. Friend Activities",
+      "requestName": "Mark All As Read"
+    },
+    {
+      "id": "PUT:/api/admin/stories/:storyid",
+      "method": "PUT",
+      "pathTemplate": "/api/admin/stories/:storyid",
+      "sectionSlug": "34.-admin-stories",
+      "sectionTitle": "34. Admin Stories",
+      "requestName": "Update Story"
+    },
+    {
+      "id": "PUT:/api/admin/users/:userid/status",
+      "method": "PUT",
+      "pathTemplate": "/api/admin/users/:userid/status",
+      "sectionSlug": "06.-admin-users",
+      "sectionTitle": "06. Admin Users",
+      "requestName": "Update User Status"
+    },
+    {
+      "id": "PUT:/api/bills/:billid",
+      "method": "PUT",
+      "pathTemplate": "/api/bills/:billid",
+      "sectionSlug": "18.-bills",
+      "sectionTitle": "18. Bills",
+      "requestName": "Update Bill"
+    },
+    {
+      "id": "PUT:/api/budgets/:budgetid",
+      "method": "PUT",
+      "pathTemplate": "/api/budgets/:budgetid",
+      "sectionSlug": "16.-budgets",
+      "sectionTitle": "16. Budgets",
+      "requestName": "Edit Budget"
+    },
+    {
+      "id": "PUT:/api/categories/:categoryid",
+      "method": "PUT",
+      "pathTemplate": "/api/categories/:categoryid",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Update Category"
+    },
+    {
+      "id": "PUT:/api/categories/bulk",
+      "method": "PUT",
+      "pathTemplate": "/api/categories/bulk",
+      "sectionSlug": "17.-categories",
+      "sectionTitle": "17. Categories",
+      "requestName": "Update Bulk Categories"
+    },
+    {
+      "id": "PUT:/api/chats/:chatid/edit",
+      "method": "PUT",
+      "pathTemplate": "/api/chats/:chatid/edit",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Edit Message"
+    },
+    {
+      "id": "PUT:/api/chats/:chatid/read",
+      "method": "PUT",
+      "pathTemplate": "/api/chats/:chatid/read",
+      "sectionSlug": "26.-chats",
+      "sectionTitle": "26. Chats",
+      "requestName": "Mark Chat As Read"
+    },
+    {
+      "id": "PUT:/api/events/:eventid/user/:userid",
+      "method": "PUT",
+      "pathTemplate": "/api/events/:eventid/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Update Event"
+    },
+    {
+      "id": "PUT:/api/events/budgets/1/user/:userid",
+      "method": "PUT",
+      "pathTemplate": "/api/events/budgets/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Update Event Budget"
+    },
+    {
+      "id": "PUT:/api/events/donations/1/user/:userid",
+      "method": "PUT",
+      "pathTemplate": "/api/events/donations/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Update Donation"
+    },
+    {
+      "id": "PUT:/api/events/expenses/1/user/:userid",
+      "method": "PUT",
+      "pathTemplate": "/api/events/expenses/1/user/:userid",
+      "sectionSlug": "35.-events",
+      "sectionTitle": "35. Events",
+      "requestName": "Update Event Expense"
+    },
+    {
+      "id": "PUT:/api/expenses/edit-expense/:expenseid",
+      "method": "PUT",
+      "pathTemplate": "/api/expenses/edit-expense/:expenseid",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Edit Expense"
+    },
+    {
+      "id": "PUT:/api/expenses/edit-multiple",
+      "method": "PUT",
+      "pathTemplate": "/api/expenses/edit-multiple",
+      "sectionSlug": "09.-expenses",
+      "sectionTitle": "09. Expenses",
+      "requestName": "Edit Multiple Expenses"
+    },
+    {
+      "id": "PUT:/api/friendships/:friendshipid/access",
+      "method": "PUT",
+      "pathTemplate": "/api/friendships/:friendshipid/access",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Set Access Level"
+    },
+    {
+      "id": "PUT:/api/friendships/:friendshipid/respond",
+      "method": "PUT",
+      "pathTemplate": "/api/friendships/:friendshipid/respond",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Respond To Request"
+    },
+    {
+      "id": "PUT:/api/friendships/quick-share/2",
+      "method": "PUT",
+      "pathTemplate": "/api/friendships/quick-share/2",
+      "sectionSlug": "20.-friendships",
+      "sectionTitle": "20. Friendships",
+      "requestName": "Quick Share"
+    },
+    {
+      "id": "PUT:/api/groups/:groupid",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/:groupid",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Update Group"
+    },
+    {
+      "id": "PUT:/api/groups/:groupid/archive",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/:groupid/archive",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Archive Group"
+    },
+    {
+      "id": "PUT:/api/groups/:groupid/members/2/role",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/:groupid/members/2/role",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Change Member Role"
+    },
+    {
+      "id": "PUT:/api/groups/:groupid/restore",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/:groupid/restore",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Restore Group"
+    },
+    {
+      "id": "PUT:/api/groups/:groupid/settings",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/:groupid/settings",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Update Group Settings"
+    },
+    {
+      "id": "PUT:/api/groups/invitations/1/cancel",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/invitations/1/cancel",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Cancel Invitation (PUT)"
+    },
+    {
+      "id": "PUT:/api/groups/invitations/1/respond",
+      "method": "PUT",
+      "pathTemplate": "/api/groups/invitations/1/respond",
+      "sectionSlug": "21.-groups",
+      "sectionTitle": "21. Groups",
+      "requestName": "Respond To Invitation"
+    },
+    {
+      "id": "PUT:/api/notification-preferences",
+      "method": "PUT",
+      "pathTemplate": "/api/notification-preferences",
+      "sectionSlug": "25.-notification-preferences",
+      "sectionTitle": "25. Notification Preferences",
+      "requestName": "Update Preferences"
+    },
+    {
+      "id": "PUT:/api/notifications/:notificationid/read",
+      "method": "PUT",
+      "pathTemplate": "/api/notifications/:notificationid/read",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Mark As Read"
+    },
+    {
+      "id": "PUT:/api/notifications/preferences",
+      "method": "PUT",
+      "pathTemplate": "/api/notifications/preferences",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Update Preferences"
+    },
+    {
+      "id": "PUT:/api/notifications/read-all",
+      "method": "PUT",
+      "pathTemplate": "/api/notifications/read-all",
+      "sectionSlug": "24.-notifications",
+      "sectionTitle": "24. Notifications",
+      "requestName": "Mark All As Read"
+    },
+    {
+      "id": "PUT:/api/payment-methods/:paymentMethodid",
+      "method": "PUT",
+      "pathTemplate": "/api/payment-methods/:paymentMethodid",
+      "sectionSlug": "19.-payment-methods",
+      "sectionTitle": "19. Payment Methods",
+      "requestName": "Update Payment Method"
+    },
+    {
+      "id": "PUT:/api/roles/:roleid",
+      "method": "PUT",
+      "pathTemplate": "/api/roles/:roleid",
+      "sectionSlug": "05.-roles",
+      "sectionTitle": "05. Roles",
+      "requestName": "Update Role"
+    },
+    {
+      "id": "PUT:/api/settings",
+      "method": "PUT",
+      "pathTemplate": "/api/settings",
+      "sectionSlug": "10.-user-settings",
+      "sectionTitle": "10. User Settings",
+      "requestName": "Update Settings"
+    },
+    {
+      "id": "PUT:/api/shares/TOKEN_HERE/public",
+      "method": "PUT",
+      "pathTemplate": "/api/shares/TOKEN_HERE/public",
+      "sectionSlug": "23.-shares",
+      "sectionTitle": "23. Shares",
+      "requestName": "Set Public"
+    },
+    {
+      "id": "PUT:/api/user",
+      "method": "PUT",
+      "pathTemplate": "/api/user",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Update User"
+    },
+    {
+      "id": "PUT:/api/user/switch-mode",
+      "method": "PUT",
+      "pathTemplate": "/api/user/switch-mode",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Switch User Mode"
+    },
+    {
+      "id": "PUT:/api/user/two-factor",
+      "method": "PUT",
+      "pathTemplate": "/api/user/two-factor",
+      "sectionSlug": "04.-user",
+      "sectionTitle": "04. User",
+      "requestName": "Update Two Factor"
+    }
+  ]
+}

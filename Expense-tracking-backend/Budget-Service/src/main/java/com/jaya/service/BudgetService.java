@@ -66,4 +66,6 @@ public interface BudgetService {
                         LocalDate toDate, String rangeType, int offset, String flowType) throws Exception;
 
         List<BudgetSearchDTO> searchBudgets(Integer userId, String query, int limit);
+
+        Map<String, Object> reconcileBudgetExpenseLinks(Integer userId);
 }

@@ -1,0 +1,13 @@
+{
+  "billName": "Auto Bill ${random.number:4}",
+  "description": "Automation test bill",
+  "type": "purchase",
+  "items": [
+    {
+      "itemName": "Item ${random.number:3}",
+      "quantity": 2,
+      "unitPrice": 25.00,
+      "comments": "Test item"
+    }
+  ]
+}

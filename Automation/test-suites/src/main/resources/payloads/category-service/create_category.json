@@ -1,0 +1,5 @@
+{
+  "categoryName": "Auto Category ${random.number:4}",
+  "description": "Automation test category",
+  "type": "expense"
+}

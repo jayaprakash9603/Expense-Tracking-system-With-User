@@ -52,7 +52,7 @@ import {
 import { useTheme } from "../../hooks/useTheme";
 import { api } from "../../config/api";
 import { AdminPanelContainer } from "../../features/admin";
-import ToastNotification from "../../shared/components/ToastNotification";
+import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 
 // Story types and severity options
 const STORY_TYPES = [

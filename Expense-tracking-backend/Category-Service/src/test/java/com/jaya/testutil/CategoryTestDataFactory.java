@@ -236,29 +236,29 @@ public final class CategoryTestDataFactory {
     // -------------------------------------------------------------------------
 
     public static CategoryDTO buildCategoryDTO() {
-        return CategoryDTO.builder()
-                .id(101)
-                .name("Food")
-                .description("Food and dining expenses")
-                .type("expense")
-                .isGlobal(false)
-                .icon("food-icon")
-                .color("#FF5733")
-                .userId(TEST_USER_ID)
-                .build();
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(101);
+        dto.setName("Food");
+        dto.setDescription("Food and dining expenses");
+        dto.setType("expense");
+        dto.setGlobal(false);
+        dto.setIcon("food-icon");
+        dto.setColor("#FF5733");
+        dto.setUserId(TEST_USER_ID);
+        return dto;
     }
 
     public static CategoryDTO buildGlobalCategoryDTO() {
-        return CategoryDTO.builder()
-                .id(1)
-                .name("Salary")
-                .description("Monthly salary income")
-                .type("income")
-                .isGlobal(true)
-                .icon("salary-icon")
-                .color("#33FF57")
-                .userId(GLOBAL_USER_ID)
-                .build();
+        CategoryDTO dto = new CategoryDTO();
+        dto.setId(1);
+        dto.setName("Salary");
+        dto.setDescription("Monthly salary income");
+        dto.setType("income");
+        dto.setGlobal(true);
+        dto.setIcon("salary-icon");
+        dto.setColor("#33FF57");
+        dto.setUserId(GLOBAL_USER_ID);
+        return dto;
     }
 
     // -------------------------------------------------------------------------

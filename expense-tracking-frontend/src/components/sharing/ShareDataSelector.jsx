@@ -121,12 +121,18 @@ const ShareDataSelector = ({
     selectedItems.length === filteredItems.length && filteredItems.length > 0;
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
       {/* Segmented Control Tabs */}
       {!hasPreSelectedItems ? (
         <Paper
           sx={{
-            mb: 3,
             borderRadius: 3,
             overflow: "hidden",
             boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 10px rgba(0,0,0,0.05)",
@@ -206,15 +212,17 @@ const ShareDataSelector = ({
         <Paper
           elevation={0}
           sx={{
-            mb: 3,
             p: 2,
-            backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
-            borderRadius: "16px",
-            border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)"}`,
+            backgroundColor: `${colors.primary_accent}0D`,
+            borderRadius: "14px",
+            border: `1px solid ${colors.primary_accent}35`,
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
             gap: 1.5,
+            boxShadow: isDark
+              ? "0 8px 24px rgba(0,0,0,0.2)"
+              : "0 6px 18px rgba(15,23,42,0.05)",
           }}
         >
           <Box
@@ -222,21 +230,27 @@ const ShareDataSelector = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 40,
-              height: 40,
-              borderRadius: "10px",
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
               backgroundColor: `${colors.primary_accent}20`,
               color: colors.primary_accent,
             }}
           >
             {ICONS[preSelectedType] || ICONS.EXPENSE}
           </Box>
-          <Box>
-            <Typography variant="subtitle1" sx={{ color: colors.primary_text, fontWeight: 600 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ color: colors.primary_text, fontWeight: 700 }}
+            >
               Selected {preSelectedTypeLabel}
             </Typography>
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-              {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} from CashFlow
+            <Typography
+              variant="body2"
+              sx={{ color: colors.placeholder_text, lineHeight: 1.5 }}
+            >
+              {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""} imported from CashFlow and ready to share
             </Typography>
           </Box>
         </Paper>
@@ -246,11 +260,14 @@ const ShareDataSelector = ({
       <Box
         sx={{
           display: "flex",
-          gap: 2,
-          mb: 3,
+          gap: 1.5,
           alignItems: "center",
-          flexWrap: "wrap",
+          flexWrap: { xs: "wrap", md: "nowrap" },
           flexShrink: 0,
+          p: 1.25,
+          borderRadius: "12px",
+          backgroundColor: colors.card_bg,
+          border: `1px solid ${colors.border_color}`,
         }}
       >
         <TextField
@@ -274,9 +291,11 @@ const ShareDataSelector = ({
             sx: {
               borderRadius: "12px",
               color: colors.primary_text,
-              backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+              backgroundColor: colors.input_bg,
               "& fieldset": {
-                borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+                borderColor: isDark
+                  ? "rgba(255,255,255,0.15)"
+                  : "rgba(0,0,0,0.15)",
               },
               "&:hover fieldset": {
                 borderColor: colors.primary_accent,
@@ -286,13 +305,18 @@ const ShareDataSelector = ({
               },
             },
           }}
-          sx={{ flex: 1, minWidth: 200 }}
+          sx={{
+            flex: 1,
+            minWidth: 200,
+            "& .MuiInputBase-root": { minHeight: 44 },
+          }}
         />
 
         {filterOptions && (
           <IconButton
             size="small"
             onClick={() => setFilterPanelOpen((v) => !v)}
+            aria-label="Filter shareable items"
             sx={{
               width: 40,
               height: 40,
@@ -300,7 +324,7 @@ const ShareDataSelector = ({
               color: filterPanelOpen ? colors.primary_accent : colors.secondary_text,
               backgroundColor: filterPanelOpen
                 ? `${colors.primary_accent}15`
-                : isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+                : colors.input_bg,
               border: `1px solid ${filterPanelOpen ? colors.primary_accent : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
               transition: "all 0.2s ease",
               "&:hover": {
@@ -320,17 +344,51 @@ const ShareDataSelector = ({
           size="medium"
           startIcon={allSelected ? <DeselectIcon /> : <SelectAllIcon />}
           onClick={onSelectAll}
+          disabled={filteredItems.length === 0}
+          aria-label={
+            allSelected
+              ? "Deselect all shareable items"
+              : "Select all shareable items"
+          }
           sx={{
-            height: 40,
+            minHeight: 44,
             borderRadius: "12px",
             textTransform: "none",
             fontWeight: 600,
-            color: allSelected ? colors.primary_accent : colors.secondary_text,
-            borderColor: allSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-            backgroundColor: allSelected ? `${colors.primary_accent}10` : isDark ? "rgba(255,255,255,0.03)" : "#ffffff",
+            whiteSpace: "nowrap",
+            color: allSelected
+              ? colors.primary_accent
+              : colors.primary_text,
+            borderColor: allSelected
+              ? colors.primary_accent
+              : isDark
+                ? "rgba(255,255,255,0.18)"
+                : "rgba(0,0,0,0.15)",
+            backgroundColor: allSelected
+              ? `${colors.primary_accent}18`
+              : isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.02)",
+            "& .MuiSvgIcon-root": {
+              color: allSelected ? colors.primary_accent : colors.primary_text,
+            },
             "&:hover": {
-              backgroundColor: allSelected ? `${colors.primary_accent}20` : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
-              borderColor: allSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.2)" : colors.primary_text,
+              backgroundColor: allSelected
+                ? `${colors.primary_accent}28`
+                : isDark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(0,0,0,0.06)",
+              borderColor: colors.primary_accent,
+              color: colors.primary_accent,
+              "& .MuiSvgIcon-root": { color: colors.primary_accent },
+            },
+            "&.Mui-disabled": {
+              color: colors.secondary_text,
+              borderColor: isDark
+                ? "rgba(255,255,255,0.1)"
+                : "rgba(0,0,0,0.08)",
+              backgroundColor: "transparent",
+              "& .MuiSvgIcon-root": { color: colors.secondary_text },
             },
           }}
         >
@@ -345,9 +403,8 @@ const ShareDataSelector = ({
         sx={{
           flex: 1,
           overflow: "auto",
-          mx: -1, // Negative margin to allow card shadows to display without clipping
-          px: 1,
-          pb: 2,
+          px: 0.5,
+          pb: 1,
           minHeight: 300,
           "&::-webkit-scrollbar": {
             width: "6px",
@@ -386,11 +443,25 @@ const ShareDataSelector = ({
             </Box>
           </Fade>
         ) : (
-          <Grid container spacing={2}>
+          <Grid container spacing={2} alignItems="stretch">
             {filteredItems.map((item, idx) => {
-              const isSelected = selectedItems.some((i) => i.externalRef === item.externalRef);
+              const isSelected = selectedItems.some(
+                (selected) =>
+                  selected.externalRef === item.externalRef ||
+                  (selected.id != null &&
+                    item.id != null &&
+                    String(selected.id) === String(item.id)),
+              );
               return (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={item.externalRef}>
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  md={4}
+                  lg={3}
+                  key={item.externalRef}
+                  sx={{ display: "flex" }}
+                >
                   <Zoom in style={{ transitionDelay: `${Math.min(idx * 20, 300)}ms` }}>
                     <Card
                       onClick={() => onToggleItem(item)}
@@ -399,19 +470,27 @@ const ShareDataSelector = ({
                         position: "relative",
                         cursor: "pointer",
                         height: "100%",
-                        borderRadius: "16px",
-                        border: `2px solid ${isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                        width: "100%",
+                        minHeight: 128,
+                        borderRadius: "14px",
+                        border: `1px solid ${
+                          isSelected
+                            ? colors.primary_accent
+                            : colors.border_color
+                        }`,
                         backgroundColor: isSelected
-                          ? `${colors.primary_accent}15`
-                          : isDark
-                            ? "rgba(255,255,255,0.05)"
-                            : colors.card_bg || "#ffffff",
+                          ? `${colors.primary_accent}18`
+                          : colors.card_bg,
                         transition: "all 0.2s ease-in-out",
                         boxShadow: isSelected
-                          ? `0 4px 12px ${colors.primary_accent}20`
+                          ? `0 8px 22px ${colors.primary_accent}22`
                           : isDark
-                            ? "0 4px 12px rgba(0,0,0,0.5)"
-                            : "0 2px 10px rgba(0,0,0,0.05)",
+                            ? "0 8px 22px rgba(0,0,0,0.24)"
+                            : "0 6px 18px rgba(15,23,42,0.07)",
+                        outline: "none",
+                        "&:focus-visible": {
+                          boxShadow: `0 0 0 3px ${colors.primary_accent}45`,
+                        },
                         "&:hover": {
                           transform: "translateY(-2px)",
                           boxShadow: isSelected
@@ -419,13 +498,22 @@ const ShareDataSelector = ({
                             : isDark
                               ? "0 6px 16px rgba(0,0,0,0.7)"
                               : "0 6px 16px rgba(0,0,0,0.1)",
-                          borderColor: isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)",
+                          borderColor: colors.primary_accent,
                           backgroundColor: isSelected
                             ? `${colors.primary_accent}20`
                             : isDark
                               ? "rgba(255,255,255,0.08)"
-                              : colors.card_bg || "#ffffff",
+                              : colors.hover_bg,
                         },
+                      }}
+                      role="checkbox"
+                      aria-checked={isSelected}
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          onToggleItem(item);
+                        }
                       }}
                     >
                       {/* Selection Badge */}
@@ -433,28 +521,38 @@ const ShareDataSelector = ({
                         <Box
                           sx={{
                             position: "absolute",
-                            top: 12,
-                            right: 12,
+                            top: 14,
+                            right: 14,
                             color: colors.primary_accent,
-                            backgroundColor: isDark ? "#000" : "#fff",
+                            backgroundColor: colors.primary_bg,
                             borderRadius: "50%",
                             display: "flex",
+                            boxShadow: `0 0 0 3px ${colors.primary_accent}20`,
                           }}
                         >
                           <CheckCircleIcon sx={{ fontSize: 22 }} />
                         </Box>
                       )}
 
-                      <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 1.5 }}>
+                      <Box
+                        sx={{
+                          p: 2.25,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 1.5,
+                        }}
+                      >
                         <Box
                           sx={{
-                            width: 44,
-                            height: 44,
+                            width: 46,
+                            height: 46,
                             borderRadius: "12px",
                             backgroundColor: isSelected
-                              ? `${colors.primary_accent}20`
-                              : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-                            color: isSelected ? colors.primary_accent : isDark ? "rgba(255,255,255,0.7)" : colors.secondary_text,
+                              ? `${colors.primary_accent}22`
+                              : colors.input_bg,
+                            color: isSelected
+                              ? colors.primary_accent
+                              : colors.primary_text,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -468,9 +566,9 @@ const ShareDataSelector = ({
                           <Typography
                             variant="subtitle2"
                             sx={{
-                              color: isDark ? "#ffffff" : colors.primary_text,
-                              fontWeight: 600,
-                              fontSize: "0.95rem",
+                              color: colors.primary_text,
+                              fontWeight: 700,
+                              fontSize: "0.9rem",
                               lineHeight: 1.3,
                               mb: 0.5,
                               overflow: "hidden",
@@ -485,7 +583,7 @@ const ShareDataSelector = ({
                           <Typography
                             variant="body2"
                             sx={{
-                              color: isDark ? "rgba(255,255,255,0.7)" : colors.secondary_text,
+                              color: colors.placeholder_text,
                               fontSize: "0.8rem",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -519,17 +617,20 @@ const ShareDataSelector = ({
       <Paper
         elevation={0}
         sx={{
-          mt: 2,
-          p: 2,
+          p: 1.5,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           flexShrink: 0,
-          borderRadius: "16px",
-          backgroundColor: selectedItems.length > 0 
-            ? `${colors.primary_accent}10` 
-            : isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
-          border: `1px solid ${selectedItems.length > 0 ? `${colors.primary_accent}30` : "transparent"}`,
+          borderRadius: "12px",
+          backgroundColor: selectedItems.length > 0
+            ? `${colors.primary_accent}15`
+            : colors.card_bg,
+          border: `1px solid ${
+            selectedItems.length > 0
+              ? `${colors.primary_accent}55`
+              : colors.border_color
+          }`,
           transition: "all 0.3s ease",
         }}
       >
@@ -539,15 +640,24 @@ const ShareDataSelector = ({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               borderRadius: "50%",
-              backgroundColor: selectedItems.length > 0 ? colors.primary_accent : colors.secondary_text,
-              color: "#fff",
+              backgroundColor:
+                selectedItems.length > 0
+                  ? colors.primary_accent
+                  : colors.input_bg,
+              color: selectedItems.length > 0 ? "#fff" : colors.primary_text,
+              border:
+                selectedItems.length > 0
+                  ? "none"
+                  : `1px solid ${colors.border_color}`,
               transition: "all 0.3s ease",
             }}
           >
-            <Typography sx={{ fontWeight: 700, fontSize: "0.9rem" }}>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: "0.9rem", color: "inherit" }}
+            >
               {selectedItems.length}
             </Typography>
           </Box>

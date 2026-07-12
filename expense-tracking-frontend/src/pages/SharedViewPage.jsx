@@ -70,7 +70,7 @@ import { createExpenseAction } from "../Redux/Expenses/expense.action";
 import { toggleTheme } from "../Redux/Theme/theme.actions";
 import { updateUserSettings } from "../Redux/UserSettings/userSettings.action";
 import { BRAND_GRADIENT_COLORS } from "../config/themeConfig";
-import Modal from "../shared/components/Modal";
+import Modal from "../shared/ui/overlays/Modal";
 import {
   InlineSearchBar,
   UniversalSearchModal,
@@ -80,6 +80,124 @@ import ProfileDropdown from "../components/common/ProfileDropdown";
 
 // Page size for pagination
 const PAGE_SIZE = 50;
+
+const getShareErrorMessage = (error) => {
+  const normalized = String(error || "").toLowerCase();
+  if (normalized.includes("revoked")) {
+    return "The owner has revoked this share link.";
+  }
+  if (normalized.includes("expired")) {
+    return "This share link has expired.";
+  }
+  if (normalized.includes("not found") || normalized.includes("does not exist")) {
+    return "This share link could not be found.";
+  }
+  return "We could not open this share right now. Please check the link or try again later.";
+};
+
+const getShareWarningMessage = (warning) => {
+  const normalized = String(warning || "").toLowerCase();
+  if (normalized.includes("no longer exists")) {
+    return "An item in this share was deleted by its owner and has been removed from this view.";
+  }
+  if (normalized.includes("failed to fetch") || normalized.includes("unauthorized")) {
+    return "Some shared items are temporarily unavailable. Please try again shortly.";
+  }
+  return "One shared item is no longer available.";
+};
+
+const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
+  <Box
+    sx={{
+      minHeight: "100dvh",
+      display: "grid",
+      placeItems: "center",
+      overflow: "hidden",
+      p: { xs: 2, sm: 3 },
+      background: `radial-gradient(circle at 50% 20%, ${colors.accent}22 0%, transparent 42%), ${colors.background}`,
+    }}
+  >
+    <Card
+      sx={{
+        width: "100%",
+        maxWidth: 560,
+        overflow: "hidden",
+        textAlign: "center",
+        bgcolor: colors.card_bg,
+        border: `1px solid ${colors.border_color}`,
+        borderRadius: "20px",
+        boxShadow: "0 24px 70px rgba(0, 0, 0, 0.28)",
+      }}
+    >
+      <Box sx={{ height: 5, background: `linear-gradient(90deg, ${colors.error}, ${colors.accent})` }} />
+      <Box sx={{ p: { xs: 3, sm: 5 } }}>
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            mx: "auto",
+            mb: 2.5,
+            display: "grid",
+            placeItems: "center",
+            borderRadius: "50%",
+            bgcolor: `${colors.error}18`,
+            border: `1px solid ${colors.error}45`,
+          }}
+        >
+          <WarningIcon sx={{ fontSize: 42, color: colors.error }} />
+        </Box>
+        <Chip
+          size="small"
+          icon={<LockIcon />}
+          label="Secure share"
+          sx={{ mb: 2, color: colors.secondary_text, bgcolor: colors.hover_bg }}
+        />
+        <Typography variant="h4" sx={{ color: colors.primary_text, fontWeight: 800, mb: 1.5 }}>
+          Share not available
+        </Typography>
+        <Typography sx={{ color: colors.secondary_text, lineHeight: 1.7, mb: 3 }}>
+          {getShareErrorMessage(error)}
+        </Typography>
+        <Alert
+          severity="info"
+          sx={{
+            mb: 3,
+            textAlign: "left",
+            bgcolor: `${colors.accent}12`,
+            color: colors.primary_text,
+            border: `1px solid ${colors.accent}30`,
+          }}
+        >
+          Ask the owner for a new link if you still need access. No private data
+          has been exposed.
+        </Alert>
+        <Box sx={{ display: "flex", gap: 1.5, justifyContent: "center", flexWrap: "wrap" }}>
+          <Button
+            variant="outlined"
+            onClick={onRetry}
+            sx={{ minHeight: 44, textTransform: "none", borderColor: colors.border_color }}
+          >
+            Try again
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<BackIcon />}
+            onClick={onHome}
+            sx={{
+              minHeight: 44,
+              bgcolor: colors.accent,
+              textTransform: "none",
+              fontWeight: 700,
+              "&:hover": { bgcolor: colors.accent_hover },
+            }}
+          >
+            Go to home
+          </Button>
+        </Box>
+      </Box>
+    </Card>
+  </Box>
+);
 
 // Resource type configuration for tabs
 const RESOURCE_TYPES = [
@@ -606,7 +724,7 @@ const SharedViewPage = () => {
 
   // Extract items with their metadata (externalRef for tracking)
   const currentItems = useMemo(
-    () => currentTabData.items || [],
+    () => (currentTabData.items || []).filter((item) => item?.found !== false && item?.data),
     [currentTabData.items],
   );
   const warnings = paginatedData?.warnings || [];
@@ -742,78 +860,24 @@ const SharedViewPage = () => {
   // Error state
   if (paginatedDataError) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.background,
-          p: 3,
-        }}
-      >
-        <Card
-          sx={{
-            maxWidth: 500,
-            textAlign: "center",
-            backgroundColor: colors.card_bg,
-            p: 4,
-          }}
-        >
-          <WarningIcon sx={{ fontSize: 64, color: colors.error, mb: 2 }} />
-          <Typography variant="h5" sx={{ color: colors.primary_text, mb: 2 }}>
-            Share Not Available
-          </Typography>
-          <Alert
-            severity="error"
-            sx={{
-              mb: 3,
-              backgroundColor: colors.error + "15",
-              color: colors.error,
-              "& .MuiAlert-icon": { color: colors.error },
-            }}
-          >
-            {paginatedDataError}
-          </Alert>
-          <Typography
-            variant="body2"
-            sx={{ color: colors.secondary_text, mb: 3 }}
-          >
-            The share link you're trying to access may have expired, been
-            revoked, or does not exist.
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<BackIcon />}
-            onClick={() => navigate("/")}
-            sx={{
-              backgroundColor: colors.accent,
-              "&:hover": { backgroundColor: colors.accent_hover },
-            }}
-          >
-            Go to Home
-          </Button>
-        </Card>
-      </Box>
+      <ShareUnavailableState
+        colors={colors}
+        error={paginatedDataError}
+        onHome={() => navigate("/")}
+        onRetry={() => dispatch(accessSharePaginated(token))}
+      />
     );
   }
 
   // No data state - check if paginatedData is invalid
   if (!paginatedData?.isValid) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.background,
-        }}
-      >
-        <Typography sx={{ color: colors.secondary_text }}>
-          No shared content found.
-        </Typography>
-      </Box>
+      <ShareUnavailableState
+        colors={colors}
+        error="This share does not exist."
+        onHome={() => navigate("/")}
+        onRetry={() => dispatch(accessSharePaginated(token))}
+      />
     );
   }
 
@@ -1540,7 +1604,7 @@ const SharedViewPage = () => {
             </Typography>
             {warnings.map((warning, index) => (
               <Typography key={index} variant="body2">
-                • {warning}
+                • {getShareWarningMessage(warning)}
               </Typography>
             ))}
           </Alert>

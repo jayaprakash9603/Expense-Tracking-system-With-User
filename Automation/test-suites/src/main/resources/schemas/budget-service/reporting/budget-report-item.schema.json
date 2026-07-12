@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["budgetId", "budgetName", "allocatedAmount"],
+  "properties": {
+    "budgetId": { "type": "integer" },
+    "budgetName": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "allocatedAmount": { "type": "number" },
+    "startDate": { "type": "string" },
+    "endDate": { "type": "string" },
+    "remainingAmount": { "type": "number" },
+    "valid": { "type": "boolean" },
+    "totalCashLosses": { "type": "number" },
+    "totalCreditLosses": { "type": "number" },
+    "expenseCount": { "type": "integer" },
+    "dailyBudget": { "type": "number" },
+    "projectedOverspend": { "type": "number" }
+  },
+  "additionalProperties": true
+}

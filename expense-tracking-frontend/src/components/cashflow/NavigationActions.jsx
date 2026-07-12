@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
+import { getAsset } from "../../assests/assetLoader";
 
 // Hook to manage add-new popover open/close & outside click
 export const useAddNewPopover = () => {
@@ -98,7 +99,7 @@ const NavigationActions = ({
             }}
           >
             <img
-              src={require(`../../assests/${icon}`)}
+              src={getAsset(icon)}
               alt={label}
               style={{
                 width: isMobile ? 16 : 18,
@@ -137,7 +138,7 @@ const NavigationActions = ({
           }
         >
           <img
-            src={addIcon || require("../../assests/add.png")}
+            src={addIcon || getAsset("add.png")}
             alt={t("cashflow.addNew.label")}
             style={{
               width: isMobile ? 14 : 16,

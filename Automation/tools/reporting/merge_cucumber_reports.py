@@ -20,7 +20,7 @@ def scenario_status_counts(paths: list[Path]) -> dict[str, int]:
 
 
 def main() -> int:
-    report_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("automation-bdd/target/reports/cucumber")
+    report_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("Automation-Framework/automation-bdd/target/reports/cucumber")
     report_files = sorted(report_dir.glob("*.json"))
     if not report_files:
         print(f"No cucumber json reports found under {report_dir}")
@@ -35,3 +35,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

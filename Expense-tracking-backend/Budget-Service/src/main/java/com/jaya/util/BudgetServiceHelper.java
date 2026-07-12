@@ -1,5 +1,6 @@
 package com.jaya.util;
 
+import com.jaya.common.messaging.MessagingPort;
 import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.models.Budget;
@@ -8,7 +9,6 @@ import com.jaya.service.ExpenseClient;
 import com.jaya.common.service.client.IUserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -30,7 +30,7 @@ public class BudgetServiceHelper {
     private IUserServiceClient userService;
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private MessagingPort messagingPort;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
     private static final String EXPENSE_SERVICE_LINKING_TOPIC = "expense-BudgetModel-linking-events";
@@ -139,8 +139,8 @@ public class BudgetServiceHelper {
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
         log.info("Published batch link event for {} expenses to budget {}", expenseIds.size(), budget.getId());
     }
 
@@ -163,8 +163,8 @@ public class BudgetServiceHelper {
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-        kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
         log.info("Published batch remove event for {} expenses from budget {}", expenseIds.size(), budgetId);
     }
 
@@ -199,8 +199,8 @@ public class BudgetServiceHelper {
                         .timestamp(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME))
                         .build();
 
-                kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
-                kafkaTemplate.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
+                messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+                messagingPort.send(EXPENSE_SERVICE_LINKING_TOPIC, event);
                 eventCount++;
 
                 log.debug("Published batch removal event for budget={}, expenses={}",

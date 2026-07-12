@@ -4,6 +4,7 @@ import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.service.BulkExpenseBudgetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.Collections;
 
 
 @Component
+@ConditionalOnProperty(name = "kafka.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class ExpenseBudgetLinkingConsumer {
 

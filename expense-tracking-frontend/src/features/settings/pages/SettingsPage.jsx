@@ -8,7 +8,7 @@ import {
   useSearchHighlight,
   highlightAnimationStyles,
 } from "../../../hooks/useSearchHighlight";
-import ToastNotification from "../../../shared/components/ToastNotification";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import { fetchNotificationPreferences } from "../../../Redux/NotificationPreferences/notificationPreferences.action";
 
 import SettingsHeader from "../components/SettingsHeader";
@@ -467,9 +467,13 @@ const Settings = () => {
       <DeleteAccountDialog
         open={deleteDialogOpen}
         onClose={closeDeleteDialog}
-        onConfirm={() => {
-          closeDeleteDialog();
-          showSnackbar("Account deletion cancelled", "info");
+        onStatusChange={(status) => {
+          if (status?.state === "REQUESTED") {
+            showSnackbar(
+              `Account scheduled for deletion — purge starts ${new Date(status.scheduledPurgeAt).toLocaleString()}`,
+              "warning",
+            );
+          }
         }}
         colors={colors}
         isSmallScreen={isSmallScreen}

@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class JwtTokenValidator extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -81,8 +83,7 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 return;
 
             } catch (Exception e) {
-                handleJwtException(response, HttpServletResponse.SC_UNAUTHORIZED,
-                        "Invalid token: " + e.getMessage());
+                handleJwtException(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid token.");
                 return;
             }
         }

@@ -7,6 +7,10 @@ server:
 spring:
   application:
     name: CHAT-SERVICE
+  data:
+    redis:
+      repositories:
+        enabled: false
   main:
     allow-bean-definition-overriding: true
   cloud:

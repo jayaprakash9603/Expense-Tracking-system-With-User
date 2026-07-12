@@ -21,6 +21,8 @@ test:
     admin:
       users: /api/admin/users
 
+USER_SERVICE_INTERNAL_TOKEN: test-internal-token
+
 # Spring Configuration
 spring:
   profiles:

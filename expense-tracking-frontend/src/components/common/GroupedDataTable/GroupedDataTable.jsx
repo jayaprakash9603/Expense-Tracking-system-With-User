@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import Checkbox from "@mui/material/Checkbox";
-import { formatAmount as fmt } from "../../../utils/formatAmount";
+import { handleSelectableSurfaceMouseDown } from "../../../utils/selectableSurface";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
 // Define stable default objects outside component
@@ -18,6 +19,7 @@ const GroupedDataTable = ({
   onSortChange,
   // Selection (Controlled)
   enableSelection = false,
+  selectionMode = "checkbox",
   selectedRows = DEFAULT_SELECTED_ROWS, // { [rowKey]: true }
   onRowSelect, // (row, checked) => void
   onSelectAll, // (displayedRows, checked) => void
@@ -159,18 +161,20 @@ const GroupedDataTable = ({
   const useScroll = pageSize > BASE_VISIBLE_ROWS;
   // Only show scroll when we actually have more rows than visible area
   const hasMoreRowsThanVisible = pageSlice.length > BASE_VISIBLE_ROWS;
-  const needsScrollContainer = useScroll && hasMoreRowsThanVisible;
+  const isEmpty = pageSlice.length === 0;
+  const needsScrollContainer = !isEmpty && useScroll && hasMoreRowsThanVisible;
   // If pageSlice is smaller than pageSize (e.g. last page), do we fill?
   // GenericAccordionGroup logic:
-  const effectiveRows = pageSlice.length + (pageSlice.length === 0 ? 1 : 0);
   const fillerRowsCount =
-    !useScroll && effectiveRows < pageSize ? pageSize - effectiveRows : 0;
+    pageSlice.length > 0 && !useScroll && pageSlice.length < pageSize
+      ? pageSize - pageSlice.length
+      : 0;
   const selectedCount = Object.values(selectedRows).filter(Boolean).length;
 
   return (
     <div className={`pm-table-container ${className}`}>
       <div
-        className="pm-expense-table-wrapper"
+        className={`pm-expense-table-wrapper${needsScrollContainer ? " pm-scrollable" : ""}`}
         style={
           needsScrollContainer
             ? {
@@ -188,7 +192,7 @@ const GroupedDataTable = ({
         >
           {columns && (
             <colgroup>
-              {enableSelection && !rowRender ? (
+              {enableSelection && !rowRender && selectionMode === "checkbox" ? (
                 <col style={{ width: "36px" }} />
               ) : null}
               {columns.map((col) => (
@@ -201,7 +205,7 @@ const GroupedDataTable = ({
           )}
           <thead>
             <tr>
-              {enableSelection && !rowRender ? (
+              {enableSelection && !rowRender && selectionMode === "checkbox" ? (
                 <th className="pm-select-col">
                   <Checkbox
                     checked={!!allRowsSelected}
@@ -296,12 +300,16 @@ const GroupedDataTable = ({
                 <td
                   colSpan={
                     (columns || []).length +
-                    (enableSelection && !rowRender ? 1 : 0)
+                    (enableSelection &&
+                    !rowRender &&
+                    selectionMode === "checkbox"
+                      ? 1
+                      : 0)
                   }
                   className="pm-empty-centered"
                 >
                   <div className="pm-empty-message">
-                    <div className="pm-empty-icon">🗂️</div>
+                    <InboxOutlinedIcon className="pm-empty-icon" aria-hidden="true" />
                     <div className="pm-empty-title">
                       {activeTab === "all"
                         ? "No Records"
@@ -326,15 +334,45 @@ const GroupedDataTable = ({
               }
 
               return (
-                <tr key={rowKey} onClick={(e) => {
-                  // Only toggle if clicking the row, not if clicking the checkbox directly
-                  if (enableSelection && e.target.type !== "checkbox" && e.target.tagName !== "INPUT" && !e.target.closest('.MuiCheckbox-root') && !e.target.closest('.MuiButtonBase-root')) {
-                    if (onRowSelect) {
-                      onRowSelect(row, !isSelected, actualIndex);
-                    }
+                <tr
+                  key={rowKey}
+                  className={isSelected ? "pm-row-selected" : ""}
+                  role={enableSelection ? "checkbox" : undefined}
+                  aria-checked={enableSelection ? !!isSelected : undefined}
+                  tabIndex={
+                    enableSelection && selectionMode === "row" ? 0 : undefined
                   }
-                }} style={enableSelection ? { cursor: "pointer" } : {}}>
-                  {enableSelection ? (
+                  onClick={(e) => {
+                    if (
+                      enableSelection &&
+                      e.target.type !== "checkbox" &&
+                      e.target.tagName !== "INPUT" &&
+                      !e.target.closest(".MuiCheckbox-root") &&
+                      !e.target.closest(".MuiButtonBase-root")
+                    ) {
+                      onRowSelect?.(row, !isSelected, actualIndex);
+                    }
+                  }}
+                  onMouseDown={
+                    enableSelection ? handleSelectableSurfaceMouseDown : undefined
+                  }
+                  onKeyDown={(event) => {
+                    if (
+                      enableSelection &&
+                      selectionMode === "row" &&
+                      (event.key === "Enter" || event.key === " ")
+                    ) {
+                      event.preventDefault();
+                      onRowSelect?.(row, !isSelected, actualIndex);
+                    }
+                  }}
+                  style={
+                    enableSelection
+                      ? { cursor: "pointer", userSelect: "none" }
+                      : {}
+                  }
+                >
+                  {enableSelection && selectionMode === "checkbox" ? (
                     <td className="pm-select-cell">
                       <Checkbox
                         checked={!!isSelected}
@@ -387,7 +425,11 @@ const GroupedDataTable = ({
                   <td
                     colSpan={
                       (columns || []).length +
-                      (enableSelection && !rowRender ? 1 : 0)
+                      (enableSelection &&
+                      !rowRender &&
+                      selectionMode === "checkbox"
+                        ? 1
+                        : 0)
                     }
                   >
                     &nbsp;
@@ -398,7 +440,7 @@ const GroupedDataTable = ({
         </table>
       </div>
 
-      {showPagination && (
+      {showPagination && !isEmpty && (
         <div
           className="pm-pagination-bar bottom"
           style={{

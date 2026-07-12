@@ -3,6 +3,7 @@ package com.jaya.common.config;
 import feign.RequestInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -14,20 +15,27 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  * modes since downstream services enforce authentication.
  *
  * For background threads where the servlet request is unavailable, callers can
- * set the token via {@link #setAsyncAuthToken(String)} before making Feign calls.
+ * set the token via {@link #setAsyncAuthToken(String)} before making Feign
+ * calls.
  */
 @Configuration
-@ConditionalOnClass(RequestInterceptor.class)
+@ConditionalOnClass(name = "feign.RequestInterceptor")
+@ConditionalOnProperty(name = "common-library.feign.enabled", havingValue = "true", matchIfMissing = true)
 public class FeignAuthForwardingConfig {
 
     private static final ThreadLocal<String> asyncAuthToken = new ThreadLocal<>();
 
-    /** Set the JWT for use in background/async threads where RequestContext is unavailable. */
+    /**
+     * Set the JWT for use in background/async threads where RequestContext is
+     * unavailable.
+     */
     public static void setAsyncAuthToken(String token) {
         asyncAuthToken.set(token);
     }
 
-    /** Clear the async JWT — call in a finally block to prevent thread-pool leaks. */
+    /**
+     * Clear the async JWT — call in a finally block to prevent thread-pool leaks.
+     */
     public static void clearAsyncAuthToken() {
         asyncAuthToken.remove();
     }

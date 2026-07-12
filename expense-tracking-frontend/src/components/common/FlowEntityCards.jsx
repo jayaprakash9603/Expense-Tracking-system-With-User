@@ -5,12 +5,12 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Checkbox,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
 import { formatCurrencyCompact } from "../../utils/numberFormatters";
@@ -18,6 +18,11 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getEntityIcon } from "../../utils/iconMapping";
+import { useOrderedSelection } from "../../hooks/useOrderedSelection";
+import {
+  handleSelectableSurfaceMouseDown,
+  selectableSurfaceStyles,
+} from "../../utils/selectableSurface";
 
 /**
  * FlowEntityCards
@@ -41,7 +46,7 @@ const FlowEntityCards = ({
   friendId, // NEW: for friend view routing
   isFriendView, // NEW: for friend view routing
   selectedIds = [], // NEW: for multi-selection
-  onToggleSelect, // NEW: (entity, checked) => void
+  onSelectionChange,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -49,6 +54,12 @@ const FlowEntityCards = ({
   const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuEntity, setMenuEntity] = useState(null);
+  const { selectAt } = useOrderedSelection({
+    items: entities,
+    selectedKeys: selectedIds,
+    getKey: (entity) => entity.categoryId,
+    onChange: onSelectionChange,
+  });
 
   const openMenu = (e, entity) => {
     e.stopPropagation();
@@ -133,11 +144,20 @@ const FlowEntityCards = ({
         }}
       >
         {entities.map((entity, idx) => {
-          const isSelected = selectedEntityId === entity.categoryId || selectedIds.includes(entity.categoryId);
+          const isShareSelected = selectedIds.includes(entity.categoryId);
+          const isActiveEntity = selectedEntityId === entity.categoryId;
+          const toggleSelection = (event) => {
+            if (onSelectionChange) {
+              selectAt(idx, event);
+            } else {
+              onSelect?.(entity);
+            }
+          };
           return (
             <div
               key={entity.categoryId || idx}
               style={{
+                ...selectableSurfaceStyles,
                 minHeight: "130px",
                 maxHeight: "130px",
                 height: "130px",
@@ -146,17 +166,24 @@ const FlowEntityCards = ({
                 boxSizing: "border-box",
                 overflow: "hidden",
                 cursor: "pointer",
-                background: colors.primary_bg,
+                background: isShareSelected
+                  ? `${entity.color || colors.primary_accent}18`
+                  : colors.primary_bg,
                 transition: "background 0.2s, box-shadow 0.2s, border 0.2s",
-                border: "2px solid transparent",
+                border: isShareSelected
+                  ? `2px solid ${entity.color || colors.primary_accent}`
+                  : `1px solid ${colors.border_color}`,
                 borderLeft: `6px solid ${entity.color}`,
                 margin: "4px",
                 borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                boxShadow: isShareSelected
+                  ? `0 6px 18px ${entity.color || colors.primary_accent}25`
+                  : "0 2px 8px rgba(0,0,0,0.1)",
                 position: "relative",
+                outline: "none",
               }}
               className={`${
-                isSelected
+                isActiveEntity && !isShareSelected
                   ? `ring-2 ${
                       flowTab === "outflow"
                         ? "ring-[#ff4d4f]"
@@ -166,9 +193,44 @@ const FlowEntityCards = ({
                     }`
                   : ""
               }`}
-              onClick={() => onSelect?.(entity)}
+              onClick={toggleSelection}
+              onMouseDown={handleSelectableSurfaceMouseDown}
+              onDragStart={(event) => event.preventDefault()}
               onDoubleClick={(e) => onDouble?.(entity, e)}
+              role="checkbox"
+              aria-checked={isShareSelected}
+              aria-label={`${isShareSelected ? "Deselect" : "Select"} ${entity.categoryName}`}
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  toggleSelection(event);
+                }
+              }}
+              onFocus={(event) => {
+                event.currentTarget.style.boxShadow = `0 0 0 3px ${colors.primary_accent}45`;
+              }}
+              onBlur={(event) => {
+                event.currentTarget.style.boxShadow = isShareSelected
+                  ? `0 6px 18px ${entity.color || colors.primary_accent}25`
+                  : "0 2px 8px rgba(0,0,0,0.1)";
+              }}
             >
+              {isShareSelected && (
+                <CheckCircleIcon
+                  aria-hidden
+                  sx={{
+                    position: "absolute",
+                    top: 10,
+                    right: hasWriteAccess ? 42 : 10,
+                    zIndex: 9,
+                    fontSize: 21,
+                    color: entity.color || colors.primary_accent,
+                    backgroundColor: colors.primary_bg,
+                    borderRadius: "50%",
+                  }}
+                />
+              )}
               {hasWriteAccess && (
                 <div
                   className="absolute top-2 right-2 transition-opacity"
@@ -198,17 +260,6 @@ const FlowEntityCards = ({
                     className="flex items-center gap-2 min-w-0"
                     style={{ maxWidth: "85%" }}
                   >
-                    {onToggleSelect && (
-                      <Checkbox
-                        size="small"
-                        checked={selectedIds.includes(entity.categoryId)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onToggleSelect(entity, !selectedIds.includes(entity.categoryId));
-                        }}
-                        sx={{ padding: 0, color: colors.icon_muted }}
-                      />
-                    )}
                     <span
                       style={{
                         fontSize: "20px",

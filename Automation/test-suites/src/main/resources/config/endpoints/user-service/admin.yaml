@@ -1,0 +1,104 @@
+endpoints:
+
+  # Roles
+  - key: roles.create
+    method: POST
+    path: /api/roles
+    auth: true
+
+  - key: roles.list
+    method: GET
+    path: /api/roles
+    auth: true
+
+  - key: roles.by-id
+    method: GET
+    path: /api/roles/{id}
+    auth: true
+
+  - key: roles.by-name
+    method: GET
+    path: /api/roles/name/{name}
+    auth: true
+
+  - key: roles.update
+    method: PUT
+    path: /api/roles/{id}
+    auth: true
+
+  - key: roles.delete
+    method: DELETE
+    path: /api/roles/{id}
+    auth: true
+
+  # Admin Users
+  - key: admin.users.list
+    method: GET
+    path: /api/admin/users
+    auth: true
+
+  - key: admin.users.by-id
+    method: GET
+    path: /api/admin/users/{userId}
+    auth: true
+
+  - key: admin.users.status
+    method: PUT
+    path: /api/admin/users/{userId}/status
+    auth: true
+
+  - key: admin.users.delete
+    method: DELETE
+    path: /api/admin/users/{userId}
+    auth: true
+
+  - key: admin.users.bulk-action
+    method: POST
+    path: /api/admin/users/bulk-action
+    auth: true
+
+  - key: admin.users.stats
+    method: GET
+    path: /api/admin/users/stats
+    auth: true
+
+  - key: admin.users.search
+    method: GET
+    path: /api/admin/users/search
+    auth: true
+
+  - key: admin.all
+    method: GET
+    path: /api/admin/all
+    auth: true
+
+  # Admin Analytics
+  - key: admin.analytics.overview
+    method: GET
+    path: /api/admin/analytics/overview
+    auth: true
+
+  - key: admin.analytics.top-categories
+    method: GET
+    path: /api/admin/analytics/top-categories
+    auth: true
+
+  - key: admin.analytics.recent-activity
+    method: GET
+    path: /api/admin/analytics/recent-activity
+    auth: true
+
+  - key: admin.analytics.top-users
+    method: GET
+    path: /api/admin/analytics/top-users
+    auth: true
+
+  - key: admin.analytics.user-stats
+    method: GET
+    path: /api/admin/analytics/user-stats
+    auth: true
+
+  - key: admin.analytics.dashboard
+    method: GET
+    path: /api/admin/analytics/dashboard
+    auth: true

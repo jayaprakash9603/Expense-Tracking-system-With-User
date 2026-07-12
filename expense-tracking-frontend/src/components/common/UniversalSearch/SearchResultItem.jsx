@@ -1,6 +1,8 @@
 import React, { useMemo, memo } from "react";
 import { Box, Typography } from "@mui/material";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
+import { getFunctionalIcon } from "../../../utils/iconMapping";
 
 /**
  * Highlight ALL matching text occurrences in search results
@@ -105,16 +107,12 @@ const HighlightedText = memo(({ text, query, isDark, highlightColor }) => {
 HighlightedText.displayName = "HighlightedText";
 
 /**
- * Get icon for result type
+ * Get icon key for result type. Prefer explicit `result.icon`, then the
+ * type-based mapping, falling back to a neutral document glyph.
  */
-const getResultIcon = (result) => {
-  // Use custom icon if provided
-  if (result.icon) {
-    return result.icon;
-  }
-
-  // Use type-based icon
-  return TYPE_ICONS[result.type] || "📄";
+const getResultIconKey = (result) => {
+  if (result?.icon) return result.icon;
+  return TYPE_ICONS[result?.type] || "📄";
 };
 
 /**
@@ -181,7 +179,29 @@ const SearchResultItem = memo(
     formattedDate, // Pre-formatted by parent
     isGain, // For expense: true if gain (income), false if loss
   }) => {
-    const icon = useMemo(() => getResultIcon(result), [result]);
+    const iconKey = useMemo(() => getResultIconKey(result), [result]);
+    const iconColor = useMemo(() => {
+      const typeAccent = {
+        [SEARCH_TYPES.EXPENSE]: isDark ? "#f87171" : "#dc2626",
+        [SEARCH_TYPES.BUDGET]: isDark ? "#60a5fa" : "#2563eb",
+        [SEARCH_TYPES.CATEGORY]: isDark ? "#c084fc" : "#9333ea",
+        [SEARCH_TYPES.BILL]: isDark ? "#fb923c" : "#ea580c",
+        [SEARCH_TYPES.PAYMENT_METHOD]: isDark ? "#4ade80" : "#16a34a",
+        [SEARCH_TYPES.FRIEND]: isDark ? "#f472b6" : "#db2777",
+        [SEARCH_TYPES.ACTION]: isDark ? "#2dd4bf" : "#0d9488",
+        [SEARCH_TYPES.REPORT]: isDark ? "#818cf8" : "#4f46e5",
+        [SEARCH_TYPES.SETTING]: isDark ? "#9ca3af" : "#4b5563",
+        [SEARCH_TYPES.NOTIFICATION]: isDark ? "#fbbf24" : "#d97706",
+        [SEARCH_TYPES.USER]: isDark ? "#a3a3a3" : "#525252",
+        [SEARCH_TYPES.HELP]: isDark ? "#5eead4" : "#0d9488",
+      };
+      return (
+        result?.color ||
+        typeAccent[result?.type] ||
+        colors?.primary_accent ||
+        (isDark ? "#5eead4" : "#0d9488")
+      );
+    }, [result?.type, result?.color, isDark, colors?.primary_accent]);
     const iconBg = useMemo(
       () => getIconBackground(result, isDark),
       [result, isDark],
@@ -239,11 +259,12 @@ const SearchResultItem = memo(
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: "18px",
             flexShrink: 0,
           }}
         >
-          {icon}
+          {getFunctionalIcon(iconKey, {
+            sx: { fontSize: 20, color: iconColor },
+          })}
         </Box>
 
         {/* Content */}
@@ -355,12 +376,13 @@ const SearchResultItem = memo(
         {isSelected && (
           <Box
             sx={{
+              display: "inline-flex",
+              alignItems: "center",
               color: colors?.primary_accent || (isDark ? "#14b8a6" : "#0d9488"),
-              fontSize: "16px",
               flexShrink: 0,
             }}
           >
-            →
+            <ArrowForwardIcon sx={{ fontSize: 18 }} />
           </Box>
         )}
       </Box>

@@ -406,7 +406,7 @@ const ReusablePieChart = ({
             />
           ) : (
             <ResponsiveContainer width="100%" height={height}>
-              <PieChart>
+              <PieChart onMouseLeave={onPieLeave}>
                 <defs>
                   {/* Drop shadow filter for 3D effect */}
                   <filter
@@ -492,7 +492,11 @@ const ReusablePieChart = ({
                   )}
                   cursor={{ fill: "transparent" }}
                   isAnimationActive={false}
-                  wrapperStyle={{ zIndex: 1000, outline: "none" }}
+                  wrapperStyle={{
+                    zIndex: 1000,
+                    outline: "none",
+                    pointerEvents: "none",
+                  }}
                 />
                 {legend && (
                   <Legend

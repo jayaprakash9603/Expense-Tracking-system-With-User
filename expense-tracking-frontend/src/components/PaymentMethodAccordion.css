@@ -541,23 +541,23 @@
 .pm-expense-table-wrapper {
   width: 100%;
   overflow-x: hidden; /* Prevent horizontal scrollbar */
-  overflow-y: visible;
+  overflow-y: hidden;
 }
 
 /* Custom Scrollbar Styling */
-.pm-expense-table-wrapper {
+.pm-expense-table-wrapper.pm-scrollable {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: var(--pm-scrollbar-thumb) var(--pm-scrollbar-track); /* thumb color | track color */
 }
-.pm-expense-table-wrapper::-webkit-scrollbar {
+.pm-expense-table-wrapper.pm-scrollable::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-.pm-expense-table-wrapper::-webkit-scrollbar-track {
+.pm-expense-table-wrapper.pm-scrollable::-webkit-scrollbar-track {
   background: var(--pm-scrollbar-track);
   border-radius: 8px;
 }
-.pm-expense-table-wrapper::-webkit-scrollbar-thumb {
+.pm-expense-table-wrapper.pm-scrollable::-webkit-scrollbar-thumb {
   background: linear-gradient(
     180deg,
     var(--pm-scrollbar-thumb),
@@ -566,14 +566,14 @@
   border-radius: 8px;
   border: 2px solid var(--pm-scrollbar-track); /* creates padding and contrast */
 }
-.pm-expense-table-wrapper::-webkit-scrollbar-thumb:hover {
+.pm-expense-table-wrapper.pm-scrollable::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(
     180deg,
     var(--pm-accent-color),
     var(--pm-scrollbar-thumb)
   );
 }
-.pm-expense-table-wrapper::-webkit-scrollbar-corner {
+.pm-expense-table-wrapper.pm-scrollable::-webkit-scrollbar-corner {
   background: var(--pm-scrollbar-track);
 }
 .pm-expense-table {
@@ -614,6 +614,25 @@
 .pm-expense-table tbody tr:hover {
   background: var(--pm-bg-secondary);
 }
+.pm-expense-table tbody tr.pm-row-selected {
+  background: color-mix(
+    in srgb,
+    var(--pm-accent-color) 14%,
+    var(--pm-bg-primary)
+  );
+  box-shadow: inset 4px 0 0 var(--pm-accent-color);
+}
+.pm-expense-table tbody tr.pm-row-selected:hover {
+  background: color-mix(
+    in srgb,
+    var(--pm-accent-color) 20%,
+    var(--pm-bg-primary)
+  );
+}
+.pm-expense-table tbody tr:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--pm-accent-color) 45%, transparent);
+  outline-offset: -3px;
+}
 .pm-negative {
   color: #ff6b6b;
 }
@@ -628,7 +647,7 @@
 }
 .pm-empty-centered {
   padding: 0 !important;
-  height: calc(48px * 5); /* matches 5 rows height for consistency */
+  height: 72px !important;
   border-bottom: none !important;
 }
 .pm-expense-table.pm-empty-state tbody tr.pm-empty-row td {
@@ -640,15 +659,16 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 6px;
+  gap: 3px;
   color: var(--pm-text-secondary);
   font-size: 14px;
   text-align: center;
 }
 .pm-empty-icon {
-  font-size: 24px;
+  width: 22px;
+  height: 22px;
   opacity: 0.85;
-  margin-top: 12px;
+  margin-top: 0;
 }
 .pm-empty-title {
   font-weight: 600;

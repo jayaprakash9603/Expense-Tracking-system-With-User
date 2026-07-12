@@ -1,0 +1,36 @@
+---
+description: Three-language sync, key hierarchy, useLanguage/t(), no hard-coded user strings for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/i18n/**/*.js
+alwaysApply: false
+---
+
+# Internationalization (expense-tracker-mobile)
+
+## Three languages
+
+- Translation modules: `src/i18n/translations/en.js`, `hi.js`, `te.js`.
+- **Every new or changed key** must appear in all three with the same dot-path. Do not ship one language only.
+
+## Key hierarchy
+
+- Dot-separated paths: `expenses.columns.date`, `common.searchRecords`, `settings.sections.appearance`.
+- Common namespaces: `common`, `auth`, `navigation`, `dashboard`, `expenses`, `expenseForm`, `budget`, `budgets`, `reports`, `settings`, `chart`, `dateRange`, `tableFilters`, `flows`, `system`, `validation`, `customization`, `modals`, `profile`, `header`, `sidebar`, `breadcrumb` — extend consistently.
+
+## Access pattern
+
+- `const { t, language, setLanguage } = useLanguage()` from `src/i18n/LanguageContext.jsx`.
+- `t("namespace.key")` or `t("namespace.key", { name: value })` for interpolation.
+- Prefer `t(\`key\`)` only when the key is dynamic and documented.
+
+## Fallback
+
+- `translate` falls back: current language → English → raw key. Missing keys surface as the key string — fix by adding the key to all three files.
+
+## Rules
+
+- No user-visible English (or any fixed locale) in JSX for labels, placeholders, toasts, empty states, errors, or `aria-label` — use `t()` or shared `common.*` keys.
+- App-level primitives may use `t(key) || "Fallback"` **only** in shared wrappers when a key is optional; features should not duplicate that pattern.
+
+## References
+
+- `src/i18n/LanguageContext.jsx`, `src/i18n/translations/index.js`

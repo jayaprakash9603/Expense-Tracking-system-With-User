@@ -17,7 +17,7 @@ import {
   Search,
   PinOff,
 } from "lucide-react";
-import EmojiPicker from "../../../shared/components/EmojiPicker";
+import EmojiPicker from "../../../shared/ui/pickers/EmojiPicker";
 import { useSelector } from "react-redux";
 
 const ChatTabContent = ({

@@ -1,0 +1,47 @@
+---
+description: Redux slices, thunks, API modules, safeApiCall, local vs global state for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/redux/**/*.js
+alwaysApply: false
+---
+
+# Redux and API (expense-tracker-mobile)
+
+## Redux layout
+
+- `src/redux/store.js` — `configureStore`, middleware, listeners.
+- Feature folders: `expenses/`, `friends/`, `groups/`, `paymentMethods/`, `shares/`, etc.
+- Each slice typically has: `*.actionTypes.js`, `*.actions.js`, `*.reducer.js` (or `createEntitySlice` from `src/redux/utils/createEntitySlice.js`).
+
+## Action naming
+
+- Async: `FETCH_*_REQUEST | SUCCESS | FAILURE`, mutations `CREATE_*`, `UPDATE_*`, `DELETE_*` — match existing domains.
+- Thunks return a result object `{ success, data?, error? }` or dispatch then resolve so callers can chain.
+
+## API modules
+
+- Location: `src/infrastructure/api/*.js` — one file per domain (`expenseApi.js`, `budgetApi.js`, …).
+- HTTP client: `api` from `src/config/api` (see `apiClient.js`).
+- Every call wraps `safeApiCall(() => api.get|post|put|patch|delete(...))` returning `{ data, error }` — `safeApiCall` lives in `src/shared/utils/safeApiCall.js`.
+- Barrel: `src/infrastructure/api/index.js` re-exports.
+
+## Thunk pattern
+
+1. Dispatch `REQUEST` (optional optimistic).
+2. Call API method.
+3. On success: dispatch `SUCCESS` with payload; return `{ success: true, data }`.
+4. On failure: dispatch `FAILURE` with message; return `{ success: false, error }`.
+
+## Local vs global state
+
+- **Redux**: server-backed lists, auth session, user settings, cross-route caches.
+- **useState / useReducer**: UI-only (dialogs, drafts, step index, local toggles). Do not mirror server lists in both places without a clear source of truth.
+
+## Derived data
+
+- Lists: select raw entities from Redux; map/transform with `useMemo` + domain transformers from `src/domain/`.
+- Do not persist computed aggregates in Redux unless they are explicitly part of the server model.
+
+## References
+
+- `src/shared/utils/safeApiCall.js`, `src/config/api/apiClient.js`, `src/config/api/index.js`
+- `src/redux/utils/createEntitySlice.js`, `src/shared/patterns/useEntityList.js`

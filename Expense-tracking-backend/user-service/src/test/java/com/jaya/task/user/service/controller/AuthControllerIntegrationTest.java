@@ -93,7 +93,7 @@ class AuthControllerIntegrationTest {
             mockMvc.perform(post("/auth/signup")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(duplicate)))
-                    .andExpect(status().is5xxServerError());
+                    .andExpect(status().isConflict());
         }
 
         @Test
@@ -195,8 +195,10 @@ class AuthControllerIntegrationTest {
         @Test
         void returnsUserWhenFound() throws Exception {
             createTestUserDirectly("findme@example.com", "password");
+            String token = generateTokenForUser("findme@example.com", "ROLE_USER");
 
-            mockMvc.perform(get("/auth/email")
+            mockMvc.perform(get("/api/user/email")
+                            .header("Authorization", "Bearer " + token)
                             .param("email", "findme@example.com"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.email").value("findme@example.com"));
@@ -204,7 +206,11 @@ class AuthControllerIntegrationTest {
 
         @Test
         void returnsNotFoundForUnknownEmail() throws Exception {
-            mockMvc.perform(get("/auth/email")
+            createTestAdminDirectly("admin@example.com", "password");
+            String adminToken = generateTokenForUser("admin@example.com", "ROLE_USER", "ROLE_ADMIN");
+
+            mockMvc.perform(get("/api/user/by-email")
+                            .header("Authorization", "Bearer " + adminToken)
                             .param("email", "unknown@example.com"))
                     .andExpect(status().isNotFound());
         }
@@ -260,14 +266,31 @@ class AuthControllerIntegrationTest {
     class GetAllUsers {
 
         @Test
-        void returnsAllUsers() throws Exception {
+        void returnsAllUsersForAdminToken() throws Exception {
             createTestUserDirectly("user1@example.com", "password");
             createTestUserDirectly("user2@example.com", "password");
+            createTestAdminDirectly("admin@example.com", "password");
+            String adminToken = generateTokenForUser("admin@example.com", "ROLE_USER", "ROLE_ADMIN");
 
-            mockMvc.perform(get("/auth/all-users"))
+            mockMvc.perform(get("/api/user/all")
+                            .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));
         }
+    }
+
+    private void createTestAdminDirectly(String email, String password) {
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName("Admin User");
+        user.setFirstName("Admin");
+        user.setLastName("User");
+        user.setPassword(encoder.encode(password));
+        user.setRoles(Set.of("USER", "ADMIN"));
+        user.setCurrentMode("ADMIN");
+        user.setAuthProvider("LOCAL");
+        userRepository.save(user);
     }
 
     private void createTestUserDirectly(String email, String password) {

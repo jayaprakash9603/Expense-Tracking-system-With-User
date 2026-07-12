@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
+import { sanitizeInternalRedirect } from "../../utils/sanitizeInternalRedirect";
 
 const initialValues = { email: "", password: "" };
 
@@ -41,19 +42,15 @@ const Login = () => {
   const navigateAfterLogin = (result) => {
     const { currentMode, role, user } = result;
 
-    console.log("Login Navigation Debug:", {
-      currentMode,
-      role,
-      userRole: user?.role,
-      fullUser: user,
-    });
-
-    // Check if there's a redirect URL saved (e.g., from shared page)
-    const redirectUrl = sessionStorage.getItem("redirectAfterLogin");
-    if (redirectUrl) {
+    const storedRedirect = sessionStorage.getItem("redirectAfterLogin");
+    const safeRedirect = sanitizeInternalRedirect(storedRedirect);
+    if (safeRedirect) {
       sessionStorage.removeItem("redirectAfterLogin");
-      navigate(redirectUrl);
+      navigate(safeRedirect);
       return;
+    }
+    if (storedRedirect) {
+      sessionStorage.removeItem("redirectAfterLogin");
     }
 
     const isActuallyAdminMode = 
@@ -61,10 +58,8 @@ const Login = () => {
       (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
 
     if (isActuallyAdminMode) {
-      console.log("Navigating to ADMIN dashboard");
       navigate("/admin/dashboard");
     } else {
-      console.log("Navigating to USER dashboard");
       navigate("/dashboard");
     }
   };

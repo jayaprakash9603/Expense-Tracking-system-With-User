@@ -82,7 +82,7 @@ export default function useSelectionManager({ chartData, activeRange }) {
           range.push(i);
         }
         setSelectedCardIdx(range);
-      } else if (event && event.ctrlKey) {
+      } else if (event && (event.ctrlKey || event.metaKey)) {
         setSelectedCardIdx((prev) => {
           if (prev.includes(idx)) return prev.filter((i) => i !== idx);
           return [...prev, idx];

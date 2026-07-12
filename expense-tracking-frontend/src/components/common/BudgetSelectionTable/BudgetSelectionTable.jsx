@@ -98,6 +98,11 @@ const BudgetSelectionTable = ({
     <div
       className="w-full relative"
       style={{
+        maxHeight: filteredRows.length > 0 ? "360px" : "none",
+        overflow: "hidden",
+        borderRadius: "10px",
+        border: `1px solid ${colors.border_color}`,
+        backgroundColor: colors.primary_bg,
         "--pm-text-primary": colors.primary_text,
         "--pm-text-secondary": colors.secondary_text,
         "--pm-text-tertiary": colors.secondary_text,
@@ -118,12 +123,14 @@ const BudgetSelectionTable = ({
           columnFilters={columnFilters}
           onFilterClick={handleFilterClick}
           enableSelection={true}
+          selectionMode="row"
           selectedRows={selectedRowsMap}
           onRowSelect={handleRowSelect}
           onSelectAll={handleSelectAll}
           resolveRowKey={(row) => row.id}
           className="w-full"
           defaultPageSize={5}
+          showPagination={filteredRows.length > 0}
         />
       <FilterPopover
         open={Boolean(filterAnchorEl)}

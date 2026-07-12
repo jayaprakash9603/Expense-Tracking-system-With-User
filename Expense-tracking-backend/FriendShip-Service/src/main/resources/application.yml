@@ -1,6 +1,8 @@
 server:
   port: 6009
 
+# Production: set env USER_SERVICE_INTERNAL_TOKEN to the same value configured on USER-SERVICE (Feign -> GET /api/user/all).
+
 spring:
   application:
     name: FRIENDSHIP-SERVICE

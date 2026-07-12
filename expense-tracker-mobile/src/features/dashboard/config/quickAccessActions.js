@@ -1,0 +1,85 @@
+import {
+  Receipt,
+  FileText,
+  Upload,
+  Wallet,
+  BarChart3,
+  Users,
+  UsersRound,
+  LayoutList,
+} from "lucide-react";
+
+export const DASHBOARD_QUICK_ACCESS_COLOR_MAP = {
+  error: "bg-red-500/15 text-red-500",
+  warning: "bg-amber-500/15 text-amber-500",
+  info: "bg-cyan-500/15 text-cyan-500",
+  success: "bg-emerald-500/15 text-emerald-500",
+  sky: "bg-sky-500/15 text-sky-500",
+  orange: "bg-orange-500/15 text-orange-500",
+  violet: "bg-violet-500/15 text-violet-500",
+  slate: "bg-slate-500/15 text-slate-500",
+};
+
+export const DASHBOARD_QUICK_ACCESS_ACTIONS = [
+  {
+    key: "expense",
+    icon: Receipt,
+    path: "/expenses/add",
+    labelKey: "expenses.addExpense",
+    color: "error",
+  },
+  {
+    key: "bill",
+    icon: FileText,
+    path: "/bills/add",
+    labelKey: "navigation.bills",
+    color: "warning",
+    featureFlag: "bills",
+  },
+  {
+    key: "upload",
+    icon: Upload,
+    path: "/upload/expenses",
+    labelKey: "navigation.upload",
+    color: "info",
+    featureFlag: "uploads",
+  },
+  {
+    key: "budget",
+    icon: Wallet,
+    path: "/budgets/add",
+    labelKey: "budget.addBudget",
+    color: "success",
+    featureFlag: "budgets",
+  },
+  {
+    key: "reports",
+    icon: BarChart3,
+    path: "/reports",
+    labelKey: "navigation.reports",
+    color: "sky",
+  },
+  {
+    key: "expense-list",
+    icon: LayoutList,
+    path: "/expenses",
+    labelKey: "navigation.expenses",
+    color: "slate",
+  },
+  {
+    key: "friends",
+    icon: Users,
+    path: "/friends",
+    labelKey: "navigation.friends",
+    color: "orange",
+    featureFlag: "friends",
+  },
+  {
+    key: "groups",
+    icon: UsersRound,
+    path: "/groups",
+    labelKey: "navigation.groups",
+    color: "violet",
+    featureFlag: "groups",
+  },
+];

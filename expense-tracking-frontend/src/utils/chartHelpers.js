@@ -2,6 +2,7 @@
  * Chart Helper Functions
  * Utility functions for chart components
  */
+import { CHART_THEME as DEFAULT_CHART_THEME } from "../config/chartConfig";
 
 /**
  * Format number with specified decimal places
@@ -36,12 +37,8 @@ export const formatTooltipDate = (rawDate, dayNumber) => {
  * @returns {object} Theme colors
  */
 export const getThemeColors = (type, themeConfig) => {
-  // Import CHART_THEME locally if themeConfig is not provided
-  if (!themeConfig) {
-    const { CHART_THEME } = require("../config/chartConfig");
-    themeConfig = CHART_THEME;
-  }
-  return themeConfig[type] || themeConfig.loss;
+  const config = themeConfig || DEFAULT_CHART_THEME;
+  return config[type] || config.loss;
 };
 
 /**

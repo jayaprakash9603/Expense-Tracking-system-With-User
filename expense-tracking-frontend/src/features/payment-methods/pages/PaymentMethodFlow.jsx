@@ -55,14 +55,8 @@ const PaymentMethodFlow = () => {
     useState(false);
 
   const selectedPaymentMethods = useSelector((state) => state.sharedSelection?.selectedPaymentMethods || []);
-  const handleToggleSelect = (entity, checked) => {
-    const id = entity.categoryId; // FlowEntityCards uses categoryId as idKey for payment methods too
-    if (checked) {
-      dispatch(setPaymentMethodSelection([...selectedPaymentMethods, id]));
-    } else {
-      dispatch(setPaymentMethodSelection(selectedPaymentMethods.filter(selectedId => selectedId !== id)));
-    }
-  };
+  const handleSelectionChange = (ids) =>
+    dispatch(setPaymentMethodSelection(ids));
 
   return (
     <GenericFlowPage
@@ -162,7 +156,7 @@ const PaymentMethodFlow = () => {
       showBackButton={showBackButton}
       onPageBack={handlePageBack}
       selectedIds={selectedPaymentMethods}
-      onToggleSelect={handleToggleSelect}
+      onSelectionChange={handleSelectionChange}
     />
   );
 };

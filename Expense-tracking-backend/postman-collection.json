@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "77da8a50-daa2-4210-9d09-c99b8ba1a4d9",
+    "_postman_id": "2cc4b0c5-b112-4e27-a0eb-0419b7e13692",
     "name": "Expense Tracking System - Full API",
     "description": "Comprehensive API collection for the Expense Tracking System covering all microservices.\n\nGateway: http://localhost:8080\n\nAuto-login: Set 'email' and 'password' variables, then any request will auto-authenticate if jwt is empty.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -427,100 +427,6 @@
               "path": [
                 "auth",
                 "{{userId}}"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "",
-                  "pm.test(\"Content-Type is JSON\", () => {",
-                  "    if (pm.response.code !== 204 && pm.response.text().length > 0) {",
-                  "        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "    }",
-                  "});",
-                  "",
-                  "pm.test(\"Response body is not empty\", () => {",
-                  "    if (pm.response.code !== 204) {",
-                  "        pm.expect(pm.response.text().length).to.be.greaterThan(0);",
-                  "    }",
-                  "});",
-                  "",
-                  "pm.test(\"No server error\", () => {",
-                  "    pm.expect(pm.response.code).to.not.be.oneOf([500, 502, 503]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get User By Email",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/email?email={{email}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "email"
-              ],
-              "query": [
-                {
-                  "key": "email",
-                  "value": "{{email}}"
-                }
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status is 200\", () => pm.response.to.have.status(200));",
-                  "",
-                  "pm.test(\"Content-Type is JSON\", () => {",
-                  "    if (pm.response.code !== 204 && pm.response.text().length > 0) {",
-                  "        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-                  "    }",
-                  "});",
-                  "",
-                  "pm.test(\"Response body is not empty\", () => {",
-                  "    if (pm.response.code !== 204) {",
-                  "        pm.expect(pm.response.text().length).to.be.greaterThan(0);",
-                  "    }",
-                  "});",
-                  "",
-                  "pm.test(\"No server error\", () => {",
-                  "    pm.expect(pm.response.code).to.not.be.oneOf([500, 502, 503]);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get All Users",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/auth/all-users",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "all-users"
               ]
             }
           },

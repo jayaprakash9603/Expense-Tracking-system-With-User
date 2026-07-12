@@ -54,6 +54,7 @@ class UserControllerTest {
 
     private User testUser;
     private String userToken;
+    private String adminToken;
 
     @BeforeEach
     void setUp() {
@@ -76,6 +77,7 @@ class UserControllerTest {
         testUser = userRepository.save(testUser);
 
         userToken = generateToken(testUser.getEmail(), "ROLE_USER");
+        adminToken = generateToken("admin-uct@example.com", "ROLE_USER", "ROLE_ADMIN");
     }
 
     @Nested
@@ -94,8 +96,9 @@ class UserControllerTest {
     class GetAllUsers {
 
         @Test
-        void returnsAllUsers() throws Exception {
-            mockMvc.perform(get("/api/user/all"))
+        void returnsAllUsersForAdmin() throws Exception {
+            mockMvc.perform(get("/api/user/all")
+                            .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));

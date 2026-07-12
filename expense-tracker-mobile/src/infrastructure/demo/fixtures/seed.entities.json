@@ -1,0 +1,3927 @@
+{
+  "categories": [
+    {
+      "id": "demo-cat-1",
+      "name": "Food",
+      "color": "#14b8a6",
+      "type": "NEED"
+    },
+    {
+      "id": "demo-cat-2",
+      "name": "Transport",
+      "color": "#6366f1",
+      "type": "NEED"
+    },
+    {
+      "id": "demo-cat-3",
+      "name": "Health",
+      "color": "#f43f5e",
+      "type": "NEED"
+    },
+    {
+      "id": "demo-cat-4",
+      "name": "Entertainment",
+      "color": "#a855f7",
+      "type": "WANT"
+    },
+    {
+      "id": "demo-cat-5",
+      "name": "Income",
+      "color": "#10b981",
+      "type": "NEED"
+    },
+    {
+      "id": "demo-cat-6",
+      "name": "Shopping",
+      "color": "#f59e0b",
+      "type": "WANT"
+    },
+    {
+      "id": "demo-cat-7",
+      "name": "Utilities",
+      "color": "#0ea5e9",
+      "type": "NEED"
+    },
+    {
+      "id": "demo-cat-8",
+      "name": "Housing",
+      "color": "#84cc16",
+      "type": "NEED"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "demo-exp-001",
+      "name": "Salary deposit",
+      "amount": 120,
+      "dateOffsetDays": -800,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit | Budgets: demo-bud-1",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -800,
+      "updatedAtOffsetDays": -800
+    },
+    {
+      "id": "demo-exp-002",
+      "name": "Transit pass",
+      "amount": 16.3,
+      "dateOffsetDays": -795,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -795,
+      "updatedAtOffsetDays": -795
+    },
+    {
+      "id": "demo-exp-003",
+      "name": "Coffee",
+      "amount": 24.6,
+      "dateOffsetDays": -791,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -791,
+      "updatedAtOffsetDays": -791
+    },
+    {
+      "id": "demo-exp-004",
+      "name": "Lunch",
+      "amount": 32.9,
+      "dateOffsetDays": -786,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -786,
+      "updatedAtOffsetDays": -786
+    },
+    {
+      "id": "demo-exp-005",
+      "name": "Pharmacy",
+      "amount": 41.2,
+      "dateOffsetDays": -782,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -782,
+      "updatedAtOffsetDays": -782
+    },
+    {
+      "id": "demo-exp-006",
+      "name": "Fuel",
+      "amount": 39,
+      "dateOffsetDays": -777,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -777,
+      "updatedAtOffsetDays": -777
+    },
+    {
+      "id": "demo-exp-007",
+      "name": "Parking",
+      "amount": 47.3,
+      "dateOffsetDays": -772,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -772,
+      "updatedAtOffsetDays": -772
+    },
+    {
+      "id": "demo-exp-008",
+      "name": "Dinner",
+      "amount": 55.6,
+      "dateOffsetDays": -768,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -768,
+      "updatedAtOffsetDays": -768
+    },
+    {
+      "id": "demo-exp-009",
+      "name": "Books",
+      "amount": 63.9,
+      "dateOffsetDays": -763,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -763,
+      "updatedAtOffsetDays": -763
+    },
+    {
+      "id": "demo-exp-010",
+      "name": "Gym",
+      "amount": 16.4,
+      "dateOffsetDays": -758,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -758,
+      "updatedAtOffsetDays": -758
+    },
+    {
+      "id": "demo-exp-011",
+      "name": "Haircut",
+      "amount": 14.2,
+      "dateOffsetDays": -754,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -754,
+      "updatedAtOffsetDays": -754
+    },
+    {
+      "id": "demo-exp-012",
+      "name": "Pet supplies",
+      "amount": 22.5,
+      "dateOffsetDays": -749,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "WANT",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -749,
+      "updatedAtOffsetDays": -749
+    },
+    {
+      "id": "demo-exp-013",
+      "name": "Gift",
+      "amount": 30.8,
+      "dateOffsetDays": -745,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -745,
+      "updatedAtOffsetDays": -745
+    },
+    {
+      "id": "demo-exp-014",
+      "name": "Train",
+      "amount": 39.1,
+      "dateOffsetDays": -740,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -740,
+      "updatedAtOffsetDays": -740
+    },
+    {
+      "id": "demo-exp-015",
+      "name": "Snacks",
+      "amount": 47.4,
+      "dateOffsetDays": -735,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -735,
+      "updatedAtOffsetDays": -735
+    },
+    {
+      "id": "demo-exp-016",
+      "name": "Clothing",
+      "amount": 45.2,
+      "dateOffsetDays": -731,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -731,
+      "updatedAtOffsetDays": -731
+    },
+    {
+      "id": "demo-exp-017",
+      "name": "Electronics",
+      "amount": 53.5,
+      "dateOffsetDays": -726,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -726,
+      "updatedAtOffsetDays": -726
+    },
+    {
+      "id": "demo-exp-018",
+      "name": "Freelance payout",
+      "amount": 830,
+      "dateOffsetDays": -721,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "BANK",
+      "comments": "Recorded income / credit | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -721,
+      "updatedAtOffsetDays": -721
+    },
+    {
+      "id": "demo-exp-019",
+      "name": "Taxi",
+      "amount": 14.3,
+      "dateOffsetDays": -717,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -717,
+      "updatedAtOffsetDays": -717
+    },
+    {
+      "id": "demo-exp-020",
+      "name": "Water bill share",
+      "amount": 22.6,
+      "dateOffsetDays": -712,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -712,
+      "updatedAtOffsetDays": -712
+    },
+    {
+      "id": "demo-exp-021",
+      "name": "Office supplies",
+      "amount": 20.4,
+      "dateOffsetDays": -708,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -708,
+      "updatedAtOffsetDays": -708
+    },
+    {
+      "id": "demo-exp-022",
+      "name": "Yoga",
+      "amount": 28.7,
+      "dateOffsetDays": -703,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -703,
+      "updatedAtOffsetDays": -703
+    },
+    {
+      "id": "demo-exp-023",
+      "name": "Dentist",
+      "amount": 37,
+      "dateOffsetDays": -698,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "WANT",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -698,
+      "updatedAtOffsetDays": -698
+    },
+    {
+      "id": "demo-exp-024",
+      "name": "Home goods",
+      "amount": 45.3,
+      "dateOffsetDays": -694,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -694,
+      "updatedAtOffsetDays": -694
+    },
+    {
+      "id": "demo-exp-025",
+      "name": "Takeout",
+      "amount": 53.6,
+      "dateOffsetDays": -689,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -689,
+      "updatedAtOffsetDays": -689
+    },
+    {
+      "id": "demo-exp-026",
+      "name": "Groceries",
+      "amount": 51.4,
+      "dateOffsetDays": -684,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -684,
+      "updatedAtOffsetDays": -684
+    },
+    {
+      "id": "demo-exp-027",
+      "name": "Transit pass",
+      "amount": 59.7,
+      "dateOffsetDays": -680,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -680,
+      "updatedAtOffsetDays": -680
+    },
+    {
+      "id": "demo-exp-028",
+      "name": "Coffee",
+      "amount": 12.2,
+      "dateOffsetDays": -675,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -675,
+      "updatedAtOffsetDays": -675
+    },
+    {
+      "id": "demo-exp-029",
+      "name": "Lunch",
+      "amount": 20.5,
+      "dateOffsetDays": -671,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -671,
+      "updatedAtOffsetDays": -671
+    },
+    {
+      "id": "demo-exp-030",
+      "name": "Pharmacy",
+      "amount": 28.8,
+      "dateOffsetDays": -666,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -666,
+      "updatedAtOffsetDays": -666
+    },
+    {
+      "id": "demo-exp-031",
+      "name": "Fuel",
+      "amount": 26.6,
+      "dateOffsetDays": -661,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -661,
+      "updatedAtOffsetDays": -661
+    },
+    {
+      "id": "demo-exp-032",
+      "name": "Parking",
+      "amount": 34.9,
+      "dateOffsetDays": -657,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking | Budgets: demo-bud-4",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -657,
+      "updatedAtOffsetDays": -657
+    },
+    {
+      "id": "demo-exp-033",
+      "name": "Dinner",
+      "amount": 43.2,
+      "dateOffsetDays": -652,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -652,
+      "updatedAtOffsetDays": -652
+    },
+    {
+      "id": "demo-exp-034",
+      "name": "Books",
+      "amount": 51.5,
+      "dateOffsetDays": -647,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -647,
+      "updatedAtOffsetDays": -647
+    },
+    {
+      "id": "demo-exp-035",
+      "name": "Salary deposit",
+      "amount": 1495,
+      "dateOffsetDays": -643,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -643,
+      "updatedAtOffsetDays": -643
+    },
+    {
+      "id": "demo-exp-036",
+      "name": "Haircut",
+      "amount": 57.6,
+      "dateOffsetDays": -638,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -638,
+      "updatedAtOffsetDays": -638
+    },
+    {
+      "id": "demo-exp-037",
+      "name": "Pet supplies",
+      "amount": 10.1,
+      "dateOffsetDays": -634,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -634,
+      "updatedAtOffsetDays": -634
+    },
+    {
+      "id": "demo-exp-038",
+      "name": "Gift",
+      "amount": 18.4,
+      "dateOffsetDays": -629,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -629,
+      "updatedAtOffsetDays": -629
+    },
+    {
+      "id": "demo-exp-039",
+      "name": "Train",
+      "amount": 26.7,
+      "dateOffsetDays": -624,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -624,
+      "updatedAtOffsetDays": -624
+    },
+    {
+      "id": "demo-exp-040",
+      "name": "Snacks",
+      "amount": 35,
+      "dateOffsetDays": -620,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -620,
+      "updatedAtOffsetDays": -620
+    },
+    {
+      "id": "demo-exp-041",
+      "name": "Clothing",
+      "amount": 32.8,
+      "dateOffsetDays": -615,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -615,
+      "updatedAtOffsetDays": -615
+    },
+    {
+      "id": "demo-exp-042",
+      "name": "Electronics",
+      "amount": 41.1,
+      "dateOffsetDays": -610,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -610,
+      "updatedAtOffsetDays": -610
+    },
+    {
+      "id": "demo-exp-043",
+      "name": "Movie",
+      "amount": 49.4,
+      "dateOffsetDays": -606,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -606,
+      "updatedAtOffsetDays": -606
+    },
+    {
+      "id": "demo-exp-044",
+      "name": "Taxi",
+      "amount": 57.7,
+      "dateOffsetDays": -601,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -601,
+      "updatedAtOffsetDays": -601
+    },
+    {
+      "id": "demo-exp-045",
+      "name": "Water bill share",
+      "amount": 66,
+      "dateOffsetDays": -597,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -597,
+      "updatedAtOffsetDays": -597
+    },
+    {
+      "id": "demo-exp-046",
+      "name": "Office supplies",
+      "amount": 8,
+      "dateOffsetDays": -592,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -592,
+      "updatedAtOffsetDays": -592
+    },
+    {
+      "id": "demo-exp-047",
+      "name": "Yoga",
+      "amount": 16.3,
+      "dateOffsetDays": -587,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -587,
+      "updatedAtOffsetDays": -587
+    },
+    {
+      "id": "demo-exp-048",
+      "name": "Dentist",
+      "amount": 24.6,
+      "dateOffsetDays": -583,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -583,
+      "updatedAtOffsetDays": -583
+    },
+    {
+      "id": "demo-exp-049",
+      "name": "Home goods",
+      "amount": 32.9,
+      "dateOffsetDays": -578,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -578,
+      "updatedAtOffsetDays": -578
+    },
+    {
+      "id": "demo-exp-050",
+      "name": "Takeout",
+      "amount": 41.2,
+      "dateOffsetDays": -573,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -573,
+      "updatedAtOffsetDays": -573
+    },
+    {
+      "id": "demo-exp-051",
+      "name": "Groceries",
+      "amount": 39,
+      "dateOffsetDays": -569,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -569,
+      "updatedAtOffsetDays": -569
+    },
+    {
+      "id": "demo-exp-052",
+      "name": "Freelance payout",
+      "amount": 160,
+      "dateOffsetDays": -564,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CASH",
+      "comments": "Recorded income / credit | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -564,
+      "updatedAtOffsetDays": -564
+    },
+    {
+      "id": "demo-exp-053",
+      "name": "Coffee",
+      "amount": 55.6,
+      "dateOffsetDays": -560,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -560,
+      "updatedAtOffsetDays": -560
+    },
+    {
+      "id": "demo-exp-054",
+      "name": "Lunch",
+      "amount": 63.9,
+      "dateOffsetDays": -555,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -555,
+      "updatedAtOffsetDays": -555
+    },
+    {
+      "id": "demo-exp-055",
+      "name": "Pharmacy",
+      "amount": 16.4,
+      "dateOffsetDays": -550,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -550,
+      "updatedAtOffsetDays": -550
+    },
+    {
+      "id": "demo-exp-056",
+      "name": "Fuel",
+      "amount": 14.2,
+      "dateOffsetDays": -546,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -546,
+      "updatedAtOffsetDays": -546
+    },
+    {
+      "id": "demo-exp-057",
+      "name": "Parking",
+      "amount": 22.5,
+      "dateOffsetDays": -541,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -541,
+      "updatedAtOffsetDays": -541
+    },
+    {
+      "id": "demo-exp-058",
+      "name": "Dinner",
+      "amount": 30.8,
+      "dateOffsetDays": -536,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -536,
+      "updatedAtOffsetDays": -536
+    },
+    {
+      "id": "demo-exp-059",
+      "name": "Books",
+      "amount": 39.1,
+      "dateOffsetDays": -532,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -532,
+      "updatedAtOffsetDays": -532
+    },
+    {
+      "id": "demo-exp-060",
+      "name": "Gym",
+      "amount": 47.4,
+      "dateOffsetDays": -527,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -527,
+      "updatedAtOffsetDays": -527
+    },
+    {
+      "id": "demo-exp-061",
+      "name": "Haircut",
+      "amount": 45.2,
+      "dateOffsetDays": -523,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -523,
+      "updatedAtOffsetDays": -523
+    },
+    {
+      "id": "demo-exp-062",
+      "name": "Pet supplies",
+      "amount": 53.5,
+      "dateOffsetDays": -518,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -518,
+      "updatedAtOffsetDays": -518
+    },
+    {
+      "id": "demo-exp-063",
+      "name": "Gift",
+      "amount": 61.8,
+      "dateOffsetDays": -513,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift",
+      "isRecurring": true,
+      "budgetIds": [],
+      "createdAtOffsetDays": -513,
+      "updatedAtOffsetDays": -513
+    },
+    {
+      "id": "demo-exp-064",
+      "name": "Train",
+      "amount": 14.3,
+      "dateOffsetDays": -509,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -509,
+      "updatedAtOffsetDays": -509
+    },
+    {
+      "id": "demo-exp-065",
+      "name": "Snacks",
+      "amount": 22.6,
+      "dateOffsetDays": -504,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -504,
+      "updatedAtOffsetDays": -504
+    },
+    {
+      "id": "demo-exp-066",
+      "name": "Clothing",
+      "amount": 20.4,
+      "dateOffsetDays": -499,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -499,
+      "updatedAtOffsetDays": -499
+    },
+    {
+      "id": "demo-exp-067",
+      "name": "Electronics",
+      "amount": 28.7,
+      "dateOffsetDays": -495,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "WANT",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -495,
+      "updatedAtOffsetDays": -495
+    },
+    {
+      "id": "demo-exp-068",
+      "name": "Movie",
+      "amount": 37,
+      "dateOffsetDays": -490,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -490,
+      "updatedAtOffsetDays": -490
+    },
+    {
+      "id": "demo-exp-069",
+      "name": "Salary deposit",
+      "amount": 870,
+      "dateOffsetDays": -486,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -486,
+      "updatedAtOffsetDays": -486
+    },
+    {
+      "id": "demo-exp-070",
+      "name": "Water bill share",
+      "amount": 53.6,
+      "dateOffsetDays": -481,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -481,
+      "updatedAtOffsetDays": -481
+    },
+    {
+      "id": "demo-exp-071",
+      "name": "Office supplies",
+      "amount": 51.4,
+      "dateOffsetDays": -476,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -476,
+      "updatedAtOffsetDays": -476
+    },
+    {
+      "id": "demo-exp-072",
+      "name": "Yoga",
+      "amount": 59.7,
+      "dateOffsetDays": -472,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -472,
+      "updatedAtOffsetDays": -472
+    },
+    {
+      "id": "demo-exp-073",
+      "name": "Dentist",
+      "amount": 12.2,
+      "dateOffsetDays": -467,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -467,
+      "updatedAtOffsetDays": -467
+    },
+    {
+      "id": "demo-exp-074",
+      "name": "Home goods",
+      "amount": 20.5,
+      "dateOffsetDays": -463,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -463,
+      "updatedAtOffsetDays": -463
+    },
+    {
+      "id": "demo-exp-075",
+      "name": "Takeout",
+      "amount": 28.8,
+      "dateOffsetDays": -458,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -458,
+      "updatedAtOffsetDays": -458
+    },
+    {
+      "id": "demo-exp-076",
+      "name": "Groceries",
+      "amount": 26.6,
+      "dateOffsetDays": -453,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -453,
+      "updatedAtOffsetDays": -453
+    },
+    {
+      "id": "demo-exp-077",
+      "name": "Transit pass",
+      "amount": 34.9,
+      "dateOffsetDays": -449,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -449,
+      "updatedAtOffsetDays": -449
+    },
+    {
+      "id": "demo-exp-078",
+      "name": "Coffee",
+      "amount": 43.2,
+      "dateOffsetDays": -444,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "WANT",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -444,
+      "updatedAtOffsetDays": -444
+    },
+    {
+      "id": "demo-exp-079",
+      "name": "Lunch",
+      "amount": 51.5,
+      "dateOffsetDays": -439,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -439,
+      "updatedAtOffsetDays": -439
+    },
+    {
+      "id": "demo-exp-080",
+      "name": "Pharmacy",
+      "amount": 59.8,
+      "dateOffsetDays": -435,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -435,
+      "updatedAtOffsetDays": -435
+    },
+    {
+      "id": "demo-exp-081",
+      "name": "Fuel",
+      "amount": 57.6,
+      "dateOffsetDays": -430,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -430,
+      "updatedAtOffsetDays": -430
+    },
+    {
+      "id": "demo-exp-082",
+      "name": "Parking",
+      "amount": 10.1,
+      "dateOffsetDays": -426,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -426,
+      "updatedAtOffsetDays": -426
+    },
+    {
+      "id": "demo-exp-083",
+      "name": "Dinner",
+      "amount": 18.4,
+      "dateOffsetDays": -421,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -421,
+      "updatedAtOffsetDays": -421
+    },
+    {
+      "id": "demo-exp-084",
+      "name": "Books",
+      "amount": 26.7,
+      "dateOffsetDays": -416,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -416,
+      "updatedAtOffsetDays": -416
+    },
+    {
+      "id": "demo-exp-085",
+      "name": "Gym",
+      "amount": 35,
+      "dateOffsetDays": -412,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -412,
+      "updatedAtOffsetDays": -412
+    },
+    {
+      "id": "demo-exp-086",
+      "name": "Freelance payout",
+      "amount": 1535,
+      "dateOffsetDays": -407,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -407,
+      "updatedAtOffsetDays": -407
+    },
+    {
+      "id": "demo-exp-087",
+      "name": "Pet supplies",
+      "amount": 41.1,
+      "dateOffsetDays": -402,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -402,
+      "updatedAtOffsetDays": -402
+    },
+    {
+      "id": "demo-exp-088",
+      "name": "Gift",
+      "amount": 49.4,
+      "dateOffsetDays": -398,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -398,
+      "updatedAtOffsetDays": -398
+    },
+    {
+      "id": "demo-exp-089",
+      "name": "Train",
+      "amount": 57.7,
+      "dateOffsetDays": -393,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -393,
+      "updatedAtOffsetDays": -393
+    },
+    {
+      "id": "demo-exp-090",
+      "name": "Snacks",
+      "amount": 66,
+      "dateOffsetDays": -389,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -389,
+      "updatedAtOffsetDays": -389
+    },
+    {
+      "id": "demo-exp-091",
+      "name": "Clothing",
+      "amount": 8,
+      "dateOffsetDays": -384,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -384,
+      "updatedAtOffsetDays": -384
+    },
+    {
+      "id": "demo-exp-092",
+      "name": "Electronics",
+      "amount": 16.3,
+      "dateOffsetDays": -379,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -379,
+      "updatedAtOffsetDays": -379
+    },
+    {
+      "id": "demo-exp-093",
+      "name": "Movie",
+      "amount": 24.6,
+      "dateOffsetDays": -375,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -375,
+      "updatedAtOffsetDays": -375
+    },
+    {
+      "id": "demo-exp-094",
+      "name": "Taxi",
+      "amount": 32.9,
+      "dateOffsetDays": -370,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -370,
+      "updatedAtOffsetDays": -370
+    },
+    {
+      "id": "demo-exp-095",
+      "name": "Water bill share",
+      "amount": 41.2,
+      "dateOffsetDays": -365,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -365,
+      "updatedAtOffsetDays": -365
+    },
+    {
+      "id": "demo-exp-096",
+      "name": "Office supplies",
+      "amount": 39,
+      "dateOffsetDays": -361,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -361,
+      "updatedAtOffsetDays": -361
+    },
+    {
+      "id": "demo-exp-097",
+      "name": "Yoga",
+      "amount": 47.3,
+      "dateOffsetDays": -356,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -356,
+      "updatedAtOffsetDays": -356
+    },
+    {
+      "id": "demo-exp-098",
+      "name": "Dentist",
+      "amount": 55.6,
+      "dateOffsetDays": -352,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -352,
+      "updatedAtOffsetDays": -352
+    },
+    {
+      "id": "demo-exp-099",
+      "name": "Home goods",
+      "amount": 63.9,
+      "dateOffsetDays": -347,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -347,
+      "updatedAtOffsetDays": -347
+    },
+    {
+      "id": "demo-exp-100",
+      "name": "Takeout",
+      "amount": 16.4,
+      "dateOffsetDays": -342,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -342,
+      "updatedAtOffsetDays": -342
+    },
+    {
+      "id": "demo-exp-101",
+      "name": "Groceries",
+      "amount": 14.2,
+      "dateOffsetDays": -338,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -338,
+      "updatedAtOffsetDays": -338
+    },
+    {
+      "id": "demo-exp-102",
+      "name": "Transit pass",
+      "amount": 22.5,
+      "dateOffsetDays": -333,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -333,
+      "updatedAtOffsetDays": -333
+    },
+    {
+      "id": "demo-exp-103",
+      "name": "Salary deposit",
+      "amount": 200,
+      "dateOffsetDays": -328,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "BANK",
+      "comments": "Recorded income / credit | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -328,
+      "updatedAtOffsetDays": -328
+    },
+    {
+      "id": "demo-exp-104",
+      "name": "Lunch",
+      "amount": 39.1,
+      "dateOffsetDays": -324,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -324,
+      "updatedAtOffsetDays": -324
+    },
+    {
+      "id": "demo-exp-105",
+      "name": "Pharmacy",
+      "amount": 47.4,
+      "dateOffsetDays": -319,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -319,
+      "updatedAtOffsetDays": -319
+    },
+    {
+      "id": "demo-exp-106",
+      "name": "Fuel",
+      "amount": 45.2,
+      "dateOffsetDays": -315,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -315,
+      "updatedAtOffsetDays": -315
+    },
+    {
+      "id": "demo-exp-107",
+      "name": "Parking",
+      "amount": 53.5,
+      "dateOffsetDays": -310,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -310,
+      "updatedAtOffsetDays": -310
+    },
+    {
+      "id": "demo-exp-108",
+      "name": "Dinner",
+      "amount": 61.8,
+      "dateOffsetDays": -305,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -305,
+      "updatedAtOffsetDays": -305
+    },
+    {
+      "id": "demo-exp-109",
+      "name": "Books",
+      "amount": 14.3,
+      "dateOffsetDays": -301,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -301,
+      "updatedAtOffsetDays": -301
+    },
+    {
+      "id": "demo-exp-110",
+      "name": "Gym",
+      "amount": 22.6,
+      "dateOffsetDays": -296,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -296,
+      "updatedAtOffsetDays": -296
+    },
+    {
+      "id": "demo-exp-111",
+      "name": "Haircut",
+      "amount": 20.4,
+      "dateOffsetDays": -291,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -291,
+      "updatedAtOffsetDays": -291
+    },
+    {
+      "id": "demo-exp-112",
+      "name": "Pet supplies",
+      "amount": 28.7,
+      "dateOffsetDays": -287,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -287,
+      "updatedAtOffsetDays": -287
+    },
+    {
+      "id": "demo-exp-113",
+      "name": "Gift",
+      "amount": 37,
+      "dateOffsetDays": -282,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -282,
+      "updatedAtOffsetDays": -282
+    },
+    {
+      "id": "demo-exp-114",
+      "name": "Train",
+      "amount": 45.3,
+      "dateOffsetDays": -278,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -278,
+      "updatedAtOffsetDays": -278
+    },
+    {
+      "id": "demo-exp-115",
+      "name": "Snacks",
+      "amount": 53.6,
+      "dateOffsetDays": -273,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -273,
+      "updatedAtOffsetDays": -273
+    },
+    {
+      "id": "demo-exp-116",
+      "name": "Clothing",
+      "amount": 51.4,
+      "dateOffsetDays": -268,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -268,
+      "updatedAtOffsetDays": -268
+    },
+    {
+      "id": "demo-exp-117",
+      "name": "Electronics",
+      "amount": 59.7,
+      "dateOffsetDays": -264,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -264,
+      "updatedAtOffsetDays": -264
+    },
+    {
+      "id": "demo-exp-118",
+      "name": "Movie",
+      "amount": 12.2,
+      "dateOffsetDays": -259,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -259,
+      "updatedAtOffsetDays": -259
+    },
+    {
+      "id": "demo-exp-119",
+      "name": "Taxi",
+      "amount": 20.5,
+      "dateOffsetDays": -254,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -254,
+      "updatedAtOffsetDays": -254
+    },
+    {
+      "id": "demo-exp-120",
+      "name": "Freelance payout",
+      "amount": 910,
+      "dateOffsetDays": -250,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -250,
+      "updatedAtOffsetDays": -250
+    },
+    {
+      "id": "demo-exp-121",
+      "name": "Office supplies",
+      "amount": 26.6,
+      "dateOffsetDays": -245,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -245,
+      "updatedAtOffsetDays": -245
+    },
+    {
+      "id": "demo-exp-122",
+      "name": "Yoga",
+      "amount": 34.9,
+      "dateOffsetDays": -241,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "WANT",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -241,
+      "updatedAtOffsetDays": -241
+    },
+    {
+      "id": "demo-exp-123",
+      "name": "Dentist",
+      "amount": 43.2,
+      "dateOffsetDays": -236,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -236,
+      "updatedAtOffsetDays": -236
+    },
+    {
+      "id": "demo-exp-124",
+      "name": "Home goods",
+      "amount": 51.5,
+      "dateOffsetDays": -231,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -231,
+      "updatedAtOffsetDays": -231
+    },
+    {
+      "id": "demo-exp-125",
+      "name": "Takeout",
+      "amount": 59.8,
+      "dateOffsetDays": -227,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-5",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -227,
+      "updatedAtOffsetDays": -227
+    },
+    {
+      "id": "demo-exp-126",
+      "name": "Groceries",
+      "amount": 57.6,
+      "dateOffsetDays": -222,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -222,
+      "updatedAtOffsetDays": -222
+    },
+    {
+      "id": "demo-exp-127",
+      "name": "Transit pass",
+      "amount": 10.1,
+      "dateOffsetDays": -217,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -217,
+      "updatedAtOffsetDays": -217
+    },
+    {
+      "id": "demo-exp-128",
+      "name": "Coffee",
+      "amount": 18.4,
+      "dateOffsetDays": -213,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -213,
+      "updatedAtOffsetDays": -213
+    },
+    {
+      "id": "demo-exp-129",
+      "name": "Lunch",
+      "amount": 26.7,
+      "dateOffsetDays": -208,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -208,
+      "updatedAtOffsetDays": -208
+    },
+    {
+      "id": "demo-exp-130",
+      "name": "Pharmacy",
+      "amount": 35,
+      "dateOffsetDays": -204,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -204,
+      "updatedAtOffsetDays": -204
+    },
+    {
+      "id": "demo-exp-131",
+      "name": "Fuel",
+      "amount": 32.8,
+      "dateOffsetDays": -199,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -199,
+      "updatedAtOffsetDays": -199
+    },
+    {
+      "id": "demo-exp-132",
+      "name": "Parking",
+      "amount": 41.1,
+      "dateOffsetDays": -194,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -194,
+      "updatedAtOffsetDays": -194
+    },
+    {
+      "id": "demo-exp-133",
+      "name": "Dinner",
+      "amount": 49.4,
+      "dateOffsetDays": -190,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "WANT",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -190,
+      "updatedAtOffsetDays": -190
+    },
+    {
+      "id": "demo-exp-134",
+      "name": "Books",
+      "amount": 57.7,
+      "dateOffsetDays": -185,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -185,
+      "updatedAtOffsetDays": -185
+    },
+    {
+      "id": "demo-exp-135",
+      "name": "Gym",
+      "amount": 66,
+      "dateOffsetDays": -181,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -181,
+      "updatedAtOffsetDays": -181
+    },
+    {
+      "id": "demo-exp-136",
+      "name": "Haircut",
+      "amount": 8,
+      "dateOffsetDays": -176,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -176,
+      "updatedAtOffsetDays": -176
+    },
+    {
+      "id": "demo-exp-137",
+      "name": "Salary deposit",
+      "amount": 1575,
+      "dateOffsetDays": -171,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CASH",
+      "comments": "Recorded income / credit | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -171,
+      "updatedAtOffsetDays": -171
+    },
+    {
+      "id": "demo-exp-138",
+      "name": "Gift",
+      "amount": 24.6,
+      "dateOffsetDays": -167,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -167,
+      "updatedAtOffsetDays": -167
+    },
+    {
+      "id": "demo-exp-139",
+      "name": "Train",
+      "amount": 32.9,
+      "dateOffsetDays": -162,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -162,
+      "updatedAtOffsetDays": -162
+    },
+    {
+      "id": "demo-exp-140",
+      "name": "Snacks",
+      "amount": 41.2,
+      "dateOffsetDays": -157,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -157,
+      "updatedAtOffsetDays": -157
+    },
+    {
+      "id": "demo-exp-141",
+      "name": "Clothing",
+      "amount": 39,
+      "dateOffsetDays": -153,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -153,
+      "updatedAtOffsetDays": -153
+    },
+    {
+      "id": "demo-exp-142",
+      "name": "Electronics",
+      "amount": 47.3,
+      "dateOffsetDays": -148,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -148,
+      "updatedAtOffsetDays": -148
+    },
+    {
+      "id": "demo-exp-143",
+      "name": "Movie",
+      "amount": 55.6,
+      "dateOffsetDays": -144,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -144,
+      "updatedAtOffsetDays": -144
+    },
+    {
+      "id": "demo-exp-144",
+      "name": "Taxi",
+      "amount": 63.9,
+      "dateOffsetDays": -139,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -139,
+      "updatedAtOffsetDays": -139
+    },
+    {
+      "id": "demo-exp-145",
+      "name": "Water bill share",
+      "amount": 16.4,
+      "dateOffsetDays": -134,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -134,
+      "updatedAtOffsetDays": -134
+    },
+    {
+      "id": "demo-exp-146",
+      "name": "Office supplies",
+      "amount": 14.2,
+      "dateOffsetDays": -130,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -130,
+      "updatedAtOffsetDays": -130
+    },
+    {
+      "id": "demo-exp-147",
+      "name": "Yoga",
+      "amount": 22.5,
+      "dateOffsetDays": -125,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -125,
+      "updatedAtOffsetDays": -125
+    },
+    {
+      "id": "demo-exp-148",
+      "name": "Dentist",
+      "amount": 30.8,
+      "dateOffsetDays": -120,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -120,
+      "updatedAtOffsetDays": -120
+    },
+    {
+      "id": "demo-exp-149",
+      "name": "Home goods",
+      "amount": 39.1,
+      "dateOffsetDays": -116,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -116,
+      "updatedAtOffsetDays": -116
+    },
+    {
+      "id": "demo-exp-150",
+      "name": "Takeout",
+      "amount": 47.4,
+      "dateOffsetDays": -111,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -111,
+      "updatedAtOffsetDays": -111
+    },
+    {
+      "id": "demo-exp-151",
+      "name": "Groceries",
+      "amount": 45.2,
+      "dateOffsetDays": -107,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -107,
+      "updatedAtOffsetDays": -107
+    },
+    {
+      "id": "demo-exp-152",
+      "name": "Transit pass",
+      "amount": 53.5,
+      "dateOffsetDays": -102,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -102,
+      "updatedAtOffsetDays": -102
+    },
+    {
+      "id": "demo-exp-153",
+      "name": "Coffee",
+      "amount": 61.8,
+      "dateOffsetDays": -97,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -97,
+      "updatedAtOffsetDays": -97
+    },
+    {
+      "id": "demo-exp-154",
+      "name": "Freelance payout",
+      "amount": 240,
+      "dateOffsetDays": -93,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -93,
+      "updatedAtOffsetDays": -93
+    },
+    {
+      "id": "demo-exp-155",
+      "name": "Pharmacy",
+      "amount": 22.6,
+      "dateOffsetDays": -88,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -88,
+      "updatedAtOffsetDays": -88
+    },
+    {
+      "id": "demo-exp-156",
+      "name": "Fuel",
+      "amount": 20.4,
+      "dateOffsetDays": -83,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-2",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -83,
+      "updatedAtOffsetDays": -83
+    },
+    {
+      "id": "demo-exp-157",
+      "name": "Parking",
+      "amount": 28.7,
+      "dateOffsetDays": -79,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -79,
+      "updatedAtOffsetDays": -79
+    },
+    {
+      "id": "demo-exp-158",
+      "name": "Dinner",
+      "amount": 37,
+      "dateOffsetDays": -74,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -74,
+      "updatedAtOffsetDays": -74
+    },
+    {
+      "id": "demo-exp-159",
+      "name": "Books",
+      "amount": 45.3,
+      "dateOffsetDays": -70,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -70,
+      "updatedAtOffsetDays": -70
+    },
+    {
+      "id": "demo-exp-160",
+      "name": "Gym",
+      "amount": 53.6,
+      "dateOffsetDays": -65,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -65,
+      "updatedAtOffsetDays": -65
+    },
+    {
+      "id": "demo-exp-161",
+      "name": "Haircut",
+      "amount": 51.4,
+      "dateOffsetDays": -60,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -60,
+      "updatedAtOffsetDays": -60
+    },
+    {
+      "id": "demo-exp-162",
+      "name": "Pet supplies",
+      "amount": 59.7,
+      "dateOffsetDays": -56,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -56,
+      "updatedAtOffsetDays": -56
+    },
+    {
+      "id": "demo-exp-163",
+      "name": "Gift",
+      "amount": 12.2,
+      "dateOffsetDays": -51,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Gift | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -51,
+      "updatedAtOffsetDays": -51
+    },
+    {
+      "id": "demo-exp-164",
+      "name": "Train",
+      "amount": 20.5,
+      "dateOffsetDays": -46,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -46,
+      "updatedAtOffsetDays": -46
+    },
+    {
+      "id": "demo-exp-165",
+      "name": "Snacks",
+      "amount": 28.8,
+      "dateOffsetDays": -42,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -42,
+      "updatedAtOffsetDays": -42
+    },
+    {
+      "id": "demo-exp-166",
+      "name": "Clothing",
+      "amount": 26.6,
+      "dateOffsetDays": -37,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -37,
+      "updatedAtOffsetDays": -37
+    },
+    {
+      "id": "demo-exp-167",
+      "name": "Electronics",
+      "amount": 34.9,
+      "dateOffsetDays": -33,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": -33,
+      "updatedAtOffsetDays": -33
+    },
+    {
+      "id": "demo-exp-168",
+      "name": "Movie",
+      "amount": 43.2,
+      "dateOffsetDays": -28,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": -28,
+      "updatedAtOffsetDays": -28
+    },
+    {
+      "id": "demo-exp-169",
+      "name": "Taxi",
+      "amount": 51.5,
+      "dateOffsetDays": -23,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": -23,
+      "updatedAtOffsetDays": -23
+    },
+    {
+      "id": "demo-exp-170",
+      "name": "Water bill share",
+      "amount": 59.8,
+      "dateOffsetDays": -19,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": -19,
+      "updatedAtOffsetDays": -19
+    },
+    {
+      "id": "demo-exp-171",
+      "name": "Salary deposit",
+      "amount": 950,
+      "dateOffsetDays": -14,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "CARD",
+      "comments": "Recorded income / credit | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": -14,
+      "updatedAtOffsetDays": -14
+    },
+    {
+      "id": "demo-exp-172",
+      "name": "Yoga",
+      "amount": 10.1,
+      "dateOffsetDays": -9,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": -9,
+      "updatedAtOffsetDays": -9
+    },
+    {
+      "id": "demo-exp-173",
+      "name": "Dentist",
+      "amount": 18.4,
+      "dateOffsetDays": -5,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": -5,
+      "updatedAtOffsetDays": -5
+    },
+    {
+      "id": "demo-exp-174",
+      "name": "Home goods",
+      "amount": 26.7,
+      "dateOffsetDays": 0,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": 0,
+      "updatedAtOffsetDays": 0
+    },
+    {
+      "id": "demo-exp-175",
+      "name": "Takeout",
+      "amount": 35,
+      "dateOffsetDays": 4,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": 4,
+      "updatedAtOffsetDays": 4
+    },
+    {
+      "id": "demo-exp-176",
+      "name": "Groceries",
+      "amount": 32.8,
+      "dateOffsetDays": 9,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Groceries · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": 9,
+      "updatedAtOffsetDays": 9
+    },
+    {
+      "id": "demo-exp-177",
+      "name": "Transit pass",
+      "amount": 41.1,
+      "dateOffsetDays": 14,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "WANT",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Transit pass | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": 14,
+      "updatedAtOffsetDays": 14
+    },
+    {
+      "id": "demo-exp-178",
+      "name": "Coffee",
+      "amount": 49.4,
+      "dateOffsetDays": 18,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Coffee | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": 18,
+      "updatedAtOffsetDays": 18
+    },
+    {
+      "id": "demo-exp-179",
+      "name": "Lunch",
+      "amount": 57.7,
+      "dateOffsetDays": 23,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Lunch | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": 23,
+      "updatedAtOffsetDays": 23
+    },
+    {
+      "id": "demo-exp-180",
+      "name": "Pharmacy",
+      "amount": 66,
+      "dateOffsetDays": 28,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Pharmacy | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": 28,
+      "updatedAtOffsetDays": 28
+    },
+    {
+      "id": "demo-exp-181",
+      "name": "Fuel",
+      "amount": 8,
+      "dateOffsetDays": 32,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Fuel | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": 32,
+      "updatedAtOffsetDays": 32
+    },
+    {
+      "id": "demo-exp-182",
+      "name": "Parking",
+      "amount": 16.3,
+      "dateOffsetDays": 37,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Parking",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": 37,
+      "updatedAtOffsetDays": 37
+    },
+    {
+      "id": "demo-exp-183",
+      "name": "Dinner",
+      "amount": 24.6,
+      "dateOffsetDays": 41,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dinner · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": 41,
+      "updatedAtOffsetDays": 41
+    },
+    {
+      "id": "demo-exp-184",
+      "name": "Books",
+      "amount": 32.9,
+      "dateOffsetDays": 46,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Books | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": 46,
+      "updatedAtOffsetDays": 46
+    },
+    {
+      "id": "demo-exp-185",
+      "name": "Gym",
+      "amount": 41.2,
+      "dateOffsetDays": 51,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Gym | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": 51,
+      "updatedAtOffsetDays": 51
+    },
+    {
+      "id": "demo-exp-186",
+      "name": "Haircut",
+      "amount": 39,
+      "dateOffsetDays": 55,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Haircut | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": 55,
+      "updatedAtOffsetDays": 55
+    },
+    {
+      "id": "demo-exp-187",
+      "name": "Pet supplies",
+      "amount": 47.3,
+      "dateOffsetDays": 60,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Pet supplies | Budgets: demo-bud-3",
+      "isRecurring": true,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": 60,
+      "updatedAtOffsetDays": 60
+    },
+    {
+      "id": "demo-exp-188",
+      "name": "Freelance payout",
+      "amount": 1615,
+      "dateOffsetDays": 65,
+      "categoryId": "demo-cat-5",
+      "categoryName": "Income",
+      "category": "Income",
+      "type": "gain",
+      "paymentMethod": "BANK",
+      "comments": "Recorded income / credit | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": 65,
+      "updatedAtOffsetDays": 65
+    },
+    {
+      "id": "demo-exp-189",
+      "name": "Train",
+      "amount": 63.9,
+      "dateOffsetDays": 69,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Train",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": 69,
+      "updatedAtOffsetDays": 69
+    },
+    {
+      "id": "demo-exp-190",
+      "name": "Snacks",
+      "amount": 16.4,
+      "dateOffsetDays": 74,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Snacks · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": 74,
+      "updatedAtOffsetDays": 74
+    },
+    {
+      "id": "demo-exp-191",
+      "name": "Clothing",
+      "amount": 14.2,
+      "dateOffsetDays": 78,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Clothing | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": 78,
+      "updatedAtOffsetDays": 78
+    },
+    {
+      "id": "demo-exp-192",
+      "name": "Electronics",
+      "amount": 22.5,
+      "dateOffsetDays": 83,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Electronics | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": 83,
+      "updatedAtOffsetDays": 83
+    },
+    {
+      "id": "demo-exp-193",
+      "name": "Movie",
+      "amount": 30.8,
+      "dateOffsetDays": 88,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Movie | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": 88,
+      "updatedAtOffsetDays": 88
+    },
+    {
+      "id": "demo-exp-194",
+      "name": "Taxi",
+      "amount": 39.1,
+      "dateOffsetDays": 92,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Taxi | Budgets: demo-bud-3",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-3"
+      ],
+      "createdAtOffsetDays": 92,
+      "updatedAtOffsetDays": 92
+    },
+    {
+      "id": "demo-exp-195",
+      "name": "Water bill share",
+      "amount": 47.4,
+      "dateOffsetDays": 97,
+      "categoryId": "demo-cat-3",
+      "categoryName": "Health",
+      "category": "Health",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Water bill share | Budgets: demo-bud-5",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-5"
+      ],
+      "createdAtOffsetDays": 97,
+      "updatedAtOffsetDays": 97
+    },
+    {
+      "id": "demo-exp-196",
+      "name": "Office supplies",
+      "amount": 45.2,
+      "dateOffsetDays": 102,
+      "categoryId": "demo-cat-4",
+      "categoryName": "Entertainment",
+      "category": "Entertainment",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Office supplies",
+      "isRecurring": false,
+      "budgetIds": [],
+      "createdAtOffsetDays": 102,
+      "updatedAtOffsetDays": 102
+    },
+    {
+      "id": "demo-exp-197",
+      "name": "Yoga",
+      "amount": 53.5,
+      "dateOffsetDays": 106,
+      "categoryId": "demo-cat-6",
+      "categoryName": "Shopping",
+      "category": "Shopping",
+      "type": "NEED",
+      "paymentMethod": "CASH",
+      "comments": "Spend note · Yoga · reviewed | Budgets: demo-bud-1",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1"
+      ],
+      "createdAtOffsetDays": 106,
+      "updatedAtOffsetDays": 106
+    },
+    {
+      "id": "demo-exp-198",
+      "name": "Dentist",
+      "amount": 61.8,
+      "dateOffsetDays": 111,
+      "categoryId": "demo-cat-7",
+      "categoryName": "Utilities",
+      "category": "Utilities",
+      "type": "NEED",
+      "paymentMethod": "BANK",
+      "comments": "Spend note · Dentist | Budgets: demo-bud-2",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-2"
+      ],
+      "createdAtOffsetDays": 111,
+      "updatedAtOffsetDays": 111
+    },
+    {
+      "id": "demo-exp-199",
+      "name": "Home goods",
+      "amount": 14.3,
+      "dateOffsetDays": 115,
+      "categoryId": "demo-cat-1",
+      "categoryName": "Food",
+      "category": "Food",
+      "type": "WANT",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Home goods | Budgets: demo-bud-1,demo-bud-6",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-1",
+        "demo-bud-6"
+      ],
+      "createdAtOffsetDays": 115,
+      "updatedAtOffsetDays": 115
+    },
+    {
+      "id": "demo-exp-200",
+      "name": "Takeout",
+      "amount": 22.6,
+      "dateOffsetDays": 120,
+      "categoryId": "demo-cat-2",
+      "categoryName": "Transport",
+      "category": "Transport",
+      "type": "NEED",
+      "paymentMethod": "CARD",
+      "comments": "Spend note · Takeout | Budgets: demo-bud-4",
+      "isRecurring": false,
+      "budgetIds": [
+        "demo-bud-4"
+      ],
+      "createdAtOffsetDays": 120,
+      "updatedAtOffsetDays": 120
+    }
+  ],
+  "budgets": [
+    {
+      "id": "demo-bud-1",
+      "name": "Household essentials",
+      "amount": 1400,
+      "period": "MONTHLY",
+      "startDateOffsetDays": -90,
+      "categories": [
+        {
+          "id": "demo-cat-1"
+        },
+        {
+          "id": "demo-cat-6"
+        }
+      ],
+      "spent": 670,
+      "description": "Groceries and household",
+      "comments": "Linked bills: Electric, Internet"
+    },
+    {
+      "id": "demo-bud-2",
+      "name": "Commute",
+      "amount": 320,
+      "period": "MONTHLY",
+      "startDateOffsetDays": -60,
+      "categories": [
+        {
+          "id": "demo-cat-2"
+        }
+      ],
+      "spent": 152.2,
+      "description": "Transport"
+    },
+    {
+      "id": "demo-bud-3",
+      "name": "Wellness",
+      "amount": 280,
+      "period": "MONTHLY",
+      "startDateOffsetDays": -45,
+      "categories": [
+        {
+          "id": "demo-cat-3"
+        }
+      ],
+      "spent": 177,
+      "description": "Health and fitness"
+    },
+    {
+      "id": "demo-bud-4",
+      "name": "Fun money",
+      "amount": 400,
+      "period": "MONTHLY",
+      "startDateOffsetDays": -30,
+      "categories": [
+        {
+          "id": "demo-cat-4"
+        }
+      ],
+      "spent": 135.4,
+      "description": "Entertainment"
+    },
+    {
+      "id": "demo-bud-5",
+      "name": "Utilities pool",
+      "amount": 550,
+      "period": "MONTHLY",
+      "startDateOffsetDays": -120,
+      "categories": [
+        {
+          "id": "demo-cat-7"
+        }
+      ],
+      "spent": 197.39999999999998,
+      "description": "Bills covered under household utilities",
+      "comments": "Tied to Bills sheet: Electric, Internet, Mobile"
+    },
+    {
+      "id": "demo-bud-6",
+      "name": "Annual reserve",
+      "amount": 8000,
+      "period": "YEARLY",
+      "startDateOffsetDays": -400,
+      "categories": [],
+      "spent": 935.1,
+      "description": "Year-long planning bucket",
+      "comments": "Cross-category buffer",
+      "endDateOffsetDays": 200
+    }
+  ],
+  "bills": [
+    {
+      "id": "demo-bill-1",
+      "name": "Electric utility",
+      "amount": 95,
+      "status": "PENDING",
+      "category": "Utilities",
+      "notes": "Budget: demo-bud-5 (Utilities pool)",
+      "comments": "Budget: demo-bud-5 (Utilities pool)",
+      "description": "Budget: demo-bud-5 (Utilities pool)",
+      "budgetId": "demo-bud-5",
+      "dueInDays": 5
+    },
+    {
+      "id": "demo-bill-2",
+      "name": "Internet",
+      "amount": 69.99,
+      "status": "PENDING",
+      "category": "Utilities",
+      "notes": "Budget: demo-bud-5",
+      "comments": "Budget: demo-bud-5",
+      "description": "Budget: demo-bud-5",
+      "budgetId": "demo-bud-5",
+      "dueInDays": 12
+    },
+    {
+      "id": "demo-bill-3",
+      "name": "Rent share",
+      "amount": 980,
+      "status": "PENDING",
+      "category": "Housing",
+      "notes": "Budget: demo-bud-6 partial overlap",
+      "comments": "Budget: demo-bud-6 partial overlap",
+      "description": "Budget: demo-bud-6 partial overlap",
+      "budgetId": "demo-bud-6",
+      "dueInDays": 1
+    },
+    {
+      "id": "demo-bill-4",
+      "name": "Mobile plan",
+      "amount": 45,
+      "status": "PENDING",
+      "category": "Utilities",
+      "notes": "Budget: demo-bud-5",
+      "comments": "Budget: demo-bud-5",
+      "description": "Budget: demo-bud-5",
+      "budgetId": "demo-bud-5",
+      "dueInDays": 20
+    },
+    {
+      "id": "demo-bill-5",
+      "name": "Insurance",
+      "amount": 132,
+      "status": "PENDING",
+      "category": "Insurance",
+      "notes": "Budget: demo-bud-6",
+      "comments": "Budget: demo-bud-6",
+      "description": "Budget: demo-bud-6",
+      "budgetId": "demo-bud-6",
+      "dueInDays": 45
+    },
+    {
+      "id": "demo-bill-6",
+      "name": "Streaming bundle",
+      "amount": 24.99,
+      "status": "PENDING",
+      "category": "Entertainment",
+      "notes": "Budget: demo-bud-4",
+      "comments": "Budget: demo-bud-4",
+      "description": "Budget: demo-bud-4",
+      "budgetId": "demo-bud-4",
+      "dueInDays": 8
+    },
+    {
+      "id": "demo-bill-7",
+      "name": "Gym membership",
+      "amount": 49,
+      "status": "PENDING",
+      "category": "Health",
+      "notes": "Budget: demo-bud-3",
+      "comments": "Budget: demo-bud-3",
+      "description": "Budget: demo-bud-3",
+      "budgetId": "demo-bud-3",
+      "dueInDays": 15
+    },
+    {
+      "id": "demo-bill-8",
+      "name": "Parking permit",
+      "amount": 120,
+      "status": "PENDING",
+      "category": "Transport",
+      "notes": "Budget: demo-bud-2",
+      "comments": "Budget: demo-bud-2",
+      "description": "Budget: demo-bud-2",
+      "budgetId": "demo-bud-2",
+      "dueInDays": 60
+    }
+  ],
+  "friends": [
+    {
+      "id": "demo-fr-1",
+      "friendUserId": "u-901",
+      "displayName": "Jamie Chen",
+      "email": "jamie@example.com",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "demo-fr-2",
+      "friendUserId": "u-902",
+      "displayName": "Sam Rivera",
+      "email": "sam@example.com",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "demo-fr-3",
+      "friendUserId": "u-903",
+      "displayName": "Taylor Brooks",
+      "email": "taylor@example.com",
+      "status": "ACCEPTED"
+    },
+    {
+      "id": "demo-fr-4",
+      "friendUserId": "u-904",
+      "displayName": "Riley Ng",
+      "email": "riley@example.com",
+      "status": "ACCEPTED"
+    }
+  ],
+  "friendRequests": [
+    {
+      "id": "demo-frq-1",
+      "senderId": "u-801",
+      "senderName": "Alex Kim",
+      "senderEmail": "alex@example.com",
+      "status": "PENDING"
+    },
+    {
+      "id": "demo-frq-2",
+      "senderId": "u-802",
+      "senderName": "Jordan Lee",
+      "senderEmail": "jordan@example.com",
+      "status": "PENDING"
+    },
+    {
+      "id": "demo-frq-3",
+      "senderId": "u-803",
+      "senderName": "Casey Morgan",
+      "senderEmail": "casey@example.com",
+      "status": "PENDING"
+    }
+  ],
+  "paymentMethods": [
+    {
+      "id": "demo-pm-1",
+      "name": "Visa ··4242",
+      "type": "CARD"
+    },
+    {
+      "id": "demo-pm-2",
+      "name": "Checking ··1091",
+      "type": "BANK"
+    },
+    {
+      "id": "demo-pm-3",
+      "name": "Cash wallet",
+      "type": "CASH"
+    },
+    {
+      "id": "demo-pm-4",
+      "name": "Rewards ··8831",
+      "type": "CARD"
+    },
+    {
+      "id": "demo-pm-5",
+      "name": "Amex ··1001",
+      "type": "CARD"
+    }
+  ],
+  "groups": [
+    {
+      "id": "demo-gr-1",
+      "name": "Weekend trips",
+      "description": "Shared trip fund",
+      "memberCount": 4
+    },
+    {
+      "id": "demo-gr-2",
+      "name": "Flatmates",
+      "description": "Household split",
+      "memberCount": 3
+    },
+    {
+      "id": "demo-gr-3",
+      "name": "Book club",
+      "description": "Events and snacks",
+      "memberCount": 6
+    },
+    {
+      "id": "demo-gr-4",
+      "name": "Sports league",
+      "description": "Fees and gear",
+      "memberCount": 8
+    }
+  ],
+  "userSettings": {
+    "themeMode": "dark",
+    "dateFormat": "DD/MM/YYYY",
+    "currency": "USD",
+    "twoFactorEnabled": false
+  },
+  "nextId": 6000
+}

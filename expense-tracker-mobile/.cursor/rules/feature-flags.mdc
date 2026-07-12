@@ -1,0 +1,41 @@
+---
+description: feature-matrix.yaml, FeatureGate, useFeatureFlag, route catalog maps, dormancy for expense-tracker-mobile.
+globs: expense-tracker-mobile/src/config/runtime/**/*.{js,yaml}
+alwaysApply: false
+---
+
+# Feature flags (expense-tracker-mobile)
+
+## Source of truth
+
+- `src/config/runtime/feature-matrix.yaml` — `defaults` plus profile overrides (`live`, `demo`).
+- Nested YAML keys flatten to dot paths (e.g. `settings.section.appearance`).
+
+## Runtime loading
+
+- `src/config/runtime/loadFeatureMatrix.js` — `getFeatureMatrixProfile(runtimeMode)`, `getLiveFeatureFlagsSnapshot()`; YAML `defaults` merge with `profiles.live` / `profiles.demo`, then flatten to dotted keys.
+- `src/config/runtime/parseAppConfig.js` — `getAppConfig()`, `isFeatureEnabled(flagKey)`; merges matrix with `VITE_FEATURE_FLAGS_JSON` overrides.
+
+## UI gating
+
+- **Component**: `FeatureGate` from `src/shared/components/feedback/FeatureGate.jsx` — `flagKey` (optional); when set, children render only if `isFeatureEnabled(flagKey)`.
+- **Logic**: `useFeatureFlag('dotted.key')` from `src/shared/hooks/useFeatureFlag.js` (reads `useAppConfig().featureFlags`); `isFeatureEnabled` from `parseAppConfig` in non-React code.
+- **Navigation**: `src/app/routing/routeCatalog.js` — `SIDEBAR_ROUTE_FEATURE`, `BOTTOM_NAV_ROUTE_FEATURE`, `MORE_MENU_ROUTE_FEATURE` map `path` → flag key. Add new routes with `featureFlagKey` when gated.
+- **Settings**: `settingsConfig.js` items use `featureFlagKey` for sections that depend on flags.
+
+## Adding a feature
+
+1. Add a default under `defaults` in `feature-matrix.yaml` (usually `true` for dev).
+2. Override in `live` / `demo` as needed.
+3. Wrap entry UI in `FeatureGate` or gate `ImplementedRoutes` / sidebar items.
+4. Avoid **eager imports** of heavy modules for disabled features (lazy routes help).
+
+## Dormancy
+
+- When a flag is `false` for a profile, the feature must **not render** and must **not throw** — guard hooks, optional chains, and lazy boundaries.
+
+## References
+
+- `src/config/runtime/README.md`, `src/config/runtime/index.js`
+- `src/app/routes.jsx` (`ImplementedRoutes`, lazy maps), `src/app/routing/routeCatalog.js`
+- `src/features/settings/constants/settingsConfig.js`

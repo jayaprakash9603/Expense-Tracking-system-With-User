@@ -1,0 +1,18 @@
+rules:
+  - name: response_has_id
+    description: "Created budget should have an id"
+    condition:
+      source: "#jsonPath([response],'$.id')"
+      operator: "notNull"
+
+  - name: budget_name_present
+    description: "Response should contain budget name"
+    condition:
+      source: "#jsonPath([response],'$.name')"
+      operator: "notNull"
+
+  - name: budget_amount_present
+    description: "Response should contain budget amount"
+    condition:
+      source: "#jsonPath([response],'$.amount')"
+      operator: "notNull"

@@ -1,0 +1,56 @@
+endpoints:
+
+  - key: payments.create
+    method: POST
+    path: /api/payment-methods
+    auth: true
+
+  - key: payments.list
+    method: GET
+    path: /api/payment-methods
+    auth: true
+
+  - key: payments.by-id
+    method: GET
+    path: /api/payment-methods/{id}
+    auth: true
+
+  - key: payments.by-name
+    method: GET
+    path: /api/payment-methods/name
+    auth: true
+
+  - key: payments.by-name-and-type
+    method: GET
+    path: /api/payment-methods/name-and-type
+    auth: true
+
+  - key: payments.update
+    method: PUT
+    path: /api/payment-methods/{id}
+    auth: true
+
+  - key: payments.delete
+    method: DELETE
+    path: /api/payment-methods/{id}
+    auth: true
+
+  - key: payments.delete-all
+    method: DELETE
+    path: /api/payment-methods/all
+    auth: true
+
+  - key: payments.unused
+    method: GET
+    path: /api/payment-methods/unused
+    auth: true
+
+  - key: payments.search
+    method: GET
+    path: /api/payment-methods/search
+    auth: true
+
+  - key: payments.names
+    method: GET
+    path: /api/payment-methods/names
+    auth: true

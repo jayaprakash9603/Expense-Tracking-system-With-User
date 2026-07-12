@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import avatarCategories from "../../../shared/constants/AvatarCategories";
+import avatarCategories from "../../../shared/constants/avatar/avatarCategories";
 import { useNavigate } from "react-router-dom";
 import {
   Tabs,

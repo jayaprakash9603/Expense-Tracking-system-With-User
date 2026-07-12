@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.common.messaging.MessagingPort;
 import com.jaya.dto.*;
 import com.jaya.exceptions.UserException;
 import com.jaya.models.Expense;
@@ -8,7 +9,6 @@ import com.jaya.repository.ExpenseRepository;
 import com.jaya.util.BulkProgressTracker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ public class BulkExpenseBudgetService {
     private ExpenseRepository expenseRepository;
 
     @Autowired
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private MessagingPort messagingPort;
 
     @Autowired
     private BulkProgressTracker progressTracker;
@@ -49,11 +49,11 @@ public class BulkExpenseBudgetService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+                    messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
                 }
             });
         } else {
-            kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+            messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         }
     }
 
@@ -759,7 +759,7 @@ public class BulkExpenseBudgetService {
                 .timestamp(LocalDateTime.now().toString())
                 .build();
 
-        kafkaTemplate.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
+        messagingPort.send(EXPENSE_BUDGET_LINKING_TOPIC, event);
         log.info("Published expense-BudgetModel link update event for expense: {}, BudgetModel: {}", expenseId, budgetId);
     }
 

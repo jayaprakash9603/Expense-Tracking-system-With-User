@@ -10,9 +10,10 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import ToastNotification from "../../shared/components/ToastNotification";
-import Modal from "../../shared/components/Modal";
+import ToastNotification from "../../shared/ui/feedback/ToastNotification";
+import Modal from "../../shared/ui/overlays/Modal";
 import EditIcon from "@mui/icons-material/Edit";
+import cardPaymentIconAsset from "../../assests/card-payment.png";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DayViewSkeleton from "../DayViewSkeleton";
 import JumpToTodayButton from "../JumpToTodayButton";
@@ -678,7 +679,7 @@ const DayUnifiedView = ({
             isEmpty={true}
             showAddHint={hasWriteAccess}
             emptyTitle={emptyTitle}
-            iconSrc={require("../../assests/card-payment.png")}
+            iconSrc={cardPaymentIconAsset}
           />
         ) : (
           <Box

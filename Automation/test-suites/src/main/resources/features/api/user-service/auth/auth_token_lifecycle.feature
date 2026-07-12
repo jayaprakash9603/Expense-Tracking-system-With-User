@@ -43,7 +43,8 @@ Feature: Auth token lifecycle
     And the response field "id" should equal "${ctx.currentUserId}"
 
   @regression
-  Scenario: Public auth users list endpoint responds
-    When the user sends a GET request to "auth.all-users"
+  Scenario: Admin authenticated users list endpoint responds
+    Given the user uses token alias "admin"
+    When the user sends a GET request to "user.all"
     Then the request should succeed
     And the response list "$" should have at least 0 items

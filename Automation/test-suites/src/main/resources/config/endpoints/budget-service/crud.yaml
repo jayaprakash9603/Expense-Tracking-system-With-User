@@ -1,0 +1,31 @@
+endpoints:
+
+  - key: budgets.create
+    method: POST
+    path: /api/budgets
+    auth: true
+
+  - key: budgets.list
+    method: GET
+    path: /api/budgets
+    auth: true
+
+  - key: budgets.by-id
+    method: GET
+    path: /api/budgets/{budgetId}
+    auth: true
+
+  - key: budgets.update
+    method: PUT
+    path: /api/budgets/{budgetId}
+    auth: true
+
+  - key: budgets.delete
+    method: DELETE
+    path: /api/budgets/{budgetId}
+    auth: true
+
+  - key: budgets.delete-all
+    method: DELETE
+    path: /api/budgets
+    auth: true

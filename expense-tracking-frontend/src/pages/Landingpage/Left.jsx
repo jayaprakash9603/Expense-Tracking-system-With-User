@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Avatar, Badge } from "@mui/material";
 import MenuItem from "./MenuItem";
 import { useSelector, useDispatch } from "react-redux";
@@ -107,8 +107,8 @@ const Left = () => {
 
   return (
     <>
-      {/* Hamburger Menu (Visible on Mobile) */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
+      {/* Hamburger Menu (Visible on Mobile & Tablet) */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
         <button
           onClick={toggleSidebar}
           className="p-2 rounded-md focus:outline-none"
@@ -138,10 +138,10 @@ const Left = () => {
         </button>
       </div>
 
-      {/* Overlay (Hides Background on Mobile) */}
+      {/* Overlay (Hides Background on Mobile & Tablet) */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 md:hidden"
+          className="fixed inset-0 z-30 lg:hidden"
           style={{ backgroundColor: colors.modal_overlay }}
           onClick={toggleSidebar}
         />
@@ -151,7 +151,7 @@ const Left = () => {
       <div
         className={`fixed top-0 left-0 h-full w-full max-w-[350px] flex flex-col justify-between items-center py-6 z-40 transform transition-transform duration-300 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:w-[400px] md:static md:translate-x-0 lg:w-[450px]`}
+        } lg:w-[350px] lg:static lg:translate-x-0`}
         style={{
           backgroundColor: colors.primary_bg,
           color: colors.primary_text,

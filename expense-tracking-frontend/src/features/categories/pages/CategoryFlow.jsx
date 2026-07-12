@@ -56,14 +56,8 @@ const CategoryFlow = () => {
   const [createCategoryModalOpen, setCreateCategoryModalOpen] = useState(false);
 
   const selectedCategories = useSelector((state) => state.sharedSelection?.selectedCategories || []);
-  const handleToggleSelect = (entity, checked) => {
-    const id = entity.categoryId;
-    if (checked) {
-      dispatch(setCategorySelection([...selectedCategories, id]));
-    } else {
-      dispatch(setCategorySelection(selectedCategories.filter(selectedId => selectedId !== id)));
-    }
-  };
+  const handleSelectionChange = (ids) =>
+    dispatch(setCategorySelection(ids));
 
   return (
     <GenericFlowPage
@@ -163,7 +157,7 @@ const CategoryFlow = () => {
       showBackButton={showBackButton}
       onPageBack={handlePageBack}
       selectedIds={selectedCategories}
-      onToggleSelect={handleToggleSelect}
+      onSelectionChange={handleSelectionChange}
     />
   );
 };

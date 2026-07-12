@@ -1,0 +1,101 @@
+endpoints:
+
+  - key: auth.signup
+    method: POST
+    path: /auth/signup
+    auth: false
+
+  - key: auth.signin
+    method: POST
+    path: /auth/signin
+    auth: false
+
+  - key: auth.verify-login-otp
+    method: POST
+    path: /auth/verify-login-otp
+    auth: false
+
+  - key: auth.verify-otp
+    method: POST
+    path: /auth/verify-otp
+    auth: false
+
+  - key: auth.refresh-token
+    method: POST
+    path: /auth/refresh-token
+    auth: false
+
+  - key: auth.check-method
+    method: GET
+    path: /auth/check-auth-method
+    auth: false
+
+  - key: auth.check-email
+    method: POST
+    path: /auth/check-email
+    auth: false
+
+  - key: auth.send-otp
+    method: POST
+    path: /auth/send-otp
+    auth: false
+
+  - key: auth.resend-login-otp
+    method: POST
+    path: /auth/resend-login-otp
+    auth: false
+
+  - key: auth.reset-password
+    method: PATCH
+    path: /auth/reset-password
+    auth: false
+
+  - key: auth.user-by-id
+    method: GET
+    path: /auth/user/{userId}
+    auth: false
+
+  - key: auth.user-by-id-short
+    method: GET
+    path: /auth/{userId}
+    auth: false
+
+  - key: auth.mfa.status
+    method: GET
+    path: /auth/mfa/status
+    auth: true
+
+  - key: auth.mfa.setup
+    method: POST
+    path: /auth/mfa/setup
+    auth: true
+
+  - key: auth.mfa.enable
+    method: POST
+    path: /auth/mfa/enable
+    auth: true
+
+  - key: auth.mfa.verify
+    method: POST
+    path: /auth/mfa/verify
+    auth: false
+
+  - key: auth.mfa.disable
+    method: POST
+    path: /auth/mfa/disable
+    auth: true
+
+  - key: auth.mfa.regenerate-backup-codes
+    method: POST
+    path: /auth/mfa/regenerate-backup-codes
+    auth: true
+
+  - key: auth.oauth2.google
+    method: POST
+    path: /auth/oauth2/google
+    auth: false
+
+  - key: auth.oauth2.health
+    method: GET
+    path: /auth/oauth2/health
+    auth: false

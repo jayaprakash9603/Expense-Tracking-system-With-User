@@ -18,6 +18,10 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: AUTOMATION_CONFIG_FILE
+              value: "{{ .Values.job.configurationPath }}/AutomationConfiguration.yaml"
+            - name: TZ
+              value: "{{ .Values.automation.env.timezone }}"
             - name: RUN_MODE
               value: "{{ .Values.runner.runMode }}"
             - name: AUTOMATION_ENGINE
@@ -36,6 +40,24 @@ spec:
               value: "{{ .Values.runner.featuresPath }}"
             - name: ADDITIONAL_MAVEN_ARGS
               value: "{{ .Values.runner.additionalMavenArgs }}"
+            - name: JVM_HEAP
+              value: "{{ .Values.jvm.heapSize }}"
+            - name: JVM_GC_OPTS
+              value: "{{ .Values.jvm.gcOptions }}"
+            - name: EXTRA_JAVA_OPTS
+              value: "{{ .Values.jvm.extraJavaOpts }}"
+            {{- if .Values.debug.enabled }}
+            - name: DEBUG_ENABLED
+              value: "true"
+            - name: DEBUG_PORT
+              value: "{{ .Values.debug.port }}"
+            {{- end }}
+            {{- if .Values.observabilityAgent.enabled }}
+            - name: OBSERVABILITY_AGENT_JAR
+              value: "{{ .Values.observabilityAgent.jarPath }}"
+            - name: OBSERVABILITY_AGENT_EXTRA
+              value: "{{ .Values.observabilityAgent.extraArgs }}"
+            {{- end }}
             - name: APP_START_CMD
               value: "{{ .Values.app.startCommand }}"
             - name: APP_STOP_CMD
@@ -56,12 +78,26 @@ spec:
                   name: {{ .Values.secrets.name }}
                   key: TEST_PASSWORD
                   optional: true
+            {{- if .Values.automation.ssl.truststorePassword }}
+            - name: SSL_TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secrets.name }}
+                  key: SSL_TRUSTSTORE_PASSWORD
+                  optional: true
+            {{- end }}
           resources:
 {{ toYaml .Values.job.resources | indent 12 }}
           volumeMounts:
+            - name: automation-configuration
+              mountPath: {{ .Values.job.configurationPath }}/AutomationConfiguration.yaml
+              subPath: AutomationConfiguration.yaml
             - name: report-volume
-              mountPath: /opt/automation/automation-bdd/target/reports
+              mountPath: /opt/automation/Automation-Framework/automation-bdd/target/reports
       volumes:
+        - name: automation-configuration
+          configMap:
+            name: {{ .Values.job.name }}-automation-configuration
         - name: report-volume
           hostPath:
             path: {{ .Values.reports.hostPath | quote }}

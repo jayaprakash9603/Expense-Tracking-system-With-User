@@ -1,0 +1,12 @@
+rules:
+  - name: response_has_id
+    description: "Created bill should have an id"
+    condition:
+      source: "#jsonPath([response],'$.id')"
+      operator: "notNull"
+
+  - name: bill_name_present
+    description: "Response should contain bill name"
+    condition:
+      source: "#jsonPath([response],'$.billName')"
+      operator: "notNull"

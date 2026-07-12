@@ -5,5 +5,6 @@ Merge Cucumber JSON reports into a single status summary.
 Example:
 
 ```bash
-python tools/reporting/merge_cucumber_reports.py automation-bdd/target/reports/cucumber
+python tools/reporting/merge_cucumber_reports.py Automation-Framework/automation-bdd/target/reports/cucumber
 ```
+

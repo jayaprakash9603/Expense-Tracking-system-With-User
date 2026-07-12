@@ -13,7 +13,7 @@ import {
   convertToNewFormat,
   convertToOldFormat,
 } from "../../components/conversions/formatUtils";
-import ToastNotification from "../../shared/components/ToastNotification";
+import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 
 function EditExpense() {
   const dispatch = useDispatch();
@@ -77,7 +77,12 @@ function EditExpense() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Determine netAmount based on type
+    const parsedAmount = parseFloat(expenses.amount);
+    if (!expenses.amount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      alert("Amount must be greater than zero");
+      return;
+    }
+
     const netAmount =
       expenses.type === "loss" ? -expenses.amount : expenses.amount;
 
@@ -290,10 +295,18 @@ function EditExpense() {
               id="amount"
               className="form-control"
               placeholder="Enter Amount"
+              min="0.01"
+              step="any"
               value={expenses.amount}
-              onChange={(e) =>
-                setExpenses({ ...expenses, amount: e.target.value })
-              }
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val !== "" && (parseFloat(val) < 0 || val.includes("-")))
+                  return;
+                setExpenses({ ...expenses, amount: val });
+              }}
+              onKeyDown={(e) => {
+                if (["-", "e", "E"].includes(e.key)) e.preventDefault();
+              }}
             />
           </div>
           <div className="mb-3">

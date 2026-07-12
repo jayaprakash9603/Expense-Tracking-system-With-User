@@ -63,9 +63,10 @@ public class UniversalSearchService {
 
         String query = request.getQuery();
         int limit = request.getLimit() != null ? request.getLimit() : defaultLimit;
+        int offset = request.getOffset() != null ? request.getOffset() : 0;
         String mode = request.getMode() != null ? request.getMode() : "USER";
 
-        log.info("Starting universal search for query: '{}', limit: {}, mode: {}", query, limit, mode);
+        log.info("Starting universal search for query: '{}', limit: {}, offset: {}, mode: {}", query, limit, offset, mode);
 
         UniversalSearchResponse.UniversalSearchResponseBuilder responseBuilder = UniversalSearchResponse.builder()
                 .query(query)
@@ -80,38 +81,38 @@ public class UniversalSearchService {
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         if ("ADMIN".equalsIgnoreCase(mode)) {
-            futures.add(searchUsers(query, limit, authToken)
+            futures.add(searchUsers(query, limit, offset, authToken)
                     .thenAccept(results -> responseBuilder.users(results)));
         } else {
             Set<String> sectionsToSearch = parseSections(request.getSections());
 
             if (sectionsToSearch.contains("expenses") || sectionsToSearch.isEmpty()) {
-                futures.add(searchExpenses(query, limit, authToken, request.getTargetId())
+                futures.add(searchExpenses(query, limit, offset, authToken, request.getTargetId())
                         .thenAccept(results -> responseBuilder.expenses(results)));
             }
 
             if (sectionsToSearch.contains("budgets") || sectionsToSearch.isEmpty()) {
-                futures.add(searchBudgets(query, limit, authToken, request.getTargetId())
+                futures.add(searchBudgets(query, limit, offset, authToken, request.getTargetId())
                         .thenAccept(results -> responseBuilder.budgets(results)));
             }
 
             if (sectionsToSearch.contains("categories") || sectionsToSearch.isEmpty()) {
-                futures.add(searchCategories(query, limit, authToken, request.getTargetId())
+                futures.add(searchCategories(query, limit, offset, authToken, request.getTargetId())
                         .thenAccept(results -> responseBuilder.categories(results)));
             }
 
             if (sectionsToSearch.contains("bills") || sectionsToSearch.isEmpty()) {
-                futures.add(searchBills(query, limit, authToken, request.getTargetId())
+                futures.add(searchBills(query, limit, offset, authToken, request.getTargetId())
                         .thenAccept(results -> responseBuilder.bills(results)));
             }
 
             if (sectionsToSearch.contains("payment_methods") || sectionsToSearch.isEmpty()) {
-                futures.add(searchPaymentMethods(query, limit, authToken, request.getTargetId())
+                futures.add(searchPaymentMethods(query, limit, offset, authToken, request.getTargetId())
                         .thenAccept(results -> responseBuilder.paymentMethods(results)));
             }
 
             if (sectionsToSearch.contains("friends") || sectionsToSearch.isEmpty()) {
-                futures.add(searchFriends(query, limit, authToken)
+                futures.add(searchFriends(query, limit, offset, authToken)
                         .thenAccept(results -> responseBuilder.friends(results)));
             }
         }
@@ -143,7 +144,7 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchExpenses(
-            String query, int limit, String authToken, Integer targetId) {
+            String query, int limit, int offset, String authToken, Integer targetId) {
 
         Mono<Map<Integer, Map<String, Object>>> categoriesMono = webClient.get()
                 .uri(categoryServiceUrl + "/api/categories", uriBuilder -> {
@@ -180,6 +181,7 @@ public class UniversalSearchService {
                 .uri(expenseServiceUrl + "/api/expenses/search/fuzzy", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
+                    uriBuilder.queryParam("offset", offset);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -205,12 +207,13 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchBudgets(
-            String query, int limit, String authToken, Integer targetId) {
+            String query, int limit, int offset, String authToken, Integer targetId) {
 
         return webClient.get()
                 .uri(budgetServiceUrl + "/api/budgets/search", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
+                    uriBuilder.queryParam("offset", offset);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -230,12 +233,13 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchCategories(
-            String query, int limit, String authToken, Integer targetId) {
+            String query, int limit, int offset, String authToken, Integer targetId) {
 
         return webClient.get()
                 .uri(categoryServiceUrl + "/api/categories/search", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
+                    uriBuilder.queryParam("offset", offset);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -259,12 +263,13 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchBills(
-            String query, int limit, String authToken, Integer targetId) {
+            String query, int limit, int offset, String authToken, Integer targetId) {
 
         return webClient.get()
                 .uri(billServiceUrl + "/api/bills/search", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
+                    uriBuilder.queryParam("offset", offset);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -284,12 +289,13 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchPaymentMethods(
-            String query, int limit, String authToken, Integer targetId) {
+            String query, int limit, int offset, String authToken, Integer targetId) {
 
         return webClient.get()
                 .uri(paymentMethodServiceUrl + "/api/payment-methods/search", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
+                    uriBuilder.queryParam("offset", offset);
                     if (targetId != null) {
                         uriBuilder.queryParam("targetId", targetId);
                     }
@@ -309,11 +315,14 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchFriends(
-            String query, int limit, String authToken) {
+            String query, int limit, int offset, String authToken) {
 
         return webClient.get()
                 .uri(friendshipServiceUrl + "/api/friendships/search",
-                        uriBuilder -> uriBuilder.queryParam("query", query).build())
+                        uriBuilder -> uriBuilder.queryParam("query", query)
+                                .queryParam("limit", limit)
+                                .queryParam("offset", offset)
+                                .build())
                 .header(HttpHeaders.AUTHORIZATION, authToken)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
@@ -328,12 +337,13 @@ public class UniversalSearchService {
     }
 
     private CompletableFuture<List<SearchResultDTO>> searchUsers(
-            String query, int limit, String authToken) {
+            String query, int limit, int offset, String authToken) {
 
         return webClient.get()
                 .uri(userServiceUrl + "/api/admin/users/search", uriBuilder ->
                         uriBuilder.queryParam("query", query)
                                 .queryParam("limit", limit)
+                                .queryParam("offset", offset)
                                 .build())
                 .header(HttpHeaders.AUTHORIZATION, authToken)
                 .retrieve()

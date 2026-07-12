@@ -2,6 +2,8 @@ package com.jaya.util;
 
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * from other services in monolithic mode.
  */
 @Component("friendshipServiceHelper")
+@Slf4j
 public class FriendshipServiceHelper {
 
     @Autowired
@@ -66,5 +69,14 @@ public class FriendshipServiceHelper {
         }
 
         return reqUser;
+    }
+
+    public UserDTO findExistingUser(Integer userId) throws Exception {
+        try {
+            return validateUser(userId);
+        } catch (FeignException.NotFound exception) {
+            log.warn("Skipping reference to missing user id={}", userId);
+            return null;
+        }
     }
 }

@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["id", "name", "amount", "startDate", "endDate"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "amount": { "type": "number" },
+    "startDate": { "type": "string" },
+    "endDate": { "type": "string" },
+    "userId": { "type": ["integer", "null"] },
+    "expenseIds": { "type": ["array", "null"], "items": { "type": "integer" } },
+    "remainingAmount": { "type": "number" },
+    "budgetHasExpenses": { "type": "boolean" },
+    "includeInBudget": { "type": "boolean" },
+    "notification50PercentSent": { "type": "boolean" },
+    "notification80PercentSent": { "type": "boolean" },
+    "notification100PercentSent": { "type": "boolean" },
+    "editCount": { "type": "integer" },
+    "edited": { "type": "boolean" }
+  },
+  "additionalProperties": true
+}

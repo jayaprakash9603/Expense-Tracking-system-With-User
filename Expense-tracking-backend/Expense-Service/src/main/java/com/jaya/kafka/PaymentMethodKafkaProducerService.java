@@ -1,11 +1,10 @@
 package com.jaya.kafka;
 
+import com.jaya.common.messaging.MessagingPort;
 import com.jaya.dto.PaymentMethodEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,13 +14,12 @@ public class PaymentMethodKafkaProducerService {
     private static final String PAYMENT_METHOD_TOPIC = "payment-method-events";
 
     @Autowired
-    @Qualifier("objectKafkaTemplate")
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private MessagingPort messagingPort;
 
     public void sendPaymentMethodEvent(PaymentMethodEvent event) {
         try {
             String key = event.getUserId() + "-" + event.getPaymentMethodName();
-            kafkaTemplate.send(PAYMENT_METHOD_TOPIC, key, event);
+            messagingPort.send(PAYMENT_METHOD_TOPIC, key, event);
             logger.info("Payment method event sent successfully for UserDTO: {} and payment method: {}",
                     event.getUserId(), event.getPaymentMethodName());
         } catch (Exception e) {

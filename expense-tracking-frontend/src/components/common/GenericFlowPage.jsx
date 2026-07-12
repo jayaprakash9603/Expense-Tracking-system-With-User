@@ -12,6 +12,7 @@ import SearchNavigationBar from "../cashflow/SearchNavigationBar";
 import SortPopover from "../cashflow/SortPopover";
 import FlowToggleButton from "../cashflow/FlowToggleButton";
 import FlowEntityCards from "./FlowEntityCards";
+import recentIconAsset from "../../assests/recent.png";
 import FlowExpenseTable from "./FlowExpenseTable";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import FlowChartSkeleton from "../skeletons/FlowChartSkeleton";
@@ -44,7 +45,7 @@ const GenericFlowPage = ({
   showBackButton = false,
   onPageBack,
   selectedIds = [], // NEW: array of selected entity IDs
-  onToggleSelect, // NEW: function to toggle selection
+  onSelectionChange,
 }) => {
   const {
     activeRange,
@@ -355,7 +356,7 @@ const GenericFlowPage = ({
               setSortType(type);
               setPopoverOpen(false);
             }}
-            recentIcon={require("../../assests/recent.png")}
+            recentIcon={recentIconAsset}
           />
           <FlowEntityCards
             entities={sortedCards}
@@ -366,7 +367,7 @@ const GenericFlowPage = ({
             flowTab={flowTab}
             selectedEntityId={selectedEntity?.[idKey] || null}
             selectedIds={selectedIds}
-            onToggleSelect={onToggleSelect}
+            onSelectionChange={onSelectionChange}
             hasWriteAccess={hasWriteAccess}
             friendId={friendId}
             isFriendView={isFriendView}

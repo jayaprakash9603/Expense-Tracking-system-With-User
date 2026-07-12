@@ -1,0 +1,9 @@
+{
+  "name": "Internal Save Budget",
+  "description": "Budget saved via internal endpoint",
+  "amount": 3000.00,
+  "startDate": "2026-01-01",
+  "endDate": "2026-06-30",
+  "userId": 1,
+  "includeInBudget": false
+}

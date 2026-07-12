@@ -9,10 +9,10 @@ Hybrid execution supports two runner modes:
 
 ## Key Classes
 
-- Plain runner: `automation-bdd/.../AutomationCucumberTest`
-- Spring runner: `automation-bdd/.../SpringBootCucumberTest`
-- Spring bridge: `automation-bdd/.../SpringCucumberConfiguration`
-- Spring boot test app: `automation-bdd/.../SpringTestApplication`
+- Plain runner: `Automation-Framework/automation-bdd/.../AutomationCucumberTest`
+- Spring runner: `Automation-Framework/automation-bdd/.../SpringBootCucumberTest`
+- Spring bridge: `Automation-Framework/automation-bdd/.../SpringCucumberConfiguration`
+- Spring boot test app: `Automation-Framework/automation-bdd/.../SpringTestApplication`
 
 ## Local Usage
 
@@ -30,10 +30,10 @@ mvn -pl automation-app -am exec:java -Dexec.args="--run-only --runner=spring --s
 
 ## Suite XML Files
 
-- `automation-bdd/src/test/resources/testng/smoke.xml`
-- `automation-bdd/src/test/resources/testng/regression.xml`
-- `automation-bdd/src/test/resources/testng/api.xml`
-- `automation-bdd/src/test/resources/testng/ui.xml`
+- `Automation-Framework/automation-bdd/src/test/resources/testng/smoke.xml`
+- `Automation-Framework/automation-bdd/src/test/resources/testng/regression.xml`
+- `Automation-Framework/automation-bdd/src/test/resources/testng/api.xml`
+- `Automation-Framework/automation-bdd/src/test/resources/testng/ui.xml`
 
 ## Notes
 
@@ -41,3 +41,4 @@ mvn -pl automation-app -am exec:java -Dexec.args="--run-only --runner=spring --s
 - Use `--rerun-failures` to replay failed scenarios from rerun output.
 - `@template` scenarios are documentation-only and skipped by hooks.
 - For reusable scenario writing, follow `docs/FEATURE_AUTHORING_GUIDE.md`.
+
