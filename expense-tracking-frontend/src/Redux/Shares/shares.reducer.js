@@ -287,6 +287,7 @@ const sharesReducer = (state = initialState, action) => {
         sharedDataError: null,
         revokeError: null,
         mySharesError: null,
+        paginatedDataError: null,
       };
     case SHARES_ACTION_TYPES.CLEAR_CURRENT_SHARE:
       return {

@@ -136,7 +136,12 @@ const AccordionItem = React.memo(
       if (groupType !== "friend" || !actorUser) return null;
 
       return {
-        image: actorUser.image || actorUser.profileImage || null,
+        image:
+          actorUser.profilePicture ||
+          actorUser.profileImage ||
+          actorUser.image ||
+          actorUser.avatar ||
+          null,
         email: actorUser.email || null,
         phone: actorUser.phoneNumber || actorUser.mobile || null,
         location: actorUser.location || null,
@@ -150,7 +155,7 @@ const AccordionItem = React.memo(
 
     // Generate avatar initials from name
     const avatarInitials = useMemo(() => {
-      if (!label) return "?";
+      if (!label) return null;
       const words = label.split(" ").filter(Boolean);
       if (words.length >= 2) {
         return `${words[0][0]}${words[1][0]}`.toUpperCase();

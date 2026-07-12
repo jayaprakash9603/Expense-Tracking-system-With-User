@@ -17,6 +17,8 @@ import { useSelector } from "react-redux";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import FriendAvatar from "./shared/FriendAvatar";
+import { useCurrentUserId } from "../hooks/useFriendDisplay";
+import { resolveFriendDisplay } from "../utils/resolveFriendDisplay";
 
 const FriendsHeader = ({
   searchQuery,
@@ -37,17 +39,19 @@ const FriendsHeader = ({
   const isDark = mode === "dark";
 
   const friends = useSelector((state) => state.friends?.friends || []);
-  
+  const currentUserId = useCurrentUserId();
+  const unknownLabel = t("friends.unknownUser");
+
   const suggestions = React.useMemo(() => {
     if (!searchQuery || searchQuery.length < 2) return [];
     const lowerQuery = searchQuery.toLowerCase();
-    return friends.filter(friend => {
-      const other = friend.recipient || friend;
-      const name = [other.firstName, other.lastName].filter(Boolean).join(" ").toLowerCase();
-      const email = (other.email || "").toLowerCase();
+    return friends.filter((friend) => {
+      const display = resolveFriendDisplay(friend, { currentUserId, unknownLabel });
+      const name = display.displayName.toLowerCase();
+      const email = (display.email || "").toLowerCase();
       return name.includes(lowerQuery) || email.includes(lowerQuery);
     }).slice(0, 5);
-  }, [friends, searchQuery]);
+  }, [friends, searchQuery, currentUserId, unknownLabel]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -246,10 +250,9 @@ const FriendsHeader = ({
               ) : (
                 <Box sx={{ py: 1 }}>
                   {suggestions.map((friend, idx) => {
-                    const other = friend.recipient || friend;
-                    const name = [other.firstName, other.lastName].filter(Boolean).join(" ") || other.name;
+                    const display = resolveFriendDisplay(friend, { currentUserId, unknownLabel });
                     const isSelected = localSelectedIndex === idx;
-                    
+
                     return (
                       <Box
                         key={friend.id}
@@ -267,19 +270,20 @@ const FriendsHeader = ({
                           py: 1,
                           cursor: "pointer",
                           backgroundColor: isSelected ? colors.hover_bg : "transparent",
+                          transition: "background-color 200ms ease",
                           "&:hover": {
                             backgroundColor: colors.hover_bg,
-                          }
+                          },
                         }}
                       >
-                        <FriendAvatar user={other} size={28} />
+                        <FriendAvatar display={display} user={display.user} size={28} />
                         <Box sx={{ flex: 1, minWidth: 0 }}>
                           <Typography noWrap sx={{ fontSize: "13px", fontWeight: 500, color: colors.primary_text }}>
-                            {name}
+                            {display.displayName}
                           </Typography>
-                          {other.email && (
+                          {display.email && (
                             <Typography noWrap sx={{ fontSize: "11px", color: colors.secondary_text }}>
-                              {other.email}
+                              {display.email}
                             </Typography>
                           )}
                         </Box>

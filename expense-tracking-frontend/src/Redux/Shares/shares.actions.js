@@ -365,15 +365,12 @@ export const accessSharePaginated =
     dispatch({ type: SHARES_ACTION_TYPES.ACCESS_SHARE_PAGINATED_REQUEST });
 
     try {
-      const jwt = localStorage.getItem("jwt");
-      const config = jwt ? {} : { skipAuth: true };
-
       let url = `/api/shares/${token}/paginated?type=${resourceType}&page=${page}&size=${size}`;
       if (search && search.trim()) {
         url += `&search=${encodeURIComponent(search.trim())}`;
       }
 
-      const response = await api.get(url, config);
+      const response = await api.get(url, { skipAuth: true });
 
       dispatch({
         type: SHARES_ACTION_TYPES.ACCESS_SHARE_PAGINATED_SUCCESS,
@@ -417,15 +414,12 @@ export const loadMoreSharedItems =
     dispatch({ type: SHARES_ACTION_TYPES.LOAD_MORE_SHARED_ITEMS_REQUEST });
 
     try {
-      const jwt = localStorage.getItem("jwt");
-      const config = jwt ? {} : { skipAuth: true };
-
       let url = `/api/shares/${token}/paginated?type=${resourceType}&page=${page}&size=${size}`;
       if (search && search.trim()) {
         url += `&search=${encodeURIComponent(search.trim())}`;
       }
 
-      const response = await api.get(url, config);
+      const response = await api.get(url, { skipAuth: true });
 
       dispatch({
         type: SHARES_ACTION_TYPES.LOAD_MORE_SHARED_ITEMS_SUCCESS,

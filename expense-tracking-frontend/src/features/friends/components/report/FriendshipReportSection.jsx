@@ -21,13 +21,16 @@ import { useTranslation } from "../../../../hooks/useTranslation";
 import { useTheme } from "../../../../hooks/useTheme";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriendshipReport } from "../../../../Redux/Friends/friendsActions";
-import { REPORT_PAGE_SIZES } from "../../constants/friendsConstants";
+import { REPORT_PAGE_SIZES, ACCESS_LEVEL_OPTIONS } from "../../constants/friendsConstants";
 import StatusChip from "../shared/StatusChip";
+import { useCurrentUserId } from "../../hooks/useFriendDisplay";
+import { resolveFriendDisplay } from "../../utils/resolveFriendDisplay";
 
 const FriendshipReportSection = () => {
   const { t } = useTranslation();
   const { colors, mode } = useTheme();
   const dispatch = useDispatch();
+  const currentUserId = useCurrentUserId();
   const isDark = mode === "dark";
   const skeletonBg = isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)";
 
@@ -79,18 +82,16 @@ const FriendshipReportSection = () => {
     setPage(0);
   };
 
-  const getFriendName = (row) => {
-    const r = row.recipient || row.requester || row;
-    return [r.firstName, r.lastName].filter(Boolean).join(" ").trim() || r.name || "?";
-  };
+  const getFriendName = (row) =>
+    resolveFriendDisplay(row, {
+      currentUserId,
+      unknownLabel: t("friends.unknownUser"),
+    }).displayName;
 
   const getAccessLevel = (row) => {
-    return (
-      row.recipientAccess ||
-      row.requesterAccess ||
-      row.accessLevel ||
-      "NONE"
-    );
+    const level = resolveFriendDisplay(row, { currentUserId }).accessLevel;
+    const accessOpt = ACCESS_LEVEL_OPTIONS.find((o) => o.value === level);
+    return t(accessOpt?.labelKey || "friends.accessLevels.none");
   };
 
   return (
@@ -193,7 +194,7 @@ const FriendshipReportSection = () => {
             "&:hover": { bgcolor: `${colors.primary_accent}dd` },
           }}
         >
-          {t("friends.report.generate")}
+          {t("friends.report.generateReport")}
         </Button>
       </Box>
 
@@ -202,8 +203,10 @@ const FriendshipReportSection = () => {
           <TableContainer
             sx={{
               bgcolor: colors.card_bg,
-              borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
+              borderRadius: "12px",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
+              overflowX: "auto",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             <Table size="small">
@@ -257,7 +260,7 @@ const FriendshipReportSection = () => {
           }}
         >
           <Typography sx={{ color: colors.secondary_text }}>
-            {t("friends.report.generatePrompt")}
+            {t("friends.report.noReportData")}
           </Typography>
         </Box>
       )}
@@ -266,8 +269,8 @@ const FriendshipReportSection = () => {
         <TableContainer
           sx={{
             bgcolor: colors.card_bg,
-            borderRadius: 2,
-            border: `1px solid ${colors.border_color}`,
+            borderRadius: "12px",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
             overflowX: "auto",
             WebkitOverflowScrolling: "touch",
           }}
@@ -276,7 +279,7 @@ const FriendshipReportSection = () => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
-                  {t("friends.report.columns.friendName")}
+                  {t("friends.report.columns.friend")}
                 </TableCell>
                 <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.status")}

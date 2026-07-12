@@ -4,6 +4,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useTheme } from "../../../../hooks/useTheme";
 import { useFriendsList } from "../../hooks/useFriendsList";
+import { useCurrentUserId } from "../../hooks/useFriendDisplay";
+import { resolveFriendDisplay } from "../../utils/resolveFriendDisplay";
 import { FILTER_OPTIONS } from "../../constants/friendsConstants";
 import FriendCard from "./FriendCard";
 import FriendsEmptyState from "../shared/FriendsEmptyState";
@@ -12,6 +14,7 @@ import FriendsLoadingSkeleton from "../shared/FriendsLoadingSkeleton";
 const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, onBlock, onManageAccess }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const currentUserId = useCurrentUserId();
   const {
     filteredFriends,
     loadingFriends,
@@ -43,7 +46,7 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
       <TextField
         fullWidth
         size="small"
-        placeholder={t("friends.searchPlaceholder")}
+        placeholder={t("friends.search.placeholder")}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         sx={{
@@ -79,7 +82,8 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
                 filterOption === chip.value
                   ? colors.primary_bg
                   : colors.secondary_text,
-              border: `1px solid ${colors.border_color}`,
+              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.04)",
+              transition: "background-color 200ms ease, color 200ms ease",
               "&:hover": {
                 bgcolor:
                   filterOption === chip.value
@@ -114,7 +118,11 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
           filteredFriends.map((friend) => {
             const other = friend.recipient || friend;
             const friendship = friend.friendship || friend;
-            const friendId = other.id || friend.id;
+            const display = resolveFriendDisplay(friend, {
+              currentUserId,
+              unknownLabel: t("friends.unknownUser"),
+            });
+            const friendId = display.userId;
             const isSelected =
               selectedFriend?.id === friendId ||
               selectedFriend?.recipient?.id === friendId;
@@ -122,12 +130,9 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
               id: friendId,
               firstName: other.firstName,
               lastName: other.lastName,
-              profilePicture: other.profilePicture,
-              accessLevel:
-                friendship.requesterAccess ||
-                friendship.recipientAccess ||
-                friendship.accessLevel ||
-                "NONE",
+              email: display.email,
+              profilePicture: display.profileImage,
+              accessLevel: display.accessLevel,
               createdAt: friendship.createdAt || friendship.updatedAt,
               friendship,
               recipient: other,

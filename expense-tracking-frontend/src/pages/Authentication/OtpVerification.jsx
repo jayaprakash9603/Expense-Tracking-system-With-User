@@ -162,11 +162,18 @@ const OtpVerification = () => {
         currentMode === "ADMIN" || 
         (!currentMode && (role === "ADMIN" || user?.role === "ADMIN" || user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN")));
 
-      if (isActuallyAdminMode) {
-        navigate("/admin/dashboard", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
+      setToast({
+        open: true,
+        message: "Two-factor authentication verified. Login successful!",
+        severity: "success",
+      });
+      setTimeout(
+        () =>
+          navigate(isActuallyAdminMode ? "/admin/dashboard" : "/dashboard", {
+            replace: true,
+          }),
+        1200,
+      );
     } catch (err) {
       setToast({
         open: true,

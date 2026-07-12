@@ -120,6 +120,29 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", length = 32)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(name = "deletion_initiator", length = 16)
+    private String deletionInitiator;
+
+    @Column(name = "deletion_initiator_user_id")
+    private Integer deletionInitiatorUserId;
+
+    @Column(name = "deletion_requested_at")
+    private LocalDateTime deletionRequestedAt;
+
+    @Column(name = "deletion_scheduled_purge_at")
+    private LocalDateTime deletionScheduledPurgeAt;
+
+    @Column(name = "deletion_correlation_id", length = 64)
+    private String deletionCorrelationId;
+
+    @Version
+    @Column(name = "lock_version")
+    private Long lockVersion;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -131,6 +154,10 @@ public class User {
 
         if (currentMode == null || currentMode.trim().isEmpty()) {
             currentMode = "USER";
+        }
+
+        if (accountStatus == null) {
+            accountStatus = AccountStatus.ACTIVE;
         }
     }
 

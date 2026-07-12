@@ -23,7 +23,8 @@ public class UserServiceFeignConfig {
             if (path != null
                     && (path.contains("/api/user/all")
                             || path.contains("/api/user/by-email")
-                            || path.contains("/api/user/email"))) {
+                            || path.contains("/api/user/email")
+                            || path.matches(".*/api/user/\\d+.*"))) {
                 template.header("X-Service-Token", internalToken);
             }
         };

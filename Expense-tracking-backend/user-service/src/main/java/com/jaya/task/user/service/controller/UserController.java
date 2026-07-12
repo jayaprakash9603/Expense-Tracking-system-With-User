@@ -1,5 +1,6 @@
 package com.jaya.task.user.service.controller;
 
+import com.jaya.common.deletion.DeletionInitiator;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.exceptions.UserNotFoundException;
@@ -12,6 +13,7 @@ import com.jaya.task.user.service.request.TwoFactorUpdateRequest;
 import com.jaya.task.user.service.request.UserUpdateRequest;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.service.UserService;
+import com.jaya.task.user.service.service.deletion.AccountDeletionService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -49,6 +51,7 @@ public class UserController {
     private final RoleRepository roleRepository;
     private final CustomUserServiceImplementation customUserService;
     private final UserMapper mapper;
+    private final AccountDeletionService accountDeletionService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> findUserByJwt(@RequestHeader("Authorization") String jwt) {
@@ -89,9 +92,17 @@ public class UserController {
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<Object> getUserById(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
-            @RequestHeader("Authorization") String jwt) {
+            @RequestHeader(value = "Authorization", required = false) String jwt) {
 
-        
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (isInternalServiceCaller(authentication)) {
+            return userRepository.findById(id)
+                    .<ResponseEntity<Object>>map(user -> ResponseEntity.ok(mapper.toDTO(user)))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        }
+        if (jwt == null || jwt.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         User currentUser = userService.getUserProfile(jwt);
 
         
@@ -159,17 +170,17 @@ public class UserController {
                 return new ResponseEntity<>("You don't have permission to delete this user", HttpStatus.FORBIDDEN);
             }
 
-            
             if (!userRepository.existsById(id)) {
                 return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
             }
 
-            
-            removeUserFromRoles(id);
-
-            
-            userService.deleteUser(id);
-            return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+            // Legacy endpoint now schedules a five-day deletion instead of
+            // hard-deleting the user. Clients should migrate to
+            // /api/user/me/deletion-request (self) or the admin equivalent.
+            DeletionInitiator initiator = reqUser.getId().equals(id)
+                    ? DeletionInitiator.SELF : DeletionInitiator.ADMIN;
+            accountDeletionService.requestDeletion(id, initiator, reqUser.getId());
+            return new ResponseEntity<>("Account scheduled for deletion in 5 days", HttpStatus.ACCEPTED);
 
         } catch (UserNotFoundException e) {
             return new ResponseEntity<>("User not found: " + e.getMessage(), HttpStatus.NOT_FOUND);

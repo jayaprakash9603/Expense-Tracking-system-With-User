@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,6 +93,19 @@ class FriendshipServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(FriendshipStatus.PENDING);
         verify(friendshipRepository).save(any(Friendship.class));
+    }
+
+    @Test
+    void getRecommendedToShare_shouldSkipFriendWhenUserWasDeleted() throws Exception {
+        UserDTO requester = FriendShipTestDataFactory.buildRequesterUser();
+        Friendship orphanedFriendship = FriendShipTestDataFactory.buildAcceptedFriendship();
+
+        when(helper.validateUser(FriendShipTestDataFactory.TEST_USER_ID)).thenReturn(requester);
+        when(friendshipRepository.findByRequesterIdOrRecipientId(requester.getId()))
+                .thenReturn(List.of(orphanedFriendship));
+        when(helper.findExistingUser(FriendShipTestDataFactory.FRIEND_USER_ID)).thenReturn(null);
+
+        assertThat(service.getRecommendedToShare(FriendShipTestDataFactory.TEST_USER_ID)).isEmpty();
     }
 
     @Test

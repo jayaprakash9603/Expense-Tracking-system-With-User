@@ -753,7 +753,10 @@ public class FriendshipServiceImpl implements FriendshipService {
                         Integer friendId = f.getRequesterId().equals(userId)
                                 ? f.getRecipientId()
                                 : f.getRequesterId();
-                        UserDTO friend = helper.validateUser(friendId);
+                        UserDTO friend = helper.findExistingUser(friendId);
+                        if (friend == null) {
+                            return null;
+                        }
 
                         Map<String, Object> friendInfo = new HashMap<>();
                         friendInfo.put("userId", friend.getId());
@@ -769,6 +772,7 @@ public class FriendshipServiceImpl implements FriendshipService {
                         throw new RuntimeException("Error processing friend recommendation: " + e.getMessage());
                     }
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         return recommendations;
     }

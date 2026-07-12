@@ -1,11 +1,13 @@
 package com.jaya.task.user.service.controller;
 
+import com.jaya.common.deletion.DeletionInitiator;
 import com.jaya.task.user.service.dto.AdminUserSearchDTO;
 import com.jaya.task.user.service.dto.UserStatsDTO;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.service.AdminAnalyticsService;
 import com.jaya.task.user.service.service.UserService;
+import com.jaya.task.user.service.service.deletion.AccountDeletionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ public class AdminController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final AdminAnalyticsService adminAnalyticsService;
+    private final AccountDeletionService accountDeletionService;
 
     @GetMapping("/users")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
@@ -146,10 +149,10 @@ public class AdminController {
                 return ResponseEntity.notFound().build();
             }
 
-            userService.deleteUser(userId);
+            accountDeletionService.requestDeletion(userId, DeletionInitiator.ADMIN, null);
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "User deleted successfully",
+            return ResponseEntity.accepted().body(Map.of(
+                    "message", "User scheduled for deletion in 5 days",
                     "userId", userId));
         } catch (Exception e) {
             log.error("Failed to delete user: {}", userId, e);
@@ -174,7 +177,8 @@ public class AdminController {
                 try {
                     switch (request.getAction().toUpperCase()) {
                         case "DELETE":
-                            userService.deleteUser(userId);
+                            accountDeletionService.requestDeletion(
+                                    userId, DeletionInitiator.ADMIN, null);
                             break;
                         case "SUSPEND":
                         case "ACTIVATE":

@@ -1461,6 +1461,7 @@ export const hi = {
 
   friends: {
     title: "मित्र",
+    unknownUser: "अज्ञात उपयोगकर्ता",
     sections: {
       myFriends: "मेरे मित्र",
       requests: "अनुरोध",
@@ -1577,6 +1578,8 @@ export const hi = {
       descending: "अवरोही",
       pageSize: "पृष्ठ आकार",
       generateReport: "रिपोर्ट बनाएँ",
+      generatePrompt: "फ़िल्टर चुनें और मित्रता डेटा देखने के लिए रिपोर्ट बनाएँ पर क्लिक करें",
+      allStatuses: "सभी स्थितियाँ",
       noReportData: "कोई रिपोर्ट डेटा उपलब्ध नहीं",
       totalFriendships: "कुल मित्रता",
       columns: {
@@ -1604,10 +1607,20 @@ export const hi = {
       myFriendsDesc: "लोगों को खोजने के लिए खोजें पर जाएँ",
       requests: "कोई लंबित मित्र अनुरोध नहीं",
       requestsDesc: "जब कोई आपको अनुरोध भेजेगा, वह यहाँ दिखाई देगा",
+      discover: "अभी कोई सुझाव नहीं",
+      discoverDesc: "बाद में जिन्हें आप जानते हों उनके लिए वापस देखें",
       sharing: "कोई साझा खर्चे नहीं",
       sharingDesc: "बजट पर सहयोग करने के लिए मित्रों के साथ खर्चे साझा करें",
       blocked: "कोई अवरुद्ध उपयोगकर्ता नहीं",
       blockedDesc: "अवरुद्ध उपयोगकर्ता आपके साथ बातचीत नहीं कर सकते",
+      report: "कोई रिपोर्ट डेटा नहीं",
+      reportDesc: "मित्रता आँकड़े देखने के लिए रिपोर्ट बनाएँ",
+    },
+    status: {
+      PENDING: "लंबित",
+      ACCEPTED: "स्वीकृत",
+      REJECTED: "अस्वीकृत",
+      BLOCKED: "अवरुद्ध",
     },
     toast: {
       requestSent: "{{name}} को मित्र अनुरोध भेजा गया",

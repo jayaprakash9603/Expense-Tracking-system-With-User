@@ -26,7 +26,6 @@ const SECTION_COMPONENTS = {
 
 const Friends = () => {
   const { colors } = useTheme();
-  const isMobile = useMediaQuery(`(max-width:${BREAKPOINTS.MOBILE}px)`);
   const isTablet = useMediaQuery(`(max-width:${BREAKPOINTS.TABLET}px)`);
 
   const {
@@ -47,10 +46,8 @@ const Friends = () => {
 
   const {
     handleBlock,
-    handleUnblock,
     handleRemoveFriend,
     handleSetAccess,
-    handleSendRequest,
   } = useFriendActions();
 
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(isTablet);
@@ -110,10 +107,10 @@ const Friends = () => {
           display: "flex",
           flex: 1,
           overflow: "hidden",
-                      position: "relative",
-          border: { xs: "none", sm: `1px solid ${colors.border_color}` },
-          borderRadius: { xs: 0, sm: "8px" },
-                        backgroundColor: colors.primary_bg,
+          position: "relative",
+          borderRadius: { xs: 0, sm: "16px" },
+          backgroundColor: colors.primary_bg,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
         }}>
         {!isTablet && (
           <FriendsSidebar
@@ -126,10 +123,13 @@ const Friends = () => {
         )}
 
         <Box sx={{
-                      flex: 1,
+          flex: 1,
+          minWidth: 0,
+          minHeight: 0,
           overflow: "auto",
-          p: { xs: 1.5, sm: 2, md: 3 },
-          pb: isTablet ? 10 : 3,
+          p: { xs: 1.5, sm: 2, md: 2.5 },
+          pb: isTablet ? 9 : 2.5,
+          overscrollBehavior: "contain",
           "&::-webkit-scrollbar": { width: 6 },
           "&::-webkit-scrollbar-track": { bgcolor: "transparent" },
           "&::-webkit-scrollbar-thumb": {

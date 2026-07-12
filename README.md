@@ -13,8 +13,63 @@ A full-stack personal finance management platform built with **14 Spring Boot mi
 
 ---
 
+## Product Tour
+
+Expensio Finance combines everyday money management, analytics, collaboration, sharing, and administration in one responsive application.
+
+### Dashboard
+
+The home dashboard summarizes expenses, credit due, budgets, friends, groups, savings, and category trends.
+
+![Financial dashboard showing account summary cards and category breakdown](Assets/screenshots/dashboard/financial-dashboard-overview.png)
+
+### Expense, Category, and Payment Flows
+
+Each financial area provides a time-based chart, searchable entity cards, and detailed transaction views.
+
+| Expenses | Categories |
+|---|---|
+| ![Monthly expense dashboard with chart and transaction cards](Assets/screenshots/expenses/monthly-dashboard-with-chart.png) | ![Monthly category dashboard with chart and category cards](Assets/screenshots/categories/monthly-dashboard-with-chart.png) |
+
+| Payment methods | Bills |
+|---|---|
+| ![Monthly payment-method dashboard](Assets/screenshots/payment-methods/monthly-dashboard-with-chart.png) | ![Monthly bills list with summary cards](Assets/screenshots/bills/monthly-list-with-summary.png) |
+
+### Budgets and Reports
+
+Budget cards show spending progress and remaining balances, while reports provide KPI, trend, distribution, and grouped transaction analysis.
+
+| Budget management | Expense analytics |
+|---|---|
+| ![Budget management overview with budget cards](Assets/screenshots/budgets/management-overview.png) | ![Expense report summary and daily spending chart](Assets/screenshots/expenses/reports/summary-and-daily-spending.png) |
+
+![Category and payment-method distribution charts](Assets/screenshots/expenses/reports/category-payment-breakdown.png)
+
+### Friends, Groups, and Sharing
+
+Social features support friend discovery, collaborative groups, controlled data sharing, and public share links.
+
+| Friends | Groups |
+|---|---|
+| ![Friend suggestions interface](Assets/screenshots/friends/suggestions-tab.png) | ![User groups overview](Assets/screenshots/groups/my-groups-grid.png) |
+
+![Public shared expense collection](Assets/screenshots/sharing/public-shared-expenses.png)
+
+### Personalization and Administration
+
+Users can configure appearance, localization, privacy, storage, accessibility, and smart features. Administrators can manage users, roles, analytics, audit logs, reports, and stories.
+
+| Appearance settings | User management |
+|---|---|
+| ![Appearance and theme settings](Assets/screenshots/settings/appearance.png) | ![Admin user management table](Assets/screenshots/admin/users/user-management.png) |
+
+See the [complete screenshot gallery](Assets/README.md) for all available product screens.
+
+---
+
 ## Table of Contents
 
+- [Product Tour](#product-tour)
 - [High-Level Architecture](#high-level-architecture)
 - [Repository Structure](#repository-structure)
 - [Backend Microservices Architecture](#backend-microservices-architecture)
@@ -89,6 +144,7 @@ The system can run in either **microservices mode** (Gateway + Eureka + individu
 ```
 Expense-Tracking-system-With-User/
 ├── expense-tracking-frontend/          # React 18 SPA
+├── expense-tracker-mobile/              # Vite/React mobile-oriented client
 ├── Expense-tracking-backend/           # Spring Boot backend (Maven multi-module)
 │   ├── common-library/                 # Shared DTOs, Feign clients, security, ports
 │   ├── user-service/                   # Auth, registration, profile, OAuth2, MFA
@@ -108,7 +164,7 @@ Expense-Tracking-system-With-User/
 │   ├── Gateway/                        # Spring Cloud Gateway (microservices mode)
 │   ├── eureka-server/                  # Service discovery (microservices mode)
 │   └── monolithic-service/             # Single-JVM deployment wrapper
-└── Automation/                         # BDD test suite
+├── Automation/                         # BDD test suite
     ├── automation-core/                # Framework: config, context, logging
     ├── automation-api/                 # REST API test clients
     ├── automation-bdd/                 # Cucumber steps, hooks, runners
@@ -116,7 +172,10 @@ Expense-Tracking-system-With-User/
     ├── automation-engine-selenium/     # Selenium UI engine
     ├── automation-ui-flows/            # UI flow definitions
     ├── automation-data/                # Test data management
-    └── test-suites/                    # Feature files and payloads
+│   └── test-suites/                    # Feature files and payloads
+├── docs/                               # Architecture, security, and runbooks
+└── Assets/
+    └── screenshots/                    # Product screenshots grouped by feature
 ```
 
 ---

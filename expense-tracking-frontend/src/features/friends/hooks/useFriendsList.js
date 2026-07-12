@@ -2,18 +2,20 @@ import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriends } from "../../../Redux/Friends/friendsActions";
 import { FILTER_OPTIONS, SORT_OPTIONS } from "../constants/friendsConstants";
+import {
+  resolveDisplayName,
+  resolveAccessLevel,
+  resolveOtherUser,
+} from "../utils/resolveFriendDisplay";
 
-function getDisplayName(friend) {
-  const other = friend.recipient || friend;
-  const first = other.firstName || "";
-  const last = other.lastName || "";
-  const combined = [first, last].filter(Boolean).join(" ").trim();
-  return combined || other.name || "";
+function getDisplayName(friend, currentUserId) {
+  const other = resolveOtherUser(friend, currentUserId);
+  return resolveDisplayName(other);
 }
 
-function getAccessLevel(friend) {
+function getAccessLevel(friend, currentUserId) {
   const fr = friend.friendship || friend;
-  return fr.requesterAccess || fr.recipientAccess || fr.accessLevel || "NONE";
+  return resolveAccessLevel(fr, currentUserId);
 }
 
 function getCreatedAt(friend) {
@@ -30,6 +32,9 @@ export function useFriendsList() {
   const friends = useSelector((state) => state.friends?.friends ?? []);
   const loadingFriends = useSelector((state) => state.friends?.loadingFriends ?? false);
   const friendsError = useSelector((state) => state.friends?.friendsError ?? null);
+  const currentUserId = useSelector(
+    (state) => state.auth?.user?.id || state.auth?.userId || null
+  );
 
   useEffect(() => {
     dispatch(fetchFriends());
@@ -38,24 +43,26 @@ export function useFriendsList() {
   const filteredFriends = useMemo(() => {
     const lower = searchQuery.toLowerCase().trim();
     let result = friends.filter((f) => {
-      const name = getDisplayName(f);
-      return !lower || name.toLowerCase().includes(lower);
+      const name = getDisplayName(f, currentUserId);
+      const other = resolveOtherUser(f, currentUserId);
+      const email = (other?.email || "").toLowerCase();
+      return !lower || name.toLowerCase().includes(lower) || email.includes(lower);
     });
 
     if (filterOption === FILTER_OPTIONS.HAS_ACCESS) {
-      result = result.filter((f) => getAccessLevel(f) !== "NONE");
+      result = result.filter((f) => getAccessLevel(f, currentUserId) !== "NONE");
     } else if (filterOption === FILTER_OPTIONS.NO_ACCESS) {
-      result = result.filter((f) => getAccessLevel(f) === "NONE");
+      result = result.filter((f) => getAccessLevel(f, currentUserId) === "NONE");
     } else if (filterOption === FILTER_OPTIONS.RECENT) {
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       result = result.filter((f) => new Date(getCreatedAt(f)).getTime() >= weekAgo);
     }
 
     const sorted = [...result].sort((a, b) => {
-      const nameA = getDisplayName(a);
-      const nameB = getDisplayName(b);
-      const accessA = getAccessLevel(a);
-      const accessB = getAccessLevel(b);
+      const nameA = getDisplayName(a, currentUserId);
+      const nameB = getDisplayName(b, currentUserId);
+      const accessA = getAccessLevel(a, currentUserId);
+      const accessB = getAccessLevel(b, currentUserId);
       const dateA = new Date(getCreatedAt(a)).getTime();
       const dateB = new Date(getCreatedAt(b)).getTime();
 
@@ -74,7 +81,7 @@ export function useFriendsList() {
     });
 
     return sorted;
-  }, [friends, searchQuery, filterOption, sortOption]);
+  }, [friends, searchQuery, filterOption, sortOption, currentUserId]);
 
   return {
     friends,

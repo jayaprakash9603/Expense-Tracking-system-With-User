@@ -1552,6 +1552,7 @@ export const en = {
 
   friends: {
     title: "Friends",
+    unknownUser: "Unknown user",
     sections: {
       myFriends: "My Friends",
       requests: "Requests",
@@ -1668,6 +1669,8 @@ export const en = {
       descending: "Descending",
       pageSize: "Page Size",
       generateReport: "Generate Report",
+      generatePrompt: "Select filters and click Generate Report to view friendship data",
+      allStatuses: "All Statuses",
       noReportData: "No report data available",
       totalFriendships: "Total Friendships",
       columns: {

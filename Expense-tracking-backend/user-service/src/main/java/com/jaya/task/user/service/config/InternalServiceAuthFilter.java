@@ -25,6 +25,9 @@ public class InternalServiceAuthFilter extends OncePerRequestFilter {
             "/api/user/email",
             "/api/user/by-email");
 
+    private static final String INTERNAL_PREFIX = "/api/internal/";
+    private static final String USER_BY_ID_PREFIX = "/api/user/";
+
     private final UrlPathHelper pathHelper = new UrlPathHelper();
 
     @Value("${USER_SERVICE_INTERNAL_TOKEN:}")
@@ -35,7 +38,13 @@ public class InternalServiceAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = pathHelper.getPathWithinApplication(request);
-        if (!"GET".equalsIgnoreCase(request.getMethod()) || !SERVICE_TOKEN_PATHS.contains(path)) {
+        boolean isInternalPurge = path != null && path.startsWith(INTERNAL_PREFIX);
+        boolean isUserById = path != null
+                && path.startsWith(USER_BY_ID_PREFIX)
+                && path.substring(USER_BY_ID_PREFIX.length()).matches("\\d+");
+        boolean isKnownGet = "GET".equalsIgnoreCase(request.getMethod())
+                && (SERVICE_TOKEN_PATHS.contains(path) || isUserById);
+        if (!isInternalPurge && !isKnownGet) {
             filterChain.doFilter(request, response);
             return;
         }

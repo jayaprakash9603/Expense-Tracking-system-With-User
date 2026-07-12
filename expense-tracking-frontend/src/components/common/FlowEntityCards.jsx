@@ -18,6 +18,11 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getEntityIcon } from "../../utils/iconMapping";
+import { useOrderedSelection } from "../../hooks/useOrderedSelection";
+import {
+  handleSelectableSurfaceMouseDown,
+  selectableSurfaceStyles,
+} from "../../utils/selectableSurface";
 
 /**
  * FlowEntityCards
@@ -41,7 +46,7 @@ const FlowEntityCards = ({
   friendId, // NEW: for friend view routing
   isFriendView, // NEW: for friend view routing
   selectedIds = [], // NEW: for multi-selection
-  onToggleSelect, // NEW: (entity, checked) => void
+  onSelectionChange,
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -49,6 +54,12 @@ const FlowEntityCards = ({
   const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuEntity, setMenuEntity] = useState(null);
+  const { selectAt } = useOrderedSelection({
+    items: entities,
+    selectedKeys: selectedIds,
+    getKey: (entity) => entity.categoryId,
+    onChange: onSelectionChange,
+  });
 
   const openMenu = (e, entity) => {
     e.stopPropagation();
@@ -135,9 +146,9 @@ const FlowEntityCards = ({
         {entities.map((entity, idx) => {
           const isShareSelected = selectedIds.includes(entity.categoryId);
           const isActiveEntity = selectedEntityId === entity.categoryId;
-          const toggleSelection = () => {
-            if (onToggleSelect) {
-              onToggleSelect(entity, !isShareSelected);
+          const toggleSelection = (event) => {
+            if (onSelectionChange) {
+              selectAt(idx, event);
             } else {
               onSelect?.(entity);
             }
@@ -146,6 +157,7 @@ const FlowEntityCards = ({
             <div
               key={entity.categoryId || idx}
               style={{
+                ...selectableSurfaceStyles,
                 minHeight: "130px",
                 maxHeight: "130px",
                 height: "130px",
@@ -182,6 +194,8 @@ const FlowEntityCards = ({
                   : ""
               }`}
               onClick={toggleSelection}
+              onMouseDown={handleSelectableSurfaceMouseDown}
+              onDragStart={(event) => event.preventDefault()}
               onDoubleClick={(e) => onDouble?.(entity, e)}
               role="checkbox"
               aria-checked={isShareSelected}
@@ -190,7 +204,7 @@ const FlowEntityCards = ({
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  toggleSelection();
+                  toggleSelection(event);
                 }
               }}
               onFocus={(event) => {

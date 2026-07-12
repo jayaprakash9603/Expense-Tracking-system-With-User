@@ -64,6 +64,9 @@ public class ApplicationConfiguration {
     @Autowired
     private JwtTokenValidator jwtTokenValidator;
 
+    @Autowired
+    private DeletionAccessBlockFilter deletionAccessBlockFilter;
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -86,12 +89,15 @@ public class ApplicationConfiguration {
                         .hasAnyAuthority("ADMIN", "ROLE_ADMIN", "ROLE_SERVICE")
                         .requestMatchers("/api/user/*/roles").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                        .requestMatchers("/api/internal/**").hasAuthority("ROLE_SERVICE")
+                        .requestMatchers("/api/user/me/deletion-request/**").authenticated()
                         .requestMatchers("/api/user/profile").authenticated()
                         .requestMatchers("/api/user/debug").authenticated()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll());
         http.addFilterBefore(jwtTokenValidator, BasicAuthenticationFilter.class);
         http.addFilterBefore(internalServiceAuthFilter, BasicAuthenticationFilter.class);
+        http.addFilterAfter(deletionAccessBlockFilter, BasicAuthenticationFilter.class);
         if (authRateLimitFilter != null) {
             http.addFilterBefore(authRateLimitFilter, BasicAuthenticationFilter.class);
         }

@@ -40,10 +40,10 @@ import {
   VpnKey as BackupKeyIcon,
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
-import { toast } from "react-toastify";
 import { api } from "../../../config/api";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
+import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import {
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
@@ -73,6 +73,11 @@ const MfaVerification = () => {
   const [isBackupCode, setIsBackupCode] = useState(false);
   const [backupCodeValue, setBackupCodeValue] = useState("");
   const [showBackupCode, setShowBackupCode] = useState(false);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   // Get mfaToken and email from navigation state
   const mfaToken = location.state?.mfaToken;
@@ -85,10 +90,10 @@ const MfaVerification = () => {
   useEffect(() => {
     // Redirect to login if no mfaToken
     if (!mfaToken) {
-      toast.warning(t("mfa.verification.sessionExpired"), {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
+      setNotification({
+        open: true,
+        message: t("mfa.verification.sessionExpired"),
+        severity: "warning",
       });
       navigate("/login");
       return;
@@ -208,28 +213,31 @@ const MfaVerification = () => {
           payload: profileResponse.data,
         });
 
-        toast.success(t("mfa.verification.loginSuccess"));
-        navigate("/");
+        setNotification({
+          open: true,
+          message: t("mfa.verification.loginSuccess"),
+          severity: "success",
+        });
+        const isAdmin =
+          profileResponse.data?.currentMode === "ADMIN" ||
+          profileResponse.data?.roles?.includes("ADMIN") ||
+          profileResponse.data?.roles?.includes("ROLE_ADMIN");
+        setTimeout(
+          () => navigate(isAdmin ? "/admin/dashboard" : "/dashboard", { replace: true }),
+          1200,
+        );
       }
     } catch (error) {
-      console.error("MFA verification error:", error);
       const errorMessage =
         error.response?.data?.error || t("mfa.verification.verificationFailed");
       setError(errorMessage);
       dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
 
-      // Show sticky warning toast notification (won't auto-dismiss)
-      toast.warning(errorMessage, {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
+      setNotification({
+        open: true,
+        message: errorMessage,
+        severity: "error",
       });
-
-      // Log attempted code for debugging (only in development)
-      if (process.env.NODE_ENV === "development") {
-        console.log("Attempted code:", codeValue);
-        console.log("Is backup code:", useBackupCode);
-      }
 
       // Reset code on error
       if (!useBackupCode) {
@@ -239,10 +247,10 @@ const MfaVerification = () => {
 
       // Check if token expired
       if (error.response?.status === 401) {
-        toast.warning(t("mfa.verification.sessionExpired"), {
-          autoClose: false,
-          closeOnClick: false,
-          draggable: false,
+        setNotification({
+          open: true,
+          message: t("mfa.verification.sessionExpired"),
+          severity: "warning",
         });
         setTimeout(() => navigate("/login"), 2000);
       }
@@ -258,15 +266,14 @@ const MfaVerification = () => {
     e.preventDefault();
     const normalizedCode = backupCodeValue.replace(/-/g, "").toUpperCase();
     if (normalizedCode.length === 8) {
-      console.log("Submitting backup code (normalized):", normalizedCode);
       verifyCode(normalizedCode, true);
     } else {
       const errorMsg = t("mfa.verification.backupCodeFormat");
       setError(errorMsg);
-      toast.warning(errorMsg, {
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
+      setNotification({
+        open: true,
+        message: errorMsg,
+        severity: "warning",
       });
     }
   };
@@ -349,7 +356,11 @@ const MfaVerification = () => {
           </Typography>
         )}
 
-        {/* Error Alert - removed, using sticky toast instead */}
+        {error && (
+          <Alert severity="error" role="alert" sx={{ mb: 2, textAlign: "left" }}>
+            {error}
+          </Alert>
+        )}
 
         {/* TOTP Code Input */}
         {!isBackupCode ? (
@@ -570,6 +581,13 @@ const MfaVerification = () => {
           </Link>
         </Box>
       </Paper>
+      <ToastNotification
+        open={notification.open}
+        message={notification.message}
+        severity={notification.severity}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setNotification((current) => ({ ...current, open: false }))}
+      />
     </Box>
   );
 };

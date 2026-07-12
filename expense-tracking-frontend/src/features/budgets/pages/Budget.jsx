@@ -71,7 +71,12 @@ import useUserSettings from "../../../hooks/useUserSettings";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import BudgetCardsSkeleton from "../../../components/skeletons/BudgetCardsSkeleton";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
+import { useOrderedSelection } from "../../../hooks/useOrderedSelection";
 import { setBudgetSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
+import {
+  handleSelectableSurfaceMouseDown,
+  selectableSurfaceStyles,
+} from "../../../utils/selectableSurface";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
@@ -253,6 +258,12 @@ const Budget = () => {
 
     return filtered;
   }, [budgets, searchQuery, activeTab, sortBy, sortOrder]);
+  const { selectAt: selectBudgetAt } = useOrderedSelection({
+    items: filteredBudgets,
+    selectedKeys: selectedRows,
+    getKey: (budget) => budget.id,
+    onChange: setSelectedRows,
+  });
 
   // Prepare data for SharedOverviewCards (budget mode)
   const overviewCardsData = useMemo(() => {
@@ -386,23 +397,18 @@ const Budget = () => {
   };
 
   // Render Budget Card
-  const renderBudgetCard = (budget) => {
+  const renderBudgetCard = (budget, index) => {
     const statusInfo = getBudgetStatus(budget);
     const spent = (budget.amount || 0) - (budget.remainingAmount || 0);
     const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
     const isSelected = selectedRows.includes(budget.id);
-    const toggleBudgetSelection = () => {
-      setSelectedRows(
-        isSelected
-          ? selectedRows.filter((id) => id !== budget.id)
-          : [...selectedRows, budget.id],
-      );
-    };
+    const toggleBudgetSelection = (event) => selectBudgetAt(index, event);
 
     return (
       <Card
         key={budget.id}
         onClick={toggleBudgetSelection}
+        onMouseDown={handleSelectableSurfaceMouseDown}
         role="checkbox"
         aria-checked={isSelected}
         aria-label={`${isSelected ? "Deselect" : "Select"} ${budget.name}`}
@@ -410,10 +416,11 @@ const Budget = () => {
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            toggleBudgetSelection();
+            toggleBudgetSelection(event);
           }
         }}
         sx={{
+          ...selectableSurfaceStyles,
           cursor: "pointer",
           background: isSelected
             ? `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_bg} 100%)`
@@ -1637,7 +1644,7 @@ const Budget = () => {
             </Box>
           ) : viewMode === "cards" ? (
             <Grid container spacing={2}>
-              {filteredBudgets.map((budget) => (
+              {filteredBudgets.map((budget, index) => (
                 <Grid
                   item
                   xs={12}
@@ -1645,7 +1652,7 @@ const Budget = () => {
                   md={isMediumScreen ? 6 : 4}
                   key={budget.id}
                 >
-                  {renderBudgetCard(budget)}
+                  {renderBudgetCard(budget, index)}
                 </Grid>
               ))}
             </Grid>

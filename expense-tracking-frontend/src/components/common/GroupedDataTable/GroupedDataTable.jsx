@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import Checkbox from "@mui/material/Checkbox";
 import { formatAmount as fmt } from "../../../utils/formatAmount";
+import { handleSelectableSurfaceMouseDown } from "../../../utils/selectableSurface";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
 // Define stable default objects outside component
@@ -351,6 +352,9 @@ const GroupedDataTable = ({
                       onRowSelect?.(row, !isSelected, actualIndex);
                     }
                   }}
+                  onMouseDown={
+                    enableSelection ? handleSelectableSurfaceMouseDown : undefined
+                  }
                   onKeyDown={(event) => {
                     if (
                       enableSelection &&
@@ -361,7 +365,11 @@ const GroupedDataTable = ({
                       onRowSelect?.(row, !isSelected, actualIndex);
                     }
                   }}
-                  style={enableSelection ? { cursor: "pointer" } : {}}
+                  style={
+                    enableSelection
+                      ? { cursor: "pointer", userSelect: "none" }
+                      : {}
+                  }
                 >
                   {enableSelection && selectionMode === "checkbox" ? (
                     <td className="pm-select-cell">
