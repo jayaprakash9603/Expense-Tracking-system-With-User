@@ -401,7 +401,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
     );
   };
 
-  const editLabelWidth = isEditMode ? "120px" : undefined;
+  const formLabelWidth = "120px";
 
   const renderExpenseNameWithSuggestions = () => (
     <FormField
@@ -410,7 +410,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.expenseName}
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <ExpenseNameAutocomplete
         value={formData.expenseName}
@@ -435,7 +435,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.amount}
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <ThemedAmountField
         id="amount"
@@ -450,8 +450,8 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         placeholder={fieldPlaceholders.amount}
         colors={colors}
         error={!!errors.amount}
-        height={isCreateMode ? "48px" : undefined}
-        maxWidth={isEditMode ? "300px" : undefined}
+        height="48px"
+        maxWidth="300px"
       />
     </FormField>
   );
@@ -463,7 +463,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.date}
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <ThemedDatePicker
         value={formData.date}
@@ -473,8 +473,8 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         error={!!errors.date}
         disableFuture
         placeholder={fieldPlaceholders.date}
-        height={isEditMode ? 56 : 48}
-        width={isEditMode ? 300 : undefined}
+        height={48}
+        width={300}
       />
     </FormField>
   );
@@ -486,7 +486,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       required
       error={errors.transactionType}
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <div className="relative">
         <ThemedAutocomplete
@@ -535,7 +535,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
           error={!!errors.transactionType}
           placeholder={fieldPlaceholders.transactionType}
           noOptionsText={noOptionsText}
-          maxWidth={isEditMode ? "300px" : undefined}
+          maxWidth="300px"
         />
         {renderAutoFillBadge("transactionType")}
       </div>
@@ -548,7 +548,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       htmlFor="category"
       error={errors.category}
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <div className="relative">
         <CategoryAutocomplete
@@ -572,7 +572,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       label={fieldLabels.paymentMethod}
       htmlFor="paymentMethod"
       colors={colors}
-      labelWidth={editLabelWidth}
+      labelWidth={formLabelWidth}
     >
       <div className="relative">
         <PaymentMethodAutocomplete
@@ -596,8 +596,8 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
       label={fieldLabels.comments}
       htmlFor="comments"
       colors={colors}
-      layout={isCreateMode ? "horizontal" : undefined}
-      labelWidth={editLabelWidth}
+      layout="horizontal"
+      labelWidth={formLabelWidth}
     >
       <div className="relative">
         {isCreateMode && autoFilledFields.comments && (
@@ -633,9 +633,9 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
           placeholder={fieldPlaceholders.comments}
           colors={colors}
           error={errors.comments}
-          minRows={isEditMode ? 3 : undefined}
-          maxRows={isEditMode ? 5 : undefined}
-          maxWidth={isEditMode ? "920px" : undefined}
+          minRows={3}
+          maxRows={5}
+          maxWidth="920px"
         />
       </div>
     </FormField>
@@ -688,9 +688,8 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
             />
           )
         }
-        className={isCreateMode ? "new-expense-container" : undefined}
       >
-        <div className={isCreateMode ? "flex flex-col gap-3 lg:gap-4 mt-2" : undefined}>
+        <div className="flex flex-col">
           <FormRow first>
             {renderExpenseNameWithSuggestions()}
             {renderAmountInput()}
@@ -705,9 +704,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         </div>
 
         <div
-          className={`w-full flex flex-col sm:flex-row items-center justify-between gap-2 ${
-            isCreateMode ? "mt-2 lg:mt-3" : "mt-6"
-          }`}
+          className="w-full flex flex-col sm:flex-row items-center justify-between gap-2 mt-4"
         >
           <button
             onClick={handleLinkBudgets}
@@ -744,12 +741,10 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
 
         {showTable && (
           <div
-            className={`w-full relative ${
-              isCreateMode
-                ? "mt-2 sm:mt-3 overflow-x-auto overflow-y-hidden mb-20 lg:mb-0"
-                : "mt-4 sm:mt-6 overflow-x-auto"
+            className={`w-full relative mt-3 overflow-hidden ${
+              isCreateMode ? "mb-20 lg:mb-0" : ""
             }`}
-            style={tableVars}
+            style={{ ...tableVars, maxHeight: "360px" }}
           >
             <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
               <div className="block sm:hidden self-end">
@@ -789,10 +784,10 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         )}
 
         <div
-          className={`w-full flex justify-end ${
+          className={`w-full flex justify-end mt-4 sm:mt-8 ${
             isCreateMode
-              ? "mt-2 lg:mt-3 pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
-              : "mt-4 sm:mt-8"
+              ? "pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
+              : ""
           }`}
           style={isCreateMode ? { backgroundColor: colors.secondary_bg } : undefined}
         >

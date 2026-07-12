@@ -220,13 +220,16 @@ const CreateSharePage = () => {
           backgroundColor: colors.secondary_bg,
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
-          borderRadius: "8px",
+          borderRadius: isSmallScreen ? 0 : "16px",
           border: `1px solid ${colors.border_color}`,
-          p: isSmallScreen ? 1.5 : 3,
+          p: isSmallScreen ? 1.5 : 2.5,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
+          boxShadow: isDark
+            ? "0 18px 50px rgba(0,0,0,0.32)"
+            : "0 12px 36px rgba(15,23,42,0.08)",
         }}
       >
         {/* Header Row: Back Button | Full-Width Stepper | Badge */}
@@ -237,6 +240,7 @@ const CreateSharePage = () => {
             mb: 2,
             flexShrink: 0,
             gap: 2,
+            px: { xs: 0, sm: 0.5 },
           }}
         >
           {/* Left: Back button */}
@@ -247,6 +251,7 @@ const CreateSharePage = () => {
               height: 40,
               flexShrink: 0,
               border: `1px solid ${colors.border_color}`,
+              backgroundColor: colors.card_bg,
               "&:hover": {
                 borderColor: colors.primary_accent,
               },
@@ -287,7 +292,7 @@ const CreateSharePage = () => {
                   },
                 },
                 "& .MuiStepIcon-root": {
-                  color: isDark ? "#333333" : colors.border_color,
+                  color: colors.border_color,
                   width: isSmallScreen ? 24 : 28,
                   height: isSmallScreen ? 24 : 28,
                   "&.Mui-active": {
@@ -299,7 +304,7 @@ const CreateSharePage = () => {
                 },
                 "& .MuiStepConnector-line": {
                   borderTopWidth: 2,
-                  borderColor: isDark ? "#333333" : colors.border_color,
+                  borderColor: colors.border_color,
                 },
                 "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": {
                   borderColor: colors.primary_accent,
@@ -348,11 +353,14 @@ const CreateSharePage = () => {
           sx={{
             flex: 1,
             overflow: "auto",
-            backgroundColor: isDark ? "#0d0d0d" : colors.primary_bg,
-            borderRadius: "8px",
-            border: `1px solid ${isDark ? "#1a1a1a" : colors.border_color}`,
-            p: isSmallScreen ? 2 : 3,
+            backgroundColor: colors.primary_bg,
+            borderRadius: "14px",
+            border: `1px solid ${colors.border_color}`,
+            p: isSmallScreen ? 1.5 : 2,
             mb: 2,
+            boxShadow: isDark
+              ? "inset 0 1px 0 rgba(255,255,255,0.025)"
+              : "inset 0 1px 0 rgba(255,255,255,0.8)",
           }}
         >
           {renderStepContent()}
@@ -365,7 +373,7 @@ const CreateSharePage = () => {
             justifyContent: "space-between",
             alignItems: "center",
             pt: 2,
-            borderTop: `1px solid ${isDark ? "#1a1a1a" : colors.border_color}`,
+            borderTop: `1px solid ${colors.border_color}`,
             flexShrink: 0,
           }}
         >
@@ -375,8 +383,11 @@ const CreateSharePage = () => {
             onClick={activeStep === 0 ? navigateToReturnRoute : handleBack}
             sx={{
               textTransform: "none",
-              color: colors.secondary_text,
-              borderColor: isDark ? "#333333" : colors.border_color,
+              color: colors.primary_text,
+              borderColor: colors.border_color,
+              minHeight: 44,
+              px: 2,
+              borderRadius: "10px",
               "&:hover": {
                 borderColor: colors.primary_accent,
                 color: colors.primary_accent,
@@ -409,12 +420,14 @@ const CreateSharePage = () => {
               color: "#fff",
               fontWeight: 600,
               px: 3,
+              minHeight: 44,
+              borderRadius: "10px",
               "&:hover": {
                 bgcolor: colors.secondary_accent || colors.primary_accent,
               },
               "&:disabled": {
-                bgcolor: isDark ? "#333333" : colors.disabled_bg,
-                color: isDark ? "#666666" : colors.disabled_text,
+                bgcolor: colors.disabled_bg,
+                color: colors.disabled_text,
               },
             }}
           >

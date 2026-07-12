@@ -41,7 +41,6 @@ import {
   Grid,
   Popover,
   MenuList,
-  Checkbox,
 } from "@mui/material";
 import {
   FilterList as FilterListIcon,
@@ -391,25 +390,71 @@ const Budget = () => {
     const statusInfo = getBudgetStatus(budget);
     const spent = (budget.amount || 0) - (budget.remainingAmount || 0);
     const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
+    const isSelected = selectedRows.includes(budget.id);
+    const toggleBudgetSelection = () => {
+      setSelectedRows(
+        isSelected
+          ? selectedRows.filter((id) => id !== budget.id)
+          : [...selectedRows, budget.id],
+      );
+    };
 
     return (
       <Card
         key={budget.id}
+        onClick={toggleBudgetSelection}
+        role="checkbox"
+        aria-checked={isSelected}
+        aria-label={`${isSelected ? "Deselect" : "Select"} ${budget.name}`}
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            toggleBudgetSelection();
+          }
+        }}
         sx={{
-          background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
-          border: `1px solid ${colors.border_color}`,
+          cursor: "pointer",
+          background: isSelected
+            ? `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_bg} 100%)`
+            : `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
+          border: isSelected
+            ? `2px solid ${colors.primary_accent}`
+            : `1px solid ${colors.border_color}`,
           borderRadius: "12px",
-          transition: "all 0.3s ease",
+          transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
           position: "relative",
           zIndex: 1,
+          boxShadow: isSelected
+            ? `0 8px 22px ${colors.primary_accent}25`
+            : "none",
+          "&:focus-visible": {
+            outline: `3px solid ${colors.primary_accent}55`,
+            outlineOffset: "2px",
+          },
           "&:hover": {
-            transform: "translateY(-4px)",
+            transform: "translateY(-2px)",
             boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
             borderColor: colors.primary_accent,
-            zIndex: 1000,
+            zIndex: 2,
           },
         }}
       >
+        {isSelected && (
+          <CheckCircleIcon
+            aria-hidden
+            sx={{
+              position: "absolute",
+              top: 14,
+              right: hasWriteAccess ? 48 : 14,
+              zIndex: 3,
+              color: colors.primary_accent,
+              backgroundColor: colors.primary_bg,
+              borderRadius: "50%",
+              fontSize: 22,
+            }}
+          />
+        )}
         <CardContent sx={{ pb: 1 }}>
           {/* Header */}
           <Box
@@ -445,27 +490,13 @@ const Budget = () => {
               />
             </Box>
             <Box sx={{ display: "flex", gap: 0.5 }}>
-              <Checkbox
-                size="small"
-                checked={selectedRows.includes(budget.id)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedRows([...selectedRows, budget.id]);
-                  } else {
-                    setSelectedRows(selectedRows.filter((id) => id !== budget.id));
-                  }
-                }}
-                sx={{
-                  color: colors.icon_muted,
-                  '&.Mui-checked': {
-                    color: colors.primary_accent,
-                  },
-                  p: 0.5,
-                }}
-              />
               {hasWriteAccess && (
                 <IconButton
-                  onClick={(e) => handleMenuClick(e, budget.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleMenuClick(e, budget.id);
+                  }}
+                  aria-label={`Actions for ${budget.name}`}
                   sx={{
                     color: colors.primary_accent,
                     "&:hover": { bgcolor: colors.hover_bg },
@@ -595,7 +626,10 @@ const Budget = () => {
           <Button
             size="small"
             startIcon={<ReportIcon fontSize="small" />}
-            onClick={() => handleReport(budget.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleReport(budget.id);
+            }}
             sx={{
               color: colors.primary_accent,
               textTransform: "none",

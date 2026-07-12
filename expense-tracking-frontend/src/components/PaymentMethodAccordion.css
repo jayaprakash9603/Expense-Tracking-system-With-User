@@ -614,6 +614,25 @@
 .pm-expense-table tbody tr:hover {
   background: var(--pm-bg-secondary);
 }
+.pm-expense-table tbody tr.pm-row-selected {
+  background: color-mix(
+    in srgb,
+    var(--pm-accent-color) 14%,
+    var(--pm-bg-primary)
+  );
+  box-shadow: inset 4px 0 0 var(--pm-accent-color);
+}
+.pm-expense-table tbody tr.pm-row-selected:hover {
+  background: color-mix(
+    in srgb,
+    var(--pm-accent-color) 20%,
+    var(--pm-bg-primary)
+  );
+}
+.pm-expense-table tbody tr:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--pm-accent-color) 45%, transparent);
+  outline-offset: -3px;
+}
 .pm-negative {
   color: #ff6b6b;
 }
@@ -628,7 +647,7 @@
 }
 .pm-empty-centered {
   padding: 0 !important;
-  height: calc(48px * 5); /* matches 5 rows height for consistency */
+  height: 112px;
   border-bottom: none !important;
 }
 .pm-expense-table.pm-empty-state tbody tr.pm-empty-row td {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useTheme } from "../../../hooks/useTheme";
 import { useStandardExpenseColumns } from "../../../features/expenses/hooks/useStandardExpenseColumns";
 import GroupedDataTable from "../GroupedDataTable/GroupedDataTable";
 import { FilterPopover } from "../../ui";
@@ -23,6 +24,7 @@ export const ExpenseListTable = ({
   ...props
 }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const navigate = useNavigate();
 
   // --- 1. Columns Resolution ---
@@ -176,7 +178,20 @@ export const ExpenseListTable = ({
   }
 
   return (
-    <>
+    <div
+      style={{
+        "--pm-text-primary": colors.primary_text,
+        "--pm-text-secondary": colors.secondary_text,
+        "--pm-text-tertiary": colors.placeholder_text,
+        "--pm-bg-primary": colors.primary_bg,
+        "--pm-bg-secondary": colors.secondary_bg,
+        "--pm-bg-tertiary": colors.tertiary_bg,
+        "--pm-border-color": colors.border_color,
+        "--pm-accent-color": colors.primary_accent,
+        "--pm-scrollbar-thumb": colors.secondary_text,
+        "--pm-scrollbar-track": colors.secondary_bg,
+      }}
+    >
       <GroupedDataTable
         rows={filteredRows}
         columns={effectiveColumns}
@@ -214,7 +229,7 @@ export const ExpenseListTable = ({
         onApply={handleFilterApply}
         onClear={handleFilterClear}
       />
-    </>
+    </div>
   );
 };
 
