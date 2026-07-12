@@ -358,4 +358,3 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense WHERE e.id IN :ids")
         List<Expense> findByIdInWithDetails(@Param("ids") List<Integer> ids);
 }
-

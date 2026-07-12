@@ -67,9 +67,7 @@ export function splitAmount(amount, parts) {
   if (!parts || parts <= 0) return [];
   const perPart = Math.floor((amount * 100) / parts) / 100;
   const remainder = Math.round((amount - perPart * parts) * 100) / 100;
-  return Array.from({ length: parts }, (_, i) =>
-    i === 0 ? perPart + remainder : perPart
-  );
+  return Array.from({ length: parts }, (_, i) => (i === 0 ? perPart + remainder : perPart));
 }
 
 export { CURRENCY_MAP };

@@ -8,7 +8,11 @@ import {
   bulkUserAction,
   fetchAllRoles,
 } from "../../../../Redux/Admin/admin.action";
+import { getFunctionalIcon } from "../../../../utils/iconMapping";
 import "./AdminDashboard.css";
+
+const fnIcon = (glyph, size = 20) =>
+  getFunctionalIcon(glyph, { sx: { fontSize: size } });
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
@@ -162,7 +166,7 @@ const AdminDashboard = () => {
       <div className="expense-overview-grid">
         <div className="expense-overview-card">
           <div className="expense-overview-header">
-            <div className="expense-overview-icon">👥</div>
+            <div className="expense-overview-icon">{fnIcon("👥", 24)}</div>
             <div
               className={`expense-overview-trend ${dashboardData.overview.userGrowth >= 0 ? "up" : "down"}`}
             >
@@ -184,7 +188,7 @@ const AdminDashboard = () => {
 
         <div className="expense-overview-card">
           <div className="expense-overview-header">
-            <div className="expense-overview-icon">💰</div>
+            <div className="expense-overview-icon">{fnIcon("💰", 24)}</div>
             <div
               className={`expense-overview-trend ${dashboardData.overview.revenueGrowth >= 0 ? "up" : "down"}`}
             >
@@ -208,7 +212,7 @@ const AdminDashboard = () => {
 
         <div className="expense-overview-card">
           <div className="expense-overview-header">
-            <div className="expense-overview-icon">📋</div>
+            <div className="expense-overview-icon">{fnIcon("📋", 24)}</div>
             <div
               className={`expense-overview-trend ${dashboardData.overview.expenseGrowth >= 0 ? "up" : "down"}`}
             >
@@ -234,7 +238,7 @@ const AdminDashboard = () => {
 
         <div className="expense-overview-card">
           <div className="expense-overview-header">
-            <div className="expense-overview-icon">✅</div>
+            <div className="expense-overview-icon">{fnIcon("✅", 24)}</div>
             <div
               className={`expense-overview-trend ${dashboardData.overview.userGrowth >= 0 ? "up" : "down"}`}
             >
@@ -258,12 +262,12 @@ const AdminDashboard = () => {
       <div className="expense-system-analytics">
         <div className="expense-section-header">
           <div className="expense-section-title">
-            <span className="expense-section-icon">📈</span>
+            <span className="expense-section-icon">{fnIcon("📈", 20)}</span>
             <h2>System Analytics</h2>
           </div>
           <div className="expense-section-actions">
             <button className="expense-btn secondary">
-              <span>📊</span>
+              <span>{fnIcon("📊", 20)}</span>
               Export Report
             </button>
           </div>
@@ -320,7 +324,7 @@ const AdminDashboard = () => {
           <div className="expense-quick-stats">
             <div className="expense-quick-stat revenue">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">💰</div>
+                <div className="expense-quick-stat-icon">{fnIcon("💰", 24)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +12%
@@ -332,7 +336,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat expenses">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">📊</div>
+                <div className="expense-quick-stat-icon">{fnIcon("📊", 20)}</div>
                 <div className="expense-quick-stat-trend down">
                   <span>↘</span>
                   -3%
@@ -344,7 +348,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat users">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">👥</div>
+                <div className="expense-quick-stat-icon">{fnIcon("👥", 24)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +8%
@@ -356,7 +360,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat growth">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">📈</div>
+                <div className="expense-quick-stat-icon">{fnIcon("📈", 20)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +15%
@@ -383,7 +387,7 @@ const AdminDashboard = () => {
         <div className="expense-user-management-header">
           <div className="expense-section-header">
             <div className="expense-section-title">
-              <span className="expense-section-icon">👥</span>
+              <span className="expense-section-icon">{fnIcon("👥", 24)}</span>
               <h2>User Management</h2>
               <span className="expense-user-count">
                 ({users.totalCount || 0} total)
@@ -410,7 +414,7 @@ const AdminDashboard = () => {
                 <option value="USER">User</option>
               </select>
               <button className="expense-btn primary">
-                <span>➕</span>
+                <span>{fnIcon("➕", 18)}</span>
                 Add User
               </button>
             </div>
@@ -591,12 +595,12 @@ const AdminDashboard = () => {
       <div className="expense-role-management">
         <div className="expense-section-header">
           <div className="expense-section-title">
-            <span className="expense-section-icon">🔐</span>
+            <span className="expense-section-icon">{fnIcon("🔐", 20)}</span>
             <h2>Roles & Permissions</h2>
           </div>
           <div className="expense-section-actions">
             <button className="expense-btn primary">
-              <span>➕</span>
+              <span>{fnIcon("➕", 18)}</span>
               Create Role
             </button>
           </div>
@@ -605,7 +609,7 @@ const AdminDashboard = () => {
         <div className="expense-roles-grid">
           <div className="expense-role-card">
             <div className="expense-role-header">
-              <div className="expense-role-icon">👑</div>
+              <div className="expense-role-icon">{fnIcon("👑", 22)}</div>
               <div className="expense-role-actions">
                 <button className="expense-icon-btn">
                   <span>✏️</span>
@@ -680,7 +684,7 @@ const AdminDashboard = () => {
 
           <div className="expense-role-card">
             <div className="expense-role-header">
-              <div className="expense-role-icon">👤</div>
+              <div className="expense-role-icon">{fnIcon("👤", 22)}</div>
               <div className="expense-role-actions">
                 <button className="expense-icon-btn">
                   <span>✏️</span>
@@ -725,7 +729,7 @@ const AdminDashboard = () => {
       <div className="expense-system-analytics">
         <div className="expense-section-header">
           <div className="expense-section-title">
-            <span className="expense-section-icon">📈</span>
+            <span className="expense-section-icon">{fnIcon("📈", 20)}</span>
             <h2>Advanced Analytics</h2>
           </div>
           <div className="expense-section-actions">
@@ -736,7 +740,7 @@ const AdminDashboard = () => {
               <option value="1y">Last year</option>
             </select>
             <button className="expense-btn primary">
-              <span>📊</span>
+              <span>{fnIcon("📊", 20)}</span>
               Generate Report
             </button>
           </div>
@@ -782,7 +786,7 @@ const AdminDashboard = () => {
           <div className="expense-quick-stats">
             <div className="expense-quick-stat revenue">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">💰</div>
+                <div className="expense-quick-stat-icon">{fnIcon("💰", 24)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +18%
@@ -794,7 +798,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat expenses">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">📊</div>
+                <div className="expense-quick-stat-icon">{fnIcon("📊", 20)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +5%
@@ -806,7 +810,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat users">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">👥</div>
+                <div className="expense-quick-stat-icon">{fnIcon("👥", 24)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +12%
@@ -818,7 +822,7 @@ const AdminDashboard = () => {
 
             <div className="expense-quick-stat growth">
               <div className="expense-quick-stat-header">
-                <div className="expense-quick-stat-icon">📈</div>
+                <div className="expense-quick-stat-icon">{fnIcon("📈", 20)}</div>
                 <div className="expense-quick-stat-trend up">
                   <span>↗</span>
                   +25%
@@ -843,11 +847,11 @@ const AdminDashboard = () => {
           </div>
           <div className="expense-section-actions">
             <button className="expense-btn secondary">
-              <span>📥</span>
+              <span>{fnIcon("📥", 18)}</span>
               Export Logs
             </button>
             <button className="expense-btn primary">
-              <span>🔍</span>
+              <span>{fnIcon("🔍", 18)}</span>
               Security Scan
             </button>
           </div>
@@ -873,7 +877,7 @@ const AdminDashboard = () => {
           </div>
 
           <div className="expense-security-metric good">
-            <div className="expense-metric-icon">🔐</div>
+            <div className="expense-metric-icon">{fnIcon("🔐", 20)}</div>
             <div className="expense-metric-content">
               <h4>Active Sessions</h4>
               <span className="expense-metric-value">1,247</span>
@@ -999,11 +1003,11 @@ const AdminDashboard = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <span className="expense-search-icon">🔍</span>
+              <span className="expense-search-icon">{fnIcon("🔍", 18)}</span>
             </div>
 
             <button className="expense-notification-btn">
-              <span>🔔</span>
+              <span>{fnIcon("🔔", 18)}</span>
               <div className="expense-notification-badge">3</div>
             </button>
 

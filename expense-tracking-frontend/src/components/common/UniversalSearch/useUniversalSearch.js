@@ -34,6 +34,13 @@ const MAX_RESULTS_PER_SECTION = 20;
 // API endpoint for unified search
 const SEARCH_API_ENDPOINT = "/api/search";
 
+const getExpenseName = (expense) =>
+  expense?.name ||
+  expense?.expenseName ||
+  expense?.expense?.name ||
+  expense?.expense?.expenseName ||
+  "";
+
 const normalizeCollection = (value) => {
   if (Array.isArray(value)) {
     return value;
@@ -250,7 +257,7 @@ export const useUniversalSearch = () => {
       // Search expenses - expense data structure: { id, name, amount, categoryName, date, ... }
       const matchedExpenses = (expenses || [])
         .filter((exp) => {
-          const name = exp?.name || exp?.expense?.name || "";
+          const name = getExpenseName(exp);
           const description =
             exp?.description || exp?.expense?.description || "";
           const categoryName = exp?.categoryName || exp?.category?.name || "";
@@ -264,7 +271,7 @@ export const useUniversalSearch = () => {
         })
         .slice(0, MAX_RESULTS_PER_SECTION)
         .map((exp) => {
-          const expName = exp?.name || exp?.expense?.name || "Expense";
+          const expName = getExpenseName(exp) || "Expense";
           const amount = exp?.amount || exp?.expense?.amount || 0;
           const categoryName =
             exp?.categoryName || exp?.category?.name || "Uncategorized";

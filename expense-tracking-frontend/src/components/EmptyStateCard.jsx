@@ -1,9 +1,23 @@
-import React from "react";
+import React, { isValidElement } from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
+import { getFunctionalIcon, isEmojiGlyph } from "../utils/iconMapping";
+
+const renderIcon = (icon, color) => {
+  if (icon == null) return null;
+  if (isValidElement(icon)) return icon;
+  if (typeof icon === "function") {
+    const IconComponent = icon;
+    return <IconComponent sx={{ fontSize: 28, color }} />;
+  }
+  if (isEmojiGlyph(icon) || typeof icon === "string") {
+    return getFunctionalIcon(icon, { sx: { fontSize: 28, color } });
+  }
+  return null;
+};
 
 const EmptyStateCard = ({
-  icon = "📭",
+  icon = "inbox",
   title = "No data",
   message = "Nothing to display yet.",
   height = 220,
@@ -37,11 +51,10 @@ const EmptyStateCard = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 24,
         }}
         aria-hidden
       >
-        {icon}
+        {renderIcon(icon, colors.secondary_accent)}
       </div>
       <div style={{ fontWeight: 700 }}>{title}</div>
       <div
@@ -58,7 +71,11 @@ const EmptyStateCard = ({
 };
 
 EmptyStateCard.propTypes = {
-  icon: PropTypes.string,
+  icon: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.node,
+    PropTypes.func,
+  ]),
   title: PropTypes.string,
   message: PropTypes.string,
   height: PropTypes.number,

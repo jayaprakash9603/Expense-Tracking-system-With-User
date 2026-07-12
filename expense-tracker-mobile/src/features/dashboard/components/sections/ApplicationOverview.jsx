@@ -1,5 +1,16 @@
 import React from "react";
-import { Receipt, CreditCard, Wallet, Users, UsersRound, CalendarClock, TrendingDown, PiggyBank, LayoutGrid, Star } from "lucide-react";
+import {
+  Receipt,
+  CreditCard,
+  Wallet,
+  Users,
+  UsersRound,
+  CalendarClock,
+  TrendingDown,
+  PiggyBank,
+  LayoutGrid,
+  Star,
+} from "lucide-react";
 import { AppCard } from "@/shared/components/display/AppCard";
 import { MiniStatCard } from "@/shared/components/display/MiniStatCard";
 import { SectionHeader } from "@/shared/components/display/SectionHeader";
@@ -23,11 +34,41 @@ export function ApplicationOverview() {
   } = useDashboardData();
 
   const primaryStats = [
-    { key: "expenses", icon: Receipt, iconColor: "primary", title: t("dashboard.totalSpending"), rawAmount: totalExpenses },
-    { key: "credit", icon: CreditCard, iconColor: "warning", title: t("analytics.creditDue"), rawAmount: creditDue },
-    { key: "budgets", icon: Wallet, iconColor: "success", title: t("dashboard.activeBudgets"), value: String(activeBudgets) },
-    { key: "friends", icon: Users, iconColor: "info", title: t("dashboard.friends"), value: String(friendsCount) },
-    { key: "groups", icon: UsersRound, iconColor: "primary", title: t("navigation.groups"), value: String(groupsCount) },
+    {
+      key: "expenses",
+      icon: Receipt,
+      iconColor: "primary",
+      title: t("dashboard.totalSpending"),
+      rawAmount: totalExpenses,
+    },
+    {
+      key: "credit",
+      icon: CreditCard,
+      iconColor: "warning",
+      title: t("analytics.creditDue"),
+      rawAmount: creditDue,
+    },
+    {
+      key: "budgets",
+      icon: Wallet,
+      iconColor: "success",
+      title: t("dashboard.activeBudgets"),
+      value: String(activeBudgets),
+    },
+    {
+      key: "friends",
+      icon: Users,
+      iconColor: "info",
+      title: t("dashboard.friends"),
+      value: String(friendsCount),
+    },
+    {
+      key: "groups",
+      icon: UsersRound,
+      iconColor: "primary",
+      title: t("navigation.groups"),
+      value: String(groupsCount),
+    },
   ];
 
   const secondaryStats = [
@@ -85,13 +126,20 @@ export function ApplicationOverview() {
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {topExpenses.slice(0, 4).map((expense, idx) => (
-                <div key={expense.id || idx} className="flex items-center gap-3 rounded-lg border border-border p-2.5">
+                <div
+                  key={expense.id || idx}
+                  className="flex items-center gap-3 rounded-lg border border-border p-2.5"
+                >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                     {idx + 1}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{expense.name || expense.itemName}</p>
-                    <p className="text-xs text-muted-foreground">{expense.date || expense.expenseDate}</p>
+                    <p className="truncate text-sm font-medium">
+                      {expense.name || expense.itemName}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {expense.date || expense.expenseDate}
+                    </p>
                   </div>
                   <span className="whitespace-nowrap text-sm font-bold">
                     {format(Number(expense.amount || 0))}

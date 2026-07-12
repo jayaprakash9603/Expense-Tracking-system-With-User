@@ -291,6 +291,42 @@ import {
   VolumeOff,
   Category,
   MoreHoriz,
+
+  // Functional / action icons
+  Add,
+  Remove,
+  Close,
+  Search,
+  ArrowUpward,
+  ArrowDownward,
+  ArrowForward,
+  Schedule,
+  Sync,
+  Logout,
+  Login,
+  Download,
+  Upload,
+  IosShare,
+  Notifications,
+  HelpOutline,
+  Info,
+  Mail,
+  DirectionsWalk,
+  WorkspacePremium,
+  LocalFireDepartment,
+  TipsAndUpdates,
+  Groups,
+  Person,
+  Groups2,
+  MenuBook as MenuBookAlt,
+  PictureAsPdf,
+  TableChart,
+  ContentCopy,
+  Refresh,
+  FilterList,
+  Sort,
+  Visibility as VisibilityAlt,
+  Dashboard as DashboardIcon,
 } from "@mui/icons-material";
 
 /**
@@ -1349,6 +1385,264 @@ export const paymentMethodIconMap = {
   payment: Paid,
   other: MoreHoriz,
   others: MoreHoriz,
+};
+
+/**
+ * Functional / action icon mapping
+ * Maps emoji glyphs and semantic keys used in navigation, quick actions,
+ * empty states, tabs and status badges to MUI icon components.
+ *
+ * These mappings intentionally shadow ambiguous glyphs from the category map
+ * with more action-appropriate icons (for example 🔄 -> Sync instead of
+ * AutoAwesome, 🚪 -> Logout instead of DoorFront).
+ */
+export const actionIconMap = {
+  // Structural / navigation
+  "🏠": Home,
+  "🏡": House,
+  "🏢": Apartment,
+  "📊": BarChart,
+  "📈": TrendingUp,
+  "📉": TrendingDown,
+  "📋": Assignment,
+  "📄": InsertDriveFile,
+  "📃": Article,
+  "📑": Description,
+  "📝": EditNote,
+  "🧾": Receipt,
+  "📚": MenuBook,
+  "📖": AutoStories,
+  "🗂️": Topic,
+  "📁": Folder,
+  "📂": FolderOpen,
+  "🗄️": Topic,
+  "🗃️": Topic,
+  "📌": PushPin,
+  "📍": LocationOn,
+  "🏷️": LocalOffer,
+  "💳": CreditCard,
+  "💰": MonetizationOn,
+  "💵": AttachMoney,
+  "💸": Paid,
+  "🏦": AccountBalance,
+  "🏛️": AccountBalance,
+  "🧮": Calculate,
+  "⚖️": Balance,
+  "🎯": TrackChanges,
+  "💼": BusinessCenter,
+  "🛒": ShoppingCart,
+  "🛍️": ShoppingBag,
+
+  // Actions
+  "➕": Add,
+  "➖": Remove,
+  "✏️": Edit,
+  "🖊️": Edit,
+  "🗑️": Delete,
+  "🔍": Search,
+  "🔎": Search,
+  "🔄": Sync,
+  "🔁": Sync,
+  "📤": IosShare,
+  "📥": Download,
+  "📎": AttachFile,
+  "✂️": ContentCut,
+  "🖨️": Print,
+  "🚪": Logout,
+  "📨": Mail,
+  "📧": Email,
+  "📫": MailOutline,
+  "📬": MailOutline,
+  "📭": MailOutline,
+  "📮": MailOutline,
+  "📪": MailOutline,
+  "📢": Campaign,
+  "📣": Announcement,
+  "🚶": DirectionsWalk,
+
+  // People
+  "👥": Groups,
+  "👤": Person,
+  "🧑‍🤝‍🧑": Diversity3,
+  "👪": FamilyRestroom,
+
+  // Status & feedback
+  "⚡": Bolt,
+  "🔔": Notifications,
+  "🔕": VolumeOff,
+  "❓": HelpOutline,
+  "❗": Warning,
+  "⚠️": Warning,
+  "✅": CheckCircle,
+  "❌": Close,
+  "🚫": Block,
+  "⛔": Block,
+  "🔒": Lock,
+  "🔐": Lock,
+  "🔓": LockOpen,
+  "🛡️": Shield,
+  "🗳️": HowToVote,
+  "⚙️": Settings,
+  "🔧": Build,
+  "🔨": Handyman,
+
+  // Time / dates
+  "🕒": Schedule,
+  "🕐": Schedule,
+  "🕘": Schedule,
+  "⏰": Schedule,
+  "⏱️": Schedule,
+  "⏲️": Schedule,
+  "📅": CalendarMonth,
+  "📆": Event,
+
+  // Direction / trend
+  "⬆️": ArrowUpward,
+  "⬇️": ArrowDownward,
+  "⬆": ArrowUpward,
+  "⬇": ArrowDownward,
+  "➡️": ArrowForward,
+
+  // Highlights / rewards
+  "⭐": Star,
+  "🌟": Star,
+  "💡": Lightbulb,
+  "🏆": EmojiEvents,
+  "🥇": MilitaryTech,
+  "🔥": LocalFireDepartment,
+  "👑": WorkspacePremium,
+  "🚀": Rocket,
+  "✨": AutoAwesome,
+
+  // Export formats
+  "📕": PictureAsPdf,
+  "📊📄": TableChart,
+
+  // Semantic keys used directly in configs
+  add: Add,
+  remove: Remove,
+  edit: Edit,
+  delete: Delete,
+  search: Search,
+  sync: Sync,
+  refresh: Refresh,
+  share: IosShare,
+  upload: Upload,
+  download: Download,
+  export: IosShare,
+  filter: FilterList,
+  sort: Sort,
+  logout: Logout,
+  login: Login,
+  home: Home,
+  dashboard: DashboardIcon,
+  expense: MonetizationOn,
+  expenses: MonetizationOn,
+  budget: BarChart,
+  budgets: BarChart,
+  category: LocalOffer,
+  categories: LocalOffer,
+  bill: InsertDriveFile,
+  bills: InsertDriveFile,
+  "payment-method": CreditCard,
+  paymentmethod: CreditCard,
+  payment: CreditCard,
+  friend: Groups,
+  friends: Groups,
+  group: Groups,
+  groups: Groups,
+  user: Person,
+  users: Groups,
+  admin: Shield,
+  report: BarChart,
+  reports: BarChart,
+  analytics: TrendingUp,
+  cashflow: TrendingUp,
+  trend: TrendingUp,
+  settings: Settings,
+  preferences: Settings,
+  notifications: Notifications,
+  notification: Notifications,
+  help: HelpOutline,
+  info: Info,
+  action: Bolt,
+  schedule: Schedule,
+  time: Schedule,
+  clock: Schedule,
+  calendar: CalendarMonth,
+  event: Event,
+  target: TrackChanges,
+  goal: TrackChanges,
+  income: TrendingUp,
+  spending: TrendingDown,
+  savings: Savings,
+  balance: Balance,
+  tour: DirectionsWalk,
+  restart: Sync,
+  tip: Lightbulb,
+  tips: TipsAndUpdates,
+  premium: WorkspacePremium,
+  streak: LocalFireDepartment,
+  achievement: EmojiEvents,
+  trophy: EmojiEvents,
+  rocket: Rocket,
+  star: Star,
+  favorite: Star,
+  success: CheckCircle,
+  error: Warning,
+  warning: Warning,
+  close: Close,
+  copy: ContentCopy,
+  pdf: PictureAsPdf,
+  csv: TableChart,
+  table: TableChart,
+  chart: BarChart,
+};
+
+/**
+ * Resolve a functional/UI icon by key or emoji glyph, falling back through
+ * the action, category and payment maps before landing on a neutral default.
+ *
+ * @param {string} iconKey - Emoji glyph or semantic key
+ * @returns {React.ComponentType|null} MUI icon component (not element)
+ */
+export const resolveFunctionalIconComponent = (iconKey) => {
+  if (!iconKey) return null;
+  const raw = String(iconKey).trim();
+  const lower = raw.toLowerCase();
+  return (
+    actionIconMap[raw] ||
+    actionIconMap[lower] ||
+    categoryIconMap[raw] ||
+    categoryIconMap[lower] ||
+    paymentMethodIconMap[raw] ||
+    paymentMethodIconMap[lower] ||
+    null
+  );
+};
+
+/**
+ * Render a functional icon (navigation/action/status) as a MUI element.
+ * When the key/glyph is unknown, falls back to a neutral Category icon.
+ *
+ * @param {string} iconKey - Emoji glyph or semantic key
+ * @param {object} props - Additional props (sx, fontSize, color, ...)
+ * @returns {React.Element}
+ */
+export const getFunctionalIcon = (iconKey, props = {}) => {
+  const Icon = resolveFunctionalIconComponent(iconKey) || Category;
+  return <Icon {...props} />;
+};
+
+/**
+ * Check whether a value is a single emoji glyph (rather than plain text).
+ * Used by legacy components that accept either an emoji string or a node.
+ */
+export const isEmojiGlyph = (value) => {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 6) return false;
+  return /\p{Extended_Pictographic}/u.test(trimmed);
 };
 
 /**

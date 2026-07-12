@@ -59,7 +59,9 @@ function SidebarContent() {
           <h2
             className={cn(
               "text-sm font-bold truncate transition-[opacity,max-width,margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-              collapsed ? "opacity-0 max-w-0 ml-0 overflow-hidden" : "opacity-100 max-w-[200px] ml-3",
+              collapsed
+                ? "opacity-0 max-w-0 ml-0 overflow-hidden"
+                : "opacity-100 max-w-[200px] ml-3",
             )}
           >
             {APP_NAME}
@@ -118,7 +120,9 @@ function SidebarContent() {
                     <span
                       className={cn(
                         "text-sm truncate transition-[opacity,max-width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
-                        collapsed ? "opacity-0 max-w-0 overflow-hidden" : "opacity-100 max-w-[200px]",
+                        collapsed
+                          ? "opacity-0 max-w-0 overflow-hidden"
+                          : "opacity-100 max-w-[200px]",
                         active ? "icon-primary" : "text-muted-foreground",
                       )}
                     >
@@ -133,7 +137,6 @@ function SidebarContent() {
       </nav>
 
       <div className="shrink-0 border-t border-border p-2 space-y-1.5">
-
         <Separator />
 
         <SidebarProfileFooter

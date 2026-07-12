@@ -124,7 +124,12 @@ export function DashboardPageContent() {
 
         return (
           <ContentSection key={`row-${idx}`}>
-            <div className={cn("grid items-stretch gap-4 md:gap-6", getDashboardRowCols(group.sections))}>
+            <div
+              className={cn(
+                "grid items-stretch gap-4 md:gap-6",
+                getDashboardRowCols(group.sections),
+              )}
+            >
               {group.sections.map((section) => {
                 const Component = SECTION_COMPONENTS[section.id];
                 if (!Component) return null;

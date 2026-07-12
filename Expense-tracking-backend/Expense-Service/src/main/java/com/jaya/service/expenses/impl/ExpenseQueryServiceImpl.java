@@ -43,7 +43,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
 
-    
     private final ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2);
 
@@ -213,20 +212,16 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Override
     public Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date) {
 
-        
         Pageable pageable = PageRequest.of(0, 50);
         List<Expense> expensesBeforeDate = expenseRepository.findByUserAndExpenseNameBeforeDate(userId, expenseName,
                 date, pageable);
 
-        
         if (expensesBeforeDate == null || expensesBeforeDate.isEmpty()) {
             return null;
         }
 
         Expense result = expensesBeforeDate.get(0);
 
-        
-        
         CompletableFuture<Map<String, Object>> categoryStatsFuture = CompletableFuture.supplyAsync(
                 () -> computeFieldFrequency(expensesBeforeDate, "category"),
                 executorService);
@@ -243,11 +238,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 () -> findMostCommonCommentPrefix(expensesBeforeDate, date),
                 executorService);
 
-        
         CompletableFuture.allOf(categoryStatsFuture, typeStatsFuture, paymentStatsFuture, commentSuggestionFuture)
                 .join();
 
-        
         Map<String, Object> stats = categoryStatsFuture.join();
         Map<String, Object> typeStats = typeStatsFuture.join();
         Map<String, Object> paymentStats = paymentStatsFuture.join();
@@ -258,14 +251,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         String topType = (String) typeStats.get("mostUsed");
         String topPaymentMethod = (String) paymentStats.get("mostUsed");
 
-        
         result.setCategoryName(topCategory);
         result.setCategoryId(topCategoryId);
         if (result.getExpense() != null) {
             result.getExpense().setType(topType);
             result.getExpense().setPaymentMethod(topPaymentMethod);
 
-            
             if (suggestedComment != null && !suggestedComment.isEmpty()) {
                 result.getExpense().setComments(suggestedComment);
             }
@@ -274,31 +265,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return result;
     }
 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     private String findMostCommonCommentPrefix(List<Expense> expenses, LocalDate expenseDate) {
         if (expenses == null || expenses.isEmpty()) {
             return null;
         }
 
-        
         List<String> comments = expenses.parallelStream()
                 .filter(e -> e.getExpense() != null && e.getExpense().getComments() != null)
                 .map(e -> e.getExpense().getComments().trim())
@@ -309,57 +280,29 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
         if (comments.size() == 1) {
             return comments.get(0);
         }
 
-        
         String monthBasedSuggestion = detectMonthBasedPatternWithOffset(expenses, expenseDate);
         if (monthBasedSuggestion != null && !monthBasedSuggestion.isEmpty()) {
             return monthBasedSuggestion;
         }
 
-        
         return findPrefixBasedPattern(comments);
     }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private String detectMonthBasedPattern(List<String> comments, LocalDate expenseDate) {
         if (comments == null || comments.size() < 2 || expenseDate == null) {
             return null;
         }
 
-        
-        
         Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
 
-        
-        
-        
-        
-
         for (String comment : comments) {
-            
+
             String template = replaceMonthsWithPlaceholder(comment);
 
-            
             if (!template.equals(comment) && template.contains("{MONTH}")) {
                 TemplateInfoWithOffset info = templateFrequency.get(template.toLowerCase());
                 if (info == null) {
@@ -374,7 +317,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
         int minFrequencyThreshold = Math.max(2, comments.size() / 3);
 
         TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
@@ -387,31 +329,18 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
         String currentMonthName = expenseDate.getMonth().toString();
-        
+
         currentMonthName = currentMonthName.charAt(0) + currentMonthName.substring(1).toLowerCase();
 
-        
         return bestTemplate.template.replace("{MONTH}", currentMonthName);
     }
-
-    
-
-
-
-
-
-
-
-
 
     private String detectMonthBasedPatternWithOffset(List<Expense> expenses, LocalDate expenseDate) {
         if (expenses == null || expenses.size() < 2 || expenseDate == null) {
             return null;
         }
 
-        
         Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
 
         for (Expense expense : expenses) {
@@ -429,15 +358,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 continue;
             }
 
-            
             String template = replaceMonthsWithPlaceholder(comment);
 
-            
             template = replaceVariablePartsWithPlaceholders(template);
 
             String extractedMonth = extractMonthFromComment(comment);
 
-            
             if (!template.equals(comment) &&
                     (template.contains("{MONTH}") || template.contains("{LOCATION}") ||
                             template.contains("{APP}") || template.contains("{ITEM}") ||
@@ -453,23 +379,20 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
                 info.incrementCount();
 
-                
                 if (extractedMonth != null && template.contains("{MONTH}")) {
                     int mentionedMonthValue = getMonthNumber(extractedMonth);
                     int entryMonthValue = expenseEntryDate.getMonthValue();
 
-                    
                     int monthOffset = mentionedMonthValue - entryMonthValue;
                     if (monthOffset < -6) {
-                        monthOffset += 12; 
+                        monthOffset += 12;
                     } else if (monthOffset > 6) {
-                        monthOffset -= 12; 
+                        monthOffset -= 12;
                     }
 
                     info.addMonthOffset(monthOffset);
                 }
 
-                
                 info.addOriginalComment(comment);
             }
         }
@@ -478,7 +401,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
         int minFrequencyThreshold = Math.max(2, expenses.size() / 3);
 
         TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
@@ -491,10 +413,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
         String suggestion = bestTemplate.template;
 
-        
         if (suggestion.contains("{MONTH}")) {
             int avgMonthOffset = bestTemplate.getAverageMonthOffset();
             LocalDate targetDate = expenseDate.plusMonths(avgMonthOffset);
@@ -503,7 +423,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             suggestion = suggestion.replace("{MONTH}", targetMonthName);
         }
 
-        
         if (suggestion.contains("{LOCATION}")) {
             String commonLocation = bestTemplate.getMostCommonValueForPlaceholder("location");
             if (commonLocation != null) {
@@ -511,7 +430,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-        
         if (suggestion.contains("{APP}")) {
             String commonApp = bestTemplate.getMostCommonValueForPlaceholder("app");
             if (commonApp != null) {
@@ -519,7 +437,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-        
         if (suggestion.contains("{ITEM}")) {
             String commonItem = bestTemplate.getMostCommonValueForPlaceholder("item");
             if (commonItem != null) {
@@ -527,7 +444,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-        
         if (suggestion.contains("{PERSON}")) {
             String commonPerson = bestTemplate.getMostCommonValueForPlaceholder("person");
             if (commonPerson != null) {
@@ -537,12 +453,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         return suggestion;
     }
-
-    
-
-
-
-
 
     private String extractMonthFromComment(String comment) {
         if (comment == null || comment.isEmpty()) {
@@ -563,12 +473,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return null;
     }
 
-    
-
-
-
-
-
     private int getMonthNumber(String monthName) {
         if (monthName == null) {
             return 0;
@@ -588,19 +492,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return 0;
     }
 
-    
-
-
-
-
-
-
     private String replaceMonthsWithPlaceholder(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
 
-        
         String[] months = {
                 "January", "February", "March", "April", "May", "June",
                 "July", "August", "September", "October", "November", "December"
@@ -608,19 +504,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         String result = text;
         for (String month : months) {
-            
+
             result = result.replaceAll("(?i)\\b" + month + "\\b", "{MONTH}");
         }
 
         return result;
     }
-
-    
-
-
-
-
-
 
     private String replaceVariablePartsWithPlaceholders(String text) {
         if (text == null || text.isEmpty()) {
@@ -629,7 +518,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         String result = text;
 
-        
         String[] locations = {
                 "Seasons Mall", "seasons mall", "Avenue Mall", "avenue mall",
                 "Dmart", "dmart", "DMart", "Movie Theatre", "movie theatre",
@@ -640,7 +528,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             result = result.replaceAll("(?i)\\b" + location + "\\b", "{LOCATION}");
         }
 
-        
         String[] apps = {
                 "KIWI", "Kiwi", "kiwi", "CRED", "Cred", "cred",
                 "Google Pay", "google pay", "Super Money", "super money",
@@ -650,7 +537,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             result = result.replaceAll("(?i)\\b" + app + "\\b", "{APP}");
         }
 
-        
         String[] items = {
                 "Bread Jam", "bread jam", "Bread-Jam", "bread-jam",
                 "Dry Fruits", "dry fruits", "Dry fruits",
@@ -660,7 +546,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             result = result.replaceAll("(?i)" + item, "{ITEM}");
         }
 
-        
         String[] people = { "Mother", "mother", "Daddy", "daddy" };
         for (String person : people) {
             result = result.replaceAll("(?i)\\b" + person + "\\b", "{PERSON}");
@@ -669,30 +554,20 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return result;
     }
 
-    
-
-
-
-
-
-
     private String findPrefixBasedPattern(List<String> comments) {
-        
+
         Map<String, PrefixInfo> prefixFrequency = new HashMap<>();
 
-        
         for (String comment : comments) {
             String[] words = comment.split("\\s+");
             StringBuilder prefix = new StringBuilder();
 
-            
             for (int i = 0; i < words.length; i++) {
                 if (i > 0) {
                     prefix.append(" ");
                 }
                 prefix.append(words[i]);
 
-                
                 if (i >= 1) {
                     String currentPrefix = prefix.toString();
                     String normalizedKey = currentPrefix.toLowerCase();
@@ -707,7 +582,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-        
         if (prefixFrequency.isEmpty()) {
             for (String comment : comments) {
                 String[] words = comment.split("\\s+");
@@ -729,10 +603,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        
-        
-        
-        
         int minFrequencyThreshold = Math.max(2, comments.size() / 3);
 
         return prefixFrequency.values().stream()
@@ -743,9 +613,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 .map(info -> info.originalPrefix)
                 .orElse(null);
     }
-
-    
-
 
     private static class TemplateInfo {
         String template;
@@ -761,18 +628,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
     }
 
-    
-
-
-
-
-
-
     private static class TemplateInfoWithOffset {
         String template;
         int count;
-        List<Integer> monthOffsets; 
-        List<String> originalComments; 
+        List<Integer> monthOffsets;
+        List<String> originalComments;
 
         TemplateInfoWithOffset(String template, int count) {
             this.template = template;
@@ -795,37 +655,19 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
         }
 
-        
-
-
-
-
-
-
         int getAverageMonthOffset() {
             if (monthOffsets.isEmpty()) {
-                return 0; 
+                return 0;
             }
 
-            
             double sum = 0;
             for (int offset : monthOffsets) {
                 sum += offset;
             }
             double average = sum / monthOffsets.size();
 
-            
             return (int) Math.round(average);
         }
-
-        
-
-
-
-
-
-
-
 
         String getMostCommonValueForPlaceholder(String placeholderType) {
             if (originalComments.isEmpty()) {
@@ -841,15 +683,11 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 }
             }
 
-            
             return valueFrequency.entrySet().stream()
                     .max(Comparator.comparingInt(Map.Entry::getValue))
                     .map(Map.Entry::getKey)
                     .orElse(null);
         }
-
-        
-
 
         private List<String> extractValuesForPlaceholder(String comment, String placeholderType) {
             List<String> values = new ArrayList<>();
@@ -913,9 +751,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         }
     }
 
-    
-
-
     private static class PrefixInfo {
         String originalPrefix;
         int count;
@@ -949,11 +784,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         String normalized = fieldName.trim().toLowerCase();
 
-        
         Map<String, Long> counts = new HashMap<>();
         Map<String, Integer> valueIds = new HashMap<>();
 
-        
         expenses.parallelStream()
                 .filter(e -> e != null)
                 .forEach(e -> {
@@ -980,7 +813,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         value = "Unknown";
                     }
 
-                    
                     synchronized (counts) {
                         counts.merge(value, 1L, Long::sum);
                     }
@@ -1025,7 +857,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             case "paymentmethod":
                 return e.getExpense() != null ? safeLower(e.getExpense().getPaymentMethod()) : null;
             case "category":
-                
+
                 if (e.getCategoryName() != null)
                     return e.getCategoryName();
                 if (e.getCategoryId() != null) {
@@ -1122,7 +954,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
             case "custom":
-                startDate = now.minusDays(30); 
+                startDate = now.minusDays(30);
                 endDate = now;
                 break;
             default:
@@ -1131,7 +963,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         List<ExpenseCategory> userCategories = categoryService.getAllForUser(userId);
 
-        
         List<ExpensePaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
         Map<Integer, ExpenseCategory> categoryMap = userCategories.stream()
                 .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
@@ -1220,7 +1051,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         List<ExpenseCategory> userCategories = categoryService.getAllForUser(userId);
 
-        
         List<ExpensePaymentMethod> allPaymentMethods = paymentMethodService.getAllPaymentMethods(userId);
         Map<Integer, ExpenseCategory> categoryMap = userCategories.stream()
                 .collect(Collectors.toMap(ExpenseCategory::getId, c -> c, (a, b) -> a));
@@ -1313,11 +1143,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     public Map<String, Object> getFilteredExpensesByPaymentMethod(Integer userId, LocalDate fromDate, LocalDate toDate,
             String flowType) {
 
-        
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, fromDate, toDate, flowType);
 
-        
-        
         Map<Integer, ExpenseCategory> categoryMap = Map.of();
         Map<String, ExpensePaymentMethod> paymentMethodMap = Map.of();
         try {
@@ -1333,7 +1160,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
-            
+
         }
         final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
         final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
@@ -1346,10 +1173,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             paymentMethodExpensesMap.computeIfAbsent(paymentMethod, k -> new ArrayList<>()).add(expense);
         }
 
-        
         paymentMethodExpensesMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
 
-        
         Map<String, Object> response = new HashMap<>();
         int totalPaymentMethods = paymentMethodExpensesMap.size();
         int totalExpenses = 0;
@@ -1370,7 +1195,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(paymentMethod, methodTotal);
 
-            
             ExpensePaymentMethod pmEntity = finalPaymentMethodMap.get(paymentMethod);
 
             Map<String, Object> methodDetails = new HashMap<>();
@@ -1393,14 +1217,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             response.put(paymentMethod, methodDetails);
         }
 
-        
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalPaymentMethods", totalPaymentMethods);
         summary.put("totalExpenses", totalExpenses);
         summary.put("totalAmount", totalAmount);
         summary.put("paymentMethodTotals", paymentMethodTotals);
 
-        
         Map<String, Object> dateRangeInfo = new HashMap<>();
         dateRangeInfo.put("fromDate", fromDate);
         dateRangeInfo.put("toDate", toDate);
@@ -1442,8 +1264,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
         List<Expense> filteredExpenses = getExpensesWithinRange(userId, startDate, endDate, flowType);
 
-        
-        
         Map<Integer, ExpenseCategory> categoryMap = Map.of();
         Map<String, ExpensePaymentMethod> paymentMethodMap = Map.of();
         try {
@@ -1459,7 +1279,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
-            
+
         }
         final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
         final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
@@ -1494,7 +1314,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             }
             paymentMethodTotals.put(pmName, methodTotal);
 
-            
             ExpensePaymentMethod pmEntity = finalPaymentMethodMap.get(pmName);
             Map<String, Object> methodDetails = new HashMap<>();
             methodDetails.put("id", pmEntity != null ? pmEntity.getId() : null);
@@ -1530,18 +1349,16 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Override
     public Map<String, Object> getExpensesGroupedByDateWithValidation(Integer userId, int page, int size, String sortBy,
             String sortOrder) throws Exception {
-        
+
         List<String> validSortFields = Arrays.asList("date", "amount", "expenseName", "paymentMethod");
         if (!validSortFields.contains(sortBy)) {
             throw new IllegalArgumentException("Invalid sort field: " + sortBy);
         }
 
-        
         if (!sortOrder.equalsIgnoreCase("asc") && !sortOrder.equalsIgnoreCase("desc")) {
             throw new IllegalArgumentException("Invalid sort order: " + sortOrder);
         }
 
-        
         if (page < 0) {
             throw new IllegalArgumentException("Page number cannot be negative");
         }
@@ -1549,7 +1366,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             throw new IllegalArgumentException("Page size must be positive");
         }
 
-        
         Map<String, List<Map<String, Object>>> groupedExpenses = getExpensesGroupedByDateWithPagination(userId,
                 sortOrder, page, size, sortBy);
 
@@ -1557,7 +1373,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return Collections.emptyMap();
         }
 
-        
         Map<String, Object> response = new HashMap<>();
         response.put("data", groupedExpenses);
         response.put("page", page);
@@ -1573,12 +1388,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return buildCategoryDetailsMap(category, expenses, categoryTotal, null, null);
     }
 
-    
-
-
-
     private Map<String, Object> buildCategoryDetailsMap(ExpenseCategory category, List<Expense> expenses,
-            double categoryTotal, Map<Integer, ExpenseCategory> categoryMap, Map<String, ExpensePaymentMethod> paymentMethodMap) {
+            double categoryTotal, Map<Integer, ExpenseCategory> categoryMap,
+            Map<String, ExpensePaymentMethod> paymentMethodMap) {
         Map<String, Object> categoryDetails = new HashMap<>();
         categoryDetails.put("id", category.getId());
         categoryDetails.put("name", category.getName());
@@ -1608,11 +1420,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return formatExpensesForResponse(expenses, null, null);
     }
 
-    
-
-
-
-
     private List<ExpenseDTO> formatExpensesForResponse(List<Expense> expenses,
             Map<Integer, ExpenseCategory> categoryMap,
             Map<String, ExpensePaymentMethod> paymentMethodMap) {
@@ -1620,7 +1427,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return Collections.emptyList();
         }
 
-        
         if (categoryMap != null || paymentMethodMap != null) {
             return expenses.stream()
                     .map(expense -> expenseMapper.toDTO(expense, categoryMap, paymentMethodMap))
@@ -1628,7 +1434,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                     .collect(Collectors.toList());
         }
 
-        
         return expenses.stream()
                 .map(expenseMapper::toDTO)
                 .filter(Objects::nonNull)
@@ -1688,17 +1493,12 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         if (query == null || query.trim().isEmpty()) {
             return java.util.Collections.emptyList();
         }
-        
+
         String subsequencePattern = convertToSubsequencePattern(query.trim());
         List<ExpenseSearchDTO> results = expenseRepository.searchExpensesFuzzyWithLimit(userId, subsequencePattern);
-        
-        
+
         return results.stream().limit(limit).collect(Collectors.toList());
     }
-
-    
-
-
 
     private String convertToSubsequencePattern(String query) {
         if (query == null || query.isEmpty()) {
@@ -1711,5 +1511,3 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return pattern.toString();
     }
 }
-
-

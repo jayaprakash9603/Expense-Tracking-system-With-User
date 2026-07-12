@@ -19,8 +19,7 @@ function useRecentTransactionLimit() {
   const [limit, setLimit] = useState(RECENT_TXN_LIMIT_DESKTOP);
   useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${RECENT_TXN_MOBILE_MAX_WIDTH_PX}px)`);
-    const sync = () =>
-      setLimit(mq.matches ? RECENT_TXN_LIMIT_MOBILE : RECENT_TXN_LIMIT_DESKTOP);
+    const sync = () => setLimit(mq.matches ? RECENT_TXN_LIMIT_MOBILE : RECENT_TXN_LIMIT_DESKTOP);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
@@ -64,11 +63,7 @@ export function RecentTransactions() {
     <AppCard className="flex h-full min-h-0 flex-col">
       <AppCard.Header className="shrink-0">
         <SectionHeader icon={Clock} title={t("dashboard.recentTransactions")}>
-          <AppButton
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/expenses")}
-          >
+          <AppButton variant="outline" size="sm" onClick={() => navigate("/expenses")}>
             {t("dashboard.viewAll")}
           </AppButton>
         </SectionHeader>
@@ -96,9 +91,7 @@ export function RecentTransactions() {
                 format={format}
                 animated={animation.enabled}
                 onExpenseNavigate={(id) => navigate(`/expenses/${id}`)}
-                onCategoryNavigate={(categoryId) =>
-                  navigate(`/category-flow/view/${categoryId}`)
-                }
+                onCategoryNavigate={(categoryId) => navigate(`/category-flow/view/${categoryId}`)}
               />
             ))}
           </div>

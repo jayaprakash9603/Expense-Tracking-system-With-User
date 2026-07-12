@@ -1,7 +1,23 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, isValidElement } from "react";
 import { IconButton } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import IosShareIcon from "@mui/icons-material/IosShare";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useTheme } from "../../hooks/useTheme";
+import { getFunctionalIcon, isEmojiGlyph } from "../../utils/iconMapping";
+
+const renderMenuIcon = (icon, color) => {
+  if (icon == null) return null;
+  if (isValidElement(icon)) return icon;
+  if (typeof icon === "function") {
+    const IconComponent = icon;
+    return <IconComponent sx={{ fontSize: 18, color }} />;
+  }
+  if (isEmojiGlyph(icon) || typeof icon === "string") {
+    return getFunctionalIcon(icon, { sx: { fontSize: 18, color } });
+  }
+  return null;
+};
 
 /**
  * ReportActionsMenu - Reusable three-dot menu for report headers
@@ -119,7 +135,20 @@ export default function ReportActionsMenu({
                     e.currentTarget.style.backgroundColor = "transparent";
                   }}
                 >
-                  <span style={{ marginRight: 10 }}>{item.icon}</span>
+                  <span
+                    style={{
+                      marginRight: 10,
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {renderMenuIcon(
+                      item.icon,
+                      item.disabled
+                        ? colors.secondary_text
+                        : colors.secondary_accent
+                    )}
+                  </span>
                   <span style={{ fontSize: 14 }}>{item.label}</span>
                 </div>
               ))}
@@ -142,13 +171,13 @@ export const createDefaultReportMenuItems = ({
   {
     id: "export",
     label: "Export",
-    icon: "📤",
+    icon: <IosShareIcon fontSize="small" />,
     onClick: onExport,
   },
   {
     id: "customize",
     label: customizeLabel,
-    icon: "⚙️",
+    icon: <SettingsIcon fontSize="small" />,
     onClick: onCustomize,
   },
 ];
