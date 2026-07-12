@@ -744,7 +744,10 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
             className={`w-full relative mt-3 overflow-hidden ${
               isCreateMode ? "mb-20 lg:mb-0" : ""
             }`}
-            style={{ ...tableVars, maxHeight: "360px" }}
+            style={{
+              ...tableVars,
+              maxHeight: budgets.length > 0 ? "360px" : "none",
+            }}
           >
             <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">
               <div className="block sm:hidden self-end">

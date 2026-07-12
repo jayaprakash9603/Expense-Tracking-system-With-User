@@ -98,8 +98,7 @@ const BudgetSelectionTable = ({
     <div
       className="w-full relative"
       style={{
-        minHeight: filteredRows.length === 0 ? "160px" : undefined,
-        maxHeight: "360px",
+        maxHeight: filteredRows.length > 0 ? "360px" : "none",
         overflow: "hidden",
         borderRadius: "10px",
         border: `1px solid ${colors.border_color}`,

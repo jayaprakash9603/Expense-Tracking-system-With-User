@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import Checkbox from "@mui/material/Checkbox";
-import { formatAmount as fmt } from "../../../utils/formatAmount";
 import { handleSelectableSurfaceMouseDown } from "../../../utils/selectableSurface";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
@@ -161,7 +161,8 @@ const GroupedDataTable = ({
   const useScroll = pageSize > BASE_VISIBLE_ROWS;
   // Only show scroll when we actually have more rows than visible area
   const hasMoreRowsThanVisible = pageSlice.length > BASE_VISIBLE_ROWS;
-  const needsScrollContainer = useScroll && hasMoreRowsThanVisible;
+  const isEmpty = pageSlice.length === 0;
+  const needsScrollContainer = !isEmpty && useScroll && hasMoreRowsThanVisible;
   // If pageSlice is smaller than pageSize (e.g. last page), do we fill?
   // GenericAccordionGroup logic:
   const fillerRowsCount =
@@ -173,7 +174,7 @@ const GroupedDataTable = ({
   return (
     <div className={`pm-table-container ${className}`}>
       <div
-        className="pm-expense-table-wrapper"
+        className={`pm-expense-table-wrapper${needsScrollContainer ? " pm-scrollable" : ""}`}
         style={
           needsScrollContainer
             ? {
@@ -308,7 +309,7 @@ const GroupedDataTable = ({
                   className="pm-empty-centered"
                 >
                   <div className="pm-empty-message">
-                    <div className="pm-empty-icon">🗂️</div>
+                    <InboxOutlinedIcon className="pm-empty-icon" aria-hidden="true" />
                     <div className="pm-empty-title">
                       {activeTab === "all"
                         ? "No Records"
@@ -439,7 +440,7 @@ const GroupedDataTable = ({
         </table>
       </div>
 
-      {showPagination && (
+      {showPagination && !isEmpty && (
         <div
           className="pm-pagination-bar bottom"
           style={{

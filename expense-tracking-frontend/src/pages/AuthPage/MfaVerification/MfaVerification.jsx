@@ -218,10 +218,15 @@ const MfaVerification = () => {
           message: t("mfa.verification.loginSuccess"),
           severity: "success",
         });
+        const currentMode = String(
+          profileResponse.data?.currentMode || "",
+        ).toUpperCase();
+        const roles = profileResponse.data?.roles || [];
         const isAdmin =
-          profileResponse.data?.currentMode === "ADMIN" ||
-          profileResponse.data?.roles?.includes("ADMIN") ||
-          profileResponse.data?.roles?.includes("ROLE_ADMIN");
+          currentMode === "ADMIN" ||
+          roles.some((role) =>
+            ["ADMIN", "ROLE_ADMIN"].includes(String(role).toUpperCase()),
+          );
         setTimeout(
           () => navigate(isAdmin ? "/admin/dashboard" : "/dashboard", { replace: true }),
           1200,
@@ -229,7 +234,10 @@ const MfaVerification = () => {
       }
     } catch (error) {
       const errorMessage =
-        error.response?.data?.error || t("mfa.verification.verificationFailed");
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.response?.data?.details ||
+        "Invalid authentication code. Check the code and try again.";
       setError(errorMessage);
       dispatch({ type: LOGIN_FAILURE, payload: errorMessage });
 
@@ -246,7 +254,8 @@ const MfaVerification = () => {
       }
 
       // Check if token expired
-      if (error.response?.status === 401) {
+      const isExpiredSession = /expired|session|token/i.test(errorMessage);
+      if (error.response?.status === 401 && isExpiredSession) {
         setNotification({
           open: true,
           message: t("mfa.verification.sessionExpired"),
