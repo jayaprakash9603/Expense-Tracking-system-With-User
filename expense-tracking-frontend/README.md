@@ -4,7 +4,26 @@ Frontend for the Expense Tracking System. This app supports personal finance man
 
 ## Overview
 
-The frontend is built with React + Redux and uses centralized API/WebSocket configuration from `src/config/api.js`.
+The frontend is built with React + Redux (Vite build tooling) and uses centralized API/WebSocket configuration from `src/config/api.js`.
+
+## Development
+
+```
+npm install
+npm run dev       # start Vite dev server on http://localhost:3000
+npm run build     # produce production bundle in ./dist
+npm run preview   # preview the production build locally
+npm test          # run Vitest suite
+```
+
+## Cloudflare Pages Deployment
+
+- Root directory: `expense-tracking-frontend`
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Node version: `20`
+- Environment variables: define `REACT_APP_*` (or `VITE_*`) values in the Pages dashboard; both prefixes are exposed to source code via `process.env.<NAME>` at build time.
+- SPA fallback: `public/_redirects` is copied to `dist/_redirects` and routes all paths to `index.html`.
 
 ## Screenshots
 

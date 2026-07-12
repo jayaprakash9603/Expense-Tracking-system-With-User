@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../../hooks/useTheme";
+import { getAsset } from "../../assests/assetLoader";
 
 /**
  * Reusable navigation bar with shortcut buttons and an optional Add New popover.
@@ -61,7 +62,7 @@ export default function QuickNavBar({
             }}
           >
             <img
-              src={require(`../../assests/${icon}`)}
+              src={getAsset(icon)}
               alt={label}
               style={{
                 width: isMobile ? 16 : 18,
@@ -101,7 +102,7 @@ export default function QuickNavBar({
           }
         >
           <img
-            src={require("../../assests/add.png")}
+            src={getAsset("add.png")}
             alt="Add"
             style={{
               width: isMobile ? 14 : 16,

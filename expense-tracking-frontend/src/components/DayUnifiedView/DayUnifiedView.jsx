@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 import Modal from "../../shared/ui/overlays/Modal";
 import EditIcon from "@mui/icons-material/Edit";
+import cardPaymentIconAsset from "../../assests/card-payment.png";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DayViewSkeleton from "../DayViewSkeleton";
 import JumpToTodayButton from "../JumpToTodayButton";
@@ -678,7 +679,7 @@ const DayUnifiedView = ({
             isEmpty={true}
             showAddHint={hasWriteAccess}
             emptyTitle={emptyTitle}
-            iconSrc={require("../../assests/card-payment.png")}
+            iconSrc={cardPaymentIconAsset}
           />
         ) : (
           <Box

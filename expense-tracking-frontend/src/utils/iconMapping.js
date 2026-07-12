@@ -189,7 +189,6 @@ import {
 
   // Education & Work
   School,
-  MenuBookIcon,
   EditNote,
   Draw,
   Straighten,
@@ -247,7 +246,6 @@ import {
 
   // Pets & Animals
   Pets,
-  Cruelty,
 
   // Insurance & Legal
   Description,
@@ -278,7 +276,6 @@ import {
   VpnKey,
 
   // Taxes & Government
-  AccountBalanceIcon,
   HowToVote,
 
   // Miscellaneous
