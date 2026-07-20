@@ -6,7 +6,7 @@ import {
   formatDateLabel,
   normalizeExpenseForList,
   toNumber,
-} from "../../../utils/dailySpendingDrilldownUtils";
+} from "../../../utils/charts/dailySpendingDrilldownUtils";
 
 const ROWS_PER_PAGE_OPTIONS = [5, 10, 20, 50, 100];
 const BASE_VISIBLE_ROWS = 5;

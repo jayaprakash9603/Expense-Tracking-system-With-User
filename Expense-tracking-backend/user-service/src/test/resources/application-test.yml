@@ -50,3 +50,6 @@ logging:
 jwt:
   secret: integration-test-secret-key
   expiration: 3600000 # 1 hour for integration tests
+
+SERVICE_INTERNAL_TOKEN: test-internal-token
+USER_SERVICE_INTERNAL_TOKEN: test-internal-token

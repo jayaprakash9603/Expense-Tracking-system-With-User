@@ -40,7 +40,7 @@ import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../../components/PageHeader";
 import CustomDataTable from "../../components/common/CustomDataTable";
 import CategoryAnalyticsSkeleton from "../../components/skeletons/CategoryAnalyticsSkeleton";
-import { getFunctionalIcon } from "../../utils/iconMapping";
+import { getFunctionalIcon } from "../../utils/ui/iconMapping";
 import {
   AnalyticsKPICard,
   BudgetStatusCard,

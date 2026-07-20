@@ -1,4 +1,4 @@
-import { normalizePaymentMethod } from "../../../utils/paymentMethodUtils";
+import { normalizePaymentMethod } from "../../../utils/domain/paymentMethodUtils";
 
 export const REDIRECT_CONFIG = {
   buildFriendPath: (fid) => `/bill/${fid}`,

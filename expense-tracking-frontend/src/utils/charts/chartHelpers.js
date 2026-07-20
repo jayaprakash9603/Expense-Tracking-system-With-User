@@ -2,7 +2,7 @@
  * Chart Helper Functions
  * Utility functions for chart components
  */
-import { CHART_THEME as DEFAULT_CHART_THEME } from "../config/chartConfig";
+import { CHART_THEME as DEFAULT_CHART_THEME } from "../../config/chartConfig";
 
 /**
  * Format number with specified decimal places

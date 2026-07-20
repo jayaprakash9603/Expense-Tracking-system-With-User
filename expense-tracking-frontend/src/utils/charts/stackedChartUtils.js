@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
-import { yearMonths, weekDays } from "./flowDateUtils"; // assumes these exports exist
+import { yearMonths, weekDays } from "../flows/flowDateUtils";
 
 dayjs.extend(isoWeek);
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { fetchMonthlyExpenses } from "../utils/Api";
+import { fetchMonthlyExpenses } from "../utils/api/Api";
 
 /**
  * Hook: useMonthlyTrendData

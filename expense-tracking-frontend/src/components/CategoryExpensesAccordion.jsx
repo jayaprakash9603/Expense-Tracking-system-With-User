@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
-import { getCategoryIcon } from "../utils/iconMapping";
+import { getCategoryIcon } from "../utils/ui/iconMapping";
 import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 
 const getExpenseDetails = (row) => row?.expense || row?.details || row || {};

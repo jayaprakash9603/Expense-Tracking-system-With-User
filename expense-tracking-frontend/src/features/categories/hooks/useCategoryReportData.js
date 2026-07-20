@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { fetchCategoriesSummary } from "../../../utils/Api";
-import { assembleCategoryReport } from "../../../utils/categoryReportData";
+import { fetchCategoriesSummary } from "../../../utils/api/Api";
+import { assembleCategoryReport } from "../../../utils/data/categoryReportData";
 import useReportData from "../../reports/hooks/useReportData";
 
 /**

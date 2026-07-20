@@ -4,7 +4,7 @@
  * Provides flexible date formatting based on user settings.
  * Supports dynamic format patterns from settings configuration.
  *
- * @module utils/dateFormatter
+ * @module utils/formatting/dateFormatter
  */
 
 /**

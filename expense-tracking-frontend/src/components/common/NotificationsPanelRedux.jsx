@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -16,7 +16,7 @@ import {
   getNotificationIcon,
   getNotificationColor,
   formatRelativeTime,
-} from "../../utils/notificationUtils";
+} from "../../utils/messaging/notificationUtils";
 
 /**
  * NotificationsPanel Component - Modern UI with Theme Support
@@ -72,9 +72,9 @@ const NotificationsPanel = ({
     autoConnect: true,
     onNewNotification: useCallback(
       (notification) => {
-        // ✅ OPTIMIZED: Add single notification to Redux instead of fetching all
+        // ? OPTIMIZED: Add single notification to Redux instead of fetching all
         console.log(
-          "✅ WebSocket notification received - adding to Redux store:",
+          "? WebSocket notification received - adding to Redux store:",
           notification,
         );
         dispatch(addNotification(notification));
@@ -542,7 +542,7 @@ const NotificationsPanel = ({
                 className="text-[10px] italic text-center"
                 style={{ color: themeColors.mutedText }}
               >
-                💡 Click to mark read • Double-click to open
+                ?? Click to mark read � Double-click to open
               </p>
             </div>
           )}
@@ -649,10 +649,10 @@ const NotificationsPanel = ({
                 className="text-xs mt-2 leading-relaxed max-w-xs mx-auto italic"
                 style={{ color: themeColors.mutedText }}
               >
-                💡 Tip: Click to mark as read, double-click to navigate
+                ?? Tip: Click to mark as read, double-click to navigate
               </p>
               <div className="mt-4 flex justify-center">
-                <span className="text-3xl">🎉</span>
+                <span className="text-3xl">??</span>
               </div>
             </div>
           ) : (
@@ -873,7 +873,7 @@ const NotificationsPanel = ({
                 (e.currentTarget.style.color = themeColors.accent)
               }
             >
-              View all notifications →
+              View all notifications ?
             </button>
           </div>
         )}

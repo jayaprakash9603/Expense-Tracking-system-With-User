@@ -21,7 +21,7 @@ import {
   filterSharesBySearch,
   filterSharesByStatus,
   calculateShareStats,
-} from "../../../utils/sharesUtils";
+} from "../../../utils/domain/sharesUtils";
 
 // =============================================================================
 // Constants

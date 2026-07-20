@@ -15,29 +15,29 @@ import java.util.Set;
 @FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${EXPENSE_SERVICE_URL:http://localhost:6000}", contextId = "billExpenseClient")
 public interface BillExpenseClient {
 
-    @PostMapping("/api/expenses/save-single")
+    @PostMapping("/api/expenses/internal/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);
 
-    @GetMapping("/api/expenses/get-by-id")
+    @GetMapping("/api/expenses/internal/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
 
-    @PostMapping("/api/expenses/add-expense-with-bill-service")
+    @PostMapping("/api/expenses/internal/add-expense-with-bill-service")
     public ExpenseDTO addExpense(@RequestBody ExpenseDTO expense, @RequestParam Integer userId) throws Exception;
 
-    @PostMapping("/api/expenses/update-expense-with-bill-service")
+    @PostMapping("/api/expenses/internal/update-expense-with-bill-service")
     public ExpenseDTO updateExpenseWithBillService(@RequestParam Integer expenseId, @RequestBody ExpenseDTO expense,
             @RequestParam Integer userId) throws Exception;
 
-    @DeleteMapping("/api/expenses/delete-expenses-with-bill-service")
+    @DeleteMapping("/api/expenses/internal/delete-expenses-with-bill-service")
     public void deleteExpensesByIdsWithBillService(@RequestParam List<Integer> expenseIds, @RequestParam Integer userId)
             throws Exception;
 
-    @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
+    @GetMapping("/api/expenses/internal/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam Integer userId);
 
-    @PostMapping("/api/expenses/get-expenses-by-ids")
+    @PostMapping("/api/expenses/internal/get-expenses-by-ids")
     List<ExpenseDTO> getExpensesByIds(@RequestParam Integer userId, @RequestBody Set<Integer> expenseIds);
 }

@@ -139,7 +139,7 @@ import {
   getThemeColors,
   filterDataByType,
   transformChartData,
-} from "../../utils/chartHelpers";
+} from "../../utils/charts/chartHelpers";
 
 // ============================================================================
 // MAIN COMPONENT

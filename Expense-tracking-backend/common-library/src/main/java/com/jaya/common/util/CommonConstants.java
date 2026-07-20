@@ -43,6 +43,7 @@ public final class CommonConstants {
         public static final String X_REQUEST_ID = "X-Request-Id";
         public static final String X_TRACE_ID = "X-Trace-Id";
         public static final String X_SERVICE_NAME = "X-Service-Name";
+        public static final String X_SERVICE_TOKEN = "X-Service-Token";
         public static final String CONTENT_TYPE = "Content-Type";
         public static final String APPLICATION_JSON = "application/json";
 

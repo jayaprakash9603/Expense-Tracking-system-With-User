@@ -22,8 +22,8 @@ import NoDataPlaceholder from "../NoDataPlaceholder";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { getFinanceCalendarColors } from "../../config/financeColorTokens";
-import { formatAmount } from "../../utils/formatAmount";
-import { getCategoryIcon } from "../../utils/iconMapping";
+import { formatAmount } from "../../utils/formatting/formatAmount";
+import { getCategoryIcon } from "../../utils/ui/iconMapping";
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];

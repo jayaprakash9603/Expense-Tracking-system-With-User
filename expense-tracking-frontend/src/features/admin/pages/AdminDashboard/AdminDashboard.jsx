@@ -8,7 +8,7 @@ import {
   bulkUserAction,
   fetchAllRoles,
 } from "../../../../Redux/Admin/admin.action";
-import { getFunctionalIcon } from "../../../../utils/iconMapping";
+import { getFunctionalIcon } from "../../../../utils/ui/iconMapping";
 import "./AdminDashboard.css";
 
 const fnIcon = (glyph, size = 20) =>

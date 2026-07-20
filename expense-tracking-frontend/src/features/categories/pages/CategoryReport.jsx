@@ -21,7 +21,7 @@ import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenC
 import ReportActionsMenu, {
   createDefaultReportMenuItems,
 } from "../../../components/common/ReportActionsMenu";
-import { getChartColors } from "../../../utils/chartColors";
+import { getChartColors } from "../../../utils/charts/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useCategoryReportFilters from "../../reports/hooks/reportFilters/useCategoryReportFilters";

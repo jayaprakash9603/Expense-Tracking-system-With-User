@@ -2,7 +2,7 @@ import React, { useMemo, memo } from "react";
 import { Box, Typography } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { TYPE_ICONS, SEARCH_TYPES } from "./quickActions.config";
-import { getFunctionalIcon } from "../../../utils/iconMapping";
+import { getFunctionalIcon } from "../../../utils/ui/iconMapping";
 
 /**
  * Highlight ALL matching text occurrences in search results

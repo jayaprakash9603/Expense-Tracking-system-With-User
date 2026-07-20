@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useSelector } from "react-redux";
-import { normalizeLevel } from "../../../utils/accessControl";
+import { normalizeLevel } from "../../../utils/api/accessControl";
 
 // Hook to centralize directional friend access logic.
 // Pass friendId from route (can be undefined / 'undefined').

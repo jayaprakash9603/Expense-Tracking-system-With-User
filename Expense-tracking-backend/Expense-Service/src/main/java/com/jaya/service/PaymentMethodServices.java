@@ -14,21 +14,21 @@ import java.util.List;
 public interface PaymentMethodServices {
 
 
-    @GetMapping("/api/payment-methods/get-all-payment-methods")
+    @GetMapping("/api/payment-methods/internal/get-all-payment-methods")
     public List<ExpensePaymentMethod> getAllPaymentMethods(
             @RequestParam Integer userId);
 
-    @PostMapping("/api/payment-methods/save")
+    @PostMapping("/api/payment-methods/internal/save")
     public ExpensePaymentMethod save(
             @RequestBody ExpensePaymentMethod paymentMethod
     );
-    @GetMapping("/api/payment-methods/name-and-type")
+    @GetMapping("/api/payment-methods/internal/name-and-type")
     public ExpensePaymentMethod getByNameAndType(
             @RequestParam Integer userId,
             @RequestParam String name,
             @RequestParam String type);
 
-    @GetMapping("/api/payment-methods/names")
+    @GetMapping("/api/payment-methods/internal/names")
     public ExpensePaymentMethod getByNameWithService(
             @RequestParam Integer userId,
             @RequestParam String name

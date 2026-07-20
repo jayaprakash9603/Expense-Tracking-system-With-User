@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllPaymentMethods } from "../../../Redux/Payment Method/paymentMethod.action";
-import { processPaymentMethods } from "../../../utils/paymentMethodUtils";
+import { processPaymentMethods } from "../../../utils/domain/paymentMethodUtils";
 
 /**
  * Custom hook for payment method management

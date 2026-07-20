@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import TextBanner from "./TextBanner";
 import FloatingSuppressionBanner from "./FloatingSuppressionBanner";
 import ScrollingSuppressionBanner from "./ScrollingSuppressionBanner";
-import { subscribeToGlobalMessage } from "../../../utils/globalMessageBus";
+import { subscribeToGlobalMessage } from "../../../utils/messaging/globalMessageBus";
 
 const defaultRenderers = {
   text: TextBanner,

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchExpenseSummary } from "../../../utils/Api";
+import { fetchExpenseSummary } from "../../../utils/api/Api";
 
 /**
  * useAnalyticsSummary

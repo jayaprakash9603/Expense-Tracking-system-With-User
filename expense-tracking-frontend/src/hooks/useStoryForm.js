@@ -9,7 +9,7 @@ import {
   uploadMediaToCloudinary,
   validateMediaFile,
   getMediaType,
-} from "../utils/uploadMediaToCloudinary";
+} from "../utils/media/uploadMediaToCloudinary";
 
 // Story types and options - exported for use in components
 export const STORY_TYPES = [

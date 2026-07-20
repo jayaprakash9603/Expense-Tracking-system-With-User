@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchPaymentSummary } from "../../../utils/Api";
-import { buildReportParams, computeDateRange } from "../../../utils/reportParams";
-import { assemblePaymentReport } from "../../../utils/paymentReportData";
+import { fetchPaymentSummary } from "../../../utils/api/Api";
+import { buildReportParams, computeDateRange } from "../../../utils/data/reportParams";
+import { assemblePaymentReport } from "../../../utils/data/paymentReportData";
 
 const DEFAULT_COLORS = [
   "#14b8a6",

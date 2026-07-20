@@ -5,7 +5,7 @@ import {
   getInitials,
   getAvatarColor,
   truncateMessage,
-} from "../../utils/chatUtils";
+} from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function ConversationItem({

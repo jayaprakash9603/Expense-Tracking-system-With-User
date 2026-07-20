@@ -13,7 +13,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 import { useTheme } from "../../hooks/useTheme";
-import downloadTextFile from "../../utils/downloadTextFile";
+import downloadTextFile from "../../utils/files/downloadTextFile";
 
 const copyToClipboard = async (text) => {
   if (navigator?.clipboard?.writeText) {

@@ -10,8 +10,8 @@ import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordi
 import { BudgetReportLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import ReportHeader from "../../../components/ReportHeader";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
-import { getChartColors } from "../../../utils/chartColors";
-import { computeDateRange } from "../../../utils/reportParams";
+import { getChartColors } from "../../../utils/charts/chartColors";
+import { computeDateRange } from "../../../utils/data/reportParams";
 import { api } from "../../../config/api";
 
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";

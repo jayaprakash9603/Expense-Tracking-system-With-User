@@ -3,7 +3,7 @@ import SummaryPill from "./SummaryPill";
 import {
   formatNumberFull,
   formatCompactNumber,
-} from "../../utils/numberFormatters";
+} from "../../utils/formatting/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 
 const SelectionSummaryBar = ({

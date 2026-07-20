@@ -13,19 +13,19 @@ import java.util.List;
 @FeignClient(name = "CATEGORY-SERVICE", url = "${category.service.url:http://localhost:6008}", contextId = "expenseCategoryClient")
 public interface CategoryServices {
 
-    @GetMapping("/api/categories/get-by-id-with-service")
+    @GetMapping("/api/categories/internal/get-by-id-with-service")
     CategoryDTO getById(@RequestParam Integer categoryId, @RequestParam Integer userId) throws Exception;
 
-    @GetMapping("/api/categories/get-by-name-with-service")
+    @GetMapping("/api/categories/internal/get-by-name-with-service")
     List<CategoryDTO> getByName(@RequestParam String categoryName, @RequestParam Integer userId) throws Exception;
 
-    @PostMapping("/api/categories/create-category-with-service")
+    @PostMapping("/api/categories/internal/create-category-with-service")
     CategoryDTO create(@RequestBody ExpenseCategory category, @RequestParam Integer userId) throws Exception;
 
-    @PostMapping("/api/categories/save")
+    @PostMapping("/api/categories/internal/save")
     CategoryDTO save(@RequestBody ExpenseCategory category) throws Exception;
 
-    @GetMapping("/api/categories/get-all-for-users")
+    @GetMapping("/api/categories/internal/get-all-for-users")
     List<CategoryDTO> getAllForUser(@RequestParam Integer userId) throws Exception;
 }
 

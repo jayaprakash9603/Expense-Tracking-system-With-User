@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Box, Button, Typography } from "@mui/material";
 
-import { toNumber } from "../../../utils/dailySpendingDrilldownUtils";
-import { getEntityIcon } from "../../../utils/iconMapping";
+import { toNumber } from "../../../utils/charts/dailySpendingDrilldownUtils";
+import { getEntityIcon } from "../../../utils/ui/iconMapping";
 
 const BreakdownPanel = ({
   title,

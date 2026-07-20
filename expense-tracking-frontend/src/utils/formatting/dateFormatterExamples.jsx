@@ -14,8 +14,8 @@ import {
   getDayName,
   parseDate,
   isValidDateFormat,
-} from "../utils/dateFormatter";
-import useUserSettings from "../hooks/useUserSettings";
+} from "./dateFormatter";
+import useUserSettings from "../../hooks/useUserSettings";
 
 // ============================================================================
 // EXAMPLE 1: Basic Date Formatting in a Table
@@ -409,7 +409,7 @@ export const ExportToCSVExample = ({ data }) => {
 /**
  * BEST PRACTICES:
  *
- * 1. Always import formatDate from utils/dateFormatter
+ * 1. Always import formatDate from utils/formatting/dateFormatter
  * 2. Always use settings.dateFormat from useUserSettings hook
  * 3. Pass dateFormat as prop to child components
  * 4. Use formatRelativeDate for recent dates in activity feeds

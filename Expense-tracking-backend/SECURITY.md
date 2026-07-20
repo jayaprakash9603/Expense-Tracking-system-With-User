@@ -1,13 +1,27 @@
 # Security configuration
 
+## Shared internal service authentication
+
+All endpoints whose path contains an `/internal/` segment require a shared service token, even when called directly against a microservice port (not only through the gateway).
+
+| Variable | Purpose |
+|----------|---------|
+| `SERVICE_INTERNAL_TOKEN` | Preferred shared secret sent as header `X-Service-Token` on every internal service-to-service call. Set the **same** value on every microservice. |
+| `USER_SERVICE_INTERNAL_TOKEN` | Legacy alias still supported for backward compatibility. If both are set, `SERVICE_INTERNAL_TOKEN` wins via Spring property resolution. |
+
+The gateway additionally blocks external requests to any `/internal/` path (`gateway.internal-block.enabled=true`).
+
+Feign clients and the Search-Service WebClient add `X-Service-Token` automatically for internal paths via `common-library`.
+
 ## User service
 
 | Variable | Purpose |
 |----------|---------|
 | `JWT_SECRET` | HMAC key for JWT signing (min 256 bits). **Required** when profile `prod` or `production` is active. |
-| `USER_SERVICE_INTERNAL_TOKEN` | Shared secret sent as header `X-Service-Token` for trusted service calls to `GET /api/user/all`, `GET /api/user/email`, and `GET /api/user/by-email`. Set the **same** value on USER-SERVICE and on microservices that call these endpoints via Feign. |
 | `ALLOWED_ORIGIN_PATTERNS` | Comma-separated CORS `allowedOriginPatterns` (defaults include `localhost` and Netlify hosts). |
 | `AUTH_RATE_LIMIT_PER_MINUTE` | Max POST requests per client IP per rolling minute to `/auth/signin`, `/auth/signup`, `/auth/check-email` (default `40`). |
+
+Internal user lookups live at `/api/internal/users/**` and require `X-Service-Token` plus `ROLE_SERVICE`.
 
 ## Expense service
 

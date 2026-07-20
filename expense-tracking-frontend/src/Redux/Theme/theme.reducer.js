@@ -6,7 +6,7 @@ import {
   SET_SYSTEM_PREFERENCE,
   RESET_THEME 
 } from "./theme.actionTypes";
-import { getSystemPreference } from "../../utils/themeInjector";
+import { getSystemPreference } from "../../utils/theme/themeInjector";
 import { COLOR_PALETTES } from "../../config/colorPalettes";
 
 // Default values

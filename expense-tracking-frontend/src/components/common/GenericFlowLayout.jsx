@@ -6,7 +6,7 @@ import SortPopover from "../cashflow/SortPopover";
 import FlowToggleButton from "../cashflow/FlowToggleButton";
 import CashFlowChartSkeleton from "../skeletons/CashFlowChartSkeleton";
 import NoDataPlaceholder from "../NoDataPlaceholder";
-import { rangeTypes } from "../../utils/flowDateUtils";
+import { rangeTypes } from "../../utils/flows/flowDateUtils";
 import recentPng from "../../assests/recent.png";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";

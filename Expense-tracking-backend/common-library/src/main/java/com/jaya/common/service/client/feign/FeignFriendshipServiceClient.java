@@ -7,10 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Feign client implementation for Friendship Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "FRIENDSHIP-SERVICE",
     url = "${FRIENDSHIP_SERVICE_URL:http://localhost:6009}",
@@ -20,26 +16,26 @@ import java.util.List;
 public interface FeignFriendshipServiceClient extends IFriendshipServiceClient {
 
     @Override
-    @GetMapping("/api/friendship/can-access-expenses")
+    @GetMapping("/api/friendships/internal/can-access-expenses")
     boolean canUserAccessExpenses(@RequestParam("targetUserId") Integer targetUserId,
                                   @RequestParam("requesterId") Integer requesterId);
 
     @Override
-    @GetMapping("/api/friendship/can-modify-expenses")
+    @GetMapping("/api/friendships/internal/can-modify-expenses")
     boolean canUserModifyExpenses(@RequestParam("targetUserId") Integer targetUserId,
                                   @RequestParam("requesterId") Integer requesterId);
 
     @Override
-    @GetMapping("/api/friendship/are-friends/{userId1}/{userId2}")
+    @GetMapping("/api/friendships/internal/are-friends/{userId1}/{userId2}")
     boolean areFriends(@PathVariable("userId1") Integer userId1,
                        @PathVariable("userId2") Integer userId2);
 
     @Override
-    @GetMapping("/api/friendship/friend-ids")
+    @GetMapping("/api/friendships/internal/friend-ids")
     List<Integer> getFriendIds(@RequestParam("userId") Integer userId);
 
     @Override
-    @GetMapping("/api/friendship/access-level")
+    @GetMapping("/api/friendships/internal/get-access-level")
     String getUserAccessLevel(@RequestParam("userId") Integer userId,
                               @RequestParam("viewerId") Integer viewerId);
 }

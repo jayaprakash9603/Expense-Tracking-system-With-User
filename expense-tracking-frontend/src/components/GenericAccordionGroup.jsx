@@ -4,12 +4,12 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import FilterPopover from "./ui/FilterPopover";
 import GroupedDataTable from "./common/GroupedDataTable/GroupedDataTable";
 import "./PaymentMethodAccordion.css";
-import { formatAmount as fmt } from "../utils/formatAmount";
+import { formatAmount as fmt } from "../utils/formatting/formatAmount";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 import AccordionToolbar from "./accordion/AccordionToolbar";
 import NoDataPlaceholder from "./NoDataPlaceholder";
-import { applyColumnFilter } from "../utils/filterLogic";
+import { applyColumnFilter } from "../utils/data/filterLogic";
 
 /**
  * GenericAccordionGroup

@@ -15,19 +15,19 @@ import java.util.Set;
 @FeignClient(name = "EXPENSE-TRACKING-SYSTEM", url = "${expense.service.url:http://localhost:6000}", contextId = "paymentExpenseClient")
 public interface ExpenseClient {
 
-    @PostMapping("/api/expenses/save-single")
+    @PostMapping("/api/expenses/internal/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);
 
-    @GetMapping("/api/expenses/get-by-id")
+    @GetMapping("/api/expenses/internal/get-by-id")
     ExpenseDTO getExpenseById(@RequestParam Integer expenseId, @RequestParam Integer userId);
 
     
-    @GetMapping("/api/expenses/included-in-budgets/{startDate}/{endDate}")
+    @GetMapping("/api/expenses/internal/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam Integer userId);
 
-    @PostMapping("/api/expenses/get-expenses-by-ids")
+    @PostMapping("/api/expenses/internal/get-expenses-by-ids")
     List<ExpenseDTO> getExpensesByIds(@RequestParam Integer userId, @RequestBody Set<Integer> expenseIds);
 }

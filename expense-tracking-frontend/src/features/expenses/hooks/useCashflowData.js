@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useDeferredValue, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import { fetchCashflowExpenses } from "../../../Redux/Expenses/expense.action";
-import { getRangeLabel, weekDays, yearMonths } from "../../../utils/flowDateUtils";
+import { getRangeLabel, weekDays, yearMonths } from "../../../utils/flows/flowDateUtils";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 const normalizeSearchField = (value) => {

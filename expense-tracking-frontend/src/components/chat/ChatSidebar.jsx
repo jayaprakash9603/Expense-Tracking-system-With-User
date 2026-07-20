@@ -18,7 +18,7 @@ import {
   sortConversationsByTime,
   getInitials,
   getAvatarColor,
-} from "../../utils/chatUtils";
+} from "../../utils/chat/chatUtils";
 import { fetchFriends } from "../../Redux/Friends/friendsActions";
 import { useTheme } from "../../hooks/useTheme";
 

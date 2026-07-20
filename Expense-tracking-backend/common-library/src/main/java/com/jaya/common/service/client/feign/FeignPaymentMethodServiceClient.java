@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Feign client implementation for Payment Method Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "PAYMENT-SERVICE",
     url = "${PAYMENT_SERVICE_URL:http://localhost:6006}",
@@ -21,21 +17,21 @@ import java.util.List;
 public interface FeignPaymentMethodServiceClient extends IPaymentMethodServiceClient {
 
     @Override
-    @GetMapping("/api/payment-method/all")
+    @GetMapping("/api/payment-methods/internal/get-all-payment-methods")
     List<PaymentMethodDTO> getAllPaymentMethods(@RequestParam("userId") Integer userId);
 
     @Override
-    @PostMapping("/api/payment-method/save")
+    @PostMapping("/api/payment-methods/internal/save")
     PaymentMethodDTO save(@RequestBody PaymentMethodDTO paymentMethod);
 
     @Override
-    @GetMapping("/api/payment-method/by-name-and-type")
+    @GetMapping("/api/payment-methods/internal/name-and-type")
     PaymentMethodDTO getByNameAndType(@RequestParam("userId") Integer userId,
                                        @RequestParam("name") String name,
                                        @RequestParam("type") String type);
 
     @Override
-    @GetMapping("/api/payment-method/by-name")
+    @GetMapping("/api/payment-methods/internal/names")
     PaymentMethodDTO getByName(@RequestParam("userId") Integer userId,
                                 @RequestParam("name") String name);
 }

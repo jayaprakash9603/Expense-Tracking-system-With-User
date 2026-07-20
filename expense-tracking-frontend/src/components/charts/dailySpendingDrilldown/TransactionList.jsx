@@ -12,7 +12,7 @@ import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
 import ExpenseCard from "./ExpenseCard";
-import { buildScrollbarSx } from "../../../utils/dailySpendingDrilldownUtils";
+import { buildScrollbarSx } from "../../../utils/charts/dailySpendingDrilldownUtils";
 
 const TransactionList = ({
   title,

@@ -8,7 +8,7 @@ import {
   areNamesEqual,
   getNameDisplayLabel,
   sanitizeName,
-} from "../../../../utils/nameUtils";
+} from "../../../../utils/domain/nameUtils";
 import HighlightedText from "../../../common/HighlightedText";
 
 const isNoDataOption = (option) =>

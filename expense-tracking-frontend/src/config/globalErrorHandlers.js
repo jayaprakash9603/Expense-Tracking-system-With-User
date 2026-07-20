@@ -2,7 +2,7 @@ import {
   attachSystemErrorPayload,
   buildSystemErrorPayloadFromAxios,
   AXIOS_ERROR_FLAG,
-} from "../utils/systemErrorEvents";
+} from "../utils/api/systemErrorEvents";
 
 const shouldHandleError = (error) => {
   if (!error) {

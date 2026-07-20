@@ -1,5 +1,6 @@
 package com.jaya.service;
 
+import com.jaya.common.security.InternalServiceAuthHeaders;
 import com.jaya.dto.SearchRequestDTO;
 import com.jaya.dto.SearchResultDTO;
 import com.jaya.dto.SearchResultDTO.SearchResultType;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class UniversalSearchService {
 
     private final WebClient webClient;
+    private final InternalServiceAuthHeaders internalServiceAuthHeaders;
 
     @Value("${services.expense.url:http://localhost:6000}")
     private String expenseServiceUrl;
@@ -178,7 +180,7 @@ public class UniversalSearchService {
                 });
 
         Mono<List<Map<String, Object>>> expensesMono = webClient.get()
-                .uri(expenseServiceUrl + "/api/expenses/search/fuzzy", uriBuilder -> {
+                .uri(expenseServiceUrl + "/api/expenses/internal/search/fuzzy", uriBuilder -> {
                     uriBuilder.queryParam("query", query);
                     uriBuilder.queryParam("limit", limit);
                     uriBuilder.queryParam("offset", offset);
@@ -187,7 +189,11 @@ public class UniversalSearchService {
                     }
                     return uriBuilder.build();
                 })
-                .header(HttpHeaders.AUTHORIZATION, authToken)
+                .headers(headers -> {
+                    headers.set(HttpHeaders.AUTHORIZATION, authToken);
+                    internalServiceAuthHeaders.applyForInternalPath(headers,
+                            "/api/expenses/internal/search/fuzzy");
+                })
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {
                 })

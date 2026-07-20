@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildReportFilterSections } from "../../../../constants/reportFilters";
-import { getChartColors } from "../../../../utils/chartColors";
+import { getChartColors } from "../../../../utils/charts/chartColors";
 import useReportFilterState from "./useReportFilterState";
 
 const COLORS = getChartColors();

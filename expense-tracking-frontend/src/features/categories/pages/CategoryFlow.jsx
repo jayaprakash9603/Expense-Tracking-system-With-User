@@ -5,7 +5,7 @@ import useCategoryFlowData from "../hooks/useCategoryFlowData";
 import { deleteCategory } from "../../../Redux/Category/categoryActions";
 import GenericFlowPage from "../../../components/common/GenericFlowPage";
 import CategoryFlowChart from "../../../components/categoryflow/CategoryFlowChart";
-import { formatCompactNumber } from "../../../utils/numberFormatters";
+import { formatCompactNumber } from "../../../utils/formatting/numberFormatters";
 import CreateCategory from "./CreateCategory";
 import { useDispatch, useSelector } from "react-redux";
 import { setCategorySelection } from "../../../Redux/SharedSelection/sharedSelection.action";

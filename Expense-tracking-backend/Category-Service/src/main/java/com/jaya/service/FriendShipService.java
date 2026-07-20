@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "FRIENDSHIP-SERVICE", url = "${FRIENDSHIP_SERVICE_URL:http://localhost:6009}", contextId = "categoryFriendshipClient")
 public interface FriendShipService {
 
-    @GetMapping("/api/friendships/can-access-expenses")
+    @GetMapping("/api/friendships/internal/can-access-expenses")
     boolean canUserAccessExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId);
 
-    @GetMapping("/api/friendships/can-modify-expenses")
+    @GetMapping("/api/friendships/internal/can-modify-expenses")
     boolean canUserModifyExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId);
 }

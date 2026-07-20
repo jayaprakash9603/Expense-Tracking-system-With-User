@@ -15,7 +15,7 @@ import {
   lighten, 
   darken, 
   getContrastText 
-} from "../utils/colorUtils";
+} from "../utils/theme/colorUtils";
 
 export const generateThemeTokens = (paletteId = "teal", mode = "dark") => {
   const palette = COLOR_PALETTES[paletteId] || COLOR_PALETTES.teal;

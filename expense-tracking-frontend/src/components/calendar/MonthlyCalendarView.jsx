@@ -26,7 +26,7 @@ import {
 } from "../../utils/calendar/calendarDates";
 import { computeMonthCalendarStats } from "../../utils/calendar/calendarMetrics";
 import { buildHeatmapBackground } from "../../utils/calendar/calendarHeatmap";
-import { formatCompactNumber } from "../../utils/numberFormatters";
+import { formatCompactNumber } from "../../utils/formatting/numberFormatters";
 
 /**
  * ============================================================================

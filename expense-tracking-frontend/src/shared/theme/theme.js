@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 import { keyframes } from "@mui/system";
 import { getExpandedPalette, getSurfaceColors } from "../../config/colorPalettes";
-import { alpha as alphaUtil } from "../../utils/colorUtils";
+import { alpha as alphaUtil } from "../../utils/theme/colorUtils";
 
 const shimmerKeyframes = keyframes({
   "0%": { backgroundPosition: "1000px 0" },

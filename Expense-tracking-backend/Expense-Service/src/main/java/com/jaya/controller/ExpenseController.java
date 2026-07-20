@@ -496,7 +496,7 @@ public class ExpenseController extends BaseExpenseController {
 
 
 
-    @GetMapping("/search/fuzzy")
+    @GetMapping("/internal/search/fuzzy")
     public ResponseEntity<List<ExpenseSearchDTO>> searchExpensesFuzzy(
             @RequestParam String query,
             @RequestParam(defaultValue = "20") int limit,
@@ -2824,7 +2824,7 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
-    @GetMapping("/included-in-budgets/{startDate}/{endDate}")
+    @GetMapping("/internal/included-in-budgets/{startDate}/{endDate}")
     public ResponseEntity<List<Expense>> getIncludeInBudgetExpensesWithBudgetService(
             @PathVariable LocalDate startDate,
             @PathVariable LocalDate endDate,
@@ -2837,7 +2837,7 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
-    @PostMapping("get-expenses-by-ids")
+    @PostMapping("/internal/get-expenses-by-ids")
     public ResponseEntity<List<Expense>> getExpensesByIdstest(@RequestParam Integer userId,
             @RequestBody Set<Integer> expenseIds) throws UserException {
         List<Expense> expenses = expenseService.getExpensesByIds(userId, expenseIds);
@@ -3320,7 +3320,7 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
-    @GetMapping("/get-by-id")
+    @GetMapping("/internal/get-by-id")
     public ResponseEntity<Expense> findByUserIdandExpenseeID(@RequestParam Integer userId,
             @RequestParam Integer expenseId) {
 
@@ -3329,38 +3329,38 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
-    @PostMapping("/save-single")
+    @PostMapping("/internal/save-single")
     public ResponseEntity<Expense> saveTheExpense(@RequestBody Expense expense) {
         Expense savedExpense = expenseService.save(expense);
 
         return new ResponseEntity<>(savedExpense, HttpStatus.OK);
     }
 
-    @PostMapping("/add-expense-with-bill-service")
+    @PostMapping("/internal/add-expense-with-bill-service")
     public ExpenseDTO addExpenseWithBillService(@RequestBody ExpenseDTO expenseDTO, @RequestParam Integer userId)
             throws Exception {
         return expenseService.addExpense(expenseDTO, userId);
     }
 
-    @PostMapping("/update-expense-with-bill-service")
+    @PostMapping("/internal/update-expense-with-bill-service")
     public Expense updateExpenseWithBillService(@RequestParam Integer expenseId, @RequestBody Expense expense,
             @RequestParam Integer userId) throws Exception {
 
         return expenseService.updateExpenseWithBillService(expenseId, expense, userId);
     }
 
-    @DeleteMapping("/delete-expenses-with-bill-service")
+    @DeleteMapping("/internal/delete-expenses-with-bill-service")
     public void deleteExpenseWithBillService(@RequestParam List<Integer> expenseIds, @RequestParam Integer userId)
             throws Exception {
         expenseService.deleteExpensesByIdsWithBillService(expenseIds, userId);
     }
 
-    @GetMapping("/get-all-expenses-with-bill-service")
+    @GetMapping("/internal/get-all-expenses-with-bill-service")
     public List<Expense> getAllExpense(@RequestParam Integer userId) {
         return expenseService.getAllExpenses(userId);
     }
 
-    @GetMapping("/get-all-expenses-sort-with-bill-service")
+    @GetMapping("/internal/get-all-expenses-sort-with-bill-service")
     public List<Expense> getAllExpensesWithSort(@RequestParam Integer userId, @RequestParam String sort) {
         return expenseService.getAllExpenses(userId, sort);
     }

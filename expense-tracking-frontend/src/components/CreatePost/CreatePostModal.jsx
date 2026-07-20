@@ -12,7 +12,7 @@ import { useFormik } from "formik";
 import React, { useState } from "react";
 import ImageIcon from "@mui/icons-material/Image";
 import VideoCallIcon from "@mui/icons-material/VideoCall";
-import { uploadToCloudinary } from "../../utils/uploadToCloudniry";
+import { uploadToCloudinary } from "../../utils/media/uploadToCloudniry";
 import { useDispatch } from "react-redux";
 import { createPostAction } from "../../Redux/Post/post.action";
 const style = {

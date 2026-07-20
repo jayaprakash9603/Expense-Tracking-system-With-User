@@ -4,7 +4,7 @@ import fetchDailySpending, {
   fetchMonthlyExpenses,
   fetchPaymentMethods,
   fetchCategoriesSummary,
-} from "../../utils/Api";
+} from "../../utils/api/Api";
 
 // DashboardDataRefetcher
 // Two modes:

@@ -10,10 +10,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Feign client implementation for Expense Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "EXPENSE-TRACKING-SYSTEM",
     url = "${EXPENSE_SERVICE_URL:http://localhost:6000}",
@@ -23,32 +19,32 @@ import java.util.Set;
 public interface FeignExpenseServiceClient extends IExpenseServiceClient {
 
     @Override
-    @PostMapping("/api/expense/save")
+    @PostMapping("/api/expenses/internal/save-single")
     ExpenseDTO save(@RequestBody ExpenseDTO expense);
 
     @Override
-    @GetMapping("/api/expense/get")
-    ExpenseDTO getExpenseById(@RequestParam("expenseId") Integer expenseId, 
+    @GetMapping("/api/expenses/internal/get-by-id")
+    ExpenseDTO getExpenseById(@RequestParam("expenseId") Integer expenseId,
                               @RequestParam("userId") Integer userId);
 
     @Override
-    @GetMapping("/api/expense/date-range/{startDate}/{endDate}")
+    @GetMapping("/api/expenses/internal/included-in-budgets/{startDate}/{endDate}")
     List<ExpenseDTO> findByUserIdAndDateBetweenAndIncludeInBudgetTrue(
             @PathVariable("startDate") LocalDate startDate,
             @PathVariable("endDate") LocalDate endDate,
             @RequestParam("userId") Integer userId);
 
     @Override
-    @GetMapping("/api/expense/all")
+    @GetMapping("/api/expenses/internal/get-all-expenses-with-bill-service")
     List<ExpenseDTO> getAllExpenses(@RequestParam("userId") Integer userId);
 
     @Override
-    @GetMapping("/api/expense/all/sorted")
+    @GetMapping("/api/expenses/internal/get-all-expenses-sort-with-bill-service")
     List<ExpenseDTO> getAllExpensesWithSort(@RequestParam("userId") Integer userId,
                                             @RequestParam("sort") String sort);
 
     @Override
-    @PostMapping("/api/expense/by-ids")
+    @PostMapping("/api/expenses/internal/get-expenses-by-ids")
     List<ExpenseDTO> getExpensesByIds(@RequestParam("userId") Integer userId,
                                        @RequestBody Set<Integer> expenseIds);
 }

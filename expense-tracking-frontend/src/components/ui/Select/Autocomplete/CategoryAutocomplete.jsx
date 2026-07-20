@@ -10,8 +10,8 @@ import {
   areCategoriesEqual,
   getCategoryDisplayName,
   filterCategoriesWithDeduplication,
-} from "../../../../utils/categoryUtils";
-import { getCategoryIcon } from "../../../../utils/iconMapping";
+} from "../../../../utils/domain/categoryUtils";
+import { getCategoryIcon } from "../../../../utils/ui/iconMapping";
 import HighlightedText from "../../../common/HighlightedText";
 
 /**

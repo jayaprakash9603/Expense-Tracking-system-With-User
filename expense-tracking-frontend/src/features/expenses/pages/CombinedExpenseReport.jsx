@@ -15,7 +15,7 @@ import ExpenseReportCustomizationModal from "../../../components/ExpenseReportCu
 import {
   normalizeFlowTypeForChart,
   buildDailySpendingByBucket,
-} from "../../../utils/dailySpendingAggregation";
+} from "../../../utils/charts/dailySpendingAggregation";
 import {
   ReportHeaderSkeleton,
   OverviewCardSkeleton,
@@ -24,7 +24,7 @@ import {
   ChartSkeleton,
 } from "../../../components/skeletons/CommonSkeletons";
 import { DailySpendingSkeleton } from "../../../pages/Dashboard";
-import { getChartColors } from "../../../utils/chartColors";
+import { getChartColors } from "../../../utils/charts/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useExpenseReportFilters from "../../reports/hooks/reportFilters/useExpenseReportFilters";

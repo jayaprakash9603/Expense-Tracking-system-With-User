@@ -15,12 +15,12 @@ import {
   ExpenseNameAutocomplete,
 } from "../../../components/ui";
 import PreviousExpenseIndicator from "../../../components/PreviousExpenseIndicator";
-import { normalizePaymentMethod } from "../../../utils/paymentMethodUtils";
+import { normalizePaymentMethod } from "../../../utils/domain/paymentMethodUtils";
 import { useLocation } from "react-router-dom";
 import usePreviousExpense from "../hooks/usePreviousExpense";
 import useExpenseAutoFill from "../hooks/useExpenseAutoFill";
 import HighlightedText from "../../../components/common/HighlightedText";
-import { createFuzzyFilterOptions } from "../../../utils/fuzzyMatchUtils";
+import { createFuzzyFilterOptions } from "../../../utils/data/fuzzyMatchUtils";
 import BudgetSelectionTable from "../../../components/common/BudgetSelectionTable/BudgetSelectionTable";
 import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import useFormPage from "../../../shared/form/hooks/useFormPage";

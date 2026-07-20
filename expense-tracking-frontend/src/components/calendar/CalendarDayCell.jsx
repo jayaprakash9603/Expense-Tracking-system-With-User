@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Box, Typography, Tooltip } from "@mui/material";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import { keyframes } from "@mui/system";
-import { formatAmount } from "../../utils/formatAmount";
+import { formatAmount } from "../../utils/formatting/formatAmount";
 import DateIndicator from "../DateIndicator";
 import { hexToRgba } from "../../utils/calendar/calendarHeatmap";
 

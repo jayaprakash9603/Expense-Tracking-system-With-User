@@ -5,7 +5,7 @@
  * Provides smooth theme transitions and system preference detection.
  */
 
-import { generateThemeTokens, tokensToCssVars } from "../config/themeTokens";
+import { generateThemeTokens, tokensToCssVars } from "../../config/themeTokens";
 
 // CSS transition for smooth theme changes
 const TRANSITION_STYLES = `

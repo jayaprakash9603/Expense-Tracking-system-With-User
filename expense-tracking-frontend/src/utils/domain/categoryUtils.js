@@ -7,7 +7,7 @@ import {
   getFuzzyMatchIndices,
   scoreFuzzyMatch,
   compareFuzzyScores,
-} from "./fuzzyMatchUtils";
+} from "../data/fuzzyMatchUtils";
 
 /**
  * Deduplicate categories by name (case-insensitive, trimmed)

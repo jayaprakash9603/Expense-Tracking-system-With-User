@@ -29,6 +29,9 @@ common-library:
     enabled: true
     ttl-minutes: 10
     max-size: 10000
+  internal-service-auth:
+    enabled: true
+    token: ${SERVICE_INTERNAL_TOKEN:${USER_SERVICE_INTERNAL_TOKEN:}}
 common:
   exception-handler:
     enabled: true

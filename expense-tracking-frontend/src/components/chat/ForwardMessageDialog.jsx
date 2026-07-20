@@ -20,7 +20,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ForwardIcon from "@mui/icons-material/Forward";
-import { getInitials, getAvatarColor } from "../../utils/chatUtils";
+import { getInitials, getAvatarColor } from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function ForwardMessageDialog({

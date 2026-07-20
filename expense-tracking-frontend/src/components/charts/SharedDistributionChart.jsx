@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { PieChart as PieChartIcon } from "lucide-react";
 import { Box } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
-import { getEntityIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/ui/iconMapping";
 
 // Generic Distribution Chart (Pie + right side chips)
 // Props:

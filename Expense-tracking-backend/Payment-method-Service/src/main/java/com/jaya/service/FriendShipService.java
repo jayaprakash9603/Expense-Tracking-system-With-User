@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface FriendShipService {
 
 
-    @GetMapping("/api/friendships/can-access-expenses")
+    @GetMapping("/api/friendships/internal/can-access-expenses")
     boolean canUserAccessExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId) throws  Exception;
 
-    @GetMapping("/api/friendships/can-modify-expenses")
+    @GetMapping("/api/friendships/internal/can-modify-expenses")
     boolean canUserModifyExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId) throws Exception;
 }

@@ -9,10 +9,10 @@ import {
   arePaymentMethodsEqual,
   getPaymentMethodDisplayLabel,
   normalizePaymentMethod,
-} from "../../../../utils/paymentMethodUtils";
-import { getPaymentMethodIcon } from "../../../../utils/iconMapping";
+} from "../../../../utils/domain/paymentMethodUtils";
+import { getPaymentMethodIcon } from "../../../../utils/ui/iconMapping";
 import HighlightedText from "../../../common/HighlightedText";
-import { createFuzzyFilterOptions } from "../../../../utils/fuzzyMatchUtils";
+import { createFuzzyFilterOptions } from "../../../../utils/data/fuzzyMatchUtils";
 
 /**
  * PaymentMethodAutocomplete - A reusable payment method selection component

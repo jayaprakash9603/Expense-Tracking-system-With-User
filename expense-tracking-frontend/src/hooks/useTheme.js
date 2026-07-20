@@ -16,7 +16,7 @@ import {
 import { 
   injectTheme, 
   watchSystemPreference 
-} from "../utils/themeInjector";
+} from "../utils/theme/themeInjector";
 
 /**
  * Custom hook for comprehensive theme access and control

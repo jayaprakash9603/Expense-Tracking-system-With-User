@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import Checkbox from "@mui/material/Checkbox";
-import { handleSelectableSurfaceMouseDown } from "../../../utils/selectableSurface";
+import { handleSelectableSurfaceMouseDown } from "../../../utils/ui/selectableSurface";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
 // Define stable default objects outside component

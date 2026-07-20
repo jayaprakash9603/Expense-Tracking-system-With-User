@@ -895,11 +895,11 @@ export const clearFriendshipReport = () => ({
   type: CLEAR_FRIENDSHIP_REPORT,
 });
 
-// Check if two users are friends
-export const checkAreFriends = (userId1, userId2) => async (dispatch) => {
+// Check if two users are friends (requester derived from JWT)
+export const checkAreFriends = (otherUserId) => async (dispatch) => {
   dispatch({ type: CHECK_ARE_FRIENDS_REQUEST });
   try {
-    const response = await api.get(`/api/friendships/are-friends/${userId1}/${userId2}`);
+    const response = await api.get(`/api/friendships/are-friends/${otherUserId}`);
     dispatch({ type: CHECK_ARE_FRIENDS_SUCCESS, payload: response.data });
     return { success: true, data: response.data };
   } catch (error) {
@@ -909,11 +909,11 @@ export const checkAreFriends = (userId1, userId2) => async (dispatch) => {
   }
 };
 
-// Fetch friend IDs for a user
-export const fetchFriendIds = (userId) => async (dispatch) => {
+// Fetch friend IDs for the authenticated user
+export const fetchFriendIds = () => async (dispatch) => {
   dispatch({ type: FETCH_FRIEND_IDS_REQUEST });
   try {
-    const response = await api.get(`/api/friendships/friend-ids?userId=${userId}`);
+    const response = await api.get("/api/friendships/friend-ids");
     dispatch({ type: FETCH_FRIEND_IDS_SUCCESS, payload: response.data });
     return { success: true, data: response.data };
   } catch (error) {
@@ -965,11 +965,11 @@ export const checkExpenseAccess = (userId) => async (dispatch) => {
   }
 };
 
-// Check if user can access expenses
-export const checkCanAccessExpenses = (targetUserId, requesterId) => async (dispatch) => {
+// Check if user can access expenses (requester derived from JWT)
+export const checkCanAccessExpenses = (targetUserId) => async (dispatch) => {
   dispatch({ type: CHECK_CAN_ACCESS_EXPENSES_REQUEST });
   try {
-    const response = await api.get(`/api/friendships/can-access-expenses?targetUserId=${targetUserId}&requesterId=${requesterId}`);
+    const response = await api.get(`/api/friendships/can-access-expenses?targetUserId=${targetUserId}`);
     dispatch({ type: CHECK_CAN_ACCESS_EXPENSES_SUCCESS, payload: response.data });
     return { success: true, data: response.data };
   } catch (error) {
@@ -979,11 +979,11 @@ export const checkCanAccessExpenses = (targetUserId, requesterId) => async (disp
   }
 };
 
-// Check if user can modify expenses
-export const checkCanModifyExpenses = (targetUserId, requesterId) => async (dispatch) => {
+// Check if user can modify expenses (requester derived from JWT)
+export const checkCanModifyExpenses = (targetUserId) => async (dispatch) => {
   dispatch({ type: CHECK_CAN_MODIFY_EXPENSES_REQUEST });
   try {
-    const response = await api.get(`/api/friendships/can-modify-expenses?targetUserId=${targetUserId}&requesterId=${requesterId}`);
+    const response = await api.get(`/api/friendships/can-modify-expenses?targetUserId=${targetUserId}`);
     dispatch({ type: CHECK_CAN_MODIFY_EXPENSES_SUCCESS, payload: response.data });
     return { success: true, data: response.data };
   } catch (error) {
@@ -993,11 +993,11 @@ export const checkCanModifyExpenses = (targetUserId, requesterId) => async (disp
   }
 };
 
-// Fetch user access level
-export const fetchUserAccessLevel = (userId, viewerId) => async (dispatch) => {
+// Fetch user access level (viewer derived from JWT)
+export const fetchUserAccessLevel = (userId) => async (dispatch) => {
   dispatch({ type: FETCH_USER_ACCESS_LEVEL_REQUEST });
   try {
-    const response = await api.get(`/api/friendships/get-access-level?userId=${userId}&viewerId=${viewerId}`);
+    const response = await api.get(`/api/friendships/get-access-level?userId=${userId}`);
     dispatch({ type: FETCH_USER_ACCESS_LEVEL_SUCCESS, payload: response.data });
     return { success: true, data: response.data };
   } catch (error) {

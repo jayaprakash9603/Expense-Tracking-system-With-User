@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategories } from "../../../Redux/Category/categoryActions";
-import { deduplicateCategories } from "../../../utils/categoryUtils";
+import { deduplicateCategories } from "../../../utils/domain/categoryUtils";
 
 /**
  * useCategories - Custom hook for category data management

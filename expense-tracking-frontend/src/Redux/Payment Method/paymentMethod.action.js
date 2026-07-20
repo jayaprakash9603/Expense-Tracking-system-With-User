@@ -2,7 +2,7 @@ import { api } from "../../config/api";
 import {
   getPaymentMethodFlowCacheDescriptor,
   getPaymentMethodFlowCacheKeyFromDescriptor,
-} from "../../utils/paymentMethodFlowCacheUtils";
+} from "../../utils/cache/paymentMethodFlowCacheUtils";
 import {
   CREATE_PAYMENT_METHOD_FAILURE,
   CREATE_PAYMENT_METHOD_REQUEST,

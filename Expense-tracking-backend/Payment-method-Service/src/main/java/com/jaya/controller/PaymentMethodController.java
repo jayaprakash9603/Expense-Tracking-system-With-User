@@ -95,7 +95,7 @@ public class PaymentMethodController {
         }
     }
 
-    @GetMapping("/get-all-payment-methods")
+    @GetMapping("/internal/get-all-payment-methods")
     public List<PaymentMethod> getAllPaymentMethodsByService(
             @RequestParam Integer userId) {
 
@@ -123,7 +123,7 @@ public class PaymentMethodController {
         }
     }
 
-    @GetMapping("/name-and-type")
+    @GetMapping("/internal/name-and-type")
     public PaymentMethod getByNameAndType(
             @RequestParam Integer userId,
             @RequestParam String name,
@@ -133,7 +133,7 @@ public class PaymentMethodController {
 
     }
 
-    @PostMapping("/save")
+    @PostMapping("/internal/save")
     public PaymentMethod save(
             @RequestBody PaymentMethod paymentMethod) {
         try {
@@ -154,7 +154,7 @@ public class PaymentMethodController {
         }
     }
 
-    @GetMapping("/names")
+    @GetMapping("/internal/names")
     public PaymentMethod getByNameWithService(
             @RequestParam Integer userId,
             @RequestParam String name) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { getEntityIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/ui/iconMapping";
 
 const BREAKPOINTS = {
   mobile: 600,

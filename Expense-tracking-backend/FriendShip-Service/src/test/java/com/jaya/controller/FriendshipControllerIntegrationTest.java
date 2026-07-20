@@ -180,8 +180,8 @@ class FriendshipControllerIntegrationTest {
                     .thenReturn(true);
 
             mockMvc.perform(get("/api/friendships/can-access-expenses")
-                            .param("targetUserId", String.valueOf(FriendShipTestDataFactory.FRIEND_USER_ID))
-                            .param("requesterId", String.valueOf(FriendShipTestDataFactory.TEST_USER_ID)))
+                            .header("Authorization", FriendShipTestDataFactory.TEST_JWT)
+                            .param("targetUserId", String.valueOf(FriendShipTestDataFactory.FRIEND_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").value(true));
         }
@@ -195,8 +195,8 @@ class FriendshipControllerIntegrationTest {
                     .thenReturn(false);
 
             mockMvc.perform(get("/api/friendships/can-access-expenses")
-                            .param("targetUserId", String.valueOf(FriendShipTestDataFactory.FRIEND_USER_ID))
-                            .param("requesterId", String.valueOf(FriendShipTestDataFactory.TEST_USER_ID)))
+                            .header("Authorization", FriendShipTestDataFactory.TEST_JWT)
+                            .param("targetUserId", String.valueOf(FriendShipTestDataFactory.FRIEND_USER_ID)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").value(false));
         }

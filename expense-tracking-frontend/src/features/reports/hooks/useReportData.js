@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { buildReportParams, computeDateRange } from "../../../utils/reportParams";
+import { buildReportParams, computeDateRange } from "../../../utils/data/reportParams";
 
 /**
  * useReportData - Shared base hook for report data fetching

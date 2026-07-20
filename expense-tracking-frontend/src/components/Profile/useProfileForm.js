@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { uploadToCloudinary } from "../../utils/uploadToCloudniry";
+import { uploadToCloudinary } from "../../utils/media/uploadToCloudniry";
 import {
   updateProfileAction,
   getProfileAction,

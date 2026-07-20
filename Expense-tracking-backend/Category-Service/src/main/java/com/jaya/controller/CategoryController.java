@@ -470,7 +470,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.successList(results));
     }
 
-    @GetMapping("/get-by-id-with-service")
+    @GetMapping("/internal/get-by-id-with-service")
     @Operation(summary = "Internal: Get category by ID", description = "Internal endpoint for inter-service communication")
     public CategoryDTO getById(
             @RequestParam Integer categoryId,
@@ -479,7 +479,7 @@ public class CategoryController {
         return categoryMapper.toResponse(category);
     }
 
-    @GetMapping("/get-by-name-with-service")
+    @GetMapping("/internal/get-by-name-with-service")
     @Operation(summary = "Internal: Get categories by name", description = "Internal endpoint for inter-service communication")
     public List<CategoryDTO> getByName(
             @RequestParam String categoryName,
@@ -488,7 +488,7 @@ public class CategoryController {
         return categoryMapper.toResponseList(categories);
     }
 
-    @PostMapping("/create-category-with-service")
+    @PostMapping("/internal/create-category-with-service")
     @Operation(summary = "Internal: Create category", description = "Internal endpoint for inter-service communication")
     public CategoryDTO createCategoryWithService(
             @RequestBody Category category,
@@ -497,14 +497,14 @@ public class CategoryController {
         return categoryMapper.toResponse(created);
     }
 
-    @PostMapping("/save")
+    @PostMapping("/internal/save")
     @Operation(summary = "Internal: Save category", description = "Internal endpoint for inter-service communication")
     public CategoryDTO save(@RequestBody Category category) {
         Category saved = categoryService.save(category);
         return categoryMapper.toResponse(saved);
     }
 
-    @GetMapping("/get-all-for-users")
+    @GetMapping("/internal/get-all-for-users")
     @Operation(summary = "Internal: Get all categories for UserDTO", description = "Internal endpoint for inter-service communication")
     public List<CategoryDTO> getAllForUser(@RequestParam Integer userId) {
         List<Category> categories = categoryService.getAllForUser(userId);

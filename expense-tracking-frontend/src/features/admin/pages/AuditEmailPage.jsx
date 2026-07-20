@@ -16,7 +16,7 @@ import {
 import { API_BASE_URL } from "../../../config/api";
 import { expensesTypesEmail } from "../../../pages/Input Fields/InputFields";
 import HighlightedText from "../../../components/common/HighlightedText";
-import { createFuzzyFilterOptions } from "../../../utils/fuzzyMatchUtils";
+import { createFuzzyFilterOptions } from "../../../utils/data/fuzzyMatchUtils";
 
 const AuditEmail = () => {
   const [logTypes] = useState(expensesTypesEmail);

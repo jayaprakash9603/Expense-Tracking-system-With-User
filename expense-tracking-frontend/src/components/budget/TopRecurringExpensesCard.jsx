@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
-import { formatAmount as fmt } from "../../utils/formatAmount";
+import { formatAmount as fmt } from "../../utils/formatting/formatAmount";
 
 const normalizeName = (value) =>
   String(value ?? "")

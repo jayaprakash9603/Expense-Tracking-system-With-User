@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import dayjs from "dayjs";
-import { applyColumnFilter } from "../../../utils/filterLogic";
+import { applyColumnFilter } from "../../../utils/data/filterLogic";
 
 /**
  * Configuration hook for Expense Table (Columns, Sorting, Filtering)

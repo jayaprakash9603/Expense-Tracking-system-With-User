@@ -5,7 +5,7 @@ import { api } from "../../config/api";
 import { useParams } from "react-router";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
-import { formatDate } from "../../utils/dateFormatter";
+import { formatDate } from "../../utils/formatting/dateFormatter";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
 import {
   Accordion,

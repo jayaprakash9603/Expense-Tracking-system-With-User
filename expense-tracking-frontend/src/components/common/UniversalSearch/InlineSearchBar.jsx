@@ -21,8 +21,8 @@ import {
   SEARCH_TYPES,
   SEARCH_MODES,
 } from "./quickActions.config";
-import UserSettingsHelper from "../../../utils/UserSettingsHelper";
-import { formatDate } from "../../../utils/dateFormatter";
+import UserSettingsHelper from "../../../utils/settings/UserSettingsHelper";
+import { formatDate } from "../../../utils/formatting/dateFormatter";
 
 /**
  * InlineSearchBar - Expandable search bar in the header

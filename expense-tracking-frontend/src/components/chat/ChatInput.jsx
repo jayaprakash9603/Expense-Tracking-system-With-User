@@ -5,7 +5,7 @@ import EmojiEmotionsOutlinedIcon from "@mui/icons-material/EmojiEmotionsOutlined
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import MicIcon from "@mui/icons-material/Mic";
 import CloseIcon from "@mui/icons-material/Close";
-import { debounce } from "../../utils/chatUtils";
+import { debounce } from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function ChatInput({

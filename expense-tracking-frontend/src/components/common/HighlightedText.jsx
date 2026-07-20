@@ -4,7 +4,7 @@ import { useTheme } from "../../hooks/useTheme";
 import {
   getFuzzyMatchIndices,
   normalizeFuzzyQuery,
-} from "../../utils/fuzzyMatchUtils";
+} from "../../utils/data/fuzzyMatchUtils";
 
 const buildHighlightedNodes = (text, indices, highlightStyle) => {
   const s = String(text ?? "");

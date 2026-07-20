@@ -1,6 +1,6 @@
 import React from "react";
-import { flowTypeCycleDefault as flowTypeCycle } from "../../utils/flowDateUtils";
-import { formatCurrencyCompact } from "../../utils/numberFormatters";
+import { flowTypeCycleDefault as flowTypeCycle } from "../../utils/flows/flowDateUtils";
+import { formatCurrencyCompact } from "../../utils/formatting/numberFormatters";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
 

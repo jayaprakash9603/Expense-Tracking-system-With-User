@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
-import { getEntityIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/ui/iconMapping";
 
 // Generic tooltip for stacked flow charts (categories, payment methods, etc.)
 const FlowStackTooltip = ({

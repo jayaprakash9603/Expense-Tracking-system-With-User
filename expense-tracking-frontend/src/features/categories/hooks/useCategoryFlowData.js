@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCategoriesWithExpenses } from "../../../Redux/Expenses/expense.action";
-import { getRangeLabel } from "../../../utils/flowDateUtils";
+import { getRangeLabel } from "../../../utils/flows/flowDateUtils";
 import {
   buildStackedChartData,
   deterministicColor,
-} from "../../../utils/stackedChartUtils";
+} from "../../../utils/charts/stackedChartUtils";
 import { useTranslation } from "../../../hooks/useTranslation";
 
 const createDefaultRangeOffsets = () => ({

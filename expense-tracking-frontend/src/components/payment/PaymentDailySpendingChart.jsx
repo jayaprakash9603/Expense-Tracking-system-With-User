@@ -3,7 +3,7 @@ import DailySpendingChart from "../../pages/Dashboard/DailySpendingChart";
 import {
   buildDailySpendingByBucket,
   normalizeFlowTypeForChart,
-} from "../../utils/dailySpendingAggregation";
+} from "../../utils/charts/dailySpendingAggregation";
 import DailySpendingDrilldownDrawer from "../charts/DailySpendingDrilldownDrawer";
 
 const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {

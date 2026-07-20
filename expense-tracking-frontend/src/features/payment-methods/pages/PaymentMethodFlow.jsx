@@ -4,7 +4,7 @@ import useFriendAccess from "../../friends/hooks/useFriendAccess";
 import usePaymentMethodFlowData from "../hooks/usePaymentMethodFlowData";
 import { useDispatch, useSelector } from "react-redux";
 import { deletePaymentMethod } from "../../../Redux/Payment Method/paymentMethod.action";
-import { formatCompactNumber } from "../../../utils/numberFormatters";
+import { formatCompactNumber } from "../../../utils/formatting/numberFormatters";
 import CreatePaymentMethod from "./CreatePaymentMethod";
 import { setPaymentMethodSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 import GenericFlowPage from "../../../components/common/GenericFlowPage";

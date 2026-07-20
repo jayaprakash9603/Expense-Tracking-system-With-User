@@ -13,16 +13,16 @@ import BarChartIcon from "@mui/icons-material/BarChart";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
-import { formatCurrencyCompact } from "../../utils/numberFormatters";
+import { formatCurrencyCompact } from "../../utils/formatting/numberFormatters";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
-import { getEntityIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/ui/iconMapping";
 import { useOrderedSelection } from "../../hooks/useOrderedSelection";
 import {
   handleSelectableSurfaceMouseDown,
   selectableSurfaceStyles,
-} from "../../utils/selectableSurface";
+} from "../../utils/ui/selectableSurface";
 
 /**
  * FlowEntityCards

@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Autocomplete, TextField, CircularProgress } from "@mui/material";
 import useExpenseNameSuggestions from "../features/expenses/hooks/useExpenseNameSuggestions";
 import HighlightedText from "./common/HighlightedText";
-import { createFuzzyFilterOptions } from "../utils/fuzzyMatchUtils";
+import { createFuzzyFilterOptions } from "../utils/data/fuzzyMatchUtils";
 import { useTheme } from "../hooks/useTheme";
 
 /**

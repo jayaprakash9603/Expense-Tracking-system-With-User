@@ -64,13 +64,8 @@ public class UserController {
 
     @GetMapping(value = {"/email", "/by-email"})
     public ResponseEntity<User> getUserByEmail(
-            @RequestHeader(value = "Authorization", required = false) String jwt,
+            @RequestHeader("Authorization") String jwt,
             @RequestParam @NotNull @Email(message = "Valid email is required") String email) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (isInternalServiceCaller(authentication)) {
-            return resolveUserLookupByEmail(email);
-        }
         if (jwt == null || jwt.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -82,7 +77,7 @@ public class UserController {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN', 'ROLE_SERVICE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'ROLE_ADMIN')")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userService.getAllUsers();
         List<UserDTO> result = users.stream()
@@ -94,15 +89,8 @@ public class UserController {
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<Object> getUserById(
             @PathVariable @NotNull @Positive(message = "User ID must be positive") Integer id,
-            @RequestHeader(value = "Authorization", required = false) String jwt) {
+            @RequestHeader("Authorization") String jwt) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (isInternalServiceCaller(authentication)) {
-            UserDTO cached = userProfileCacheService.getUserById(id);
-            return cached != null
-                    ? ResponseEntity.ok(cached)
-                    : ResponseEntity.notFound().build();
-        }
         if (jwt == null || jwt.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -397,14 +385,6 @@ public class UserController {
     private ResponseEntity<User> resolveUserLookupByEmail(String email) {
         User found = userService.getUserByEmail(email);
         return found != null ? ResponseEntity.ok(found) : ResponseEntity.notFound().build();
-    }
-
-    private static boolean isInternalServiceCaller(Authentication authentication) {
-        if (authentication == null) {
-            return false;
-        }
-        return authentication.getAuthorities().stream()
-                .anyMatch(granted -> "ROLE_SERVICE".equals(granted.getAuthority()));
     }
 
     private static boolean canLookupEmailForAnotherUser(User requester, String targetEmail) {

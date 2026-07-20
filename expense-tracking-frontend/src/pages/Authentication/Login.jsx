@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
-import { sanitizeInternalRedirect } from "../../utils/sanitizeInternalRedirect";
+import { sanitizeInternalRedirect } from "../../utils/navigation/sanitizeInternalRedirect";
 
 const initialValues = { email: "", password: "" };
 

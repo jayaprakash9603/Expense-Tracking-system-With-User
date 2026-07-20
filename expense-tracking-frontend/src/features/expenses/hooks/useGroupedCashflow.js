@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { api } from "../../../config/api"; // adjust if path differs
-import { computeDateRange } from "../../../utils/reportParams";
+import { computeDateRange } from "../../../utils/data/reportParams";
 import {
   FETCH_CASHFLOW_EXPENSES_REQUEST,
   FETCH_CASHFLOW_EXPENSES_FAILURE,

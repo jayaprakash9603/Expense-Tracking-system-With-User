@@ -19,7 +19,7 @@ import { getExpensesSuggestions } from "../../../Redux/Expenses/expense.action";
 import {
   deduplicateNames,
   getSuggestions,
-} from "../../../utils/nameUtils";
+} from "../../../utils/domain/nameUtils";
 
 /**
  * useExpenseNames hook

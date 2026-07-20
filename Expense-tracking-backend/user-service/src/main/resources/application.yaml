@@ -53,7 +53,7 @@ google:
   oauth2:
     client-id: ${GOOGLE_OAUTH_CLIENT_ID:214438901958-uigakv87vusc9veirq3l5ocfpfr1do3a.apps.googleusercontent.com}
 
-# USER_SERVICE_INTERNAL_TOKEN: shared secret for service Feign calls to GET /api/user/all|email|by-email (header X-Service-Token).
+# USER_SERVICE_INTERNAL_TOKEN / SERVICE_INTERNAL_TOKEN: shared secret for internal service calls (header X-Service-Token).
 # ALLOWED_ORIGIN_PATTERNS: comma-separated CORS patterns (defaults include localhost and Netlify deploy hosts).
 # AUTH_RATE_LIMIT_PER_MINUTE: POST /auth/signin|signup|check-email per client IP per rolling minute (default 40).
 # JWT_SECRET: required for production when spring.profiles.active includes prod or production (see ProductionJwtSecretValidator).

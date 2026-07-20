@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Feign client implementation for Bill Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "BILL-SERVICE",
     url = "${BILL_SERVICE_URL:http://localhost:6007}",
@@ -21,12 +17,12 @@ import java.util.List;
 public interface FeignBillServiceClient extends IBillServiceClient {
 
     @Override
-    @GetMapping("/api/bill/export-excel")
+    @GetMapping("/api/bills/export/excel")
     String exportUserBillsToExcel(@RequestHeader("Authorization") String jwt,
                                    @RequestParam("filePath") String filePath);
 
     @Override
-    @GetMapping("/api/bill/all")
+    @GetMapping("/api/bills")
     List<BillDTO> getAllBills(@RequestHeader("Authorization") String jwt,
                               @RequestParam("targetId") Integer targetId);
 }

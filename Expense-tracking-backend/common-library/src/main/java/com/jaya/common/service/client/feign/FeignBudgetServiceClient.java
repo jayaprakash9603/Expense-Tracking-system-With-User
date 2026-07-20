@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Feign client implementation for Budget Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "BUDGET-SERVICE",
     url = "${BUDGET_SERVICE_URL:http://localhost:6005}",
@@ -21,15 +17,15 @@ import java.util.List;
 public interface FeignBudgetServiceClient extends IBudgetServiceClient {
 
     @Override
-    @GetMapping("/api/budget/get")
+    @GetMapping("/api/budgets/internal/get-by-id")
     BudgetDTO getBudgetById(@RequestParam("budgetId") Integer budgetId,
                             @RequestParam("userId") Integer userId);
 
     @Override
-    @PostMapping("/api/budget/save")
+    @PostMapping("/api/budgets/internal/save")
     BudgetDTO save(@RequestBody BudgetDTO budget);
 
     @Override
-    @GetMapping("/api/budget/all")
+    @GetMapping("/api/budgets/internal/user")
     List<BudgetDTO> getAllBudgetForUser(@RequestParam("userId") Integer userId);
 }

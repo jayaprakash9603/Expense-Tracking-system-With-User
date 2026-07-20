@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 import { AppTextField } from "../TextField";
 import { useTheme } from "../../../hooks/useTheme";
 import HighlightedText from "../../common/HighlightedText";
-import { createFuzzyFilterOptions } from "../../../utils/fuzzyMatchUtils";
+import { createFuzzyFilterOptions } from "../../../utils/data/fuzzyMatchUtils";
 
 /**
  * AppAutocomplete - Base wrapper for MUI Autocomplete component

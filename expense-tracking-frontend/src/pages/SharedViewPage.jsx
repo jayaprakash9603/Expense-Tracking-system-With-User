@@ -57,7 +57,7 @@ import dayjs from "dayjs";
 import { useTheme } from "../hooks/useTheme";
 import { useMasking } from "../hooks/useMasking";
 import useUserSettings from "../hooks/useUserSettings";
-import { getCategoryIcon, getPaymentMethodIcon } from "../utils/iconMapping";
+import { getCategoryIcon, getPaymentMethodIcon } from "../utils/ui/iconMapping";
 import {
   clearShareError,
   accessSharePaginated,

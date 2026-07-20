@@ -6,7 +6,7 @@
  * Inspired by Material UI's theming approach.
  */
 
-import { generateShades, generateMuiColor, lighten, darken } from "../utils/colorUtils";
+import { generateShades, generateMuiColor, lighten, darken } from "../utils/theme/colorUtils";
 
 /**
  * Preset Color Palettes

@@ -21,8 +21,8 @@ import useFlowCards from "../../hooks/useFlowCards";
 import {
   getEntityExpenses,
   filterExpensesForRangeBucket,
-} from "../../utils/flowEntityUtils";
-import { rangeTypes } from "../../utils/flowDateUtils"; // Added missing import
+} from "../../utils/flows/flowEntityUtils";
+import { rangeTypes } from "../../utils/flows/flowDateUtils"; // Added missing import
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 

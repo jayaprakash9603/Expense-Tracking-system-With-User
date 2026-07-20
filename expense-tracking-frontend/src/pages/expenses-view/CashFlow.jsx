@@ -17,7 +17,7 @@ import {
   formatCompactNumber,
   formatCurrencyCompact,
   formatNumberFull,
-} from "../../utils/numberFormatters";
+} from "../../utils/formatting/numberFormatters";
 import { useTheme, useMediaQuery } from "@mui/material";
 import CashFlowChart from "../../components/CashFlowChart";
 import CashFlowExpenseCards from "../../components/cashflow/CashFlowExpenseCards";

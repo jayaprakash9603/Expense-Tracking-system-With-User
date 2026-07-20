@@ -5,8 +5,8 @@ import { Typography, Box, Chip } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
-import { formatDate } from "../utils/dateFormatter";
-import { formatAmount as fmt } from "../utils/formatAmount";
+import { formatDate } from "../utils/formatting/dateFormatter";
+import { formatAmount as fmt } from "../utils/formatting/formatAmount";
 import { GenericAccordionGroup } from "./GenericAccordionGroup";
 import { setExpenseSelection } from "../Redux/SharedSelection/sharedSelection.action";
 

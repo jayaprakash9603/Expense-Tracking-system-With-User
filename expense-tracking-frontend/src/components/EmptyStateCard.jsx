@@ -1,7 +1,7 @@
 import React, { isValidElement } from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
-import { getFunctionalIcon, isEmojiGlyph } from "../utils/iconMapping";
+import { getFunctionalIcon, isEmojiGlyph } from "../utils/ui/iconMapping";
 
 const renderIcon = (icon, color) => {
   if (icon == null) return null;

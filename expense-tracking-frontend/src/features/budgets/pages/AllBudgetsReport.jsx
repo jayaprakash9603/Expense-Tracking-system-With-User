@@ -19,7 +19,7 @@ import {
   LossGainBreakdownSkeleton,
 } from "../../../components/skeletons/CommonSkeletons";
 import { DailySpendingSkeleton } from "../../../pages/Dashboard";
-import { getChartColors } from "../../../utils/chartColors";
+import { getChartColors } from "../../../utils/charts/chartColors";
 import TopRecurringExpensesCard from "../../../components/budget/TopRecurringExpensesCard";
 import LossGainBreakdownCard from "../../../components/budget/LossGainBreakdownCard";
 import DailySpendingChart from "../../../pages/Dashboard/DailySpendingChart";

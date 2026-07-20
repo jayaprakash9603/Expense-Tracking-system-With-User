@@ -115,7 +115,7 @@ class UserControllerIntegrationTest {
 
         @Test
         void returnsListForInternalServiceToken() throws Exception {
-            mockMvc.perform(get("/api/user/all")
+            mockMvc.perform(get("/api/internal/users/all")
                             .header("X-Service-Token", "test-internal-token"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));

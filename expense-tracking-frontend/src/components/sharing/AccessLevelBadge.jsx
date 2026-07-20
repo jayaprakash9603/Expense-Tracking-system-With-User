@@ -21,7 +21,7 @@ import {
   InfoOutlined as InfoIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
-import { ACCESS_LEVEL_CONFIG, getAccessConfig } from "../../utils/sharesUtils";
+import { ACCESS_LEVEL_CONFIG, getAccessConfig } from "../../utils/domain/sharesUtils";
 
 // =============================================================================
 // Badge Variants

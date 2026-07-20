@@ -6,10 +6,10 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useTheme } from "../../hooks/useTheme";
 import { useMasking } from "../../hooks/useMasking";
-import { formatPaymentMethodName } from "../../utils/paymentMethodUtils";
+import { formatPaymentMethodName } from "../../utils/domain/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
-import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/iconMapping";
-import { handleSelectableSurfaceMouseDown } from "../../utils/selectableSurface";
+import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/ui/iconMapping";
+import { handleSelectableSurfaceMouseDown } from "../../utils/ui/selectableSurface";
 
 const sanitizeAttributeValue = (value) =>
   String(value ?? "")

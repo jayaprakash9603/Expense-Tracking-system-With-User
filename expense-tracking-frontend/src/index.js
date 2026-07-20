@@ -8,7 +8,7 @@ import { Provider } from "react-redux";
 import { store } from "./Redux/store";
 import { ThemeProvider } from "@emotion/react";
 import createAppTheme from "./shared/theme/createAppTheme";
-import { getStore, setStore } from "./utils/store";
+import { getStore, setStore } from "./utils/realtime/store";
 import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/googleOAuth";

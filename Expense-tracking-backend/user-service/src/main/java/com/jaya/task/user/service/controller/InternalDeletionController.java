@@ -21,7 +21,7 @@ import java.util.Optional;
 /**
  * Internal service-to-service endpoints for the user-service participant step.
  * Protected by the {@code ROLE_SERVICE} authority granted by
- * {@link com.jaya.task.user.service.config.InternalServiceAuthFilter}; end-user
+ * {@link com.jaya.common.security.InternalServiceAuthFilter}; end-user
  * JWTs cannot reach these routes.
  */
 @RestController

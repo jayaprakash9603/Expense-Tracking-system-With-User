@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchPaymentMethods } from "../../../utils/Api";
-import { buildReportParams } from "../../../utils/reportParams";
+import { fetchPaymentMethods } from "../../../utils/api/Api";
+import { buildReportParams } from "../../../utils/data/reportParams";
 import {
   normalizePaymentMethodData,
   applyFriendlyLabels,
-} from "../../../utils/dataTransformers";
+} from "../../../utils/data/dataTransformers";
 
 /**
  * usePaymentMethodsData

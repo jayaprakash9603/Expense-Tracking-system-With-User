@@ -6,7 +6,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 
-import { toNumber } from "../../../utils/dailySpendingDrilldownUtils";
+import { toNumber } from "../../../utils/charts/dailySpendingDrilldownUtils";
 
 const ArrowIcon = ({ direction = "down", color = "#fff" }) => (
   <svg

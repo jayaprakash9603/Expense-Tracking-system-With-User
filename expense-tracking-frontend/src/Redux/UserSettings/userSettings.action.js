@@ -1,5 +1,5 @@
 import { api } from "../../config/api";
-import { safeApiCall } from "../../utils/safeApiCall";
+import { safeApiCall } from "../../utils/api/safeApiCall";
 import * as actionTypes from "./userSettings.actionType";
 
 // Fetch User Settings

@@ -170,7 +170,7 @@ public class BudgetController {
 
     }
 
-    @GetMapping("/get-by-id")
+    @GetMapping("/internal/get-by-id")
     public Budget getBudgetByBudgetID(
             @RequestParam Integer budgetId,
             @RequestParam Integer userId) throws Exception {
@@ -179,7 +179,7 @@ public class BudgetController {
 
     }
 
-    @PostMapping("/save")
+    @PostMapping("/internal/save")
     public Budget save(
             @RequestBody Budget budget) throws Exception {
 
@@ -187,7 +187,7 @@ public class BudgetController {
 
     }
 
-    @GetMapping("/user")
+    @GetMapping("/internal/user")
     public List<Budget> getAllBudgetForUser(
             @RequestParam Integer userId) throws Exception {
         return budgetService.getBudgetsForUser(userId);

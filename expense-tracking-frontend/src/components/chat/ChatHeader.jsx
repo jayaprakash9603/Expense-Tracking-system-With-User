@@ -9,7 +9,7 @@ import {
   formatLastSeen,
   getInitials,
   getAvatarColor,
-} from "../../utils/chatUtils";
+} from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function ChatHeader({

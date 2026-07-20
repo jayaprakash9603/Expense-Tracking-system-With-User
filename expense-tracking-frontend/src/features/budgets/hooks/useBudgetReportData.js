@@ -4,8 +4,8 @@ import {
   getFilteredBudgetsReport,
   clearFilteredBudgetsReport,
 } from "../../../Redux/Budget/budget.action";
-import { getChartColors } from "../../../utils/chartColors";
-import { computeDateRange } from "../../../utils/reportParams";
+import { getChartColors } from "../../../utils/charts/chartColors";
+import { computeDateRange } from "../../../utils/data/reportParams";
 
 const COLORS = getChartColors();
 

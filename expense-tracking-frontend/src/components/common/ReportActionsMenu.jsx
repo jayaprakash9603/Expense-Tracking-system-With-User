@@ -4,7 +4,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useTheme } from "../../hooks/useTheme";
-import { getFunctionalIcon, isEmojiGlyph } from "../../utils/iconMapping";
+import { getFunctionalIcon, isEmojiGlyph } from "../../utils/ui/iconMapping";
 
 const renderMenuIcon = (icon, color) => {
   if (icon == null) return null;

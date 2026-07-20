@@ -8,10 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Feign client implementation for Category Service.
- * Active only in microservices mode (when 'monolithic' profile is NOT active).
- */
 @FeignClient(
     name = "CATEGORY-SERVICE",
     url = "${CATEGORY_SERVICE_URL:http://localhost:6008}",
@@ -21,25 +17,25 @@ import java.util.List;
 public interface FeignCategoryServiceClient extends ICategoryServiceClient {
 
     @Override
-    @GetMapping("/api/category/get")
+    @GetMapping("/api/categories/internal/get-by-id-with-service")
     CategoryDTO getById(@RequestParam("categoryId") Integer categoryId,
                         @RequestParam("userId") Integer userId);
 
     @Override
-    @GetMapping("/api/category/by-name")
+    @GetMapping("/api/categories/internal/get-by-name-with-service")
     List<CategoryDTO> getByName(@RequestParam("categoryName") String categoryName,
                                 @RequestParam("userId") Integer userId);
 
     @Override
-    @PostMapping("/api/category/create")
+    @PostMapping("/api/categories/internal/create-category-with-service")
     CategoryDTO create(@RequestBody CategoryDTO category,
                        @RequestParam("userId") Integer userId);
 
     @Override
-    @PostMapping("/api/category/save")
+    @PostMapping("/api/categories/internal/save")
     CategoryDTO save(@RequestBody CategoryDTO category);
 
     @Override
-    @GetMapping("/api/category/all")
+    @GetMapping("/api/categories/internal/get-all-for-users")
     List<CategoryDTO> getAllForUser(@RequestParam("userId") Integer userId);
 }

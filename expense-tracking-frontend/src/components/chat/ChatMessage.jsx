@@ -23,7 +23,7 @@ import {
   getInitials,
   getAvatarColor,
   getReactionEmoji,
-} from "../../utils/chatUtils";
+} from "../../utils/chat/chatUtils";
 import EmojiReactionPicker from "./EmojiReactionPicker";
 import { useTheme } from "../../hooks/useTheme";
 

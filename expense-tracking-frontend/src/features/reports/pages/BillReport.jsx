@@ -28,7 +28,7 @@ import { useParams } from "react-router";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
 import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
-import { formatDate } from "../../../utils/dateFormatter";
+import { formatDate } from "../../../utils/formatting/dateFormatter";
 import ReportHeader from "../../../components/ReportHeader";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";

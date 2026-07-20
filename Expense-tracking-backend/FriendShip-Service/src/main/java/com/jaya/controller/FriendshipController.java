@@ -100,8 +100,17 @@ public class FriendshipController {
         return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("/are-friends/{userId1}/{userId2}")
-    public ResponseEntity<Boolean> areFriends(@PathVariable Integer userId1,
+    @GetMapping("/are-friends/{otherUserId}")
+    public ResponseEntity<Boolean> areFriendsPublic(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer otherUserId) throws Exception {
+        UserDTO user = userClient.getUserProfile(jwt);
+        boolean areFriends = friendshipService.areFriends(user.getId(), otherUserId);
+        return ResponseEntity.ok(areFriends);
+    }
+
+    @GetMapping("/internal/are-friends/{userId1}/{userId2}")
+    public ResponseEntity<Boolean> areFriendsInternal(@PathVariable Integer userId1,
             @PathVariable Integer userId2) {
         try {
             boolean areFriends = friendshipService.areFriends(userId1, userId2);
@@ -112,7 +121,18 @@ public class FriendshipController {
     }
 
     @GetMapping("/friend-ids")
-    public ResponseEntity<List<Integer>> getFriendIds(@RequestParam Integer userId) {
+    public ResponseEntity<List<Integer>> getFriendIdsPublic(
+            @RequestHeader("Authorization") String jwt) throws Exception {
+        UserDTO user = userClient.getUserProfile(jwt);
+        List<Friendship> friendships = friendshipService.getUserFriendships(user.getId());
+        List<Integer> friendIds = friendships.stream()
+                .map(f -> f.getRequesterId().equals(user.getId()) ? f.getRecipientId() : f.getRequesterId())
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(friendIds);
+    }
+
+    @GetMapping("/internal/friend-ids")
+    public ResponseEntity<List<Integer>> getFriendIdsInternal(@RequestParam Integer userId) {
         try {
             List<Friendship> friendships = friendshipService.getUserFriendships(userId);
             List<Integer> friendIds = friendships.stream()
@@ -204,6 +224,14 @@ public class FriendshipController {
         UserDTO user = userClient.getUserProfile(jwt);
         List<Friendship> allFriendships = friendshipService.getAllUserFriendships(user.getId());
         Map<String, Object> stats = FriendshipMapper.createFriendshipSummary(allFriendships, user.getId());
+        return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/internal/stats")
+    public ResponseEntity<Map<String, Object>> getFriendshipStatsInternal(@RequestParam Integer userId)
+            throws Exception {
+        List<Friendship> allFriendships = friendshipService.getAllUserFriendships(userId);
+        Map<String, Object> stats = FriendshipMapper.createFriendshipSummary(allFriendships, userId);
         return ResponseEntity.ok(stats);
     }
 
@@ -351,20 +379,44 @@ public class FriendshipController {
     }
 
     @GetMapping("/can-access-expenses")
-    boolean canUserAccessExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId)
+    public boolean canUserAccessExpensesPublic(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam Integer targetUserId) throws Exception {
+        UserDTO requester = userClient.getUserProfile(jwt);
+        return friendshipService.canUserAccessExpenses(targetUserId, requester.getId());
+    }
+
+    @GetMapping("/internal/can-access-expenses")
+    boolean canUserAccessExpensesInternal(@RequestParam Integer targetUserId, @RequestParam Integer requesterId)
             throws Exception {
         return friendshipService.canUserAccessExpenses(targetUserId, requesterId);
-
     }
 
     @GetMapping("/can-modify-expenses")
-    boolean canUserModifyExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId)
+    public boolean canUserModifyExpensesPublic(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam Integer targetUserId) throws Exception {
+        UserDTO requester = userClient.getUserProfile(jwt);
+        return friendshipService.canUserModifyExpenses(targetUserId, requester.getId());
+    }
+
+    @GetMapping("/internal/can-modify-expenses")
+    boolean canUserModifyExpensesInternal(@RequestParam Integer targetUserId, @RequestParam Integer requesterId)
             throws Exception {
         return friendshipService.canUserModifyExpenses(targetUserId, requesterId);
     }
 
     @GetMapping("/get-access-level")
-    AccessLevel getUserAccessLevel(@RequestParam Integer userId, @RequestParam Integer viewerId) throws Exception {
+    public AccessLevel getUserAccessLevelPublic(
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam Integer userId) throws Exception {
+        UserDTO viewer = userClient.getUserProfile(jwt);
+        return friendshipService.getUserAccessLevel(userId, viewer.getId());
+    }
+
+    @GetMapping("/internal/get-access-level")
+    AccessLevel getUserAccessLevelInternal(@RequestParam Integer userId, @RequestParam Integer viewerId)
+            throws Exception {
         return friendshipService.getUserAccessLevel(userId, viewerId);
     }
 

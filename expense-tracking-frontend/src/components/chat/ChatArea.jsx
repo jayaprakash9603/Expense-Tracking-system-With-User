@@ -3,7 +3,7 @@ import { Box, Typography, CircularProgress } from "@mui/material";
 import ChatMessage from "./ChatMessage";
 import TypingIndicator from "./TypingIndicator";
 import ChatInput from "./ChatInput";
-import { groupMessagesByDate, formatChatDate } from "../../utils/chatUtils";
+import { groupMessagesByDate, formatChatDate } from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function ChatArea({

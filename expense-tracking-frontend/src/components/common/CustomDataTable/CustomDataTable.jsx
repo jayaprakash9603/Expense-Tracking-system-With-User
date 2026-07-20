@@ -20,7 +20,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import FilterPopover from "../../ui/FilterPopover";
 import { useTheme } from "../../../hooks/useTheme";
-import { applyColumnFilter } from "../../../utils/filterLogic";
+import { applyColumnFilter } from "../../../utils/data/filterLogic";
 
 /**
  * CustomDataTable - A reusable, customizable data table component

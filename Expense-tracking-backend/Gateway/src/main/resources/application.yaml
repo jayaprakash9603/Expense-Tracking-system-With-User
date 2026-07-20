@@ -136,3 +136,5 @@ gateway:
     enabled: true
     requests: 10
     window-seconds: 60
+  internal-block:
+    enabled: true

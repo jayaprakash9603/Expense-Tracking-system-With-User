@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, IconButton, Popover } from "@mui/material";
-import { REACTION_EMOJIS } from "../../utils/chatUtils";
+import { REACTION_EMOJIS } from "../../utils/chat/chatUtils";
 import { useTheme } from "../../hooks/useTheme";
 
 function EmojiReactionPicker({ anchorEl, open, onClose, onSelect }) {

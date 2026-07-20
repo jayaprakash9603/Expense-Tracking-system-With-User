@@ -80,11 +80,11 @@ import {
 import {
   getCashflowCacheDescriptor,
   getCashflowCacheKeyFromDescriptor,
-} from "../../utils/cashflowCacheUtils";
+} from "../../utils/cache/cashflowCacheUtils";
 import {
   getCategoryFlowCacheDescriptor,
   getCategoryFlowCacheKeyFromDescriptor,
-} from "../../utils/categoryFlowCacheUtils";
+} from "../../utils/cache/categoryFlowCacheUtils";
 
 export const getExpensesAction =
   (sortOrder = "desc", targetId) =>

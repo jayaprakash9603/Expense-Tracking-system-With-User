@@ -2,7 +2,7 @@ import axios from "axios";
 import {
   attachSystemErrorPayload,
   buildSystemErrorPayloadFromAxios,
-} from "../utils/systemErrorEvents";
+} from "../utils/api/systemErrorEvents";
 
 const isCanceledError = (error) =>
   axios.isCancel(error) ||

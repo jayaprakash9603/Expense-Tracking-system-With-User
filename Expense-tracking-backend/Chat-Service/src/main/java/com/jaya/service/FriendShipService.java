@@ -15,16 +15,16 @@ import java.util.List;
 public interface FriendShipService {
 
 
-    @GetMapping("/api/friendships/are-friends/{userId1}/{userId2}")
+    @GetMapping("/api/friendships/internal/are-friends/{userId1}/{userId2}")
     boolean areFriends(@PathVariable("userId1") Integer userId1,
                        @PathVariable("userId2") Integer userId2);
 
-    @GetMapping("/api/friendships/can-access-expenses")
+    @GetMapping("/api/friendships/internal/can-access-expenses")
     boolean canUserAccessExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId) throws  Exception;
 
-    @GetMapping("/api/friendships/can-modify-expenses")
+    @GetMapping("/api/friendships/internal/can-modify-expenses")
     boolean canUserModifyExpenses(@RequestParam Integer targetUserId, @RequestParam Integer requesterId) throws Exception;
 
-    @GetMapping("/api/friendships/friend-ids")
+    @GetMapping("/api/friendships/internal/friend-ids")
     List<Integer> getFriendIds(@RequestParam Integer userId);
 }

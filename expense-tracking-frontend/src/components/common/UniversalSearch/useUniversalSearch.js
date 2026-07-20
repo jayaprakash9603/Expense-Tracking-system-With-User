@@ -18,8 +18,8 @@ import {
   SEARCH_MODES,
 } from "./quickActions.config";
 import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
-import UserSettingsHelper from "../../../utils/UserSettingsHelper";
-import { formatDate } from "../../../utils/dateFormatter";
+import UserSettingsHelper from "../../../utils/settings/UserSettingsHelper";
+import { formatDate } from "../../../utils/formatting/dateFormatter";
 import { FAQ_CATEGORIES } from "../../../features/help-support/pages/HelpCenter";
 
 // Debounce delay in ms - Reduced for better UX

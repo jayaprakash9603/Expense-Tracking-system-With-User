@@ -5,7 +5,7 @@ import { Box, Divider, Drawer, Tab, Tabs, useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 
-import { buildScrollbarSx } from "../../utils/dailySpendingDrilldownUtils";
+import { buildScrollbarSx } from "../../utils/charts/dailySpendingDrilldownUtils";
 
 import DrawerHeader from "./dailySpendingDrilldown/DrawerHeader";
 import SummarySection from "./dailySpendingDrilldown/SummarySection";

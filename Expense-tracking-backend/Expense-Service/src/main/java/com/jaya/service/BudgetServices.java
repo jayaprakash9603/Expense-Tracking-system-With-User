@@ -11,18 +11,18 @@ import java.util.List;
 public interface BudgetServices {
 
 
-    @GetMapping("/api/budgets/get-by-id")
+    @GetMapping("/api/budgets/internal/get-by-id")
     public BudgetModel getBudgetById(
             @RequestParam Integer budgetId,
             @RequestParam Integer userId
     ) throws Exception;
 
-    @PostMapping("/api/budgets/save")
+    @PostMapping("/api/budgets/internal/save")
     public BudgetModel save(
             @RequestBody BudgetModel BudgetModel
     ) throws Exception;
 
-    @GetMapping("/api/budgets/user")
+    @GetMapping("/api/budgets/internal/user")
     public List<BudgetModel> getAllBudgetForUser(
             @RequestParam Integer userId
     ) throws Exception;

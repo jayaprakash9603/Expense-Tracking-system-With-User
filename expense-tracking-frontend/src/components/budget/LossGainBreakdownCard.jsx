@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
-import { formatAmount as fmt } from "../../utils/formatAmount";
+import { formatAmount as fmt } from "../../utils/formatting/formatAmount";
 
 const clampPercent = (value) => {
   const num = Number(value);

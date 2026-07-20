@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface GroupService {
 
 
-    @GetMapping("/api/groups/get-group-by-id")
+    @GetMapping("/api/groups/internal/get-group-by-id")
     public Optional<GroupResponseDTO> getGroupByIdwithService(
             @RequestParam Integer id,@RequestParam Integer userId) throws Exception;
 }

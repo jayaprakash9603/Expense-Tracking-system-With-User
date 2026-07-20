@@ -6,7 +6,7 @@ import { DataGrid } from "@mui/x-data-grid";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
-import { formatNumberFull } from "../../utils/numberFormatters";
+import { formatNumberFull } from "../../utils/formatting/numberFormatters";
 
 /**
  * =============================================================================

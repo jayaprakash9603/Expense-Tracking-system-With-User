@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchCategoriesSummary, fetchExpenseSummary } from "../../../utils/Api";
-import { computeDateRange } from "../../../utils/reportParams";
+import { fetchCategoriesSummary, fetchExpenseSummary } from "../../../utils/api/Api";
+import { computeDateRange } from "../../../utils/data/reportParams";
 
 /**
  * useCategoryDistributionData

@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import EmptyStateCard from "../../components/EmptyStateCard";
-import { getEntityIcon } from "../../utils/iconMapping";
+import { getEntityIcon } from "../../utils/ui/iconMapping";
 
 // Generic reusable Pie/Donut chart component with MUI tooltips
 // Props:

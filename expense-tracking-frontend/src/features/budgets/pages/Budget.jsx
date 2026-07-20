@@ -76,7 +76,7 @@ import { setBudgetSelection } from "../../../Redux/SharedSelection/sharedSelecti
 import {
   handleSelectableSurfaceMouseDown,
   selectableSurfaceStyles,
-} from "../../../utils/selectableSurface";
+} from "../../../utils/ui/selectableSurface";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();

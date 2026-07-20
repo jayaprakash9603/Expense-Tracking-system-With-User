@@ -6,7 +6,7 @@ import { fetchCashflowExpenses } from "../../../Redux/Expenses/expense.action";
 import MonthlyCalendarView from "../../../components/calendar/MonthlyCalendarView";
 import { getFinanceCalendarColors } from "../../../config/financeColorTokens";
 import { useTheme } from "../../../hooks/useTheme";
-import { getCategoryIcon } from "../../../utils/iconMapping";
+import { getCategoryIcon } from "../../../utils/ui/iconMapping";
 import CalendarDayDetailsSidebar from "../../../components/calendar/CalendarDayDetailsSidebar";
 
 const CategoryCalendarView = () => {

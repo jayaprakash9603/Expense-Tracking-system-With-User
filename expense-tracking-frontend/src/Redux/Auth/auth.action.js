@@ -17,7 +17,7 @@ import {
   UPLOAD_TO_CLOUDINARY_SUCCESS,
 } from "./auth.actionType";
 import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
-import { safeApiCall } from "../../utils/safeApiCall";
+import { safeApiCall } from "../../utils/api/safeApiCall";
 
 // Redirect helper function
 const redirectToHome = (navigate) => {

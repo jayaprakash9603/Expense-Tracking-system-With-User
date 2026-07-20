@@ -35,7 +35,7 @@ import { fetchNotificationPreferences as fetchNotificationPreferenceSettings } f
 import {
   publishGlobalMessage,
   clearGlobalMessage,
-} from "../../../utils/globalMessageBus";
+} from "../../../utils/messaging/globalMessageBus";
 
 /**
  * Configuration Constants
