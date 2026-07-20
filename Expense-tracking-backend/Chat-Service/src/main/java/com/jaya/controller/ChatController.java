@@ -46,23 +46,41 @@ public class ChatController {
 
     }
 
+    @GetMapping("")
+    public ResponseEntity<?> getChats(
+            @RequestParam(required = false) String scope,
+            @RequestParam(required = false) Integer groupId,
+            @RequestHeader("Authorization") String jwt) {
+        UserDTO user = userClient.getUserProfile(jwt);
+        String resolvedScope = scope == null ? "" : scope.trim().toLowerCase();
+        return switch (resolvedScope) {
+            case "group" -> groupId == null
+                    ? ResponseEntity.badRequest().body("groupId is required when scope=group")
+                    : ResponseEntity.ok(chatService.getChatsForGroup(groupId, user.getId()));
+            case "user" -> ResponseEntity.ok(chatService.getChatsForUser(user.getId()));
+            default -> ResponseEntity.ok(chatService.getChatsBySender(user.getId()));
+        };
+    }
+
+    /**
+     * @deprecated Use {@code GET /api/chats?scope=user} instead.
+     */
+    @Deprecated
     @GetMapping("/user")
     public List<ChatResponse> getChatsForUser(@RequestHeader("Authorization") String jwt) {
         UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getChatsForUser(user.getId());
     }
 
+    /**
+     * @deprecated Use {@code GET /api/chats?scope=group&groupId={groupId}} instead.
+     */
+    @Deprecated
     @GetMapping("/group/{groupId}")
     public List<ChatResponse> getChatsForGroup(@PathVariable Integer groupId,
             @RequestHeader("Authorization") String jwt) {
         UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getChatsForGroup(groupId, user.getId());
-    }
-
-    @GetMapping("")
-    public List<ChatResponse> getChatsBySender(@RequestHeader("Authorization") String jwt) {
-        UserDTO user = userClient.getUserProfile(jwt);
-        return chatService.getChatsBySender(user.getId());
     }
 
     @GetMapping("/between")
@@ -155,12 +173,48 @@ public class ChatController {
         }
     }
 
+    @GetMapping("/unread")
+    public ResponseEntity<?> getUnread(
+            @RequestParam(required = false) String scope,
+            @RequestParam(required = false) Integer groupId,
+            @RequestParam(defaultValue = "false") boolean countOnly,
+            @RequestHeader("Authorization") String jwt) {
+        UserDTO user = userClient.getUserProfile(jwt);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+        }
+        if (countOnly) {
+            try {
+                Long count = chatService.getUnreadMessageCount(user.getId());
+                return ResponseEntity.ok(Map.of("unreadCount", count));
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error getting unread count: " + e.getMessage());
+            }
+        }
+        String resolvedScope = scope == null ? "" : scope.trim().toLowerCase();
+        if ("group".equals(resolvedScope)) {
+            return groupId == null
+                    ? ResponseEntity.badRequest().body("groupId is required when scope=group")
+                    : ResponseEntity.ok(chatService.getUnreadChatsForGroup(groupId, user.getId()));
+        }
+        return ResponseEntity.ok(chatService.getUnreadChatsForUser(user.getId()));
+    }
+
+    /**
+     * @deprecated Use {@code GET /api/chats/unread?scope=user} instead.
+     */
+    @Deprecated
     @GetMapping("/user/unread")
     public List<ChatResponse> getUnreadChatsForUser(@RequestHeader("Authorization") String jwt) {
         UserDTO user = userClient.getUserProfile(jwt);
         return chatService.getUnreadChatsForUser(user.getId());
     }
 
+    /**
+     * @deprecated Use {@code GET /api/chats/unread?scope=group&groupId={groupId}} instead.
+     */
+    @Deprecated
     @GetMapping("/group/{groupId}/unread")
     public List<ChatResponse> getUnreadChatsForGroup(@PathVariable Integer groupId,
             @RequestHeader("Authorization") String jwt) {
@@ -401,6 +455,10 @@ public class ChatController {
         }
     }
 
+    /**
+     * @deprecated Use {@code GET /api/chats/unread?countOnly=true} instead.
+     */
+    @Deprecated
     @GetMapping("/unread/count")
     public ResponseEntity<?> getUnreadMessageCount(@RequestHeader("Authorization") String jwt) {
         try {

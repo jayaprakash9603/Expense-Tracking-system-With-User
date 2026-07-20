@@ -1,5 +1,6 @@
 package com.jaya.task.user.service.service;
 
+import com.jaya.task.user.service.cache.UserCacheEvictor;
 import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.modal.Role;
@@ -33,21 +34,15 @@ public class UserServiceImplementation implements UserService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private UserProfileCacheService userProfileCacheService;
+
     @jakarta.persistence.PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
     @Override
     public User getUserProfile(String jwt) {
-        String email = JwtProvider.getEmailFromJwt(jwt);
-        User user = userRepository.findByEmail(email);
-
-        if (user != null && (user.getCurrentMode() == null || user.getCurrentMode().trim().isEmpty())) {
-            user.setCurrentMode("USER");
-            user.setUpdatedAt(LocalDateTime.now());
-            user = userRepository.save(user);
-        }
-
-        return user;
+        return userProfileCacheService.getUserByEmail(JwtProvider.getEmailFromJwt(jwt));
     }
 
     @Override
@@ -57,11 +52,11 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userProfileCacheService.getUserByEmail(email);
     }
 
     public User updateUserProfile(String jwt, UserUpdateRequest updateRequest) {
-        User reqUser = getUserProfile(jwt);
+        User reqUser = findByEmail(JwtProvider.getEmailFromJwt(jwt));
 
         if (reqUser == null) {
             throw new RuntimeException("User not found");
@@ -167,7 +162,8 @@ public class UserServiceImplementation implements UserService {
 
     @Override
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        String normalized = UserProfileCacheService.normalizeEmail(email);
+        return normalized == null ? null : userRepository.findByEmail(normalized);
     }
 
     @Override
@@ -256,7 +252,7 @@ public class UserServiceImplementation implements UserService {
     @Override
     @org.springframework.transaction.annotation.Transactional
     public User switchUserMode(String jwt, String newMode) {
-        User user = getUserProfile(jwt);
+        User user = findByEmail(JwtProvider.getEmailFromJwt(jwt));
 
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -275,6 +271,9 @@ public class UserServiceImplementation implements UserService {
         // Detach so Hibernate won't try to flush/validate the full entity on commit
         entityManager.detach(user);
         user.setCurrentMode(newMode);
+
+        // Bulk JPQL update bypasses JPA entity listeners, so evict the cache explicitly.
+        UserCacheEvictor.evict(user.getId(), user.getEmail());
 
         return user;
     }

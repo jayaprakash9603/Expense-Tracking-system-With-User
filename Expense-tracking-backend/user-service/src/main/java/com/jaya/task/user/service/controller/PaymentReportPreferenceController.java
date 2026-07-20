@@ -18,6 +18,7 @@ import java.util.Map;
 
 
 
+@Deprecated
 @RestController
 @RequestMapping("/api/user/payment-report-preferences")
 @Validated

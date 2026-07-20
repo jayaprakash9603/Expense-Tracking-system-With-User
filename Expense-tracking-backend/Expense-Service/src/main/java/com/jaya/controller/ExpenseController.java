@@ -268,6 +268,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=custom. */
+    @Deprecated
     @GetMapping("/fetch-expenses-by-date")
     public ResponseEntity<Object> getExpensesByDateRange(@RequestParam LocalDate from,
             @RequestParam LocalDate to,
@@ -447,6 +449,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=between-dates. */
+    @Deprecated
     @GetMapping("/between-dates")
     public ResponseEntity<List<MonthlySummary>> getSummaryBetweenDates(
             @RequestParam Integer startYear,
@@ -463,6 +467,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=amount. */
+    @Deprecated
     @GetMapping("/top-n")
     public ResponseEntity<List<Expense>> getTopNExpenses(
             @RequestParam int n,
@@ -520,6 +526,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(filteredExpenses);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=name. */
+    @Deprecated
     @GetMapping("/top-expense-names")
     public ResponseEntity<Map<String, Object>> getTopExpenseNames(
             @RequestParam int topN,
@@ -650,6 +658,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=paymentMethod. */
+    @Deprecated
     @GetMapping("/top-payment-methods")
     public ResponseEntity<List<String>> getTopPaymentMethods(
             @RequestHeader("Authorization") String jwt,
@@ -661,6 +671,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(topPaymentMethods);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=gain. */
+    @Deprecated
     @GetMapping("/top-gains")
     public ResponseEntity<List<Expense>> getTopGains(
             @RequestHeader("Authorization") String jwt,
@@ -671,6 +683,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(topGains);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=loss. */
+    @Deprecated
     @GetMapping("/top-losses")
     public ResponseEntity<List<Expense>> getTopLosses(
             @RequestHeader("Authorization") String jwt,
@@ -682,6 +696,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(topLosses);
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=month. */
+    @Deprecated
     @GetMapping("/by-month")
     public ResponseEntity<List<Expense>> getExpensesByMonthAndYear(
             @RequestParam int month,
@@ -695,6 +711,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(expenses);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=gain&unique=true. */
+    @Deprecated
     @GetMapping("/top-gains/unique")
     public ResponseEntity<List<String>> getTopGains(
             @RequestParam(value = "limit", defaultValue = "10") int limit,
@@ -715,6 +733,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses/top?metric=loss&unique=true. */
+    @Deprecated
     @GetMapping("/top-losses/unique")
     public ResponseEntity<List<String>> getTopLosses(
             @RequestParam(value = "limit", defaultValue = "10") int limit,
@@ -734,6 +754,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=today. */
+    @Deprecated
     @GetMapping("/today")
     public ResponseEntity<List<Expense>> getExpensesForToday(
             @RequestHeader("Authorization") String jwt,
@@ -746,6 +768,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=last-month. */
+    @Deprecated
     @GetMapping("/last-month")
     public ResponseEntity<List<Expense>> getExpensesForLastMonth(
             @RequestHeader("Authorization") String jwt,
@@ -757,6 +781,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=current-month. */
+    @Deprecated
     @GetMapping("/current-month")
     public ResponseEntity<List<Expense>> getExpensesForCurrentMonth(
             @RequestHeader("Authorization") String jwt,
@@ -865,6 +891,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(response.toString());
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=category. */
+    @Deprecated
     @GetMapping("/total-by-category")
     public ResponseEntity<List<Map<String, Object>>> getTotalByCategory(
             @RequestHeader("Authorization") String jwt,
@@ -877,6 +905,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(categoryTotals);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=date. */
+    @Deprecated
     @GetMapping("/total-by-date")
     public ResponseEntity<Map<String, Double>> getTotalByDate(
             @RequestHeader("Authorization") String jwt,
@@ -889,6 +919,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(totalByDate);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?period=today. */
+    @Deprecated
     @GetMapping("/expenses/total-today")
     public ResponseEntity<Double> getTotalForToday(
             @RequestHeader("Authorization") String jwt,
@@ -901,6 +933,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(totalToday);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?period=current-month. */
+    @Deprecated
     @GetMapping("/expenses/total-current-month")
     public ResponseEntity<Double> getTotalForCurrentMonth(
             @RequestHeader("Authorization") String jwt,
@@ -913,6 +947,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(totalCurrentMonth);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?period=month. */
+    @Deprecated
     @GetMapping("/expenses/total-by-month-year")
     public ResponseEntity<?> getTotalByMonthAndYear(
             @RequestParam int month,
@@ -932,6 +968,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?period=range. */
+    @Deprecated
     @GetMapping("/expenses/total-by-date-range")
     public ResponseEntity<Double> getTotalByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -943,6 +981,8 @@ public class ExpenseController extends BaseExpenseController {
         return new ResponseEntity<>(total, HttpStatus.OK);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=paymentMethod&period=current-month. */
+    @Deprecated
     @GetMapping("/expenses/payment-wise-total-current-month")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForCurrentMonth(
             @RequestHeader("Authorization") String jwt,
@@ -955,6 +995,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(paymentWiseTotals);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=paymentMethod&period=last-month. */
+    @Deprecated
     @GetMapping("/expenses/payment-wise-total-last-month")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForLastMonth(
             @RequestHeader("Authorization") String jwt,
@@ -967,6 +1009,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(paymentWiseTotals);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=paymentMethod&period=range. */
+    @Deprecated
     @GetMapping("/expenses/payment-wise-total-from-to")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForDateRange(
             @RequestParam("startDate") String startDate,
@@ -986,6 +1030,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(paymentWiseTotals);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=paymentMethod&period=month. */
+    @Deprecated
     @GetMapping("/expenses/payment-wise-total-month")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForMonth(
             @RequestParam("month") int month,
@@ -999,6 +1045,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(paymentWiseTotals);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=expensePaymentMethod&period=month. */
+    @Deprecated
     @GetMapping("/expenses/total-by-expense-payment-method")
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalByExpenseNameAndPaymentMethodForMonth(
             @RequestParam("month") int month,
@@ -1011,6 +1059,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(result);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=expensePaymentMethod&period=range. */
+    @Deprecated
     @GetMapping("/expenses/total-by-expense-payment-method-range")
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalByExpenseNameAndPaymentMethodForDateRange(
             @RequestParam("startDate") String startDateStr,
@@ -1028,6 +1078,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(result);
     }
 
+    /** @deprecated Superseded by GET /api/expenses/totals?groupBy=expensePaymentMethod. */
+    @Deprecated
     @GetMapping("/expenses/total-expense-payment-method")
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalExpensesGroupedByPaymentMethod(
             @RequestHeader("Authorization") String jwt,
@@ -1053,6 +1105,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok(reportPath);
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/send-excel-report")
     public ResponseEntity<String> sendExcelReport(
             @RequestParam String toEmail,
@@ -1067,6 +1121,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email (scope=monthly-report). */
+    @Deprecated
     @PostMapping("/send-monthly-report")
     public ResponseEntity<String> sendMonthlyReport(@RequestBody ReportRequest request) {
         return expenseService.generateAndSendMonthlyReport(request);
@@ -1091,6 +1147,8 @@ public class ExpenseController extends BaseExpenseController {
                 .body(new InputStreamResource(in));
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/current-month/email")
     public ResponseEntity<String> sendCurrentMonthExpensesEmail(
             @RequestParam String email,
@@ -1146,6 +1204,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/last-month/email")
     public ResponseEntity<?> sendLastMonthExpensesEmail(
             @RequestParam String email,
@@ -1170,6 +1230,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/by-month/email")
     public ResponseEntity<String> sendExpensesByMonthAndYearEmail(
             @RequestParam int month,
@@ -1196,6 +1258,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/email/all")
     public ResponseEntity<?> sendAllExpensesEmail(
             @RequestParam String email,
@@ -1408,6 +1472,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/{type}/{paymentMethod}/email")
     public ResponseEntity<String> sendExpensesByTypeAndPaymentMethodEmail(
             @PathVariable String type,
@@ -1440,6 +1506,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/fetch-expenses-by-date/email")
     public ResponseEntity<String> sendExpensesByDateRangeEmail(
             @RequestParam LocalDate from,
@@ -1470,6 +1538,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/gain/email")
     public ResponseEntity<String> sendGainExpensesEmail(
             @RequestParam String email,
@@ -1495,6 +1565,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/loss/email")
     public ResponseEntity<String> sendLossExpensesEmail(
             @RequestParam String email,
@@ -1523,6 +1595,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/today/email")
     public ResponseEntity<?> sendExpensesForTodayEmail(
             @RequestParam String email,
@@ -1581,6 +1655,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/payment-method/{paymentMethod}/email")
     public ResponseEntity<String> sendExpensesByPaymentMethodEmail(
             @PathVariable String paymentMethod,
@@ -1611,6 +1687,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok("Email sent successfully");
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/amount-range/email")
     public ResponseEntity<String> sendExpenseDetailsByAmountRangeEmail(
             @RequestParam double minAmount,
@@ -1645,6 +1723,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/search/email")
     public ResponseEntity<String> sendSearchExpensesByEmail(
             @RequestParam String expenseName,
@@ -1675,6 +1755,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok("Email sent successfully");
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/monthly-summary/{year}/{month}/email")
     public ResponseEntity<String> sendMonthlySummaryByEmail(
             @PathVariable Integer year,
@@ -1701,6 +1783,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok("Email sent successfully");
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/payment-method-summary/email")
     public ResponseEntity<String> sendPaymentMethodSummaryByEmail(
             @RequestParam String email,
@@ -1725,6 +1809,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok("Email sent successfully");
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/yearly-summary/email")
     public ResponseEntity<String> sendYearlySummaryByEmail(
             @RequestParam Integer year,
@@ -1750,6 +1836,8 @@ public class ExpenseController extends BaseExpenseController {
         return ResponseEntity.ok("Email sent successfully");
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/between-dates/email")
     public ResponseEntity<String> sendSummaryBetweenDatesByEmail(
             @RequestParam Integer startYear,
@@ -1799,11 +1887,15 @@ public class ExpenseController extends BaseExpenseController {
         return expenseService.getExpensesTypes();
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=month. */
+    @Deprecated
     @GetMapping("/expenses/particular-month")
     public List<Expense> getParticularMonthExpenses(@RequestParam int year, @RequestParam int month) {
         return expenseService.getExpensesByMonth(year, month);
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=yesterday. */
+    @Deprecated
     @GetMapping("/expenses/yesterday")
     public ResponseEntity<List<Expense>> getYesterdayExpenses(
             @RequestHeader("Authorization") String jwt,
@@ -1817,6 +1909,8 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=date. */
+    @Deprecated
     @GetMapping("/particular-date")
     public ResponseEntity<List<Expense>> getParticularDateExpenses(
             @RequestParam String date,
@@ -1830,12 +1924,16 @@ public class ExpenseController extends BaseExpenseController {
 
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=current-week. */
+    @Deprecated
     @GetMapping("/expenses/current-week")
     public List<Expense> getCurrentWeekExpenses(@RequestHeader("Authorization") String jwt) {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         return expenseService.getExpensesByCurrentWeek(reqUser.getId());
     }
 
+    /** @deprecated Superseded by GET /api/expenses?range=last-week. */
+    @Deprecated
     @GetMapping("/expenses/last-week")
     public List<Expense> getLastWeekExpenses(@RequestHeader("Authorization") String jwt) {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
@@ -1865,6 +1963,8 @@ public class ExpenseController extends BaseExpenseController {
     
     
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/yesterday/email")
     public ResponseEntity<String> sendYesterdayExpensesEmail(
             @RequestParam String email,
@@ -1924,6 +2024,8 @@ public class ExpenseController extends BaseExpenseController {
         }
     }
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/date/email")
     public ResponseEntity<String> sendDateExpensesEmail(
             @RequestParam String date,
@@ -1996,6 +2098,8 @@ public class ExpenseController extends BaseExpenseController {
     
     
 
+    /** @deprecated Superseded by POST /api/expenses/reports/email. */
+    @Deprecated
     @GetMapping("/expenses/last-week/email")
     public ResponseEntity<String> sendLastWeekExpensesEmail(
             @RequestParam String email,
@@ -3316,6 +3420,361 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<ReportHistory> history = reportHistoryService.getReportHistoryByDateRange(targetUser, startDate, endDate);
         return ResponseEntity.ok(history);
+    }
+
+    // ==========================================================================
+    // Consolidated endpoints. These delegate to the existing handler methods so
+    // no business logic is duplicated. The superseded handlers are kept and are
+    // marked @Deprecated.
+    // ==========================================================================
+
+    @PostMapping("/reports/email")
+    public ResponseEntity<?> sendReportEmail(
+            @RequestBody Map<String, Object> body,
+            @RequestHeader("Authorization") String jwt) throws Exception {
+
+        if (body == null) {
+            return ResponseEntity.badRequest().body("Request body is required");
+        }
+        String scope = asString(body.get("scope"));
+        if (scope == null) {
+            return ResponseEntity.badRequest().body("'scope' is required");
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> filters = (body.get("filters") instanceof Map)
+                ? (Map<String, Object>) body.get("filters")
+                : new HashMap<>();
+
+        Integer targetId = asInteger(filters.get("targetId"));
+        String email = firstNonBlank(asString(filters.get("email")), asString(filters.get("toEmail")));
+
+        switch (scope) {
+            case "excel":
+                if (email == null) return missing("email");
+                return sendExcelReport(email, jwt, targetId);
+            case "current-month":
+                if (email == null) return missing("email");
+                return sendCurrentMonthExpensesEmail(email, jwt, targetId);
+            case "last-month":
+                if (email == null) return missing("email");
+                return sendLastMonthExpensesEmail(email, jwt, targetId);
+            case "by-month": {
+                if (email == null) return missing("email");
+                Integer month = asInteger(filters.get("month"));
+                Integer year = asInteger(filters.get("year"));
+                if (month == null || year == null) return missing("month/year");
+                return sendExpensesByMonthAndYearEmail(month, year, jwt, email, targetId);
+            }
+            case "all":
+                if (email == null) return missing("email");
+                return sendAllExpensesEmail(email, jwt, targetId);
+            case "type-payment": {
+                if (email == null) return missing("email");
+                String type = asString(filters.get("type"));
+                String paymentMethod = asString(filters.get("paymentMethod"));
+                if (type == null || paymentMethod == null) return missing("type/paymentMethod");
+                return sendExpensesByTypeAndPaymentMethodEmail(type, paymentMethod, email, jwt, targetId);
+            }
+            case "date-range": {
+                if (email == null) return missing("email");
+                LocalDate from = asDate(filters.get("from"));
+                LocalDate to = asDate(filters.get("to"));
+                if (from == null || to == null) return missing("from/to");
+                return sendExpensesByDateRangeEmail(from, to, jwt, email, targetId);
+            }
+            case "gain":
+                if (email == null) return missing("email");
+                return sendGainExpensesEmail(email, jwt, targetId);
+            case "loss":
+                if (email == null) return missing("email");
+                return sendLossExpensesEmail(email, jwt, targetId);
+            case "today":
+                if (email == null) return missing("email");
+                return sendExpensesForTodayEmail(email, jwt, targetId);
+            case "payment-method": {
+                if (email == null) return missing("email");
+                String paymentMethod = asString(filters.get("paymentMethod"));
+                if (paymentMethod == null) return missing("paymentMethod");
+                return sendExpensesByPaymentMethodEmail(paymentMethod, jwt, email, targetId);
+            }
+            case "amount-range": {
+                if (email == null) return missing("email");
+                Double min = asDouble(getFromRange(filters, "min"));
+                Double max = asDouble(getFromRange(filters, "max"));
+                if (min == null || max == null) return missing("amountRange.min/amountRange.max");
+                return sendExpenseDetailsByAmountRangeEmail(min, max, email, jwt, targetId);
+            }
+            case "search": {
+                if (email == null) return missing("email");
+                String expenseName = firstNonBlank(asString(filters.get("expenseName")),
+                        asString(filters.get("keyword")));
+                if (expenseName == null) return missing("expenseName/keyword");
+                return sendSearchExpensesByEmail(expenseName, email, jwt, targetId);
+            }
+            case "monthly-summary": {
+                if (email == null) return missing("email");
+                Integer month = asInteger(filters.get("month"));
+                Integer year = asInteger(filters.get("year"));
+                if (month == null || year == null) return missing("month/year");
+                return sendMonthlySummaryByEmail(year, month, email, jwt, targetId);
+            }
+            case "payment-method-summary":
+                if (email == null) return missing("email");
+                return sendPaymentMethodSummaryByEmail(email, jwt, targetId);
+            case "yearly-summary": {
+                if (email == null) return missing("email");
+                Integer year = asInteger(filters.get("year"));
+                if (year == null) return missing("year");
+                return sendYearlySummaryByEmail(year, email, jwt, targetId);
+            }
+            case "between-dates": {
+                if (email == null) return missing("email");
+                Integer startYear = asInteger(filters.get("startYear"));
+                Integer startMonth = asInteger(filters.get("startMonth"));
+                Integer endYear = asInteger(filters.get("endYear"));
+                Integer endMonth = asInteger(filters.get("endMonth"));
+                if (startYear == null || startMonth == null || endYear == null || endMonth == null) {
+                    return missing("startYear/startMonth/endYear/endMonth");
+                }
+                return sendSummaryBetweenDatesByEmail(startYear, startMonth, endYear, endMonth, email, jwt, targetId);
+            }
+            case "yesterday":
+                if (email == null) return missing("email");
+                return sendYesterdayExpensesEmail(email, jwt, targetId);
+            case "date": {
+                if (email == null) return missing("email");
+                String date = asString(filters.get("date"));
+                if (date == null) return missing("date");
+                return sendDateExpensesEmail(date, email, jwt, targetId);
+            }
+            case "last-week":
+                if (email == null) return missing("email");
+                return sendLastWeekExpensesEmail(email, jwt, targetId);
+            case "monthly-report":
+                return ResponseEntity.badRequest().body(
+                        "scope 'monthly-report' is not supported here; use POST /api/expenses/send-monthly-report with a ReportRequest body");
+            default:
+                return ResponseEntity.badRequest().body("Unknown scope: " + scope);
+        }
+    }
+
+    @GetMapping("/totals")
+    public ResponseEntity<?> getTotals(
+            @RequestParam(required = false) String period,
+            @RequestParam(required = false) String groupBy,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        String grp = (groupBy == null || groupBy.isBlank()) ? "none" : groupBy;
+        String per = (period == null || period.isBlank()) ? "none" : period;
+
+        switch (grp) {
+            case "category":
+                return getTotalByCategory(jwt, targetId);
+            case "date":
+                return getTotalByDate(jwt, targetId);
+            case "paymentMethod":
+                switch (per) {
+                    case "current-month":
+                        return getPaymentWiseTotalForCurrentMonth(jwt, targetId);
+                    case "last-month":
+                        return getPaymentWiseTotalForLastMonth(jwt, targetId);
+                    case "month":
+                        if (month == null || year == null) return missing("month/year");
+                        return getPaymentWiseTotalForMonth(month, year, jwt, targetId);
+                    case "range":
+                        if (from == null || to == null) return missing("from/to");
+                        return getPaymentWiseTotalForDateRange(from.toString(), to.toString(), jwt, targetId);
+                    default:
+                        return ResponseEntity.badRequest()
+                                .body("Unsupported period '" + per + "' for groupBy=paymentMethod");
+                }
+            case "expensePaymentMethod":
+                switch (per) {
+                    case "month":
+                        if (month == null || year == null) return missing("month/year");
+                        return getTotalByExpenseNameAndPaymentMethodForMonth(month, year, jwt, targetId);
+                    case "range":
+                        if (from == null || to == null) return missing("from/to");
+                        return getTotalByExpenseNameAndPaymentMethodForDateRange(from.toString(), to.toString(), jwt,
+                                targetId);
+                    case "none":
+                        return getTotalExpensesGroupedByPaymentMethod(jwt, targetId);
+                    default:
+                        return ResponseEntity.badRequest()
+                                .body("Unsupported period '" + per + "' for groupBy=expensePaymentMethod");
+                }
+            case "none":
+                switch (per) {
+                    case "today":
+                        return getTotalForToday(jwt, targetId);
+                    case "current-month":
+                        return getTotalForCurrentMonth(jwt, targetId);
+                    case "month":
+                        if (month == null || year == null) return missing("month/year");
+                        return getTotalByMonthAndYear(month, year, jwt, targetId);
+                    case "range":
+                        if (from == null || to == null) return missing("from/to");
+                        return getTotalByDateRange(from, to, jwt, targetId);
+                    default:
+                        return ResponseEntity.badRequest().body("Unsupported period '" + per + "' for groupBy=none");
+                }
+            default:
+                return ResponseEntity.badRequest().body("Unknown groupBy: " + grp);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<?> listExpensesByRange(
+            @RequestParam(required = false) String range,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) Integer startYear,
+            @RequestParam(required = false) Integer startMonth,
+            @RequestParam(required = false) Integer endYear,
+            @RequestParam(required = false) Integer endMonth,
+            @RequestParam(defaultValue = "desc") String sort,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        String r = (range == null || range.isBlank()) ? "" : range;
+        switch (r) {
+            case "today":
+                return getExpensesForToday(jwt, targetId);
+            case "yesterday":
+                return getYesterdayExpenses(jwt, targetId);
+            case "current-week":
+                return ResponseEntity.ok(getCurrentWeekExpenses(jwt));
+            case "last-week":
+                return ResponseEntity.ok(getLastWeekExpenses(jwt));
+            case "current-month":
+                return getExpensesForCurrentMonth(jwt, targetId);
+            case "last-month":
+                return getExpensesForLastMonth(jwt, targetId);
+            case "month":
+                if (month == null || year == null) return missing("month/year");
+                return getExpensesByMonthAndYear(month, year, jwt, targetId);
+            case "date":
+                if (date == null || date.isBlank()) return missing("date");
+                return getParticularDateExpenses(date, jwt, targetId);
+            case "custom":
+                if (from == null || to == null) return missing("from/to");
+                return getExpensesByDateRange(from, to, jwt, targetId);
+            case "between-dates":
+                if (startYear == null || startMonth == null || endYear == null || endMonth == null) {
+                    return missing("startYear/startMonth/endYear/endMonth");
+                }
+                return getSummaryBetweenDates(startYear, startMonth, endYear, endMonth, jwt, targetId);
+            case "":
+                return getAllExpenses(jwt, sort, targetId);
+            default:
+                return ResponseEntity.badRequest().body("Unknown range: " + r);
+        }
+    }
+
+    @GetMapping("/top")
+    public ResponseEntity<?> getTop(
+            @RequestParam(required = false) String metric,
+            @RequestParam(defaultValue = "10") int n,
+            @RequestParam(defaultValue = "false") boolean unique,
+            @RequestHeader("Authorization") String jwt,
+            @RequestParam(required = false) Integer targetId) throws Exception {
+
+        String m = (metric == null || metric.isBlank()) ? "amount" : metric;
+        switch (m) {
+            case "amount":
+                return getTopNExpenses(n, jwt, targetId);
+            case "gain":
+                if (unique) return getTopGains(n, jwt, targetId);
+                return getTopGains(jwt, targetId);
+            case "loss":
+                if (unique) return getTopLosses(n, jwt, targetId);
+                return getTopLosses(jwt, targetId);
+            case "paymentMethod":
+                return getTopPaymentMethods(jwt, targetId);
+            case "name":
+                return getTopExpenseNames(n, jwt, targetId);
+            default:
+                return ResponseEntity.badRequest().body("Unknown metric: " + m);
+        }
+    }
+
+    private ResponseEntity<String> missing(String field) {
+        return ResponseEntity.badRequest().body("Missing required field(s): " + field);
+    }
+
+    private String asString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String s = String.valueOf(value).trim();
+        return s.isEmpty() ? null : s;
+    }
+
+    private String firstNonBlank(String a, String b) {
+        if (a != null && !a.isBlank()) {
+            return a;
+        }
+        if (b != null && !b.isBlank()) {
+            return b;
+        }
+        return null;
+    }
+
+    private Integer asInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).intValue();
+        }
+        try {
+            return Integer.parseInt(String.valueOf(value).trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Double asDouble(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+        try {
+            return Double.parseDouble(String.valueOf(value).trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private LocalDate asDate(Object value) {
+        String s = asString(value);
+        if (s == null) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(s);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private Object getFromRange(Map<String, Object> filters, String key) {
+        Object range = filters.get("amountRange");
+        if (range instanceof Map) {
+            return ((Map<?, ?>) range).get(key);
+        }
+        return filters.get("min".equals(key) ? "minAmount" : "maxAmount");
     }
 }
 

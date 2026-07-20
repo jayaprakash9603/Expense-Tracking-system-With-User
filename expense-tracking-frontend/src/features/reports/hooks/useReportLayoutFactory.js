@@ -108,7 +108,7 @@ export function createReportLayoutHook({
         try {
           const layoutConfig = JSON.stringify(newSections);
 
-          await api.post(apiEndpoint, layoutConfig, {
+          await api.put(apiEndpoint, layoutConfig, {
             headers: { "Content-Type": "text/plain" },
           });
 

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -199,6 +200,7 @@ public class GroupController {
         }
     }
 
+    @Deprecated
     @GetMapping("/{groupId}/role")
     public ResponseEntity<?> getUserRoleInGroup(
             @RequestHeader("Authorization") String jwt,
@@ -212,6 +214,7 @@ public class GroupController {
         }
     }
 
+    @Deprecated
     @GetMapping("/{groupId}/permissions")
     public ResponseEntity<?> getUserPermissions(
             @RequestHeader("Authorization") String jwt,
@@ -235,6 +238,7 @@ public class GroupController {
         }
     }
 
+    @Deprecated
     @GetMapping("/{groupId}/check-permission/{permission}")
     public ResponseEntity<?> checkSpecificPermission(
             @RequestHeader("Authorization") String jwt,
@@ -249,6 +253,7 @@ public class GroupController {
         }
     }
 
+    @Deprecated
     @GetMapping("/{groupId}/is-member")
     public ResponseEntity<?> isUserMemberOfGroup(
             @RequestHeader("Authorization") String jwt,
@@ -262,6 +267,7 @@ public class GroupController {
         }
     }
 
+    @Deprecated
     @GetMapping("/{groupId}/is-owner")
     public ResponseEntity<?> isUserOwnerOfGroup(
             @RequestHeader("Authorization") String jwt,
@@ -273,6 +279,44 @@ public class GroupController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    /**
+     * Consolidated membership/permission facts for the current user in a group.
+     * Supersedes the separate is-member, is-owner, role, permissions and
+     * check-permission endpoints.
+     */
+    @GetMapping("/{groupId}/me")
+    public ResponseEntity<?> getMyGroupContext(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer groupId) {
+        try {
+            UserDTO user = userClient.getUserProfile(jwt);
+            Integer userId = user.getId();
+            Map<String, Object> response = new HashMap<>();
+            response.put("isMember", groupService.isUserMemberOfGroup(groupId, userId));
+            response.put("isOwner", groupService.isUserOwnerOfGroup(groupId, userId));
+            response.put("role", groupService.getUserRoleInGroup(groupId, userId));
+            response.put("permissions", buildPermissionMap(groupId, userId));
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private Map<String, Boolean> buildPermissionMap(Integer groupId, Integer userId) throws Exception {
+        Map<String, Boolean> permissions = new HashMap<>();
+        permissions.put("canDeleteGroup", groupService.hasPermissionInGroup(groupId, userId, "delete_group"));
+        permissions.put("canEditSettings", groupService.hasPermissionInGroup(groupId, userId, "edit_settings"));
+        permissions.put("canManageMembers", groupService.hasPermissionInGroup(groupId, userId, "manage_members"));
+        permissions.put("canManageExpenses", groupService.hasPermissionInGroup(groupId, userId, "manage_expenses"));
+        permissions.put("canAddExpenses", groupService.hasPermissionInGroup(groupId, userId, "add_expenses"));
+        permissions.put("canEditExpenses", groupService.hasPermissionInGroup(groupId, userId, "edit_expenses"));
+        permissions.put("canDeleteExpenses", groupService.hasPermissionInGroup(groupId, userId, "delete_expenses"));
+        permissions.put("canViewExpenses", groupService.hasPermissionInGroup(groupId, userId, "view_expenses"));
+        permissions.put("canPromoteMembers", groupService.hasPermissionInGroup(groupId, userId, "promote_members"));
+        permissions.put("canDemoteMembers", groupService.hasPermissionInGroup(groupId, userId, "demote_members"));
+        return permissions;
     }
 
     @PostMapping("/{groupId}/members/bulk-add")
@@ -492,6 +536,10 @@ public class GroupController {
         }
     }
 
+    /**
+     * @deprecated Duplicate of {@code PUT /api/groups/invitations/{invitationId}/cancel}. Use the PUT variant.
+     */
+    @Deprecated
     @DeleteMapping("/invitations/{invitationId}/cancel")
     public ResponseEntity<?> cancelInvitation(
             @RequestHeader("Authorization") String jwt,
@@ -542,6 +590,38 @@ public class GroupController {
         }
     }
 
+    /**
+     * Consolidated group lifecycle state transition (archive/restore).
+     * Body: { "state": "ARCHIVED" | "ACTIVE" }.
+     */
+    @PatchMapping("/{groupId}/state")
+    public ResponseEntity<?> updateGroupState(
+            @RequestHeader("Authorization") String jwt,
+            @PathVariable Integer groupId,
+            @RequestBody Map<String, String> body) {
+        try {
+            UserDTO user = userClient.getUserProfile(jwt);
+            String state = body.get("state");
+            if (state == null || state.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "state is required (ARCHIVED or ACTIVE)"));
+            }
+            String normalized = state.trim().toUpperCase();
+            if (normalized.equals("ARCHIVED")) {
+                return ResponseEntity.ok(groupService.archiveGroup(groupId, user.getId()));
+            }
+            if (normalized.equals("ACTIVE") || normalized.equals("RESTORED")) {
+                return ResponseEntity.ok(groupService.restoreGroup(groupId, user.getId()));
+            }
+            return ResponseEntity.badRequest().body(Map.of("error", "Unknown state: " + state));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * @deprecated Use {@code PATCH /api/groups/{groupId}/state} with body {"state":"ARCHIVED"}.
+     */
+    @Deprecated
     @PutMapping("/{groupId}/archive")
     public ResponseEntity<?> archiveGroup(
             @RequestHeader("Authorization") String jwt,
@@ -555,6 +635,10 @@ public class GroupController {
         }
     }
 
+    /**
+     * @deprecated Use {@code PATCH /api/groups/{groupId}/state} with body {"state":"ACTIVE"}.
+     */
+    @Deprecated
     @PutMapping("/{groupId}/restore")
     public ResponseEntity<?> restoreGroup(
             @RequestHeader("Authorization") String jwt,

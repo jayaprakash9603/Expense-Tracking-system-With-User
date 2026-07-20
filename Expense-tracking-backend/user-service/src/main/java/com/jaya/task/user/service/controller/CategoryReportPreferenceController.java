@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Deprecated
 @RestController
 @RequestMapping("/api/user/category-report-preferences")
 @Validated

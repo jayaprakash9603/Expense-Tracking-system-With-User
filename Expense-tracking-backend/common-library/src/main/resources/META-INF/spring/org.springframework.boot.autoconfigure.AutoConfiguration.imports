@@ -3,3 +3,4 @@
 
 com.jaya.common.config.CommonLibraryAutoConfiguration
 com.jaya.common.config.ConditionalEurekaConfig
+com.jaya.common.config.UserProfileCacheAutoConfiguration

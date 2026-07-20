@@ -42,6 +42,9 @@ class UserServiceImplementationTest {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private UserProfileCacheService userProfileCacheService;
+
     @InjectMocks
     private UserServiceImplementation userService;
 
@@ -74,7 +77,7 @@ class UserServiceImplementationTest {
             try (MockedStatic<JwtProvider> jwt = mockStatic(JwtProvider.class)) {
                 jwt.when(() -> JwtProvider.getEmailFromJwt("Bearer token"))
                         .thenReturn("test@example.com");
-                when(userRepository.findByEmail("test@example.com")).thenReturn(testUser);
+                when(userProfileCacheService.getUserByEmail("test@example.com")).thenReturn(testUser);
 
                 User result = userService.getUserProfile("Bearer token");
 
@@ -84,42 +87,11 @@ class UserServiceImplementationTest {
         }
 
         @Test
-        void setsDefaultModeWhenCurrentModeIsNull() {
-            testUser.setCurrentMode(null);
-            try (MockedStatic<JwtProvider> jwt = mockStatic(JwtProvider.class)) {
-                jwt.when(() -> JwtProvider.getEmailFromJwt("token"))
-                        .thenReturn("test@example.com");
-                when(userRepository.findByEmail("test@example.com")).thenReturn(testUser);
-                when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-                User result = userService.getUserProfile("token");
-
-                assertThat(result.getCurrentMode()).isEqualTo("USER");
-                verify(userRepository).save(any(User.class));
-            }
-        }
-
-        @Test
-        void setsDefaultModeWhenCurrentModeIsEmpty() {
-            testUser.setCurrentMode("  ");
-            try (MockedStatic<JwtProvider> jwt = mockStatic(JwtProvider.class)) {
-                jwt.when(() -> JwtProvider.getEmailFromJwt("token"))
-                        .thenReturn("test@example.com");
-                when(userRepository.findByEmail("test@example.com")).thenReturn(testUser);
-                when(userRepository.save(any(User.class))).thenReturn(testUser);
-
-                userService.getUserProfile("token");
-
-                verify(userRepository).save(any(User.class));
-            }
-        }
-
-        @Test
         void returnsNullWhenUserNotFound() {
             try (MockedStatic<JwtProvider> jwt = mockStatic(JwtProvider.class)) {
                 jwt.when(() -> JwtProvider.getEmailFromJwt("token"))
                         .thenReturn("unknown@example.com");
-                when(userRepository.findByEmail("unknown@example.com")).thenReturn(null);
+                when(userProfileCacheService.getUserByEmail("unknown@example.com")).thenReturn(null);
 
                 User result = userService.getUserProfile("token");
 
@@ -157,7 +129,7 @@ class UserServiceImplementationTest {
 
         @Test
         void returnsUserWhenFound() {
-            when(userRepository.findByEmail("test@example.com")).thenReturn(testUser);
+            when(userProfileCacheService.getUserByEmail("test@example.com")).thenReturn(testUser);
 
             User result = userService.getUserByEmail("test@example.com");
 
@@ -167,7 +139,7 @@ class UserServiceImplementationTest {
 
         @Test
         void returnsNullWhenNotFound() {
-            when(userRepository.findByEmail("unknown@example.com")).thenReturn(null);
+            when(userProfileCacheService.getUserByEmail("unknown@example.com")).thenReturn(null);
 
             User result = userService.getUserByEmail("unknown@example.com");
 

@@ -27,7 +27,7 @@ const redirectToHome = (navigate) => {
 // Load user dashboard preferences after login
 const loadUserDashboardPreferences = async () => {
   const { data, error } = await safeApiCall(() =>
-    api.get("/api/user/dashboard-preferences"),
+    api.get("/api/user/report-preferences/dashboard"),
   );
 
   if (error || !data?.layoutConfig) return false;

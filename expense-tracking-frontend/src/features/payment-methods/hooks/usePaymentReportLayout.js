@@ -64,7 +64,7 @@ const DEFAULT_SECTIONS = [
  */
 const usePaymentReportLayout = createReportLayoutHook({
   storageKey: "payment_report_layout_config",
-  apiEndpoint: "/api/user/payment-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/payment",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Payment Report",
 });

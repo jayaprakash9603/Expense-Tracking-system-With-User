@@ -98,7 +98,14 @@ public class AdminReportsController {
     }
 
     @GetMapping("/{reportId}")
-    public ResponseEntity<Map<String, Object>> getReportById(@PathVariable Long reportId) {
+    public ResponseEntity<Map<String, Object>> getReportById(
+            @PathVariable Long reportId,
+            @RequestParam(defaultValue = "false") boolean download) {
+
+        if (download) {
+            return buildDownloadResponse(reportId);
+        }
+
         try {
             AdminReportDTO report = reportService.getReportById(reportId);
 
@@ -149,8 +156,17 @@ public class AdminReportsController {
         }
     }
 
+    /**
+     * @deprecated Use {@code GET /api/admin/reports/{reportId}?download=true} instead.
+     * Retained for backward compatibility only.
+     */
+    @Deprecated
     @GetMapping("/{reportId}/download")
     public ResponseEntity<Map<String, Object>> downloadReport(@PathVariable Long reportId) {
+        return buildDownloadResponse(reportId);
+    }
+
+    private ResponseEntity<Map<String, Object>> buildDownloadResponse(Long reportId) {
         try {
             AdminReportDTO report = reportService.getReportById(reportId);
 

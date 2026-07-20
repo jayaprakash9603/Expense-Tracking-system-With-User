@@ -3,7 +3,7 @@ package com.jaya.task.user.service.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jaya.task.user.service.modal.AccountStatus;
 import com.jaya.task.user.service.modal.User;
-import com.jaya.task.user.service.repository.UserRepository;
+import com.jaya.task.user.service.service.UserProfileCacheService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +38,7 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
             "/api/internal/"
     );
 
-    private final UserRepository userRepository;
+    private final UserProfileCacheService userProfileCacheService;
     private final ObjectMapper objectMapper;
     private final UrlPathHelper pathHelper = new UrlPathHelper();
 
@@ -59,7 +59,7 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
             }
         }
         String email = auth.getName();
-        User user = email == null ? null : userRepository.findByEmail(email);
+        User user = email == null ? null : userProfileCacheService.getUserByEmail(email);
         if (user == null || user.getAccountStatus() == null || user.getAccountStatus() == AccountStatus.ACTIVE) {
             filterChain.doFilter(request, response);
             return;

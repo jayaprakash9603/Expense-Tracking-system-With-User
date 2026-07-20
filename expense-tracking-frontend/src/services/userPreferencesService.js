@@ -11,7 +11,7 @@ import { setTheme } from "../Redux/Theme/theme.actions";
  */
 const preloadDashboardPreferences = async () => {
   try {
-    const { data } = await api.get("/api/user/dashboard-preferences");
+    const { data } = await api.get("/api/user/report-preferences/dashboard");
     if (data?.layoutConfig) {
       localStorage.setItem("dashboard_layout_config", data.layoutConfig);
       return true;

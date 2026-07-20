@@ -52,7 +52,7 @@ const DEFAULT_SECTIONS = [
  */
 const useExpenseReportLayout = createReportLayoutHook({
   storageKey: "expense_report_layout_config",
-  apiEndpoint: "/api/user/expense-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/expense",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Expense Report",
 });

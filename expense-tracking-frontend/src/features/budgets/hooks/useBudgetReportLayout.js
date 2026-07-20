@@ -70,7 +70,7 @@ const DEFAULT_SECTIONS = [
  */
 const useBudgetReportLayout = createReportLayoutHook({
   storageKey: "budget_report_layout_config",
-  apiEndpoint: "/api/user/budget-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/budget",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Budget Report",
 });

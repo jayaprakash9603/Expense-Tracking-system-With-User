@@ -1,10 +1,9 @@
 package com.jaya.task.user.service.controller;
 
-import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.dto.BillReportPreferenceDTO;
 import com.jaya.task.user.service.request.PreferenceSaveRequest;
-import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.service.BillReportPreferenceService;
+import com.jaya.task.user.service.service.UserProfileCacheService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,18 +12,19 @@ import org.springframework.web.bind.annotation.*;
 
 
 
+@Deprecated
 @RestController
 @RequestMapping("/api/user/bill-report-preferences")
 public class BillReportPreferenceController {
 
     private final BillReportPreferenceService preferenceService;
-    private final UserRepository userRepository;
+    private final UserProfileCacheService userProfileCacheService;
 
     public BillReportPreferenceController(
             BillReportPreferenceService preferenceService,
-            UserRepository userRepository) {
+            UserProfileCacheService userProfileCacheService) {
         this.preferenceService = preferenceService;
-        this.userRepository = userRepository;
+        this.userProfileCacheService = userProfileCacheService;
     }
 
     
@@ -98,18 +98,6 @@ public class BillReportPreferenceController {
 
 
     private Integer extractUserId(String authHeader) {
-        try {
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return null;
-            }
-            String email = JwtProvider.getEmailFromJwt(authHeader);
-            if (email == null) {
-                return null;
-            }
-            com.jaya.task.user.service.modal.User user = userRepository.findByEmail(email);
-            return user != null ? user.getId() : null;
-        } catch (Exception e) {
-            return null;
-        }
+        return userProfileCacheService.resolveUserId(authHeader);
     }
 }

@@ -24,8 +24,11 @@ common-library:
   # Kafka configuration
   kafka:
     enabled: true
-
-# Legacy properties (kept for backward compatibility)
+  # Client-side user profile cache (Feign → USER-SERVICE)
+  user-profile-cache:
+    enabled: true
+    ttl-minutes: 10
+    max-size: 10000
 common:
   exception-handler:
     enabled: true

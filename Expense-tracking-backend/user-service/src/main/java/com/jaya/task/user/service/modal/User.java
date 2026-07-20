@@ -1,5 +1,6 @@
 package com.jaya.task.user.service.modal;
 
+import com.jaya.task.user.service.cache.UserCacheEntityListener;
 import com.jaya.task.user.service.converter.SetToStringConverter;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users")
+@EntityListeners(UserCacheEntityListener.class)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

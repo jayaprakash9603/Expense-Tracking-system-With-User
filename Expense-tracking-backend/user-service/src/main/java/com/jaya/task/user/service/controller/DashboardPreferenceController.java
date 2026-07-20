@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
+@Deprecated
 @RestController
 @RequestMapping("/api/user/dashboard-preferences")
 @Validated

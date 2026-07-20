@@ -137,6 +137,11 @@ public class NotificationController {
         return ResponseEntity.ok("Notification deleted successfully");
     }
 
+    /**
+     * @deprecated Superseded by the dedicated {@code /api/notification-preferences} controller
+     * (NotificationPreferencesController). Retained for backward compatibility only.
+     */
+    @Deprecated
     @GetMapping("/preferences")
     public ResponseEntity<NotificationPreferences> getNotificationPreferences(
             @RequestHeader("Authorization") String jwt) {
@@ -148,6 +153,11 @@ public class NotificationController {
         return ResponseEntity.ok(preferences);
     }
 
+    /**
+     * @deprecated Superseded by the dedicated {@code /api/notification-preferences} controller
+     * (NotificationPreferencesController). Retained for backward compatibility only.
+     */
+    @Deprecated
     @PutMapping("/preferences")
     public ResponseEntity<String> updateNotificationPreferences(
             @RequestHeader("Authorization") String jwt,

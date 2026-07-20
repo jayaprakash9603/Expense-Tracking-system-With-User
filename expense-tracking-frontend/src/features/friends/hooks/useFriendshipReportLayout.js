@@ -58,7 +58,7 @@ const DEFAULT_SECTIONS = [
  */
 const useFriendshipReportLayout = createReportLayoutHook({
   storageKey: "friendship_report_layout_config",
-  apiEndpoint: "/api/user/friendship-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/friendship",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Friendship Report",
 });

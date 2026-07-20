@@ -12,6 +12,7 @@ import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.request.TwoFactorUpdateRequest;
 import com.jaya.task.user.service.request.UserUpdateRequest;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
+import com.jaya.task.user.service.service.UserProfileCacheService;
 import com.jaya.task.user.service.service.UserService;
 import com.jaya.task.user.service.service.deletion.AccountDeletionService;
 import jakarta.validation.Valid;
@@ -52,11 +53,12 @@ public class UserController {
     private final CustomUserServiceImplementation customUserService;
     private final UserMapper mapper;
     private final AccountDeletionService accountDeletionService;
+    private final UserProfileCacheService userProfileCacheService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserDTO> findUserByJwt(@RequestHeader("Authorization") String jwt) {
         User user = userService.getUserProfile(jwt);
-        UserDTO result=mapper.toDTO(user);
+        UserDTO result = mapper.toDTO(user);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -96,9 +98,10 @@ public class UserController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (isInternalServiceCaller(authentication)) {
-            return userRepository.findById(id)
-                    .<ResponseEntity<Object>>map(user -> ResponseEntity.ok(mapper.toDTO(user)))
-                    .orElseGet(() -> ResponseEntity.notFound().build());
+            UserDTO cached = userProfileCacheService.getUserById(id);
+            return cached != null
+                    ? ResponseEntity.ok(cached)
+                    : ResponseEntity.notFound().build();
         }
         if (jwt == null || jwt.isBlank()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -115,7 +118,7 @@ public class UserController {
                     .body(Map.of(ERROR_KEY, "You don't have permission to access this user's profile"));
         }
 
-        Optional<User> user = userRepository.findById(id);
+        Optional<User> user = Optional.ofNullable(userProfileCacheService.getUserEntityById(id));
         return user.<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
 
@@ -145,7 +148,12 @@ public class UserController {
             @Valid @RequestBody TwoFactorUpdateRequest request) {
 
         try {
-            User user = userService.getUserProfile(jwt);
+            // Fetch a fresh (uncached) entity: this is a write flow and must not mutate the shared cached instance.
+            User user = userService.findByEmail(JwtProvider.getEmailFromJwt(jwt));
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(ERROR_KEY, "User not found"));
+            }
             user.setTwoFactorEnabled(Boolean.TRUE.equals(request.getEnabled()));
             User updatedUser = userRepository.save(user);
 

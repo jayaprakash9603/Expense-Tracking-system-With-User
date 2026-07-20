@@ -79,7 +79,7 @@ export const sendGroupChat = (groupId, content) => async (dispatch) => {
 export const fetchGroupChat = (groupId) => async (dispatch) => {
   dispatch({ type: FETCH_GROUP_CHAT });
   try {
-    const response = await api.get(`/api/chats/group/${groupId}`, {});
+    const response = await api.get(`/api/chats?scope=group&groupId=${groupId}`, {});
     dispatch({ type: FETCH_GROUP_CHAT_SUCCESS, payload: response.data });
   } catch (error) {
     dispatch({
@@ -113,7 +113,7 @@ export const fetchGroupChatHistory = (groupId, token) => async (dispatch) => {
 export const fetchUnreadGroupChat = (groupId, token) => async (dispatch) => {
   dispatch({ type: FETCH_UNREAD_GROUP_CHAT });
   try {
-    const response = await api.get(`/api/chats/group/${groupId}/unread`, {
+    const response = await api.get(`/api/chats/unread?scope=group&groupId=${groupId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

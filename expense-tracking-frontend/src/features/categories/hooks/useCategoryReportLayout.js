@@ -52,7 +52,7 @@ const DEFAULT_SECTIONS = [
  */
 const useCategoryReportLayout = createReportLayoutHook({
   storageKey: "category_report_layout_config",
-  apiEndpoint: "/api/user/category-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/category",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Category Report",
 });

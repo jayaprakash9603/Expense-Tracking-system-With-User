@@ -17,6 +17,7 @@ import java.util.Map;
 
 
 
+@Deprecated
 @RestController
 @RequestMapping("/api/user/friendship-report-preferences")
 @Validated

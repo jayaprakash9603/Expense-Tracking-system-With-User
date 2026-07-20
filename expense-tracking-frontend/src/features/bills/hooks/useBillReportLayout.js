@@ -70,7 +70,7 @@ const DEFAULT_SECTIONS = [
  */
 const useBillReportLayout = createReportLayoutHook({
   storageKey: "bill_report_layout_config",
-  apiEndpoint: "/api/user/bill-report-preferences",
+  apiEndpoint: "/api/user/report-preferences/bill",
   defaultSections: DEFAULT_SECTIONS,
   reportName: "Bill Report",
 });

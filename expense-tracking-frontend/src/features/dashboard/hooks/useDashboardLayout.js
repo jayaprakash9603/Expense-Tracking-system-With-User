@@ -81,7 +81,7 @@ export function useDashboardLayout() {
       // Only fetch from backend if localStorage is empty
       const loadFromBackend = async () => {
         try {
-          const { data } = await api.get("/api/user/dashboard-preferences");
+          const { data } = await api.get("/api/user/report-preferences/dashboard");
           if (data && data.layoutConfig) {
             const parsed = JSON.parse(data.layoutConfig);
             // Preserve the saved order from backend
@@ -118,7 +118,7 @@ export function useDashboardLayout() {
       const layoutConfig = JSON.stringify(newSections);
 
       // Save to backend
-      await api.post("/api/user/dashboard-preferences", layoutConfig, {
+      await api.put("/api/user/report-preferences/dashboard", layoutConfig, {
         headers: {
           "Content-Type": "text/plain",
         },
@@ -178,7 +178,7 @@ export function useDashboardLayout() {
     setIsSaving(true);
     try {
       // Delete from backend
-      await api.delete("/api/user/dashboard-preferences");
+      await api.delete("/api/user/report-preferences/dashboard");
 
       // Remove from localStorage
       localStorage.removeItem(STORAGE_KEY);

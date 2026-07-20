@@ -130,6 +130,10 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-core</artifactId>
             <version>13.5</version>
