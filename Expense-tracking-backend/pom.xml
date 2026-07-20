@@ -12,8 +12,8 @@
     <modules>
         <!-- Shared Library - must be built first -->
         <module>common-library</module>
-        
-        <!-- Domain Services -->
+
+        <!-- Domain Services (default build; add -P microservices or -P monolithic for deployment wrappers) -->
         <module>user-service</module>
         <module>Expense-Service</module>
         <module>Budget-Service</module>
@@ -28,13 +28,6 @@
         <module>Search-Service</module>
         <module>Story-Service</module>
         <module>Event-Service</module>
-        
-        <!-- Infrastructure services (for microservices mode) -->
-        <module>eureka-server</module>
-        <module>Gateway</module>
-        
-        <!-- Monolithic service (combines all domain services) -->
-        <module>monolithic-service</module>
     </modules>
 
     <properties>

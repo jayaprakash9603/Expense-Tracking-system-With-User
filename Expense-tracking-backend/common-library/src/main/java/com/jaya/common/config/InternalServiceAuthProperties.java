@@ -1,9 +1,7 @@
 package com.jaya.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
-@Component
 @ConfigurationProperties(prefix = "common-library.internal-service-auth")
 public class InternalServiceAuthProperties {
 
