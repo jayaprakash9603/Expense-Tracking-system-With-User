@@ -72,9 +72,11 @@ const handleRequest = (config = {}) => {
   const shouldSkipAuth = requestConfig.skipAuth === true;
 
   if (!shouldSkipAuth) {
-    const token = getJwtToken();
-    if (token) {
-      requestConfig.headers[AUTH_HEADER_KEY] = `Bearer ${token}`;
+    if (!requestConfig.headers[AUTH_HEADER_KEY]) {
+      const token = getJwtToken();
+      if (token) {
+        requestConfig.headers[AUTH_HEADER_KEY] = `Bearer ${token}`;
+      }
     }
   } else if (requestConfig.headers[AUTH_HEADER_KEY]) {
     delete requestConfig.headers[AUTH_HEADER_KEY];

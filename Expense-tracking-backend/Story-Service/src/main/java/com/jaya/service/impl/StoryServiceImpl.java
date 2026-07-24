@@ -541,15 +541,17 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public int expireOldStories() {
-        log.info("Running story expiration job");
+        log.debug("Running story expiration job");
         int count = storyRepository.bulkExpireStories(LocalDateTime.now());
-        log.info("Expired {} stories", count);
+        if (count > 0) {
+            log.info("Expired {} stories", count);
+        }
         return count;
     }
 
     @Override
     public int archiveExpiredStories() {
-        log.info("Archiving expired stories older than 7 days");
+        log.debug("Archiving expired stories older than 7 days");
         List<Story> expired = storyRepository.findByStatusAndIsDeletedFalse(StoryStatus.EXPIRED);
         int count = 0;
         LocalDateTime threshold = LocalDateTime.now().minusDays(7);
@@ -562,7 +564,9 @@ public class StoryServiceImpl implements StoryService {
             }
         }
 
-        log.info("Archived {} stories", count);
+        if (count > 0) {
+            log.info("Archived {} stories", count);
+        }
         return count;
     }
 
@@ -612,7 +616,7 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public void checkAndGenerateBudgetStories() {
-        log.info("Checking budgets for threshold stories");
+        log.debug("Checking budgets for threshold stories");
         
         
         
@@ -623,7 +627,7 @@ public class StoryServiceImpl implements StoryService {
 
     @Override
     public void checkAndGenerateBillReminders() {
-        log.info("Checking bills for reminder stories");
+        log.debug("Checking bills for reminder stories");
         
         
         

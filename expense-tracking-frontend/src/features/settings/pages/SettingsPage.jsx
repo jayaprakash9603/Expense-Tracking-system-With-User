@@ -17,6 +17,7 @@ import SettingItem from "../components/SettingItem";
 import AppInfoSection from "../components/AppInfoSection";
 import DeleteAccountDialog from "../components/DeleteAccountDialog";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
+import { clearDeletionPendingSession, markDeletionPendingSession } from "../utils/accountDeletionSession";
 import ThemePicker from "../../../components/ThemePicker";
 
 import { useSnackbar } from "../hooks/useSnackbar";
@@ -117,18 +118,16 @@ const Settings = () => {
     );
 
   const handleDeletionScheduled = useCallback(
-    (status) => {
-      const purgeDate = status?.scheduledPurgeAt
-        ? new Date(status.scheduledPurgeAt).toLocaleString()
-        : "";
+    () => {
+      markDeletionPendingSession();
       sessionStorage.setItem("deletionWelcomeNoticeSeen", "1");
       window.dispatchEvent(new Event("account-deletion-status-changed"));
-      showSnackbar(t("settings.deletionScheduledSnackbar", { date: purgeDate }), "warning");
     },
-    [showSnackbar, t],
+    [],
   );
 
   const handleDeletionCancelled = useCallback(() => {
+    clearDeletionPendingSession();
     sessionStorage.removeItem("deletionWelcomeNoticeSeen");
     window.dispatchEvent(new Event("account-deletion-status-changed"));
     showSnackbar(t("settings.deletionCancelledSnackbar"), "success");

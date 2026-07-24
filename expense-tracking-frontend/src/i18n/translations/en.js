@@ -970,6 +970,8 @@ export const en = {
     deletionBannerTitle: "Your account is scheduled for deletion",
     deletionBannerBody:
       "Your profile and data will be permanently deleted on {{date}}. You can keep using the app until then. To stay, cancel deletion anytime.",
+    deletionScrollingBanner:
+      "Account scheduled for deletion on {{date}} • You can still sign in, export data, and cancel anytime in Settings • After the grace period, deletion is permanent",
     deletionBannerManage: "Manage in Settings",
     deletionWelcomeTitle: "Welcome back — your account is still here",
     deletionWelcomeLead:

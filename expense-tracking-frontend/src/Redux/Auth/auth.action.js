@@ -19,6 +19,10 @@ import {
 import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
 import { safeApiCall } from "../../utils/api/safeApiCall";
 import isGracePeriodDeletionError from "../../features/settings/utils/accountDeletionErrors";
+import {
+  clearDeletionPendingSession,
+  markDeletionPendingSession,
+} from "../../features/settings/utils/accountDeletionSession";
 import { normalizeUserProfile } from "../../utils/user/resolveUserProfileImage";
 
 // Redirect helper function
@@ -38,13 +42,25 @@ const loadUserDashboardPreferences = async () => {
   return true;
 };
 
+const buildGracePeriodFallbackUser = (authMeta = {}) =>
+  normalizeUserProfile({
+    email: authMeta.email,
+    deletionPending: true,
+    accountStatus: authMeta.accountStatus || "DELETION_PENDING",
+    deletionScheduledPurgeAt: authMeta.deletionScheduledPurgeAt,
+    currentMode: authMeta.currentMode || "USER",
+  });
+
 const completeLoginWithJwt = async (dispatch, jwt, authMeta = {}) => {
   dispatch({ type: LOGIN_SUCCESS, payload: jwt });
   localStorage.setItem("jwt", jwt);
 
   if (authMeta.deletionPending) {
+    markDeletionPendingSession();
     sessionStorage.removeItem("deletionWelcomeNoticeSeen");
     window.dispatchEvent(new Event("account-deletion-status-changed"));
+  } else {
+    clearDeletionPendingSession();
   }
 
   // Immediately fetch the user profile after login
@@ -55,12 +71,28 @@ const completeLoginWithJwt = async (dispatch, jwt, authMeta = {}) => {
   loadUserDashboardPreferences().catch(() => {});
 
   if (!profileResult?.success) {
+    if (authMeta.deletionPending || isGracePeriodDeletionError(profileResult?.error)) {
+      const fallbackUser = buildGracePeriodFallbackUser(authMeta);
+      dispatch({ type: GET_PROFILE_SUCCESS, payload: fallbackUser });
+      return {
+        success: true,
+        user: fallbackUser,
+        currentMode: fallbackUser.currentMode,
+        deletionPending: true,
+      };
+    }
+
     const message =
       profileResult?.error?.message || "Failed to load profile after login.";
     return { success: false, message };
   }
 
   const userProfile = profileResult.data;
+  if (userProfile?.deletionPending) {
+    markDeletionPendingSession();
+  } else {
+    clearDeletionPendingSession();
+  }
 
   return {
     success: true,
@@ -130,6 +162,9 @@ export const loginUserAction = (loginData) => async (dispatch) => {
 
   return await completeLoginWithJwt(dispatch, data.jwt, {
     deletionPending: data.deletionPending,
+    accountStatus: data.accountStatus,
+    deletionScheduledPurgeAt: data.deletionScheduledPurgeAt,
+    email: loginData?.data?.email,
   });
 };
 
@@ -149,6 +184,9 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
 
   return await completeLoginWithJwt(dispatch, data.jwt, {
     deletionPending: data.deletionPending,
+    accountStatus: data.accountStatus,
+    deletionScheduledPurgeAt: data.deletionScheduledPurgeAt,
+    email: payload?.email,
   });
 };
 
@@ -176,6 +214,8 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
 
   return await completeLoginWithJwt(dispatch, data.jwt, {
     deletionPending: data.deletionPending,
+    accountStatus: data.accountStatus,
+    deletionScheduledPurgeAt: data.deletionScheduledPurgeAt,
   });
 };
 
@@ -293,19 +333,22 @@ export const getProfileAction = (jwt) => async (dispatch) => {
 
   if (error) {
     const status = error.status;
-    const graceDeletion =
-      status === 403 &&
-      (error.errorCode === "ACCOUNT_DELETION_IN_PROGRESS" ||
-        error.accountStatus === "DELETION_PENDING" ||
-        isGracePeriodDeletionError({ response: { data: error } }));
+    const graceDeletion = status === 403 && isGracePeriodDeletionError(error);
 
     if (status === 401 || status === undefined || (status === 403 && !graceDeletion)) {
       localStorage.removeItem("jwt");
+      clearDeletionPendingSession();
       dispatch({ type: LOGOUT });
     }
 
     dispatch({ type: GET_PROFILE_FAILURE, payload: error });
     return { success: false, error };
+  }
+
+  if (data?.deletionPending) {
+    markDeletionPendingSession();
+  } else {
+    clearDeletionPendingSession();
   }
 
   dispatch({ type: GET_PROFILE_SUCCESS, payload: normalizeUserProfile(data) });

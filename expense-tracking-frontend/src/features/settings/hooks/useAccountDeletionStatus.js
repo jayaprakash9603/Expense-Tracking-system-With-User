@@ -3,6 +3,7 @@ import {
   cancelSelfDeletion,
   fetchDeletionStatus,
 } from "../services/accountDeletionService";
+import { clearDeletionPendingSession } from "../utils/accountDeletionSession";
 
 export const useAccountDeletionStatus = ({ enabled = true } = {}) => {
   const [status, setStatus] = useState(null);
@@ -42,6 +43,7 @@ export const useAccountDeletionStatus = ({ enabled = true } = {}) => {
     setError(null);
     try {
       const data = await cancelSelfDeletion();
+      clearDeletionPendingSession();
       setStatus(null);
       return data;
     } catch (e) {

@@ -131,7 +131,7 @@ features:
     upload: true
     utilities: true
     chat: false
-    stories: true
+    stories: false
     investment: true
     analytics: true
     notifications: true
@@ -380,8 +380,12 @@ jwt:
 logging:
   level:
     root: INFO
-    com.jaya: DEBUG
+    com.jaya: INFO
+    # Feign client HTTP request/response dumps are DEBUG-only; keep them off to avoid
+    # leaking Authorization/X-Service-Token headers and flooding the console.
+    com.jaya.common.service.client.feign: WARN
     org.springframework.web: INFO
+    org.springframework.web.socket.config.WebSocketMessageBrokerStats: WARN
     org.hibernate.SQL: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Box, Button, Typography } from "@mui/material";
+import { Box, Button, IconButton } from "@mui/material";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import CloseIcon from "@mui/icons-material/Close";
 import Modal from "../../../shared/ui/overlays/Modal";
+import ScrollingTextBanner from "../../../shared/ui/feedback/ScrollingTextBanner";
 import { useTheme } from "../../../hooks/useTheme";
 import { useTranslation } from "../../../hooks/useTranslation";
 import useAccountDeletionStatus from "../hooks/useAccountDeletionStatus";
 import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
+import { clearDeletionPendingSession } from "../utils/accountDeletionSession";
 
 const WELCOME_NOTICE_KEY = "deletionWelcomeNoticeSeen";
 
@@ -21,6 +24,9 @@ const AccountDeletionGraceNotice = () => {
   const { t } = useTranslation();
   const { status, isPending, submitting, cancelDeletion, refresh } =
     useAccountDeletionStatus();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     const handleStatusChange = () => {
@@ -31,17 +37,24 @@ const AccountDeletionGraceNotice = () => {
       window.removeEventListener("account-deletion-status-changed", handleStatusChange);
     };
   }, [refresh]);
-  const [welcomeOpen, setWelcomeOpen] = useState(false);
-  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const purgeDate = useMemo(
     () => formatDeletionDate(status?.scheduledPurgeAt),
     [status?.scheduledPurgeAt],
   );
 
+  const scrollingMessage = useMemo(
+    () =>
+      t("settings.deletionScrollingBanner", {
+        date: purgeDate,
+      }),
+    [purgeDate, t],
+  );
+
   useEffect(() => {
     if (!isPending) {
       setWelcomeOpen(false);
+      setBannerDismissed(false);
       return;
     }
     if (sessionStorage.getItem(WELCOME_NOTICE_KEY) === "1") {
@@ -54,9 +67,11 @@ const AccountDeletionGraceNotice = () => {
   const handleCancel = async () => {
     try {
       await cancelDeletion();
+      clearDeletionPendingSession();
       sessionStorage.removeItem(WELCOME_NOTICE_KEY);
       window.dispatchEvent(new Event("account-deletion-status-changed"));
       setWelcomeOpen(false);
+      setBannerDismissed(false);
       setToast({
         open: true,
         message: t("settings.deletionCancelledSnackbar"),
@@ -90,54 +105,78 @@ const AccountDeletionGraceNotice = () => {
 
   return (
     <>
-      <Box sx={{ px: { xs: 1.5, md: 2.5 }, pt: 1.5 }}>
-        <Alert
-          severity="warning"
-          icon={<ScheduleIcon fontSize="inherit" />}
+      {!bannerDismissed && (
+        <Box
           sx={{
-            borderRadius: 2,
-            backgroundColor: "rgba(245, 158, 11, 0.12)",
-            color: colors.primary_text,
-            border: `1px solid rgba(245, 158, 11, 0.35)`,
-            "& .MuiAlert-message": { width: "100%" },
+            position: "sticky",
+            top: 0,
+            zIndex: 1200,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: { xs: 1, md: 2 },
+            py: 0.75,
+            minHeight: 44,
+            borderBottom: "1px solid rgba(245, 158, 11, 0.35)",
+            background:
+              "linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(245, 158, 11, 0.08) 100%)",
+            backdropFilter: "blur(8px)",
           }}
-          action={
-            <Box sx={{ display: "flex", gap: 1, flexShrink: 0, ml: 1 }}>
-              <Button
-                size="small"
-                color="inherit"
-                onClick={openSettings}
-                sx={{ textTransform: "none", fontWeight: 600 }}
-              >
-                {t("settings.deletionBannerManage")}
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                disabled={submitting}
-                onClick={handleCancel}
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  backgroundColor: colors.accent || "#14b8a6",
-                  "&:hover": { backgroundColor: colors.accent_hover || "#0d9488" },
-                }}
-              >
-                {submitting
-                  ? t("settings.cancellingDeletion")
-                  : t("settings.cancelDeletion")}
-              </Button>
-            </Box>
-          }
         >
-          <Typography sx={{ fontWeight: 700, mb: 0.5 }}>
-            {t("settings.deletionBannerTitle")}
-          </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
-            {t("settings.deletionBannerBody", { date: purgeDate })}
-          </Typography>
-        </Alert>
-      </Box>
+          <ScheduleIcon sx={{ color: "#f59e0b", fontSize: 20, flexShrink: 0 }} />
+
+          <Box sx={{ flex: 1, minWidth: 0, height: 22, mx: 1 }}>
+            <ScrollingTextBanner
+              text={scrollingMessage}
+              color="#fbbf24"
+              durationSeconds={20}
+            />
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, flexShrink: 0 }}>
+            <Button
+              size="small"
+              color="inherit"
+              onClick={openSettings}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+                color: colors.primary_text,
+                minWidth: "auto",
+                px: 1,
+              }}
+            >
+              {t("settings.deletionBannerManage")}
+            </Button>
+            <Button
+              size="small"
+              variant="contained"
+              disabled={submitting}
+              onClick={handleCancel}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+                backgroundColor: colors.accent || "#14b8a6",
+                "&:hover": { backgroundColor: colors.accent_hover || "#0d9488" },
+              }}
+            >
+              {submitting
+                ? t("settings.cancellingDeletion")
+                : t("settings.cancelDeletion")}
+            </Button>
+            <IconButton
+              size="small"
+              aria-label="Dismiss deletion banner"
+              onClick={() => setBannerDismissed(true)}
+              sx={{ color: colors.secondary_text }}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+      )}
 
       <Modal
         isOpen={welcomeOpen}
@@ -151,6 +190,18 @@ const AccountDeletionGraceNotice = () => {
         approveText={t("settings.deletionWelcomeManage")}
       >
         <div className="space-y-3 text-sm">
+          <Box
+            sx={{
+              height: 28,
+              borderRadius: 1,
+              overflow: "hidden",
+              border: "1px solid rgba(245, 158, 11, 0.35)",
+              backgroundColor: "rgba(245, 158, 11, 0.08)",
+              px: 1,
+            }}
+          >
+            <ScrollingTextBanner text={scrollingMessage} color="#f59e0b" durationSeconds={16} />
+          </Box>
           <p style={{ color: colors.secondary_text }}>
             {t("settings.deletionWelcomeBody")}
           </p>

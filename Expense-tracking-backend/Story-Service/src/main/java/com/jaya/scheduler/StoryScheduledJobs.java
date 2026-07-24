@@ -28,7 +28,7 @@ public class StoryScheduledJobs {
 
 
 
-    @Scheduled(fixedRate = 60000) 
+    @Scheduled(fixedDelay = 60000)
     public void expireStories() {
         log.debug("Running story expiration job at {}", LocalDateTime.now());
         try {
@@ -45,7 +45,7 @@ public class StoryScheduledJobs {
 
 
 
-    @Scheduled(fixedRate = 3600000) 
+    @Scheduled(fixedDelay = 3600000)
     public void archiveExpiredStories() {
         log.debug("Running story archival job at {}", LocalDateTime.now());
         try {
@@ -76,7 +76,7 @@ public class StoryScheduledJobs {
 
 
 
-    @Scheduled(fixedRate = 1800000) 
+    @Scheduled(fixedDelay = 1800000)
     public void checkBudgetThresholds() {
         log.debug("Checking budget thresholds at {}", LocalDateTime.now());
         try {
@@ -92,7 +92,7 @@ public class StoryScheduledJobs {
 
 
 
-    @Scheduled(fixedRate = 3600000) 
+    @Scheduled(fixedDelay = 3600000)
     public void checkBillReminders() {
         log.debug("Checking bill reminders at {}", LocalDateTime.now());
         try {

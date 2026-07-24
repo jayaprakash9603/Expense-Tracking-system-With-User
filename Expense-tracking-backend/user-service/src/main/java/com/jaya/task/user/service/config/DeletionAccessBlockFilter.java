@@ -86,10 +86,12 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
         String message = status == AccountStatus.PURGING
                 ? "Your account is being permanently deleted. Please try again later or contact support."
                 : "This account is no longer available.";
+        String errorCode = status == AccountStatus.PURGING
+                ? "ACCOUNT_DELETION_IN_PROGRESS"
+                : "ACCOUNT_UNAVAILABLE";
         objectMapper.writeValue(response.getWriter(), Map.of(
-                "error", "ACCOUNT_DELETION_IN_PROGRESS",
+                "error", errorCode,
                 "message", message,
-                "accountStatus", status.name()
-        ));
+                "accountStatus", status.name()));
     }
 }
