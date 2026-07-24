@@ -27,6 +27,10 @@ import React, {
 import { useSelector } from "react-redux";
 import { ShortcutRegistry } from "./ShortcutRegistry";
 import { DEFAULT_SHORTCUTS, RESERVED_SHORTCUTS } from "./shortcutDefinitions";
+import {
+  FEATURE_KEYS,
+  isFeatureEnabledInState,
+} from "../../config/featureCatalog";
 import "./keyboard.css";
 
 // Scope priority (higher number = higher priority)
@@ -61,7 +65,10 @@ export function useKeyboardShortcuts() {
 export function KeyboardShortcutProvider({ children }) {
   // User settings from Redux
   const userSettings = useSelector((state) => state.userSettings?.settings);
-  const keyboardShortcutsEnabled = userSettings?.keyboardShortcuts ?? false;
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const keyboardShortcutsEnabled =
+    (userSettings?.keyboardShortcuts ?? false) &&
+    isFeatureEnabledInState(featureFlags, FEATURE_KEYS.KEYBOARD_SHORTCUTS);
 
   // Registry instance
   const registryRef = useRef(new ShortcutRegistry());

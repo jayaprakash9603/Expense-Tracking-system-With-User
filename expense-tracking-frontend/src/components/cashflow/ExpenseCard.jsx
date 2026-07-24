@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -10,6 +11,10 @@ import { formatPaymentMethodName } from "../../utils/domain/paymentMethodUtils";
 import { useTranslation } from "../../hooks/useTranslation";
 import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/ui/iconMapping";
 import { handleSelectableSurfaceMouseDown } from "../../utils/ui/selectableSurface";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+} from "../../config/featureCatalog";
 
 const sanitizeAttributeValue = (value) =>
   String(value ?? "")
@@ -46,6 +51,9 @@ const ExpenseCard = React.memo(
     const navigate = useNavigate();
     const { maskAmount, isMasking } = useMasking();
     const { t } = useTranslation();
+    const featureFlags = useSelector((state) => state.featureFlags);
+    const editEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "edit");
+    const deleteEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "delete");
 
     const type =
       flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
@@ -497,7 +505,8 @@ const ExpenseCard = React.memo(
         </div>
         {isSelected &&
           normalizedSelectedCardIdx.length === 1 &&
-          hasWriteAccess && (
+          hasWriteAccess &&
+          (editEnabled || deleteEnabled) && (
             <div
               className="absolute bottom-2 right-2 flex gap-2 opacity-90"
               style={{
@@ -510,6 +519,7 @@ const ExpenseCard = React.memo(
               }}
               onClick={(e) => e.stopPropagation()}
             >
+              {editEnabled && (
               <IconButton
                 size="small"
                 data-testid="expense-card-edit"
@@ -529,6 +539,8 @@ const ExpenseCard = React.memo(
               >
                 <EditIcon fontSize="small" />
               </IconButton>
+              )}
+              {deleteEnabled && (
               <IconButton
                 size="small"
                 data-testid="expense-card-delete"
@@ -548,6 +560,7 @@ const ExpenseCard = React.memo(
               >
                 <DeleteIcon fontSize="small" />
               </IconButton>
+              )}
             </div>
           )}
       </div>

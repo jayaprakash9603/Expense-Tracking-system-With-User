@@ -1,4 +1,9 @@
 import React from "react";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import BudgetOverviewSkeleton from "./BudgetOverviewSkeleton";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
@@ -55,7 +60,7 @@ const BudgetOverview = ({
   if (showEmpty) {
     return (
       <EmptyStateCard
-        icon="📊"
+        icon="chart"
         title="No budget data yet"
         message="Add budgets to track allocations and spending insightfully."
       />
@@ -81,7 +86,18 @@ const BudgetOverview = ({
         }}
       >
         <div className="section-header">
-          <h3 style={{ color: colors.primary_text }}>🎯 Budget Overview</h3>
+          <h3
+            style={{
+              color: colors.primary_text,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              margin: 0,
+            }}
+          >
+            <TrackChangesIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+            Budget Overview
+          </h3>
         </div>
         <div className="budget-circle">
           <div
@@ -139,7 +155,11 @@ const BudgetOverview = ({
                   color: remainingBudget >= 0 ? "#10b981" : "#ef4444",
                 }}
               >
-                {remainingBudget >= 0 ? "💰" : "⚠️"}
+                {remainingBudget >= 0 ? (
+                  <MonetizationOnIcon sx={{ fontSize: 20 }} />
+                ) : (
+                  <WarningAmberIcon sx={{ fontSize: 20 }} />
+                )}
               </span>
               <div className="budget-card-info">
                 <span
@@ -177,7 +197,7 @@ const BudgetOverview = ({
                   color: colors.primary_accent,
                 }}
               >
-                📊
+                <BarChartIcon sx={{ fontSize: 20 }} />
               </span>
               <div className="budget-card-info">
                 <span
@@ -214,7 +234,18 @@ const BudgetOverview = ({
       }}
     >
       <div className="section-header">
-        <h3 style={{ color: colors.primary_text }}>📊 Budget Overview</h3>
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <BarChartIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Budget Overview
+        </h3>
         {onManageBudgets && (
           <button
             className="manage-budgets-btn"
@@ -311,7 +342,7 @@ const BudgetOverview = ({
         })}
         {!list.length && (
           <EmptyStateCard
-            icon="📋"
+            icon="budget"
             title="No budgets configured"
             message="Create a budget to monitor allocations and spending."
             height={180}

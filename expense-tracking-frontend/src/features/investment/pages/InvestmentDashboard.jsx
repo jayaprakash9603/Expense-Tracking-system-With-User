@@ -1,9 +1,13 @@
 import React, { useState } from "react";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
 import "../styles/InvestmentDashboard.css";
 
 const InvestmentDashboard = () => {
   const settings = useUserSettings();
+  const { colors } = useTheme();
   const currencySymbol = settings.getCurrency().symbol;
   const [activeTimeFilter, setActiveTimeFilter] = useState("1M");
   const [showAddInvestment, setShowAddInvestment] = useState(false);
@@ -23,7 +27,7 @@ const InvestmentDashboard = () => {
         amount: 125000,
         percentage: 50,
         color: "mutual-funds",
-        icon: "📊",
+        iconKey: "chart",
         description: "Equity and Debt Mutual Funds",
       },
       {
@@ -32,7 +36,7 @@ const InvestmentDashboard = () => {
         amount: 75000,
         percentage: 30,
         color: "stocks",
-        icon: "📈",
+        iconKey: "trend",
         description: "Direct Equity Investments",
       },
       {
@@ -41,7 +45,7 @@ const InvestmentDashboard = () => {
         amount: 30000,
         percentage: 12,
         color: "fixed-deposits",
-        icon: "🏦",
+        iconKey: "bank",
         description: "Bank Fixed Deposits",
       },
       {
@@ -50,7 +54,7 @@ const InvestmentDashboard = () => {
         amount: 15000,
         percentage: 6,
         color: "gold",
-        icon: "🥇",
+        iconKey: "premium",
         description: "Physical and Digital Gold",
       },
       {
@@ -59,7 +63,7 @@ const InvestmentDashboard = () => {
         amount: 5000,
         percentage: 2,
         color: "crypto",
-        icon: "₿",
+        iconKey: "crypto",
         description: "Cryptocurrency Holdings",
       },
     ],
@@ -151,7 +155,11 @@ const InvestmentDashboard = () => {
       {/* Total Investment Overview */}
       <div className="investment-total-overview">
         <div className="investment-total-card">
-          <div className="investment-total-icon">💰</div>
+          <div className="investment-total-icon">
+            <MonetizationOnIcon
+              sx={{ fontSize: 40, color: colors.primary_accent }}
+            />
+          </div>
           <div className="investment-total-content">
             <h2>Total Investments</h2>
             <div className="investment-total-value">
@@ -179,7 +187,9 @@ const InvestmentDashboard = () => {
             <div key={category.id} className="investment-category-card">
               <div className="investment-category-header">
                 <div className={`investment-category-icon ${category.color}`}>
-                  {category.icon}
+                  {getAccentFunctionalIcon(category.iconKey, colors.primary_accent, {
+                    sx: { fontSize: 28 },
+                  })}
                 </div>
                 <div className="investment-category-percentage">
                   {category.percentage}%

@@ -452,7 +452,7 @@ export default function DashboardContent() {
       {!analyticsLoading && !hasAnySectionData && (
         <div style={{ marginTop: isMobile ? 16 : 24 }}>
           <EmptyStateCard
-            icon="📊"
+            icon="chart"
             title="No dashboard data yet"
             message="Add expenses, budgets, or categories to see your personalized analytics."
             height={220}

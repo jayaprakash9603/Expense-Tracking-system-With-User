@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { Close as CloseIcon } from "@mui/icons-material";
+import { useSelector } from "react-redux";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
+import {
+  getFeatureForRoute,
+  isPathEnabledInState,
+} from "../../config/featureCatalog";
 import { getAsset } from "../../assests/assetLoader";
-
 // Hook to manage add-new popover open/close & outside click
 export const useAddNewPopover = () => {
   const [open, setOpen] = useState(false);
@@ -53,6 +58,24 @@ const NavigationActions = ({
   const { open, setOpen, btnRef } = useAddNewPopover();
   const { colors, getIconFilter } = useTheme();
   const { t } = useTranslation();
+  const featureFlags = useSelector((state) => state.featureFlags);
+
+  const visibleItems = useMemo(
+    () =>
+      items.filter((item) => {
+        const targetPath = isFriendView ? `${item.path}/${friendId}` : item.path;
+        return isPathEnabledInState(featureFlags, targetPath);
+      }),
+    [items, featureFlags, friendId, isFriendView],
+  );
+
+  const visibleAddNewOptions = useMemo(
+    () =>
+      addNewOptions.filter((item) =>
+        isPathEnabledInState(featureFlags, item.route),
+      ),
+    [addNewOptions, featureFlags],
+  );
 
   return (
     <div
@@ -65,7 +88,7 @@ const NavigationActions = ({
         flexWrap: isMobile ? "wrap" : "nowrap",
       }}
     >
-      {items.map(({ path, icon, label, shortcutKey }, index) => {
+      {visibleItems.map(({ path, icon, label, shortcutKey }, index) => {
         const target = isFriendView ? `${path}/${friendId}` : path;
         // Use sequential index (1-based) for shortcut key
         const shortcutIndex = index + 1;
@@ -112,11 +135,11 @@ const NavigationActions = ({
           </button>
         );
       })}
-      {hasWriteAccess && (
+      {hasWriteAccess && visibleAddNewOptions.length > 0 && (
         <button
           ref={btnRef}
           onClick={() => setOpen((v) => !v)}
-          data-shortcut={`nav-flow-item-${items.length + 1}`}
+          data-shortcut={`nav-flow-item-${visibleItems.length + 1}`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -133,7 +156,7 @@ const NavigationActions = ({
           }}
           title={
             hasWriteAccess
-              ? `${t("cashflow.addNew.tooltip")} (${items.length + 1})`
+              ? `${t("cashflow.addNew.tooltip")} (${visibleItems.length + 1})`
               : t("cashflow.addNew.readOnly")
           }
         >
@@ -173,14 +196,7 @@ const NavigationActions = ({
           }}
         >
           {!isMobile && <span>{t("cashflow.summary.clearAll")}</span>}
-          <span
-            // style={{
-            //   fontSize: isMobile ? 16 : 18,
-            //   lineHeight: 1,
-            // }}
-          >
-            ✕
-          </span>
+          <CloseIcon sx={{ fontSize: isMobile ? 16 : 18 }} />
         </button>
       )}
       {open &&
@@ -206,7 +222,7 @@ const NavigationActions = ({
               padding: 4,
             }}
           >
-            {addNewOptions.map((item, idx) => (
+            {visibleAddNewOptions.map((item, idx) => (
               <button
                 key={idx}
                 style={{

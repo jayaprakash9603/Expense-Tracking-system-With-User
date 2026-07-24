@@ -16,6 +16,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { AdminPanelContainer, SectionCard } from "../components";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import { formatRelativeTime, formatDate } from "../utils/adminUtils";
 import {
@@ -198,6 +199,7 @@ const AuditLogs = () => {
         }}
         onFlowTypeChange={setFlowType}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.ADMIN_EXPORT}
         timeframeOptions={timeframeOptions}
         isLoading={loading}
         showFilterButton={false}

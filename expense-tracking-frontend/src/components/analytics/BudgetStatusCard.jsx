@@ -1,5 +1,6 @@
 import React from "react";
-import { Typography, LinearProgress, Tooltip, Box } from "@mui/material";
+import { Typography, LinearProgress, Tooltip, Box, Stack } from "@mui/material";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { useTheme } from "../../hooks/useTheme";
 
 /**
@@ -218,7 +219,10 @@ const BudgetStatusCard = ({
               fontSize: "0.75rem",
             }}
           >
-            ⚠️ Over Budget by {formatCurrency(Math.abs(remaining))}
+            <Stack direction="row" alignItems="center" spacing={0.5} component="span">
+              <WarningAmberIcon sx={{ fontSize: "0.9rem" }} />
+              <span>Over Budget by {formatCurrency(Math.abs(remaining))}</span>
+            </Stack>
           </Typography>
         </div>
       )}

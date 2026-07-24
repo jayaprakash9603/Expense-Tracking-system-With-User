@@ -48,7 +48,7 @@ const FriendInfoBar = ({
   customErrorRedirectPath = "/friends",
   ...otherProps
 }) => {
-  const { colors, mode } = useTheme();
+  const { colors, mode, themeLocked } = useTheme();
   const isDark = mode === "dark";
   const { maskingEnabled, toggleMasking } = useMasking();
   const { t } = useTranslation();
@@ -617,7 +617,8 @@ const FriendInfoBar = ({
             )}
           </button>
 
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle Button — hidden when theme customization is dormant (dark mode only) */}
+          {!themeLocked && (
           <button
             onClick={handleThemeToggle}
             className={`p-1.5 rounded-lg transition-all duration-200 hover:scale-110 ${
@@ -655,6 +656,7 @@ const FriendInfoBar = ({
               </svg>
             )}
           </button>
+          )}
 
           {/* Friend Switcher Button */}
           <div className="relative" ref={friendDropdownRef}>

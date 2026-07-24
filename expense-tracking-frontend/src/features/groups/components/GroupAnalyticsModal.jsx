@@ -1,4 +1,6 @@
 import React from "react";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 
 const GroupAnalyticsModal = ({
   budgetTracker,
@@ -6,14 +8,19 @@ const GroupAnalyticsModal = ({
   expenses,
   onClose,
 }) => {
+  const { colors } = useTheme();
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div
         style={{ background: "#1b1b1b" }}
         className="p-6 rounded-xl w-full max-w-2xl"
       >
-        <h3 className="text-xl font-semibold text-white mb-4">
-          📈 Group Analytics
+        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          {getAccentFunctionalIcon("analytics", colors.primary_accent, {
+            sx: { fontSize: 24 },
+          })}
+          Group Analytics
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div className="bg-gray-800 p-4 rounded-lg">

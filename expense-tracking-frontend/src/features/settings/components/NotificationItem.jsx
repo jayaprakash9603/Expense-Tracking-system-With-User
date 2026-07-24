@@ -237,11 +237,19 @@ const NotificationItem = ({
                 },
               }}
             >
-              {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
+              {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => {
+                const OptionIcon = option.icon;
+                return (
+                  <MenuItem key={option.value} value={option.value}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {OptionIcon && (
+                        <OptionIcon sx={{ fontSize: "1rem", opacity: 0.85 }} />
+                      )}
+                      {option.label}
+                    </Box>
+                  </MenuItem>
+                );
+              })}
             </Select>
           </Box>
 

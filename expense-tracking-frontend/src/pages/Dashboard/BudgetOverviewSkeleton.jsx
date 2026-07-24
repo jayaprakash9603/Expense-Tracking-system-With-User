@@ -1,4 +1,6 @@
 import React, { useEffect } from "react";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import { useTheme } from "../../hooks/useTheme";
 
 // Inject skeleton keyframes once into document head
@@ -88,7 +90,7 @@ const BudgetOverviewSkeleton = ({
               marginBottom: 20,
             }}
           >
-            <span style={{ fontSize: "1.25rem", ...pulseStyle }}>🎯</span>
+            <TrackChangesIcon sx={{ fontSize: "1.25rem", ...pulseStyle }} />
             <div
               style={{
                 width: 140,
@@ -281,7 +283,7 @@ const BudgetOverviewSkeleton = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: "1.25rem", ...pulseStyle }}>📊</span>
+            <BarChartIcon sx={{ fontSize: "1.25rem", ...pulseStyle }} />
             <div
               style={{
                 width: 140,

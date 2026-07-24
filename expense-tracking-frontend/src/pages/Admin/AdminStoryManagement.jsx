@@ -50,6 +50,8 @@ import {
   TrendingUp,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
+import { useFeature } from "../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 import { api } from "../../config/api";
 import { AdminPanelContainer } from "../../features/admin";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
@@ -103,6 +105,9 @@ const CTA_TYPES = [
 
 const AdminStoryManagement = () => {
   const { colors } = useTheme();
+  const adminCreateEnabled = useFeature(SUB_FEATURE_KEYS.ADMIN_CREATE);
+  const adminEditEnabled = useFeature(SUB_FEATURE_KEYS.ADMIN_EDIT);
+  const adminDeleteEnabled = useFeature(SUB_FEATURE_KEYS.ADMIN_DELETE);
   const navigate = useNavigate();
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -432,6 +437,7 @@ const AdminStoryManagement = () => {
           >
             Refresh
           </Button>
+          {adminCreateEnabled && (
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -443,6 +449,7 @@ const AdminStoryManagement = () => {
           >
             Create Story
           </Button>
+          )}
         </Box>
       </Box>
 
@@ -627,6 +634,7 @@ const AdminStoryManagement = () => {
                     : "-"}
                 </TableCell>
                 <TableCell align="right">
+                  {adminEditEnabled && (
                   <Tooltip title="Edit">
                     <IconButton
                       size="small"
@@ -637,6 +645,7 @@ const AdminStoryManagement = () => {
                       <Edit fontSize="small" />
                     </IconButton>
                   </Tooltip>
+                  )}
                   {story.status === "CREATED" && (
                     <Tooltip title="Activate">
                       <IconButton
@@ -680,6 +689,7 @@ const AdminStoryManagement = () => {
                       </IconButton>
                     </Tooltip>
                   )}
+                  {adminDeleteEnabled && (
                   <Tooltip title="Delete">
                     <IconButton
                       size="small"
@@ -692,6 +702,7 @@ const AdminStoryManagement = () => {
                       <Delete fontSize="small" />
                     </IconButton>
                   </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

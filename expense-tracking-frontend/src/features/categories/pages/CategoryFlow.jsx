@@ -84,6 +84,7 @@ const CategoryFlow = () => {
         idKey: "categoryId",
         nameKey: "categoryName",
         routeBase: "category-flow",
+        moduleKey: "categories",
         addNewOptions: [
           {
             label: t("cashflow.addNew.options.addCategory"),

@@ -30,6 +30,7 @@ import { adminReducer } from "./Admin";
 import { sharesReducer } from "./Shares";
 import storyReducer from "./Stories/story.reducer";
 import { sharedSelectionReducer } from "./SharedSelection";
+import { featureFlagsReducer } from "./FeatureFlags";
 
 // Combine reducers
 const appReducer = combineReducers({
@@ -55,6 +56,7 @@ const appReducer = combineReducers({
   shares: sharesReducer,
   story: storyReducer,
   sharedSelection: sharedSelectionReducer,
+  featureFlags: featureFlagsReducer,
 });
 
 const rootReducer = (state, action) => {

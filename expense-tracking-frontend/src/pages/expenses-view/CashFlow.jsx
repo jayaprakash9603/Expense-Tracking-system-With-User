@@ -36,6 +36,10 @@ import {
   fetchFriendsDetailed,
 } from "../../Redux/Friends/friendsActions";
 import { useTranslation } from "../../hooks/useTranslation";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+} from "../../config/featureCatalog";
 
 // Memoized CashFlowChart to prevent re-renders when only cards change
 const MemoizedCashFlowChart = React.memo(CashFlowChart);
@@ -72,6 +76,12 @@ const Cashflow = () => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [summaryExpanded, setSummaryExpanded] = useState(true);
   const dispatch = useDispatch();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const deleteEnabled = isActionEnabledInState(
+    featureFlags,
+    FEATURE_KEYS.EXPENSES,
+    "delete",
+  );
   const { friendId } = useParams();
   const isFriendView = Boolean(friendId && friendId !== "undefined");
   const {
@@ -445,6 +455,7 @@ const Cashflow = () => {
       deleteButtonExtraProps={{
         count: selectedCardIdx.length,
         hasWriteAccess,
+        deleteEnabled,
         onDelete: () =>
           openMultiDelete(
             selectedCardIdx.map(

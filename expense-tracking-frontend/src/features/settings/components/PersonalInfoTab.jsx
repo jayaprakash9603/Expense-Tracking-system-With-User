@@ -34,7 +34,7 @@ import {
   BarChart,
   AccountBalance,
   TrendingUp,
-  CreditScore,
+  CheckCircle,
 } from "@mui/icons-material";
 
 const PersonalInfoTab = ({
@@ -139,9 +139,16 @@ const PersonalInfoTab = ({
               <div className="bg-teal-500/10 border border-teal-500/30 rounded-lg px-4 py-2">
                 <Typography
                   variant="caption"
-                  sx={{ color: "#14b8a6", fontWeight: "500" }}
+                  sx={{
+                    color: "#14b8a6",
+                    fontWeight: "500",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 0.75,
+                  }}
                 >
-                  📷 New image selected: {selectedFile.name}
+                  <PhotoCamera sx={{ fontSize: "1rem" }} />
+                  New image selected: {selectedFile.name}
                 </Typography>
               </div>
             )}
@@ -833,7 +840,7 @@ const PersonalInfoTab = ({
                 )}
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-[#1a1a1a] flex items-center justify-center">
-                <span className="text-xs">✓</span>
+                <CheckCircle sx={{ fontSize: 14, color: "#fff" }} />
               </div>
             </div>
 

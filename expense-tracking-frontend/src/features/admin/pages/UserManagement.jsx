@@ -35,10 +35,14 @@ import {
   updateUserStatus,
   fetchUserStats,
 } from "../../../Redux/Admin/admin.action";
+import { useFeature } from "../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 
 const UserManagement = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const adminCreateEnabled = useFeature(SUB_FEATURE_KEYS.ADMIN_CREATE);
+  const adminDeleteEnabled = useFeature(SUB_FEATURE_KEYS.ADMIN_DELETE);
 
   // Safely access admin state with fallbacks
   const adminState = useSelector((state) => state.admin) || {};
@@ -162,6 +166,7 @@ const UserManagement = () => {
         flowType={flowType}
         onFlowTypeChange={setFlowType}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.ADMIN_EXPORT}
         showFilterButton={false}
         timeframeOptions={[{ value: "all", label: "All Time" }]}
         showBackButton={false}
@@ -175,6 +180,7 @@ const UserManagement = () => {
       <SectionCard
         title="Search & Filter"
         actions={
+          adminCreateEnabled ? (
           <Button
             variant="contained"
             startIcon={<PersonAddIcon />}
@@ -185,6 +191,7 @@ const UserManagement = () => {
           >
             Add User
           </Button>
+          ) : null
         }
       >
         <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -349,6 +356,7 @@ const UserManagement = () => {
                       >
                         <BlockIcon fontSize="small" />
                       </IconButton>
+                      {adminDeleteEnabled && (
                       <IconButton
                         size="small"
                         style={{ color: "#f44336" }}
@@ -357,6 +365,7 @@ const UserManagement = () => {
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
+                      )}
                       <IconButton size="small">
                         <MoreVertIcon fontSize="small" />
                       </IconButton>

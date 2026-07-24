@@ -112,6 +112,159 @@ kafka:
     notification-events: notification-events
     expense-budget-linking-events: expense-budget-linking-events
     expense-BudgetModel-linking-events: expense-BudgetModel-linking-events
+# Feature dormancy — set modules.<key>: false to hide a feature (UI + API 404).
+# Override in K8s ConfigMap or mount application.yml; env map binding for nested keys is fragile.
+features:
+  dormancy:
+    enabled: true
+  modules:
+    expenses: true
+    budgets: true
+    categories: true
+    paymentMethods: true
+    bills: true
+    friends: false
+    groups: false
+    sharing: false
+    reports: true
+    calendar: true
+    upload: true
+    utilities: true
+    chat: false
+    stories: true
+    investment: true
+    analytics: true
+    notifications: true
+    keyboardShortcuts: true
+    search: true
+    events: true
+    helpSupport: true
+    admin: false
+    auth: true
+    # Theme customization (accent color + light/dark toggle). false = dark mode only, no color/mode switching in Settings.
+    themeCustomization: false
+  # Sub-feature toggles (parent module false → all children off). Keys match FeatureSubCatalog.
+  subFeatures:
+    expenses:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      share: true
+      export: true
+      list: true
+      reports: true
+      bulkImport: true
+      transactions: true
+    budgets:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+    categories:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    paymentMethods:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    bills:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      upload: true
+      calendar: true
+    friends:
+      create: true
+      edit: true
+      delete: true
+      list: true
+      reports: true
+      chat: true
+      activity: true
+    groups:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+    sharing:
+      create: true
+      edit: true
+      delete: true
+      myShares: true
+      publicShares: true
+      sharedWithMe: true
+    reports:
+      overview: true
+      transactions: true
+      creditDue: true
+      export: true
+    calendar:
+      view: true
+      dayView: true
+      billDayView: true
+    upload:
+      expenses: true
+      categories: true
+      payments: true
+    utilities:
+      tools: true
+    chat:
+      messaging: true
+    stories:
+      feed: true
+    investment:
+      dashboard: true
+    notifications:
+      preferences: true
+    search:
+      universal: true
+    keyboardShortcuts:
+      global: true
+    helpSupport:
+      support: true
+    events:
+      planning: true
+    admin:
+      create: true
+      edit: true
+      delete: true
+      export: true
+      dashboard: true
+      users: true
+      roles: true
+      analytics: true
+      audit: true
+      reports: true
+      settings: true
+      stories: true
+    auth:
+      googleOauth: true
+      mfa: true
+      emailOtp: true
+
 # Disable Eureka in monolithic mode
 eureka:
   client:
@@ -209,9 +362,18 @@ ANALYTICS_USER_SERVICE_URL: http://localhost:${server.port}
 # Notification-Service TaskService Feign client; point to self if task endpoints exist in monolith
 TASK_SERVICE_URL: http://localhost:${server.port}
 
-# JWT Configuration
+# Internal service-to-service auth (Feign /api/**/internal/**). Static for local monolith.
+common-library:
+  internal-service-auth:
+    enabled: true
+    token: expensio-static-internal-service-token-v1
+
+SERVICE_INTERNAL_TOKEN: expensio-static-internal-service-token-v1
+USER_SERVICE_INTERNAL_TOKEN: expensio-static-internal-service-token-v1
+
+# JWT Configuration — secret is defined once in JwtSecretConstants (common-library)
 jwt:
-  secret: ${JWT_SECRET:your-secret-key-for-jwt-token-generation-min-256-bits}
+  secret: expensio-static-jwt-hmac-secret-key-min-32-chars-v1
   expiration: 86400000
 
 # Logging

@@ -7,6 +7,8 @@ import { logoutAction } from "../../Redux/Auth/auth.action";
 import Modal from "./Modal";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useTheme } from "../../hooks/useTheme";
+import useFeature from "../../hooks/useFeature";
+import { FEATURE_KEYS, SIDEBAR_MENU_FEATURES } from "../../config/featureCatalog";
 import { BRAND_GRADIENT_COLORS } from "../../config/themeConfig";
 import {
   fetchStories,
@@ -59,23 +61,42 @@ const Left = () => {
     user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
   const isAdminMode = currentMode === "ADMIN";
 
+  const expensesEnabled = useFeature(FEATURE_KEYS.EXPENSES);
+  const categoriesEnabled = useFeature(FEATURE_KEYS.CATEGORIES);
+  const paymentsEnabled = useFeature(FEATURE_KEYS.PAYMENT_METHODS);
+  const billsEnabled = useFeature(FEATURE_KEYS.BILLS);
+  const friendsEnabled = useFeature(FEATURE_KEYS.FRIENDS);
+  const groupsEnabled = useFeature(FEATURE_KEYS.GROUPS);
+  const budgetsEnabled = useFeature(FEATURE_KEYS.BUDGETS);
+  const reportsEnabled = useFeature(FEATURE_KEYS.REPORTS);
+  const utilitiesEnabled = useFeature(FEATURE_KEYS.UTILITIES);
+  const adminEnabled = useFeature(FEATURE_KEYS.ADMIN);
+  const adminDashboardEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminDashboard);
+  const adminUsersEnabled = useFeature(SIDEBAR_MENU_FEATURES.userManagement);
+  const adminRolesEnabled = useFeature(SIDEBAR_MENU_FEATURES.roleManagement);
+  const analyticsEnabled = useFeature(SIDEBAR_MENU_FEATURES.systemAnalytics);
+  const adminAuditEnabled = useFeature(SIDEBAR_MENU_FEATURES.auditLogs);
+  const adminReportsEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminReports);
+  const adminSettingsEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminSettings);
+  const storiesEnabled = useFeature(SIDEBAR_MENU_FEATURES.stories);
+
   // Fetch stories on mount
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && storiesEnabled) {
       dispatch(fetchStories(user.id));
     }
-  }, [user?.id, dispatch]);
+  }, [user?.id, dispatch, storiesEnabled]);
 
   // Refetch stories when WebSocket signals a refresh is needed
   useEffect(() => {
-    if (needsRefresh && user?.id) {
+    if (needsRefresh && user?.id && storiesEnabled) {
       dispatch(fetchStories(user.id));
     }
-  }, [needsRefresh, user?.id, dispatch]);
+  }, [needsRefresh, user?.id, dispatch, storiesEnabled]);
 
   // Handle story bubble click
   const handleStoryClick = () => {
-    if (stories.length > 0) {
+    if (storiesEnabled && stories.length > 0) {
       dispatch(openStoryViewer(0));
     }
   };
@@ -228,7 +249,7 @@ const Left = () => {
           {/* Menu Items */}
           <div className="flex flex-col items-center w-full max-w-[360px] space-y-2">
             {/* Show different menu based on current mode */}
-            {hasAdminRole && isAdminMode ? (
+            {hasAdminRole && isAdminMode && adminEnabled ? (
               <>
                 {/* ADMIN MODE - Show only admin menu items */}
                 <div className="w-full px-4 py-1">
@@ -252,54 +273,70 @@ const Left = () => {
                   </p>
                 </div>
 
-                <MenuItem
-                  name={t("navigation.dashboard")}
-                  path="/admin/dashboard"
-                  icon={<DashboardIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.userManagement")}
-                  path="/admin/users"
-                  icon={<PersonIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.roleManagement")}
-                  path="/admin/roles"
-                  icon={<AdminPanelSettingsIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.systemAnalytics")}
-                  path="/admin/analytics"
-                  icon={<BarChartIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.auditLogs")}
-                  path="/admin/audit"
-                  icon={<HistoryIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.reports")}
-                  path="/admin/reports"
-                  icon={<AssessmentIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.settings")}
-                  path="/admin/settings"
-                  icon={<SettingsIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.stories") || "Stories"}
-                  path="/admin/stories"
-                  icon={<AutoStoriesIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
+                {adminDashboardEnabled && (
+                  <MenuItem
+                    name={t("navigation.dashboard")}
+                    path="/admin/dashboard"
+                    icon={<DashboardIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {adminUsersEnabled && (
+                  <MenuItem
+                    name={t("navigation.userManagement")}
+                    path="/admin/users"
+                    icon={<PersonIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {adminRolesEnabled && (
+                  <MenuItem
+                    name={t("navigation.roleManagement")}
+                    path="/admin/roles"
+                    icon={<AdminPanelSettingsIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {analyticsEnabled && (
+                  <MenuItem
+                    name={t("navigation.systemAnalytics")}
+                    path="/admin/analytics"
+                    icon={<BarChartIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {adminAuditEnabled && (
+                  <MenuItem
+                    name={t("navigation.auditLogs")}
+                    path="/admin/audit"
+                    icon={<HistoryIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {adminReportsEnabled && (
+                  <MenuItem
+                    name={t("navigation.reports")}
+                    path="/admin/reports"
+                    icon={<AssessmentIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {adminSettingsEnabled && (
+                  <MenuItem
+                    name={t("navigation.settings")}
+                    path="/admin/settings"
+                    icon={<SettingsIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {storiesEnabled && (
+                  <MenuItem
+                    name={t("navigation.stories") || "Stories"}
+                    path="/admin/stories"
+                    icon={<AutoStoriesIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
               </>
             ) : (
               <>
@@ -310,69 +347,80 @@ const Left = () => {
                   icon={<HomeIcon />}
                   setIsSidebarOpen={setIsSidebarOpen}
                 />
-                <MenuItem
-                  name={t("navigation.expenses")}
-                  path="/expenses"
-                  icon={<ReceiptLongIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
+                {expensesEnabled && (
+                  <MenuItem
+                    name={t("navigation.expenses")}
+                    path="/expenses"
+                    icon={<ReceiptLongIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
 
-                {/* <MenuItem
-                  name={t("navigation.history")}
-                  path="/history"
-                  icon={<HistoryIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                /> */}
+                {categoriesEnabled && (
+                  <MenuItem
+                    name={t("navigation.categories")}
+                    path="/category-flow"
+                    icon={<CategoryIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
 
-                <MenuItem
-                  name={t("navigation.categories")}
-                  path="/category-flow"
-                  icon={<CategoryIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-
-                <MenuItem
-                  name={t("navigation.payments")}
-                  path="/payment-method"
-                  icon={<PaymentIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.bill")}
-                  path="/bill"
-                  icon={<ReceiptIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.friends")}
-                  path="/friends"
-                  icon={<PeopleIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.groups")}
-                  path="/groups"
-                  icon={<GroupsIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.budgets")}
-                  path="/budget"
-                  icon={<AccountBalanceWalletIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.reports")}
-                  path="/reports"
-                  icon={<AssessmentIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
-                <MenuItem
-                  name={t("navigation.utilities")}
-                  path="/utilities"
-                  icon={<BuildIcon />}
-                  setIsSidebarOpen={setIsSidebarOpen}
-                />
+                {paymentsEnabled && (
+                  <MenuItem
+                    name={t("navigation.payments")}
+                    path="/payment-method"
+                    icon={<PaymentIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {billsEnabled && (
+                  <MenuItem
+                    name={t("navigation.bill")}
+                    path="/bill"
+                    icon={<ReceiptIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {friendsEnabled && (
+                  <MenuItem
+                    name={t("navigation.friends")}
+                    path="/friends"
+                    icon={<PeopleIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {groupsEnabled && (
+                  <MenuItem
+                    name={t("navigation.groups")}
+                    path="/groups"
+                    icon={<GroupsIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {budgetsEnabled && (
+                  <MenuItem
+                    name={t("navigation.budgets")}
+                    path="/budget"
+                    icon={<AccountBalanceWalletIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {reportsEnabled && (
+                  <MenuItem
+                    name={t("navigation.reports")}
+                    path="/reports"
+                    icon={<AssessmentIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
+                {utilitiesEnabled && (
+                  <MenuItem
+                    name={t("navigation.utilities")}
+                    path="/utilities"
+                    icon={<BuildIcon />}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                  />
+                )}
               </>
             )}
           </div>

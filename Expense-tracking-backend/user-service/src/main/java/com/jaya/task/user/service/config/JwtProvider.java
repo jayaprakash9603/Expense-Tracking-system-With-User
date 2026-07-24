@@ -12,35 +12,17 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+public final class JwtProvider {
 
+    private static final long STANDARD_TOKEN_EXPIRY = 86400000;
+    private static final long MFA_TOKEN_EXPIRY = 300000;
 
+    private JwtProvider() {
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-
-public class JwtProvider {
-
-    static SecretKey key = Keys.hmacShaKeyFor(JWTConstants.SECRET_KEY.getBytes());
-
-    
-    private static final long STANDARD_TOKEN_EXPIRY = 86400000; 
-    private static final long MFA_TOKEN_EXPIRY = 300000; 
-
-    
-
-
-
-
-
+    private static SecretKey signingKey() {
+        return Keys.hmacShaKeyFor(JWTConstants.getSecretKey().getBytes());
+    }
 
     public static String generateToken(Authentication auth) {
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
@@ -52,21 +34,9 @@ public class JwtProvider {
                 .claim("email", auth.getName())
                 .claim("authorities", roles)
                 .claim("token_type", "STANDARD")
-                .signWith(key)
+                .signWith(signingKey())
                 .compact();
     }
-
-    
-
-
-
-
-
-
-
-
-
-
 
     public static String generateMfaToken(Authentication auth) {
         return Jwts.builder()
@@ -75,15 +45,9 @@ public class JwtProvider {
                 .claim("email", auth.getName())
                 .claim("token_type", "MFA_PENDING")
                 .claim("mfa_pending", true)
-                .signWith(key)
+                .signWith(signingKey())
                 .compact();
     }
-
-    
-
-
-
-
 
     public static String populateAuthorities(Collection<? extends GrantedAuthority> collection) {
         Set<String> auths = new HashSet<>();
@@ -93,35 +57,28 @@ public class JwtProvider {
         return String.join(",", auths);
     }
 
-    
-
-
-
-
-
-
     public static String getEmailFromJwt(String jwt) {
-        
         if (jwt != null && jwt.startsWith("Bearer ")) {
             jwt = jwt.substring(7);
         }
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody();
         return String.valueOf(claims.get("email"));
     }
-
-    
-
-
-
-
-
 
     public static boolean isMfaPendingToken(String jwt) {
         if (jwt != null && jwt.startsWith("Bearer ")) {
             jwt = jwt.substring(7);
         }
         try {
-            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(signingKey())
+                    .build()
+                    .parseClaimsJws(jwt)
+                    .getBody();
             Boolean mfaPending = claims.get("mfa_pending", Boolean.class);
             return Boolean.TRUE.equals(mfaPending);
         } catch (Exception e) {

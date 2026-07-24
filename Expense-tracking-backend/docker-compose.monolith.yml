@@ -108,7 +108,8 @@ services:
       SPRING_REDIS_PORT: 6379
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-only-secret-key-change-in-production-min-32-chars}
+      JWT_SECRET: ${JWT_SECRET:-expensio-static-jwt-hmac-secret-key-min-32-chars-v1}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-expensio-static-jwt-hmac-secret-key-min-32-chars-v1}
     networks:
       - expense-net
     depends_on:

@@ -13,6 +13,7 @@ import useCategoryReportData from "../hooks/useCategoryReportData";
 import useCategoryReportLayout from "../hooks/useCategoryReportLayout";
 import CategoryExpensesAccordion from "../../../components/CategoryExpensesAccordion";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import PaymentUsageChart from "../../../components/charts/PaymentUsageChart";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
@@ -23,6 +24,8 @@ import ReportActionsMenu, {
 } from "../../../components/common/ReportActionsMenu";
 import { getChartColors } from "../../../utils/charts/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useCategoryReportFilters from "../../reports/hooks/reportFilters/useCategoryReportFilters";
 import CategoryDailySpendingChart from "../../../components/category/CategoryDailySpendingChart";
@@ -107,6 +110,7 @@ const CategoryReport = () => {
   // Three-dot menu component using reusable ReportActionsMenu
   const reportHeaderActions = (
     <ReportActionsMenu
+      exportFeatureKey={SUB_FEATURE_KEYS.CATEGORIES_EXPORT}
       menuItems={createDefaultReportMenuItems({
         onExport: handleExport,
         onCustomize: () => setCustomizationOpen(true),
@@ -127,7 +131,12 @@ const CategoryReport = () => {
       >
         <ReportHeader
           className="category-report-header"
-          title="📊 Category Analytics"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {getAccentFunctionalIcon("chart", colors.primary_accent, { sx: { fontSize: 28 } })}
+              <span>Category Analytics</span>
+            </Stack>
+          }
           subtitle="Comprehensive spending analysis by categories"
           timeframe={timeframe}
           onTimeframeChange={handleTimeframeChange}
@@ -135,6 +144,7 @@ const CategoryReport = () => {
           flowType={flowType}
           onFlowTypeChange={handleFlowTypeChange}
           onExport={handleExport}
+          exportFeatureKey={SUB_FEATURE_KEYS.CATEGORIES_EXPORT}
           onCustomize={() => setCustomizationOpen(true)}
           showFilterButton={false}
         />
@@ -204,7 +214,7 @@ const CategoryReport = () => {
                   return (
                     <div key={section.id} className="chart-row full-width">
                       <DailySpendingSkeleton
-                        title="📊 Daily Spending Pattern (Categories)"
+                        title="Daily Spending Pattern (Categories)"
                         showControls={false}
                       />
                     </div>
@@ -247,7 +257,12 @@ const CategoryReport = () => {
     >
       <ReportHeader
         className="category-report-header"
-        title="📊 Category Analytics"
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("chart", colors.primary_accent, { sx: { fontSize: 28 } })}
+            <span>Category Analytics</span>
+          </Stack>
+        }
         subtitle="Comprehensive spending analysis by categories"
         onFilter={openFilters}
         onTimeframeChange={handleTimeframeChange}
@@ -269,6 +284,7 @@ const CategoryReport = () => {
         showFilterButton={categoryFilterSections.length > 0}
         isFilterActive={filtersActive}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.CATEGORIES_EXPORT}
         onCustomize={() => setCustomizationOpen(true)}
       />
 

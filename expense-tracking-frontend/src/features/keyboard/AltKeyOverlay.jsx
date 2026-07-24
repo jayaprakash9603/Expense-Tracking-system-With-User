@@ -9,6 +9,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Box, Typography, Fade, Portal } from "@mui/material";
+import {
+  FolderOpen as FolderOpenIcon,
+  Keyboard as KeyboardIcon,
+} from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useSelector } from "react-redux";
@@ -630,8 +634,9 @@ export function AltKeyOverlay() {
                 color: "#000",
               }}
             >
-              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600 }}>
-                📂 {parentLabel}
+              <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center", gap: 0.5 }}>
+                <FolderOpenIcon sx={{ fontSize: 14 }} />
+                {parentLabel}
               </Typography>
             </Box>
           )}
@@ -642,9 +647,13 @@ export function AltKeyOverlay() {
               fontSize: "0.8rem",
               fontWeight: 500,
               mr: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
             }}
           >
-            🎹 {t("keyboard.pressLetter")}
+            <KeyboardIcon sx={{ fontSize: 16 }} />
+            {t("keyboard.pressLetter")}
           </Typography>
 
           {Object.entries(currentShortcuts).map(([id, config]) => (

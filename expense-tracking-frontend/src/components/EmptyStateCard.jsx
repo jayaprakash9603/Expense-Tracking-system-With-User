@@ -54,7 +54,7 @@ const EmptyStateCard = ({
         }}
         aria-hidden
       >
-        {renderIcon(icon, colors.secondary_accent)}
+        {renderIcon(icon, colors.primary_accent)}
       </div>
       <div style={{ fontWeight: 700 }}>{title}</div>
       <div

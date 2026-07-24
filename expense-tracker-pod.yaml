@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: expense-tracker-pod
+  labels:
+    app: expense-tracker
+spec:
+  containers:
+  # 1. The Monolith Application Container
+  - name: monolith
+    image: jayaprakash9603/expense-tracker-monolith:1.1.0
+    ports:
+    - containerPort: 8080
+    env:                       # <--- Fixed this line from environment to env
+    - name: SPRING_PROFILES_ACTIVE
+      value: "monolithic"
+    - name: SPRING_DATASOURCE_URL
+      value: "jdbc:mysql://127.0.0.1:3306/expense_tracker_monolith?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true"
+    - name: SPRING_DATASOURCE_USERNAME
+      value: "root"
+    - name: SPRING_DATASOURCE_PASSWORD
+      value: "123456"
+    - name: DB_USERNAME
+      value: "root"
+    - name: DB_PASSWORD
+      value: "123456"
+    - name: JWT_SECRET
+      value: "dev-only-secret-key-change-in-production-min-32-chars"
+    - name: KAFKA_ENABLED
+      value: "false"
+    - name: REDIS_ENABLED
+      value: "false"
+
+  # 2. The MySQL Database Container
+  - name: mysql
+    image: mysql:8.0
+    ports:
+    - containerPort: 3306
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      value: "123456"
+    - name: MYSQL_DATABASE
+      value: "expense_tracker_monolith"

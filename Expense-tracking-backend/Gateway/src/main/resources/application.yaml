@@ -138,3 +138,165 @@ gateway:
     window-seconds: 60
   internal-block:
     enabled: true
+
+# Feature dormancy — configure here for microservices mode (Gateway serves GET /api/config/features).
+# Example: features.modules.groups: false
+features:
+  dormancy:
+    enabled: true
+  modules:
+    expenses: true
+    budgets: true
+    categories: true
+    paymentMethods: true
+    bills: true
+    friends: false
+    groups: false
+    sharing: false
+    reports: true
+    calendar: true
+    upload: true
+    utilities: true
+    chat: false
+    stories: true
+    investment: true
+    analytics: true
+    notifications: true
+    keyboardShortcuts: true
+    search: true
+    events: true
+    helpSupport: true
+    admin: false
+    auth: true
+    # Theme customization (accent color + light/dark toggle). false = dark mode only, no color/mode switching in Settings.
+    themeCustomization: false
+  # Sub-feature toggles (parent module false → all children off). Keys match FeatureSubCatalog.
+  subFeatures:
+    expenses:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      share: true
+      export: true
+      list: true
+      reports: true
+      bulkImport: true
+      transactions: true
+    budgets:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+    categories:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    paymentMethods:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    bills:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      upload: true
+      calendar: true
+    friends:
+      create: true
+      edit: true
+      delete: true
+      list: true
+      reports: true
+      chat: true
+      activity: true
+    groups:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+    sharing:
+      create: true
+      edit: true
+      delete: true
+      myShares: true
+      publicShares: true
+      sharedWithMe: true
+    reports:
+      overview: true
+      transactions: true
+      creditDue: true
+      export: true
+    calendar:
+      view: true
+      dayView: true
+      billDayView: true
+    upload:
+      expenses: true
+      categories: true
+      payments: true
+    utilities:
+      tools: true
+    chat:
+      messaging: true
+    stories:
+      feed: true
+    investment:
+      dashboard: true
+    notifications:
+      preferences: true
+    search:
+      universal: true
+    keyboardShortcuts:
+      global: true
+    helpSupport:
+      support: true
+    events:
+      planning: true
+    admin:
+      create: true
+      edit: true
+      delete: true
+      export: true
+      dashboard: true
+      users: true
+      roles: true
+      analytics: true
+      audit: true
+      reports: true
+      settings: true
+      stories: true
+    auth:
+      googleOauth: true
+      mfa: true
+      emailOtp: true
+
+# Internal service-to-service auth (same static token as monolith / services)
+common-library:
+  internal-service-auth:
+    enabled: true
+    token: expensio-static-internal-service-token-v1
+
+SERVICE_INTERNAL_TOKEN: expensio-static-internal-service-token-v1
+USER_SERVICE_INTERNAL_TOKEN: expensio-static-internal-service-token-v1

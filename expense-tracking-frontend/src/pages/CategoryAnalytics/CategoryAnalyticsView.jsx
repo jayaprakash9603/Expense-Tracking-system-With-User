@@ -34,6 +34,12 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CategoryIcon from "@mui/icons-material/Category";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import EventIcon from "@mui/icons-material/Event";
+import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import dayjs from "dayjs";
 
 import { useTheme } from "../../hooks/useTheme";
@@ -977,9 +983,7 @@ const CategoryAnalyticsView = ({
                 borderLeft: `3px solid ${categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f"}`,
               }}
             >
-              <Typography sx={{ fontSize: "0.7rem", marginTop: "1px" }}>
-                📝
-              </Typography>
+              <EditNoteIcon sx={{ fontSize: "0.875rem", marginTop: "1px" }} />
               <Typography
                 sx={{
                   fontSize: "0.75rem",
@@ -1179,7 +1183,7 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>📅</Typography>
+                  <CalendarTodayIcon sx={{ fontSize: "0.875rem" }} />
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1305,7 +1309,7 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>📆</Typography>
+                  <EventIcon sx={{ fontSize: "0.85rem", color: "#8b5cf6" }} />
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1345,7 +1349,7 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  <Typography sx={{ fontSize: "0.7rem" }}>📆</Typography>
+                  <EventIcon sx={{ fontSize: "0.85rem", color: "#f97316" }} />
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1386,9 +1390,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  {getFunctionalIcon("⬇️", {
-                    sx: { fontSize: 14, color: colors.primary_accent },
-                  })}
+                  <ArrowDownwardIcon
+                    sx={{ fontSize: 14, color: colors.primary_accent }}
+                  />
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1428,9 +1432,9 @@ const CategoryAnalyticsView = ({
                     marginBottom: 0.5,
                   }}
                 >
-                  {getFunctionalIcon("⬆️", {
-                    sx: { fontSize: 14, color: colors.primary_accent },
-                  })}
+                  <ArrowUpwardIcon
+                    sx={{ fontSize: 14, color: colors.primary_accent }}
+                  />
                   <Typography
                     sx={{
                       fontSize: "0.65rem",
@@ -1626,7 +1630,8 @@ const CategoryAnalyticsView = ({
                     gap: 0.75,
                   }}
                 >
-                  💡 Insights
+                  <LightbulbOutlinedIcon sx={{ fontSize: "1rem" }} />
+                  Insights
                 </Typography>
                 <Box
                   sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}

@@ -79,6 +79,8 @@ import {
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { useTheme } from "../../../hooks/useTheme";
+import { useFeature } from "../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
   fetchMyShares,
@@ -115,6 +117,8 @@ const MySharesPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { colors } = useTheme();
+  const sharingCreateEnabled = useFeature(SUB_FEATURE_KEYS.SHARING_CREATE);
+  const sharingDeleteEnabled = useFeature(SUB_FEATURE_KEYS.SHARING_DELETE);
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
 
@@ -607,6 +611,7 @@ const MySharesPage = () => {
               <DownloadIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          {sharingDeleteEnabled && (
           <Tooltip title="Revoke Share">
             <IconButton
               size="small"
@@ -620,6 +625,7 @@ const MySharesPage = () => {
               <DeleteIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          )}
         </CardActions>
       </Card>
     );
@@ -650,6 +656,7 @@ const MySharesPage = () => {
       >
         Create your first share to generate a QR code.
       </Typography>
+      {sharingCreateEnabled && (
       <Button
         variant="contained"
         startIcon={<AddIcon fontSize="small" />}
@@ -665,6 +672,7 @@ const MySharesPage = () => {
       >
         Create New Share
       </Button>
+      )}
     </Box>
   );
 
@@ -783,6 +791,7 @@ const MySharesPage = () => {
               <RefreshIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          {sharingCreateEnabled && (
           <Button
             variant="contained"
             startIcon={<AddIcon fontSize="small" />}
@@ -803,6 +812,7 @@ const MySharesPage = () => {
           >
             New Share
           </Button>
+          )}
           <IconButton
             onClick={handleViewModeToggle}
             sx={{
@@ -1025,6 +1035,8 @@ const MySharesPage = () => {
           </ListItemIcon>
           <ListItemText>Download QR</ListItemText>
         </MenuItem>
+        {sharingDeleteEnabled && (
+        <>
         <Divider />
         <MenuItem
           onClick={() =>
@@ -1037,6 +1049,8 @@ const MySharesPage = () => {
           </ListItemIcon>
           <ListItemText>Revoke Share</ListItemText>
         </MenuItem>
+        </>
+        )}
       </Menu>
 
       {/* QR Display Modal */}

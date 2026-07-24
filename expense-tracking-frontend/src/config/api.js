@@ -79,6 +79,7 @@ const handleRequest = (config = {}) => {
     delete requestConfig.headers[AUTH_HEADER_KEY];
   }
 
+  requestConfig._skipAuth = shouldSkipAuth;
   if (shouldSkipAuth) {
     delete requestConfig.skipAuth;
   }
@@ -137,15 +138,17 @@ const handleResponseError = (error) => {
         );
         break;
       case 401:
-        localStorage.removeItem("jwt");
-        window.dispatchEvent(
-          new CustomEvent("unauthorized", {
-            detail: {
-              message: "Your session has expired. Please login again.",
-              originalError: error,
-            },
-          }),
-        );
+        if (!error.config?._skipAuth) {
+          localStorage.removeItem("jwt");
+          window.dispatchEvent(
+            new CustomEvent("unauthorized", {
+              detail: {
+                message: "Your session has expired. Please login again.",
+                originalError: error,
+              },
+            }),
+          );
+        }
         attachSystemError();
         break;
       default:

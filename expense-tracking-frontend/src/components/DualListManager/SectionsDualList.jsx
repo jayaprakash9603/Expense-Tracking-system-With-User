@@ -17,6 +17,8 @@ import {
   ChevronLeft as ChevronLeftIcon,
   KeyboardDoubleArrowRight as DoubleArrowRightIcon,
   KeyboardDoubleArrowLeft as DoubleArrowLeftIcon,
+  Inventory2 as Inventory2Icon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -162,9 +164,13 @@ export default function SectionsDualList({ sections, onChange }) {
                 fontSize: "0.9rem",
                 letterSpacing: 0.5,
                 textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
               }}
             >
-              📦 Available Sections
+              <Inventory2Icon sx={{ fontSize: "1rem" }} />
+              Available Sections
             </Typography>
             <Typography
               variant="caption"
@@ -583,9 +589,13 @@ export default function SectionsDualList({ sections, onChange }) {
                 fontSize: "0.9rem",
                 letterSpacing: 0.5,
                 textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                gap: 0.75,
               }}
             >
-              ✓ Active Sections
+              <CheckIcon sx={{ fontSize: "1rem" }} />
+              Active Sections
             </Typography>
             <Typography
               variant="caption"

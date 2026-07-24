@@ -13,6 +13,12 @@ import AllGroupsTab from "../components/AllGroupsTab";
 import InvitationsTab from "../components/InvitationsTab";
 import DiscoverTab from "../components/DiscoverTab";
 import { useTheme } from "../../../hooks/useTheme";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+  SUB_FEATURE_KEYS,
+  isFeatureEnabledInState,
+} from "../../../config/featureCatalog";
 
 const Groups = () => {
   const userId = useReduxSelector((state) => state.auth?.user?.id);
@@ -30,6 +36,8 @@ const Groups = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const createEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.GROUPS, "create");
   const pendingInvitations = useSelector(
     (state) => state.groups.pendingInvitations
   );
@@ -258,6 +266,7 @@ const Groups = () => {
               Manage your expense groups and collaborate with others
             </p>
           </div>
+          {createEnabled && (
           <button
             onClick={handleCreateGroup}
             className="px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
@@ -275,6 +284,7 @@ const Groups = () => {
             <span className="text-xl">+</span>
             Create Group
           </button>
+          )}
         </div>
 
         {/* Tab Navigation */}

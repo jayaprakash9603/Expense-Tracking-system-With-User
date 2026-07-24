@@ -13,6 +13,8 @@ import CheckIcon from "@mui/icons-material/Check";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
 import { useTheme } from "../../hooks/useTheme";
+import { useSelector } from "react-redux";
+import { isFeatureEnabledInState } from "../../config/featureCatalog";
 import downloadTextFile from "../../utils/files/downloadTextFile";
 
 const copyToClipboard = async (text) => {
@@ -59,11 +61,14 @@ const CopyExportActions = ({
   copiedLabel = "Copied",
   copyFailedLabel = "Copy failed",
   exportLabel = "Export",
+  exportFeatureKey = "reports.export",
   size = "small",
   variant = "outlined",
   sx,
 }) => {
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const exportEnabled = isFeatureEnabledInState(featureFlags, exportFeatureKey);
   const [copyStatus, setCopyStatus] = useState("idle");
   const copyResetTimerRef = useRef(null);
 
@@ -182,6 +187,7 @@ const CopyExportActions = ({
           : copyLabel}
       </Button>
 
+      {exportEnabled && (
       <Button
         size={size}
         variant={variant}
@@ -196,6 +202,7 @@ const CopyExportActions = ({
       >
         {exportLabel}
       </Button>
+      )}
     </>
   );
 };
@@ -209,6 +216,7 @@ CopyExportActions.propTypes = {
   copiedLabel: PropTypes.string,
   copyFailedLabel: PropTypes.string,
   exportLabel: PropTypes.string,
+  exportFeatureKey: PropTypes.string,
   size: PropTypes.oneOf(["small", "medium", "large"]),
   variant: PropTypes.oneOf(["text", "outlined", "contained"]),
   sx: PropTypes.object,

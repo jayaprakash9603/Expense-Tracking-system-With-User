@@ -14,6 +14,8 @@ import {
 import ShareIcon from "@mui/icons-material/Share";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useTheme } from "../../../../hooks/useTheme";
+import { useFeature } from "../../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../../config/featureCatalog";
 import { useSharingHub } from "../../hooks/useSharingHub";
 import { ACCESS_LEVEL_OPTIONS } from "../../constants/friendsConstants";
 import { useCurrentUserId } from "../../hooks/useFriendDisplay";
@@ -33,6 +35,8 @@ import NoDataPlaceholder from "../../../../components/NoDataPlaceholder";
 const SharingHub = () => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const friendsChatEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_CHAT);
+  const friendsEditEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_EDIT);
   const currentUserId = useCurrentUserId();
   const isMobile = useMediaQuery("(max-width:768px)");
   const [batchDialogOpen, setBatchDialogOpen] = useState(false);
@@ -94,7 +98,7 @@ const SharingHub = () => {
             }}
           />
         </Box>
-        {direction === "outgoing" && (
+        {direction === "outgoing" && friendsChatEnabled && (
           <Switch
             size="small"
             checked={display.accessLevel !== "NONE"}
@@ -251,6 +255,7 @@ const SharingHub = () => {
                       >
                         {display.displayName}
                       </Typography>
+                      {friendsChatEnabled && (
                       <Button
                         size="small"
                         onClick={() => handleQuickShare(display.userId, "READ")}
@@ -263,6 +268,7 @@ const SharingHub = () => {
                       >
                         {t("friends.sharing.quickShare")}
                       </Button>
+                      )}
                     </Box>
                   );
                 })}
@@ -272,6 +278,7 @@ const SharingHub = () => {
         </>
       )}
 
+      {friendsChatEnabled && (
       <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
         <Button
           variant="contained"
@@ -291,6 +298,7 @@ const SharingHub = () => {
           {t("friends.sharing.batchShare")}
         </Button>
       </Box>
+      )}
 
       <Dialog
         open={batchDialogOpen}

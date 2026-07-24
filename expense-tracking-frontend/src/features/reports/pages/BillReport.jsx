@@ -29,7 +29,10 @@ import usePreserveNavigationState from "../../../hooks/usePreserveNavigationStat
 import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
 import { formatDate } from "../../../utils/formatting/dateFormatter";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import useBillReportFilters, {
@@ -160,17 +163,45 @@ const buildTimeframeRange = (timeframe) => {
   }
 };
 
-const NoDataMessage = () => (
+const ChartSectionHeading = ({ iconKey, children }) => {
+  const { colors } = useTheme();
+  return (
+    <h3
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: 0,
+      }}
+    >
+      {getAccentFunctionalIcon(iconKey, colors.primary_accent, {
+        sx: { fontSize: 22 },
+      })}
+      {children}
+    </h3>
+  );
+};
+
+const NoDataMessage = () => {
+  const { colors } = useTheme();
+  return (
   <div className="no-data-message">
-    <div className="no-data-icon">📊</div>
+    <div className="no-data-icon">
+      {getAccentFunctionalIcon("chart", colors.primary_accent, {
+        sx: { fontSize: 48 },
+      })}
+    </div>
     <h3>No bills found</h3>
     <p>Try adjusting your filters to see more data.</p>
   </div>
-);
+  );
+};
 
 const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
   <div className="chart-container chart-half-width">
-    <h3>💼 Expenses by Category</h3>
+    <ChartSectionHeading iconKey="category">
+      Expenses by Category
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={categoryChartData}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -192,7 +223,9 @@ const PaymentMethodPieChart = ({
   currencySymbol = "₹",
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>💳 Payment Methods</h3>
+    <ChartSectionHeading iconKey="payment">
+      Payment Methods
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -312,7 +345,9 @@ const TopItemsRadialChart = ({
   CustomRadialTooltip,
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>🛒 Top Expense Items </h3>
+    <ChartSectionHeading iconKey="shopping">
+      Top Expense Items
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={350}>
       <RadialBarChart
         cx="50%"
@@ -345,7 +380,7 @@ const TopItemsBarChart = ({
   currencySymbol = "₹",
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>📊 Top Expense Items</h3>
+    <ChartSectionHeading iconKey="chart">Top Expense Items</ChartSectionHeading>
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={topItemsBarData} margin={{ bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -429,7 +464,9 @@ const BillsTable = ({
     <div className="chart-container full-width bills-table-container">
       <div className="table-header">
         <div>
-          <h3>📋 Detailed Bills</h3>
+          <ChartSectionHeading iconKey="bill">
+            Detailed Bills
+          </ChartSectionHeading>
           <p>
             {filteredBills.length} bill{filteredBills.length === 1 ? "" : "s"}
             {tableSummaryParts.length > 0 &&
@@ -527,7 +564,9 @@ const BillsTable = ({
 
 const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
   <div className="category-details">
-    <h3>📊 Category Breakdown</h3>
+    <ChartSectionHeading iconKey="category">
+      Category Breakdown
+    </ChartSectionHeading>
     <div className="category-grid">
       {Object.entries(analytics.categoryBreakdown).map(([category, data]) => {
         const stats = [
@@ -1236,7 +1275,14 @@ const BillReport = () => {
       }}
     >
       <ReportHeader
-        title="📊 Bill Report"
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("chart", colors.primary_accent, {
+              sx: { fontSize: 28 },
+            })}
+            <span>Bill Report</span>
+          </Stack>
+        }
         subtitle="Spending overview and insights"
         timeframe={selectedTimeframe}
         flowType={selectedType}
@@ -1262,6 +1308,7 @@ const BillReport = () => {
         filterButtonLabel="Filters"
         onRefresh={() => handleReportMenuItemClick("refresh")}
         onExport={() => handleReportMenuItemClick("export")}
+        exportFeatureKey={SUB_FEATURE_KEYS.BILLS_EXPORT}
         onDownloadPdf={() => handleReportMenuItemClick("pdf")}
         onCustomize={() => handleReportMenuItemClick("customize")}
         showExportButton={false}

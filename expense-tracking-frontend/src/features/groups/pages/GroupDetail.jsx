@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Tabs, Tab, Box } from "@mui/material";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import GroupsIcon from "@mui/icons-material/Groups";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import ChatIcon from "@mui/icons-material/Chat";
+import EmailIcon from "@mui/icons-material/Email";
+import SettingsIcon from "@mui/icons-material/Settings";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import { getAccentFunctionalIcon, isEmojiGlyph } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
+import { useFeature } from "../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import SplitCalculatorModal from "../../../components/SplitCalculatorModal";
 import OverviewTabContent from "../components/OverviewTabContent";
 import DebtSimplificationModal from "../components/DebtSimplificationModal";
@@ -54,6 +65,9 @@ const GroupDetail = ({
   const { id } = useParams();
   const navigate = useNavigate();
   const chatEndRef = useRef(null);
+  const { colors } = useTheme();
+  const groupsExportEnabled = useFeature(SUB_FEATURE_KEYS.GROUPS_EXPORT);
+  const tabIconSx = { fontSize: "small", color: colors.primary_accent };
 
   const dispatch = useDispatch();
   // State management
@@ -344,11 +358,29 @@ const GroupDetail = ({
       marginRight: 8,
     };
 
-    // If avatar is not provided or is a string (any text/URL), show default emoji/icon
-    if (!av || typeof av === "string") {
+    if (!av) {
       return (
         <span aria-hidden="true" className="mr-4" style={avatarStyle}>
-          {"👥"}
+          {getAccentFunctionalIcon("groups", colors.primary_accent, {
+            sx: { fontSize: 32 },
+          })}
+        </span>
+      );
+    }
+
+    if (typeof av === "string") {
+      if (isEmojiGlyph(av)) {
+        return (
+          <span aria-hidden="true" className="mr-4" style={avatarStyle}>
+            {av}
+          </span>
+        );
+      }
+      return (
+        <span aria-hidden="true" className="mr-4" style={avatarStyle}>
+          {getAccentFunctionalIcon("groups", colors.primary_accent, {
+            sx: { fontSize: 32 },
+          })}
         </span>
       );
     }
@@ -853,43 +885,43 @@ const GroupDetail = ({
             }}
           >
             <Tab
-              icon={<span>📊</span>}
+              icon={<BarChartIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Overview"
               value="overview"
             />
             <Tab
-              icon={<span>👥</span>}
+              icon={<GroupsIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Members"
               value="members"
             />
             <Tab
-              icon={<span>💰</span>}
+              icon={<MonetizationOnIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Expenses"
               value="expenses"
             />
             <Tab
-              icon={<span>💬</span>}
+              icon={<ChatIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Chat"
               value="chat"
             />
             <Tab
-              icon={<span>📧</span>}
+              icon={<EmailIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Invites"
               value="invites"
             />
             <Tab
-              icon={<span>⚙️</span>}
+              icon={<SettingsIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Settings"
               value="settings"
             />
             <Tab
-              icon={<span>📋</span>}
+              icon={<AssignmentIcon sx={tabIconSx} />}
               iconPosition="start"
               label="Activity"
               value="activity"
@@ -923,6 +955,7 @@ const GroupDetail = ({
             }}
             id="group-more-popover"
           >
+            {groupsExportEnabled && (
             <button
               onClick={() => {
                 setShowExportOptions(true);
@@ -942,6 +975,7 @@ const GroupDetail = ({
             >
               Export
             </button>
+            )}
             <button
               onClick={() => {
                 setShowLeaveConfirm(true);

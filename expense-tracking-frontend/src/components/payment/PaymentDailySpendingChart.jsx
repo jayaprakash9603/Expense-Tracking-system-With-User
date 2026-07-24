@@ -47,7 +47,7 @@ const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
         breakdownTotalsLabel="Payment method totals"
         breakdownItemLabel="payment method"
         breakdownEmptyMessage="No payment method breakdown available."
-        title="📊 Daily Spending Pattern (Payment Methods)"
+        title="Daily Spending Pattern (Payment Methods)"
         onPointClick={handlePointClick}
       />
 

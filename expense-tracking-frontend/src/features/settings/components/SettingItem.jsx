@@ -243,6 +243,7 @@ const SettingItem = ({
                 const optionLabel = option.labelKey
                   ? t(option.labelKey)
                   : option.label;
+                const OptionIcon = option.icon;
                 return (
                   <MenuItem key={option.value} value={option.value}>
                     <Box
@@ -252,6 +253,16 @@ const SettingItem = ({
                         width: "100%",
                       }}
                     >
+                      {OptionIcon && (
+                        <OptionIcon
+                          sx={{
+                            fontSize: "1.1rem",
+                            color: colors.primary_accent,
+                            mr: 1,
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
                       <ListItemText
                         primary={optionLabel}
                         sx={{

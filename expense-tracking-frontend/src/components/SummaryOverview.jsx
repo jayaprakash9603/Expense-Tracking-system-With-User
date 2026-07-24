@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
+import { getAccentFunctionalIcon } from "../utils/ui/iconMapping";
 import EmptyStateCard from "./EmptyStateCard";
 
 const formatNumber0 = (v) =>
@@ -61,7 +62,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
         </div>
         <div style={{ padding: "20px" }}>
           <EmptyStateCard
-            icon="🔎"
+            icon="search"
             title={t("dashboard.overview.title")}
             message="No application overview data available yet."
             height={200}
@@ -92,31 +93,31 @@ const SummaryOverview = ({ summary, loading = false }) => {
 
   const metricsData = [
     {
-      icon: "💸",
+      iconKey: "spending",
       title: t("dashboard.overview.totalExpenses"),
       value: `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
       gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     },
     {
-      icon: "🏦",
+      iconKey: "bank",
       title: t("dashboard.overview.creditDue"),
       value: `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
       gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     },
     {
-      icon: "📊",
+      iconKey: "budget",
       title: t("dashboard.overview.activeBudgets"),
       value: s.budgetsActive,
       gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
     },
     {
-      icon: "👥",
+      iconKey: "friends",
       title: t("dashboard.overview.friends"),
       value: s.friendsCount,
       gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
     },
     {
-      icon: "🧑‍🤝‍🧑",
+      iconKey: "groups",
       title: t("dashboard.overview.groups"),
       value: s.groupsCount,
       gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
@@ -125,21 +126,21 @@ const SummaryOverview = ({ summary, loading = false }) => {
 
   const kpiData = [
     {
-      icon: "📈",
+      iconKey: "trend",
       title: t("dashboard.overview.avgDailySpend"),
       value: `${currencySymbol}${formatNumber0(s.averageDaily)}`,
       subtitle: t("dashboard.overview.last30Days"),
       color: "#667eea",
     },
     {
-      icon: "💰",
+      iconKey: "savings",
       title: t("dashboard.overview.savingsRate"),
       value: `${formatPercent1(s.savingsRate)}%`,
       subtitle: t("dashboard.overview.ofIncome"),
       color: "#43e97b",
     },
     {
-      icon: "📅",
+      iconKey: "calendar",
       title: t("dashboard.overview.upcomingBills"),
       value: `${currencySymbol}${formatNumber0(s.upcomingBills)}`,
       subtitle: t("dashboard.overview.dueThisPeriod"),
@@ -177,7 +178,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
             }}
           >
-            🔎
+          {getAccentFunctionalIcon("search", colors.primary_accent, { sx: { fontSize: 24 } })}
           </div>
           <h3
             style={{
@@ -285,7 +286,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
                 }}
               >
-                {metric.icon}
+                {getAccentFunctionalIcon(metric.iconKey, colors.primary_accent, { sx: { fontSize: isMobile ? 20 : 24 } })}
               </div>
               <div
                 style={{
@@ -358,7 +359,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   opacity: 0.1,
                 }}
               >
-                {kpi.icon}
+                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, { sx: { fontSize: 48, opacity: 0.1 } })}
               </div>
               <div
                 style={{
@@ -368,7 +369,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   marginBottom: "8px",
                 }}
               >
-                <span style={{ fontSize: "20px" }}>{kpi.icon}</span>
+                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, { sx: { fontSize: 20 } })}
                 <div
                   style={{
                     fontSize: "12px",
@@ -547,7 +548,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 color: colors.secondary_text,
               }}
             >
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📊</div>
+              {getAccentFunctionalIcon("chart", colors.primary_accent, { sx: { fontSize: 32, mb: 1 } })}
               <div style={{ fontSize: "14px", fontWeight: "500" }}>
                 {t("dashboard.overview.noExpensesData")}
               </div>

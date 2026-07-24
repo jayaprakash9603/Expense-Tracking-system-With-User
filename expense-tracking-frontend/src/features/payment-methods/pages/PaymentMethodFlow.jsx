@@ -83,6 +83,7 @@ const PaymentMethodFlow = () => {
         idKey: "categoryId", // underlying id field name in cards
         nameKey: "categoryName",
         routeBase: "payment-method",
+        moduleKey: "paymentMethods",
         addNewOptions: [
           {
             label: t("cashflow.addNew.options.addPaymentMethod"),

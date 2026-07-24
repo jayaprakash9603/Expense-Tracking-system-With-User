@@ -3,16 +3,10 @@ import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getProfileAction } from "../Redux/Auth/auth.action";
 import { fetchOrCreateUserSettings } from "../Redux/UserSettings/userSettings.action";
+import { fetchFeatureFlags } from "../Redux/FeatureFlags";
 import { setTheme } from "../Redux/Theme/theme.actions";
 import { preloadUserPreferences } from "../services/userPreferencesService";
 
-/**
- * Custom hook to handle app initialization logic
- * Responsible for:
- * - Loading user preferences (dashboard layout, theme)
- * - Fetching user profile
- * - Handling initial navigation
- */
 export const useAppInitialization = (jwt, auth) => {
   const [loading, setLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -21,30 +15,37 @@ export const useAppInitialization = (jwt, auth) => {
   const location = useLocation();
 
   useEffect(() => {
-    if (!jwt) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
 
     const initializeApp = async () => {
       try {
-        // Preload user preferences and profile in parallel
+        const flags = await dispatch(fetchFeatureFlags());
+
+        // When theme customization is dormant, lock the app to dark mode and
+        // normalize any persisted/light preference so direct state.theme readers
+        // (tables, dropdowns, overlays) render dark too.
+        const themeLocked =
+          flags?.dormancyEnabled === true &&
+          flags?.modules?.themeCustomization === false;
+        if (themeLocked) {
+          dispatch(setTheme("dark"));
+        }
+
+        if (!jwt) {
+          return;
+        }
+
         await Promise.all([
           preloadUserPreferences(dispatch),
           dispatch(getProfileAction(jwt)),
         ]);
 
-        // Fetch or create user settings
         const settings = dispatch(fetchOrCreateUserSettings());
 
-        // Sync theme from user settings if available
         if (settings?.themeMode) {
-          dispatch(setTheme(settings.themeMode));
+          dispatch(setTheme(themeLocked ? "dark" : settings.themeMode));
         }
 
-        // Handle initial navigation
         handleInitialNavigation(auth, location, isInitialLoad, navigate);
         setIsInitialLoad(false);
       } catch (error) {
@@ -61,9 +62,6 @@ export const useAppInitialization = (jwt, auth) => {
   return { loading };
 };
 
-/**
- * Handles navigation logic based on user authentication state
- */
 const handleInitialNavigation = (auth, location, isInitialLoad, navigate) => {
   const isAuthRoute =
     location.pathname === "/" ||

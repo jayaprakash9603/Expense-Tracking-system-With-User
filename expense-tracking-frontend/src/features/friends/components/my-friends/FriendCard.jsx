@@ -15,6 +15,8 @@ import BlockIcon from "@mui/icons-material/Block";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useTheme } from "../../../../hooks/useTheme";
+import { useFeature } from "../../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../../config/featureCatalog";
 import { ACCESS_LEVEL_OPTIONS } from "../../constants/friendsConstants";
 import { useCurrentUserId } from "../../hooks/useFriendDisplay";
 import { resolveFriendDisplay } from "../../utils/resolveFriendDisplay";
@@ -24,6 +26,8 @@ import FriendAvatar from "../shared/FriendAvatar";
 const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageAccess }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const friendsEditEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_EDIT);
+  const friendsDeleteEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_DELETE);
   const currentUserId = useCurrentUserId();
   const [menuAnchor, setMenuAnchor] = useState(null);
 
@@ -108,24 +112,30 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
           },
         }}
       >
+        {friendsDeleteEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onRemove?.(friend); }}>
           <ListItemIcon>
             <PersonRemoveIcon fontSize="small" sx={{ color: colors.error }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.removeFriend")} />
         </MenuItem>
+        )}
+        {friendsEditEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onBlock?.(friend); }}>
           <ListItemIcon>
             <BlockIcon fontSize="small" sx={{ color: colors.error }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.blockUser")} />
         </MenuItem>
+        )}
+        {friendsEditEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onManageAccess?.(friend); }}>
           <ListItemIcon>
             <ManageAccountsIcon fontSize="small" sx={{ color: colors.primary_accent }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.manageAccess")} />
         </MenuItem>
+        )}
       </Menu>
     </Box>
   );

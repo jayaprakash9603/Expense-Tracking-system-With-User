@@ -17,6 +17,7 @@ import {
   injectTheme, 
   watchSystemPreference 
 } from "../utils/theme/themeInjector";
+import { isFeatureEnabledInState, FEATURE_KEYS } from "../config/featureCatalog";
 
 /**
  * Custom hook for comprehensive theme access and control
@@ -48,8 +49,16 @@ export const useTheme = () => {
   const { mode, palette, useSystemPreference } = useSelector(
     (state) => state.theme || {}
   );
-  
-  const currentMode = mode || "dark";
+  const featureFlags = useSelector((state) => state.featureFlags);
+
+  // When theme customization is dormant (backend flag), lock the app to dark mode
+  // regardless of any persisted/user-selected mode or system preference.
+  const themeLocked = !isFeatureEnabledInState(
+    featureFlags,
+    FEATURE_KEYS.THEME_CUSTOMIZATION
+  );
+
+  const currentMode = themeLocked ? "dark" : (mode || "dark");
   const currentPalette = palette || "teal";
 
   // Generate theme tokens - memoized to prevent recalculation
@@ -72,16 +81,16 @@ export const useTheme = () => {
     injectTheme(currentPalette, currentMode);
   }, [currentPalette, currentMode]);
 
-  // Watch system preference changes when enabled
+  // Watch system preference changes when enabled (ignored while theme is locked)
   useEffect(() => {
-    if (!useSystemPreference) return;
+    if (themeLocked || !useSystemPreference) return;
     
     const cleanup = watchSystemPreference((newMode) => {
       dispatch(setTheme(newMode));
     });
     
     return cleanup;
-  }, [useSystemPreference, dispatch]);
+  }, [themeLocked, useSystemPreference, dispatch]);
 
   // Action callbacks - memoized
   const setMode = useCallback(
@@ -120,6 +129,7 @@ export const useTheme = () => {
     palette: currentPalette,
     colors,
     useSystemPreference: Boolean(useSystemPreference),
+    themeLocked,
     
     // Palette info
     paletteInfo,

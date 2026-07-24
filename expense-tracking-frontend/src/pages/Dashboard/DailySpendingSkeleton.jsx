@@ -6,7 +6,7 @@ import { useTheme } from "../../hooks/useTheme";
  * DailySpendingSkeleton - Customizable skeleton loader for Daily Spending Pattern chart
  *
  * Props:
- * @param {string} title - Chart title (default: "📊 Daily Spending Pattern")
+ * @param {string} title - Chart title (default: "Daily Spending Pattern")
  * @param {number} height - Override chart body height
  * @param {boolean} showControls - Show time selector and toggle controls (default: true)
  * @param {boolean} showYAxis - Show Y-axis skeleton labels (default: true)
@@ -16,7 +16,7 @@ import { useTheme } from "../../hooks/useTheme";
  * @param {string} variant - "line" | "area" | "bar" (affects skeleton shape, default: "area")
  */
 const DailySpendingSkeleton = ({
-  title = "📊 Daily Spending Pattern",
+  title = "Daily Spending Pattern",
   height: overrideHeight,
   showControls = true,
   showYAxis = true,

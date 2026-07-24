@@ -42,7 +42,7 @@
  * 4. Custom title and height:
  *    <DailySpendingChart
  *      data={spendingData}
- *      title="💰 My Custom Title"
+ *      title="My Custom Title"
  *      height={400}
  *      timeframe="this_month"
  *      onTimeframeChange={setTimeframe}
@@ -117,6 +117,10 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
+import {
+  getAccentFunctionalIcon,
+  applyAccentToIcon,
+} from "../../utils/ui/iconMapping";
 
 // Import separate components
 import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
@@ -169,7 +173,7 @@ const DailySpendingChart = ({
   selectedType,
   onTypeToggle,
   typeOptions,
-  title = "📊 Daily Spending Pattern",
+  title = "Daily Spending Pattern",
   icon,
   height,
   tooltipConfig,
@@ -813,7 +817,21 @@ const DailySpendingChart = ({
   );
   const gradientId = `spendingGradient-${activeType}`;
   const animationKey = `${timeframe}-${activeType}-${chartData.length}`;
-  const chartTitle = title || t("dashboard.charts.titles.dailySpending");
+  const stripLeadingEmoji = (text) => {
+    if (typeof text !== "string") return text;
+    return (
+      text.replace(/^[\s\p{Extended_Pictographic}\uFE0F\u200D]+/gu, "").trim() ||
+      text
+    );
+  };
+  const chartTitle = stripLeadingEmoji(
+    title || t("dashboard.charts.titles.dailySpending"),
+  );
+  const headerIcon = icon
+    ? applyAccentToIcon(icon, colors.primary_accent)
+    : getAccentFunctionalIcon("chart", colors.primary_accent, {
+        sx: { fontSize: 22 },
+      });
   const timeframeSelectorOptions =
     timeframeOptions && timeframeOptions.length > 0
       ? timeframeOptions
@@ -964,8 +982,16 @@ const DailySpendingChart = ({
     >
       {/* Chart header */}
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text }}>
-          {icon || ""}
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          {headerIcon}
           {chartTitle}
         </h3>
         {!hideControls ? (
@@ -987,7 +1013,7 @@ const DailySpendingChart = ({
       {/* Chart visualization */}
       {showEmpty ? (
         <EmptyStateCard
-          icon="📉"
+          icon="spending"
           title="No spending data"
           message="No transactions available for this timeframe yet."
           height={chartHeight + 40}

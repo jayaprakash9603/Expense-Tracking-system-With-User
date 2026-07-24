@@ -17,6 +17,10 @@ import {
   SECTION_ORDER,
   SEARCH_MODES,
 } from "./quickActions.config";
+import {
+  FEATURE_KEYS,
+  isFeatureEnabledInState,
+} from "../../../config/featureCatalog";
 import { sortByRelevance, memoize, createDebouncer } from "./searchUtils";
 import UserSettingsHelper from "../../../utils/settings/UserSettingsHelper";
 import { formatDate } from "../../../utils/formatting/dateFormatter";
@@ -69,14 +73,14 @@ const createMemoizedSearchQuickActions = () => {
   const cache = new Map();
   const maxSize = 50;
 
-  return (query, mode) => {
-    const cacheKey = `${query || ""}:${mode || "USER"}`;
+  return (query, mode, featureFlagsState) => {
+    const cacheKey = `${query || ""}:${mode || "USER"}:${featureFlagsState?.loaded || false}`;
 
     if (cache.has(cacheKey)) {
       return cache.get(cacheKey);
     }
 
-    const result = searchQuickActions(query, mode);
+    const result = searchQuickActions(query, mode, featureFlagsState);
 
     // Manage cache size
     if (cache.size >= maxSize) {
@@ -164,6 +168,11 @@ export const useUniversalSearch = () => {
   const currentMode = useSelector(
     (state) => state.auth?.currentMode || SEARCH_MODES.USER,
   );
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const searchEnabled = isFeatureEnabledInState(
+    featureFlags,
+    FEATURE_KEYS.SEARCH,
+  );
 
   /**
    * Format currency amount using user's preferred currency
@@ -196,8 +205,8 @@ export const useUniversalSearch = () => {
     setSelectedIndex(0);
     setError(null);
     // Show default quick actions immediately using memoized search (filtered by mode)
-    setQuickActionResults(memoizedSearchQuickActions("", currentMode));
-  }, [currentMode]);
+    setQuickActionResults(memoizedSearchQuickActions("", currentMode, featureFlags));
+  }, [currentMode, featureFlags]);
 
   /**
    * Close the search modal
@@ -464,7 +473,7 @@ export const useUniversalSearch = () => {
    */
   const performApiSearch = useCallback(
     async (searchQuery) => {
-      if (!searchQuery || searchQuery.length < 2) {
+      if (!searchQuery || searchQuery.length < 2 || !searchEnabled) {
         return;
       }
 
@@ -597,7 +606,7 @@ export const useUniversalSearch = () => {
         setApiLoading(false);
       }
     },
-    [formatAmount, formatDateForSearch, currentMode],
+    [formatAmount, formatDateForSearch, currentMode, searchEnabled],
   );
 
   /**
@@ -620,7 +629,9 @@ export const useUniversalSearch = () => {
       setSelectedIndex(0);
 
       // Immediate local search for quick actions using memoized function (filtered by mode)
-      setQuickActionResults(memoizedSearchQuickActions(newQuery, currentMode));
+      setQuickActionResults(
+        memoizedSearchQuickActions(newQuery, currentMode, featureFlags),
+      );
 
       // Immediate local search for Redux data
       const localResults = performLocalSearch(newQuery);
@@ -638,7 +649,7 @@ export const useUniversalSearch = () => {
         debouncerRef.current.cancel();
       }
     },
-    [performLocalSearch, performApiSearch, currentMode],
+    [performLocalSearch, performApiSearch, currentMode, featureFlags],
   );
 
   /**
@@ -789,6 +800,9 @@ export const useUniversalSearch = () => {
     const handleGlobalKeyDown = (event) => {
       // Cmd/Ctrl + K to open search
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+        if (!searchEnabled) {
+          return;
+        }
         event.preventDefault();
         if (isOpen) {
           closeSearch();
@@ -800,7 +814,7 @@ export const useUniversalSearch = () => {
 
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [isOpen, openSearch, closeSearch]);
+  }, [isOpen, openSearch, closeSearch, searchEnabled]);
 
   /**
    * Cleanup on unmount

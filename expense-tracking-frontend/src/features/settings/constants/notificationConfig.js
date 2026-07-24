@@ -25,6 +25,13 @@ import {
   Celebration as CelebrationIcon,
   Schedule as ScheduleIcon,
   NotificationImportant as NotificationImportantIcon,
+  Bolt as BoltIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Event as EventIcon,
+  VolumeOff as VolumeOffIcon,
+  BusinessCenter as BusinessCenterIcon,
+  Settings as SettingsIcon,
+  NightsStay as NightsStayIcon,
 } from "@mui/icons-material";
 
 /**
@@ -51,21 +58,41 @@ export const NOTIFICATION_PRIORITY = {
  * Notification frequency options
  */
 export const NOTIFICATION_FREQUENCY_OPTIONS = [
-  { value: "instant", label: "⚡ Instant - Receive immediately" },
-  { value: "hourly", label: "🕐 Hourly - Digest every hour" },
-  { value: "daily", label: "📅 Daily - Once per day" },
-  { value: "weekly", label: "📆 Weekly - Once per week" },
-  { value: "never", label: "🔕 Never - Disable completely" },
+  {
+    value: "instant",
+    label: "Instant - Receive immediately",
+    icon: BoltIcon,
+  },
+  {
+    value: "hourly",
+    label: "Hourly - Digest every hour",
+    icon: ScheduleIcon,
+  },
+  {
+    value: "daily",
+    label: "Daily - Once per day",
+    icon: CalendarMonthIcon,
+  },
+  {
+    value: "weekly",
+    label: "Weekly - Once per week",
+    icon: EventIcon,
+  },
+  {
+    value: "never",
+    label: "Never - Disable completely",
+    icon: VolumeOffIcon,
+  },
 ];
 
 /**
  * Quiet hours presets
  */
 export const QUIET_HOURS_PRESETS = [
-  { value: "none", label: "🔔 No Quiet Hours" },
-  { value: "night", label: "🌙 Night (10 PM - 7 AM)" },
-  { value: "work", label: "💼 Work Hours (9 AM - 5 PM)" },
-  { value: "custom", label: "⚙️ Custom" },
+  { value: "none", label: "No Quiet Hours", icon: NotificationsIcon },
+  { value: "night", label: "Night (10 PM - 7 AM)", icon: NightsStayIcon },
+  { value: "work", label: "Work Hours (9 AM - 5 PM)", icon: BusinessCenterIcon },
+  { value: "custom", label: "Custom", icon: SettingsIcon },
 ];
 
 /**

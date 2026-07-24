@@ -24,6 +24,10 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../../hooks/useTheme";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+} from "../../../config/featureCatalog";
 import PageHeader from "../../../components/PageHeader";
 import GroupedDataTable from "../../../components/common/GroupedDataTable/GroupedDataTable";
 import FilterPopover from "../../../components/ui/FilterPopover";
@@ -68,6 +72,9 @@ const ViewExpense = () => {
   } = useSelector((state) => state.expenses || {});
 
   const { dateFormat } = useSelector((state) => state.userSettings || {});
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const editEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "edit");
+  const deleteEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "delete");
   const displayDateFormat = dateFormat || "DD/MM/YYYY";
 
   // --- Filtering State ---
@@ -467,7 +474,9 @@ const ViewExpense = () => {
         title="View Expense"
         onClose={handleOnClose}
         rightContent={
+          (editEnabled || deleteEnabled) ? (
           <div className="flex items-center gap-2">
+            {editEnabled && (
             <Tooltip title="Edit Expense">
               <IconButton
                 onClick={handleEdit}
@@ -482,6 +491,8 @@ const ViewExpense = () => {
                 <EditIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Tooltip>
+            )}
+            {deleteEnabled && (
             <Tooltip title="Delete Expense">
               <IconButton
                 onClick={handleDelete}
@@ -496,7 +507,9 @@ const ViewExpense = () => {
                 <DeleteIcon sx={{ fontSize: 18 }} />
               </IconButton>
             </Tooltip>
+            )}
           </div>
+          ) : null
         }
       />
 

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   IconButton,
   Menu,
@@ -23,6 +24,7 @@ import {
   handleSelectableSurfaceMouseDown,
   selectableSurfaceStyles,
 } from "../../utils/ui/selectableSurface";
+import { isActionEnabledInState } from "../../config/featureCatalog";
 
 /**
  * FlowEntityCards
@@ -47,10 +49,16 @@ const FlowEntityCards = ({
   isFriendView, // NEW: for friend view routing
   selectedIds = [], // NEW: for multi-selection
   onSelectionChange,
+  moduleKey = "categories",
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const settings = useUserSettings();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const editEnabled = isActionEnabledInState(featureFlags, moduleKey, "edit");
+  const deleteEnabled = isActionEnabledInState(featureFlags, moduleKey, "delete");
+  const viewEnabled = isActionEnabledInState(featureFlags, moduleKey, "view");
+  const showActionsMenu = hasWriteAccess && (editEnabled || deleteEnabled || (onViewAnalytics && viewEnabled));
   const currencySymbol = settings.getCurrency().symbol;
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [menuEntity, setMenuEntity] = useState(null);
@@ -231,7 +239,7 @@ const FlowEntityCards = ({
                   }}
                 />
               )}
-              {hasWriteAccess && (
+              {showActionsMenu && (
                 <div
                   className="absolute top-2 right-2 transition-opacity"
                   onClick={(e) => e.stopPropagation()}
@@ -286,18 +294,18 @@ const FlowEntityCards = ({
                         fontSize: "15px",
                         fontWeight: 700,
                         color: colors.primary_text,
-                        cursor: onViewAnalytics ? "pointer" : "default",
+                        cursor: onViewAnalytics && viewEnabled ? "pointer" : "default",
                         textDecoration: onViewAnalytics ? "none" : "none",
                         transition: "color 0.2s",
                       }}
                       onClick={(e) => {
-                        if (onViewAnalytics) {
+                        if (onViewAnalytics && viewEnabled) {
                           e.stopPropagation();
                           onViewAnalytics(entity);
                         }
                       }}
                       onMouseEnter={(e) => {
-                        if (onViewAnalytics) {
+                        if (onViewAnalytics && viewEnabled) {
                           e.target.style.color = entity.color || "#00DAC6";
                           e.target.style.textDecoration = "underline";
                         }
@@ -367,7 +375,7 @@ const FlowEntityCards = ({
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        {onViewAnalytics && (
+        {onViewAnalytics && viewEnabled && (
           <MenuItem onClick={handleViewAnalytics}>
             <ListItemIcon>
               <BarChartIcon fontSize="small" sx={{ color: "#00DAC6" }} />
@@ -375,6 +383,7 @@ const FlowEntityCards = ({
             <ListItemText primary={t("common.viewAnalytics")} />
           </MenuItem>
         )}
+        {editEnabled && (
         <MenuItem onClick={handleEdit}>
           <ListItemIcon>
             <EditIcon
@@ -384,12 +393,15 @@ const FlowEntityCards = ({
           </ListItemIcon>
           <ListItemText primary={t("common.edit")} />
         </MenuItem>
+        )}
+        {deleteEnabled && (
         <MenuItem onClick={handleDelete}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" sx={{ color: "#ff5252" }} />
           </ListItemIcon>
           <ListItemText primary={t("common.delete")} />
         </MenuItem>
+        )}
       </Menu>
     </>
   );

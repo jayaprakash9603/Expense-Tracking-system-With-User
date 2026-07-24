@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { TrendingUp } from "@mui/icons-material";
 import useMonthlyTrendData from "../hooks/useMonthlyTrendData";
 import MonthlyTrendChart from "./MonthlyTrendChart";
 import ChartSkeleton from "../pages/Dashboard/ChartSkeleton";
@@ -50,12 +51,21 @@ const MonthlyTrendContainer = ({
         }}
       >
         <div className="chart-header">
-          <h3 style={{ color: colors.primary_text }}>
-            📈 Monthly Expense Trend
+          <h3
+            style={{
+              color: colors.primary_text,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              margin: 0,
+            }}
+          >
+            <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
+            Monthly Expense Trend
           </h3>
         </div>
         <EmptyStateCard
-          icon="📉"
+          icon="spending"
           title="No trend data yet"
           message="Add expenses to see your monthly trend."
           height={height}

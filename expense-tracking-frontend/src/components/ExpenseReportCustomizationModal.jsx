@@ -28,9 +28,9 @@ export default function ExpenseReportCustomizationModal({
       subtitle="Drag sections between columns • Reorder active sections"
       icon={ReportIcon}
       typeLabels={{ full: "Full Width", half: "Half Width" }}
-      availableTitle="📦 Available Sections"
+      availableTitle="Available Sections"
       availableSubtitle="Drag sections to the right to activate"
-      activeTitle="✓ Active Sections"
+      activeTitle="Active Sections"
       activeSubtitle="Reorder by dragging • Remove by dragging left"
       availableEmptyMessage="All sections are active!"
       activeEmptyMessage="Drag sections here to activate"

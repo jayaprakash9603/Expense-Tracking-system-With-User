@@ -13,6 +13,11 @@ import { useKeyboardShortcuts } from "./KeyboardShortcutProvider";
 import { DEFAULT_SHORTCUTS } from "./shortcutDefinitions";
 import { toggleTheme } from "../../Redux/Theme/theme.actions";
 import { useMasking } from "../../hooks/useMasking";
+import {
+  FEATURE_KEYS,
+  SHORTCUT_FEATURE_MAP,
+  isFeatureEnabledInState,
+} from "../../config/featureCatalog";
 
 /**
  * Component that registers all global shortcuts
@@ -27,7 +32,12 @@ export function GlobalShortcuts() {
 
   // User role for admin shortcuts
   const user = useSelector((state) => state.auth?.user);
+  const featureFlags = useSelector((state) => state.featureFlags);
   const isAdmin = user?.role === "ADMIN";
+  const shortcutsModuleEnabled = isFeatureEnabledInState(
+    featureFlags,
+    FEATURE_KEYS.KEYBOARD_SHORTCUTS,
+  );
 
   // Navigation shortcuts - routes match AppRoutes.js
   const navigationActions = useCallback(
@@ -75,6 +85,10 @@ export function GlobalShortcuts() {
 
   // Register all shortcuts on mount
   useEffect(() => {
+    if (!shortcutsModuleEnabled) {
+      return undefined;
+    }
+
     const navActions = navigationActions();
     const createActions = creationActions();
     const genActions = generalActions();
@@ -94,6 +108,14 @@ export function GlobalShortcuts() {
 
       // Skip admin shortcuts for non-admin users
       if (shortcutDef.requiresRole === "ADMIN" && !isAdmin) return;
+
+      const featureKey = SHORTCUT_FEATURE_MAP[actionId];
+      if (
+        featureKey &&
+        !isFeatureEnabledInState(featureFlags, featureKey)
+      ) {
+        return;
+      }
 
       const result = registerShortcut({
         ...shortcutDef,
@@ -116,6 +138,8 @@ export function GlobalShortcuts() {
     creationActions,
     generalActions,
     isAdmin,
+    shortcutsModuleEnabled,
+    featureFlags,
   ]);
 
   // This component doesn't render anything

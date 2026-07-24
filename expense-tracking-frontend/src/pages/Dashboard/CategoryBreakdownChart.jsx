@@ -1,4 +1,5 @@
 import React from "react";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import ReusablePieChart from "./ReusablePieChart";
 
 // Wrapper specialized for Category Breakdown using normalization logic
@@ -49,7 +50,8 @@ const CategoryBreakdownChart = ({
 
   return (
     <ReusablePieChart
-      title="🏷️ Category Breakdown"
+      title="Category Breakdown"
+      titleIcon={<LocalOfferIcon sx={{ fontSize: 22 }} />}
       data={data}
       timeframe={timeframe}
       onTimeframeChange={onTimeframeChange}

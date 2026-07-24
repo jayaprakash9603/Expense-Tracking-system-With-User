@@ -8,6 +8,8 @@ import {
 import ExpensesTable from "../components/ExpensesTable";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch } from "react-redux";
+import { useFeature } from "../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import { getExpensesAction } from "../../../Redux/Expenses/expense.action";
 
 const ExpensesView = () => {
@@ -15,6 +17,7 @@ const ExpensesView = () => {
   const dispatch = useDispatch();
   const { friendId } = useParams();
   const [expenses, setExpenseData] = useState([]);
+  const expensesCreateEnabled = useFeature(SUB_FEATURE_KEYS.EXPENSES_CREATE);
 
   useEffect(() => {
     dispatch(getExpensesAction("desc", friendId)).then((data) => {
@@ -123,6 +126,7 @@ const ExpensesView = () => {
               },
             }}
           >
+            {expensesCreateEnabled && (
             <Button
               onClick={onNewExpenseClick}
               aria-label="Add new expense"
@@ -165,6 +169,7 @@ const ExpensesView = () => {
                 }}
               />
             </Button>
+            )}
             <IconButton
               sx={{
                 color: "#00dac6",

@@ -7,6 +7,7 @@ import "../styles/PaymentReport.css";
 import usePaymentReportData from "../hooks/usePaymentReportData";
 import usePaymentReportLayout from "../hooks/usePaymentReportLayout";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import PaymentMethodAccordionGroup from "../../../components/PaymentMethodAccordion";
 import {
   ReportHeaderSkeleton,
@@ -28,6 +29,8 @@ import ReportActionsMenu, {
 } from "../../../components/common/ReportActionsMenu";
 import { getChartColors } from "../../../utils/charts/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import usePaymentReportFilters from "../../reports/hooks/reportFilters/usePaymentReportFilters";
 import PaymentDailySpendingChart from "../../../components/payment/PaymentDailySpendingChart";
@@ -118,6 +121,7 @@ const PaymentMethodsReport = () => {
   // Three-dot menu using reusable component
   const reportHeaderActions = (
     <ReportActionsMenu
+      exportFeatureKey={SUB_FEATURE_KEYS.PAYMENT_METHODS_EXPORT}
       menuItems={createDefaultReportMenuItems({
         onExport: handleExport,
         onCustomize: () => setCustomizationOpen(true),
@@ -135,7 +139,12 @@ const PaymentMethodsReport = () => {
       >
         <ReportHeader
           className="payment-methods-header"
-          title="💳 Payment Methods Analytics"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {getAccentFunctionalIcon("payment", colors.primary_accent, { sx: { fontSize: 28 } })}
+              <span>Payment Methods Analytics</span>
+            </Stack>
+          }
           subtitle="Comprehensive analysis of payment method usage and trends"
           timeframe={timeframe}
           onTimeframeChange={handleTimeframeChange}
@@ -143,6 +152,7 @@ const PaymentMethodsReport = () => {
           flowType={flowType}
           onFlowTypeChange={handleFlowTypeChange}
           onExport={handleExport}
+          exportFeatureKey={SUB_FEATURE_KEYS.PAYMENT_METHODS_EXPORT}
           onCustomize={() => setCustomizationOpen(true)}
           showFilterButton={false}
         />
@@ -247,7 +257,7 @@ const PaymentMethodsReport = () => {
                     return (
                       <div key={sec.id} className="chart-row full-width">
                         <DailySpendingSkeleton
-                          title="📊 Daily Spending Pattern (Payment Methods)"
+                          title="Daily Spending Pattern (Payment Methods)"
                           showControls={false}
                         />
                       </div>
@@ -308,7 +318,12 @@ const PaymentMethodsReport = () => {
     >
       <ReportHeader
         className="payment-methods-header"
-        title="💳 Payment Methods Analytics"
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("payment", colors.primary_accent, { sx: { fontSize: 28 } })}
+            <span>Payment Methods Analytics</span>
+          </Stack>
+        }
         subtitle="Comprehensive analysis of payment method usage and trends"
         onFilter={openFilters}
         onTimeframeChange={handleTimeframeChange}
@@ -326,6 +341,7 @@ const PaymentMethodsReport = () => {
         showFilterButton={paymentFilterSections.length > 0}
         isFilterActive={filtersActive}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.PAYMENT_METHODS_EXPORT}
         onCustomize={() => setCustomizationOpen(true)}
       />
 
@@ -505,8 +521,16 @@ const PaymentMethodsReport = () => {
                       }}
                     >
                       <div className="chart-header">
-                        <h3 style={{ color: colors.primary_text }}>
-                          📂 Payment Method Expenses
+                        <h3
+                          style={{
+                            color: colors.primary_text,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                          }}
+                        >
+                          {getAccentFunctionalIcon("payment", colors.primary_accent, { sx: { fontSize: 20 } })}
+                          Payment Method Expenses
                         </h3>
                         <div
                           className="chart-subtitle"

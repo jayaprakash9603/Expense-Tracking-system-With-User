@@ -8,6 +8,8 @@ import {
 } from "../../Redux/Auth/auth.action";
 import Modal from "../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../hooks/useTranslation";
+import useFeature from "../../hooks/useFeature";
+import { FEATURE_KEYS } from "../../config/featureCatalog";
 
 /**
  * ProfileDropdown Component
@@ -98,6 +100,7 @@ const ProfileDropdown = ({
   // Check if user has ADMIN role
   const hasAdminRole =
     user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
+  const adminFeatureEnabled = useFeature(FEATURE_KEYS.ADMIN);
 
   return (
     <>
@@ -277,7 +280,7 @@ const ProfileDropdown = ({
               </button>
 
               {/* Mode Switch Button - Only show if user has ADMIN role */}
-              {showModeSwitch && hasAdminRole && (
+              {showModeSwitch && hasAdminRole && adminFeatureEnabled && (
                 <>
                   <div
                     className={`my-2 mx-4 h-px ${

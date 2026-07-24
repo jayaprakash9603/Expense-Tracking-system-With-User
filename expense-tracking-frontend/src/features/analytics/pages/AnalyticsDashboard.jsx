@@ -41,6 +41,7 @@ import {
   Security,
   Visibility,
   EmojiEvents,
+  MilitaryTech,
   Timeline,
 } from "@mui/icons-material";
 
@@ -796,9 +797,16 @@ const AnalyticsDashboard = ({ dummyStats }) => {
                         </Typography>
                         <Typography
                           variant="body2"
-                          sx={{ color: "#14b8a6", mb: 1 }}
+                          sx={{
+                            color: "#14b8a6",
+                            mb: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.75,
+                          }}
                         >
-                          💡 {insight.recommendation}
+                          <Lightbulb sx={{ fontSize: "1rem" }} />
+                          {insight.recommendation}
                         </Typography>
                         <Typography variant="caption" sx={{ color: "#f59e0b" }}>
                           {insight.impact}
@@ -1764,11 +1772,11 @@ const AnalyticsDashboard = ({ dummyStats }) => {
               </Typography>
               <div className="space-y-3">
                 {[
-                  { rank: 1, name: "You", score: 2450, badge: "🥇" },
-                  { rank: 2, name: "Alex M.", score: 2380, badge: "🥈" },
-                  { rank: 3, name: "Sarah K.", score: 2290, badge: "🥉" },
-                  { rank: 4, name: "Mike R.", score: 2150, badge: "" },
-                  { rank: 5, name: "Emma L.", score: 2050, badge: "" },
+                  { rank: 1, name: "You", score: 2450, badge: MilitaryTech },
+                  { rank: 2, name: "Alex M.", score: 2380, badge: EmojiEvents },
+                  { rank: 3, name: "Sarah K.", score: 2290, badge: EmojiEvents },
+                  { rank: 4, name: "Mike R.", score: 2150, badge: null },
+                  { rank: 5, name: "Emma L.", score: 2050, badge: null },
                 ].map((user, index) => (
                   <div
                     key={index}
@@ -1793,7 +1801,17 @@ const AnalyticsDashboard = ({ dummyStats }) => {
                           fontWeight: user.rank === 1 ? "bold" : "normal",
                         }}
                       >
-                        {user.name} {user.badge}
+                        {user.name}{" "}
+                        {user.badge
+                          ? React.createElement(user.badge, {
+                              sx: {
+                                fontSize: 16,
+                                verticalAlign: "middle",
+                                ml: 0.5,
+                                color: user.rank === 1 ? "#f59e0b" : "#94a3b8",
+                              },
+                            })
+                          : null}
                       </Typography>
                     </div>
                     <Typography

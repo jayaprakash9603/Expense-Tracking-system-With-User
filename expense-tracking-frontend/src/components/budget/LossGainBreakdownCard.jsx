@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
+import BarChartIcon from "@mui/icons-material/BarChart";
 import {
   Bar,
   BarChart,
@@ -102,7 +103,16 @@ export default function LossGainBreakdownCard({
       }}
     >
       <div className="chart-header" style={{ marginBottom: "14px" }}>
-        <h3 style={{ color: colors.primary_text, margin: "0 0 4px 0" }}>
+        <h3
+          style={{
+            color: colors.primary_text,
+            margin: "0 0 4px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <BarChartIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
           {title}
         </h3>
         <div className="chart-subtitle" style={{ color: mutedTextColor }}>
@@ -407,7 +417,7 @@ LossGainBreakdownCard.propTypes = {
 
 LossGainBreakdownCard.defaultProps = {
   budgets: [],
-  title: "📊 Loss vs Gain",
+  title: "Loss vs Gain",
   subtitle: "Totals across the selected budgets",
   layout: "fullWidth",
 };

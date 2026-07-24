@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import {
   Box,
   IconButton,
@@ -17,6 +18,12 @@ import {
   CalendarToday as CalendarIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+  isFeatureEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../../config/featureCatalog";
 
 const BillHeader = ({
   friendId,
@@ -30,6 +37,11 @@ const BillHeader = ({
 }) => {
   const open = Boolean(menuAnchorEl);
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const createEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BILLS, "create");
+  const uploadEnabled = isFeatureEnabledInState(featureFlags, SUB_FEATURE_KEYS.BILLS_UPLOAD);
+  const reportsEnabled = isFeatureEnabledInState(featureFlags, SUB_FEATURE_KEYS.BILLS_REPORTS);
+  const calendarEnabled = isFeatureEnabledInState(featureFlags, SUB_FEATURE_KEYS.BILLS_CALENDAR);
 
   // Shared button styles for reusability
   const baseButtonSx = {
@@ -114,7 +126,7 @@ const BillHeader = ({
           gap: 1,
         }}
       >
-        {hasWriteAccess && (
+        {hasWriteAccess && createEnabled && (
           <ActionButton
             label="Create Bill"
             icon={AddIcon}
@@ -122,18 +134,22 @@ const BillHeader = ({
             variant="contained"
           />
         )}
+        {reportsEnabled && (
         <ActionButton
           label="Bill Report"
           icon={AssessmentIcon}
           onClick={() => onMenuItemClick("report")}
           variant="outlined"
         />
+        )}
+        {calendarEnabled && (
         <ActionButton
           label="Bill Calendar"
           icon={CalendarIcon}
           onClick={() => onMenuItemClick("calendar")}
           variant="outlined"
         />
+        )}
         <IconButton
           sx={{
             color: colors.secondary_accent,
@@ -164,26 +180,26 @@ const BillHeader = ({
           }}
         >
           <MenuList sx={{ py: 1 }}>
-            {(hasWriteAccess
-              ? [
-                  { key: "new", icon: AddIcon, label: "New Bill" },
-                  { key: "upload", icon: UploadIcon, label: "Upload Bill" },
-                  { key: "report", icon: AssessmentIcon, label: "Bill Report" },
-                  {
-                    key: "calendar",
-                    icon: CalendarIcon,
-                    label: "Bill Calendar",
-                  },
-                ]
-              : [
-                  { key: "report", icon: AssessmentIcon, label: "Bill Report" },
-                  {
-                    key: "calendar",
-                    icon: CalendarIcon,
-                    label: "Bill Calendar",
-                  },
-                ]
-            ).map(({ key, icon: Icon, label }) => (
+            {(hasWriteAccess && createEnabled
+              ? [{ key: "new", icon: AddIcon, label: "New Bill" }]
+              : []
+            )
+              .concat(
+                hasWriteAccess && uploadEnabled
+                  ? [{ key: "upload", icon: UploadIcon, label: "Upload Bill" }]
+                  : [],
+              )
+              .concat(
+                reportsEnabled
+                  ? [{ key: "report", icon: AssessmentIcon, label: "Bill Report" }]
+                  : [],
+              )
+              .concat(
+                calendarEnabled
+                  ? [{ key: "calendar", icon: CalendarIcon, label: "Bill Calendar" }]
+                  : [],
+              )
+              .map(({ key, icon: Icon, label }) => (
               <MenuItem
                 key={key}
                 onClick={() => onMenuItemClick(key)}

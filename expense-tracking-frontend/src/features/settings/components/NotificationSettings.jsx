@@ -5,6 +5,7 @@ import { Box, useMediaQuery, Typography, Button, Divider } from "@mui/material";
 import {
   NotificationsActive as NotificationsActiveIcon,
   Refresh as RefreshIcon,
+  Lightbulb as LightbulbIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
 import { useSearchHighlight } from "../../../hooks/useSearchHighlight";
@@ -563,11 +564,27 @@ const NotificationSettings = () => {
           >
             <Typography
               variant="body2"
-              sx={{ color: colors.text_muted, fontSize: "13px" }}
+              sx={{
+                color: colors.text_muted,
+                fontSize: "13px",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 1,
+              }}
             >
-              💡 <strong>Tip:</strong> Click on any notification to customize
-              its frequency and delivery methods. All changes are saved
-              automatically.
+              <LightbulbIcon
+                sx={{
+                  fontSize: 18,
+                  mt: 0.15,
+                  flexShrink: 0,
+                  color: colors.primary_accent,
+                }}
+              />
+              <span>
+                <strong>Tip:</strong> Click on any notification to customize
+                its frequency and delivery methods. All changes are saved
+                automatically.
+              </span>
             </Typography>
           </Box>
         </Box>

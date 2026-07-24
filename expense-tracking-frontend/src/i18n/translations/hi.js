@@ -84,7 +84,7 @@ export const hi = {
             title: "रसीद स्कैन करें",
             buttonLabel: "रसीद स्कैन करें",
             tooltip: "OCR की मदद से रसीद स्कैन करें और खर्च विवरण स्वतः भरें",
-            tip: "💡 सुझाव: सर्वोत्तम परिणामों के लिए रसीद के सभी पेज अपलोड करें",
+            tip: "सुझाव: सर्वोत्तम परिणामों के लिए रसीद के सभी पेज अपलोड करें",
             dropTitle: "अपनी रसीद के पेज यहाँ छोड़ें",
             dropSubtitle: "या फ़ाइल चुनने के लिए क्लिक करें",
             supportedFormats:
@@ -495,7 +495,7 @@ export const hi = {
       title: "खर्च आइटम सारांश",
       singleItem: "{{count}} आइटम जोड़ा गया",
       multipleItems: "{{count}} आइटम जोड़े गए",
-      noItemsTitle: "⚠️ कोई खर्च आइटम अभी तक नहीं जोड़ा गया",
+      noItemsTitle: "कोई खर्च आइटम अभी तक नहीं जोड़ा गया",
     },
     messages: {
       noItemsCreate: "बिल बनाने के लिए कम से कम एक खर्च आइटम आवश्यक है",
@@ -541,7 +541,7 @@ export const hi = {
     messages: {
       success: "बिल सफलतापूर्वक अपडेट किया गया!",
       errorWithReason: "बिल अपडेट करते समय त्रुटि: {{message}}",
-      loadErrorTitle: "⚠️ बिल लोड करने में त्रुटि",
+      loadErrorTitle: "बिल लोड करने में त्रुटि",
       noBillId: "कोई बिल आईडी प्रदान नहीं की गई।",
       invalidData: "बिल डेटा अनुपलब्ध या अमान्य है।",
     },
@@ -756,7 +756,7 @@ export const hi = {
     },
     charts: {
       titles: {
-        dailySpending: "📊 दैनिक खर्च पैटर्न",
+        dailySpending: "दैनिक खर्च पैटर्न",
         spendingTrends: "खर्च रुझान",
       },
       typeOptions: {
@@ -950,42 +950,42 @@ export const hi = {
     extraLarge: "अतिरिक्त बड़ा",
 
     // प्रोफ़ाइल दृश्यता विकल्प
-    public: "🌍 सार्वजनिक - कोई भी देख सकता है",
-    friendsOnly: "👥 केवल मित्र - प्रतिबंधित पहुंच",
-    private: "🔒 निजी - केवल आप",
+    public: "सार्वजनिक - कोई भी देख सकता है",
+    friendsOnly: "केवल मित्र - प्रतिबंधित पहुंच",
+    private: "निजी - केवल आप",
 
     // प्रोफ़ाइल दृश्यता लेबल (चिप्स के लिए)
-    publicLabel: "🌍 सार्वजनिक",
-    friendsLabel: "👥 मित्र",
-    privateLabel: "🔒 निजी",
+    publicLabel: "सार्वजनिक",
+    friendsLabel: "मित्र",
+    privateLabel: "निजी",
 
     // समय प्रारूप विकल्प
-    time12h: "🕐 12-घंटे (3:00 PM)",
-    time24h: "🕒 24-घंटे (15:00)",
+    time12h: "12-घंटे (3:00 PM)",
+    time24h: "24-घंटे (15:00)",
 
     // बैकअप आवृत्ति विकल्प
-    daily: "📆 दैनिक",
-    weekly: "📅 साप्ताहिक",
-    monthly: "🗓️ मासिक",
-    manualOnly: "✋ केवल मैनुअल",
+    daily: "दैनिक",
+    weekly: "साप्ताहिक",
+    monthly: "मासिक",
+    manualOnly: "केवल मैनुअल",
 
     // रिपोर्ट अनुसूची विकल्प
-    dailySummary: "📊 दैनिक सारांश",
-    weeklySummary: "📈 साप्ताहिक सारांश",
-    monthlySummary: "📉 मासिक सारांश",
-    noScheduledReports: "🚫 कोई अनुसूचित रिपोर्ट नहीं",
+    dailySummary: "दैनिक सारांश",
+    weeklySummary: "साप्ताहिक सारांश",
+    monthlySummary: "मासिक सारांश",
+    noScheduledReports: "कोई अनुसूचित रिपोर्ट नहीं",
 
     // मुद्रा विकल्प
-    currencyUSD: "💵 USD - यूएस डॉलर ($)",
-    currencyEUR: "💶 EUR - यूरो (€)",
-    currencyGBP: "💷 GBP - ब्रिटिश पाउंड (£)",
-    currencyINR: "💴 INR - भारतीय रुपया (₹)",
-    currencyJPY: "💴 JPY - जापानी येन (¥)",
+    currencyUSD: "USD - यूएस डॉलर ($)",
+    currencyEUR: "EUR - यूरो (€)",
+    currencyGBP: "GBP - ब्रिटिश पाउंड (£)",
+    currencyINR: "INR - भारतीय रुपया (₹)",
+    currencyJPY: "JPY - जापानी येन (¥)",
 
     // तिथि प्रारूप विकल्प
-    dateFormatUS: "📅 MM/DD/YYYY (US)",
-    dateFormatUK: "📅 DD/MM/YYYY (UK/EU)",
-    dateFormatISO: "📅 YYYY-MM-DD (ISO)",
+    dateFormatUS: "MM/DD/YYYY (US)",
+    dateFormatUK: "DD/MM/YYYY (UK/EU)",
+    dateFormatISO: "YYYY-MM-DD (ISO)",
     usd: "USD - अमेरिकी डॉलर ($)",
     eur: "EUR - यूरो (€)",
     gbp: "GBP - ब्रिटिश पाउंड (£)",
@@ -1110,7 +1110,7 @@ export const hi = {
     maxSize: "अधिकतम 10MB प्रत्येक",
     multiPageSupport: "बहु-पृष्ठ रसीद समर्थन",
     multiPageTip:
-      "💡 सर्वोत्तम परिणामों के लिए बहु-पृष्ठ रसीदों के सभी पेज अपलोड करें",
+      "सुझाव: सर्वोत्तम परिणामों के लिए बहु-पृष्ठ रसीदों के सभी पेज अपलोड करें",
     page: "पेज",
     pages: "पेज",
     receiptPage: "रसीद पेज",

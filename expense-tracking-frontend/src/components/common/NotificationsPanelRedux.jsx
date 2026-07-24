@@ -12,6 +12,11 @@ import {
 } from "../../Redux/Notifications/notification.action";
 import useNotifications from "../../hooks/useNotifications";
 import { useTheme } from "../../hooks/useTheme";
+import { useFeature } from "../../hooks/useFeature";
+import {
+  isPathEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../config/featureCatalog";
 import {
   getNotificationIcon,
   getNotificationColor,
@@ -48,6 +53,10 @@ const NotificationsPanel = ({
   );
 
   const { user } = useSelector((state) => state.auth);
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const notificationPreferencesEnabled = useFeature(
+    SUB_FEATURE_KEYS.NOTIFICATIONS_PREFERENCES,
+  );
   const { mode, colors: themeColorsPalette } = useTheme();
   const isDark = mode === "dark";
 
@@ -124,6 +133,17 @@ const NotificationsPanel = ({
     [dispatch],
   );
 
+  const navigateIfPathEnabled = useCallback(
+    (path, options) => {
+      if (!isPathEnabledInState(featureFlags, path)) {
+        return false;
+      }
+      navigate(path, options);
+      return true;
+    },
+    [featureFlags, navigate],
+  );
+
   // Navigate to related content
   const handleNotificationNavigation = (notification) => {
     try {
@@ -131,20 +151,22 @@ const NotificationsPanel = ({
         ? JSON.parse(notification.metadata)
         : {};
 
+      let navigated = false;
+
       switch (notification.type) {
         case "FRIEND_REQUEST_RECEIVED":
-          navigate("/friends", { state: { tab: "requests" } });
+          navigated = navigateIfPathEnabled("/friends", { state: { tab: "requests" } });
           break;
         case "FRIEND_REQUEST_ACCEPTED":
-          navigate("/friends");
+          navigated = navigateIfPathEnabled("/friends");
           break;
         case "EXPENSE_ADDED":
         case "EXPENSE_UPDATED":
         case "EXPENSE_DELETED":
           if (metadata.expenseId) {
-            navigate(`/expenses/${metadata.expenseId}`);
+            navigated = navigateIfPathEnabled(`/expenses/view/${metadata.expenseId}`);
           } else {
-            navigate("/expenses");
+            navigated = navigateIfPathEnabled("/expenses");
           }
           break;
         case "BUDGET_EXCEEDED":
@@ -152,42 +174,42 @@ const NotificationsPanel = ({
         case "BUDGET_CREATED":
         case "BUDGET_UPDATED":
           if (metadata.budgetId) {
-            navigate(`/budgets/${metadata.budgetId}`);
+            navigated = navigateIfPathEnabled(`/budget/view/${metadata.budgetId}`);
           } else {
-            navigate("/budgets");
+            navigated = navigateIfPathEnabled("/budget");
           }
           break;
         case "BILL_DUE_REMINDER":
         case "BILL_OVERDUE":
         case "BILL_PAID":
           if (metadata.billId) {
-            navigate(`/bills/${metadata.billId}`);
+            navigated = navigateIfPathEnabled(`/bill/edit/${metadata.billId}`);
           } else {
-            navigate("/bills");
+            navigated = navigateIfPathEnabled("/bill");
           }
           break;
         case "PAYMENT_METHOD_ADDED":
         case "PAYMENT_METHOD_UPDATED":
-          navigate("/payment-methods");
+          navigated = navigateIfPathEnabled("/payment-method");
           break;
         case "DATA_SHARED":
         case "dataShared":
-          // Navigate to shared data view if URL is available
           if (metadata.shareUrl) {
             window.open(metadata.shareUrl, "_blank");
+            navigated = true;
           } else if (metadata.shareToken) {
-            navigate(`/shared/${metadata.shareToken}`);
+            navigated = navigateIfPathEnabled(`/share/${metadata.shareToken}`);
           } else {
-            navigate("/shares/received");
+            navigated = navigateIfPathEnabled("/shared-with-me");
           }
           break;
         default:
-          // Do nothing for unknown types
           break;
       }
 
-      // Close panel after navigation
-      handleClose();
+      if (navigated) {
+        handleClose();
+      }
     } catch (error) {
       console.error("Error navigating from notification:", error);
     }
@@ -375,6 +397,7 @@ const NotificationsPanel = ({
             </div>
             <div className="flex items-center gap-1">
               {/* Settings Button */}
+              {notificationPreferencesEnabled && (
               <button
                 onClick={() => {
                   navigate("/settings/notifications");
@@ -413,8 +436,7 @@ const NotificationsPanel = ({
                   />
                 </svg>
               </button>
-
-              {/* Close Button */}
+              )}
               <button
                 onClick={handleClose}
                 className="p-1.5 rounded-lg transition-colors"
@@ -542,7 +564,7 @@ const NotificationsPanel = ({
                 className="text-[10px] italic text-center"
                 style={{ color: themeColors.mutedText }}
               >
-                ?? Click to mark read • Double-click to open
+                ?? Click to mark read ? Double-click to open
               </p>
             </div>
           )}

@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import { useTheme } from "../hooks/useTheme";
@@ -164,8 +165,17 @@ const GroupedExpensesAccordion = ({
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text, margin: "0 0 8px 0" }}>
-          🧾 Expenses Breakdown
+        <h3
+          style={{
+            color: colors.primary_text,
+            margin: "0 0 8px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <ReceiptIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Expenses Breakdown
         </h3>
         <div
           className="chart-subtitle"

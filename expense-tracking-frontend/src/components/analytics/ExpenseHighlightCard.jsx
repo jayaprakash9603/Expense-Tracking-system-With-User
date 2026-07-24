@@ -3,6 +3,7 @@ import { Typography, Tooltip } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import { useTheme } from "../../hooks/useTheme";
 import dayjs from "dayjs";
 
@@ -35,35 +36,30 @@ const ExpenseHighlightCard = ({
           label: "Highest Expense",
           color: "#ff4d4f",
           icon: <TrendingUpIcon sx={{ fontSize: 18, color: "#ff4d4f" }} />,
-          emoji: "📈",
         };
       case "lowest":
         return {
           label: "Lowest Expense",
           color: "#52c41a",
           icon: <TrendingDownIcon sx={{ fontSize: 18, color: "#52c41a" }} />,
-          emoji: "📉",
         };
       case "recent":
         return {
           label: "Most Recent",
           color: "#6366f1",
           icon: <CalendarTodayIcon sx={{ fontSize: 18, color: "#6366f1" }} />,
-          emoji: "🕐",
         };
       case "oldest":
         return {
           label: "First Expense",
           color: "#8b5cf6",
           icon: <CalendarTodayIcon sx={{ fontSize: 18, color: "#8b5cf6" }} />,
-          emoji: "📅",
         };
       default:
         return {
           label: "Expense",
           color: "#00DAC6",
           icon: null,
-          emoji: "💰",
         };
     }
   };
@@ -129,7 +125,9 @@ const ExpenseHighlightCard = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontSize: "1rem" }}>{config.emoji}</span>
+            {config.icon ?? (
+              <ScheduleIcon sx={{ fontSize: 16, color: config.color }} />
+            )}
             <Typography
               variant="caption"
               sx={{
@@ -143,7 +141,6 @@ const ExpenseHighlightCard = ({
               {config.label}
             </Typography>
           </div>
-          {config.icon}
         </div>
 
         {/* Amount */}

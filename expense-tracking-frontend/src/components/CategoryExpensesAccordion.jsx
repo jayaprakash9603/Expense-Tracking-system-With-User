@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
 import useUserSettings from "../hooks/useUserSettings";
@@ -194,8 +195,17 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text, margin: "0 0 8px 0" }}>
-          📋 Category Expenses Detail
+        <h3
+          style={{
+            color: colors.primary_text,
+            margin: "0 0 8px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <AssignmentIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Category Expenses Detail
         </h3>
         <div
           className="chart-subtitle"

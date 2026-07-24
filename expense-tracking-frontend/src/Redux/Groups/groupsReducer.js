@@ -61,7 +61,6 @@ const initialState = {
   sentInvitationsError: null,
   cancelInvitationLoading: false,
   cancelInvitationError: null,
-  sentInvitations: [],
 };
 
 const groupsReducer = (state = initialState, action) => {

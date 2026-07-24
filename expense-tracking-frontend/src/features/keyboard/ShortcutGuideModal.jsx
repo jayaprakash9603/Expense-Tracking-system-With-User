@@ -31,7 +31,7 @@ import {
   Close as CloseIcon,
   Search as SearchIcon,
   Keyboard as KeyboardIcon,
-  Clear as ClearIcon,
+  Warning as WarningIcon,
 } from "@mui/icons-material";
 import { useKeyboardShortcuts } from "./KeyboardShortcutProvider";
 import { formatShortcutKeys } from "./useKeyboardShortcut";
@@ -437,11 +437,12 @@ export function ShortcutGuideModal() {
               gap: 1.5,
             }}
           >
+            <WarningIcon sx={{ color: "#f59e0b", fontSize: 22, flexShrink: 0 }} />
             <Typography
               variant="body2"
               sx={{ color: colors.primary_text || "#ffffff" }}
             >
-              ⚠️ Keyboard shortcuts are currently disabled. Enable them in{" "}
+              Keyboard shortcuts are currently disabled. Enable them in{" "}
               <strong>Settings → Keyboard Shortcuts</strong>.
             </Typography>
           </Box>

@@ -15,6 +15,8 @@ import BlockIcon from "@mui/icons-material/Block";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useTranslation } from "../../../../hooks/useTranslation";
 import { useTheme } from "../../../../hooks/useTheme";
+import { useFeature } from "../../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../../config/featureCatalog";
 import { BREAKPOINTS } from "../../constants/friendsConstants";
 import { useCurrentUserId } from "../../hooks/useFriendDisplay";
 import { resolveFriendDisplay } from "../../utils/resolveFriendDisplay";
@@ -32,6 +34,9 @@ const FriendDetailPanel = ({
 }) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const friendsEditEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_EDIT);
+  const friendsDeleteEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_DELETE);
+  const friendsChatEnabled = useFeature(SUB_FEATURE_KEYS.FRIENDS_CHAT);
   const currentUserId = useCurrentUserId();
   const isMobile = useMediaQuery(`(max-width:${BREAKPOINTS.MOBILE}px)`);
 
@@ -100,10 +105,12 @@ const FriendDetailPanel = ({
           <Typography variant="caption" sx={{ color: colors.secondary_text, mb: 1, display: "block" }}>
             {t("friends.detail.currentAccess")}
           </Typography>
+          {friendsEditEnabled && (
           <AccessLevelPicker
             value={display.accessLevel}
             onChange={(val) => onSetAccess?.(friendship.id, val)}
           />
+          )}
         </Box>
 
         {mutualFriends.length > 0 && (
@@ -131,7 +138,7 @@ const FriendDetailPanel = ({
         )}
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {onViewExpenses && (
+          {onViewExpenses && friendsChatEnabled && (
             <Button
               variant="outlined"
               fullWidth
@@ -151,6 +158,7 @@ const FriendDetailPanel = ({
               {t("friends.actions.viewExpenses")}
             </Button>
           )}
+          {friendsDeleteEnabled && (
           <Button
             variant="outlined"
             fullWidth
@@ -169,6 +177,8 @@ const FriendDetailPanel = ({
           >
             {t("friends.actions.removeFriend")}
           </Button>
+          )}
+          {friendsEditEnabled && (
           <Button
             variant="outlined"
             fullWidth
@@ -187,6 +197,7 @@ const FriendDetailPanel = ({
           >
             {t("friends.actions.blockUser")}
           </Button>
+          )}
         </Box>
       </Box>
     </Box>

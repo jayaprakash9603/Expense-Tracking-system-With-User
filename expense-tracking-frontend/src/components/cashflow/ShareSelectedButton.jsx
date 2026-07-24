@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button, Tooltip, Badge } from "@mui/material";
 import { Share as ShareIcon } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
+import { useFeature } from "../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 
 /**
  * Button to share selected expenses via QR code.
@@ -19,6 +21,7 @@ const ShareSelectedButton = ({
   returnRouteState = null,
 }) => {
   const { colors } = useTheme();
+  const expensesShareEnabled = useFeature(SUB_FEATURE_KEYS.EXPENSES_SHARE);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,7 +40,7 @@ const ShareSelectedButton = ({
     }
   };
 
-  if (count === 0) {
+  if (count === 0 || !expensesShareEnabled) {
     return null;
   }
 

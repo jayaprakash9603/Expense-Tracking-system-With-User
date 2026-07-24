@@ -51,6 +51,8 @@ import {
   CreditCard as CreditCardIcon,
   ReceiptLong as BillIcon,
   ExpandMore as ExpandMoreIcon,
+  Close as CloseIcon,
+  Lightbulb as LightbulbIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
@@ -1219,9 +1221,7 @@ const SharedViewPage = () => {
                         sx={{ mr: 0.5, color: colors.secondary_text }}
                         title="Clear search"
                       >
-                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-                          ✕
-                        </Typography>
+                        <CloseIcon sx={{ fontSize: 18 }} />
                       </IconButton>
                     )}
                     <IconButton
@@ -1632,9 +1632,22 @@ const SharedViewPage = () => {
                   border: `1px solid ${colors.accent}30`,
                 }}
               >
-                <Typography variant="body2" sx={{ color: colors.primary_text }}>
-                  💡 Click <strong>"Add to My Account"</strong> to copy any
-                  expense to your records
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: colors.primary_text,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 1,
+                  }}
+                >
+                  <LightbulbIcon
+                    sx={{ fontSize: 18, mt: 0.15, flexShrink: 0, color: colors.accent }}
+                  />
+                  <span>
+                    Click <strong>"Add to My Account"</strong> to copy any
+                    expense to your records
+                  </span>
                 </Typography>
                 {!isLoggedIn && (
                   <Button
@@ -1861,7 +1874,10 @@ const SharedViewPage = () => {
                                 },
                               }}
                             >
-                              Added ✓
+                              <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+                                Added
+                                <ValidIcon sx={{ fontSize: 16 }} />
+                              </Box>
                             </Button>
                           ) : (
                             <Button

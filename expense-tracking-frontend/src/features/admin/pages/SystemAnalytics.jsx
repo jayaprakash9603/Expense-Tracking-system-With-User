@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";
 import { AdminPanelContainer, SectionCard } from "../components";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 import {
   formatNumber,
   formatCurrency,
@@ -19,6 +22,7 @@ import { fetchDashboardAnalytics } from "../../../Redux/Admin/admin.action";
 const SystemAnalytics = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { colors } = useTheme();
 
   // Safely access admin state with fallbacks
   const adminState = useSelector((state) => state.admin) || {};
@@ -81,16 +85,16 @@ const SystemAnalytics = () => {
 
   function getActivityIcon(type) {
     const icons = {
-      USER_REGISTRATION: "👤",
-      EXPENSE_CREATED: "💰",
-      BUDGET_CREATED: "📊",
-      CATEGORY_ADDED: "📁",
-      person: "👤",
-      receipt: "💰",
-      savings: "📊",
-      folder: "📁",
+      USER_REGISTRATION: "user",
+      EXPENSE_CREATED: "expense",
+      BUDGET_CREATED: "budget",
+      CATEGORY_ADDED: "category",
+      person: "user",
+      receipt: "expense",
+      savings: "budget",
+      folder: "category",
     };
-    return icons[type] || "📋";
+    return icons[type] || "bill";
   }
 
   // Prepare data for SharedOverviewCards
@@ -129,6 +133,7 @@ const SystemAnalytics = () => {
         onTimeframeChange={setTimeRange}
         onFlowTypeChange={setFlowType}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.ADMIN_EXPORT}
         timeframeOptions={timeframeOptions}
         isLoading={loading}
         showFilterButton={false}
@@ -166,7 +171,11 @@ const SystemAnalytics = () => {
                   style={{ backgroundColor: "rgba(20, 184, 166, 0.1)" }}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{activity.icon}</span>
+                    <span className="flex items-center">
+                      {getAccentFunctionalIcon(activity.icon, colors.primary_accent, {
+                        sx: { fontSize: 24 },
+                      })}
+                    </span>
                     <div>
                       <p className="font-medium">{activity.type}</p>
                       <p className="text-sm opacity-70">{activity.time}</p>

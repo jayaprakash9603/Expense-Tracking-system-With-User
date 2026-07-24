@@ -1,5 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import PaidIcon from "@mui/icons-material/Paid";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useMediaQuery } from "@mui/material";
@@ -93,7 +96,18 @@ const RecentTransactions = ({
       }}
     >
       <div className="section-header">
-        <h3 style={{ color: colors.primary_text }}>🕒 Recent Transactions</h3>
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <ScheduleIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Recent Transactions
+        </h3>
         <button
           type="button"
           className="view-all-btn"
@@ -109,7 +123,7 @@ const RecentTransactions = ({
       <div className="transactions-list" style={listStyle}>
         {showEmpty ? (
           <EmptyStateCard
-            icon="🧾"
+            icon="receipt"
             title="No recent transactions"
             message="New transactions will appear here once recorded."
             height={400}
@@ -142,7 +156,11 @@ const RecentTransactions = ({
                   className={`transaction-icon transaction-icon--${rowClass}`}
                   aria-hidden
                 >
-                  {isLoss ? "💸" : "💰"}
+                  {isLoss ? (
+                    <PaidIcon sx={{ fontSize: 18 }} />
+                  ) : (
+                    <MonetizationOnIcon sx={{ fontSize: 18 }} />
+                  )}
                 </div>
                 <div className="transaction-details">
                   <div

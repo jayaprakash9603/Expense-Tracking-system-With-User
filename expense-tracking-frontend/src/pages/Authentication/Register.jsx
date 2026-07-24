@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { registerUserAction } from "../../Redux/Auth/auth.action";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
@@ -20,6 +20,10 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { API_BASE_URL } from "../../config/api";
 import axios from "axios";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
+import {
+  isFeatureEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../config/featureCatalog";
 
 const initialValues = {
   firstName: "",
@@ -89,6 +93,11 @@ const Register = () => {
   const [emailError, setEmailError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const googleOauthEnabled = isFeatureEnabledInState(
+    featureFlags,
+    SUB_FEATURE_KEYS.AUTH_GOOGLE_OAUTH,
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [toast, setToast] = useState({
     open: false,
@@ -404,6 +413,8 @@ const Register = () => {
                 Register
               </Button>
 
+              {googleOauthEnabled && (
+              <>
               {/* Divider */}
               <div className="flex items-center gap-2 py-2">
                 <Divider
@@ -433,6 +444,8 @@ const Register = () => {
                   });
                 }}
               />
+              </>
+              )}
 
               <div className="flex items-center justify-center gap-2 pt-1">
                 <p className="text-gray-400 text-sm m-0">

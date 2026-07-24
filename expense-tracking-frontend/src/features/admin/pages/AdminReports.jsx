@@ -17,6 +17,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { AdminPanelContainer, SectionCard } from "../components";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import {
   fetchAdminReports,
@@ -184,6 +185,7 @@ const Reports = () => {
         flowType={flowType}
         onFlowTypeChange={setFlowType}
         onExport={handleExport}
+        exportFeatureKey={SUB_FEATURE_KEYS.ADMIN_EXPORT}
         showFilterButton={false}
         timeframeOptions={[{ value: "all", label: "All Time" }]}
         isLoading={loading}

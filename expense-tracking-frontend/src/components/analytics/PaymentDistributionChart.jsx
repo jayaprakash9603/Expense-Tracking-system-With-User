@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Typography } from "@mui/material";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 import {
   PieChart,
   Pie,
@@ -288,9 +289,9 @@ const PaymentDistributionChart = ({
                 justifyContent: "center",
               }}
             >
-              <Typography sx={{ fontSize: compact ? "0.65rem" : "0.8rem" }}>
-                💳
-              </Typography>
+              <CreditCardIcon
+                sx={{ fontSize: compact ? "0.85rem" : "1rem", color: topMethod.color }}
+              />
             </div>
             <div>
               <Typography

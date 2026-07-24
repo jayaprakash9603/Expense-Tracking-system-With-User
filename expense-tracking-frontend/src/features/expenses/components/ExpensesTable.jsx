@@ -34,6 +34,10 @@ import ToastNotification from "../../../shared/ui/feedback/ToastNotification";
 import Modal from "../../../shared/ui/overlays/Modal";
 import { deleteBill, getBillByExpenseId } from "../../../Redux/Bill/bill.action";
 import { useTheme } from "../../../hooks/useTheme";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+} from "../../../config/featureCatalog";
 import { setExpenseSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 
 const ExpensesTable = ({
@@ -52,6 +56,7 @@ const ExpensesTable = ({
 
   // Get theme colors from useTheme hook
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
 
   // Get theme mode from Redux for MUI ThemeProvider
   const themeMode = useSelector((state) => state.theme?.mode || "dark");
@@ -72,12 +77,22 @@ const ExpensesTable = ({
 
   const resolvedDisableActions = useMemo(() => {
     const disableAll = Boolean(disableActions?.all);
+    const editDisabledByFlag = !isActionEnabledInState(
+      featureFlags,
+      FEATURE_KEYS.EXPENSES,
+      "edit",
+    );
+    const deleteDisabledByFlag = !isActionEnabledInState(
+      featureFlags,
+      FEATURE_KEYS.EXPENSES,
+      "delete",
+    );
     return {
-      edit: disableAll || Boolean(disableActions?.edit),
-      delete: disableAll || Boolean(disableActions?.delete),
+      edit: disableAll || Boolean(disableActions?.edit) || editDisabledByFlag,
+      delete: disableAll || Boolean(disableActions?.delete) || deleteDisabledByFlag,
       copy: disableAll || Boolean(disableActions?.copy),
     };
-  }, [disableActions]);
+  }, [disableActions, featureFlags]);
 
   useEffect(() => {
     if (!propExpenses) {

@@ -16,7 +16,7 @@ import {
   Alert,
   Fade,
 } from "@mui/material";
-import { Keyboard, Close, ThumbUp, ThumbDown } from "@mui/icons-material";
+import { Keyboard, Close, ThumbUp, ThumbDown, Lightbulb } from "@mui/icons-material";
 import { useShortcutRecommendations } from "./useShortcutRecommendations";
 import { formatShortcutKeys } from "./useKeyboardShortcut";
 import { useTheme } from "../../hooks/useTheme";
@@ -200,8 +200,18 @@ export function RecommendationToast() {
         }
       >
         <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
-            💡 Pro tip: Use a shortcut!
+          <Typography
+            variant="subtitle2"
+            sx={{
+              fontWeight: 600,
+              mb: 0.5,
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+            }}
+          >
+            <Lightbulb sx={{ fontSize: 18 }} />
+            Pro tip: Use a shortcut!
           </Typography>
           <Typography variant="body2" sx={{ mb: 1 }}>
             {currentRecommendation.message ||

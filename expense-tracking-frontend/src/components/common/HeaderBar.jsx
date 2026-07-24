@@ -15,6 +15,8 @@ import ProfileDropdown from "./ProfileDropdown";
 import { useTranslation } from "../../hooks/useTranslation";
 import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSlot";
 import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
+import { useFeature } from "../../hooks/useFeature";
+import { FEATURE_KEYS, SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 
 /**
  * HeaderBar Component
@@ -25,12 +27,15 @@ const HeaderBar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { mode, colors } = useTheme();
+  const { mode, colors, themeLocked } = useTheme();
   const { isMasking, toggleMasking } = useMasking();
   const maskingEnabled = isMasking();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
   const { t } = useTranslation();
+  const searchEnabled = useFeature(FEATURE_KEYS.SEARCH);
+  const notificationsEnabled = useFeature(FEATURE_KEYS.NOTIFICATIONS);
+  const sharingCreateEnabled = useFeature(SUB_FEATURE_KEYS.SHARING_CREATE);
 
   const isDark = mode === "dark";
   const headerActionButtonStyle = {
@@ -168,9 +173,11 @@ const HeaderBar = () => {
           style={{ color: colors.icon_default }}
         >
           {/* Inline Search Bar */}
-          <div id="header-search">
-            <InlineSearchBar />
-          </div>
+          {searchEnabled && (
+            <div id="header-search">
+              <InlineSearchBar />
+            </div>
+          )}
 
           {/* Masking Toggle Button */}
           <button
@@ -190,7 +197,8 @@ const HeaderBar = () => {
             )}
           </button>
 
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle Button — hidden when theme customization is dormant (dark mode only) */}
+          {!themeLocked && (
           <button
             id="header-theme"
             onClick={handleThemeToggle}
@@ -227,11 +235,12 @@ const HeaderBar = () => {
               </svg>
             )}
           </button>
+          )}
 
           <SystemErrorIndicator isDark={isDark} />
 
           {/* Share Button */}
-          {totalSelectedItems > 0 && (
+          {sharingCreateEnabled && totalSelectedItems > 0 && (
             <div className="relative">
               <button
                 id="header-share"
@@ -260,6 +269,7 @@ const HeaderBar = () => {
           )}
 
           {/* Notifications Button */}
+          {notificationsEnabled && (
           <div className="relative">
             <button
               id="header-notifications"
@@ -293,8 +303,7 @@ const HeaderBar = () => {
               </Badge>
             </button>
           </div>
-
-          {/* Profile Dropdown */}
+          )}
           <div id="header-profile">
             <ProfileDropdown />
           </div>
@@ -302,11 +311,13 @@ const HeaderBar = () => {
       </div>
 
       {/* Notifications Panel */}
+      {notificationsEnabled && (
       <NotificationsPanelRedux
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
         onNotificationRead={setUnreadNotificationsCount}
       />
+      )}
     </>
   );
 };

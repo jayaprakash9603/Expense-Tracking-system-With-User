@@ -30,7 +30,21 @@ import {
   TrendingDown as TrendingDownIcon,
   List as ListIcon,
   AttachMoney as MoneyIcon,
+  FolderOpen as FolderOpenIcon,
+  Upload as UploadIcon,
+  Sync as SyncIcon,
+  Save as SaveIcon,
+  ErrorOutline as ErrorOutlineIcon,
+  CheckCircle as CheckCircleIcon,
+  HourglassEmpty as HourglassEmptyIcon,
 } from "@mui/icons-material";
+
+const FEEDBACK_STATUS = {
+  IDLE: "idle",
+  LOADING: "loading",
+  SUCCESS: "success",
+  ERROR: "error",
+};
 
 const UploadBills = ({ targetId = null, onImportComplete }) => {
   const { colors, isDarkMode } = useTheme();
@@ -43,8 +57,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
   const [importedBills, setImportedBills] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setSaving] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState("");
-  const [saveMessage, setSaveMessage] = useState("");
+  const [uploadFeedback, setUploadFeedback] = useState({
+    status: FEEDBACK_STATUS.IDLE,
+    message: "",
+  });
+  const [saveFeedback, setSaveFeedback] = useState({
+    status: FEEDBACK_STATUS.IDLE,
+    message: "",
+  });
   const [jobId, setJobId] = useState(null);
   const [progress, setProgress] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -120,10 +140,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     if (file) {
       if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
         setSelectedFile(file);
-        setUploadMessage("");
+        setUploadFeedback({ status: FEEDBACK_STATUS.IDLE, message: "" });
         resetImportState();
       } else {
-        setUploadMessage("❌ Please select a valid Excel file (.xlsx or .xls)");
+        setUploadFeedback({
+          status: FEEDBACK_STATUS.ERROR,
+          message: "Please select a valid Excel file (.xlsx or .xls)",
+        });
         setSelectedFile(null);
       }
     }
@@ -137,7 +160,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     setExpandedAccordion(null);
     setSearchTerm("");
     setFilterCategory("");
-    setSaveMessage("");
+    setSaveFeedback({ status: FEEDBACK_STATUS.IDLE, message: "" });
     setProgress(null);
     setJobId(null);
   }, []);
@@ -145,12 +168,18 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
   // Upload and import Excel file
   const handleUploadExcel = useCallback(async () => {
     if (!selectedFile) {
-      setUploadMessage("❌ Please select a file first");
+      setUploadFeedback({
+        status: FEEDBACK_STATUS.ERROR,
+        message: "Please select a file first",
+      });
       return;
     }
 
     setIsUploading(true);
-    setUploadMessage("⏳ Uploading and processing Excel file...");
+    setUploadFeedback({
+      status: FEEDBACK_STATUS.LOADING,
+      message: "Uploading and processing Excel file...",
+    });
 
     const formData = new FormData();
     formData.append("file", selectedFile);
@@ -171,15 +200,24 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
       if (response.ok) {
         setImportedBills(data.bills || []);
-        setUploadMessage(`✅ ${data.message} - Found ${data.totalBills} bills`);
+        setUploadFeedback({
+          status: FEEDBACK_STATUS.SUCCESS,
+          message: `${data.message} - Found ${data.totalBills} bills`,
+        });
         setShowPreview(true);
         setCurrentPage(1);
       } else {
-        setUploadMessage(`❌ Error: ${data.message || data}`);
+        setUploadFeedback({
+          status: FEEDBACK_STATUS.ERROR,
+          message: `Error: ${data.message || data}`,
+        });
         resetImportState();
       }
     } catch (error) {
-      setUploadMessage(`❌ Network error: ${error.message}`);
+      setUploadFeedback({
+        status: FEEDBACK_STATUS.ERROR,
+        message: `Network error: ${error.message}`,
+      });
       resetImportState();
     } finally {
       setIsUploading(false);
@@ -189,12 +227,18 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
   // Save bills using tracked bulk import
   const handleSaveBills = useCallback(async () => {
     if (importedBills.length === 0) {
-      setSaveMessage("❌ No bills to save");
+      setSaveFeedback({
+        status: FEEDBACK_STATUS.ERROR,
+        message: "No bills to save",
+      });
       return;
     }
 
     setSaving(true);
-    setSaveMessage("⏳ Starting bulk import...");
+    setSaveFeedback({
+      status: FEEDBACK_STATUS.LOADING,
+      message: "Starting bulk import...",
+    });
     setProgress(null);
 
     try {
@@ -217,13 +261,16 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
       if (response.ok) {
         setJobId(data.jobId);
-        setSaveMessage(`✅ Bulk import started. Job ID: ${data.jobId}`);
+        setSaveFeedback({
+          status: FEEDBACK_STATUS.SUCCESS,
+          message: `Bulk import started. Job ID: ${data.jobId}`,
+        });
         pollProgress(data.jobId);
       } else {
         const errMsg = `Error starting bulk import: ${
           data.message || "Unknown error"
         }`;
-        setSaveMessage(`❌ ${errMsg}`);
+        setSaveFeedback({ status: FEEDBACK_STATUS.ERROR, message: errMsg });
         setProgress({
           status: "FAILED",
           message: errMsg,
@@ -234,7 +281,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       }
     } catch (error) {
       const errMsg = `Network error: ${error.message}`;
-      setSaveMessage(`❌ ${errMsg}`);
+      setSaveFeedback({ status: FEEDBACK_STATUS.ERROR, message: errMsg });
       setProgress({
         status: "FAILED",
         message: errMsg,
@@ -265,7 +312,10 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           setProgress(progressData);
 
           if (progressData.status === "COMPLETED") {
-            setSaveMessage(`✅ ${progressData.message}`);
+            setSaveFeedback({
+              status: FEEDBACK_STATUS.SUCCESS,
+              message: progressData.message,
+            });
             setSaving(false);
             if (onImportComplete) {
               onImportComplete(currentJobId, importedBills.length);
@@ -279,14 +329,17 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               }
             }, 1500);
           } else if (progressData.status === "FAILED") {
-            setSaveMessage(`❌ Import failed: ${progressData.message}`);
+            setSaveFeedback({
+              status: FEEDBACK_STATUS.ERROR,
+              message: `Import failed: ${progressData.message}`,
+            });
             setSaving(false);
           } else {
             setTimeout(() => pollProgress(currentJobId), 2000);
           }
         } else {
           const errMsg = "Error checking progress";
-          setSaveMessage(`❌ ${errMsg}`);
+          setSaveFeedback({ status: FEEDBACK_STATUS.ERROR, message: errMsg });
           setProgress((prev) => ({
             status: "FAILED",
             message: errMsg,
@@ -297,7 +350,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         }
       } catch (error) {
         const errMsg = `Error checking progress: ${error.message}`;
-        setSaveMessage(`❌ ${errMsg}`);
+        setSaveFeedback({ status: FEEDBACK_STATUS.ERROR, message: errMsg });
         setProgress((prev) => ({
           status: "FAILED",
           message: errMsg,
@@ -319,8 +372,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
   const handleReset = useCallback(() => {
     setSelectedFile(null);
-    setUploadMessage("");
-    setSaveMessage("");
+    setUploadFeedback({ status: FEEDBACK_STATUS.IDLE, message: "" });
+    setSaveFeedback({ status: FEEDBACK_STATUS.IDLE, message: "" });
     setSaving(false);
     setIsUploading(false);
     resetImportState();
@@ -397,6 +450,25 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     ) : (
       <TrendingDownIcon sx={{ color: "#f44336" }} />
     );
+  }, []);
+
+  const renderFeedbackIcon = useCallback((status) => {
+    switch (status) {
+      case FEEDBACK_STATUS.LOADING:
+        return (
+          <HourglassEmptyIcon sx={{ fontSize: 18, flexShrink: 0, opacity: 0.85 }} />
+        );
+      case FEEDBACK_STATUS.SUCCESS:
+        return (
+          <CheckCircleIcon sx={{ fontSize: 18, flexShrink: 0, color: "#14b8a6" }} />
+        );
+      case FEEDBACK_STATUS.ERROR:
+        return (
+          <ErrorOutlineIcon sx={{ fontSize: 18, flexShrink: 0, color: "#f44336" }} />
+        );
+      default:
+        return null;
+    }
   }, []);
 
   // Calculate total amount
@@ -532,13 +604,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               />
               <label
                 htmlFor="excel-upload"
-                className="cursor-pointer inline-flex items-center px-4 py-2 rounded-md disabled:opacity-50 text-sm shadow-sm"
+                className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-md disabled:opacity-50 text-sm shadow-sm"
                 style={{
                   backgroundColor: colors.primary_accent,
                   color: colors.button_text,
                 }}
               >
-                📁 Select Excel File
+                <FolderOpenIcon sx={{ fontSize: 18 }} />
+                Select Excel File
               </label>
               {selectedFile && (
                 <span
@@ -553,30 +626,43 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             <button
               onClick={handleUploadExcel}
               disabled={!selectedFile || isUploading || isSaving}
-              className="px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               style={{
                 backgroundColor: colors.primary_accent,
                 color: colors.button_text,
               }}
             >
-              {isUploading ? "⏳ Processing..." : "📤 Upload & Preview"}
+              {isUploading ? (
+                <>
+                  <HourglassEmptyIcon sx={{ fontSize: 18 }} />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <UploadIcon sx={{ fontSize: 18 }} />
+                  Upload & Preview
+                </>
+              )}
             </button>
 
             <button
               onClick={handleReset}
               disabled={isUploading || isSaving}
-              className="px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               style={{
                 backgroundColor: colors.tertiary_bg,
                 color: colors.primary_text,
               }}
             >
-              🔄 Reset
+              <SyncIcon sx={{ fontSize: 18 }} />
+              Reset
             </button>
           </div>
 
           {/* Messages / Progress: fixed-height container for consistent layout */}
-          {(progress || isSaving || uploadMessage) && (
+          {(progress ||
+            isSaving ||
+            uploadFeedback.status !== FEEDBACK_STATUS.IDLE) && (
             <div
               className="mt-2 rounded-md h-14 flex items-center px-3"
               style={{ backgroundColor: colors.secondary_bg }}
@@ -584,13 +670,15 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               {progress ? (
                 progress.status === "COMPLETED" ? (
                   <div
-                    className="text-sm"
+                    className="text-sm inline-flex items-center gap-2"
                     style={{ color: colors.primary_text }}
                   >
+                    <CheckCircleIcon sx={{ fontSize: 18, color: "#14b8a6" }} />
                     {`${progress.processed}/${progress.total} processed`}
                   </div>
                 ) : progress.status === "FAILED" ? (
-                  <div className="text-sm text-[#f44336]">
+                  <div className="text-sm text-[#f44336] inline-flex items-center gap-2">
+                    <ErrorOutlineIcon sx={{ fontSize: 18 }} />
                     {progress.message || "Import failed"}
                   </div>
                 ) : (
@@ -614,26 +702,22 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                     </div>
                   </div>
                 )
-              ) : isSaving ? (
-                // Keep height stable but do not show a progress bar until API provides counts
-                <div className="w-full"></div>
-              ) : (
-                uploadMessage && (
-                  <div
-                    className={`text-sm ${
-                      uploadMessage.includes("❌") ? "text-[#f44336]" : ""
-                    }`}
-                    style={{
-                      width: "100%",
-                      color: uploadMessage.includes("❌")
+              ) : uploadFeedback.status !== FEEDBACK_STATUS.IDLE &&
+                uploadFeedback.message ? (
+                <div
+                  className="text-sm inline-flex items-center gap-2"
+                  style={{
+                    width: "100%",
+                    color:
+                      uploadFeedback.status === FEEDBACK_STATUS.ERROR
                         ? "#f44336"
                         : colors.primary_text,
-                    }}
-                  >
-                    {uploadMessage}
-                  </div>
-                )
-              )}
+                  }}
+                >
+                  {renderFeedbackIcon(uploadFeedback.status)}
+                  {uploadFeedback.message}
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -1397,13 +1481,23 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           <button
             onClick={handleSaveBills}
             disabled={isSaving}
-            className="px-4 py-1.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
             style={{
               backgroundColor: colors.primary_accent,
               color: colors.button_text,
             }}
           >
-            {isSaving ? "⏳ Saving..." : "💾 Save All Bills"}
+            {isSaving ? (
+              <>
+                <HourglassEmptyIcon sx={{ fontSize: 18 }} />
+                Saving...
+              </>
+            ) : (
+              <>
+                <SaveIcon sx={{ fontSize: 18 }} />
+                Save All Bills
+              </>
+            )}
           </button>
         </div>
       </div>

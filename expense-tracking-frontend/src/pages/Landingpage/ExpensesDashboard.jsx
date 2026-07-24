@@ -48,6 +48,14 @@ import {
   getExpensesSummaryAction,
 } from "../../Redux/Expenses/expense.action";
 import { API_BASE_URL } from "../../config/api";
+import { getCategoryIcon } from "../../utils/ui/iconMapping";
+import { useTheme as useAppTheme } from "../../hooks/useTheme";
+import {
+  EmojiEvents as TrophyIcon,
+  LocalFireDepartment as FireIcon,
+  WorkspacePremium as CrownIcon,
+  RocketLaunch as RocketIcon,
+} from "@mui/icons-material";
 
 const ExpensesDashboard = () => {
   const [isDark, setIsDark] = useState(true);
@@ -75,19 +83,20 @@ const ExpensesDashboard = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { colors: appColors } = useAppTheme();
 
   const { summary, loading } = useSelector((state) => state.expenses || {});
   const token = localStorage.getItem("jwt");
 
   // Real expense data from user
   const expenseData = [
-    { name: "Housing", value: 7000, color: "#96ceb4", icon: "🏠" },
-    { name: "Bills & Utilities", value: 3586, color: "#feca57", icon: "💡" },
-    { name: "Groceries", value: 1080, color: "#4ecdc4", icon: "🛒" },
-    { name: "Shopping", value: 342, color: "#ff9ff3", icon: "🛍️" },
-    { name: "Food & Dining", value: 220, color: "#ff6b6b", icon: "🍽️" },
-    { name: "Investments", value: 64, color: "#a8e6cf", icon: "💰" },
-    { name: "Transportation", value: 40, color: "#45b7d1", icon: "🚗" },
+    { name: "Housing", value: 7000, color: "#96ceb4", iconKey: "housing" },
+    { name: "Bills & Utilities", value: 3586, color: "#feca57", iconKey: "bill" },
+    { name: "Groceries", value: 1080, color: "#4ecdc4", iconKey: "grocery" },
+    { name: "Shopping", value: 342, color: "#ff9ff3", iconKey: "shopping" },
+    { name: "Food & Dining", value: 220, color: "#ff6b6b", iconKey: "food" },
+    { name: "Investments", value: 64, color: "#a8e6cf", iconKey: "savings" },
+    { name: "Transportation", value: 40, color: "#45b7d1", iconKey: "transport" },
   ];
 
   const monthlyTrend = [
@@ -109,7 +118,7 @@ const ExpensesDashboard = () => {
   const insights = [
     {
       id: 1,
-      text: "Housing expenses (₹7000) are your biggest spend this month 🏠",
+      text: "Housing expenses (₹7000) are your biggest spend this month",
       type: "warning",
     },
     {
@@ -119,7 +128,7 @@ const ExpensesDashboard = () => {
     },
     {
       id: 3,
-      text: "You earned ₹63 from cashback and interest this month! 💰",
+      text: "You earned ₹63 from cashback and interest this month!",
       type: "success",
     },
     {
@@ -133,28 +142,28 @@ const ExpensesDashboard = () => {
     {
       id: 1,
       name: "Budget Master",
-      icon: "🏆",
+      icon: TrophyIcon,
       unlocked: true,
       description: "Stay within budget for 3 months",
     },
     {
       id: 2,
       name: "Savings Streak",
-      icon: "🔥",
+      icon: FireIcon,
       unlocked: true,
       description: "Save money for 30 days straight",
     },
     {
       id: 3,
       name: "Category King",
-      icon: "👑",
+      icon: CrownIcon,
       unlocked: false,
       description: "Track expenses in all categories",
     },
     {
       id: 4,
       name: "Future Planner",
-      icon: "🚀",
+      icon: RocketIcon,
       unlocked: false,
       description: "Set up automatic savings",
     },
@@ -1390,8 +1399,11 @@ const ExpensesDashboard = () => {
                       className="w-4 h-4 rounded-full"
                       style={{ backgroundColor: category.color }}
                     ></div>
-                    <span className="text-sm">
-                      {category.icon} {category.name}
+                    <span className="text-sm inline-flex items-center gap-1">
+                      {getCategoryIcon(category.iconKey, {
+                        sx: { fontSize: 16, color: category.color },
+                      })}
+                      {category.name}
                     </span>
                     <span className="text-sm font-bold ml-auto">
                       ${category.value}
@@ -1518,7 +1530,9 @@ const ExpensesDashboard = () => {
                   Achievements
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
-                  {achievements.map((achievement) => (
+                  {achievements.map((achievement) => {
+                    const AchievementIcon = achievement.icon;
+                    return (
                     <div
                       key={achievement.id}
                       className={`p-3 rounded-lg text-center transition-all duration-300 ${
@@ -1529,12 +1543,22 @@ const ExpensesDashboard = () => {
                             } opacity-50`
                       }`}
                     >
-                      <div className="text-2xl mb-1">{achievement.icon}</div>
+                      <div className="mb-1 flex justify-center">
+                        <AchievementIcon
+                          sx={{
+                            fontSize: 28,
+                            ...(achievement.unlocked
+                              ? {}
+                              : { color: appColors.primary_accent }),
+                          }}
+                        />
+                      </div>
                       <div className="text-xs font-medium">
                         {achievement.name}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1633,7 +1657,7 @@ const ExpensesDashboard = () => {
                 <option>Select Category</option>
                 {expenseData.map((category) => (
                   <option key={category.name} value={category.name}>
-                    {category.icon} {category.name}
+                    {category.name}
                   </option>
                 ))}
               </select>
@@ -1660,7 +1684,7 @@ const ExpensesDashboard = () => {
                 <button
                   onClick={() => {
                     setShowAddModal(false);
-                    alert("🎉 Expense added successfully!");
+                    alert("Expense added successfully!");
                   }}
                   className={`flex-1 p-3 rounded-xl bg-gradient-to-r ${accentColors[accentColor]} text-white hover:scale-105 transition-all duration-300`}
                 >

@@ -20,17 +20,15 @@ import java.util.Date;
 @Slf4j
 public class JwtUtil {
 
-    @Value("${jwt.secret:your-secret-key-for-jwt-token-generation-min-256-bits}")
-    private String secret;
-
-    @Value("${jwt.expiration:86400000}")
+    @Value("${jwt.expiration:" + JwtSecretConstants.EXPIRATION_MS + "}")
     private Long expiration;
 
     /**
      * Get the signing key for JWT operations.
+     * Always uses {@link JwtSecretConstants#SECRET} so sign and verify never diverge.
      */
     public SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(JwtSecretConstants.SECRET.getBytes());
     }
 
     /**

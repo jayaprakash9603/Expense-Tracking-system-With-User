@@ -3,6 +3,14 @@ import { useDispatch } from "react-redux";
 import { respondToInvitation } from "../../../Redux/Groups/groupsActions";
 import { fetchPendingInvitations } from "../../../Redux/Groups/groupsActions";
 import { useTheme } from "../../../hooks/useTheme";
+import { getAccentFunctionalIcon, isEmojiGlyph } from "../../../utils/ui/iconMapping";
+
+const renderGroupAvatar = (avatar, size = 30, accentColor) => {
+  if (avatar && isEmojiGlyph(avatar)) {
+    return <span style={{ fontSize: size, lineHeight: 1 }}>{avatar}</span>;
+  }
+  return getAccentFunctionalIcon("groups", accentColor, { sx: { fontSize: size } });
+};
 
 const InvitationsTab = ({ filteredInvitations, searchQuery, formatDate }) => {
   const dispatch = useDispatch();
@@ -32,7 +40,7 @@ const InvitationsTab = ({ filteredInvitations, searchQuery, formatDate }) => {
               <div className={`h-2 bg-purple-500`}></div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-3xl">{invitation.avatar || "📨"}</div>
+                  <div className="text-3xl">{renderGroupAvatar(invitation.avatar, 30, colors.primary_accent)}</div>
                   <div className="text-right">
                     <div
                       className="text-sm"
@@ -128,7 +136,9 @@ const InvitationsTab = ({ filteredInvitations, searchQuery, formatDate }) => {
         </div>
       ) : (
         <div className="text-center py-20">
-          <div className="text-6xl mb-4">📨</div>
+          <div className="mb-4 flex justify-center">
+            {getAccentFunctionalIcon("mail", colors.primary_accent, { sx: { fontSize: 56, opacity: 0.6 } })}
+          </div>
           <h3
             className="text-2xl font-bold mb-2"
             style={{ color: colors.primary_text }}

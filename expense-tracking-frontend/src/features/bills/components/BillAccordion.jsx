@@ -1,4 +1,5 @@
 import React from "react";
+import { useSelector } from "react-redux";
 import {
   Accordion,
   AccordionSummary,
@@ -34,6 +35,7 @@ import {
   List as ListIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../../hooks/useTheme";
+import { FEATURE_KEYS, isActionEnabledInState } from "../../../config/featureCatalog";
 
 const BillAccordion = ({
   bill,
@@ -49,6 +51,9 @@ const BillAccordion = ({
   currencySymbol = "$",
 }) => {
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const editEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BILLS, "edit");
+  const deleteEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BILLS, "delete");
 
   // Constants
   const COLORS = {
@@ -292,8 +297,8 @@ const BillAccordion = ({
       }}
     >
       <MenuList sx={{ py: 1 }}>
-        {createMenuItem(EditIcon, "Edit Bill", () => onEditBill(bill))}
-        {createMenuItem(
+        {editEnabled && createMenuItem(EditIcon, "Edit Bill", () => onEditBill(bill))}
+        {deleteEnabled && createMenuItem(
           DeleteIcon,
           "Delete Bill",
           () => onDeleteBill(bill),

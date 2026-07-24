@@ -45,6 +45,18 @@ import {
   VisibilityOff as VisibilityOffIcon,
   PhonelinkLock as PhonelinkLockIcon,
   Tour as TourIcon,
+  Public as PublicIcon,
+  AttachMoney as AttachMoneyIcon,
+  Euro as EuroIcon,
+  CurrencyPound as CurrencyPoundIcon,
+  CurrencyRupee as CurrencyRupeeIcon,
+  CurrencyYen as CurrencyYenIcon,
+  CalendarMonth as CalendarMonthIcon,
+  Event as EventIcon,
+  BackHand as BackHandIcon,
+  BarChart as BarChartIcon,
+  Groups as GroupsIcon,
+  TrendingDown as TrendingDownIcon,
 } from "@mui/icons-material";
 
 /**
@@ -52,9 +64,9 @@ import {
  * Supports English, Hindi, and Telugu languages
  */
 export const LANGUAGE_OPTIONS = [
-  { value: "en", label: "🇺🇸 English" },
-  { value: "hi", label: "🇮🇳 हिन्दी (Hindi)" },
-  { value: "te", label: "🇮🇳 తెలుగు (Telugu)" },
+  { value: "en", label: "English", icon: LanguageIcon },
+  { value: "hi", label: "हिन्दी (Hindi)", icon: LanguageIcon },
+  { value: "te", label: "తెలుగు (Telugu)", icon: LanguageIcon },
 ];
 
 /**
@@ -63,28 +75,33 @@ export const LANGUAGE_OPTIONS = [
 export const CURRENCY_OPTIONS = [
   {
     value: "USD",
-    label: "💵 USD - US Dollar ($)",
+    label: "USD - US Dollar ($)",
     labelKey: "settings.currencyUSD",
+    icon: AttachMoneyIcon,
   },
   {
     value: "EUR",
-    label: "💶 EUR - Euro (€)",
+    label: "EUR - Euro (€)",
     labelKey: "settings.currencyEUR",
+    icon: EuroIcon,
   },
   {
     value: "GBP",
-    label: "💷 GBP - British Pound (£)",
+    label: "GBP - British Pound (£)",
     labelKey: "settings.currencyGBP",
+    icon: CurrencyPoundIcon,
   },
   {
     value: "INR",
-    label: "💴 INR - Indian Rupee (₹)",
+    label: "INR - Indian Rupee (₹)",
     labelKey: "settings.currencyINR",
+    icon: CurrencyRupeeIcon,
   },
   {
     value: "JPY",
-    label: "💴 JPY - Japanese Yen (¥)",
+    label: "JPY - Japanese Yen (¥)",
     labelKey: "settings.currencyJPY",
+    icon: CurrencyYenIcon,
   },
 ];
 
@@ -94,18 +111,21 @@ export const CURRENCY_OPTIONS = [
 export const DATE_FORMAT_OPTIONS = [
   {
     value: "MM/DD/YYYY",
-    label: "📅 MM/DD/YYYY (US)",
+    label: "MM/DD/YYYY (US)",
     labelKey: "settings.dateFormatUS",
+    icon: CalendarMonthIcon,
   },
   {
     value: "DD/MM/YYYY",
-    label: "📅 DD/MM/YYYY (UK/EU)",
+    label: "DD/MM/YYYY (UK/EU)",
     labelKey: "settings.dateFormatUK",
+    icon: CalendarMonthIcon,
   },
   {
     value: "YYYY-MM-DD",
-    label: "📅 YYYY-MM-DD (ISO)",
+    label: "YYYY-MM-DD (ISO)",
     labelKey: "settings.dateFormatISO",
+    icon: CalendarMonthIcon,
   },
 ];
 
@@ -127,18 +147,48 @@ export const FONT_SIZE_OPTIONS = [
  * Time format options
  */
 export const TIME_FORMAT_OPTIONS = [
-  { value: "12h", label: "🕐 12-hour (3:00 PM)", labelKey: "settings.time12h" },
-  { value: "24h", label: "🕒 24-hour (15:00)", labelKey: "settings.time24h" },
+  {
+    value: "12h",
+    label: "12-hour (3:00 PM)",
+    labelKey: "settings.time12h",
+    icon: ScheduleIcon,
+  },
+  {
+    value: "24h",
+    label: "24-hour (15:00)",
+    labelKey: "settings.time24h",
+    icon: ScheduleIcon,
+  },
 ];
 
 /**
  * Auto-backup frequency options
  */
 export const BACKUP_FREQUENCY_OPTIONS = [
-  { value: "daily", label: "📆 Daily", labelKey: "settings.daily" },
-  { value: "weekly", label: "📅 Weekly", labelKey: "settings.weekly" },
-  { value: "monthly", label: "🗓️ Monthly", labelKey: "settings.monthly" },
-  { value: "manual", label: "✋ Manual Only", labelKey: "settings.manualOnly" },
+  {
+    value: "daily",
+    label: "Daily",
+    labelKey: "settings.daily",
+    icon: EventIcon,
+  },
+  {
+    value: "weekly",
+    label: "Weekly",
+    labelKey: "settings.weekly",
+    icon: CalendarMonthIcon,
+  },
+  {
+    value: "monthly",
+    label: "Monthly",
+    labelKey: "settings.monthly",
+    icon: CalendarMonthIcon,
+  },
+  {
+    value: "manual",
+    label: "Manual Only",
+    labelKey: "settings.manualOnly",
+    icon: BackHandIcon,
+  },
 ];
 
 /**
@@ -147,23 +197,27 @@ export const BACKUP_FREQUENCY_OPTIONS = [
 export const REPORT_SCHEDULE_OPTIONS = [
   {
     value: "daily",
-    label: "📊 Daily Summary",
+    label: "Daily Summary",
     labelKey: "settings.dailySummary",
+    icon: BarChartIcon,
   },
   {
     value: "weekly",
-    label: "📈 Weekly Summary",
+    label: "Weekly Summary",
     labelKey: "settings.weeklySummary",
+    icon: AssessmentIcon,
   },
   {
     value: "monthly",
-    label: "📉 Monthly Summary",
+    label: "Monthly Summary",
     labelKey: "settings.monthlySummary",
+    icon: TrendingDownIcon,
   },
   {
     value: "none",
-    label: "🚫 No Scheduled Reports",
+    label: "No Scheduled Reports",
     labelKey: "settings.noScheduledReports",
+    icon: BlockIcon,
   },
 ];
 
@@ -173,18 +227,21 @@ export const REPORT_SCHEDULE_OPTIONS = [
 export const PROFILE_VISIBILITY_OPTIONS = [
   {
     value: "PUBLIC",
-    label: "🌍 Public - Anyone can view",
+    label: "Public - Anyone can view",
     labelKey: "settings.public",
+    icon: PublicIcon,
   },
   {
     value: "FRIENDS",
-    label: "👥 Friends Only - Restricted access",
+    label: "Friends Only - Restricted access",
     labelKey: "settings.friendsOnly",
+    icon: GroupsIcon,
   },
   {
     value: "PRIVATE",
-    label: "🔒 Private - Only you",
+    label: "Private - Only you",
     labelKey: "settings.private",
+    icon: LockIcon,
   },
 ];
 
@@ -201,9 +258,9 @@ export const PROFILE_VISIBILITY_MESSAGES = {
  * Profile visibility display labels with icons
  */
 export const PROFILE_VISIBILITY_LABELS = {
-  PUBLIC: { label: "🌍 Public", labelKey: "settings.publicLabel" },
-  FRIENDS: { label: "👥 Friends", labelKey: "settings.friendsLabel" },
-  PRIVATE: { label: "🔒 Private", labelKey: "settings.privateLabel" },
+  PUBLIC: { label: "Public", labelKey: "settings.publicLabel", icon: PublicIcon },
+  FRIENDS: { label: "Friends", labelKey: "settings.friendsLabel", icon: GroupsIcon },
+  PRIVATE: { label: "Private", labelKey: "settings.privateLabel", icon: LockIcon },
 };
 
 /**
@@ -234,6 +291,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "isDark",
         settingsKey: "themeMode",
+        featureKey: "themeCustomization",
       },
       {
         id: "accentColor",
@@ -243,6 +301,7 @@ export const SETTINGS_SECTIONS = {
         description: "Choose your preferred color palette",
         descriptionKey: "settings.accentColorDescription",
         type: "themePicker", // New component type for color palette selection
+        featureKey: "themeCustomization",
       },
       {
         id: "fontSize",
@@ -391,6 +450,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "twoFactorEnabled",
         settingsKey: "twoFactorEnabled",
+        featureKey: "auth.emailOtp",
       },
       {
         id: "mfa",
@@ -405,6 +465,7 @@ export const SETTINGS_SECTIONS = {
         buttonTextKey: "settings.configure",
         action: "configureMfa",
         priority: true, // Shows priority badge
+        featureKey: "auth.mfa",
       },
       {
         id: "blockedUsers",
@@ -591,6 +652,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "keyboardShortcuts",
         settingsKey: "keyboardShortcuts",
+        featureKey: "keyboardShortcuts",
       },
       {
         id: "showShortcutIndicators",
@@ -603,6 +665,7 @@ export const SETTINGS_SECTIONS = {
         stateKey: "showShortcutIndicators",
         settingsKey: "showShortcutIndicators",
         indent: true, // Sub-option visual indicator
+        featureKey: "keyboardShortcuts",
       },
       {
         id: "reduceMotion",
@@ -637,6 +700,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "View",
         buttonTextKey: "settings.view",
         action: "viewShortcuts",
+        featureKey: "keyboardShortcuts",
       },
     ],
   },
@@ -657,6 +721,7 @@ export const SETTINGS_SECTIONS = {
         type: "navigation",
         action: "notificationSettings",
         showStatus: true, // Special flag to show ON/OFF status
+        featureKey: "notifications",
       },
       {
         id: "editProfile",
@@ -727,6 +792,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "Start",
         buttonTextKey: "settings.start",
         action: "restartTour",
+        featureKey: "helpSupport",
       },
       {
         id: "helpCenter",
@@ -737,6 +803,7 @@ export const SETTINGS_SECTIONS = {
         descriptionKey: "settings.helpCenterDescription",
         type: "navigation",
         action: "helpCenter",
+        featureKey: "helpSupport",
       },
       {
         id: "contactSupport",
@@ -747,6 +814,7 @@ export const SETTINGS_SECTIONS = {
         descriptionKey: "settings.contactSupportDescription",
         type: "navigation",
         action: "contactSupport",
+        featureKey: "helpSupport",
       },
       {
         id: "termsOfService",
@@ -757,6 +825,7 @@ export const SETTINGS_SECTIONS = {
         descriptionKey: "settings.termsOfServiceDescription",
         type: "navigation",
         action: "termsOfService",
+        featureKey: "helpSupport",
       },
       {
         id: "privacyPolicy",
@@ -767,6 +836,7 @@ export const SETTINGS_SECTIONS = {
         descriptionKey: "settings.privacyPolicyDescription",
         type: "navigation",
         action: "privacyPolicy",
+        featureKey: "helpSupport",
       },
     ],
   },

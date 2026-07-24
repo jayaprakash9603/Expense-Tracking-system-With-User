@@ -4,6 +4,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import IosShareIcon from "@mui/icons-material/IosShare";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useTheme } from "../../hooks/useTheme";
+import { useSelector } from "react-redux";
+import { isFeatureEnabledInState } from "../../config/featureCatalog";
 import { getFunctionalIcon, isEmojiGlyph } from "../../utils/ui/iconMapping";
 
 const renderMenuIcon = (icon, color) => {
@@ -45,8 +47,14 @@ const renderMenuIcon = (icon, color) => {
 export default function ReportActionsMenu({
   menuItems = [],
   ariaLabel = "More actions",
+  exportFeatureKey = "reports.export",
 }) {
   const { colors, mode } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const exportEnabled = isFeatureEnabledInState(featureFlags, exportFeatureKey);
+  const visibleMenuItems = exportEnabled
+    ? menuItems
+    : menuItems.filter((item) => item.id !== "export");
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = useCallback((event) => {
@@ -68,6 +76,10 @@ export default function ReportActionsMenu({
   );
 
   const isOpen = Boolean(anchorEl);
+
+  if (visibleMenuItems.length === 0) {
+    return null;
+  }
 
   return (
     <>
@@ -112,7 +124,7 @@ export default function ReportActionsMenu({
             }}
           >
             <div style={{ padding: "8px 0" }}>
-              {menuItems.map((item) => (
+              {visibleMenuItems.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => handleItemClick(item)}

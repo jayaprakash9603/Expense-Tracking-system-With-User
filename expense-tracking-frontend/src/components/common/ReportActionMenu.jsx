@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import SyncIcon from "@mui/icons-material/Sync";
+import DownloadIcon from "@mui/icons-material/Download";
 import { Upload, Settings, MoreVertical, Filter } from "lucide-react";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -84,7 +86,7 @@ const ReportActionMenu = ({ onExport, onCustomize, onRefresh, onDownloadPdf, onF
             }}
           >
             <ListItemIcon sx={{ color: colors.primary_text, minWidth: "32px" }}>
-              <span style={{ fontSize: "16px" }}>🔄</span>
+              <SyncIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText 
               primary="Refresh" 
@@ -120,7 +122,7 @@ const ReportActionMenu = ({ onExport, onCustomize, onRefresh, onDownloadPdf, onF
             }}
           >
             <ListItemIcon sx={{ color: colors.primary_text, minWidth: "32px" }}>
-              <span style={{ fontSize: "16px" }}>📥</span>
+              <DownloadIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText 
               primary="Download PDF" 

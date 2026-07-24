@@ -391,6 +391,7 @@ const GenericFlowPage = ({
                   : `/${routeBase}/view/${ent[idKey]}`,
               );
             }}
+            moduleKey={entityConfig.moduleKey || "categories"}
           />
         </>
       )}

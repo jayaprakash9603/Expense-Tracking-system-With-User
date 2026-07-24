@@ -1,10 +1,15 @@
 import React, { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTheme } from "../../../hooks/useTheme";
+import { Stack } from "@mui/material";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import useBudgetReportData from "../hooks/useBudgetReportData";
 import useBudgetReportLayout from "../hooks/useBudgetReportLayout";
 import useBudgetReportFilters from "../../reports/hooks/reportFilters/useBudgetReportFilters";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import BudgetAccordionGroup from "../../../components/BudgetAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import SharedDistributionChart from "../../../components/charts/SharedDistributionChart";
@@ -216,6 +221,7 @@ const AllBudgetsReport = () => {
   // Three-dot menu using reusable component
   const reportHeaderActions = (
     <ReportActionsMenu
+      exportFeatureKey={SUB_FEATURE_KEYS.BUDGETS_EXPORT}
       menuItems={createDefaultReportMenuItems({
         onExport: handleExport,
         onCustomize: () => setCustomizationOpen(true),
@@ -233,7 +239,12 @@ const AllBudgetsReport = () => {
       >
         <ReportHeader
           className="payment-methods-header"
-          title="💰 Budget Analytics"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {getAccentFunctionalIcon("budget", colors.primary_accent, { sx: { fontSize: 28 } })}
+              <span>Budget Analytics</span>
+            </Stack>
+          }
           subtitle="Comprehensive analysis of budget allocations and spending trends"
           timeframe={timeframe}
           onTimeframeChange={handleTimeframeChange}
@@ -343,7 +354,7 @@ const AllBudgetsReport = () => {
                     return (
                       <div key={sec.id} className="chart-row full-width">
                         <DailySpendingSkeleton
-                          title="📊 Daily Spending Pattern (Budgets)"
+                          title="Daily Spending Pattern (Budgets)"
                           showControls={false}
                         />
                       </div>
@@ -402,7 +413,12 @@ const AllBudgetsReport = () => {
     >
       <ReportHeader
         className="payment-methods-header"
-        title="💰 Budget Analytics"
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("budget", colors.primary_accent, { sx: { fontSize: 28 } })}
+            <span>Budget Analytics</span>
+          </Stack>
+        }
         subtitle="Comprehensive analysis of budget allocations and spending trends"
         onFilter={openFilters}
         onTimeframeChange={handleTimeframeChange}
@@ -619,7 +635,8 @@ const AllBudgetsReport = () => {
                             margin: "0 0 4px 0",
                           }}
                         >
-                          🎯 Budget Overview
+                          <TrackChangesIcon sx={{ fontSize: 22 }} />
+                          Budget Overview
                         </h3>
                         <div
                           className="chart-subtitle"
@@ -653,7 +670,8 @@ const AllBudgetsReport = () => {
                     >
                       <div className="chart-header">
                         <h3 style={{ color: colors.primary_text }}>
-                          📊 Individual Budget Details
+                          <BarChartIcon sx={{ fontSize: 22 }} />
+                          Individual Budget Details
                         </h3>
                         <div
                           className="chart-subtitle"

@@ -5,3 +5,7 @@ com.jaya.common.config.CommonLibraryAutoConfiguration
 com.jaya.common.config.ConditionalEurekaConfig
 com.jaya.common.config.UserProfileCacheAutoConfiguration
 com.jaya.common.config.InternalServiceAuthAutoConfiguration
+com.jaya.common.feature.FeatureDormancyAutoConfiguration
+com.jaya.common.feature.FeatureDormancyAutoConfiguration
+com.jaya.common.feature.FeatureDormancyAutoConfiguration
+com.jaya.common.feature.FeatureDormancyAutoConfiguration

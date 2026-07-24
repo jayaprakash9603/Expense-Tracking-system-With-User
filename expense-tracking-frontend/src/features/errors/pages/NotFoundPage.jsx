@@ -5,6 +5,7 @@ import { useTheme } from "../../../hooks/useTheme";
 import { Box, Button } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SearchIcon from "@mui/icons-material/Search";
 
 /**
  * NotFound Component
@@ -77,12 +78,19 @@ const NotFound = () => {
       {/* 404 Illustration */}
       <div
         style={{
-          fontSize: "120px",
           marginBottom: "20px",
           animation: "float 3s ease-in-out infinite",
+          display: "flex",
+          justifyContent: "center",
         }}
       >
-        🔍
+        <SearchIcon
+          sx={{
+            fontSize: 120,
+            color: colors.primary_accent,
+            opacity: 0.85,
+          }}
+        />
       </div>
 
       {/* 404 Text */}

@@ -9,6 +9,9 @@ import SharedDistributionChart from "../../../components/charts/SharedDistributi
 import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordion";
 import { BudgetReportLoadingSkeleton } from "../../../components/skeletons/CommonSkeletons";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import { getChartColors } from "../../../utils/charts/chartColors";
 import { computeDateRange } from "../../../utils/data/reportParams";
@@ -233,7 +236,12 @@ const BudgetReport = () => {
       style={{ background: colors.secondary_bg }}
     >
       <ReportHeader
-        title={`💰 Budget Analytics`}
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("budget", colors.primary_accent, { sx: { fontSize: 28 } })}
+            <span>Budget Analytics</span>
+          </Stack>
+        }
         subtitle={budgetData?.summary?.budgetName || "Single budget analytics"}
         timeframe={timeFrame}
         flowType={flowType}
@@ -247,6 +255,7 @@ const BudgetReport = () => {
         }}
         onFilter={openFilters}
         onExport={() => console.log("Export CSV requested")}
+        exportFeatureKey={SUB_FEATURE_KEYS.BUDGETS_EXPORT}
         onRefresh={() => console.log("Refresh requested")}
         showFilterButton={sections.length > 0}
         isFilterActive={filtersActive}

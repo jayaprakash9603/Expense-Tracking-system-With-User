@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { Lightbulb as LightbulbIcon } from "@mui/icons-material";
 import { useKeyboardShortcuts } from "./KeyboardShortcutProvider";
 import { DEFAULT_SHORTCUTS } from "./shortcutDefinitions";
 
@@ -318,7 +319,9 @@ export function ShortcutRecommendationToast() {
   return (
     <div className="shortcut-recommendation-toast">
       <div className="recommendation-content">
-        <div className="recommendation-icon">💡</div>
+        <div className="recommendation-icon">
+          <LightbulbIcon sx={{ fontSize: 24 }} />
+        </div>
         <div className="recommendation-text">
           <strong>Quick Tip:</strong> You frequently use "{shortcut.description}
           ".

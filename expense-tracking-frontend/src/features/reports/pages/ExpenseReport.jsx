@@ -21,8 +21,9 @@ import {
 } from "recharts";
 import "../styles/ExpenseReport.css";
 import { fetchAllBills } from "../../../Redux/Bill/bill.action";
-import { IconButton } from "@mui/material";
+import { IconButton, Stack } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../../hooks/useUserSettings";
@@ -99,6 +100,25 @@ const TableSkeleton = () => (
   </div>
 );
 
+const ChartSectionHeading = ({ iconKey, children }) => {
+  const { colors } = useTheme();
+  return (
+    <h3
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: 0,
+      }}
+    >
+      {getAccentFunctionalIcon(iconKey, colors.primary_accent, {
+        sx: { fontSize: 22 },
+      })}
+      {children}
+    </h3>
+  );
+};
+
 // Header Component (aligned with Category/Payment headers, unique classes)
 const ReportHeader = ({
   selectedTimeframe,
@@ -143,8 +163,19 @@ const ReportHeader = ({
         </svg>
       </IconButton>
       <div>
-        <h1 style={{ margin: 0, color: colors.primary_text }}>
-          📊 Bill Report
+        <h1
+          style={{
+            margin: 0,
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          {getAccentFunctionalIcon("chart", colors.primary_accent, {
+            sx: { fontSize: 28 },
+          })}
+          Bill Report
         </h1>
         <p style={{ margin: "6px 0 0 0", color: colors.secondary_text }}>
           Spending overview and insights
@@ -213,10 +244,19 @@ const FilterInfo = ({
 );
 
 // Summary Cards Component
-const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
+const SummaryCards = ({ analytics, currencySymbol = "₹" }) => {
+  const { colors } = useTheme();
+  const cardIcon = (iconKey) =>
+    getAccentFunctionalIcon(iconKey, colors.primary_accent, {
+      sx: { fontSize: 28 },
+    });
+
+  return (
   <div className="summary-cards">
     <div className="summary-card total">
-      <div className="card-icon">💰</div>
+      <div className="card-icon">
+        {cardIcon("expense")}
+      </div>
       <div className="card-content">
         <h3>Total Expenses</h3>
         <p className="amount">
@@ -226,14 +266,18 @@ const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
       </div>
     </div>
     <div className="summary-card bills">
-      <div className="card-icon">📄</div>
+      <div className="card-icon">
+        {cardIcon("bill")}
+      </div>
       <div className="card-content">
         <h3>Total Bills</h3>
         <p className="count">{analytics.totalBills}</p>
       </div>
     </div>
     <div className="summary-card average">
-      <div className="card-icon">📈</div>
+      <div className="card-icon">
+        {cardIcon("trend")}
+      </div>
       <div className="card-content">
         <h3>Average per Bill</h3>
         <p className="amount">
@@ -243,7 +287,9 @@ const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
       </div>
     </div>
     <div className="summary-card categories">
-      <div className="card-icon">🏷️</div>
+      <div className="card-icon">
+        {cardIcon("category")}
+      </div>
       <div className="card-content">
         <h3>Categories</h3>
         <p className="count">
@@ -252,21 +298,31 @@ const SummaryCards = ({ analytics, currencySymbol = "₹" }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 // No Data Message Component
-const NoDataMessage = () => (
+const NoDataMessage = () => {
+  const { colors } = useTheme();
+  return (
   <div className="no-data-message">
-    <div className="no-data-icon">📊</div>
+    <div className="no-data-icon">
+      {getAccentFunctionalIcon("chart", colors.primary_accent, {
+        sx: { fontSize: 48 },
+      })}
+    </div>
     <h3>No bills found</h3>
     <p>Try adjusting your filters to see more data.</p>
   </div>
-);
+  );
+};
 
 // Category Bar Chart Component
 const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
   <div className="chart-container chart-half-width">
-    <h3>💼 Expenses by Category</h3>
+    <ChartSectionHeading iconKey="category">
+      Expenses by Category
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={categoryChartData}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -289,7 +345,9 @@ const PaymentMethodPieChart = ({
   currencySymbol = "₹",
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>💳 Payment Methods</h3>
+    <ChartSectionHeading iconKey="payment">
+      Payment Methods
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -416,7 +474,9 @@ const TopItemsRadialChart = ({
   CustomRadialTooltip,
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>🛒 Top Expense Items </h3>
+    <ChartSectionHeading iconKey="shopping">
+      Top Expense Items
+    </ChartSectionHeading>
     <ResponsiveContainer width="100%" height={350}>
       <RadialBarChart
         cx="50%"
@@ -450,7 +510,7 @@ const TopItemsBarChart = ({
   currencySymbol = "₹",
 }) => (
   <div className="chart-container chart-half-width">
-    <h3>📊 Top Expense Items</h3>
+    <ChartSectionHeading iconKey="chart">Top Expense Items</ChartSectionHeading>
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={topItemsBarData} margin={{ bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -505,7 +565,7 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
 
   return (
     <div className="bills-table-container mt-[30px]">
-      <h3>📋 Recent Bills</h3>
+      <ChartSectionHeading iconKey="bill">Recent Bills</ChartSectionHeading>
       <div className="table-wrapper">
         <table className="bills-table">
           <thead>
@@ -590,7 +650,9 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
 // Category Details Component
 const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
   <div className="category-details">
-    <h3>📊 Category Breakdown</h3>
+    <ChartSectionHeading iconKey="category">
+      Category Breakdown
+    </ChartSectionHeading>
     <div className="category-grid">
       {Object.entries(analytics.categoryBreakdown).map(([category, data]) => {
         const stats = [

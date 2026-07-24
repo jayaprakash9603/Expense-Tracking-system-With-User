@@ -1,5 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
+import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
+import { Stack } from "@mui/material";
 import { useTheme } from "../hooks/useTheme";
 import ReportActionMenu from "./common/ReportActionMenu";
 
@@ -9,7 +11,7 @@ import ReportActionMenu from "./common/ReportActionMenu";
  * Shows title/subtitle and an action menu with refresh/export (and optional filter hook).
  */
 const DashboardHeader = ({
-  title = "💰 Financial Dashboard",
+  title,
   subtitle = "Real-time insights into your financial health",
   onRefresh,
   onExport,
@@ -17,6 +19,13 @@ const DashboardHeader = ({
   onCustomize,
 }) => {
   const { colors, mode } = useTheme();
+
+  const defaultTitle = (
+    <Stack direction="row" alignItems="center" spacing={1}>
+      <MonetizationOnIcon sx={{ fontSize: 28, color: colors.primary_accent }} />
+      <span>Financial Dashboard</span>
+    </Stack>
+  );
 
   return (
     <div 
@@ -45,7 +54,7 @@ const DashboardHeader = ({
             fontWeight: "700",
             letterSpacing: "-0.5px"
           }}>
-            {title}
+            {title ?? defaultTitle}
           </h1>
           {subtitle && (
             <p style={{ 

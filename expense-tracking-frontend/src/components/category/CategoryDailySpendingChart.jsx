@@ -47,7 +47,7 @@ const CategoryDailySpendingChart = ({ categories, timeframe, flowType }) => {
         breakdownTotalsLabel="Category totals"
         breakdownItemLabel="category"
         breakdownEmptyMessage="No category breakdown available."
-        title="📊 Daily Spending Pattern (Categories)"
+        title="Daily Spending Pattern (Categories)"
         onPointClick={handlePointClick}
       />
 

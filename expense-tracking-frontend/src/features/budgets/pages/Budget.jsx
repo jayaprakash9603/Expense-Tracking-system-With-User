@@ -58,6 +58,10 @@ import {
   Search as SearchIcon,
   Sort as SortIcon,
   Clear as ClearIcon,
+  EditNote as EditNoteIcon,
+  MonetizationOn as MonetizationOnIcon,
+  AttachMoney as AttachMoneyIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from "@mui/icons-material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -77,9 +81,20 @@ import {
   handleSelectableSurfaceMouseDown,
   selectableSurfaceStyles,
 } from "../../../utils/ui/selectableSurface";
+import {
+  FEATURE_KEYS,
+  isActionEnabledInState,
+  isFeatureEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../../config/featureCatalog";
 
 const Budget = () => {
   const { colors, isDarkMode } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const createEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BUDGETS, "create");
+  const editEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BUDGETS, "edit");
+  const deleteEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.BUDGETS, "delete");
+  const reportsEnabled = isFeatureEnabledInState(featureFlags, SUB_FEATURE_KEYS.BUDGETS_REPORTS);
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
@@ -1085,6 +1100,7 @@ const Budget = () => {
 
           {/* Action Buttons */}
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            {reportsEnabled && (
             <Button
               variant="outlined"
               startIcon={<ReportIcon fontSize="small" />}
@@ -1107,7 +1123,8 @@ const Budget = () => {
             >
               Reports
             </Button>
-            {hasWriteAccess && (
+            )}
+            {hasWriteAccess && createEnabled && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon fontSize="small" />}
@@ -1501,23 +1518,55 @@ const Budget = () => {
                     }}
                   >
                     <MenuItem value="name">
-                      <Typography sx={{ fontSize: "0.875rem" }}>
-                        📝 Name
+                      <Typography
+                        sx={{
+                          fontSize: "0.875rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <EditNoteIcon sx={{ fontSize: 18 }} />
+                        Name
                       </Typography>
                     </MenuItem>
                     <MenuItem value="amount">
-                      <Typography sx={{ fontSize: "0.875rem" }}>
-                        💰 Amount
+                      <Typography
+                        sx={{
+                          fontSize: "0.875rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <MonetizationOnIcon sx={{ fontSize: 18 }} />
+                        Amount
                       </Typography>
                     </MenuItem>
                     <MenuItem value="remaining">
-                      <Typography sx={{ fontSize: "0.875rem" }}>
-                        💵 Remaining
+                      <Typography
+                        sx={{
+                          fontSize: "0.875rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <AttachMoneyIcon sx={{ fontSize: 18 }} />
+                        Remaining
                       </Typography>
                     </MenuItem>
                     <MenuItem value="date">
-                      <Typography sx={{ fontSize: "0.875rem" }}>
-                        📆 Date
+                      <Typography
+                        sx={{
+                          fontSize: "0.875rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        <CalendarMonthIcon sx={{ fontSize: 18 }} />
+                        Date
                       </Typography>
                     </MenuItem>
                   </Select>
@@ -1549,6 +1598,7 @@ const Budget = () => {
                   <SortIcon
                     fontSize="small"
                     sx={{
+                      color: colors.primary_accent,
                       transform:
                         sortOrder === "desc"
                           ? "rotate(180deg)"
@@ -1620,7 +1670,7 @@ const Budget = () => {
               >
                 No budgets found. Create your first budget!
               </Typography>
-              {hasWriteAccess && (
+              {hasWriteAccess && createEnabled && (
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
@@ -1787,6 +1837,7 @@ const Budget = () => {
             }}
           >
             <MenuList sx={{ py: 1 }}>
+              {editEnabled && (
               <MenuItem
                 onClick={handleEdit}
                 sx={{
@@ -1803,6 +1854,8 @@ const Budget = () => {
                 />
                 <Typography variant="body2">Edit Budget</Typography>
               </MenuItem>
+              )}
+              {deleteEnabled && (
               <MenuItem
                 onClick={handleDelete}
                 sx={{
@@ -1819,6 +1872,7 @@ const Budget = () => {
                 />
                 <Typography variant="body2">Delete Budget</Typography>
               </MenuItem>
+              )}
             </MenuList>
           </Popover>
         )}

@@ -1,4 +1,11 @@
 import React from "react";
+import {
+  AttachMoney as AttachMoneyIcon,
+  BarChart as BarChartIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
 import SummaryPill from "./SummaryPill";
 import {
   formatNumberFull,
@@ -110,7 +117,11 @@ const SelectionSummaryBar = ({
                   value={selectedBarsLength ? selectionStats.expenseCount : 0}
                 />
                 <SummaryPill
-                  icon="💰"
+                  icon={
+                    <AttachMoneyIcon
+                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                    />
+                  }
                   label="Total"
                   value={
                     selectionStats.total >= 10000
@@ -119,7 +130,11 @@ const SelectionSummaryBar = ({
                   }
                 />
                 <SummaryPill
-                  icon="📊"
+                  icon={
+                    <BarChartIcon
+                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                    />
+                  }
                   label="Avg"
                   value={
                     selectionStats.avg >= 10000
@@ -128,7 +143,11 @@ const SelectionSummaryBar = ({
                   }
                 />
                 <SummaryPill
-                  icon="⬇"
+                  icon={
+                    <ArrowDownwardIcon
+                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                    />
+                  }
                   label="Min"
                   value={
                     selectionStats.min >= 10000
@@ -137,7 +156,11 @@ const SelectionSummaryBar = ({
                   }
                 />
                 <SummaryPill
-                  icon="⬆"
+                  icon={
+                    <ArrowUpwardIcon
+                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                    />
+                  }
                   label="Max"
                   value={
                     selectionStats.max >= 10000
@@ -218,15 +241,7 @@ const SelectionSummaryBar = ({
               title="Clear selection"
               aria-label="Clear selection"
             >
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  lineHeight: 1,
-                }}
-              >
-                ✕
-              </span>
+              <CloseIcon sx={{ fontSize: 16 }} />
               <span style={{ letterSpacing: 0.5 }}>Clear</span>
             </button>
           </div>

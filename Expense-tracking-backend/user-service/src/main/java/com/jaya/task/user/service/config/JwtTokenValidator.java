@@ -34,6 +34,18 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (path == null) {
+            return false;
+        }
+        // SockJS handshake/info/xhr must not fail when a stale Authorization header is present
+        return path.startsWith("/notifications")
+                || path.startsWith("/chat")
+                || path.startsWith("/ws-stories");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
@@ -43,7 +55,7 @@ public class JwtTokenValidator extends OncePerRequestFilter {
             jwt = jwt.substring(7);
 
             try {
-                SecretKey key = Keys.hmacShaKeyFor(JWTConstants.SECRET_KEY.getBytes());
+                SecretKey key = Keys.hmacShaKeyFor(JWTConstants.getSecretKey().getBytes());
                 Claims claims = Jwts.parserBuilder()
                         .setSigningKey(key)
                         .build()

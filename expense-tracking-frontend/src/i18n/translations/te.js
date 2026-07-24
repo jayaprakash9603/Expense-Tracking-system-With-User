@@ -85,7 +85,7 @@ export const te = {
             buttonLabel: "రసీదు స్కాన్ చేయండి",
             tooltip:
               "OCR తో రసీదును స్కాన్ చేసి ఖర్చు వివరాలను ఆటో-ఫిల్ చేయండి",
-            tip: "💡 సూచన: ఉత్తమ ఫలితాల కోసం రసీదు యొక్క అన్ని పేజీలను అప్‌లోడ్ చేయండి",
+            tip: "సూచన: ఉత్తమ ఫలితాల కోసం రసీదు యొక్క అన్ని పేజీలను అప్‌లోడ్ చేయండి",
             dropTitle: "మీ రసీదు పేజీలను ఇక్కడ వదలండి",
             dropSubtitle: "లేదా ఫైల్ ఎంచుకోవడానికి క్లిక్ చేయండి",
             supportedFormats:
@@ -497,7 +497,7 @@ export const te = {
       title: "ఖర్చు అంశాల సారాంశం",
       singleItem: "{{count}} అంశం జోడించబడింది",
       multipleItems: "{{count}} అంశాలు జోడించబడ్డాయి",
-      noItemsTitle: "⚠️ ఎలాంటి ఖర్చు అంశాలు ఇంకా జోడించబడలేదు",
+      noItemsTitle: "ఎలాంటి ఖర్చు అంశాలు ఇంకా జోడించబడలేదు",
     },
     messages: {
       noItemsCreate: "బిల్లు సృష్టించడానికి కనీసం ఒక ఖర్చు అంశం అవసరం",
@@ -544,7 +544,7 @@ export const te = {
     messages: {
       success: "బిల్లు విజయవంతంగా నవీకరించబడింది!",
       errorWithReason: "బిల్లు నవీకరించేటప్పుడు లోపం: {{message}}",
-      loadErrorTitle: "⚠️ బిల్లు లోడ్ లోపం",
+      loadErrorTitle: "బిల్లు లోడ్ లోపం",
       noBillId: "ఎటువంటి బిల్లు ఐడీ ఇవ్వలేదు.",
       invalidData: "బిల్లు డేటా అందుబాటులో లేదు లేదా చెల్లదు.",
     },
@@ -762,7 +762,7 @@ export const te = {
     },
     charts: {
       titles: {
-        dailySpending: "📊 రోజువారీ ఖర్చు నమూనా",
+        dailySpending: "రోజువారీ ఖర్చు నమూనా",
         spendingTrends: "ఖర్చు ధోరణులు",
       },
       typeOptions: {
@@ -961,42 +961,42 @@ export const te = {
     extraLarge: "అధిక పెద్దది",
 
     // Profile Visibility Options
-    public: "🌍 పబ్లిక్ - ఎవరైనా చూడవచ్చు",
-    friendsOnly: "👥 స్నేహితులు మాత్రమే - పరిమిత ప్రాప్తి",
-    private: "🔒 ప్రైవేట్ - మీకు మాత్రమే",
+    public: "పబ్లిక్ - ఎవరైనా చూడవచ్చు",
+    friendsOnly: "స్నేహితులు మాత్రమే - పరిమిత ప్రాప్తి",
+    private: "ప్రైవేట్ - మీకు మాత్రమే",
 
     // Profile Visibility Labels (for chips)
-    publicLabel: "🌍 పబ్లిక్",
-    friendsLabel: "👥 స్నేహితులు",
-    privateLabel: "🔒 ప్రైవేట్",
+    publicLabel: "పబ్లిక్",
+    friendsLabel: "స్నేహితులు",
+    privateLabel: "ప్రైవేట్",
 
     // Time Format Options
-    time12h: "🕐 12-గంటలు (3:00 PM)",
-    time24h: "🕒 24-గంటలు (15:00)",
+    time12h: "12-గంటలు (3:00 PM)",
+    time24h: "24-గంటలు (15:00)",
 
     // Backup Frequency Options
-    daily: "📆 దినసరి",
-    weekly: "📅 వారానికి",
-    monthly: "🗓️ నెలకు",
-    manualOnly: "✋ మాన్యువల్ మాత్రమే",
+    daily: "దినసరి",
+    weekly: "వారానికి",
+    monthly: "నెలకు",
+    manualOnly: "మాన్యువల్ మాత్రమే",
 
     // Report Schedule Options
-    dailySummary: "📊 దినసరి సారాంశం",
-    weeklySummary: "📈 వారపు సారాంశం",
-    monthlySummary: "📉 నెలవారీ సారాంశం",
-    noScheduledReports: "🚫 షెడ్యూల్ చేసిన రిపోర్టులు లేవు",
+    dailySummary: "దినసరి సారాంశం",
+    weeklySummary: "వారపు సారాంశం",
+    monthlySummary: "నెలవారీ సారాంశం",
+    noScheduledReports: "షెడ్యూల్ చేసిన రిపోర్టులు లేవు",
 
     // Currency Options
-    currencyUSD: "💵 USD - అమెరికన్ డాలర్ ($)",
-    currencyEUR: "💶 EUR - యూరో (€)",
-    currencyGBP: "💷 GBP - బ్రిటిష్ పౌండ్ (£)",
-    currencyINR: "💴 INR - భారత రూపాయి (₹)",
-    currencyJPY: "💴 JPY - జపాన్ యెన్ (¥)",
+    currencyUSD: "USD - అమెరికన్ డాలర్ ($)",
+    currencyEUR: "EUR - యూరో (€)",
+    currencyGBP: "GBP - బ్రిటిష్ పౌండ్ (£)",
+    currencyINR: "INR - భారత రూపాయి (₹)",
+    currencyJPY: "JPY - జపాన్ యెన్ (¥)",
 
     // Date Format Options
-    dateFormatUS: "📅 MM/DD/YYYY (అమెరికా)",
-    dateFormatUK: "📅 DD/MM/YYYY (యుకె/ఈయు)",
-    dateFormatISO: "📅 YYYY-MM-DD (ISO)",
+    dateFormatUS: "MM/DD/YYYY (అమెరికా)",
+    dateFormatUK: "DD/MM/YYYY (యుకె/ఈయు)",
+    dateFormatISO: "YYYY-MM-DD (ISO)",
     usd: "USD - అమెరికన్ డాలర్ ($)",
     eur: "EUR - యూరో (€)",
     gbp: "GBP - బ్రిటిష్ పౌండ్ (£)",
@@ -1121,7 +1121,7 @@ export const te = {
     maxSize: "ఒక్కొక్కటి గరిష్టంగా 10MB",
     multiPageSupport: "బహుళ-పేజీ రసీదు మద్దతు",
     multiPageTip:
-      "💡 ఉత్తమ ఫలితాల కోసం బహుళ-పేజీ రసీదుల అన్ని పేజీలను అప్‌లోడ్ చేయండి",
+      "సూచన: ఉత్తమ ఫలితాల కోసం బహుళ-పేజీ రసీదుల అన్ని పేజీలను అప్‌లోడ్ చేయండి",
     page: "పేజీ",
     pages: "పేజీలు",
     receiptPage: "రసీదు పేజీ",

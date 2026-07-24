@@ -112,7 +112,7 @@ HighlightedText.displayName = "HighlightedText";
  */
 const getResultIconKey = (result) => {
   if (result?.icon) return result.icon;
-  return TYPE_ICONS[result?.type] || "📄";
+  return TYPE_ICONS[result?.type] || "bill";
 };
 
 /**

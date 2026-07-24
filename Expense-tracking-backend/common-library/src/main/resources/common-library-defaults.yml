@@ -31,7 +31,8 @@ common-library:
     max-size: 10000
   internal-service-auth:
     enabled: true
-    token: ${SERVICE_INTERNAL_TOKEN:${USER_SERVICE_INTERNAL_TOKEN:}}
+    # Static default; override with SERVICE_INTERNAL_TOKEN env if needed
+    token: ${SERVICE_INTERNAL_TOKEN:${USER_SERVICE_INTERNAL_TOKEN:expensio-static-internal-service-token-v1}}
 common:
   exception-handler:
     enabled: true
@@ -46,6 +47,158 @@ kafka:
     friend-request-events: friend-request-events
     friend-activity-events: friend-activity-events
     notification-events: notification-events
+
+# Feature dormancy defaults (override per deployment)
+features:
+  dormancy:
+    enabled: true
+  modules:
+    expenses: true
+    budgets: true
+    categories: true
+    paymentMethods: true
+    bills: true
+    friends: false
+    groups: false
+    sharing: false
+    reports: true
+    calendar: true
+    upload: true
+    utilities: true
+    chat: false
+    stories: true
+    investment: true
+    analytics: true
+    notifications: true
+    keyboardShortcuts: true
+    search: true
+    events: true
+    helpSupport: true
+    admin: false
+    auth: true
+    # Theme customization (accent color + light/dark toggle). false = dark mode only, no color/mode switching in Settings.
+    themeCustomization: false
+  # Sub-feature toggles (parent module false → all children off). Keys match FeatureSubCatalog.
+  subFeatures:
+    expenses:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      share: true
+      export: true
+      list: true
+      reports: true
+      bulkImport: true
+      transactions: true
+    budgets:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+    categories:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    paymentMethods:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      calendar: true
+      analytics: true
+    bills:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+      reports: true
+      upload: true
+      calendar: true
+    friends:
+      create: true
+      edit: true
+      delete: true
+      list: true
+      reports: true
+      chat: true
+      activity: true
+    groups:
+      create: true
+      edit: true
+      delete: true
+      view: true
+      export: true
+      list: true
+    sharing:
+      create: true
+      edit: true
+      delete: true
+      myShares: true
+      publicShares: true
+      sharedWithMe: true
+    reports:
+      overview: true
+      transactions: true
+      creditDue: true
+      export: true
+    calendar:
+      view: true
+      dayView: true
+      billDayView: true
+    upload:
+      expenses: true
+      categories: true
+      payments: true
+    utilities:
+      tools: true
+    chat:
+      messaging: true
+    stories:
+      feed: true
+    investment:
+      dashboard: true
+    notifications:
+      preferences: true
+    search:
+      universal: true
+    keyboardShortcuts:
+      global: true
+    helpSupport:
+      support: true
+    events:
+      planning: true
+    admin:
+      create: true
+      edit: true
+      delete: true
+      export: true
+      dashboard: true
+      users: true
+      roles: true
+      analytics: true
+      audit: true
+      reports: true
+      settings: true
+      stories: true
+    auth:
+      googleOauth: true
+      mfa: true
+      emailOtp: true
 
 # Eureka configuration defaults
 eureka:

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
+import SyncIcon from "@mui/icons-material/Sync";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { formatAmount as fmt } from "../../utils/formatting/formatAmount";
@@ -116,7 +117,16 @@ export default function TopRecurringExpensesCard({
       }}
     >
       <div className="chart-header" style={{ marginBottom: "14px" }}>
-        <h3 style={{ color: colors.primary_text, margin: "0 0 4px 0" }}>
+        <h3
+          style={{
+            color: colors.primary_text,
+            margin: "0 0 4px 0",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <SyncIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
           {title}
         </h3>
         <div className="chart-subtitle" style={{ color: subtitleColor }}>
@@ -224,7 +234,7 @@ TopRecurringExpensesCard.propTypes = {
 TopRecurringExpensesCard.defaultProps = {
   budgets: [],
   items: undefined,
-  title: "🔁 Top recurring expenses",
+  title: "Top recurring expenses",
   subtitle: "Aggregated by expense name across budgets",
   layout: "fullWidth",
 };

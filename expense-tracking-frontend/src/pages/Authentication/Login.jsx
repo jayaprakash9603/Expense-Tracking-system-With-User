@@ -16,6 +16,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 import { sanitizeInternalRedirect } from "../../utils/navigation/sanitizeInternalRedirect";
+import {
+  isFeatureEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../config/featureCatalog";
 
 const initialValues = { email: "", password: "" };
 
@@ -36,6 +40,11 @@ const validationSchema = Yup.object({
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const googleOauthEnabled = isFeatureEnabledInState(
+    featureFlags,
+    SUB_FEATURE_KEYS.AUTH_GOOGLE_OAUTH,
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
@@ -276,6 +285,8 @@ const Login = () => {
                 )}
               </Button>
 
+              {googleOauthEnabled && (
+              <>
               {/* Divider */}
               <div className="flex items-center gap-2 py-2">
                 <Divider
@@ -293,6 +304,8 @@ const Login = () => {
                 onError={(message) => setError(message)}
                 disabled={isSubmitting}
               />
+              </>
+              )}
 
               {/* Links */}
               <div className="flex flex-col items-center gap-3 pt-1">

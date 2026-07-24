@@ -11,7 +11,7 @@ import {
   Line,
 } from "recharts";
 import { IconButton, useMediaQuery } from "@mui/material";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import { ChevronLeft, ChevronRight, TrendingUp } from "@mui/icons-material";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
 
@@ -68,7 +68,18 @@ const MonthlyTrendChart = ({
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text }}>📈 Monthly Expense Trend</h3>
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Monthly Expense Trend
+        </h3>
         <div className="trend-stats">
           <span className="trend-up" style={{ color: colors.primary_accent }}>
             ↗ {base.length ? "12%" : "--"} vs last year

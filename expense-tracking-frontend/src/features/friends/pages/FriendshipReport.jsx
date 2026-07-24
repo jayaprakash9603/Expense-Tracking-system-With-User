@@ -21,6 +21,13 @@ import "../styles/FriendshipReport.css";
 import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import LockIcon from "@mui/icons-material/Lock";
+import SyncIcon from "@mui/icons-material/Sync";
+import GroupsIcon from "@mui/icons-material/Groups";
+import StarIcon from "@mui/icons-material/Star";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportHeader from "../../../components/ReportHeader";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
@@ -250,7 +257,18 @@ const LoadingSkeleton = ({ mode, visibleSections = [] }) => {
 // Access Level Distribution Chart
 const AccessLevelChart = ({ data, COLORS, colors }) => (
   <div className="chart-container chart-half-width">
-    <h3 style={{ color: colors.primary_text }}>🔐 Access Level Distribution</h3>
+    <h3
+      style={{
+        color: colors.primary_text,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: 0,
+      }}
+    >
+      <LockIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      Access Level Distribution
+    </h3>
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -286,8 +304,17 @@ const AccessLevelChart = ({ data, COLORS, colors }) => (
 // Friendship Activity Chart
 const FriendshipActivityChart = ({ data, colors }) => (
   <div className="chart-container chart-half-width">
-    <h3 style={{ color: colors.primary_text }}>
-      📈 Friendship Activity (Last 6 Months)
+    <h3
+      style={{
+        color: colors.primary_text,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: 0,
+      }}
+    >
+      <TrendingUpIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      Friendship Activity (Last 6 Months)
     </h3>
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
@@ -332,7 +359,18 @@ const FriendshipActivityChart = ({ data, colors }) => (
 // Sharing Status Chart
 const SharingStatusChart = ({ data, colors }) => (
   <div className="chart-container chart-half-width">
-    <h3 style={{ color: colors.primary_text }}>🔄 Sharing Status Overview</h3>
+    <h3
+      style={{
+        color: colors.primary_text,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        margin: 0,
+      }}
+    >
+      <SyncIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      Sharing Status Overview
+    </h3>
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} layout="vertical">
         <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
@@ -360,7 +398,9 @@ const SharingStatusChart = ({ data, colors }) => (
 // Top Friends Radial Chart
 const TopFriendsChart = ({ data, colors }) => (
   <div className="chart-container chart-half-width">
-    <h3 style={{ color: colors.primary_text }}>⭐ Top Active Friends</h3>
+    <h3 style={{ color: colors.primary_text, display: "flex", alignItems: "center", gap: 8 }}>
+      <StarIcon fontSize="small" sx={{ color: colors.primary_accent }} /> Top Active Friends
+    </h3>
     <ResponsiveContainer width="100%" height={300}>
       <RadialBarChart
         cx="50%"
@@ -402,7 +442,18 @@ const FriendsTable = ({ friends, colors }) => (
   <div className="chart-container full-width friends-table-container">
     <div className="table-header">
       <div>
-        <h3 style={{ color: colors.primary_text }}>👥 Friends Overview</h3>
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <GroupsIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Friends Overview
+        </h3>
         <p style={{ color: colors.secondary_text }}>
           {friends.length} friend{friends.length === 1 ? "" : "s"} total
         </p>
@@ -473,7 +524,9 @@ const FriendsTable = ({ friends, colors }) => (
 
 const NoDataMessage = ({ colors }) => (
   <div className="no-data-message">
-    <div className="no-data-icon">👥</div>
+    <div className="no-data-icon">
+      {getAccentFunctionalIcon("friends", colors.primary_accent, { sx: { fontSize: 48 } })}
+    </div>
     <h3 style={{ color: colors.primary_text }}>No friendship data found</h3>
     <p style={{ color: colors.secondary_text }}>
       Add some friends to see your friendship analytics.
@@ -657,7 +710,12 @@ const FriendshipReport = () => {
     return (
       <div className={`friendship-report ${mode}`}>
         <ReportHeader
-          title="👥 Friendship Report"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {getAccentFunctionalIcon("friends", colors.primary_accent, { sx: { fontSize: 28 } })}
+              <span>Friendship Report</span>
+            </Stack>
+          }
           subtitle="Analytics and insights about your connections"
           onBack={handleBack}
           rightActions={reportHeaderActions}
@@ -699,7 +757,12 @@ const FriendshipReport = () => {
   return (
     <div className={`friendship-report ${mode}`}>
       <ReportHeader
-        title="👥 Friendship Report"
+        title={
+          <Stack direction="row" alignItems="center" spacing={1}>
+            {getAccentFunctionalIcon("friends", colors.primary_accent, { sx: { fontSize: 28 } })}
+            <span>Friendship Report</span>
+          </Stack>
+        }
         subtitle="Analytics and insights about your connections"
         onBack={handleBack}
         rightActions={reportHeaderActions}

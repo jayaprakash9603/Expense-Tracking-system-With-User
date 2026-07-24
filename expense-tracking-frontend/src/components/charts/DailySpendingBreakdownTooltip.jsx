@@ -1,4 +1,5 @@
 import React from "react";
+import { Check as CheckIcon } from "@mui/icons-material";
 import { getEntityIcon } from "../../utils/ui/iconMapping";
 
 const BREAKPOINTS = {
@@ -355,7 +356,7 @@ const SectionHeader = ({
           lineHeight: 1,
         }}
       >
-        ✓
+        <CheckIcon sx={{ fontSize: (responsive?.sizes?.checkbox ?? 18) - 6 }} />
       </div>
       <div
         style={{

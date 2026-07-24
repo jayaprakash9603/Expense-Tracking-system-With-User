@@ -15,7 +15,9 @@ spring:
           default:
             connectTimeout: 5000
             readTimeout: 5000
-            loggerLevel: full
+            # basic = method + URL + status + timing only.
+            # full/headers would leak Authorization (JWT) and X-Service-Token headers.
+            loggerLevel: basic
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:5000/notification_service?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false}
     username: ${SPRING_DATASOURCE_USERNAME:root}

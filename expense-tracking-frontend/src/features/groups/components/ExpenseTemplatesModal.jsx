@@ -1,13 +1,21 @@
 import React from "react";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 
-const ExpenseTemplatesModal = ({ templates = [], onClose, onUseTemplate }) => (
+const ExpenseTemplatesModal = ({ templates = [], onClose, onUseTemplate }) => {
+  const { colors } = useTheme();
+
+  return (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div
       style={{ background: "#1b1b1b" }}
       className="p-6 rounded-xl w-full max-w-md"
     >
-      <h3 className="text-xl font-semibold text-white mb-4">
-        📋 Expense Templates
+      <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+        {getAccentFunctionalIcon("bill", colors.primary_accent, {
+          sx: { fontSize: 24 },
+        })}
+        Expense Templates
       </h3>
       <div className="space-y-3">
         {templates.length > 0 ? (
@@ -50,6 +58,7 @@ const ExpenseTemplatesModal = ({ templates = [], onClose, onUseTemplate }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default ExpenseTemplatesModal;

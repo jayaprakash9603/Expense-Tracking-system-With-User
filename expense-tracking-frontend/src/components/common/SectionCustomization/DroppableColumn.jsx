@@ -4,6 +4,8 @@ import { Box, Typography } from "@mui/material";
 import {
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Inventory2 as Inventory2Icon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
 import SectionItem from "./SectionItem";
 import { getDroppableStyles } from "./customizationStyles";
@@ -91,8 +93,16 @@ const DroppableColumn = ({
             fontSize: isMobile ? "0.8rem" : "0.9rem",
             letterSpacing: 0.5,
             textTransform: "uppercase",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.75,
           }}
         >
+          {isActive ? (
+            <CheckIcon sx={{ fontSize: "1rem", color: accentHex }} />
+          ) : (
+            <Inventory2Icon sx={{ fontSize: "1rem", color: accentHex }} />
+          )}
           {title}
         </Typography>
         {!isMobile && (
@@ -121,13 +131,17 @@ const DroppableColumn = ({
                 }}
               >
                 {EmptyIcon ? (
-                  <EmptyIcon sx={{ fontSize: 48, opacity: 0.3, mb: 1 }} />
+                  <EmptyIcon
+                    sx={{ fontSize: 48, opacity: 0.3, mb: 1, color: accentHex }}
+                  />
                 ) : isActive ? (
                   <VisibilityOffIcon
-                    sx={{ fontSize: 48, opacity: 0.3, mb: 1 }}
+                    sx={{ fontSize: 48, opacity: 0.3, mb: 1, color: accentHex }}
                   />
                 ) : (
-                  <VisibilityIcon sx={{ fontSize: 48, opacity: 0.3, mb: 1 }} />
+                  <VisibilityIcon
+                    sx={{ fontSize: 48, opacity: 0.3, mb: 1, color: accentHex }}
+                  />
                 )}
                 <Typography variant="body2">
                   {emptyMessage ||

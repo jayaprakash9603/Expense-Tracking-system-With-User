@@ -28,6 +28,7 @@ import {
   SETTINGS_SECTIONS,
   PROFILE_VISIBILITY_MESSAGES,
 } from "../constants/settingsConfig";
+import { isFeatureEnabledInState } from "../../../config/featureCatalog";
 import {
   getThemeIcon,
   getThemeDescription,
@@ -58,6 +59,7 @@ const Settings = () => {
   const { settings: userSettings } = useSelector(
     (state) => state.userSettings || {},
   );
+  const featureFlags = useSelector((state) => state.featureFlags);
   const notificationPreferences = useSelector(
     (state) => state.notificationPreferences?.preferences,
   );
@@ -397,6 +399,16 @@ const Settings = () => {
       return <AppInfoSection key={section.id} colors={colors} />;
     }
 
+    const visibleItems = section.items.filter(
+      (item) =>
+        !item.featureKey ||
+        isFeatureEnabledInState(featureFlags, item.featureKey),
+    );
+
+    if (visibleItems.length === 0) {
+      return null;
+    }
+
     const title = section.titleKey ? t(section.titleKey) : section.title;
     const isSectionActive = isSectionHighlighted(section.id);
 
@@ -418,7 +430,7 @@ const Settings = () => {
           }
           isHighlighted={isSectionActive}
         >
-          {section.items.map((item) => renderSettingItem(item))}
+          {visibleItems.map((item) => renderSettingItem(item))}
         </SettingSection>
       </Box>
     );

@@ -13,7 +13,11 @@ import {
 } from "recharts";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
 import EmptyStateCard from "../../components/EmptyStateCard";
-import { getEntityIcon } from "../../utils/ui/iconMapping";
+import {
+  getEntityIcon,
+  getAccentFunctionalIcon,
+  applyAccentToIcon,
+} from "../../utils/ui/iconMapping";
 
 // Generic reusable Pie/Donut chart component with MUI tooltips
 // Props:
@@ -204,8 +208,17 @@ const renderActiveShape = (props, themeColors) => {
   );
 };
 
+const stripLeadingEmoji = (text) => {
+  if (typeof text !== "string") return text;
+  return (
+    text.replace(/^[\s\p{Extended_Pictographic}\uFE0F\u200D]+/gu, "").trim() ||
+    text
+  );
+};
+
 const ReusablePieChart = ({
   title = "Pie Chart",
+  titleIcon,
   data,
   rawData,
   timeframe,
@@ -355,7 +368,22 @@ const ReusablePieChart = ({
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: themeColors.primary_text }}>{title}</h3>
+        <h3
+          style={{
+            color: themeColors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          {titleIcon
+            ? applyAccentToIcon(titleIcon, themeColors.primary_accent)
+            : getAccentFunctionalIcon("chart", themeColors.primary_accent, {
+                sx: { fontSize: 22 },
+              })}
+          {typeof title === "string" ? stripLeadingEmoji(title) : title}
+        </h3>
         {controls && (
           <div className="chart-controls">
             {onTimeframeChange && (
@@ -398,7 +426,7 @@ const ReusablePieChart = ({
         <Box sx={{ position: "relative", width: "100%", height }}>
           {showEmpty ? (
             <EmptyStateCard
-              icon="📊"
+              icon="chart"
               title="No distribution data"
               message="We couldn't find any data for this timeframe yet."
               height={height}

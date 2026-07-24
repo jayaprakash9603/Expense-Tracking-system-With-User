@@ -1,4 +1,5 @@
 import React from "react";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ReusablePieChart from "./ReusablePieChart";
 
 // Wrapper specialized for Payment Methods (non-donut pie)
@@ -60,7 +61,8 @@ const PaymentMethodChart = ({
 
   return (
     <ReusablePieChart
-      title="💳 Payment Methods"
+      title="Payment Methods"
+      titleIcon={<CreditCardIcon sx={{ fontSize: 22 }} />}
       data={rawData || data}
       rawData={rawData}
       timeframe={timeframe}

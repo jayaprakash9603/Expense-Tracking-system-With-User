@@ -28,6 +28,7 @@ import React, {
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { useTheme } from "../../../hooks/useTheme";
 import FloatingNotificationItem from "./FloatingNotificationItem";
 import { getNotificationConfig } from "./constants/notificationTypes";
@@ -612,7 +613,7 @@ const FloatingNotificationContainer = () => {
               },
             }}
           >
-            <span style={{ fontSize: "12px" }}>✕</span>
+            <CloseIcon sx={{ fontSize: 14 }} />
             Clear All
           </Box>
         )}

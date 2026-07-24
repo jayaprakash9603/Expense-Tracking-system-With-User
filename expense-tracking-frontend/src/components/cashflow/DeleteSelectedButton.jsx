@@ -5,8 +5,9 @@ const DeleteSelectedButton = ({
   onDelete,
   isMobile,
   hasWriteAccess,
+  deleteEnabled = true,
 }) => {
-  if (count <= 1 || !hasWriteAccess) return null;
+  if (count <= 1 || !hasWriteAccess || !deleteEnabled) return null;
   return (
     <button
       onClick={onDelete}

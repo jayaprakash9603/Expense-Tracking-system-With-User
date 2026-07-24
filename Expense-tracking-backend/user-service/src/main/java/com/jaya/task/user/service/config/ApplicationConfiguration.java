@@ -81,7 +81,11 @@ public class ApplicationConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/config/features").permitAll()
+                        // SockJS/STOMP handshake endpoints (JWT is validated after CONNECT)
+                        .requestMatchers("/notifications/**", "/chat/**", "/ws-stories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/all")
                         .hasAnyAuthority("ADMIN", "ROLE_ADMIN")
                         .requestMatchers("/api/user/*/roles").hasAnyAuthority("ADMIN", "ROLE_ADMIN")

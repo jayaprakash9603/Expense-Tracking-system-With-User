@@ -324,6 +324,7 @@ import {
   Sort,
   Visibility as VisibilityAlt,
   Dashboard as DashboardIcon,
+  Save,
 } from "@mui/icons-material";
 
 /**
@@ -887,7 +888,6 @@ export const categoryIconMap = {
   work: Work,
   job: Work,
   career: Work,
-  office: Business,
   meeting: Forum,
   presentation: BarChart,
   document: Description,
@@ -1126,7 +1126,6 @@ export const categoryIconMap = {
   attorney: Gavel,
   court: Gavel,
   contract: Description,
-  document: Description,
   agreement: Description,
   policy: Shield,
   calendar: CalendarMonth,
@@ -1594,6 +1593,18 @@ export const actionIconMap = {
   csv: TableChart,
   table: TableChart,
   chart: BarChart,
+  campaign: Campaign,
+  dark: NightsStay,
+  save: Save,
+  mute: VolumeOff,
+  lock: Lock,
+  email: Email,
+  chat: Chat,
+  family: FamilyRestroom,
+  public: Public,
+  cloud: CloudQueue,
+  visibility: VisibilityAlt,
+  link: AttachFile,
 };
 
 /**
@@ -1629,6 +1640,34 @@ export const resolveFunctionalIconComponent = (iconKey) => {
 export const getFunctionalIcon = (iconKey, props = {}) => {
   const Icon = resolveFunctionalIconComponent(iconKey) || Category;
   return <Icon {...props} />;
+};
+
+/**
+ * Functional/UI icon tinted with the active theme accent (primary_accent).
+ * Prefer this for section titles, empty states, and chrome — not entity icons.
+ *
+ * @param {string} iconKey
+ * @param {string} accentColor - typically colors.primary_accent from useTheme()
+ * @param {object} props - Additional MUI icon props; sx.color overrides accent if set
+ */
+export const getAccentFunctionalIcon = (iconKey, accentColor, props = {}) => {
+  const { sx = {}, ...rest } = props;
+  return getFunctionalIcon(iconKey, {
+    ...rest,
+    sx: { color: accentColor, ...sx },
+  });
+};
+
+/**
+ * Apply theme accent color to an existing MUI icon element (e.g. titleIcon prop).
+ * Existing sx.color wins when already set.
+ */
+export const applyAccentToIcon = (iconElement, accentColor) => {
+  if (!React.isValidElement(iconElement)) return iconElement;
+  const existingSx = iconElement.props?.sx || {};
+  return React.cloneElement(iconElement, {
+    sx: { color: accentColor, ...existingSx },
+  });
 };
 
 /**

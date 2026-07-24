@@ -1,4 +1,6 @@
 import React from "react";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 
 const OverviewTabContent = ({
   groupData,
@@ -12,6 +14,8 @@ const OverviewTabContent = ({
   setShowDebtSimplification,
   formatTime,
 }) => {
+  const { colors } = useTheme();
+
   // Add null checks and default values
   const safeGroupData = groupData || {};
   const safeExpenses = expenses || [];
@@ -74,37 +78,37 @@ const OverviewTabContent = ({
           {[
             {
               label: "Split Calculator",
-              icon: "🧮",
+              iconKey: "calculator",
               onClick: () => setShowSplitCalculator(true),
               color: "bg-blue-500 hover:bg-blue-600",
             },
             {
               label: "Budget Tracker",
-              icon: "💰",
+              iconKey: "budget",
               onClick: () => setShowBudgetTracker(true),
               color: "bg-green-500 hover:bg-green-600",
             },
             {
               label: "Templates",
-              icon: "📋",
+              iconKey: "bill",
               onClick: () => setShowExpenseTemplates(true),
               color: "bg-purple-500 hover:bg-purple-600",
             },
             {
               label: "Recurring",
-              icon: "🔄",
+              iconKey: "sync",
               onClick: () => setShowRecurringExpenses(true),
               color: "bg-orange-500 hover:bg-orange-600",
             },
             {
               label: "Analytics",
-              icon: "📊",
+              iconKey: "analytics",
               onClick: () => setShowGroupAnalytics(true),
               color: "bg-pink-500 hover:bg-pink-600",
             },
             {
               label: "Debt Simplify",
-              icon: "⚖️",
+              iconKey: "balance",
               onClick: () => setShowDebtSimplification(true),
               color: "bg-indigo-500 hover:bg-indigo-600",
             },
@@ -115,7 +119,9 @@ const OverviewTabContent = ({
               className={`${action.color} text-white p-4 rounded-lg transition-colors`}
             >
               <div className="text-center">
-                <div className="text-2xl mb-2">{action.icon}</div>
+                <div className="mb-2 flex justify-center">
+                  {getAccentFunctionalIcon(action.iconKey, colors.primary_accent, { sx: { fontSize: 28 } })}
+                </div>
                 <div className="font-semibold">{action.label}</div>
               </div>
             </button>

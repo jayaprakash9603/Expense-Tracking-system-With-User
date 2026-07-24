@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useSelector } from "react-redux";
 import { Filter } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import BackButton from "./common/BackButton";
@@ -9,6 +10,7 @@ import {
   DEFAULT_REPORT_TIMEFRAMES,
   DEFAULT_REPORT_FLOW_TYPES,
 } from "../constants/reportFilters";
+import { isFeatureEnabledInState } from "../config/featureCatalog";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -63,8 +65,12 @@ const ReportHeader = ({
   showBackButton = true,
   stickyBackground = null,
   onCustomize,
+  exportFeatureKey = "reports.export",
 }) => {
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const exportEnabled = isFeatureEnabledInState(featureFlags, exportFeatureKey);
+  const showExport = showExportButton && exportEnabled;
   const selectStyle = {
     background: colors.primary_bg,
     border: `1px solid ${colors.border_color}`,
@@ -414,9 +420,9 @@ const ReportHeader = ({
               ) : null}
             </button>
           ) : null}
-          {showExportButton || onCustomize ? (
+          {showExport || onCustomize ? (
             <ReportActionMenu 
-              onExport={showExportButton ? onExport : undefined}
+              onExport={showExport ? onExport : undefined}
               onCustomize={onCustomize}
             />
           ) : null}

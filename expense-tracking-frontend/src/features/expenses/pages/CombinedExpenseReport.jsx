@@ -5,6 +5,7 @@ import useCategoryDistributionData from "../../categories/hooks/useCategoryDistr
 import usePaymentMethodsData from "../../payment-methods/hooks/usePaymentMethodsData";
 import useExpenseReportLayout from "../hooks/useExpenseReportLayout";
 import ReportHeader from "../../../components/ReportHeader";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import GroupedExpensesAccordion from "../../../components/GroupedExpensesAccordion";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import CategoryBreakdownChart from "../../../pages/Dashboard/CategoryBreakdownChart";
@@ -26,6 +27,8 @@ import {
 import { DailySpendingSkeleton } from "../../../pages/Dashboard";
 import { getChartColors } from "../../../utils/charts/chartColors";
 import { useTheme } from "../../../hooks/useTheme";
+import { Stack } from "@mui/material";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useExpenseReportFilters from "../../reports/hooks/reportFilters/useExpenseReportFilters";
 import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenCard";
@@ -210,6 +213,7 @@ export default function CombinedExpenseReport() {
   // Three-dot menu component using reusable ReportActionsMenu
   const reportHeaderActions = (
     <ReportActionsMenu
+      exportFeatureKey={SUB_FEATURE_KEYS.EXPENSES_EXPORT}
       menuItems={createDefaultReportMenuItems({
         onExport: handleExport,
         onCustomize: () => setCustomizationOpen(true),
@@ -242,7 +246,12 @@ export default function CombinedExpenseReport() {
         >
           <ReportHeader
             className="payment-methods-header"
-            title="🧾 Expenses Report"
+            title={
+              <Stack direction="row" alignItems="center" spacing={1}>
+                {getAccentFunctionalIcon("bill", colors.primary_accent, { sx: { fontSize: 28 } })}
+                <span>Expenses Report</span>
+              </Stack>
+            }
             subtitle="Expenses grouped together"
             timeframe={timeframe}
             onTimeframeChange={setTimeframe}
@@ -250,6 +259,7 @@ export default function CombinedExpenseReport() {
             flowType={flowType}
             onFlowTypeChange={setFlowType}
             onExport={handleExport}
+            exportFeatureKey={SUB_FEATURE_KEYS.EXPENSES_EXPORT}
             onCustomize={() => setCustomizationOpen(true)}
             showFilterButton={false}
           />
@@ -444,7 +454,12 @@ export default function CombinedExpenseReport() {
       >
         <ReportHeader
           className="payment-methods-header"
-          title="🧾 Expenses Report"
+          title={
+            <Stack direction="row" alignItems="center" spacing={1}>
+              {getAccentFunctionalIcon("bill", colors.primary_accent, { sx: { fontSize: 28 } })}
+              <span>Expenses Report</span>
+            </Stack>
+          }
           subtitle="Expenses grouped together"
           timeframe={timeframe}
           onTimeframeChange={setTimeframe}
@@ -463,6 +478,7 @@ export default function CombinedExpenseReport() {
           filterButtonLabel="Filter"
           isFilterActive={filtersActive}
           onExport={handleExport}
+          exportFeatureKey={SUB_FEATURE_KEYS.EXPENSES_EXPORT}
           onCustomize={() => setCustomizationOpen(true)}
         />
       </div>
@@ -530,7 +546,7 @@ export default function CombinedExpenseReport() {
                       showBothTypesWhenAll
                       height={260}
                       loading={loading}
-                      title="📊 Daily Spending Pattern"
+                      title="Daily Spending Pattern"
                       onPointClick={handleDailyPointClick}
                     />
 

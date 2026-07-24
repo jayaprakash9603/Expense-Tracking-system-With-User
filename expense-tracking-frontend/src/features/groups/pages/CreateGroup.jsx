@@ -19,6 +19,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchFriends } from "../../../Redux/Friends/friendsActions";
 import { createGroup } from "../../../Redux/Groups/groupsActions";
 import { useTheme } from "../../../hooks/useTheme";
+import { getAccentFunctionalIcon, isEmojiGlyph } from "../../../utils/ui/iconMapping";
+
+const renderAvatarChrome = (avatar, size = 24, accentColor) => {
+  if (avatar && isEmojiGlyph(avatar) && avatar !== "👥") {
+    return (
+      <span style={{ fontSize: size, lineHeight: 1, color: "inherit" }}>
+        {avatar}
+      </span>
+    );
+  }
+  return getAccentFunctionalIcon("groups", accentColor, { sx: { fontSize: size } });
+};
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -363,11 +375,12 @@ const CreateGroup = () => {
                         <InputAdornment position="start">
                           <span
                             style={{
-                              fontSize: "1.5rem",
+                              display: "flex",
+                              alignItems: "center",
                               color: colors.primary_accent,
                             }}
                           >
-                            {formData.avatar}
+                            {renderAvatarChrome(formData.avatar, 24, colors.primary_accent)}
                           </span>
                         </InputAdornment>
                       ),
@@ -1137,7 +1150,7 @@ const CreateGroup = () => {
             </>
           ) : (
             <>
-              <span>{formData.avatar}</span>
+              {renderAvatarChrome(formData.avatar, 20, colors.primary_accent)}
               <span>Create Group</span>
             </>
           )}

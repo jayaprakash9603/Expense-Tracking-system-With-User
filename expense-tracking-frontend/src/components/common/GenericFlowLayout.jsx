@@ -169,6 +169,7 @@ const GenericFlowLayout = ({
           hasWriteAccess={
             deleteButtonExtraProps.hasWriteAccess ?? hasWriteAccess
           }
+          deleteEnabled={deleteButtonExtraProps.deleteEnabled ?? true}
           onDelete={deleteButtonExtraProps.onDelete}
         />
         <FlowToggleButton

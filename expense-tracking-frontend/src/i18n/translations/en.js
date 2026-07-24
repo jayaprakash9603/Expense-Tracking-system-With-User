@@ -585,7 +585,7 @@ export const en = {
       title: "Expense Items Summary",
       singleItem: "{{count}} item added",
       multipleItems: "{{count}} items added",
-      noItemsTitle: "⚠️ No expense items added yet",
+      noItemsTitle: "No expense items added yet",
     },
     messages: {
       noItemsCreate: "At least one expense item is required to create a bill",
@@ -608,7 +608,7 @@ export const en = {
       title: "Scan Receipt",
       buttonLabel: "Scan Receipt",
       tooltip: "Scan receipt using OCR to auto-fill expense details",
-      tip: "💡 Tip: Upload all pages of your receipt for best results",
+      tip: "Tip: Upload all pages of your receipt for best results",
       dropTitle: "Drop your receipt pages here",
       dropSubtitle: "or click to browse files",
       supportedFormats: "Supports: JPG, PNG, GIF, BMP, TIFF (max 10MB each)",
@@ -709,7 +709,7 @@ export const en = {
     messages: {
       success: "Bill updated successfully!",
       errorWithReason: "Error updating bill: {{message}}",
-      loadErrorTitle: "⚠️ Error Loading Bill",
+      loadErrorTitle: "Error Loading Bill",
       noBillId: "No bill ID provided.",
       invalidData: "Bill data is missing or invalid.",
     },
@@ -758,7 +758,7 @@ export const en = {
     },
     charts: {
       titles: {
-        dailySpending: "📊 Daily Spending Pattern",
+        dailySpending: "Daily Spending Pattern",
         spendingTrends: "Spending Trends",
       },
       typeOptions: {
@@ -986,42 +986,42 @@ export const en = {
     extraLarge: "Extra Large",
 
     // Profile Visibility Options
-    public: "🌍 Public - Anyone can view",
-    friendsOnly: "👥 Friends Only - Restricted access",
-    private: "🔒 Private - Only you",
+    public: "Public - Anyone can view",
+    friendsOnly: "Friends Only - Restricted access",
+    private: "Private - Only you",
 
     // Profile Visibility Labels (for chips)
-    publicLabel: "🌍 Public",
-    friendsLabel: "👥 Friends",
-    privateLabel: "🔒 Private",
+    publicLabel: "Public",
+    friendsLabel: "Friends",
+    privateLabel: "Private",
 
     // Time Format Options
-    time12h: "🕐 12-hour (3:00 PM)",
-    time24h: "🕒 24-hour (15:00)",
+    time12h: "12-hour (3:00 PM)",
+    time24h: "24-hour (15:00)",
 
     // Backup Frequency Options
-    daily: "📆 Daily",
-    weekly: "📅 Weekly",
-    monthly: "🗓️ Monthly",
-    manualOnly: "✋ Manual Only",
+    daily: "Daily",
+    weekly: "Weekly",
+    monthly: "Monthly",
+    manualOnly: "Manual Only",
 
     // Report Schedule Options
-    dailySummary: "📊 Daily Summary",
-    weeklySummary: "📈 Weekly Summary",
-    monthlySummary: "📉 Monthly Summary",
-    noScheduledReports: "🚫 No Scheduled Reports",
+    dailySummary: "Daily Summary",
+    weeklySummary: "Weekly Summary",
+    monthlySummary: "Monthly Summary",
+    noScheduledReports: "No Scheduled Reports",
 
     // Currency Options
-    currencyUSD: "💵 USD - US Dollar ($)",
-    currencyEUR: "💶 EUR - Euro (€)",
-    currencyGBP: "💷 GBP - British Pound (£)",
-    currencyINR: "💴 INR - Indian Rupee (₹)",
-    currencyJPY: "💴 JPY - Japanese Yen (¥)",
+    currencyUSD: "USD - US Dollar ($)",
+    currencyEUR: "EUR - Euro (€)",
+    currencyGBP: "GBP - British Pound (£)",
+    currencyINR: "INR - Indian Rupee (₹)",
+    currencyJPY: "JPY - Japanese Yen (¥)",
 
     // Date Format Options
-    dateFormatUS: "📅 MM/DD/YYYY (US)",
-    dateFormatUK: "📅 DD/MM/YYYY (UK/EU)",
-    dateFormatISO: "📅 YYYY-MM-DD (ISO)",
+    dateFormatUS: "MM/DD/YYYY (US)",
+    dateFormatUK: "DD/MM/YYYY (UK/EU)",
+    dateFormatISO: "YYYY-MM-DD (ISO)",
     usd: "USD - US Dollar ($)",
     eur: "EUR - Euro (€)",
     gbp: "GBP - British Pound (£)",
@@ -1145,7 +1145,7 @@ export const en = {
     orBrowse: "or click to browse files",
     maxSize: "Max 10MB each",
     multiPageSupport: "Multi-page receipt support",
-    multiPageTip: "💡 Upload all pages of multi-page receipts for best results",
+    multiPageTip: "Tip: Upload all pages of multi-page receipts for best results",
     page: "page",
     pages: "pages",
     receiptPage: "Receipt page",

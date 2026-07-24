@@ -13,8 +13,9 @@
  * =============================================================================
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Box,
   Typography,
@@ -31,52 +32,69 @@ import BuildIcon from "@mui/icons-material/Build";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ChatIcon from "@mui/icons-material/Chat";
 import { useTheme } from "../../../hooks/useTheme";
+import {
+  isFeatureEnabledInState,
+  SUB_FEATURE_KEYS,
+} from "../../../config/featureCatalog";
 
 const Utilities = () => {
   const isSmallScreen = useMediaQuery("(max-width: 768px)");
   const navigate = useNavigate();
   const { colors } = useTheme();
+  const featureFlags = useSelector((state) => state.featureFlags);
 
-  const utilityItems = [
-    {
-      title: "My Shares",
-      description:
-        "Manage and create QR code shares for your expenses, budgets, and reports",
-      icon: ShareIcon,
-      path: "/my-shares",
-      color: "#14b8a6",
-      gradient: "linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)",
-    },
-    {
-      title: "Public Shares",
-      description:
-        "Browse and discover publicly shared expense data from all users",
-      icon: PublicIcon,
-      path: "/public-shares",
-      color: "#8b5cf6",
-      gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-    },
-    {
-      title: "Shared With Me",
-      description: "Access QR code shares that others have shared with you",
-      icon: PersonAddIcon,
-      path: "/shared-with-me",
-      color: "#f59e0b",
-      gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-    },
-  ];
+  const utilityItems = useMemo(
+    () =>
+      [
+        {
+          title: "My Shares",
+          description:
+            "Manage and create QR code shares for your expenses, budgets, and reports",
+          icon: ShareIcon,
+          path: "/my-shares",
+          color: "#14b8a6",
+          gradient: "linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)",
+          featureKey: SUB_FEATURE_KEYS.SHARING_MY_SHARES,
+        },
+        {
+          title: "Public Shares",
+          description:
+            "Browse and discover publicly shared expense data from all users",
+          icon: PublicIcon,
+          path: "/public-shares",
+          color: "#8b5cf6",
+          gradient: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+          featureKey: SUB_FEATURE_KEYS.SHARING_PUBLIC,
+        },
+        {
+          title: "Shared With Me",
+          description: "Access QR code shares that others have shared with you",
+          icon: PersonAddIcon,
+          path: "/shared-with-me",
+          color: "#f59e0b",
+          gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+          featureKey: SUB_FEATURE_KEYS.SHARING_SHARED_WITH_ME,
+        },
+      ].filter((item) => isFeatureEnabledInState(featureFlags, item.featureKey)),
+    [featureFlags],
+  );
 
-  const communicationItems = [
-    {
-      title: "Friend Chat",
-      description:
-        "Chat with your friends in real-time with WhatsApp-like messaging experience",
-      icon: ChatIcon,
-      path: "/friend-chat",
-      color: "#25D366",
-      gradient: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
-    },
-  ];
+  const communicationItems = useMemo(
+    () =>
+      [
+        {
+          title: "Friend Chat",
+          description:
+            "Chat with your friends in real-time with WhatsApp-like messaging experience",
+          icon: ChatIcon,
+          path: "/friend-chat",
+          color: "#25D366",
+          gradient: "linear-gradient(135deg, #25D366 0%, #128C7E 100%)",
+          featureKey: SUB_FEATURE_KEYS.FRIENDS_CHAT,
+        },
+      ].filter((item) => isFeatureEnabledInState(featureFlags, item.featureKey)),
+    [featureFlags],
+  );
 
   return (
     <Box
@@ -138,6 +156,7 @@ const Utilities = () => {
       <Divider sx={{ borderColor: colors.border, mb: 3 }} />
 
       {/* Sharing Section */}
+      {utilityItems.length > 0 && (
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h6"
@@ -261,7 +280,9 @@ const Utilities = () => {
           })}
         </Grid>
       </Box>
+      )}
 
+      {communicationItems.length > 0 && (
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h6"
@@ -382,6 +403,7 @@ const Utilities = () => {
           })}
         </Grid>
       </Box>
+      )}
 
       <Box
         sx={{

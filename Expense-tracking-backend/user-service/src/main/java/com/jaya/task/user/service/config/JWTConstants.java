@@ -1,16 +1,15 @@
 package com.jaya.task.user.service.config;
 
-public class JWTConstants {
+import com.jaya.common.security.JwtSecretConstants;
 
-    
-
-
-
-
-
-    public static final String SECRET_KEY = System.getenv("JWT_SECRET") != null
-            ? System.getenv("JWT_SECRET")
-            : "your-secret-key-for-jwt-token-generation-min-256-bits";
+public final class JWTConstants {
 
     public static final String JWT_HEADER = "Authorization";
+
+    private JWTConstants() {
+    }
+
+    public static String getSecretKey() {
+        return JwtSecretConstants.SECRET;
+    }
 }

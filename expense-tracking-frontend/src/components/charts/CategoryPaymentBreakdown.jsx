@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import {
   BarChart,
   Bar,
@@ -51,8 +52,17 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text }}>
-          🏷️ Category-wise Payment Breakdown
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <LocalOfferIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          Category-wise Payment Breakdown
         </h3>
         <div
           className="chart-subtitle"

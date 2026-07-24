@@ -10,7 +10,10 @@ public class FeignConfig {
 
     @Bean
     Logger.Level feignLoggerLevel() {
-        return Logger.Level.FULL;
+        // BASIC logs only method, URL, response status and timing.
+        // FULL/HEADERS would leak the forwarded "Authorization: Bearer <JWT>"
+        // and "X-Service-Token" headers into plaintext logs.
+        return Logger.Level.BASIC;
     }
 
     @Bean

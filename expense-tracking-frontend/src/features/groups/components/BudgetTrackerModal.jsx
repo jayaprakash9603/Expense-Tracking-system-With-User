@@ -1,6 +1,10 @@
 import React from "react";
+import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
+import { useTheme } from "../../../hooks/useTheme";
 
 const BudgetTrackerModal = ({ show, onClose, budgetTracker }) => {
+  const { colors } = useTheme();
+
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -8,8 +12,11 @@ const BudgetTrackerModal = ({ show, onClose, budgetTracker }) => {
         style={{ background: "#1b1b1b" }}
         className="p-6 rounded-xl w-full max-w-lg"
       >
-        <h3 className="text-xl font-semibold text-white mb-4">
-          📊 Budget Tracker
+        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          {getAccentFunctionalIcon("budget", colors.primary_accent, {
+            sx: { fontSize: 24 },
+          })}
+          Budget Tracker
         </h3>
         <div className="space-y-4">
           <div className="bg-gray-800 p-4 rounded-lg">

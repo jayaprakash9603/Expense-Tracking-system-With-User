@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import { useTheme } from "../../hooks/useTheme";
 
 // Inject skeleton keyframes once into document head
@@ -90,7 +91,7 @@ const RecentTransactionsSkeleton = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: "1.25rem", ...pulseStyle }}>🕒</span>
+            <ScheduleIcon sx={{ fontSize: "1.25rem", ...pulseStyle }} />
             <div
               style={{
                 width: 160,

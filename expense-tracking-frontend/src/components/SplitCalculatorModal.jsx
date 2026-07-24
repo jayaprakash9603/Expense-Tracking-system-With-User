@@ -1,4 +1,6 @@
 import React from "react";
+import { AttachMoney as AttachMoneyIcon } from "@mui/icons-material";
+import { useTheme } from "../hooks/useTheme";
 
 const SplitCalculatorModal = ({
   show,
@@ -8,6 +10,7 @@ const SplitCalculatorModal = ({
   groupData,
   handleCalculateSplit,
 }) => {
+  const { colors } = useTheme();
   if (!show) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -15,8 +18,11 @@ const SplitCalculatorModal = ({
         style={{ background: "#1b1b1b" }}
         className="p-6 rounded-xl w-full max-w-md"
       >
-        <h3 className="text-xl font-semibold text-white mb-4">
-          💰 Split Calculator
+        <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+          <AttachMoneyIcon
+            sx={{ fontSize: 24, color: colors.primary_accent }}
+          />
+          Split Calculator
         </h3>
 
         <div className="space-y-4">

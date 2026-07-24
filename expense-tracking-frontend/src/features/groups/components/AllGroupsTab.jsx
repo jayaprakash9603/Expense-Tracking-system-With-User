@@ -5,6 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { leaveGroup, fetchAllGroups } from "../../../Redux/Groups/groupsActions";
 import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
+import { getAccentFunctionalIcon, isEmojiGlyph } from "../../../utils/ui/iconMapping";
+
+const renderGroupAvatar = (avatar, size = 30, accentColor) => {
+  if (avatar && isEmojiGlyph(avatar)) {
+    return <span style={{ fontSize: size, lineHeight: 1 }}>{avatar}</span>;
+  }
+  return getAccentFunctionalIcon("groups", accentColor, { sx: { fontSize: size } });
+};
 
 const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
   const dispatch = useDispatch();
@@ -182,7 +190,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                         height: "32px",
                       }}
                     >
-                      <span className="text-lg">🚪</span>
+                      {getAccentFunctionalIcon("logout", colors.primary_accent, { sx: { fontSize: 20 } })}
                       <span className="font-medium">Leave Group</span>
                     </button>
                   </div>
@@ -196,7 +204,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
               ></div>
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="text-3xl">{group.avatar || "👥"}</div>
+                  <div className="text-3xl">{renderGroupAvatar(group.avatar, 30, colors.primary_accent)}</div>
                   <div className="text-right pr-8">
                     <div
                       className="text-sm"
@@ -290,7 +298,9 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
         </div>
       ) : (
         <div className="text-center py-20">
-          <div className="text-6xl mb-4">🔍</div>
+          <div className="mb-4 flex justify-center">
+            {getAccentFunctionalIcon("search", colors.primary_accent, { sx: { fontSize: 56, opacity: 0.6 } })}
+          </div>
           <h3
             className="text-2xl font-bold mb-2"
             style={{ color: colors.primary_text }}
