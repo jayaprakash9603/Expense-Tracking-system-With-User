@@ -459,7 +459,6 @@ const Budget = () => {
             outlineOffset: "2px",
           },
           "&:hover": {
-            borderColor: colors.primary_accent,
             background: isSelected
               ? `linear-gradient(135deg, ${colors.primary_accent}24 0%, ${colors.primary_bg} 100%)`
               : colors.hover_bg || colors.tertiary_bg,
@@ -631,7 +630,7 @@ const Budget = () => {
               borderTop: `1px solid ${colors.border_color}`,
             }}
           >
-            <CalendarIcon sx={{ color: colors.icon_muted, fontSize: "1rem" }} />
+            <CalendarIcon sx={{ color: colors.secondary_text, fontSize: "1rem" }} />
             <Typography
               variant="caption"
               sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
@@ -1594,18 +1593,21 @@ const Budget = () => {
                       borderColor: colors.primary_accent,
                       transform: "translateY(-2px)",
                       boxShadow: `0 4px 12px rgba(20, 184, 166, 0.3)`,
+                      "& .MuiSvgIcon-root": {
+                        color: "#fff",
+                      },
                     },
                   }}
                 >
                   <SortIcon
                     fontSize="small"
                     sx={{
-                      color: colors.primary_accent,
+                      color: "inherit",
                       transform:
                         sortOrder === "desc"
                           ? "rotate(180deg)"
                           : "rotate(0deg)",
-                      transition: "transform 0.3s ease",
+                      transition: "transform 0.3s ease, color 0.3s ease",
                     }}
                   />
                 </IconButton>
@@ -1744,10 +1746,6 @@ const Budget = () => {
                   color: colors.primary_text,
                   border: `1px solid ${colors.border_color}`,
                   borderRadius: "12px",
-                  transition: "border-color 0.2s ease",
-                  "&:hover": {
-                    borderColor: colors.primary_accent,
-                  },
                   "& .MuiDataGrid-virtualScroller": {
                     "&::-webkit-scrollbar": {
                       width: "8px",
