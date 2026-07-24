@@ -4,6 +4,7 @@ import SyncIcon from "@mui/icons-material/Sync";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { formatAmount as fmt } from "../../utils/formatting/formatAmount";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 const normalizeName = (value) =>
   String(value ?? "")
@@ -81,8 +82,9 @@ export default function TopRecurringExpensesCard({
     return sorted.slice(0, 5);
   }, [budgets, items]);
 
-  if ((!budgets || budgets.length === 0) && (!items || items.length === 0))
-    return null;
+  const hasSourceData =
+    (Array.isArray(budgets) && budgets.length > 0) ||
+    (Array.isArray(items) && items.length > 0);
 
   const subtitleColor = colors.placeholder_text || colors.secondary_text;
 
@@ -193,9 +195,22 @@ export default function TopRecurringExpensesCard({
           ))}
         </div>
       ) : (
-        <div style={{ color: colors.secondary_text, padding: "8px 0" }}>
-          No recurring expenses found in this range.
-        </div>
+        <NoDataPlaceholder
+          size="md"
+          dense
+          fullWidth
+          iconKey="expense"
+          message={
+            hasSourceData
+              ? "No recurring expenses found"
+              : "No recurring expense data"
+          }
+          subMessage={
+            hasSourceData
+              ? "No matching expenses in this range."
+              : "Try adjusting your filters to see recurring expenses."
+          }
+        />
       )}
     </div>
   );
