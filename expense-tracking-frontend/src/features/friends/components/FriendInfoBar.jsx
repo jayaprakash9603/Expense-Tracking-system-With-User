@@ -66,6 +66,7 @@ const FriendInfoBar = ({
 
   // Theme toggle handler
   const handleThemeToggle = () => {
+    if (themeLocked) return;
     dispatch(toggleTheme());
     dispatch(
       updateUserSettings({

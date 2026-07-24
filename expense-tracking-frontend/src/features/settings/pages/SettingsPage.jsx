@@ -54,7 +54,7 @@ const Settings = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
-  const { colors, mode } = useTheme();
+  const { colors, mode, themeLocked } = useTheme();
   const { t } = useTranslation();
   const { settings: userSettings } = useSelector(
     (state) => state.userSettings || {},
@@ -113,6 +113,7 @@ const Settings = () => {
       setDeleteDialogOpen,
       setPasswordDialogOpen,
       isDark,
+      themeLocked,
     );
 
   // Render switch-type setting
@@ -400,9 +401,18 @@ const Settings = () => {
     }
 
     const visibleItems = section.items.filter(
-      (item) =>
-        !item.featureKey ||
-        isFeatureEnabledInState(featureFlags, item.featureKey),
+      (item) => {
+        if (
+          themeLocked &&
+          (item.id === "theme" || item.id === "accentColor" || item.type === "themePicker")
+        ) {
+          return false;
+        }
+        return (
+          !item.featureKey ||
+          isFeatureEnabledInState(featureFlags, item.featureKey)
+        );
+      },
     );
 
     if (visibleItems.length === 0) {

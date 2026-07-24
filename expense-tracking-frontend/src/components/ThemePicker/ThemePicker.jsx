@@ -27,11 +27,16 @@ const ThemePicker = ({ showModeToggle = true, compact = false }) => {
     palette: currentPalette,
     availablePalettes,
     useSystemPreference,
+    themeLocked,
     setMode,
     setPaletteId,
     toggle,
     setUseSystem,
   } = useTheme();
+
+  if (themeLocked) {
+    return null;
+  }
 
   const handlePaletteSelect = (paletteId) => {
     setPaletteId(paletteId);

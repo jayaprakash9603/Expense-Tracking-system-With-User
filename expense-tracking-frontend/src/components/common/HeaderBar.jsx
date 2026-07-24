@@ -59,6 +59,7 @@ const HeaderBar = () => {
     sharedSelection.selectedBudgets.length;
 
   const handleThemeToggle = () => {
+    if (themeLocked) return;
     dispatch(toggleTheme());
 
     // Update user settings in backend

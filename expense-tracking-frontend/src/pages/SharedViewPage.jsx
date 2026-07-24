@@ -437,7 +437,7 @@ const SharedViewPage = () => {
   const { token } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { colors, mode } = useTheme();
+  const { colors, mode, themeLocked } = useTheme();
   const isDark = mode === "dark";
   const isMobile = useMediaQuery("(max-width: 768px)");
   const settings = useUserSettings();
@@ -670,6 +670,7 @@ const SharedViewPage = () => {
 
   // Handle theme toggle
   const handleThemeToggle = () => {
+    if (themeLocked) return;
     dispatch(toggleTheme());
     // Update user settings in backend if logged in
     if (isLoggedIn) {
@@ -1004,6 +1005,7 @@ const SharedViewPage = () => {
                 </Tooltip>
 
                 {/* Theme Toggle Button */}
+                {!themeLocked && (
                 <Tooltip
                   title={
                     isDark ? "Switch to Light Mode" : "Switch to Dark Mode"
@@ -1069,6 +1071,7 @@ const SharedViewPage = () => {
                     )}
                   </IconButton>
                 </Tooltip>
+                )}
 
                 {/* Notifications Button */}
                 <Box sx={{ position: "relative" }}>

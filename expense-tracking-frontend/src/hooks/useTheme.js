@@ -92,36 +92,53 @@ export const useTheme = () => {
     return cleanup;
   }, [themeLocked, useSystemPreference, dispatch]);
 
-  // Action callbacks - memoized
+  useEffect(() => {
+    if (themeLocked && mode !== "dark") {
+      dispatch(setTheme("dark"));
+    }
+  }, [themeLocked, mode, dispatch]);
+
   const setMode = useCallback(
-    (newMode) => dispatch(setTheme(newMode)),
-    [dispatch]
+    (newMode) => {
+      if (themeLocked) return;
+      dispatch(setTheme(newMode));
+    },
+    [dispatch, themeLocked],
   );
 
   const setPaletteId = useCallback(
-    (paletteId) => dispatch(setPalette(paletteId)),
-    [dispatch]
+    (paletteId) => {
+      if (themeLocked) return;
+      dispatch(setPalette(paletteId));
+    },
+    [dispatch, themeLocked],
   );
 
-  const toggle = useCallback(
-    () => dispatch(toggleTheme()),
-    [dispatch]
-  );
+  const toggle = useCallback(() => {
+    if (themeLocked) return;
+    dispatch(toggleTheme());
+  }, [dispatch, themeLocked]);
 
   const setFull = useCallback(
-    (newMode, paletteId) => dispatch(setThemeFull(newMode, paletteId)),
-    [dispatch]
+    (newMode, paletteId) => {
+      if (themeLocked) return;
+      dispatch(setThemeFull(newMode, paletteId));
+    },
+    [dispatch, themeLocked],
   );
 
   const setUseSystem = useCallback(
-    (useSystem) => dispatch(setSystemPreference(useSystem)),
-    [dispatch]
+    (useSystem) => {
+      if (themeLocked) return;
+      dispatch(setSystemPreference(useSystem));
+    },
+    [dispatch, themeLocked],
   );
 
-  const reset = useCallback(
-    () => dispatch(resetTheme()),
-    [dispatch]
-  );
+  const reset = useCallback(() => {
+    if (themeLocked) return;
+    dispatch(resetTheme());
+  }, [dispatch, themeLocked]);
 
   return {
     // State

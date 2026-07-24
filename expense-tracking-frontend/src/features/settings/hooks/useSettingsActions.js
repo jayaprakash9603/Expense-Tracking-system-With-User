@@ -16,12 +16,14 @@ export const useSettingsActions = (
   setDeleteDialogOpen,
   setPasswordDialogOpen,
   isDark,
+  themeLocked = false,
 ) => {
   const dispatch = useDispatch();
   const { setLanguage, t } = useTranslation();
 
   // Theme toggle action
   const handleThemeToggle = useCallback(async () => {
+    if (themeLocked) return;
     dispatch(toggleTheme());
     const newMode = isDark ? "light" : "dark";
     try {
@@ -30,7 +32,7 @@ export const useSettingsActions = (
     } catch (error) {
       console.error("Error updating theme:", error);
     }
-  }, [dispatch, isDark, showSnackbar]);
+  }, [dispatch, isDark, showSnackbar, themeLocked]);
 
   // Language change handler - integrates with i18n
   const handleLanguageChange = useCallback(

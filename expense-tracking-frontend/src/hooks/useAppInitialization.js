@@ -36,7 +36,7 @@ export const useAppInitialization = (jwt, auth) => {
         }
 
         await Promise.all([
-          preloadUserPreferences(dispatch),
+          preloadUserPreferences(dispatch, themeLocked),
           dispatch(getProfileAction(jwt)),
         ]);
 

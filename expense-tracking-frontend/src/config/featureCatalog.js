@@ -328,7 +328,8 @@ export const getParentModule = (featureKey) => {
 
 export const buildDefaultModules = () =>
   ALL_FEATURE_KEYS.reduce((acc, key) => {
-    acc[key] = true;
+    // Dark-only by default until /api/config/features confirms otherwise
+    acc[key] = key === FEATURE_KEYS.THEME_CUSTOMIZATION ? false : true;
     return acc;
   }, {});
 

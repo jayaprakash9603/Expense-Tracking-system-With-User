@@ -24,7 +24,11 @@ const preloadDashboardPreferences = async () => {
 /**
  * Preloads theme preference from backend
  */
-const preloadThemePreference = async (dispatch) => {
+const preloadThemePreference = async (dispatch, themeLocked = false) => {
+  if (themeLocked) {
+    dispatch(setTheme("dark"));
+    return true;
+  }
   try {
     const { data } = await api.get("/api/settings");
     if (data?.themeMode) {
@@ -56,10 +60,10 @@ const preloadLanguagePreference = async () => {
  * Preloads all user preferences (dashboard layout, theme, and language)
  * This runs before the app fully initializes to prevent UI flashing
  */
-export const preloadUserPreferences = async (dispatch) => {
+export const preloadUserPreferences = async (dispatch, themeLocked = false) => {
   await Promise.all([
     preloadDashboardPreferences(),
-    preloadThemePreference(dispatch),
+    preloadThemePreference(dispatch, themeLocked),
     preloadLanguagePreference(),
   ]);
 };
