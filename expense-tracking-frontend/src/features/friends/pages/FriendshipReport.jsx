@@ -32,8 +32,6 @@ import ReportHeader from "../../../components/ReportHeader";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import useFriendshipReportFilters, {
-  FRIENDSHIP_STATUS_OPTIONS,
-  ACCESS_LEVEL_OPTIONS,
   FRIENDSHIP_TIMEFRAME_OPTIONS,
 } from "../../reports/hooks/reportFilters/useFriendshipReportFilters";
 import useFriendshipReportLayout from "../hooks/useFriendshipReportLayout";
@@ -621,6 +619,8 @@ const FriendshipReport = () => {
     resetFilters,
     fetchReport,
     filterValues,
+    filterSections,
+    filterDefaults,
     filtersActive,
     activeDateRange,
     setCustomDateRange,
@@ -710,31 +710,6 @@ const FriendshipReport = () => {
     console.log("Download PDF requested");
     // TODO: Implement PDF download
   };
-
-  // Build filter sections for drawer
-  const filterSections = useMemo(
-    () => [
-      {
-        key: "timeframe",
-        label: "Time Period",
-        type: "select",
-        options: FRIENDSHIP_TIMEFRAME_OPTIONS,
-      },
-      {
-        key: "status",
-        label: "Friendship Status",
-        type: "select",
-        options: FRIENDSHIP_STATUS_OPTIONS,
-      },
-      {
-        key: "accessLevel",
-        label: "Access Level",
-        type: "select",
-        options: ACCESS_LEVEL_OPTIONS,
-      },
-    ],
-    []
-  );
 
   const handleApplyFilters = useCallback(
     (newValues) => {
@@ -844,6 +819,10 @@ const FriendshipReport = () => {
         onClose={closeFilters}
         sections={filterSections}
         values={filterValues}
+        initialValues={{
+          ...filterDefaults,
+          dateRange: { fromDate: "", toDate: "" },
+        }}
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
       />

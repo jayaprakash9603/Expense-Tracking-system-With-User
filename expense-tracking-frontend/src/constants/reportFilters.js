@@ -71,6 +71,14 @@ const REPORT_FILTER_DEFAULTS = {
     amountRange: null,
     dateRange: { fromDate: "", toDate: "" },
   },
+  friendship: {
+    timeframe: "all",
+    status: "all",
+    accessLevel: "all",
+    sortBy: "createdAt",
+    sortDirection: "desc",
+    dateRange: { fromDate: "", toDate: "" },
+  },
 };
 
 export const getReportFilterDefaults = (type = "expenses") => {
@@ -236,6 +244,49 @@ const createStatusSection = (options) =>
   });
 
 export const buildReportFilterSections = (type = "expenses", context = {}) => {
+  if (type === "friendship") {
+    return [
+      createSingleSelectSection({
+        id: "timeframe",
+        field: "timeframe",
+        label: "Time Period",
+        options: context.timeframeOptions,
+        helperText: "Choose the reporting window for friendship analytics.",
+      }),
+      createSingleSelectSection({
+        id: "status",
+        field: "status",
+        label: "Friendship Status",
+        options: context.statusOptions,
+      }),
+      createSingleSelectSection({
+        id: "accessLevel",
+        field: "accessLevel",
+        label: "Access Level",
+        options: context.accessLevelOptions,
+      }),
+      createDateRangeSection({
+        label: "Custom Date Range",
+        helperText: "Set a specific range to override the time period.",
+      }),
+      createSingleSelectSection({
+        id: "sortBy",
+        field: "sortBy",
+        label: "Sort By",
+        options: context.sortOptions,
+      }),
+      createSingleSelectSection({
+        id: "sortDirection",
+        field: "sortDirection",
+        label: "Sort Direction",
+        options: context.sortDirectionOptions || [
+          { value: "desc", label: "Newest First" },
+          { value: "asc", label: "Oldest First" },
+        ],
+      }),
+    ].filter(Boolean);
+  }
+
   const sections = [
     createTimeframeSection({ options: context.timeframeOptions }),
     createFlowTypeSection({ options: context.flowTypeOptions }),

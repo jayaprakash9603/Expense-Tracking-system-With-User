@@ -1,6 +1,10 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriendshipReport } from "../../../../Redux/Friends/friendsActions";
+import {
+  buildReportFilterSections,
+  getReportFilterDefaults,
+} from "../../../../constants/reportFilters";
 
 export const FRIENDSHIP_STATUS_OPTIONS = [
   { value: "all", label: "All Statuses" },
@@ -31,6 +35,8 @@ export const SORT_OPTIONS = [
   { value: "status", label: "Status" },
 ];
 
+const EMPTY_DATE_RANGE = { fromDate: "", toDate: "" };
+
 const getDateRangeFromTimeframe = (timeframe) => {
   const now = new Date();
   let fromDate = null;
@@ -59,31 +65,36 @@ const getDateRangeFromTimeframe = (timeframe) => {
   return { fromDate, toDate };
 };
 
+const toDateOrNull = (value) => {
+  if (!value) return null;
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 const useFriendshipReportFilters = () => {
   const dispatch = useDispatch();
+  const defaults = useMemo(() => getReportFilterDefaults("friendship"), []);
 
-  // Get report data from Redux
   const {
     friendshipReport,
     loadingFriendshipReport,
     friendshipReportError,
   } = useSelector((state) => state.friends || {});
 
-  // Filter states
-  const [timeframe, setTimeframe] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [accessLevel, setAccessLevel] = useState("all");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortDirection, setSortDirection] = useState("desc");
+  const [timeframe, setTimeframe] = useState(defaults.timeframe);
+  const [status, setStatus] = useState(defaults.status);
+  const [accessLevel, setAccessLevel] = useState(defaults.accessLevel);
+  const [sortBy, setSortBy] = useState(defaults.sortBy);
+  const [sortDirection, setSortDirection] = useState(defaults.sortDirection);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
-  const [customDateRange, setCustomDateRange] = useState({ fromDate: null, toDate: null });
+  const [customDateRange, setCustomDateRange] = useState({
+    fromDate: null,
+    toDate: null,
+  });
   const [isCustomRange, setIsCustomRange] = useState(false);
-
-  // Filter drawer state
   const [isFilterOpen, setFilterOpen] = useState(false);
 
-  // Computed date range
   const activeDateRange = useMemo(() => {
     if (isCustomRange && customDateRange.fromDate && customDateRange.toDate) {
       return customDateRange;
@@ -91,7 +102,6 @@ const useFriendshipReportFilters = () => {
     return getDateRangeFromTimeframe(timeframe);
   }, [timeframe, isCustomRange, customDateRange]);
 
-  // Fetch report data
   const fetchReport = useCallback(() => {
     const filters = {
       fromDate: activeDateRange.fromDate,
@@ -104,134 +114,152 @@ const useFriendshipReportFilters = () => {
       size: pageSize,
     };
     dispatch(fetchFriendshipReport(filters));
-  }, [dispatch, activeDateRange, status, accessLevel, sortBy, sortDirection, page, pageSize]);
+  }, [
+    dispatch,
+    activeDateRange,
+    status,
+    accessLevel,
+    sortBy,
+    sortDirection,
+    page,
+    pageSize,
+  ]);
 
-  // Initial fetch
   useEffect(() => {
     fetchReport();
   }, [fetchReport]);
 
-  // Open/close filters
   const openFilters = useCallback(() => setFilterOpen(true), []);
   const closeFilters = useCallback(() => setFilterOpen(false), []);
 
-  // Apply filters
-  const applyFilters = useCallback((newFilters) => {
-    if (newFilters.timeframe !== undefined) setTimeframe(newFilters.timeframe);
-    if (newFilters.status !== undefined) setStatus(newFilters.status);
-    if (newFilters.accessLevel !== undefined) setAccessLevel(newFilters.accessLevel);
-    if (newFilters.sortBy !== undefined) setSortBy(newFilters.sortBy);
-    if (newFilters.sortDirection !== undefined) setSortDirection(newFilters.sortDirection);
-    if (newFilters.dateRange) {
-      setCustomDateRange(newFilters.dateRange);
-      setIsCustomRange(true);
-    }
-    setPage(0); // Reset to first page when filters change
-    closeFilters();
-  }, [closeFilters]);
+  const applyFilters = useCallback(
+    (newFilters) => {
+      if (newFilters.timeframe !== undefined) {
+        setTimeframe(newFilters.timeframe);
+      }
+      if (newFilters.status !== undefined) {
+        setStatus(newFilters.status);
+      }
+      if (newFilters.accessLevel !== undefined) {
+        setAccessLevel(newFilters.accessLevel);
+      }
+      if (newFilters.sortBy !== undefined) {
+        setSortBy(newFilters.sortBy);
+      }
+      if (newFilters.sortDirection !== undefined) {
+        setSortDirection(newFilters.sortDirection);
+      }
 
-  // Reset filters
+      const range = newFilters.dateRange;
+      if (range?.fromDate && range?.toDate) {
+        setCustomDateRange({
+          fromDate: toDateOrNull(range.fromDate),
+          toDate: toDateOrNull(range.toDate),
+        });
+        setIsCustomRange(true);
+      } else if (isCustomRange) {
+        setCustomDateRange({ fromDate: null, toDate: null });
+        setIsCustomRange(false);
+      }
+
+      setPage(0);
+      closeFilters();
+    },
+    [closeFilters, isCustomRange]
+  );
+
   const resetFilters = useCallback(() => {
-    setTimeframe("all");
-    setStatus("all");
-    setAccessLevel("all");
-    setSortBy("createdAt");
-    setSortDirection("desc");
+    setTimeframe(defaults.timeframe);
+    setStatus(defaults.status);
+    setAccessLevel(defaults.accessLevel);
+    setSortBy(defaults.sortBy);
+    setSortDirection(defaults.sortDirection);
     setCustomDateRange({ fromDate: null, toDate: null });
     setIsCustomRange(false);
     setPage(0);
-  }, []);
+    return {
+      ...defaults,
+      dateRange: EMPTY_DATE_RANGE,
+    };
+  }, [defaults]);
 
-  // Set custom date range
   const handleSetCustomDateRange = useCallback((range) => {
-    setCustomDateRange(range);
+    setCustomDateRange({
+      fromDate: toDateOrNull(range?.fromDate),
+      toDate: toDateOrNull(range?.toDate),
+    });
     setIsCustomRange(true);
     setTimeframe("all");
   }, []);
 
-  // Reset date range
   const resetDateRange = useCallback(() => {
     setCustomDateRange({ fromDate: null, toDate: null });
     setIsCustomRange(false);
   }, []);
 
-  // Build filter sections for drawer
-  const filterSections = useMemo(() => [
-    {
-      key: "timeframe",
-      label: "Time Period",
-      type: "select",
-      options: FRIENDSHIP_TIMEFRAME_OPTIONS,
-      value: timeframe,
-    },
-    {
-      key: "status",
-      label: "Friendship Status",
-      type: "select",
-      options: FRIENDSHIP_STATUS_OPTIONS,
-      value: status,
-    },
-    {
-      key: "accessLevel",
-      label: "Access Level",
-      type: "select",
-      options: ACCESS_LEVEL_OPTIONS,
-      value: accessLevel,
-    },
-    {
-      key: "sortBy",
-      label: "Sort By",
-      type: "select",
-      options: SORT_OPTIONS,
-      value: sortBy,
-    },
-    {
-      key: "sortDirection",
-      label: "Sort Direction",
-      type: "select",
-      options: [
-        { value: "desc", label: "Newest First" },
-        { value: "asc", label: "Oldest First" },
-      ],
-      value: sortDirection,
-    },
-    {
-      key: "dateRange",
-      label: "Custom Date Range",
-      type: "dateRange",
-      value: customDateRange,
-    },
-  ], [timeframe, status, accessLevel, sortBy, sortDirection, customDateRange]);
+  const sections = useMemo(
+    () =>
+      buildReportFilterSections("friendship", {
+        timeframeOptions: FRIENDSHIP_TIMEFRAME_OPTIONS,
+        statusOptions: FRIENDSHIP_STATUS_OPTIONS,
+        accessLevelOptions: ACCESS_LEVEL_OPTIONS,
+        sortOptions: SORT_OPTIONS,
+      }),
+    []
+  );
 
-  // Check if any filters are active
-  const filtersActive = useMemo(() => {
-    return (
-      timeframe !== "all" ||
-      status !== "all" ||
-      accessLevel !== "all" ||
-      sortBy !== "createdAt" ||
-      sortDirection !== "desc" ||
-      isCustomRange
-    );
-  }, [timeframe, status, accessLevel, sortBy, sortDirection, isCustomRange]);
+  const filtersActive = useMemo(
+    () =>
+      timeframe !== defaults.timeframe ||
+      status !== defaults.status ||
+      accessLevel !== defaults.accessLevel ||
+      sortBy !== defaults.sortBy ||
+      sortDirection !== defaults.sortDirection ||
+      isCustomRange,
+    [
+      timeframe,
+      status,
+      accessLevel,
+      sortBy,
+      sortDirection,
+      isCustomRange,
+      defaults,
+    ]
+  );
 
-  // Current filter values for drawer
-  const filterValues = useMemo(() => ({
-    timeframe,
-    status,
-    accessLevel,
-    sortBy,
-    sortDirection,
-    dateRange: customDateRange,
-  }), [timeframe, status, accessLevel, sortBy, sortDirection, customDateRange]);
+  const filterValues = useMemo(
+    () => ({
+      timeframe,
+      status,
+      accessLevel,
+      sortBy,
+      sortDirection,
+      dateRange: isCustomRange
+        ? {
+            fromDate: customDateRange.fromDate
+              ? customDateRange.fromDate.toISOString().slice(0, 10)
+              : "",
+            toDate: customDateRange.toDate
+              ? customDateRange.toDate.toISOString().slice(0, 10)
+              : "",
+          }
+        : EMPTY_DATE_RANGE,
+    }),
+    [
+      timeframe,
+      status,
+      accessLevel,
+      sortBy,
+      sortDirection,
+      isCustomRange,
+      customDateRange,
+    ]
+  );
 
   return {
-    // Data
     friendshipReport,
     loading: loadingFriendshipReport,
     error: friendshipReportError,
-
-    // Filter states
     timeframe,
     status,
     accessLevel,
@@ -242,8 +270,6 @@ const useFriendshipReportFilters = () => {
     customDateRange,
     isCustomRange,
     activeDateRange,
-
-    // Setters
     setTimeframe,
     setStatus,
     setAccessLevel,
@@ -253,19 +279,14 @@ const useFriendshipReportFilters = () => {
     setPageSize,
     setCustomDateRange: handleSetCustomDateRange,
     resetDateRange,
-
-    // Drawer
     isFilterOpen,
     openFilters,
     closeFilters,
-    
-    // Actions
     applyFilters,
     resetFilters,
     fetchReport,
-
-    // Filter sections for drawer
-    filterSections,
+    filterSections: sections,
+    filterDefaults: defaults,
     filterValues,
     filtersActive,
   };
