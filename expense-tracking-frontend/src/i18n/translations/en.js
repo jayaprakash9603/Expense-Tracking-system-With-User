@@ -308,6 +308,10 @@ export const en = {
     messages: {
       errorLoadingBudgets: "Unable to load budgets",
     },
+    budgetTable: {
+      noBudgets: "No budgets available",
+      noBudgetsHint: "Create a budget first, or adjust your filters.",
+    },
     autocomplete: {
       noOptions: "No options",
     },
@@ -359,6 +363,10 @@ export const en = {
     messages: {
       updateError: "Something went wrong. Please try again.",
       errorLoadingBudgets: "Unable to load budgets",
+    },
+    budgetTable: {
+      noBudgets: "No budgets available",
+      noBudgetsHint: "Create a budget first, or adjust your filters.",
     },
     autocomplete: {
       noOptions: "No options",

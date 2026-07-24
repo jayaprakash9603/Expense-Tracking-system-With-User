@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import { TrendingUp } from "@mui/icons-material";
 import useMonthlyTrendData from "../hooks/useMonthlyTrendData";
@@ -27,8 +27,32 @@ const MonthlyTrendContainer = ({
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(initialYear || currentYear);
   const { data, loading } = useMonthlyTrendData({ year, refreshTrigger });
+  const { data: previousYearData } = useMonthlyTrendData({
+      year: year - 1,
+      refreshTrigger,
+    });
   const effectiveMax = maxYear || currentYear;
   const { colors } = useTheme();
+
+  const sumSeries = (chartData) => {
+    const values = chartData?.datasets?.[0]?.data;
+    if (!Array.isArray(values)) return 0;
+    return values.reduce(
+      (total, value) => total + (Number.isFinite(value) ? value : 0),
+      0
+    );
+  };
+
+  const yoyChange = useMemo(() => {
+    const currentTotal = sumSeries(data);
+    const previousTotal = sumSeries(previousYearData);
+    if (!previousTotal) return null;
+    return {
+      currentTotal,
+      previousTotal,
+      percentChange: ((currentTotal - previousTotal) / previousTotal) * 100,
+    };
+  }, [data, previousYearData]);
 
   const handlePrevYear = () => setYear((y) => y - 1);
   const handleNextYear = () => setYear((y) => Math.min(effectiveMax, y + 1));
@@ -84,6 +108,7 @@ const MonthlyTrendContainer = ({
       onPrevYear={handlePrevYear}
       onNextYear={handleNextYear}
       loading={loading}
+      yoyChange={yoyChange}
     />
   );
 };

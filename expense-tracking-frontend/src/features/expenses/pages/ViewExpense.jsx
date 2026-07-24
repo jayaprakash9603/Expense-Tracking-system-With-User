@@ -1404,7 +1404,7 @@ const ViewExpense = () => {
               borderRadius: "8px",
               padding: "14px 16px",
               border: `1px solid ${colors.border_color}`,
-              flex: 1,
+              flex: linkedBudgets?.length > 0 ? 1 : "0 0 auto",
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
@@ -1487,6 +1487,17 @@ const ViewExpense = () => {
               onFilterClick={handleFilterClick}
               columnFilters={columnFilters}
               className="pm-table-container"
+              compactEmpty={filteredRows.length === 0}
+              emptyTitle={
+                linkedBudgets?.length === 0
+                  ? "No linked budgets"
+                  : "No matching budgets"
+              }
+              emptySubtitle={
+                linkedBudgets?.length === 0
+                  ? "This expense is not linked to any budget yet."
+                  : "Try a different search or clear your filters."
+              }
             />
 
             {/* Filter Popover Helper */}

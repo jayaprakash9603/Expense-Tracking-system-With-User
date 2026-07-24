@@ -680,6 +680,36 @@
   color: var(--pm-text-tertiary);
 }
 
+.pm-empty-compact .pm-empty-centered,
+.pm-expense-table.pm-empty-compact-table tbody tr.pm-empty-row td.pm-empty-centered {
+  height: 96px !important;
+  min-height: 96px !important;
+  max-height: 96px !important;
+  padding: 12px 16px !important;
+}
+
+.pm-empty-compact .pm-empty-message,
+.pm-expense-table.pm-empty-compact-table .pm-empty-message {
+  gap: 2px;
+}
+
+.pm-empty-compact .pm-empty-icon,
+.pm-expense-table.pm-empty-compact-table .pm-empty-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.pm-empty-compact .pm-empty-title,
+.pm-expense-table.pm-empty-compact-table .pm-empty-title {
+  font-size: 13px;
+}
+
+.pm-empty-compact .pm-empty-sub,
+.pm-expense-table.pm-empty-compact-table .pm-empty-sub {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 /* Pagination */
 .pm-pagination-bar {
   display: flex;

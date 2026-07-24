@@ -746,7 +746,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
             }`}
             style={{
               ...tableVars,
-              maxHeight: budgets.length > 0 ? "360px" : "none",
+              maxHeight: budgets.length > 0 ? "360px" : undefined,
             }}
           >
             <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center mb-4 gap-2 sm:hidden">

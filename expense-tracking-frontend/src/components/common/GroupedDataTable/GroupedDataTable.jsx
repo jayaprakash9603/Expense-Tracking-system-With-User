@@ -36,6 +36,9 @@ const GroupedDataTable = ({
   // Pagination Defaults
   defaultPageSize = 5,
   pageSizeOptions = [5, 10, 20, 50],
+  compactEmpty = false,
+  emptyTitle,
+  emptySubtitle,
 }) => {
   // --- Local State for Pagination ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -172,7 +175,9 @@ const GroupedDataTable = ({
   const selectedCount = Object.values(selectedRows).filter(Boolean).length;
 
   return (
-    <div className={`pm-table-container ${className}`}>
+    <div
+      className={`pm-table-container ${compactEmpty && isEmpty ? "pm-empty-compact" : ""} ${className}`}
+    >
       <div
         className={`pm-expense-table-wrapper${needsScrollContainer ? " pm-scrollable" : ""}`}
         style={
@@ -188,7 +193,7 @@ const GroupedDataTable = ({
         }
       >
         <table
-          className={`pm-expense-table pm-fixed ${pageSlice.length === 0 ? "pm-empty-state" : ""}`}
+          className={`pm-expense-table pm-fixed ${pageSlice.length === 0 ? "pm-empty-state" : ""} ${compactEmpty && pageSlice.length === 0 ? "pm-empty-compact-table" : ""}`}
         >
           {columns && (
             <colgroup>
@@ -311,12 +316,13 @@ const GroupedDataTable = ({
                   <div className="pm-empty-message">
                     <InboxOutlinedIcon className="pm-empty-icon" aria-hidden="true" />
                     <div className="pm-empty-title">
-                      {activeTab === "all"
-                        ? "No Records"
-                        : "No Filtered Records"}
+                      {emptyTitle ||
+                        (activeTab === "all"
+                          ? "No Records"
+                          : "No Filtered Records")}
                     </div>
                     <div className="pm-empty-sub">
-                      Nothing matches the current selection.
+                      {emptySubtitle || "Nothing matches the current selection."}
                     </div>
                   </div>
                 </td>

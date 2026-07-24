@@ -12,6 +12,11 @@ const BudgetSelectionTable = ({
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const noBudgetsTitle = t("newExpense.budgetTable.noBudgets", "No budgets available");
+  const noBudgetsSubtitle = t(
+    "newExpense.budgetTable.noBudgetsHint",
+    "Create a budget first, or adjust your filters."
+  );
 
   // --- Table Configuration ---
   const {
@@ -98,7 +103,7 @@ const BudgetSelectionTable = ({
     <div
       className="w-full relative"
       style={{
-        maxHeight: filteredRows.length > 0 ? "360px" : "none",
+        maxHeight: filteredRows.length > 0 ? "360px" : undefined,
         overflow: "hidden",
         borderRadius: "10px",
         border: `1px solid ${colors.border_color}`,
@@ -131,6 +136,9 @@ const BudgetSelectionTable = ({
           className="w-full"
           defaultPageSize={5}
           showPagination={filteredRows.length > 0}
+          compactEmpty={filteredRows.length === 0}
+          emptyTitle={noBudgetsTitle}
+          emptySubtitle={noBudgetsSubtitle}
         />
       <FilterPopover
         open={Boolean(filterAnchorEl)}

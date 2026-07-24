@@ -11,7 +11,13 @@ import {
   Line,
 } from "recharts";
 import { IconButton, useMediaQuery } from "@mui/material";
-import { ChevronLeft, ChevronRight, TrendingUp } from "@mui/icons-material";
+import {
+  ChevronLeft,
+  ChevronRight,
+  TrendingUp,
+  TrendingDown,
+  TrendingFlat,
+} from "@mui/icons-material";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
 
@@ -26,12 +32,14 @@ const formatNumber0 = (v) =>
  * Displays monthly expense bars + average line for a given year.
  * Accepts normalized { labels, datasets: [{ data }] } structure.
  */
+
 const MonthlyTrendChart = ({
   data,
   year,
   onPrevYear,
   onNextYear,
   loading = false,
+  yoyChange = null,
 }) => {
   const { colors } = useTheme();
   const currentYear = new Date().getFullYear();
@@ -58,6 +66,22 @@ const MonthlyTrendChart = ({
     average: avgValue,
   }));
 
+  const hasYoyComparison =
+    yoyChange != null && Number.isFinite(yoyChange.percentChange);
+  const yoyDirection = hasYoyComparison
+    ? yoyChange.percentChange > 0
+      ? "up"
+      : yoyChange.percentChange < 0
+        ? "down"
+        : "flat"
+    : null;
+  const TrendIcon =
+    yoyDirection === "up"
+      ? TrendingUp
+      : yoyDirection === "down"
+        ? TrendingDown
+        : TrendingFlat;
+
   return (
     <div
       className="chart-container monthly-trend"
@@ -80,11 +104,22 @@ const MonthlyTrendChart = ({
           <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
           Monthly Expense Trend
         </h3>
-        <div className="trend-stats">
-          <span className="trend-up" style={{ color: colors.primary_accent }}>
-            ↗ {base.length ? "12%" : "--"} vs last year
-          </span>
-        </div>
+        {hasYoyComparison && (
+          <div className="trend-stats">
+            <span
+              className={
+                yoyDirection === "down"
+                  ? "trend-down"
+                  : yoyDirection === "flat"
+                    ? "trend-flat"
+                    : "trend-up"
+              }
+            >
+              <TrendIcon sx={{ fontSize: 16 }} aria-hidden="true" />
+              {`${Math.abs(yoyChange.percentChange).toFixed(1)}% vs last year`}
+            </span>
+          </div>
+        )}
       </div>
       <div className="chart-nav-bar">
         <IconButton
@@ -211,6 +246,11 @@ MonthlyTrendChart.propTypes = {
   onPrevYear: PropTypes.func.isRequired,
   onNextYear: PropTypes.func.isRequired,
   loading: PropTypes.bool,
+  yoyChange: PropTypes.shape({
+    percentChange: PropTypes.number,
+    currentTotal: PropTypes.number,
+    previousTotal: PropTypes.number,
+  }),
 };
 
 export default MonthlyTrendChart;
