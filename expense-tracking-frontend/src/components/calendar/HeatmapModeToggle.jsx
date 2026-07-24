@@ -42,11 +42,11 @@ export default function HeatmapModeToggle({
         alignItems: "center",
         background,
         border: `1px solid ${borderColor}`,
-        borderRadius: 2,
+        borderRadius: "12px",
         overflow: "hidden",
-        height: 34,
+        height: 40,
         px: 0.5,
-        boxShadow: 1,
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.08)",
       }}
     >
       <Box
@@ -77,8 +77,9 @@ export default function HeatmapModeToggle({
               position: "relative",
               zIndex: 1,
               flex: 1,
-              height: 28,
-              borderRadius: 1.5,
+              height: 34,
+              minWidth: 64,
+              borderRadius: "10px",
               px: 1.2,
               display: "flex",
               alignItems: "center",

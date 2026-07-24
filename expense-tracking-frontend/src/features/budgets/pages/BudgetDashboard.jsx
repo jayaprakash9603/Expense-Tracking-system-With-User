@@ -587,11 +587,6 @@ const BudgetDashboard = () => {
               color: "#fff",
               borderRadius: 2,
               border: `1px solid ${STATUS_COLORS[status]}30`,
-              transition: "all 0.3s ease",
-              "&:hover": {
-                transform: "translateY(-4px)",
-                boxShadow: `0 6px 12px ${STATUS_COLORS[status]}30`,
-              },
               position: "relative",
               overflow: "visible",
             }}

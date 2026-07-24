@@ -56,7 +56,7 @@ const SettingItem = ({
 
   return (
     <Box
-      onClick={isNavigation ? onNavigationClick : undefined}
+      onClick={isNavigation && !disabled ? onNavigationClick : undefined}
       sx={{
         display: "flex",
         alignItems: "center",
@@ -64,8 +64,10 @@ const SettingItem = ({
         py: hideBorder ? 0 : 2.5,
         px: 0,
         transition: "all 0.2s",
-        cursor: isNavigation ? "pointer" : "default",
-        "&:hover": !hideBorder && {
+        cursor: isNavigation && !disabled ? "pointer" : "default",
+        opacity: disabled ? 0.5 : 1,
+        pointerEvents: disabled ? "none" : "auto",
+        "&:hover": !hideBorder && !disabled && {
           backgroundColor: colors.hover_bg,
           mx: -2,
           px: 2,
@@ -156,6 +158,7 @@ const SettingItem = ({
             variant="outlined"
             size="small"
             onClick={onButtonClick}
+            disabled={disabled}
             sx={{
               borderColor: isDanger ? "#ef4444" : colors.primary_accent,
               color: isDanger ? "#ef4444" : colors.primary_accent,
@@ -175,10 +178,11 @@ const SettingItem = ({
         )}
 
         {isSelect && (
-          <FormControl size="small" sx={{ minWidth: 140 }}>
+          <FormControl size="small" sx={{ minWidth: 140 }} disabled={disabled}>
             <Select
               value={selectValue}
               onChange={onSelectChange}
+              disabled={disabled}
               sx={{
                 color: colors.primary_text,
                 backgroundColor: colors.secondary_bg,
@@ -311,6 +315,7 @@ const SettingItem = ({
               step={sliderStep}
               marks={sliderMarks}
               onChange={onSliderChange}
+              disabled={disabled}
               sx={{
                 color: colors.primary_accent,
                 "& .MuiSlider-thumb": {

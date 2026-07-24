@@ -23,7 +23,6 @@ const ExpenseHighlightCard = ({
   dateFormat = "DD/MM/YYYY",
 }) => {
   const { colors, mode } = useTheme();
-  const [isHovered, setIsHovered] = React.useState(false);
 
   if (!expense) {
     return null;
@@ -92,7 +91,6 @@ const ExpenseHighlightCard = ({
     borderLeft: `3px solid ${config.color}`,
     borderRadius: "10px",
     padding: "14px 16px",
-    transition: "transform 0.2s, box-shadow 0.2s",
     cursor: "default",
   };
 
@@ -102,19 +100,7 @@ const ExpenseHighlightCard = ({
       arrow
       placement="top"
     >
-      <div
-        style={{
-          ...cardStyle,
-          ...(isHovered
-            ? {
-                transform: "translateY(-2px)",
-                boxShadow: `0 6px 16px ${config.color}20`,
-              }
-            : {}),
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div style={cardStyle}>
         {/* Header */}
         <div
           style={{

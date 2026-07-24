@@ -184,12 +184,6 @@
   background: linear-gradient(90deg, #00dac6, #5b7fff);
 }
 
-.budget-report-overview-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 218, 198, 0.15) !important;
-  border-color: rgba(0, 218, 198, 0.3) !important;
-}
-
 .budget-report-card-header {
   display: flex;
   align-items: center;
@@ -307,11 +301,6 @@
   transition: all 0.3s ease !important;
   overflow: hidden;
   margin: 10px; /* added */
-}
-
-.budget-report-chart-container:hover {
-  border-color: rgba(0, 218, 198, 0.3) !important;
-  box-shadow: 0 8px 32px rgba(0, 218, 198, 0.1) !important;
 }
 
 .budget-report-chart-title {
@@ -478,11 +467,6 @@
   margin: 10px; /* added */
 }
 
-.pattern-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 218, 198, 0.3);
-}
-
 .pattern-header {
   display: flex;
   justify-content: space-between;
@@ -506,10 +490,6 @@
   margin: 10px; /* added */
 }
 
-.goal-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 218, 198, 0.3);
-}
 
 .goal-header {
   display: flex;
@@ -581,12 +561,6 @@
 
 .budget-report-insight-card.priority-low::before {
   background: #06d6a0;
-}
-
-.budget-report-insight-card:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(0, 218, 198, 0.3);
-  transform: translateY(-2px);
 }
 
 .budget-report-insight-header {

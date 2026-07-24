@@ -8,6 +8,8 @@ import {
   useTheme as useMuiTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
+import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
 import dayjs from "dayjs";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -47,120 +49,84 @@ import { formatCompactNumber } from "../../utils/formatting/numberFormatters";
 const SummaryCard = ({
   label,
   amount,
-  backgroundColor,
-  iconColor,
+  accentColor,
   textColor,
   iconType = "down",
   isSmallScreen,
   currencySymbol = "₹",
+  colors,
 }) => (
   <Box
     sx={{
-      background: backgroundColor,
-      borderRadius: "40px",
-      py: 1.5,
       display: "flex",
-      flexDirection: "column",
       alignItems: "center",
-      boxShadow: 2,
-      minWidth: isSmallScreen ? "100%" : 190,
-      maxWidth: isSmallScreen ? "100%" : 190,
-      mr: isSmallScreen ? 0 : iconType === "down" ? 4 : 0,
-      ml: isSmallScreen ? 0 : iconType === "up" ? 4 : 0,
+      gap: 1.25,
+      px: 1.5,
+      py: 1.25,
+      flex: isSmallScreen ? "1 1 100%" : "0 1 180px",
+      minWidth: isSmallScreen ? "100%" : 160,
+      maxWidth: isSmallScreen ? "100%" : 200,
+      borderRadius: "14px",
+      background: `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}0d 100%)`,
+      border: `1px solid ${accentColor}40`,
+      transition: "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
+      boxShadow: `0 2px 12px ${accentColor}16`,
+      "&:hover": {
+        transform: "translateY(-1px)",
+        boxShadow: `0 4px 16px ${accentColor}24`,
+        borderColor: `${accentColor}60`,
+      },
     }}
   >
     <Box
       sx={{
+        width: 40,
+        height: 40,
+        minWidth: 40,
         display: "flex",
         alignItems: "center",
-        gap: 1.5,
-        mb: 0.5,
-        flexDirection: "row",
-        justifyContent: "space-around",
-        height: 40,
-        width: "100%",
+        justifyContent: "center",
+        borderRadius: "12px",
+        background: `linear-gradient(145deg, ${accentColor}, ${accentColor}cc)`,
+        boxShadow: `0 2px 8px ${accentColor}40`,
       }}
     >
-      {/* Icon container */}
-      <Box
-        sx={{
-          width: 48,
-          minWidth: 48,
-          maxWidth: 48,
-          height: 48,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: iconColor,
-          borderRadius: "50%",
-          mr: 1,
-          ml: 1.5,
-        }}
-      >
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 32 32"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="16" cy="16" r="16" fill={iconColor} />
-          {iconType === "down" ? (
-            <path
-              d="M16 8V24M16 24L10 18M16 24L22 18"
-              stroke="#fff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          ) : (
-            <path
-              d="M16 24V8M16 8L10 14M16 8L22 14"
-              stroke="#fff"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          )}
-        </svg>
-      </Box>
+      {iconType === "down" ? (
+        <ArrowDownwardRoundedIcon sx={{ color: "#ffffff", fontSize: 22 }} />
+      ) : (
+        <ArrowUpwardRoundedIcon sx={{ color: "#ffffff", fontSize: 22 }} />
+      )}
+    </Box>
 
-      <Box
+    <Box sx={{ minWidth: 0, flex: 1 }}>
+      <Typography
+        variant="caption"
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
-          flex: 1,
-          pr: 1.5,
+          display: "block",
+          color: textColor,
+          fontWeight: 600,
+          fontSize: "0.72rem",
+          letterSpacing: 0.4,
+          textTransform: "uppercase",
+          lineHeight: 1.2,
+          opacity: 0.92,
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            fontSize: "0.95rem",
-            color: textColor,
-            fontWeight: 700,
-            lineHeight: 1.2,
-            textAlign: "justify",
-          }}
-        >
-          {label}
-        </Typography>
-        <Typography
-          variant="h6"
-          color="#fff"
-          fontWeight={700}
-          sx={{
-            lineHeight: 1.2,
-            fontSize: "1.25rem",
-            textAlign: "left",
-            mt: 0.5,
-          }}
-        >
-          {currencySymbol}
-          {formatCompactNumber(amount)}
-        </Typography>
-      </Box>
+        {label}
+      </Typography>
+      <Typography
+        variant="body1"
+        sx={{
+          color: colors.primary_text,
+          fontWeight: 700,
+          fontSize: "1.05rem",
+          lineHeight: 1.25,
+          mt: 0.25,
+        }}
+      >
+        {currencySymbol}
+        {formatCompactNumber(amount)}
+      </Typography>
     </Box>
   </Box>
 );
@@ -175,69 +141,112 @@ const MonthNavigator = ({
   onDateChange,
   isSmallScreen,
   colors,
-}) => (
-  <Box
-    sx={{
-      display: "flex",
-      flexDirection: isSmallScreen ? "column" : "row",
-      alignItems: "center",
-      gap: isSmallScreen ? 1 : 2,
-    }}
-  >
-    <IconButton onClick={onPrevMonth} sx={{ color: colors.primary_accent }}>
-      <ArrowBackIcon />
-    </IconButton>
+}) => {
+  const navButtonSx = {
+    color: colors.primary_accent,
+    width: 44,
+    height: 44,
+    border: `1px solid ${colors.border_color}`,
+    borderRadius: "12px",
+    backgroundColor: colors.secondary_bg,
+    transition: "background-color 200ms ease, transform 200ms ease, border-color 200ms ease",
+    "&:hover": {
+      backgroundColor: colors.hover_bg,
+      transform: "scale(1.03)",
+      borderColor: `${colors.primary_accent}55`,
+    },
+  };
 
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DatePicker
-        views={["year", "month"]}
-        value={selectedDate}
-        onChange={onDateChange}
-        sx={{
-          background: colors.primary_bg,
-          borderRadius: 2,
-          color: colors.primary_text,
-          ".MuiInputBase-input": { color: colors.primary_text },
-          ".MuiSvgIcon-root": { color: colors.primary_accent },
-          width: isSmallScreen ? "100%" : 140,
-        }}
-        slotProps={{
-          textField: {
-            size: "small",
-            variant: "outlined",
-            sx: { color: colors.primary_text },
-          },
-          popper: {
-            sx: {
-              "& .MuiPaper-root": {
-                backgroundColor: colors.card_bg,
-                color: colors.primary_text,
-                border: `1px solid ${colors.border_color}`,
-              },
-              "& .MuiPickersMonth-monthButton": {
-                color: colors.primary_text,
-                "&:hover": { backgroundColor: colors.hover_bg },
-                "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
-              },
-              "& .MuiPickersYear-yearButton": {
-                color: colors.primary_text,
-                "&:hover": { backgroundColor: colors.hover_bg },
-                "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
-              },
-              "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-              "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-              "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: isSmallScreen ? "column" : "row",
+        alignItems: "center",
+        gap: 1,
+        px: 1,
+        py: 0.75,
+        borderRadius: "14px",
+        border: `1px solid ${colors.border_color}`,
+        backgroundColor: colors.secondary_bg,
+        boxShadow: `0 2px 10px rgba(0, 0, 0, 0.08)`,
+      }}
+    >
+      <IconButton onClick={onPrevMonth} aria-label="Previous month" sx={navButtonSx}>
+        <ArrowBackIcon sx={{ fontSize: 20 }} />
+      </IconButton>
+
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DatePicker
+          views={["year", "month"]}
+          value={selectedDate}
+          onChange={onDateChange}
+          sx={{
+            background: "transparent",
+            borderRadius: 2,
+            color: colors.primary_text,
+            ".MuiInputBase-input": {
+              color: colors.primary_text,
+              fontWeight: 600,
+              textAlign: "center",
             },
-          },
-        }}
-      />
-    </LocalizationProvider>
+            ".MuiSvgIcon-root": { color: colors.primary_accent },
+            width: isSmallScreen ? "100%" : 148,
+          }}
+          slotProps={{
+            textField: {
+              size: "small",
+              variant: "outlined",
+              sx: {
+                color: colors.primary_text,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "10px",
+                  "& fieldset": { borderColor: `${colors.border_color}80` },
+                  "&:hover fieldset": { borderColor: colors.primary_accent },
+                  "&.Mui-focused fieldset": { borderColor: colors.primary_accent },
+                },
+              },
+            },
+            popper: {
+              sx: {
+                "& .MuiPaper-root": {
+                  backgroundColor: colors.card_bg,
+                  color: colors.primary_text,
+                  border: `1px solid ${colors.border_color}`,
+                },
+                "& .MuiPickersMonth-monthButton": {
+                  color: colors.primary_text,
+                  "&:hover": { backgroundColor: colors.hover_bg },
+                  "&.Mui-selected": {
+                    backgroundColor: colors.primary_accent,
+                    color: colors.button_text,
+                  },
+                },
+                "& .MuiPickersYear-yearButton": {
+                  color: colors.primary_text,
+                  "&:hover": { backgroundColor: colors.hover_bg },
+                  "&.Mui-selected": {
+                    backgroundColor: colors.primary_accent,
+                    color: colors.button_text,
+                  },
+                },
+                "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+                "& .MuiPickersCalendarHeader-switchViewButton": {
+                  color: colors.primary_accent,
+                },
+                "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+              },
+            },
+          }}
+        />
+      </LocalizationProvider>
 
-    <IconButton onClick={onNextMonth} sx={{ color: colors.primary_accent }}>
-      <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
-    </IconButton>
-  </Box>
-);
+      <IconButton onClick={onNextMonth} aria-label="Next month" sx={navButtonSx}>
+        <ArrowBackIcon sx={{ fontSize: 20, transform: "scaleX(-1)" }} />
+      </IconButton>
+    </Box>
+  );
+};
 
 // NOTE: Day rendering is implemented in the shared CalendarDayCell component.
 
@@ -291,6 +300,7 @@ const MonthlyCalendarView = ({
 
   // Optional macro insight (anchored to today, computed outside)
   momentumInsight,
+  showSpendingMomentum = false,
 
   // Optional: render icons instead of amounts inside day cells
   dayCellConfig,
@@ -523,32 +533,66 @@ const MonthlyCalendarView = ({
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          alignItems: "stretch",
           mb: 2,
-          justifyContent: "center",
-          gap: isSmallScreen ? 1 : 2,
-          position: "relative",
           mt: 3,
-          flexDirection: isSmallScreen ? "column" : "row",
-          paddingTop: isSmallScreen ? 0 : 1,
-          pt: isSmallScreen ? 0 : 1,
+          gap: 1.5,
+          px: { xs: 0.5, sm: 1 },
         }}
       >
-        {/* Spending Momentum (macro insight) */}
-        {momentumInsight && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: { xs: 1.25, sm: 2 },
+            flexDirection: isSmallScreen ? "column" : "row",
+            width: "100%",
+          }}
+        >
+          {showSummaryCards && (
+            <SummaryCard
+              label={resolvedSummaryConfig.spendingLabel}
+              amount={totalSpending}
+              accentColor={resolvedSummaryConfig.spendingColor}
+              textColor={resolvedSummaryConfig.spendingTextColor}
+              iconType="down"
+              isSmallScreen={isSmallScreen}
+              currencySymbol={currencySymbol}
+              colors={colors}
+            />
+          )}
+
+          <MonthNavigator
+            selectedDate={selectedDate}
+            onPrevMonth={handlePrevMonth}
+            onNextMonth={handleNextMonth}
+            onDateChange={handleDatePicker}
+            isSmallScreen={isSmallScreen}
+            colors={colors}
+          />
+
+          {showSummaryCards && (
+            <SummaryCard
+              label={resolvedSummaryConfig.incomeLabel}
+              amount={totalIncome}
+              accentColor={resolvedSummaryConfig.incomeColor}
+              textColor={resolvedSummaryConfig.incomeTextColor}
+              iconType="up"
+              isSmallScreen={isSmallScreen}
+              currencySymbol={currencySymbol}
+              colors={colors}
+            />
+          )}
+        </Box>
+
+        {showSpendingMomentum && momentumInsight && (
           <Box
             sx={{
-              position: isSmallScreen ? "static" : "absolute",
-              top: isSmallScreen ? "auto" : 64,
-              left: isSmallScreen ? "auto" : 24,
-              transform: isSmallScreen ? "none" : "translateX(-20px)",
-              mb: isSmallScreen ? 1 : 0,
-              mt: isSmallScreen ? 1 : 0,
-              zIndex: 5,
-              opacity: 0.98,
               display: "flex",
-              justifyContent: isSmallScreen ? "center" : "flex-start",
-              width: isSmallScreen ? "100%" : "auto",
+              justifyContent: "center",
+              width: "100%",
             }}
           >
             <SpendingMomentumInsight
@@ -558,44 +602,6 @@ const MonthlyCalendarView = ({
               incomeColor={resolvedSummaryConfig.incomeColor}
             />
           </Box>
-        )}
-
-        {/* Spending card */}
-        {showSummaryCards && (
-          <SummaryCard
-            label={resolvedSummaryConfig.spendingLabel}
-            amount={totalSpending}
-            backgroundColor={resolvedSummaryConfig.spendingColor}
-            iconColor={resolvedSummaryConfig.spendingIconColor}
-            textColor={resolvedSummaryConfig.spendingTextColor}
-            iconType="down"
-            isSmallScreen={isSmallScreen}
-            currencySymbol={currencySymbol}
-          />
-        )}
-
-        {/* Month navigator */}
-        <MonthNavigator
-          selectedDate={selectedDate}
-          onPrevMonth={handlePrevMonth}
-          onNextMonth={handleNextMonth}
-          onDateChange={handleDatePicker}
-          isSmallScreen={isSmallScreen}
-          colors={colors}
-        />
-
-        {/* Income card */}
-        {showSummaryCards && (
-          <SummaryCard
-            label={resolvedSummaryConfig.incomeLabel}
-            amount={totalIncome}
-            backgroundColor={resolvedSummaryConfig.incomeColor}
-            iconColor={resolvedSummaryConfig.incomeIconColor}
-            textColor={resolvedSummaryConfig.incomeTextColor}
-            iconType="up"
-            isSmallScreen={isSmallScreen}
-            currencySymbol={currencySymbol}
-          />
         )}
       </Box>
 
@@ -903,12 +909,12 @@ const MonthlyCalendarView = ({
 SummaryCard.propTypes = {
   label: PropTypes.string.isRequired,
   amount: PropTypes.number.isRequired,
-  backgroundColor: PropTypes.string.isRequired,
-  iconColor: PropTypes.string.isRequired,
+  accentColor: PropTypes.string.isRequired,
   textColor: PropTypes.string.isRequired,
   iconType: PropTypes.oneOf(["up", "down"]),
   isSmallScreen: PropTypes.bool,
   currencySymbol: PropTypes.string,
+  colors: PropTypes.object,
 };
 
 MonthNavigator.propTypes = {
@@ -958,6 +964,7 @@ MonthlyCalendarView.propTypes = {
   showHeatmapModeToggle: PropTypes.bool,
   initialHeatmapMode: PropTypes.oneOf(["loss", "gain", "both"]),
   showSummaryCards: PropTypes.bool,
+  showSpendingMomentum: PropTypes.bool,
   dayCellConfig: PropTypes.shape({
     iconsKey: PropTypes.string,
     renderIcon: PropTypes.func,

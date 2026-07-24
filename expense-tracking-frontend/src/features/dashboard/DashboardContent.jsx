@@ -180,8 +180,8 @@ export default function DashboardContent() {
 
   // Inject dependencies into centralized action creators.
   const { exportReports, viewAllTransactions, openFilter } = useMemo(
-    () => createDashboardActions({ navigate }),
-    [navigate]
+    () => createDashboardActions({ navigate, settings }),
+    [navigate, settings]
   );
 
   // Use MUI's useMediaQuery for responsive detection (reacts to window resize)

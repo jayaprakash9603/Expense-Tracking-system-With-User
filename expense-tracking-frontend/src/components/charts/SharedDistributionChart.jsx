@@ -4,6 +4,7 @@ import { PieChart as PieChartIcon } from "lucide-react";
 import { Box } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import { getEntityIcon } from "../../utils/ui/iconMapping";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 // Generic Distribution Chart (Pie + right side chips)
 // Props:
@@ -36,6 +37,10 @@ const SharedDistributionChart = ({
     }
     return rounded.toFixed(2);
   };
+
+  const hasData =
+    safe.length > 0 &&
+    safe.some((item) => Number(item[amountKey] || 0) > 0);
 
   return (
     <div
@@ -73,6 +78,7 @@ const SharedDistributionChart = ({
           {mode === "payment" ? "payment methods" : "categories"}
         </div>
       </div>
+      {hasData ? (
       <div
         className="distribution-content"
         style={{
@@ -243,6 +249,17 @@ const SharedDistributionChart = ({
           ))}
         </div>
       </div>
+      ) : (
+        <NoDataPlaceholder
+          message="No distribution data available"
+          subMessage={`Try adjusting your filters to see spending by ${
+            mode === "payment" ? "payment methods" : "categories"
+          }.`}
+          size="lg"
+          fullWidth
+          height={360}
+        />
+      )}
     </div>
   );
 };

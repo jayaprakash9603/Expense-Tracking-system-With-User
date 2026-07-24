@@ -130,11 +130,6 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.overview-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.15);
-}
-
 .overview-card.primary {
   border-left: 4px solid #14b8a6;
 }
@@ -211,10 +206,6 @@
   position: relative;
   overflow: hidden; /* prevent inner content bleeding over sticky header */
   z-index: 1; /* keep below sticky header */
-}
-
-.chart-container:hover {
-  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.1);
 }
 
 /* Remove hover shadow and lift specifically for the Daily Spending chart */
@@ -892,10 +883,6 @@
   transition: opacity 0.3s;
 }
 
-.chart-container:hover::before {
-  opacity: 1;
-}
-
 /* Status indicators */
 .status {
   position: relative;
@@ -952,10 +939,6 @@
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
-}
-
-.overview-card:hover::before {
-  opacity: 1;
 }
 
 /* Loading state for charts */

@@ -646,8 +646,8 @@
   font-size: 13px;
 }
 .pm-empty-centered {
-  padding: 0 !important;
-  height: 72px !important;
+  padding: 24px 16px !important;
+  height: 140px !important;
   border-bottom: none !important;
 }
 .pm-expense-table.pm-empty-state tbody tr.pm-empty-row td {

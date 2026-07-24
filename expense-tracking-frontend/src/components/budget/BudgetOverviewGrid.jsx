@@ -108,18 +108,6 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           position: "relative",
           overflow: "hidden",
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = isDark
-            ? "0 6px 16px rgba(0, 0, 0, 0.4)"
-            : "0 6px 16px rgba(0, 0, 0, 0.1)";
-          e.currentTarget.style.borderColor = colors.primary_accent;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
-          e.currentTarget.style.borderColor = colors.border_color;
-        }}
       >
         {/* Color indicator bar at top */}
         <div

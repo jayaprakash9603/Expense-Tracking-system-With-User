@@ -163,16 +163,6 @@
   transition: opacity 0.3s ease;
 }
 
-.metric-card:hover::before {
-  opacity: 1;
-}
-
-.metric-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: none;
-  border-color: rgba(20, 184, 166, 0.4);
-}
-
 .metric-card.primary {
   background: linear-gradient(
     135deg,
@@ -224,11 +214,6 @@
   transition: all 0.3s ease;
 }
 
-.metric-card:hover .metric-icon {
-  background: rgba(20, 184, 166, 0.3);
-  transform: rotate(5deg) scale(1.1);
-}
-
 .trend-indicator {
   width: 28px;
   height: 28px;
@@ -249,10 +234,6 @@
   color: #ef4444;
 }
 
-.metric-card:hover .trend-indicator {
-  transform: scale(1.1);
-}
-
 .metric-content h3 {
   font-size: 0.8rem;
   font-weight: 500;
@@ -269,11 +250,6 @@
   margin-bottom: 8px;
   line-height: 1;
   transition: all 0.3s ease;
-}
-
-.metric-card:hover .metric-value {
-  color: #14b8a6;
-  text-shadow: 0 0 20px rgba(20, 184, 166, 0.5);
 }
 
 .metric-change {
@@ -305,25 +281,6 @@
   background: rgba(20, 184, 166, 0.6);
   border-radius: 2px;
   transition: all 0.3s ease;
-}
-
-.metric-card:hover .sparkline-bar {
-  background: #14b8a6;
-  transform: scaleY(1.2);
-}
-
-.metric-card:hover .sparkline-bar:nth-child(odd) {
-  animation: sparkle 1.5s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    transform: scaleY(1.2);
-  }
-  50% {
-    transform: scaleY(1.5);
-  }
 }
 
 /* Charts Grid */
@@ -728,28 +685,6 @@
   background: linear-gradient(90deg, transparent, #14b8a6, transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
-}
-
-.chart-container:hover::before {
-  opacity: 1;
-}
-
-.chart-container:hover {
-  /* border-color: rgba(
-    20,
-    184,
-    166,
-    0.2
-  );  */
-  box-shadow: 0 12px 30px rgba(20, 184, 166, 0.15);
-  transform: translateY(-2px);
-}
-
-/* Remove hover shadow and lift specifically for the Daily Spending chart */
-.daily-spending-chart .chart-container:hover,
-.daily-spending-chart.chart-container:hover {
-  box-shadow: none;
-  transform: none;
 }
 
 .chart-header {
@@ -1719,11 +1654,6 @@
   height: 100%; /* Fill parent height */
 }
 
-.budget-overview:hover {
-  /* border-color removed - inline style handles it */
-  box-shadow: 0 8px 24px rgba(20, 184, 166, 0.1);
-}
-
 .budget-circle {
   margin: 24px 0;
   display: flex;
@@ -1740,11 +1670,6 @@
   justify-content: center;
   position: relative;
   transition: all 0.3s ease;
-}
-
-.budget-overview:hover .budget-progress {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(20, 184, 166, 0.3);
 }
 
 .budget-center {
@@ -1825,11 +1750,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.budget-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
 .budget-card-content {
   display: flex;
   align-items: center;
@@ -1846,10 +1766,6 @@
   font-size: 24px;
   flex-shrink: 0;
   transition: all 0.3s ease;
-}
-
-.budget-card:hover .budget-card-icon {
-  transform: scale(1.1) rotate(5deg);
 }
 
 .budget-card-info {

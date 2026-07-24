@@ -17,6 +17,8 @@ import GlobalHeaderMessageSlot from "./GlobalHeaderMessage/GlobalHeaderMessageSl
 import { InlineSearchBar, UniversalSearchModal } from "./UniversalSearch";
 import { useFeature } from "../../hooks/useFeature";
 import { FEATURE_KEYS, SUB_FEATURE_KEYS } from "../../config/featureCatalog";
+import useAccountDeletionStatus from "../../features/settings/hooks/useAccountDeletionStatus";
+import ScrollingTextBanner from "../../shared/ui/feedback/ScrollingTextBanner";
 
 /**
  * HeaderBar Component
@@ -34,6 +36,7 @@ const HeaderBar = () => {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
   const { t } = useTranslation();
   const searchEnabled = useFeature(FEATURE_KEYS.SEARCH);
+  const { status, isPending, submitting, cancelDeletion } = useAccountDeletionStatus();
   const notificationsEnabled = useFeature(FEATURE_KEYS.NOTIFICATIONS);
   const sharingCreateEnabled = useFeature(SUB_FEATURE_KEYS.SHARING_CREATE);
 
@@ -161,11 +164,50 @@ const HeaderBar = () => {
           {/* Placeholder for left content */}
         </div>
 
-        {/* Center Section: Global messages */}
+        {/* Center Section: Global messages or Deletion Pending Indicator */}
         <div className="flex-1 flex justify-end px-2">
-          <div className="w-full" style={{ maxWidth: 500 }}>
-            <GlobalHeaderMessageSlot className="justify-end" />
-          </div>
+          {isPending ? (
+            <div
+              className="flex items-center gap-2 px-3 py-1 rounded-full border text-xs"
+              style={{
+                borderColor: "rgba(245, 158, 11, 0.35)",
+                backgroundColor: "rgba(245, 158, 11, 0.08)",
+                width: "100%",
+                maxWidth: 400,
+                height: 32,
+              }}
+            >
+              <span className="text-amber-500 font-bold flex-shrink-0 animate-pulse">⚠ DELETION PENDING:</span>
+              <div className="flex-1 min-w-0 h-full flex items-center">
+                <ScrollingTextBanner
+                  text={t("settings.deletionScrollingBanner", { date: new Date(status?.scheduledPurgeAt).toLocaleString() })}
+                  color="#fbbf24"
+                  durationSeconds={15}
+                />
+              </div>
+              <button
+                onClick={async () => {
+                  try {
+                    await cancelDeletion();
+                    window.dispatchEvent(new Event("account-deletion-status-changed"));
+                  } catch (err) {
+                    console.error("Failed to cancel deletion", err);
+                  }
+                }}
+                disabled={submitting}
+                className="px-2 py-0.5 rounded text-[10px] font-bold text-white transition-all duration-200 hover:opacity-90 active:scale-95 flex-shrink-0"
+                style={{
+                  backgroundColor: colors.accent || "#14b8a6",
+                }}
+              >
+                {submitting ? "Restoring..." : "Cancel"}
+              </button>
+            </div>
+          ) : (
+            <div className="w-full" style={{ maxWidth: 500 }}>
+              <GlobalHeaderMessageSlot className="justify-end" />
+            </div>
+          )}
         </div>
 
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}

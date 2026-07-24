@@ -426,12 +426,6 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.summary-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: var(--card-hover-border, #14b8a6);
-}
-
 .card-icon {
   font-size: 2.5rem;
   padding: 15px;
@@ -807,12 +801,6 @@
   transition: transform 0.3s ease, background 160ms ease;
   max-width: 440px;
   width: 100%;
-}
-
-.bill-report .category-card:hover {
-  transform: translateY(-3px);
-  border-color: var(--card-hover-border, #14b8a6);
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
 }
 
 .bill-report .category-card h4 {

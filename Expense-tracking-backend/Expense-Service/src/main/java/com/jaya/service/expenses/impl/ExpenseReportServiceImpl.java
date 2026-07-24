@@ -128,6 +128,46 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
         }
     }
 
+    @Override
+    public byte[] generateExcelReportBytes(Integer userId) throws Exception {
+        List<Expense> expenses = expenseRepository.findByUserId(userId);
+
+        UserDTO UserDTO = helper.validateUser(userId);
+        try (Workbook workbook = new XSSFWorkbook();
+             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream()) {
+            Sheet expensesSheet = workbook.createSheet("Expenses");
+            Map<Integer, ExpenseCategory> categoryCache = preloadCategories(userId);
+            writeExpensesHeader(expensesSheet);
+            writeExpensesRows(expensesSheet, expenses);
+            autosizeColumns(expensesSheet, 14);
+
+            Sheet summarySheet = workbook.createSheet("ExpenseCategory Summary");
+            writeCategorySummaryHeader(summarySheet);
+            Map<Integer, Double> categoryTotals = computeCategoryTotals(expenses);
+            Map<Integer, Integer> categoryCounts = computeCategoryCounts(expenses);
+            writeCategorySummaryRows(summarySheet, categoryTotals, categoryCounts, categoryCache);
+            autosizeColumns(summarySheet, 10);
+
+            Sheet paymentMethodSheet = workbook.createSheet("Payment Method Summary");
+            writePaymentMethodHeader(paymentMethodSheet);
+            Map<String, Double> pmTotals = computePaymentMethodTotals(expenses);
+            Map<String, Integer> pmCounts = computePaymentMethodCounts(expenses);
+            writePaymentMethodRows(paymentMethodSheet, pmTotals, pmCounts);
+            autosizeColumns(paymentMethodSheet, 3);
+
+            Sheet budgetSheet = workbook.createSheet("Budgets");
+            writeBudgetHeader(budgetSheet);
+            List<BudgetModel> budgets = budgetService.getAllBudgetForUser(userId);
+            writeBudgetRows(budgetSheet, budgets);
+            autosizeColumns(budgetSheet, 9);
+
+            workbook.write(bos);
+            return bos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     
     private void writeExpensesHeader(Sheet sheet) {
         Row headerRow = sheet.createRow(0);

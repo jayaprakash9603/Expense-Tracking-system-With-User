@@ -37,6 +37,21 @@ public class ExcelExportService {
         workbook.close();
     }
 
+    public byte[] generateBillExcelBytes(List<Bill> bills) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook();
+             java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream()) {
+
+            Sheet billsSheet = workbook.createSheet("Bills Summary");
+            createBillsSheet(billsSheet, bills, workbook);
+
+            Sheet expensesSheet = workbook.createSheet("Detailed Expenses");
+            createExpensesSheet(expensesSheet, bills, workbook);
+
+            workbook.write(bos);
+            return bos.toByteArray();
+        }
+    }
+
     private void createBillsSheet(Sheet sheet, List<Bill> bills, Workbook workbook) {
         CellStyle headerStyle = createHeaderStyle(workbook);
         CellStyle dataStyle = createDataStyle(workbook);

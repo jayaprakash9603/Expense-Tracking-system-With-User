@@ -39,6 +39,7 @@ import useFriendshipReportFilters, {
 import useFriendshipReportLayout from "../hooks/useFriendshipReportLayout";
 import FriendshipReportCustomizationModal from "../../../components/FriendshipReportCustomizationModal";
 import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenCard";
+import NoDataPlaceholder from "../../../components/NoDataPlaceholder";
 import ReportActionsMenu, {
   createDefaultReportMenuItems,
 } from "../../../components/common/ReportActionsMenu";
@@ -255,7 +256,9 @@ const LoadingSkeleton = ({ mode, visibleSections = [] }) => {
 };
 
 // Access Level Distribution Chart
-const AccessLevelChart = ({ data, COLORS, colors }) => (
+const AccessLevelChart = ({ data, COLORS, colors }) => {
+  const hasData = Array.isArray(data) && data.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <h3
       style={{
@@ -269,6 +272,7 @@ const AccessLevelChart = ({ data, COLORS, colors }) => (
       <LockIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
       Access Level Distribution
     </h3>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -298,11 +302,23 @@ const AccessLevelChart = ({ data, COLORS, colors }) => (
         <Legend />
       </PieChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No access level data"
+        subMessage="Add friends or adjust filters to see access distribution."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Friendship Activity Chart
-const FriendshipActivityChart = ({ data, colors }) => (
+const FriendshipActivityChart = ({ data, colors }) => {
+  const hasData = Array.isArray(data) && data.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <h3
       style={{
@@ -316,6 +332,7 @@ const FriendshipActivityChart = ({ data, colors }) => (
       <TrendingUpIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
       Friendship Activity (Last 6 Months)
     </h3>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
@@ -353,11 +370,23 @@ const FriendshipActivityChart = ({ data, colors }) => (
         />
       </LineChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No activity data"
+        subMessage="Friendship activity will appear here once data is available."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Sharing Status Chart
-const SharingStatusChart = ({ data, colors }) => (
+const SharingStatusChart = ({ data, colors }) => {
+  const hasData = Array.isArray(data) && data.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <h3
       style={{
@@ -371,6 +400,7 @@ const SharingStatusChart = ({ data, colors }) => (
       <SyncIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
       Sharing Status Overview
     </h3>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} layout="vertical">
         <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
@@ -392,15 +422,28 @@ const SharingStatusChart = ({ data, colors }) => (
         <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No sharing status data"
+        subMessage="Sharing overview will appear here once data is available."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Top Friends Radial Chart
-const TopFriendsChart = ({ data, colors }) => (
+const TopFriendsChart = ({ data, colors }) => {
+  const hasData = Array.isArray(data) && data.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <h3 style={{ color: colors.primary_text, display: "flex", alignItems: "center", gap: 8 }}>
       <StarIcon fontSize="small" sx={{ color: colors.primary_accent }} /> Top Active Friends
     </h3>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <RadialBarChart
         cx="50%"
@@ -434,8 +477,18 @@ const TopFriendsChart = ({ data, colors }) => (
         />
       </RadialBarChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No top friends data"
+        subMessage="Top active friends will appear here once interactions are recorded."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Friends List Table
 const FriendsTable = ({ friends, colors }) => (
@@ -461,9 +514,13 @@ const FriendsTable = ({ friends, colors }) => (
     </div>
 
     {friends.length === 0 ? (
-      <div className="empty-state">
-        <p style={{ color: colors.secondary_text }}>No friends to display.</p>
-      </div>
+      <NoDataPlaceholder
+        message="No friends to display"
+        subMessage="Add friends to see your friendship overview."
+        size="lg"
+        fullWidth
+        height={220}
+      />
     ) : (
       <div className="table-wrapper">
         <table className="friends-table">
@@ -522,16 +579,14 @@ const FriendsTable = ({ friends, colors }) => (
   </div>
 );
 
-const NoDataMessage = ({ colors }) => (
-  <div className="no-data-message">
-    <div className="no-data-icon">
-      {getAccentFunctionalIcon("friends", colors.primary_accent, { sx: { fontSize: 48 } })}
-    </div>
-    <h3 style={{ color: colors.primary_text }}>No friendship data found</h3>
-    <p style={{ color: colors.secondary_text }}>
-      Add some friends to see your friendship analytics.
-    </p>
-  </div>
+const NoDataMessage = () => (
+  <NoDataPlaceholder
+    message="No friendship data found"
+    subMessage="Add some friends to see your friendship analytics."
+    size="lg"
+    fullWidth
+    height={240}
+  />
 );
 
 const FriendshipReport = () => {
@@ -794,7 +849,7 @@ const FriendshipReport = () => {
       />
 
       {totalFriends === 0 && pendingRequests === 0 ? (
-        <NoDataMessage colors={colors} />
+        <NoDataMessage />
       ) : (
         <>
           {/* Render ALL sections dynamically based on layoutConfig order */}
@@ -846,45 +901,41 @@ const FriendshipReport = () => {
                 let chartComponent = null;
                 switch (section.id) {
                   case "access-level-chart":
-                    chartComponent =
-                      accessLevelData.length > 0 ? (
-                        <AccessLevelChart
-                          key={section.id}
-                          data={accessLevelData}
-                          COLORS={COLORS}
-                          colors={colors}
-                        />
-                      ) : null;
+                    chartComponent = (
+                      <AccessLevelChart
+                        key={section.id}
+                        data={accessLevelData}
+                        COLORS={COLORS}
+                        colors={colors}
+                      />
+                    );
                     break;
                   case "activity-chart":
-                    chartComponent =
-                      activityData.length > 0 ? (
-                        <FriendshipActivityChart
-                          key={section.id}
-                          data={activityData}
-                          colors={colors}
-                        />
-                      ) : null;
+                    chartComponent = (
+                      <FriendshipActivityChart
+                        key={section.id}
+                        data={activityData}
+                        colors={colors}
+                      />
+                    );
                     break;
                   case "sharing-status-chart":
-                    chartComponent =
-                      sharingStatusData.length > 0 ? (
-                        <SharingStatusChart
-                          key={section.id}
-                          data={sharingStatusData}
-                          colors={colors}
-                        />
-                      ) : null;
+                    chartComponent = (
+                      <SharingStatusChart
+                        key={section.id}
+                        data={sharingStatusData}
+                        colors={colors}
+                      />
+                    );
                     break;
                   case "top-friends-chart":
-                    chartComponent =
-                      topFriendsData.length > 0 ? (
-                        <TopFriendsChart
-                          key={section.id}
-                          data={topFriendsData}
-                          colors={colors}
-                        />
-                      ) : null;
+                    chartComponent = (
+                      <TopFriendsChart
+                        key={section.id}
+                        data={topFriendsData}
+                        colors={colors}
+                      />
+                    );
                     break;
                   default:
                     break;

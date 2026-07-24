@@ -870,6 +870,10 @@ export const en = {
     storageUsageDescription: "View your data storage usage",
     clearCache: "Clear Cache",
     clearCacheDescription: "Free up space by clearing cached data",
+    exportDirectoryPath: "Export Directory Path",
+    exportDirectoryPathDescription:
+      "Custom folder path for saving exported Excel reports. Leave blank to download files directly in the browser.",
+    exportDirectoryPathPlaceholder: "e.g. C:\\MyExports",
 
     // Smart Features
     autoCategorize: "Auto-Categorize Expenses",

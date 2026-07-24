@@ -65,8 +65,6 @@ import {
  */
 export const LANGUAGE_OPTIONS = [
   { value: "en", label: "English", icon: LanguageIcon },
-  { value: "hi", label: "हिन्दी (Hindi)", icon: LanguageIcon },
-  { value: "te", label: "తెలుగు (Telugu)", icon: LanguageIcon },
 ];
 
 /**
@@ -325,6 +323,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "compactMode",
         settingsKey: "compactMode",
+        disabled: true,
       },
       {
         id: "animations",
@@ -336,6 +335,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "animations",
         settingsKey: "animations",
+        disabled: true,
       },
       {
         id: "highContrast",
@@ -347,6 +347,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "highContrast",
         settingsKey: "highContrast",
+        disabled: true,
       },
     ],
   },
@@ -404,6 +405,7 @@ export const SETTINGS_SECTIONS = {
         stateKey: "timeFormat",
         settingsKey: "timeFormat",
         options: TIME_FORMAT_OPTIONS,
+        disabled: true,
       },
     ],
   },
@@ -427,6 +429,7 @@ export const SETTINGS_SECTIONS = {
         settingsKey: "profileVisibility",
         options: PROFILE_VISIBILITY_OPTIONS,
         customMessage: true,
+        disabled: true,
       },
       {
         id: "maskSensitiveData",
@@ -478,6 +481,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "Manage",
         buttonTextKey: "settings.manage",
         action: "manageBlockedUsers",
+        disabled: true,
       },
       {
         id: "sessionTimeout",
@@ -489,6 +493,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "sessionTimeout",
         settingsKey: "sessionTimeout",
+        disabled: true,
       },
     ],
   },
@@ -509,6 +514,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "autoBackup",
         settingsKey: "autoBackup",
+        disabled: true,
       },
       {
         id: "backupFrequency",
@@ -521,6 +527,7 @@ export const SETTINGS_SECTIONS = {
         stateKey: "backupFrequency",
         settingsKey: "backupFrequency",
         options: BACKUP_FREQUENCY_OPTIONS,
+        disabled: true,
       },
       {
         id: "cloudSync",
@@ -532,6 +539,18 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "cloudSync",
         settingsKey: "cloudSync",
+        disabled: true,
+      },
+      {
+        id: "exportDirectoryPath",
+        icon: StorageIcon,
+        title: "Export Directory Path",
+        titleKey: "settings.exportDirectoryPath",
+        description: "Custom path to store exported files locally (leave blank to download directly)",
+        descriptionKey: "settings.exportDirectoryPathDescription",
+        type: "text",
+        stateKey: "exportDirectoryPath",
+        settingsKey: "exportDirectoryPath",
       },
       {
         id: "storageUsage",
@@ -544,6 +563,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "View",
         buttonTextKey: "settings.view",
         action: "viewStorage",
+        disabled: true,
       },
       {
         id: "clearCache",
@@ -556,6 +576,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "Clear",
         buttonTextKey: "settings.clear",
         action: "clearCache",
+        disabled: true,
       },
     ],
   },
@@ -576,6 +597,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "autoCategorize",
         settingsKey: "autoCategorize",
+        disabled: true,
       },
       {
         id: "smartBudgeting",
@@ -587,6 +609,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "smartBudgeting",
         settingsKey: "smartBudgeting",
+        disabled: true,
       },
       {
         id: "scheduledReports",
@@ -599,6 +622,7 @@ export const SETTINGS_SECTIONS = {
         stateKey: "scheduledReports",
         settingsKey: "scheduledReports",
         options: REPORT_SCHEDULE_OPTIONS,
+        disabled: true,
       },
       {
         id: "expenseReminders",
@@ -610,6 +634,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "expenseReminders",
         settingsKey: "expenseReminders",
+        disabled: true,
       },
       {
         id: "predictiveAnalytics",
@@ -621,6 +646,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "predictiveAnalytics",
         settingsKey: "predictiveAnalytics",
+        disabled: true,
       },
     ],
   },
@@ -641,6 +667,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "screenReader",
         settingsKey: "screenReader",
+        disabled: true,
       },
       {
         id: "keyboardShortcuts",
@@ -677,6 +704,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "reduceMotion",
         settingsKey: "reduceMotion",
+        disabled: true,
       },
       {
         id: "focusIndicators",
@@ -688,6 +716,7 @@ export const SETTINGS_SECTIONS = {
         type: "switch",
         stateKey: "focusIndicators",
         settingsKey: "focusIndicators",
+        disabled: true,
       },
       {
         id: "keyboardShortcutsGuide",
@@ -758,6 +787,7 @@ export const SETTINGS_SECTIONS = {
         buttonText: "Export",
         buttonTextKey: "settings.export",
         action: "exportData",
+        disabled: true,
       },
       {
         id: "deleteAccount",

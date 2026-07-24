@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useTheme } from "../../hooks/useTheme";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 // Category-wise Payment Breakdown Chart
 // Data shape: [{ category: 'Food', MethodA: amount, MethodB: amount, ... }]
@@ -40,6 +41,13 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
     methodsColors.forEach(({ method, color }) => m.set(method, color));
     return m;
   }, [methodsColors]);
+
+  const hasData =
+    data.length > 0 &&
+    methodKeys.length > 0 &&
+    data.some((row) =>
+      methodKeys.some((key) => Number(row[key] || 0) > 0),
+    );
 
   return (
     <div
@@ -71,6 +79,7 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
           Payment method preferences by spending category
         </div>
       </div>
+      {hasData ? (
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}
@@ -110,6 +119,15 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      ) : (
+        <NoDataPlaceholder
+          message="No category payment data available"
+          subMessage="Try adjusting your filters to see payment breakdown by category."
+          size="lg"
+          fullWidth
+          height={340}
+        />
+      )}
     </div>
   );
 };

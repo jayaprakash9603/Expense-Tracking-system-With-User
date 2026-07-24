@@ -83,12 +83,6 @@
   font-size: 14px;
 }
 
-.qa-box:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-  border-color: rgba(20, 184, 166, 0.12);
-}
-
 .qa-icon-expense {
   background: linear-gradient(135deg, #f11f99, #f28fb7);
 }

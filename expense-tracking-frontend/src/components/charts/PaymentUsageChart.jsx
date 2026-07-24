@@ -13,6 +13,7 @@ import {
 import { BarChart3 } from "lucide-react";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 // Payment Methods Usage Analysis (Pareto-like: amount bars + cumulative % + transactions)
 // Expects data: [{ method, totalAmount, transactions, cumulative(optional) }]
@@ -38,6 +39,14 @@ const PaymentUsageChart = ({
       cumulative: total ? +((running / total) * 100).toFixed(1) : 0,
     };
   });
+  const hasData =
+    sorted.length > 0 &&
+    sorted.some(
+      (d) =>
+        Number(d.totalAmount) > 0 ||
+        Number(d.transactions) > 0 ||
+        Number(d.amount) > 0,
+    );
 
   return (
     <div
@@ -71,6 +80,7 @@ const PaymentUsageChart = ({
           Bars: amount • Yellow line: cumulative % • Red line: transactions
         </div>
       </div>
+      {hasData ? (
       <ResponsiveContainer width="100%" height={430}>
         <ComposedChart
           data={composed}
@@ -149,6 +159,15 @@ const PaymentUsageChart = ({
           />
         </ComposedChart>
       </ResponsiveContainer>
+      ) : (
+        <NoDataPlaceholder
+          message="No usage data available"
+          subMessage="Try adjusting your filters or date range to see usage analysis."
+          size="lg"
+          fullWidth
+          height={360}
+        />
+      )}
     </div>
   );
 };

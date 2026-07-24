@@ -631,6 +631,11 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
+    public byte[] generateExcelReportBytes(Integer userId) throws Exception {
+        return expenseReportService.generateExcelReportBytes(userId);
+    }
+
+    @Override
     public void sendEmailWithAttachment(String toEmail, String subject, String body, String attachmentPath)
             throws MessagingException {
         expenseReportService.sendEmailWithAttachment(toEmail, subject, body, attachmentPath);

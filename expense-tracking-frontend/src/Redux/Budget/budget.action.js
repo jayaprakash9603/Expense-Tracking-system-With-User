@@ -1,4 +1,24 @@
 import { api } from "../../config/api";
+
+const toLocalDateParam = (date) => {
+  if (!date) return date;
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+  if (typeof date.format === "function") {
+    return date.format("YYYY-MM-DD");
+  }
+  if (date instanceof Date && !Number.isNaN(date.getTime())) {
+    return date.toISOString().split("T")[0];
+  }
+  if (typeof date === "string") {
+    const parsed = new Date(date);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString().split("T")[0];
+    }
+  }
+  return date;
+};
 import {
   GET_BUDGET_FAILURE,
   GET_BUDGET_SUCCESS,
@@ -128,7 +148,7 @@ export const getListOfBudgetsById = (date, targetId) => async (dispatch) => {
   try {
     const { data } = await api.get(`/api/budgets/filter-by-date`, {
       params: {
-        date: date,
+        date: toLocalDateParam(date),
         targetId: targetId || "",
       },
     });
@@ -156,7 +176,11 @@ export const getListOfBudgetsByExpenseId =
     console.log("Fetching budgets by expense ID:", id, "and date:", date);
     try {
       const { data } = await api.get(`/api/budgets/expenses`, {
-        params: { expenseId: id, date: date, targetId: targetId || "" },
+        params: {
+          expenseId: id,
+          date: toLocalDateParam(date),
+          targetId: targetId || "",
+        },
       });
 
       console.log("budget list of summary response:", data);

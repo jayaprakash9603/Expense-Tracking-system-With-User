@@ -71,6 +71,7 @@ public class UserSettingsMapper {
                 .showShortcutIndicators(entity.getShowShortcutIndicators())
                 .reduceMotion(entity.getReduceMotion())
                 .focusIndicators(entity.getFocusIndicators())
+                .exportDirectoryPath(entity.getExportDirectoryPath())
                 
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
@@ -130,6 +131,7 @@ public class UserSettingsMapper {
                 .showShortcutIndicators(dto.getShowShortcutIndicators())
                 .reduceMotion(dto.getReduceMotion())
                 .focusIndicators(dto.getFocusIndicators())
+                .exportDirectoryPath(dto.getExportDirectoryPath())
                 .build();
     }
 
@@ -253,6 +255,9 @@ public class UserSettingsMapper {
         }
         if (request.getFocusIndicators() != null) {
             entity.setFocusIndicators(request.getFocusIndicators());
+        }
+        if (request.getExportDirectoryPath() != null) {
+            entity.setExportDirectoryPath(request.getExportDirectoryPath());
         }
     }
 

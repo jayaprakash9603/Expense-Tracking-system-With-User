@@ -19,6 +19,7 @@ import DeleteAccountDialog from "../components/DeleteAccountDialog";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
 import { clearDeletionPendingSession, markDeletionPendingSession } from "../utils/accountDeletionSession";
 import ThemePicker from "../../../components/ThemePicker";
+import { logoutAction } from "../../../Redux/Auth/auth.action";
 
 import { useSnackbar } from "../hooks/useSnackbar";
 import { useDialogState } from "../hooks/useDialogState";
@@ -103,7 +104,7 @@ const Settings = () => {
     setDeleteDialogOpen,
     setPasswordDialogOpen,
   } = useDialogState();
-  const { settingsState, updateSetting } = useSettingsState(
+  const { settingsState, setSettingsState, updateSetting } = useSettingsState(
     userSettings,
     showSnackbar,
   );
@@ -118,12 +119,17 @@ const Settings = () => {
     );
 
   const handleDeletionScheduled = useCallback(
-    () => {
+    (data) => {
       markDeletionPendingSession();
       sessionStorage.setItem("deletionWelcomeNoticeSeen", "1");
       window.dispatchEvent(new Event("account-deletion-status-changed"));
+      const purgeDate = data?.scheduledPurgeAt ? new Date(data.scheduledPurgeAt).toLocaleString() : "";
+      showSnackbar(t("settings.deletionScheduledSnackbar", { date: purgeDate }), "warning");
+      setTimeout(() => {
+        dispatch(logoutAction());
+      }, 3000);
     },
-    [],
+    [dispatch, showSnackbar, t],
   );
 
   const handleDeletionCancelled = useCallback(() => {
@@ -153,7 +159,7 @@ const Settings = () => {
         key={item.id}
         sx={{
           pl: isSubOption ? 4 : 0, // Indent sub-options
-          opacity: isSubOption && !parentEnabled ? 0.5 : 1,
+          opacity: item.disabled || (isSubOption && !parentEnabled) ? 0.5 : 1,
           transition: "opacity 0.2s ease",
         }}
       >
@@ -181,7 +187,7 @@ const Settings = () => {
             );
           }}
           colors={colors}
-          disabled={isSubOption && !parentEnabled}
+          disabled={item.disabled || (isSubOption && !parentEnabled)}
         />
       </Box>
     );
@@ -213,6 +219,7 @@ const Settings = () => {
             handleLanguageChange(value); // Use dedicated language handler
           }}
           colors={colors}
+          disabled={item.disabled}
         />
       );
     }
@@ -235,6 +242,7 @@ const Settings = () => {
           updateSetting(settingsKey, value, message);
         }}
         colors={colors}
+        disabled={item.disabled}
       />
     );
   };
@@ -260,6 +268,7 @@ const Settings = () => {
         onButtonClick={() => executeAction(item.action)}
         isDanger={item.isDanger}
         colors={colors}
+        disabled={item.disabled}
       />
     );
   };
@@ -285,6 +294,7 @@ const Settings = () => {
         isNavigation
         onNavigationClick={() => executeAction(item.action)}
         colors={colors}
+        disabled={item.disabled}
         statusChip={
           shouldShowStatus ? (
             <Chip
@@ -334,6 +344,65 @@ const Settings = () => {
           updateSetting(settingsKey, value, `${title} updated to ${value}`);
         }}
         colors={colors}
+        disabled={item.disabled}
+      />
+    );
+  };
+
+  // Render text-type setting (e.g. exportDirectoryPath)
+  const renderTextSetting = (item) => {
+    const stateKey = item.stateKey;
+    const settingsKey = item.settingsKey;
+    const title = item.titleKey ? t(item.titleKey) : item.title;
+    const description = item.descriptionKey
+      ? t(item.descriptionKey)
+      : item.description;
+
+    return (
+      <SettingItem
+        key={item.id}
+        icon={item.icon}
+        title={title}
+        description={description}
+        colors={colors}
+        disabled={item.disabled}
+        action={
+          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+            <input
+              type="text"
+              value={settingsState[stateKey] || ""}
+              onChange={(e) => {
+                setSettingsState((prev) => ({ ...prev, [stateKey]: e.target.value }));
+              }}
+              onBlur={(e) => {
+                updateSetting(settingsKey, e.target.value, `${title} updated`);
+              }}
+              placeholder={t(
+                "settings.exportDirectoryPathPlaceholder",
+                "e.g. C:\\MyExports",
+              )}
+              disabled={item.disabled}
+              style={{
+                backgroundColor: colors.primary_bg,
+                color: colors.primary_text,
+                border: `1px solid ${colors.border_color}`,
+                borderRadius: "8px",
+                padding: "8px 12px",
+                fontSize: "0.875rem",
+                outline: "none",
+                width: "220px",
+                transition: "border-color 0.2s",
+                opacity: item.disabled ? 0.5 : 1,
+              }}
+              onFocus={(e) => {
+                if (!item.disabled) e.target.style.borderColor = colors.primary_accent;
+              }}
+              onBlurCapture={(e) => {
+                if (!item.disabled) e.target.style.borderColor = colors.border_color;
+              }}
+            />
+          </Box>
+        }
       />
     );
   };
@@ -396,6 +465,9 @@ const Settings = () => {
         break;
       case "slider":
         component = renderSliderSetting(item);
+        break;
+      case "text":
+        component = renderTextSetting(item);
         break;
       case "themePicker":
         component = (

@@ -469,7 +469,6 @@ const PaymentMethodsReport = () => {
                 );
 
               case "transaction-sizes":
-                if (filteredTxSizeData.length === 0) return null;
                 return (
                   <div
                     key={sec.id}
@@ -489,7 +488,6 @@ const PaymentMethodsReport = () => {
                 );
 
               case "category-breakdown":
-                if (filteredCategoryBreakdown.length === 0) return null;
                 return (
                   <div
                     key={sec.id}

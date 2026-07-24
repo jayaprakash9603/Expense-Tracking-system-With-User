@@ -1,5 +1,7 @@
 package com.jaya.controller;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import com.jaya.config.ChatWebSocketConfig;
 import com.jaya.dto.ChatRequest;
 import com.jaya.dto.ChatResponse;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
+@ConditionalOnFeatureModule(FeatureCatalog.CHAT)
 public class ChatWebSocketController {
     @Autowired
     private ChatService chatService;

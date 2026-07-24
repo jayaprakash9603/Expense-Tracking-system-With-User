@@ -165,6 +165,9 @@ public class UserSettings {
     @Builder.Default
     private Boolean focusIndicators = false;
 
+    @Column(name = "export_directory_path", length = 255)
+    private String exportDirectoryPath;
+
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

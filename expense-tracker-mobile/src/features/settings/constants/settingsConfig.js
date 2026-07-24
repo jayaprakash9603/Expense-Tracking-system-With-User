@@ -43,8 +43,6 @@ import {
 
 export const LANGUAGE_OPTIONS = [
   { value: "en", labelKey: "settings.options.english" },
-  { value: "hi", labelKey: "settings.options.hindi" },
-  { value: "te", labelKey: "settings.options.telugu" },
 ];
 
 export const CURRENCY_OPTIONS = [

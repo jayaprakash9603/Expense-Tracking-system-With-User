@@ -30,6 +30,7 @@ import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportActionMenu from "../../../components/common/ReportActionMenu";
 import { setBillSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
+import NoDataPlaceholder from "../../../components/NoDataPlaceholder";
 
 // Skeleton Components (type-specific)
 const BarChartSkeletonInner = () => (
@@ -302,27 +303,26 @@ const SummaryCards = ({ analytics, currencySymbol = "₹" }) => {
 };
 
 // No Data Message Component
-const NoDataMessage = () => {
-  const { colors } = useTheme();
-  return (
-  <div className="no-data-message">
-    <div className="no-data-icon">
-      {getAccentFunctionalIcon("chart", colors.primary_accent, {
-        sx: { fontSize: 48 },
-      })}
-    </div>
-    <h3>No bills found</h3>
-    <p>Try adjusting your filters to see more data.</p>
-  </div>
-  );
-};
+const NoDataMessage = () => (
+  <NoDataPlaceholder
+    message="No expenses found"
+    subMessage="Try adjusting your filters to see more data."
+    size="lg"
+    fullWidth
+    height={240}
+  />
+);
 
 // Category Bar Chart Component
-const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
+const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => {
+  const hasData =
+    Array.isArray(categoryChartData) && categoryChartData.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <ChartSectionHeading iconKey="category">
       Expenses by Category
     </ChartSectionHeading>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={categoryChartData}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -335,19 +335,34 @@ const CategoryBarChart = ({ categoryChartData, currencySymbol = "₹" }) => (
         <Bar dataKey="amount" fill="#14b8a6" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No category data"
+        subMessage="Try adjusting your filters to see spending by category."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Payment Method Pie Chart Component
 const PaymentMethodPieChart = ({
   paymentMethodChartData,
   COLORS,
   currencySymbol = "₹",
-}) => (
+}) => {
+  const hasData =
+    Array.isArray(paymentMethodChartData) &&
+    paymentMethodChartData.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <ChartSectionHeading iconKey="payment">
       Payment Methods
     </ChartSectionHeading>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
         <Pie
@@ -371,8 +386,18 @@ const PaymentMethodPieChart = ({
         />
       </PieChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No payment method data"
+        subMessage="Try adjusting your filters to see payment breakdown."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Daily/Periodic Trend Chart Component with navigation
 const DailyTrendChart = ({
@@ -383,7 +408,9 @@ const DailyTrendChart = ({
   onNext,
   currencySymbol = "₹",
   colors,
-}) => (
+}) => {
+  const hasData = Array.isArray(dailyTrendData) && dailyTrendData.length > 0;
+  return (
   <div className="chart-container full-width">
     <div
       style={{
@@ -430,6 +457,7 @@ const DailyTrendChart = ({
       </div>
     </div>
 
+    {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
       <ComposedChart data={dailyTrendData}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -464,19 +492,33 @@ const DailyTrendChart = ({
         />
       </ComposedChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No trend data available"
+        subMessage="Try adjusting your filters or date range to see expense trends."
+        size="lg"
+        fullWidth
+        height={260}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Top Items Radial Chart Component
 const TopItemsRadialChart = ({
   topItemsRadialData,
   renderRadialLabel,
   CustomRadialTooltip,
-}) => (
+}) => {
+  const hasData =
+    Array.isArray(topItemsRadialData) && topItemsRadialData.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <ChartSectionHeading iconKey="shopping">
       Top Expense Items
     </ChartSectionHeading>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={350}>
       <RadialBarChart
         cx="50%"
@@ -500,17 +542,30 @@ const TopItemsRadialChart = ({
         />
       </RadialBarChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No top items data"
+        subMessage="Try adjusting your filters to see top expense items."
+        size="lg"
+        fullWidth
+        height={300}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Top Items Bar Chart Component
 const TopItemsBarChart = ({
   topItemsBarData,
   COLORS,
   currencySymbol = "₹",
-}) => (
+}) => {
+  const hasData = Array.isArray(topItemsBarData) && topItemsBarData.length > 0;
+  return (
   <div className="chart-container chart-half-width">
     <ChartSectionHeading iconKey="chart">Top Expense Items</ChartSectionHeading>
+    {hasData ? (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={topItemsBarData} margin={{ bottom: 60 }}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -537,8 +592,18 @@ const TopItemsBarChart = ({
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+    ) : (
+      <NoDataPlaceholder
+        message="No top items data"
+        subMessage="Try adjusting your filters to see top expense items."
+        size="lg"
+        fullWidth
+        height={300}
+      />
+    )}
   </div>
-);
+  );
+};
 
 // Bills Table Component
 const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
@@ -566,6 +631,15 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
   return (
     <div className="bills-table-container mt-[30px]">
       <ChartSectionHeading iconKey="bill">Recent Bills</ChartSectionHeading>
+      {filteredBills.length === 0 ? (
+        <NoDataPlaceholder
+          message="No bills available"
+          subMessage="Try adjusting your filters to see bill records."
+          size="lg"
+          fullWidth
+          height={220}
+        />
+      ) : (
       <div className="table-wrapper">
         <table className="bills-table">
           <thead>
@@ -643,7 +717,8 @@ const BillsTable = ({ filteredBills, currencySymbol = "₹" }) => {
         </tbody>
       </table>
     </div>
-  </div>
+      )}
+    </div>
   );
 };
 
@@ -1181,48 +1256,38 @@ const ExpenseReport = () => {
       ) : (
         <>
           <div className="chart-report-grid">
-            {categoryChartData.length > 0 && (
-              <CategoryBarChart
-                categoryChartData={categoryChartData}
-                currencySymbol={currencySymbol}
-              />
-            )}
+            <CategoryBarChart
+              categoryChartData={categoryChartData}
+              currencySymbol={currencySymbol}
+            />
 
-            {paymentMethodChartData.length > 0 && (
-              <PaymentMethodPieChart
-                paymentMethodChartData={paymentMethodChartData}
-                COLORS={COLORS}
-                currencySymbol={currencySymbol}
-              />
-            )}
+            <PaymentMethodPieChart
+              paymentMethodChartData={paymentMethodChartData}
+              COLORS={COLORS}
+              currencySymbol={currencySymbol}
+            />
 
-            {dailyTrendData.length > 0 && (
-              <DailyTrendChart
-                dailyTrendData={dailyTrendData}
-                timeframe={selectedTimeframe}
-                trendCursor={trendCursor}
-                onPrev={handleTrendPrev}
-                onNext={handleTrendNext}
-                currencySymbol={currencySymbol}
-                colors={colors}
-              />
-            )}
+            <DailyTrendChart
+              dailyTrendData={dailyTrendData}
+              timeframe={selectedTimeframe}
+              trendCursor={trendCursor}
+              onPrev={handleTrendPrev}
+              onNext={handleTrendNext}
+              currencySymbol={currencySymbol}
+              colors={colors}
+            />
 
-            {topItemsRadialData.length > 0 && (
-              <TopItemsRadialChart
-                topItemsRadialData={topItemsRadialData}
-                renderRadialLabel={renderRadialLabel}
-                CustomRadialTooltip={CustomRadialTooltip}
-              />
-            )}
+            <TopItemsRadialChart
+              topItemsRadialData={topItemsRadialData}
+              renderRadialLabel={renderRadialLabel}
+              CustomRadialTooltip={CustomRadialTooltip}
+            />
 
-            {topItemsBarData.length > 0 && (
-              <TopItemsBarChart
-                topItemsBarData={topItemsBarData}
-                COLORS={COLORS}
-                currencySymbol={currencySymbol}
-              />
-            )}
+            <TopItemsBarChart
+              topItemsBarData={topItemsBarData}
+              COLORS={COLORS}
+              currencySymbol={currencySymbol}
+            />
           </div>
 
           <BillsTable

@@ -6,6 +6,8 @@ import { fetchCashflowExpenses } from "../../../Redux/Expenses/expense.action";
 import MonthlyCalendarView from "../../../components/calendar/MonthlyCalendarView";
 import { getFinanceCalendarColors } from "../../../config/financeColorTokens";
 import { useTheme } from "../../../hooks/useTheme";
+import useFeature from "../../../hooks/useFeature";
+import { SUB_FEATURE_KEYS } from "../../../config/featureCatalog";
 import { api } from "../../../config/api";
 
 const CalendarView = () => {
@@ -16,6 +18,9 @@ const CalendarView = () => {
   const [monthOffset, setMonthOffset] = React.useState(0);
   const { mode } = useTheme();
   const financeColors = getFinanceCalendarColors(mode);
+  const spendingMomentumEnabled = useFeature(
+    SUB_FEATURE_KEYS.CALENDAR_SPENDING_MOMENTUM,
+  );
 
   const [momentumInsight, setMomentumInsight] = React.useState(null);
 
@@ -32,8 +37,13 @@ const CalendarView = () => {
     );
   }, [dispatch, monthOffset, friendId]);
 
-  // Fetch pre-computed momentum insight from backend
+  // Fetch pre-computed momentum insight from backend (feature-gated)
   React.useEffect(() => {
+    if (!spendingMomentumEnabled) {
+      setMomentumInsight(null);
+      return undefined;
+    }
+
     let cancelled = false;
 
     const fetchMomentum = async () => {
@@ -56,7 +66,7 @@ const CalendarView = () => {
     return () => {
       cancelled = true;
     };
-  }, [friendId]);
+  }, [friendId, spendingMomentumEnabled]);
 
   // Group expenses by day and calculate spending/income
   const daysData = useMemo(() => {
@@ -105,7 +115,8 @@ const CalendarView = () => {
     <MonthlyCalendarView
       title="Calendar View"
       data={daysData}
-      momentumInsight={momentumInsight}
+      momentumInsight={spendingMomentumEnabled ? momentumInsight : null}
+      showSpendingMomentum={spendingMomentumEnabled}
       onDayClick={handleDayClick}
       onMonthChange={handleMonthChange}
       onBack={handleBack}

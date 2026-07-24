@@ -90,14 +90,6 @@ const StatsCard = ({
         border: `1px solid ${colors.border}`,
         borderRadius: 2,
         cursor: onClick ? "pointer" : "default",
-        transition: "all 0.2s ease",
-        "&:hover": onClick
-          ? {
-              transform: "translateY(-2px)",
-              boxShadow: `0 4px 12px ${colors.shadow}`,
-              borderColor: accentColor,
-            }
-          : {},
         ...sx,
       }}
       onClick={onClick}

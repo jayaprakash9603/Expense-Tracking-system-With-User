@@ -55,6 +55,9 @@ export const useSettingsState = (userSettings, showSnackbar) => {
     showShortcutIndicators: false,
     reduceMotion: false,
     focusIndicators: false,
+
+    // Export Path
+    exportDirectoryPath: "",
   });
 
   // Sync local state with Redux store when settings are loaded
@@ -104,6 +107,9 @@ export const useSettingsState = (userSettings, showSnackbar) => {
         showShortcutIndicators: userSettings.showShortcutIndicators ?? false,
         reduceMotion: userSettings.reduceMotion ?? false,
         focusIndicators: userSettings.focusIndicators ?? false,
+
+        // Export Path
+        exportDirectoryPath: userSettings.exportDirectoryPath ?? "",
       });
     }
   }, [userSettings]);
@@ -135,6 +141,7 @@ export const useSettingsState = (userSettings, showSnackbar) => {
 
   return {
     settingsState,
+    setSettingsState,
     updateSetting,
   };
 };

@@ -1094,15 +1094,40 @@ public class ExpenseController extends BaseExpenseController {
     }
 
     @GetMapping("/generate-excel-report")
-    public ResponseEntity<String> generateExcelReport(
+    public ResponseEntity<?> generateExcelReport(
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false) Integer targetId) throws Exception {
+            @RequestParam(required = false) Integer targetId,
+            @RequestParam(required = false) String exportPath) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
-        String reportPath = expenseService.generateExcelReport(targetUser.getId());
+        String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileName = "expenses_report_" + timestamp + ".xlsx";
 
-        return ResponseEntity.ok(reportPath);
+        if (exportPath != null && !exportPath.trim().isEmpty()) {
+            java.io.File baseDir = new java.io.File(exportPath.trim());
+            java.io.File expensesDir = new java.io.File(baseDir, "expenses");
+            if (!expensesDir.exists()) {
+                expensesDir.mkdirs();
+            }
+            java.io.File targetFile = new java.io.File(expensesDir, fileName);
+            String fullPath = targetFile.getAbsolutePath();
+
+            byte[] bytes = expenseService.generateExcelReportBytes(targetUser.getId());
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(targetFile)) {
+                fos.write(bytes);
+            }
+
+            return ResponseEntity.ok("Excel file generated successfully at: " + fullPath);
+        } else {
+            byte[] bytes = expenseService.generateExcelReportBytes(targetUser.getId());
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new org.springframework.core.io.ByteArrayResource(bytes));
+        }
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */

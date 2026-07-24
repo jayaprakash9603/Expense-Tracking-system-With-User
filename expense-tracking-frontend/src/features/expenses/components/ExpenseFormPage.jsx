@@ -278,7 +278,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         }),
       );
     } else {
-      dispatch(getListOfBudgetsById(dayjsValue, friendId));
+      dispatch(getListOfBudgetsById(formatted, friendId));
     }
   };
 

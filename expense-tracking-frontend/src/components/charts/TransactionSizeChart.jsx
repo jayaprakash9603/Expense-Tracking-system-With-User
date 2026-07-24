@@ -12,6 +12,7 @@ import {
 import { Target } from "lucide-react";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTheme } from "../../hooks/useTheme";
+import NoDataPlaceholder from "../NoDataPlaceholder";
 
 // Transaction Size Distribution Chart
 // Data shape: [{ range: '₹0-100', MethodA: count, MethodB: count, ... }]
@@ -42,6 +43,13 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
     return map;
   }, [methodsColors]);
 
+  const hasData =
+    data.length > 0 &&
+    keys.length > 0 &&
+    data.some((row) =>
+      keys.some((key) => Number(row[key] || 0) > 0),
+    );
+
   return (
     <div
       className="chart-container"
@@ -63,6 +71,7 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
           Payment method usage by transaction amount ranges
         </div>
       </div>
+      {hasData ? (
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}
@@ -99,6 +108,15 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
           ))}
         </BarChart>
       </ResponsiveContainer>
+      ) : (
+        <NoDataPlaceholder
+          message="No transaction size data available"
+          subMessage="Try adjusting your filters or date range to see transaction distribution."
+          size="lg"
+          fullWidth
+          height={340}
+        />
+      )}
     </div>
   );
 };

@@ -1187,7 +1187,7 @@ export const categoryIconMap = {
   "🎙️": Mic,
   "🔄": AutoAwesome,
   "✉️": Email,
-  "🔑": VpnKey,
+  "vpn_key": VpnKey,
   "🎟️": ConfirmationNumber,
 
   // Subscription text keys

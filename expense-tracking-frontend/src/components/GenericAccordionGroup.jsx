@@ -547,10 +547,16 @@ export function GenericAccordionGroup({
             : ""
         }`}
       >
-        {isGroupSearchActive && filteredSortedGroups.length === 0 ? (
+        {filteredSortedGroups.length === 0 ? (
           <NoDataPlaceholder
-            message="No results found"
-            subMessage="Try a different keyword to find a matching group."
+            message={
+              isGroupSearchActive ? "No results found" : "No data available"
+            }
+            subMessage={
+              isGroupSearchActive
+                ? "Try a different keyword to find a matching group."
+                : "There are no items to display for the current selection."
+            }
             height="100%"
             dense
             fullWidth
@@ -558,8 +564,9 @@ export function GenericAccordionGroup({
             iconColor="var(--pm-accent-color)"
             subMessageColor="var(--pm-text-secondary)"
           />
-        ) : null}
-        {visibleGroups.map(({ group, key: groupKey }, localIdx) => {
+        ) : (
+          <>
+          {visibleGroups.map(({ group, key: groupKey }, localIdx) => {
           const isOpen = groupKey === openGroupKey;
           const activeTab = tabByGroupKey[groupKey] || tabs[0]?.key || "all";
           const pageSize = pageSizeByGroupKey[groupKey] || defaultPageSize;
@@ -1029,6 +1036,8 @@ export function GenericAccordionGroup({
               </div>
             </div>
           ))}
+          </>
+        )}
       </div>
       {showGroupPagination && (
         <div className="pm-group-pagination-bar">

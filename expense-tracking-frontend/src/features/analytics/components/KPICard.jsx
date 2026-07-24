@@ -9,11 +9,6 @@ const KPICard = ({ title, value, subtitle, change, trend, icon, color }) => {
         border: "1px solid rgba(20, 184, 166, 0.3)",
         position: "relative",
         overflow: "hidden",
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 8px 25px rgba(20, 184, 166, 0.15)",
-        },
       }}
     >
       <CardContent>

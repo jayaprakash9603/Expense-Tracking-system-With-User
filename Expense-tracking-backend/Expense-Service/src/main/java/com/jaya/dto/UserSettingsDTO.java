@@ -128,6 +128,9 @@ public class UserSettingsDTO {
     @JsonProperty("focusIndicators")
     private Boolean focusIndicators;
 
+    @JsonProperty("exportDirectoryPath")
+    private String exportDirectoryPath;
+
     
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;

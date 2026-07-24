@@ -61,26 +61,11 @@ const AnalyticsKPICard = ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    transition: "transform 0.2s, box-shadow 0.2s",
     cursor: "default",
   };
 
-  const hoverStyle = {
-    transform: "translateY(-2px)",
-    boxShadow: `0 8px 20px ${accentColor}20`,
-  };
-
-  const [isHovered, setIsHovered] = React.useState(false);
-
   const content = (
-    <div
-      style={{
-        ...cardStyle,
-        ...(isHovered ? hoverStyle : {}),
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div style={cardStyle}>
       {/* Header */}
       <div
         style={{

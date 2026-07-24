@@ -31,6 +31,7 @@ import DailySpendingChart from "../../../pages/Dashboard/DailySpendingChart";
 import ReportFilterDrawer from "../../../components/reportFilters/ReportFilterDrawer";
 import BudgetReportCustomizationModal from "../../../components/BudgetReportCustomizationModal";
 import AllSectionsHiddenCard from "../../../components/common/AllSectionsHiddenCard";
+import NoDataPlaceholder from "../../../components/NoDataPlaceholder";
 import ReportActionsMenu, {
   createDefaultReportMenuItems,
 } from "../../../components/common/ReportActionsMenu";
@@ -513,7 +514,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "daily-spending":
-                if (dailySpendingData.length === 0) return null;
                 return (
                   <div key={sec.id} className="chart-row full-width">
                     <DailySpendingChart
@@ -529,11 +529,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "recurring-expenses":
-                if (
-                  filteredBudgets.length === 0 &&
-                  topRecurringExpenses.length === 0
-                )
-                  return null;
                 return (
                   <div
                     key={sec.id}
@@ -549,7 +544,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "loss-gain-breakdown":
-                if (filteredBudgets.length === 0) return null;
                 return (
                   <div
                     key={sec.id}
@@ -564,7 +558,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "category-distribution":
-                if (effectiveCategoryBreakdown.length === 0) return null;
                 return (
                   <div
                     key={sec.id}
@@ -587,7 +580,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "payment-distribution":
-                if (effectivePaymentBreakdown.length === 0) return null;
                 return (
                   <div
                     key={sec.id}
@@ -610,7 +602,6 @@ const AllBudgetsReport = () => {
                 );
 
               case "budget-overview-grid":
-                if (filteredBudgets.length === 0) return null;
                 return (
                   <div key={sec.id} className="chart-row full-width">
                     <div
@@ -649,7 +640,17 @@ const AllBudgetsReport = () => {
                           utilization
                         </div>
                       </div>
-                      <BudgetOverviewGrid budgets={filteredBudgets} />
+                      {filteredBudgets.length > 0 ? (
+                        <BudgetOverviewGrid budgets={filteredBudgets} />
+                      ) : (
+                        <NoDataPlaceholder
+                          message="No budget overview data"
+                          subMessage="Try adjusting your filters to see budget allocations."
+                          size="lg"
+                          fullWidth
+                          height={280}
+                        />
+                      )}
                     </div>
                   </div>
                 );

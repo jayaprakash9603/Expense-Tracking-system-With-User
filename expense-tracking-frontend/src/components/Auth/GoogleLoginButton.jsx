@@ -10,6 +10,7 @@ import {
   GET_PROFILE_FAILURE,
 } from "../../Redux/Auth/auth.actionType";
 import { normalizeUserProfile } from "../../utils/user/resolveUserProfileImage";
+import { GOOGLE_CLIENT_ID } from "../../config/googleOAuth";
 
 // Google Icon SVG Component
 const GoogleIcon = () => (

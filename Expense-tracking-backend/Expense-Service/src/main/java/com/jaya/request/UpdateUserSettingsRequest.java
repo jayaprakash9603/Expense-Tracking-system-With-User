@@ -154,4 +154,8 @@ public class UpdateUserSettingsRequest {
     @JsonProperty("focusIndicators")
     @JsonAlias("focus_indicators")
     private Boolean focusIndicators;
+
+    @JsonProperty("exportDirectoryPath")
+    @JsonAlias("export_directory_path")
+    private String exportDirectoryPath;
 }

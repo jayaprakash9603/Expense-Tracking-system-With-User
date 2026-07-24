@@ -252,6 +252,7 @@ features:
       view: true
       dayView: true
       billDayView: true
+      spendingMomentum: false
     upload:
       expenses: true
       categories: true

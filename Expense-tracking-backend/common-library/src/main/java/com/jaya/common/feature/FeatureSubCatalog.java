@@ -311,6 +311,7 @@ public final class FeatureSubCatalog {
         defs.add(sub(FeatureCatalog.CALENDAR, "view", List.of("/calendar-view"), List.of()));
         defs.add(sub(FeatureCatalog.CALENDAR, "dayView", List.of("/day-view"), List.of()));
         defs.add(sub(FeatureCatalog.CALENDAR, "billDayView", List.of("/bill-day-view"), List.of()));
+        defs.add(sub(FeatureCatalog.CALENDAR, "spendingMomentum", List.of(), List.of("/api/expenses/momentum-insight")));
 
         defs.add(sub(FeatureCatalog.UPLOAD, "expenses", List.of("/upload/expenses"), List.of()));
         defs.add(sub(FeatureCatalog.UPLOAD, "categories", List.of("/upload/categories"), List.of()));

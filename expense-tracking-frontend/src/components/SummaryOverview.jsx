@@ -252,19 +252,6 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 position: "relative",
                 overflow: "hidden",
               }}
-              onMouseEnter={(e) => {
-                if (!isMobile) {
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 24px rgba(0, 0, 0, 0.12)";
-                }
-                e.currentTarget.style.borderColor = colors.primary_accent;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-                e.currentTarget.style.borderColor = colors.border_color;
-              }}
             >
               <div
                 style={{
@@ -458,17 +445,6 @@ const SummaryOverview = ({ summary, loading = false }) => {
                     cursor: "pointer",
                     background: "transparent",
                     border: `1px solid ${colors.border_color}`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = `${colors.primary_accent}10`;
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow =
-                      "0 4px 12px rgba(0,0,0,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
                   }}
                 >
                   <div

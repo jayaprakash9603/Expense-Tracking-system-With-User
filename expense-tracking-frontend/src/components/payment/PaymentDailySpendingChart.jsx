@@ -29,10 +29,6 @@ const PaymentDailySpendingChart = ({ methods, timeframe, flowType }) => {
     );
   }, [methods]);
 
-  if (!dailySpendingData.length) {
-    return null;
-  }
-
   return (
     <div className="chart-row full-width" style={{ marginBottom: 24 }}>
       <DailySpendingChart

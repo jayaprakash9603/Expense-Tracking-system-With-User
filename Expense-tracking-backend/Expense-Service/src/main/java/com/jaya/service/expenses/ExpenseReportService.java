@@ -19,6 +19,7 @@ public interface ExpenseReportService {
     
     ExpenseReport generateExpenseReport(Integer expenseId, Integer userId);
     String generateExcelReport(Integer userId) throws Exception;
+    byte[] generateExcelReportBytes(Integer userId) throws Exception;
 
 
 

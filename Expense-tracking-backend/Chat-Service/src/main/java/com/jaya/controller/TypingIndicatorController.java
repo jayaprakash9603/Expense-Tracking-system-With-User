@@ -1,5 +1,7 @@
 package com.jaya.controller;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import com.jaya.config.ChatWebSocketConfig;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
+@ConditionalOnFeatureModule(FeatureCatalog.CHAT)
 public class TypingIndicatorController {
 
     @Autowired

@@ -322,21 +322,38 @@ public class BillController {
     }
 
     @GetMapping("/export/excel")
-    public ResponseEntity<String> exportUserBillsToExcel(
+    public ResponseEntity<?> exportUserBillsToExcel(
             @RequestHeader("Authorization") String jwt,
-            @RequestParam(required = false, defaultValue = "C:\\Users\\jayapraj\\Downloads\\") String filePath) {
+            @RequestParam(required = false) String exportPath) {
 
         UserDTO user = IUserServiceClient.getUserProfile(jwt);
         try {
             List<Bill> userBills = billService.getAllBillsForUser(user.getId());
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-            String fileName = "User_" + user.getEmail() + "_Bills_" + timestamp + ".xlsx";
-            String fullPath = filePath + fileName;
+            String fileName = "User_" + user.getEmail().split("@")[0] + "_Bills_" + timestamp + ".xlsx";
 
-            excelExportService.generateBillExcel(userBills, fullPath);
+            if (exportPath != null && !exportPath.trim().isEmpty()) {
+                java.io.File baseDir = new java.io.File(exportPath.trim());
+                java.io.File billsDir = new java.io.File(baseDir, "bills");
+                if (!billsDir.exists()) {
+                    billsDir.mkdirs();
+                }
+                java.io.File targetFile = new java.io.File(billsDir, fileName);
+                String fullPath = targetFile.getAbsolutePath();
 
-            return ResponseEntity.ok("Excel file generated successfully at: " + fullPath);
+                excelExportService.generateBillExcel(userBills, fullPath);
+
+                return ResponseEntity.ok("Excel file generated successfully at: " + fullPath);
+            } else {
+                byte[] bytes = excelExportService.generateBillExcelBytes(userBills);
+                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                headers.add(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName);
+                return ResponseEntity.ok()
+                        .headers(headers)
+                        .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                        .body(new org.springframework.core.io.ByteArrayResource(bytes));
+            }
 
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

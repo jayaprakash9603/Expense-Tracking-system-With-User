@@ -437,6 +437,10 @@ const Budget = () => {
         sx={{
           ...selectableSurfaceStyles,
           cursor: "pointer",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
           background: isSelected
             ? `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_bg} 100%)`
             : `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
@@ -444,21 +448,21 @@ const Budget = () => {
             ? `2px solid ${colors.primary_accent}`
             : `1px solid ${colors.border_color}`,
           borderRadius: "12px",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+          transition: "border-color 0.2s ease, background-color 0.2s ease",
           position: "relative",
-          zIndex: 1,
+          overflow: "visible",
           boxShadow: isSelected
-            ? `0 8px 22px ${colors.primary_accent}25`
+            ? `0 0 0 1px ${colors.primary_accent}`
             : "none",
           "&:focus-visible": {
             outline: `3px solid ${colors.primary_accent}55`,
             outlineOffset: "2px",
           },
           "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: `0 8px 24px rgba(20, 184, 166, 0.15)`,
             borderColor: colors.primary_accent,
-            zIndex: 2,
+            background: isSelected
+              ? `linear-gradient(135deg, ${colors.primary_accent}24 0%, ${colors.primary_bg} 100%)`
+              : colors.hover_bg || colors.tertiary_bg,
           },
         }}
       >
@@ -477,7 +481,7 @@ const Budget = () => {
             }}
           />
         )}
-        <CardContent sx={{ pb: 1 }}>
+        <CardContent sx={{ pb: 1, flex: 1, display: "flex", flexDirection: "column" }}>
           {/* Header */}
           <Box
             sx={{
@@ -1185,9 +1189,8 @@ const Budget = () => {
             mb: 2,
             borderRadius: "12px",
             overflow: "hidden",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             backgroundColor: colors.primary_bg,
-            border: "none",
+            border: `1px solid ${colors.border_color}`,
           }}
         >
           <Tabs
@@ -1233,12 +1236,11 @@ const Budget = () => {
         {/* Filters & Search Bar - Redesigned with MUI Components */}
         <Box
           sx={{
-            background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
+            background: colors.primary_bg,
             border: `1px solid ${colors.border_color}`,
             borderRadius: "12px",
             p: 2,
-            mb: 2,
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            mb: 2.5,
           }}
         >
           <Box
@@ -1617,6 +1619,9 @@ const Budget = () => {
           sx={{
             flex: 1,
             overflow: "auto",
+            pt: 0.5,
+            px: 0.25,
+            pb: 2,
             "&::-webkit-scrollbar": {
               width: "8px",
             },
@@ -1693,7 +1698,7 @@ const Budget = () => {
               )}
             </Box>
           ) : viewMode === "cards" ? (
-            <Grid container spacing={2}>
+            <Grid container spacing={2.5} sx={{ alignItems: "stretch" }}>
               {filteredBudgets.map((budget, index) => (
                 <Grid
                   item
@@ -1701,8 +1706,11 @@ const Budget = () => {
                   sm={6}
                   md={isMediumScreen ? 6 : 4}
                   key={budget.id}
+                  sx={{ display: "flex" }}
                 >
-                  {renderBudgetCard(budget, index)}
+                  <Box sx={{ width: "100%", minWidth: 0 }}>
+                    {renderBudgetCard(budget, index)}
+                  </Box>
                 </Grid>
               ))}
             </Grid>
@@ -1736,9 +1744,9 @@ const Budget = () => {
                   color: colors.primary_text,
                   border: `1px solid ${colors.border_color}`,
                   borderRadius: "12px",
-                  transition: "box-shadow 0.2s",
+                  transition: "border-color 0.2s ease",
                   "&:hover": {
-                    boxShadow: `0 4px 20px rgba(20, 184, 166, 0.1)`,
+                    borderColor: colors.primary_accent,
                   },
                   "& .MuiDataGrid-virtualScroller": {
                     "&::-webkit-scrollbar": {

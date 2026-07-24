@@ -40,36 +40,68 @@ const ProfileFormFields = ({
   const dateFormat = settings.dateFormat || "DD/MM/YYYY";
 
   // Common text field styles
-  const getTextFieldStyles = (isDisabled = false, isDashed = false) => ({
-    "& .MuiOutlinedInput-root": {
-      color: isDisabled ? colors.secondary_text : colors.primary_text,
-      backgroundColor: isDisabled ? colors.hover_bg : colors.secondary_bg,
-      borderRadius: 2,
-      "& fieldset": {
-        borderColor: colors.border_color,
-        borderWidth: "1.5px",
-        borderStyle: isDashed ? "dashed" : "solid",
+  const getTextFieldStyles = (isDisabled = false, isDashed = false) => {
+    const isActuallyDisabled = isDisabled || !isEditMode;
+    const isDark = colors._mode === "dark";
+
+    return {
+      "& .MuiOutlinedInput-root": {
+        color: colors.primary_text,
+        backgroundColor: isActuallyDisabled
+          ? (isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)")
+          : colors.secondary_bg,
+        borderRadius: "12px",
+        transition: "all 0.2s ease-in-out",
+        "& fieldset": {
+          borderColor: colors.border_color,
+          borderWidth: "1.5px",
+          borderStyle: isDashed ? "dashed" : "solid",
+        },
+        "&:hover fieldset": {
+          borderColor:
+            isEditMode && !isDisabled
+              ? colors.primary_accent
+              : colors.border_color,
+        },
+        "&.Mui-focused fieldset": {
+          borderColor: colors.primary_accent,
+          borderWidth: "2px",
+        },
+        "&.Mui-disabled": {
+          backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
+          "& fieldset": {
+            borderColor: colors.border_color,
+            borderStyle: isDashed ? "dashed" : "solid",
+          },
+        },
       },
-      "&:hover fieldset": {
-        borderColor:
-          isEditMode && !isDisabled
-            ? colors.primary_accent
-            : colors.border_color,
+      "& .MuiOutlinedInput-input": {
+        color: colors.primary_text,
+        "&.Mui-disabled": {
+          color: colors.primary_text,
+          WebkitTextFillColor: colors.primary_text, // Force text color override in Webkit browsers
+          opacity: 0.95, // High contrast and readability
+          cursor: isActuallyDisabled ? "default" : "text",
+        },
       },
-      "&.Mui-focused fieldset": {
-        borderColor: colors.primary_accent,
-        borderWidth: "2px",
+      "& .MuiInputLabel-root": {
+        color: isDark ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+        fontWeight: 500,
+        "&.Mui-disabled": {
+          color: isDark ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.5)",
+          opacity: 1,
+        },
       },
-    },
-    "& .MuiInputLabel-root": {
-      color: colors.secondary_text,
-      fontWeight: 500,
-    },
-    "& .MuiInputLabel-root.Mui-focused": {
-      color: colors.primary_accent,
-      fontWeight: 600,
-    },
-  });
+      "& .MuiInputLabel-root.Mui-focused": {
+        color: colors.primary_accent,
+        fontWeight: 600,
+      },
+      "& .MuiInputAdornment-root .MuiSvgIcon-root": {
+        color: colors.primary_accent,
+        opacity: isActuallyDisabled ? 0.7 : 1,
+      },
+    };
+  };
 
   const fields = [
     {

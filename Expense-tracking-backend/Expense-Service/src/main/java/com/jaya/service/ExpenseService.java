@@ -204,6 +204,8 @@ public interface ExpenseService {
 
         String generateExcelReport(Integer userId) throws Exception;
 
+        byte[] generateExcelReportBytes(Integer userId) throws Exception;
+
         Expense getExpensesBeforeDate(Integer userId, String expenseName, LocalDate date);
 
         Expense getExpenseBeforeDateValidated(Integer userId, String expenseName, String dateString);
