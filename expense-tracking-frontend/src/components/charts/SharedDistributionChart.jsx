@@ -251,13 +251,13 @@ const SharedDistributionChart = ({
       </div>
       ) : (
         <NoDataPlaceholder
-          message="No distribution data available"
-          subMessage={`Try adjusting your filters to see spending by ${
-            mode === "payment" ? "payment methods" : "categories"
-          }.`}
+          message="No distribution data"
+          subMessage="We couldn't find any data for this timeframe yet."
           size="lg"
           fullWidth
           height={360}
+          iconKey="chart"
+          bordered={false}
         />
       )}
     </div>

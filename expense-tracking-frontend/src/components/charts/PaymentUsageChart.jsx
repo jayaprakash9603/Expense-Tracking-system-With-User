@@ -161,11 +161,13 @@ const PaymentUsageChart = ({
       </ResponsiveContainer>
       ) : (
         <NoDataPlaceholder
-          message="No usage data available"
-          subMessage="Try adjusting your filters or date range to see usage analysis."
+          message="No usage data"
+          subMessage="We couldn't find any data for this timeframe yet."
           size="lg"
           fullWidth
           height={360}
+          iconKey="chart"
+          bordered={false}
         />
       )}
     </div>

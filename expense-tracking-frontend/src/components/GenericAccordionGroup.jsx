@@ -541,6 +541,8 @@ export function GenericAccordionGroup({
         className={`pm-groups-viewport ${
           scrollMode ? "scroll-mode" : "paged-mode"
         } ${
+          filteredSortedGroups.length === 0 ? "is-empty" : ""
+        } ${
           (totalGroups < BASE_GROUPS_PER_PAGE && !isGroupSearchActive) ||
           groupsPerPage <= 5
             ? "compact"
@@ -557,12 +559,11 @@ export function GenericAccordionGroup({
                 ? "Try a different keyword to find a matching group."
                 : "There are no items to display for the current selection."
             }
-            height="100%"
-            dense
+            size="fill"
             fullWidth
-            messageColor="var(--pm-accent-color)"
-            iconColor="var(--pm-accent-color)"
-            subMessageColor="var(--pm-text-secondary)"
+            height="100%"
+            iconKey="chart"
+            bordered={false}
           />
         ) : (
           <>

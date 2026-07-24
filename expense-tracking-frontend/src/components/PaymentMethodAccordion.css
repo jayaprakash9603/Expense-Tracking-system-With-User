@@ -178,6 +178,18 @@
   height: auto;
 }
 
+.pm-groups-viewport.is-empty {
+  min-height: 280px;
+  justify-content: center;
+}
+
+.pm-groups-viewport.is-empty.paged-mode,
+.pm-groups-viewport.is-empty.scroll-mode {
+  height: auto;
+  min-height: 280px;
+  overflow: visible;
+}
+
 /* Placeholder items to keep consistent height on short last page */
 .pm-accordion-item.pm-placeholder {
   background: var(--pm-bg-primary);

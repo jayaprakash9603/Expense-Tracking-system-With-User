@@ -121,11 +121,13 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
       </ResponsiveContainer>
       ) : (
         <NoDataPlaceholder
-          message="No category payment data available"
-          subMessage="Try adjusting your filters to see payment breakdown by category."
+          message="No category payment data"
+          subMessage="We couldn't find any data for this timeframe yet."
           size="lg"
           fullWidth
           height={340}
+          iconKey="chart"
+          bordered={false}
         />
       )}
     </div>
