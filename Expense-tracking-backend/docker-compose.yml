@@ -852,7 +852,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: jayaprakash9603/expense-tracker-frontend:latest
+    image: jayaprakash9603/expense-tracker-frontend:1.1.0
 
     container_name: expense-tracker-frontend
 

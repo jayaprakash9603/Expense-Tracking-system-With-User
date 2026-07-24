@@ -9,6 +9,7 @@
 #   Frontend → http://localhost:9999
 #   Backend  → http://localhost:8080  (the React build calls this directly)
 #
+# Image tags must match APP_VERSION in repo VERSION file (currently 1.1.0).
 # NOTE: The frontend image is built with REACT_APP_API_BASE_URL=http://localhost:8080,
 # and nginx does not proxy /api, so the backend MUST stay reachable on host port 8080.
 apiVersion: v1
@@ -21,14 +22,17 @@ spec:
   containers:
   # 1. Frontend (nginx serving the React build) — exposed outward on host port 9999
   - name: frontend
-    image: jayaprakash9603/expense-tracker-frontend:latest
+    image: jayaprakash9603/expense-tracker-frontend:1.1.0
     ports:
     - containerPort: 80
       hostPort: 9999           # Reach the frontend at http://localhost:9999
 
   # 2. The Monolith Application Container — exposed outward on host port 8080
+  # Built locally from current source (mvn -P monolithic + docker build inside minikube).
+  # imagePullPolicy: Never → use the in-cluster image, never pull from a registry.
   - name: monolith
-    image: jayaprakash9603/expense-tracker-monolith:latest
+    image: jayaprakash9603/expense-tracker-monolith:1.1.0
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 8080
       hostPort: 8080           # Browser calls the API directly at http://localhost:8080
@@ -51,6 +55,8 @@ spec:
       value: "false"
     - name: REDIS_ENABLED
       value: "false"
+    - name: APP_VERSION
+      value: "1.1.0"
 
   # 3. The MySQL Database Container — internal only (not exposed to the host)
   - name: mysql

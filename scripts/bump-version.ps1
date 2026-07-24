@@ -36,8 +36,11 @@ if ($Part -match '^\d+\.\d+\.\d+$') {
 
 Set-Content -Path $versionFile -Value $newVersion -NoNewline
 (Get-Content $pomFile -Raw) -replace '(<artifactId>monolithic-service</artifactId>\s*<version>)[^<]+(</version>)', "`${1}$newVersion`${2}" | Set-Content $pomFile -NoNewline
-(Get-Content $envExample -Raw) -replace '(?m)^MONOLITH_VERSION=.*$', "MONOLITH_VERSION=$newVersion" | Set-Content $envExample -NoNewline
+(Get-Content $envExample -Raw) -replace '(?m)^APP_VERSION=.*$', "APP_VERSION=$newVersion" | Set-Content $envExample -NoNewline
+if ((Get-Content $envExample -Raw) -match 'MONOLITH_VERSION=') {
+    (Get-Content $envExample -Raw) -replace '(?m)^MONOLITH_VERSION=.*$', "MONOLITH_VERSION=$newVersion" | Set-Content $envExample -NoNewline
+}
 
 Write-Host "Version bumped: $current -> $newVersion" -ForegroundColor Green
-Write-Host "Updated: VERSION, monolithic-service/pom.xml, .env.example" -ForegroundColor Green
+Write-Host "Updated: VERSION, monolithic-service/pom.xml, .env.example (APP_VERSION)" -ForegroundColor Green
 Write-Host "Rebuild: .\scripts\docker-build.ps1" -ForegroundColor Cyan

@@ -1,11 +1,8 @@
 # Full-stack monolithic deployment: backend + frontend + infrastructure.
-# Usage (from expense-tracking-backend):
-#   docker compose -f docker-compose.monolith.yml up -d
+# Usage (from repo root with .env, or set APP_VERSION):
+#   docker compose -f expense-tracking-backend/docker-compose.monolith.yml up -d
 #
-# Access:
-#   Frontend  → http://localhost:3000
-#   Backend   → http://localhost:8080
-#   Kafka UI  → http://localhost:9080
+# Image tags match APP_VERSION in root VERSION file (default 1.1.0).
 
 services:
   mysql:
@@ -91,7 +88,7 @@ services:
     restart: unless-stopped
 
   monolith:
-    image: jayaprakash9603/expense-tracker-monolith:latest
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-monolith:${APP_VERSION:-1.1.0}
     container_name: expense-tracking-monolith
     ports:
       - "8080:8080"
@@ -110,6 +107,7 @@ services:
       REDIS_PORT: 6379
       JWT_SECRET: ${JWT_SECRET:-expensio-static-jwt-hmac-secret-key-min-32-chars-v1}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:-expensio-static-jwt-hmac-secret-key-min-32-chars-v1}
+      APP_VERSION: ${APP_VERSION:-1.1.0}
     networks:
       - expense-net
     depends_on:
@@ -122,7 +120,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: jayaprakash9603/expense-tracker-frontend:latest
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-frontend:${APP_VERSION:-1.1.0}
     container_name: expense-tracking-frontend
     ports:
       - "9999:80"

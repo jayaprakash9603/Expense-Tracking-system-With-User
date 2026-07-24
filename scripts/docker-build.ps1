@@ -35,8 +35,13 @@ if (Test-Path ".env") {
     }
 }
 
-$monolithVersion = if ($env:MONOLITH_VERSION) { $env:MONOLITH_VERSION } else { Read-VersionFile (Join-Path $repoRoot "VERSION") }
-$frontendVersion = if ($env:FRONTEND_VERSION) { $env:FRONTEND_VERSION } else { "0.1.0" }
+$appVersion = if ($env:APP_VERSION) {
+    $env:APP_VERSION
+} elseif ($env:MONOLITH_VERSION) {
+    $env:MONOLITH_VERSION
+} else {
+    Read-VersionFile (Join-Path $repoRoot "VERSION")
+}
 $registry = if ($env:DOCKER_REGISTRY) { $env:DOCKER_REGISTRY } else { "jayaprakash9603" }
 
 $gitSha = ""
@@ -47,7 +52,7 @@ if ($WithGitSha -or $env:IMAGE_TAG_WITH_GIT_SHA -eq "true") {
 
 $backendDir = Join-Path $repoRoot "expense-tracking-backend"
 $monolithTargetDir = Join-Path $backendDir "monolithic-service\target"
-$expectedJar = Join-Path $monolithTargetDir "monolithic-service-$monolithVersion.jar"
+$expectedJar = Join-Path $monolithTargetDir "monolithic-service-$appVersion.jar"
 $existingJars = @()
 if (Test-Path $monolithTargetDir) {
     $existingJars = @(Get-ChildItem -Path $monolithTargetDir -Filter "*.jar" -File -ErrorAction SilentlyContinue |
@@ -77,40 +82,39 @@ else {
 $monolithImage = "$registry/expense-tracker-monolith"
 $frontendImage = "$registry/expense-tracker-frontend"
 
-Write-Host "Building Docker images $monolithImage`:$monolithVersion" -ForegroundColor Cyan
-$env:MONOLITH_VERSION = $monolithVersion
-$env:FRONTEND_VERSION = $frontendVersion
+Write-Host "Building Docker images (release $appVersion)..." -ForegroundColor Cyan
+$env:APP_VERSION = $appVersion
 $env:DOCKER_REGISTRY = $registry
 
 docker compose build monolith frontend
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-docker tag "${monolithImage}:${monolithVersion}" "${monolithImage}:latest"
-docker tag "${frontendImage}:${frontendVersion}" "${frontendImage}:latest"
+docker tag "${monolithImage}:${appVersion}" "${monolithImage}:latest"
+docker tag "${frontendImage}:${appVersion}" "${frontendImage}:latest"
 
 if ($gitSha) {
-    docker tag "${monolithImage}:${monolithVersion}" "${monolithImage}:${monolithVersion}-${gitSha}"
-    docker tag "${frontendImage}:${frontendVersion}" "${frontendImage}:${frontendVersion}-${gitSha}"
-    Write-Host "Also tagged: ${monolithImage}:${monolithVersion}-${gitSha}" -ForegroundColor Green
+    docker tag "${monolithImage}:${appVersion}" "${monolithImage}:${appVersion}-${gitSha}"
+    docker tag "${frontendImage}:${appVersion}" "${frontendImage}:${appVersion}-${gitSha}"
+    Write-Host "Also tagged: ${monolithImage}:${appVersion}-${gitSha}" -ForegroundColor Green
 }
 
 Write-Host ""
 Write-Host "Built images:" -ForegroundColor Green
-Write-Host "  ${monolithImage}:${monolithVersion}"
-Write-Host "  ${monolithImage}:latest"
-Write-Host "  ${frontendImage}:${frontendVersion}"
-Write-Host "  ${frontendImage}:latest"
+Write-Host "  ${monolithImage}:${appVersion}"
+Write-Host "  ${frontendImage}:${appVersion}"
+Write-Host "  ${monolithImage}:latest (alias)"
+Write-Host "  ${frontendImage}:latest (alias)"
 
 if ($Push) {
     Write-Host ""
     Write-Host "Pushing images..." -ForegroundColor Yellow
-    docker push "${monolithImage}:${monolithVersion}"
+    docker push "${monolithImage}:${appVersion}"
     docker push "${monolithImage}:latest"
-    docker push "${frontendImage}:${frontendVersion}"
+    docker push "${frontendImage}:${appVersion}"
     docker push "${frontendImage}:latest"
     if ($gitSha) {
-        docker push "${monolithImage}:${monolithVersion}-${gitSha}"
-        docker push "${frontendImage}:${frontendVersion}-${gitSha}"
+        docker push "${monolithImage}:${appVersion}-${gitSha}"
+        docker push "${frontendImage}:${appVersion}-${gitSha}"
     }
     Write-Host "Push complete." -ForegroundColor Green
 }

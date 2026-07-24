@@ -44,8 +44,8 @@ services:
       context: ./expense-tracking-backend/monolithic-service
       dockerfile: Dockerfile
       args:
-        APP_VERSION: ${MONOLITH_VERSION:-1.1.0}
-    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-monolith:${MONOLITH_VERSION:-1.1.0}
+        APP_VERSION: ${APP_VERSION:-1.1.0}
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-monolith:${APP_VERSION:-1.1.0}
     container_name: expense-tracker-monolith
     ports:
       - "${MONOLITH_PORT:-8080}:8080"
@@ -60,7 +60,7 @@ services:
       SERVICE_INTERNAL_TOKEN: ${SERVICE_INTERNAL_TOKEN:-dev-internal-service-token-change-in-production}
       KAFKA_ENABLED: ${KAFKA_ENABLED:-false}
       REDIS_ENABLED: ${REDIS_ENABLED:-false}
-      APP_VERSION: ${MONOLITH_VERSION:-1.1.0}
+      APP_VERSION: ${APP_VERSION:-1.1.0}
     networks:
       - expense-net
     depends_on:
@@ -79,9 +79,9 @@ services:
       context: ./expense-tracking-frontend
       dockerfile: Dockerfile
       args:
-        APP_VERSION: latest
+        APP_VERSION: ${APP_VERSION:-1.1.0}
         REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-http://localhost:8080}
-    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-frontend:latest
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-frontend:${APP_VERSION:-1.1.0}
     container_name: expense-tracker-frontend
     ports:
       - "${FRONTEND_PORT:-9999}:80"
