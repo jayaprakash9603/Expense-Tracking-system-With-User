@@ -1149,12 +1149,10 @@ function CashFlowExpenseCards({
 
   if (data.length === 0) {
     return (
-      <div className={wrapperClass} style={wrapperStyle}>
+      <div style={{ width: "100%" }}>
         <NoDataPlaceholder
-          size={isMobile ? "lg" : "fill"}
+          size="md"
           fullWidth
-          iconSize={isMobile ? 54 : 72}
-          style={{ minHeight: isMobile ? 260 : 340 }}
           message={
             search
               ? t("cashflow.messages.noMatches")

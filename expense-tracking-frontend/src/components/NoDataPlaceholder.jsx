@@ -104,7 +104,7 @@ const NoDataPlaceholder = ({
   const dimensionStyles = isPercentHeight
     ? {
         height,
-        minHeight: resolvedMinHeight,
+        minHeight: dense ? 0 : resolvedMinHeight,
         flex: 1,
         alignSelf: "stretch",
       }

@@ -104,22 +104,15 @@ const FlowEntityCards = ({
   if (!loading && entities.length === 0) {
     return (
       <div
-        className="flex flex-wrap justify-start custom-scrollbar"
         style={{
-          maxHeight: isMobile ? 200 : isTablet ? 250 : 360,
-          overflowY: "auto",
-          overflowX: "hidden",
-          paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
-          gap: isMobile ? 8 : 16,
           width: "100%",
           paddingLeft: "16px",
+          paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
         }}
       >
         <NoDataPlaceholder
-          size={isMobile ? "lg" : "fill"}
+          size="md"
           fullWidth
-          iconSize={isMobile ? 54 : 72}
-          style={{ minHeight: isMobile ? 260 : 340 }}
           message={
             search
               ? t("flows.entities.empty.search.title")

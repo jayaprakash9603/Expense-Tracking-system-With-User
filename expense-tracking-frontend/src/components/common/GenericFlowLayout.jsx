@@ -215,14 +215,20 @@ const GenericFlowLayout = ({
           paddingRight: isMobile ? 8 : isTablet ? 24 : 60,
           height: isMobile ? 120 : isTablet ? 160 : 220,
           minWidth: 0,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {loading && !search ? (
           <CashFlowChartSkeleton />
         ) : chartData.length === 0 ? (
           <NoDataPlaceholder
-            size={isMobile ? "md" : "lg"}
+            size="sm"
+            dense
             fullWidth
+            height="100%"
             message={t("cashflow.messages.noDataChart")}
             subMessage={t("cashflow.messages.adjustFilters")}
           />

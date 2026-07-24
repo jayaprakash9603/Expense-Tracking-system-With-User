@@ -293,15 +293,20 @@ const GenericFlowPage = ({
           minWidth: 0,
           maxWidth: "100%",
           boxSizing: "border-box",
-          overflow: "visible",
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
         {loading ? (
           <FlowChartSkeleton variant="bar" />
         ) : pieData.length === 0 ? (
           <NoDataPlaceholder
-            size={isMobile ? "md" : "lg"}
+            size="sm"
+            dense
             fullWidth
+            height="100%"
             message={t("cashflow.messages.noDataChart")}
             subMessage={t("cashflow.messages.adjustFilters")}
           />
