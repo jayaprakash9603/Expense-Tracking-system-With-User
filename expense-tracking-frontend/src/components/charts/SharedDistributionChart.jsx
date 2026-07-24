@@ -62,7 +62,7 @@ const SharedDistributionChart = ({
             margin: "0 0 4px 0",
           }}
         >
-          <PieChartIcon size={20} />{" "}
+          <PieChartIcon size={20} color={colors.primary_accent} />{" "}
           {mode === "payment"
             ? "Payment Methods Distribution"
             : "Category Distribution"}

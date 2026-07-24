@@ -67,7 +67,7 @@ const PaymentUsageChart = ({
             gap: "8px",
           }}
         >
-          <BarChart3 size={20} /> {title}
+          <BarChart3 size={20} color={colors.primary_accent} /> {title}
         </h3>
         <div
           className="chart-subtitle"

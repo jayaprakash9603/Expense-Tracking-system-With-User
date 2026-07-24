@@ -236,12 +236,12 @@ const OverflowActionMenu = ({
                   minWidth: 36,
                   color: item.disabled
                     ? colors.secondary_text
-                    : colors.primary_text,
+                    : colors.primary_accent,
                 }}
               >
                 {renderMenuIcon(
                   item.icon,
-                  item.disabled ? colors.secondary_text : colors.primary_text
+                  item.disabled ? colors.secondary_text : colors.primary_accent
                 )}
               </ListItemIcon>
               <ListItemText

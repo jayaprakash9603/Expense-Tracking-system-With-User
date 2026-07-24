@@ -61,8 +61,17 @@ const TransactionSizeChart = ({ data = [], methodsColors = [] }) => {
       }}
     >
       <div className="chart-header">
-        <h3 style={{ color: colors.primary_text }}>
-          <Target size={20} /> Transaction Size Distribution
+        <h3
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            margin: 0,
+          }}
+        >
+          <Target size={20} color={colors.primary_accent} /> Transaction Size
+          Distribution
         </h3>
         <div
           className="chart-subtitle"

@@ -415,7 +415,12 @@ const ReportHeader = ({
                   : colors.border_color;
               }}
             >
-              <Filter size={16} />
+              <Filter
+                size={16}
+                color={
+                  isFilterActive ? colors.tertiary_bg : colors.primary_accent
+                }
+              />
               {filterButtonLabel}
               {isFilterActive ? (
                 <span
