@@ -45,6 +45,8 @@ const ReportHeader = ({
   onBack,
   onFilter,
   onExport,
+  onRefresh,
+  onDownloadPdf,
   onTimeframeChange,
   onFlowTypeChange,
   timeframeOptions = DEFAULT_REPORT_TIMEFRAMES,
@@ -71,6 +73,14 @@ const ReportHeader = ({
   const featureFlags = useSelector((state) => state.featureFlags);
   const exportEnabled = isFeatureEnabledInState(featureFlags, exportFeatureKey);
   const showExport = showExportButton && exportEnabled;
+  const menuOnExport =
+    typeof onExport === "function" && exportEnabled ? onExport : undefined;
+  const hasBuiltInMenu =
+    !rightActions &&
+    (typeof onRefresh === "function" ||
+      menuOnExport ||
+      typeof onDownloadPdf === "function" ||
+      typeof onCustomize === "function");
   const selectStyle = {
     background: colors.primary_bg,
     border: `1px solid ${colors.border_color}`,
@@ -420,9 +430,11 @@ const ReportHeader = ({
               ) : null}
             </button>
           ) : null}
-          {showExport || onCustomize ? (
-            <ReportActionMenu 
-              onExport={showExport ? onExport : undefined}
+          {hasBuiltInMenu ? (
+            <ReportActionMenu
+              onRefresh={onRefresh}
+              onExport={menuOnExport}
+              onDownloadPdf={onDownloadPdf}
               onCustomize={onCustomize}
             />
           ) : null}

@@ -22,7 +22,6 @@ import {
 import "../styles/ExpenseReport.css";
 import { fetchAllBills } from "../../../Redux/Bill/bill.action";
 import { IconButton, Stack } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";

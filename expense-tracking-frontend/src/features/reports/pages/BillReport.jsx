@@ -23,7 +23,6 @@ import SpendingChartTooltip from "../../../components/charts/SpendingChartToolti
 import { CHART_THEME, TOOLTIP_CONFIG } from "../../../config/chartConfig";
 import "../styles/BillReport.css";
 import { fetchAllBills } from "../../../Redux/Bill/bill.action";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useParams } from "react-router";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
 import useUserSettings from "../../../hooks/useUserSettings";
@@ -760,9 +759,6 @@ const BillReport = () => {
   const isCustomRangeActive = Boolean(customDateBounds);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const [reportActionAnchorEl, setReportActionAnchorEl] = useState(null);
-  const [selectedReportAction, setSelectedReportAction] = useState(null);
-
   const dispatch = useDispatch();
   const allBills = useSelector((state) => state.bill.bills) || [];
   const loading = useSelector((state) => state.bill.loading);
@@ -1326,10 +1322,6 @@ const BillReport = () => {
     // Keep skeleton lightweight; optionally we could pass theme classes here.
     return <LoadingSkeleton />;
   }
-
-  const handleReportActionClose = () => {
-    // legacy mock for clean removal
-  };
 
   return (
     <div

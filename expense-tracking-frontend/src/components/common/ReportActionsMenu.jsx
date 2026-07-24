@@ -1,195 +1,55 @@
-import React, { useState, useCallback, isValidElement } from "react";
-import { IconButton } from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import IosShareIcon from "@mui/icons-material/IosShare";
-import SettingsIcon from "@mui/icons-material/Settings";
-import { useTheme } from "../../hooks/useTheme";
+import React, { useMemo } from "react";
+import PropTypes from "prop-types";
 import { useSelector } from "react-redux";
 import { isFeatureEnabledInState } from "../../config/featureCatalog";
-import { getFunctionalIcon, isEmojiGlyph } from "../../utils/ui/iconMapping";
+import OverflowActionMenu, {
+  createDefaultReportMenuItems,
+} from "./OverflowActionMenu";
 
-const renderMenuIcon = (icon, color) => {
-  if (icon == null) return null;
-  if (isValidElement(icon)) return icon;
-  if (typeof icon === "function") {
-    const IconComponent = icon;
-    return <IconComponent sx={{ fontSize: 18, color }} />;
-  }
-  if (isEmojiGlyph(icon) || typeof icon === "string") {
-    return getFunctionalIcon(icon, { sx: { fontSize: 18, color } });
-  }
-  return null;
-};
+export { createDefaultReportMenuItems };
 
-/**
- * ReportActionsMenu - Reusable three-dot menu for report headers
- *
- * Follows DRY principle by providing a single implementation for all report action menus.
- * Supports customizable menu items with icons and click handlers.
- *
- * @param {Object} props
- * @param {Array} props.menuItems - Array of menu item configurations
- * @param {string} props.menuItems[].id - Unique identifier for the menu item
- * @param {string} props.menuItems[].label - Display label
- * @param {string} props.menuItems[].icon - Emoji or icon to display
- * @param {Function} props.menuItems[].onClick - Click handler
- * @param {boolean} props.menuItems[].disabled - Optional disabled state
- * @param {string} props.ariaLabel - Accessibility label (default: "More actions")
- *
- * @example
- * <ReportActionsMenu
- *   menuItems={[
- *     { id: "export", label: "Export", icon: "📤", onClick: handleExport },
- *     { id: "customize", label: "Customize Report", icon: "⚙️", onClick: () => setCustomizationOpen(true) },
- *   ]}
- * />
- */
 export default function ReportActionsMenu({
   menuItems = [],
   ariaLabel = "More actions",
   exportFeatureKey = "reports.export",
+  buttonSize = "medium",
 }) {
-  const { colors, mode } = useTheme();
   const featureFlags = useSelector((state) => state.featureFlags);
   const exportEnabled = isFeatureEnabledInState(featureFlags, exportFeatureKey);
-  const visibleMenuItems = exportEnabled
-    ? menuItems
-    : menuItems.filter((item) => item.id !== "export");
-  const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClick = useCallback((event) => {
-    setAnchorEl(event.currentTarget);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
-  const handleItemClick = useCallback(
-    (item) => {
-      if (!item.disabled && item.onClick) {
-        item.onClick();
-      }
-      handleClose();
-    },
-    [handleClose]
+  const visibleItems = useMemo(
+    () =>
+      exportEnabled
+        ? menuItems
+        : menuItems.filter((item) => item.id !== "export"),
+    [exportEnabled, menuItems]
   );
 
-  const isOpen = Boolean(anchorEl);
-
-  if (visibleMenuItems.length === 0) {
-    return null;
-  }
-
   return (
-    <>
-      <IconButton
-        onClick={handleClick}
-        sx={{ color: colors.secondary_accent }}
-        size="small"
-        aria-label={ariaLabel}
-      >
-        <MoreVertIcon />
-      </IconButton>
-
-      {isOpen && (
-        <>
-          {/* Backdrop to close menu on outside click */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 999,
-            }}
-            onClick={handleClose}
-          />
-
-          {/* Menu dropdown */}
-          <div
-            style={{
-              position: "fixed",
-              top: anchorEl?.getBoundingClientRect().bottom + 6 || 0,
-              left: anchorEl?.getBoundingClientRect().left - 100 || 0,
-              backgroundColor: colors.primary_bg,
-              border: `1px solid ${colors.primary_accent}`,
-              borderRadius: "8px",
-              boxShadow: `0 4px 20px rgba(0,0,0,${
-                mode === "dark" ? 0.3 : 0.15
-              })`,
-              zIndex: 1000,
-              minWidth: "180px",
-            }}
-          >
-            <div style={{ padding: "8px 0" }}>
-              {visibleMenuItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  style={{
-                    color: item.disabled
-                      ? colors.secondary_text
-                      : colors.primary_text,
-                    padding: "10px 18px",
-                    cursor: item.disabled ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    opacity: item.disabled ? 0.5 : 1,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!item.disabled) {
-                      e.currentTarget.style.backgroundColor = colors.hover_bg;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  <span
-                    style={{
-                      marginRight: 10,
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {renderMenuIcon(
-                      item.icon,
-                      item.disabled
-                        ? colors.secondary_text
-                        : colors.secondary_accent
-                    )}
-                  </span>
-                  <span style={{ fontSize: 14 }}>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-    </>
+    <OverflowActionMenu
+      items={visibleItems}
+      ariaLabel={ariaLabel}
+      buttonSize={buttonSize}
+    />
   );
 }
 
-/**
- * Default menu items for reports with export and customize options
- */
-export const createDefaultReportMenuItems = ({
-  onExport,
-  onCustomize,
-  customizeLabel = "Customize Report",
-}) => [
-  {
-    id: "export",
-    label: "Export",
-    icon: <IosShareIcon fontSize="small" />,
-    onClick: onExport,
-  },
-  {
-    id: "customize",
-    label: customizeLabel,
-    icon: <SettingsIcon fontSize="small" />,
-    onClick: onCustomize,
-  },
-];
+ReportActionsMenu.propTypes = {
+  menuItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      icon: PropTypes.oneOfType([
+        PropTypes.node,
+        PropTypes.func,
+        PropTypes.string,
+      ]),
+      onClick: PropTypes.func,
+      disabled: PropTypes.bool,
+      dividerBefore: PropTypes.bool,
+    })
+  ),
+  ariaLabel: PropTypes.string,
+  exportFeatureKey: PropTypes.string,
+  buttonSize: PropTypes.oneOf(["small", "medium"]),
+};
