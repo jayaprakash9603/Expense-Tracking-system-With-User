@@ -1,20 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Typography,
-} from "@mui/material";
-import ScheduleIcon from "@mui/icons-material/Schedule";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import Modal from "../../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { useTheme } from "../../../hooks/useTheme";
 import {
   cancelSelfDeletion,
   fetchDeletionStatus,
@@ -36,8 +23,9 @@ const formatCountdown = (targetIso) => {
   return `${minutes}m remaining`;
 };
 
-const DeleteAccountDialog = ({ open, onClose, colors, isSmallScreen, onStatusChange }) => {
+const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
   const { t } = useTranslation();
+  const { colors } = useTheme();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +39,9 @@ const DeleteAccountDialog = ({ open, onClose, colors, isSmallScreen, onStatusCha
       setStatus(data);
       onStatusChange?.(data);
     } catch (e) {
-      setError(e?.response?.data?.message || e.message || "Failed to load deletion status");
+      setError(
+        e?.response?.data?.message || e.message || "Failed to load deletion status",
+      );
     } finally {
       setLoading(false);
     }
@@ -72,6 +62,11 @@ const DeleteAccountDialog = ({ open, onClose, colors, isSmallScreen, onStatusCha
   );
 
   const isPending = status?.state === "REQUESTED";
+  const actionsDisabled = submitting;
+
+  const handleClose = () => {
+    if (!submitting) onClose();
+  };
 
   const handleRequest = async () => {
     setSubmitting(true);
@@ -81,7 +76,9 @@ const DeleteAccountDialog = ({ open, onClose, colors, isSmallScreen, onStatusCha
       setStatus(data);
       onStatusChange?.(data);
     } catch (e) {
-      setError(e?.response?.data?.message || e.message || "Failed to request deletion");
+      setError(
+        e?.response?.data?.message || e.message || "Failed to request deletion",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -95,130 +92,104 @@ const DeleteAccountDialog = ({ open, onClose, colors, isSmallScreen, onStatusCha
       setStatus({ ...data, state: "CANCELLED" });
       onStatusChange?.(null);
     } catch (e) {
-      setError(e?.response?.data?.message || e.message || "Failed to cancel deletion");
+      setError(
+        e?.response?.data?.message || e.message || "Failed to cancel deletion",
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          backgroundColor: colors.tertiary_bg,
-          border: `1px solid ${colors.border_color}`,
-          borderRadius: 3,
-          minWidth: isSmallScreen ? "90%" : 460,
-        },
-      }}
-    >
-      <DialogTitle
-        sx={{
-          color: colors.primary_text,
-          fontWeight: 700,
-          borderBottom: `1px solid ${colors.border_color}`,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
+  const approveLabel = isPending
+    ? t("settings.cancelDeletion")
+    : t("settings.deleteAccount");
+
+  const approveContent = submitting ? (
+    <span className="flex items-center gap-2">
+      <span
+        className="inline-block w-4 h-4 rounded-full animate-spin"
+        style={{
+          border: "2px solid #fff",
+          borderTopColor: "#99f6e4",
         }}
-      >
-        <WarningAmberIcon sx={{ color: "#ef4444" }} />
-        {t("settings.deleteAccount")}
-      </DialogTitle>
+      />
+      {isPending ? t("settings.cancellingDeletion") : approveLabel}
+    </span>
+  ) : (
+    approveLabel
+  );
 
-      <DialogContent sx={{ mt: 2 }}>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
-        ) : isPending ? (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Alert severity="warning" icon={<ScheduleIcon />}>
-              Your account is scheduled for permanent deletion. You can cancel any
-              time before the grace period ends.
-            </Alert>
-            <Box>
-              <Typography sx={{ color: colors.secondary_text, fontSize: "0.85rem" }}>
-                Purge date
-              </Typography>
-              <Typography sx={{ color: colors.primary_text, fontWeight: 600 }}>
-                {purgeDate}
-              </Typography>
-            </Box>
-            {countdown && (
-              <Chip
-                label={countdown}
-                color="warning"
-                variant="outlined"
-                sx={{ alignSelf: "flex-start" }}
-              />
-            )}
-            <Divider sx={{ borderColor: colors.border_color }} />
-            <Typography sx={{ color: colors.secondary_text, fontSize: "0.9rem" }}>
-              During this period, normal application access is disabled — only
-              this deletion status/cancel dialog and sign-out remain available.
-              Audit records and shared chat history will be anonymized rather
-              than deleted, in line with our privacy policy.
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Typography sx={{ color: colors.primary_text }}>
-              {t("messages.confirmDelete")}
-            </Typography>
-            <Typography sx={{ color: colors.secondary_text, fontSize: "0.9rem" }}>
-              {t("settings.deleteAccountWarning")}
-            </Typography>
-            <Alert severity="info">
-              After confirmation your account enters a 5-day grace period.
-              During this window you can cancel from this dialog and everything
-              is restored. Once the period ends, purge is irreversible.
-            </Alert>
-          </Box>
-        )}
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2, borderTop: `1px solid ${colors.border_color}` }}>
-        <Button
-          onClick={onClose}
-          disabled={submitting}
-          sx={{ color: colors.secondary_text, textTransform: "none", fontWeight: 600 }}
-        >
-          {t("common.close")}
-        </Button>
-        {isPending ? (
-          <Button
-            onClick={handleCancel}
-            disabled={submitting}
-            variant="contained"
-            sx={{ textTransform: "none", fontWeight: 600 }}
-          >
-            {submitting ? <CircularProgress size={18} /> : "Cancel deletion"}
-          </Button>
-        ) : (
-          <Button
-            onClick={handleRequest}
-            disabled={submitting}
-            sx={{
-              backgroundColor: "#ef4444",
-              color: "white",
-              textTransform: "none",
-              fontWeight: 600,
-              "&:hover": { backgroundColor: "#dc2626" },
+  return (
+    <Modal
+      isOpen={open}
+      onClose={submitting ? undefined : handleClose}
+      title={t("settings.deleteAccount")}
+      confirmationText={
+        loading
+          ? null
+          : isPending
+            ? t("settings.deletionScheduledPrompt")
+            : t("settings.confirmDeleteAccount")
+      }
+      loading={loading}
+      disableActions={actionsDisabled}
+      error={error}
+      contentAlign="left"
+      onDecline={submitting ? undefined : handleClose}
+      onApprove={
+        loading || submitting ? undefined : isPending ? handleCancel : handleRequest
+      }
+      declineText={t("common.no")}
+      approveText={approveContent}
+    >
+      {!loading && isPending && (
+        <div className="space-y-3 text-sm">
+          <div
+            className="rounded-lg px-3 py-2"
+            style={{
+              backgroundColor: "rgba(245, 158, 11, 0.12)",
+              color: colors.primary_text,
             }}
           >
-            {submitting ? <CircularProgress size={18} /> : t("settings.deleteAccount")}
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+            {t("settings.deletionScheduledInfo")}
+          </div>
+          <div>
+            <p style={{ color: colors.secondary_text }}>{t("settings.purgeDate")}</p>
+            <p className="font-semibold">{purgeDate}</p>
+          </div>
+          {countdown && (
+            <span
+              className="inline-block rounded-full px-3 py-1 text-xs font-medium"
+              style={{
+                border: "1px solid rgba(245, 158, 11, 0.5)",
+                color: "#f59e0b",
+              }}
+            >
+              {countdown}
+            </span>
+          )}
+          <p style={{ color: colors.secondary_text }}>
+            {t("settings.deletionGraceAccessInfo")}
+          </p>
+        </div>
+      )}
+      {!loading && !isPending && (
+        <div className="space-y-3 text-sm">
+          <p style={{ color: colors.secondary_text }}>
+            {t("settings.deleteAccountWarning")}
+          </p>
+          <div
+            className="rounded-lg px-3 py-2"
+            style={{
+              backgroundColor: "rgba(59, 130, 246, 0.12)",
+              color: colors.primary_text,
+            }}
+          >
+            {t("settings.deleteAccountGraceInfo")}
+          </div>
+        </div>
+      )}
+    </Modal>
   );
 };
 

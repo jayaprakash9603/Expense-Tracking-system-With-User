@@ -6,19 +6,26 @@ const Modal = ({
   onClose,
   title = "Confirmation",
   data = {},
-  onApprove = () => {},
-  onDecline = () => {},
+  onApprove,
+  onDecline,
   approveText = "Approve",
   declineText = "Decline",
   approveIcon = null,
   declineIcon = null,
   confirmationText = "Are you sure you want to delete this?",
   headerNames = {},
+  children = null,
+  loading = false,
+  disableActions = false,
+  error = null,
+  contentAlign = "center",
 }) => {
   const { colors } = useTheme();
   if (!isOpen) return null;
 
   const hasData = Object.keys(data).length > 0;
+  const hasChildren = Boolean(children);
+  const showActions = onApprove != null || onDecline != null;
 
   return (
     <div
@@ -38,17 +45,36 @@ const Modal = ({
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">{title}</h2>
-          <button
-            className="text-2xl absolute top-4 right-4"
-            style={{ color: colors.primary_text }}
-            onClick={onClose}
-          >
-            &times;
-          </button>
+          {onClose && (
+            <button
+              className="text-2xl absolute top-4 right-4"
+              style={{ color: colors.primary_text }}
+              onClick={onClose}
+              disabled={disableActions}
+              type="button"
+            >
+              &times;
+            </button>
+          )}
         </div>
 
-        <div className="space-y-4 text-base mt-6">
-          {hasData ? (
+        <div
+          className={`space-y-4 text-base mt-6 ${
+            contentAlign === "left" ? "text-left" : "text-center"
+          }`}
+        >
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <span
+                className="inline-block w-7 h-7 rounded-full animate-spin"
+                style={{
+                  border: "2px solid transparent",
+                  borderTopColor: colors.accent_color || "#14b8a6",
+                  borderRightColor: colors.accent_color || "#14b8a6",
+                }}
+              />
+            </div>
+          ) : hasData ? (
             <>
               {Object.keys(data).map((key) => {
                 if (data[key]) {
@@ -66,36 +92,66 @@ const Modal = ({
               })}
             </>
           ) : (
-            <div className="text-center text-lg font-medium mt-10">
-              {confirmationText}
+            <>
+              {confirmationText && (
+                <div
+                  className={`text-lg font-medium ${
+                    hasChildren ? "mb-2" : "mt-10"
+                  }`}
+                >
+                  {confirmationText}
+                </div>
+              )}
+              {children}
+            </>
+          )}
+          {error && (
+            <div
+              className="rounded-lg px-3 py-2 text-sm"
+              style={{
+                backgroundColor: "rgba(239, 68, 68, 0.12)",
+                color: "#ef4444",
+              }}
+            >
+              {error}
             </div>
           )}
         </div>
 
-        <div className="flex sm:flex-row justify-between gap-4 mt-10">
-          <button
-            onClick={onDecline}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 w-full sm:w-auto flex items-center justify-center gap-2"
-            data-shortcut="modal-decline"
-            title={`${declineText} (N)`}
-          >
-            {declineIcon && (
-              <span className="flex items-center">{declineIcon}</span>
+        {showActions && (
+          <div className="flex sm:flex-row justify-between gap-4 mt-10">
+            {onDecline != null && (
+              <button
+                onClick={onDecline}
+                disabled={disableActions}
+                className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto flex items-center justify-center gap-2"
+                data-shortcut="modal-decline"
+                title={`${declineText} (N)`}
+                type="button"
+              >
+                {declineIcon && (
+                  <span className="flex items-center">{declineIcon}</span>
+                )}
+                {declineText}
+              </button>
             )}
-            {declineText}
-          </button>
-          <button
-            onClick={onApprove}
-            className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 w-full sm:w-auto flex items-center justify-center gap-2"
-            data-shortcut="modal-approve"
-            title={`${approveText} (Y)`}
-          >
-            {approveIcon && (
-              <span className="flex items-center">{approveIcon}</span>
+            {onApprove != null && (
+              <button
+                onClick={onApprove}
+                disabled={disableActions}
+                className="bg-teal-500 text-white px-6 py-2 rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto flex items-center justify-center gap-2"
+                data-shortcut="modal-approve"
+                title={`${approveText} (Y)`}
+                type="button"
+              >
+                {approveIcon && (
+                  <span className="flex items-center">{approveIcon}</span>
+                )}
+                {approveText}
+              </button>
             )}
-            {approveText}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

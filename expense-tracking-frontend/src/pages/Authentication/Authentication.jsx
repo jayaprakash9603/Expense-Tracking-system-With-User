@@ -7,7 +7,6 @@ import ForgotPassword from "./ForgotPassword";
 import OtpVerification from "./OtpVerification";
 import MfaVerification from "../AuthPage/MfaVerification";
 import { Route, Routes, Navigate, useLocation, useSearchParams } from "react-router-dom";
-import OAuthCallback from "../OAuthCallback";
 import createAppTheme from "../../shared/theme/createAppTheme";
 import { isFeatureEnabledInState, SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 import FeatureUnavailable from "../../features/errors/pages/FeatureUnavailablePage";
@@ -17,10 +16,6 @@ const Authentication = () => {
   const [searchParams] = useSearchParams();
   const featureFlags = useSelector((state) => state.featureFlags);
 
-  const googleOauthEnabled = isFeatureEnabledInState(
-    featureFlags,
-    SUB_FEATURE_KEYS.AUTH_GOOGLE_OAUTH,
-  );
   const mfaEnabled = isFeatureEnabledInState(
     featureFlags,
     SUB_FEATURE_KEYS.AUTH_MFA,
@@ -32,14 +27,6 @@ const Authentication = () => {
 
   // Force dark theme for authentication pages
   const darkTheme = useMemo(() => createAppTheme("dark"), []);
-
-  // OAuth callback page should render without the card wrapper
-  if (location.pathname === "/oauth/callback") {
-    if (!googleOauthEnabled) {
-      return <FeatureUnavailable featureKey={SUB_FEATURE_KEYS.AUTH_GOOGLE_OAUTH} />;
-    }
-    return <OAuthCallback />;
-  }
 
   // OTP verification page should render without the card wrapper
   if (location.pathname === "/otp-verification") {

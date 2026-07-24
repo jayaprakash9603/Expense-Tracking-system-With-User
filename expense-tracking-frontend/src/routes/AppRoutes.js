@@ -1,5 +1,6 @@
 import { Route, Navigate } from "react-router-dom";
 import Authentication from "../pages/Authentication/Authentication";
+import OAuthCallback from "../pages/OAuthCallback";
 import Home from "../shared/layout/HomeShell";
 import FeatureRoute from "./FeatureRoute";
 import { FEATURE_KEYS, SUB_FEATURE_KEYS } from "../config/featureCatalog";
@@ -92,6 +93,7 @@ export const getAuthRoutes = () => (
         </FeatureRoute>
       }
     />
+    <Route path="/oauth/callback" element={<OAuthCallback />} />
     {/* Authentication routes */}
     <Route path="/*" element={<Authentication />} />
   </>
@@ -410,6 +412,8 @@ export const getAppRoutes = () => (
     >
       <Route index element={<FriendChat />} />
     </Route>
+
+    <Route path="/oauth/callback" element={<OAuthCallback />} />
 
     {/* 404 Not Found - Catch all undefined routes (outside Home layout) */}
     <Route path="*" element={<NotFound />} />

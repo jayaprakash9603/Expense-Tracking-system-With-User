@@ -68,15 +68,15 @@ const OAuthCallback = () => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#121212",
         gap: 2,
       }}
     >
-      <CircularProgress size={48} sx={{ color: "#4285F4" }} />
-      <Typography variant="h6" color="textSecondary">
+      <CircularProgress size={48} sx={{ color: "#14b8a6" }} />
+      <Typography variant="h6" sx={{ color: "#f5f5f5" }}>
         Completing sign in...
       </Typography>
-      <Typography variant="body2" color="textSecondary">
+      <Typography variant="body2" sx={{ color: "#a0a0a0" }}>
         Please wait while we complete your Google sign-in.
       </Typography>
     </Box>

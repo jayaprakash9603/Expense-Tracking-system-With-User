@@ -497,8 +497,6 @@ const Settings = () => {
             );
           }
         }}
-        colors={colors}
-        isSmallScreen={isSmallScreen}
       />
 
       {/* Change Password Dialog */}

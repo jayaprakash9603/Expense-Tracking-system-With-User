@@ -948,8 +948,20 @@ export const en = {
     dataExportDescription: "Download all your expense data",
     deleteAccount: "Delete Account",
     deleteAccountDescription: "Permanently delete your account and all data",
+    confirmDeleteAccount: "Are you sure you want to delete your account?",
     deleteAccountWarning:
       "All your data, including expenses, budgets, and friends, will be permanently deleted.",
+    deleteAccountGraceInfo:
+      "After confirmation your account enters a 5-day grace period. During this window you can cancel from this dialog and everything is restored. Once the period ends, purge is irreversible.",
+    deletionScheduledPrompt:
+      "Your account is scheduled for permanent deletion.",
+    deletionScheduledInfo:
+      "You can cancel any time before the grace period ends.",
+    purgeDate: "Purge date",
+    deletionGraceAccessInfo:
+      "During this period, normal application access is disabled — only this deletion status/cancel dialog and sign-out remain available. Audit records and shared chat history will be anonymized rather than deleted, in line with our privacy policy.",
+    cancelDeletion: "Cancel deletion",
+    cancellingDeletion: "Cancelling…",
 
     // Help & Support
     restartTour: "Restart Tour",
