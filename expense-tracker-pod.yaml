@@ -23,6 +23,7 @@ spec:
   # 1. Frontend (nginx serving the React build) — exposed outward on host port 9999
   - name: frontend
     image: jayaprakash9603/expense-tracker-frontend:1.1.0
+    imagePullPolicy: IfNotPresent
     ports:
     - containerPort: 80
       hostPort: 9999           # Reach the frontend at http://localhost:9999
