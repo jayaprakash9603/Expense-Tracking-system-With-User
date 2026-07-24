@@ -9,7 +9,7 @@ import {
   GET_PROFILE_SUCCESS,
   GET_PROFILE_FAILURE,
 } from "../../Redux/Auth/auth.actionType";
-import { GOOGLE_CLIENT_ID } from "../../config/googleOAuth";
+import { normalizeUserProfile } from "../../utils/user/resolveUserProfileImage";
 
 // Google Icon SVG Component
 const GoogleIcon = () => (
@@ -103,10 +103,10 @@ const GoogleLoginButton = ({
             });
             dispatch({
               type: GET_PROFILE_SUCCESS,
-              payload: profileResponse.data,
+              payload: normalizeUserProfile(profileResponse.data),
             });
 
-            const userProfile = profileResponse.data;
+            const userProfile = normalizeUserProfile(profileResponse.data);
             onSuccess?.({ success: true, user: userProfile });
 
             // Navigate based on user role

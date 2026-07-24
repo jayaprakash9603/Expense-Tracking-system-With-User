@@ -7,6 +7,8 @@ import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.request.GoogleAuthRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import lombok.extern.slf4j.Slf4j;
+import com.jaya.task.user.service.util.AuthDeletionMetadata;
+import com.jaya.task.user.service.util.ProfileImageResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -93,6 +95,7 @@ public class OAuth2Service {
             response.setStatus(true);
             response.setMessage("Google authentication successful");
             response.setJwt(token);
+            AuthDeletionMetadata.apply(response, user);
 
             log.info("Google authentication successful for user: {}", user.getEmail());
 
@@ -124,17 +127,12 @@ public class OAuth2Service {
                 log.info("Linking Google account to existing LOCAL user: {}", existingUser.getEmail());
                 existingUser.setAuthProvider(AUTH_PROVIDER_GOOGLE);
                 existingUser.setProviderId(googleUser.getSub());
-
-                
-                if (existingUser.getProfileImage() == null && googleUser.getPicture() != null) {
-                    existingUser.setOauthProfileImage(googleUser.getPicture());
-                }
-
+                ProfileImageResolver.syncGoogleProfileImage(existingUser, googleUser.getPicture());
                 return userRepository.save(existingUser);
             }
 
-            
-            return existingUser;
+            ProfileImageResolver.syncGoogleProfileImage(existingUser, googleUser.getPicture());
+            return userRepository.save(existingUser);
         }
 
         
@@ -148,8 +146,7 @@ public class OAuth2Service {
         newUser.setLastName(googleUser.getFamilyName());
         newUser.setAuthProvider(AUTH_PROVIDER_GOOGLE);
         newUser.setProviderId(googleUser.getSub());
-        newUser.setOauthProfileImage(googleUser.getPicture());
-        newUser.setProfileImage(googleUser.getPicture());
+        ProfileImageResolver.syncGoogleProfileImage(newUser, googleUser.getPicture());
 
         
         if (googleUser.getGender() != null) {

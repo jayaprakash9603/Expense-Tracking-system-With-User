@@ -952,16 +952,40 @@ export const en = {
     deleteAccountWarning:
       "All your data, including expenses, budgets, and friends, will be permanently deleted.",
     deleteAccountGraceInfo:
-      "After confirmation your account enters a 5-day grace period. During this window you can cancel from this dialog and everything is restored. Once the period ends, purge is irreversible.",
+      "Your account will enter a 5-day grace period. During this time you can still sign in, access your data, and cancel deletion at any time from Settings. After the grace period, deletion is permanent.",
     deletionScheduledPrompt:
-      "Your account is scheduled for permanent deletion.",
+      "Your account is scheduled for deletion.",
     deletionScheduledInfo:
-      "You can cancel any time before the grace period ends.",
-    purgeDate: "Purge date",
+      "You can still use Expensio Finance during the grace period. Cancel anytime before the date below to keep your account and data.",
+    purgeDate: "Permanent deletion date",
     deletionGraceAccessInfo:
-      "During this period, normal application access is disabled — only this deletion status/cancel dialog and sign-out remain available. Audit records and shared chat history will be anonymized rather than deleted, in line with our privacy policy.",
+      "If you change your mind, choose Cancel deletion below or go to Settings anytime before the date above. Your expenses, budgets, and other data remain available until then.",
     cancelDeletion: "Cancel deletion",
     cancellingDeletion: "Cancelling…",
+    deletionScheduledSnackbar:
+      "Your account is scheduled for deletion on {{date}}. You can sign in anytime before then to access your data or cancel deletion in Settings.",
+    deletionCancelledSnackbar:
+      "Deletion cancelled. Your account and data are fully restored.",
+    deletionCancelFailed: "We couldn't cancel deletion. Please try again from Settings.",
+    deletionBannerTitle: "Your account is scheduled for deletion",
+    deletionBannerBody:
+      "Your profile and data will be permanently deleted on {{date}}. You can keep using the app until then. To stay, cancel deletion anytime.",
+    deletionBannerManage: "Manage in Settings",
+    deletionWelcomeTitle: "Welcome back — your account is still here",
+    deletionWelcomeLead:
+      "You requested account deletion. Everything will be permanently removed on {{date}} unless you cancel.",
+    deletionWelcomeBody:
+      "We’re glad you signed in again. Like other apps you may know, logging in during the grace period keeps your account active for now and lets you review or export your data before anything is removed.",
+    deletionWelcomePointAccess:
+      "Your expenses, budgets, and settings are still available during the grace period.",
+    deletionWelcomePointCancel:
+      "If this was a mistake, cancel deletion in Settings to fully restore your account.",
+    deletionWelcomePointPurge:
+      "If you do nothing, your account and personal data will be permanently deleted on {{date}}.",
+    deletionWelcomeFooter:
+      "Need help? Contact support from Settings before your deletion date.",
+    deletionWelcomeDismiss: "Continue to app",
+    deletionWelcomeManage: "Go to Settings",
 
     // Help & Support
     restartTour: "Restart Tour",

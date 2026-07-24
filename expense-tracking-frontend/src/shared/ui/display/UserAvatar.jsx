@@ -1,4 +1,5 @@
 import React from "react";
+import { resolveUserProfileImage } from "../../../utils/user/resolveUserProfileImage";
 
 const UserAvatar = ({ user }) => {
   const getInitials = (firstName, lastName) => {
@@ -22,7 +23,7 @@ const UserAvatar = ({ user }) => {
   };
 
   const renderAvatar = () => {
-    const imageUrl = user?.profileImage || user?.image;
+    const imageUrl = resolveUserProfileImage(user);
     if (imageUrl) {
       return (
         <img

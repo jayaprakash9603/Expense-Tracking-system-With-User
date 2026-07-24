@@ -1,5 +1,7 @@
 package com.jaya.cron;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import com.jaya.service.MomentumService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -9,6 +11,7 @@ import java.time.LocalDate;
 
 @Component
 @Slf4j
+@ConditionalOnFeatureModule(FeatureCatalog.ANALYTICS)
 public class DailyMomentumCronJob {
 
     private final MomentumService momentumService;

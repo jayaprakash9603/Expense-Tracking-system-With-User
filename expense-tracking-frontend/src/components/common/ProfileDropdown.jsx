@@ -10,6 +10,7 @@ import Modal from "../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../hooks/useTranslation";
 import useFeature from "../../hooks/useFeature";
 import { FEATURE_KEYS } from "../../config/featureCatalog";
+import { resolveUserProfileImage } from "../../utils/user/resolveUserProfileImage";
 
 /**
  * ProfileDropdown Component
@@ -55,7 +56,7 @@ const ProfileDropdown = ({
     return `${firstInitial}${lastInitial}`;
   };
 
-  const avatarSrc = user?.profileImage || "";
+  const avatarSrc = resolveUserProfileImage(user);
 
   const handleProfileClick = () => {
     setIsProfileOpen(!isProfileOpen);

@@ -122,7 +122,7 @@ public class UserController {
 
             return ResponseEntity.ok(Map.of(
                     MESSAGE_KEY, "User updated successfully",
-                    USER_KEY, updatedUser));
+                    USER_KEY, mapper.toDTO(updatedUser)));
 
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

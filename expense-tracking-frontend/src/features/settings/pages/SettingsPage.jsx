@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, useMediaQuery, Chip } from "@mui/material";
@@ -115,6 +115,24 @@ const Settings = () => {
       isDark,
       themeLocked,
     );
+
+  const handleDeletionScheduled = useCallback(
+    (status) => {
+      const purgeDate = status?.scheduledPurgeAt
+        ? new Date(status.scheduledPurgeAt).toLocaleString()
+        : "";
+      sessionStorage.setItem("deletionWelcomeNoticeSeen", "1");
+      window.dispatchEvent(new Event("account-deletion-status-changed"));
+      showSnackbar(t("settings.deletionScheduledSnackbar", { date: purgeDate }), "warning");
+    },
+    [showSnackbar, t],
+  );
+
+  const handleDeletionCancelled = useCallback(() => {
+    sessionStorage.removeItem("deletionWelcomeNoticeSeen");
+    window.dispatchEvent(new Event("account-deletion-status-changed"));
+    showSnackbar(t("settings.deletionCancelledSnackbar"), "success");
+  }, [showSnackbar, t]);
 
   // Render switch-type setting
   const renderSwitchSetting = (item) => {
@@ -489,14 +507,8 @@ const Settings = () => {
       <DeleteAccountDialog
         open={deleteDialogOpen}
         onClose={closeDeleteDialog}
-        onStatusChange={(status) => {
-          if (status?.state === "REQUESTED") {
-            showSnackbar(
-              `Account scheduled for deletion — purge starts ${new Date(status.scheduledPurgeAt).toLocaleString()}`,
-              "warning",
-            );
-          }
-        }}
+        onDeletionScheduled={handleDeletionScheduled}
+        onDeletionCancelled={handleDeletionCancelled}
       />
 
       {/* Change Password Dialog */}

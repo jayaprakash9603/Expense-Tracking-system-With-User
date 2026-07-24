@@ -70,6 +70,8 @@ export const buildSystemErrorPayloadFromAxios = (error) => {
     message,
     method,
     path,
+    errorCode: error.response?.data?.error,
+    accountStatus: error.response?.data?.accountStatus,
   };
 };
 

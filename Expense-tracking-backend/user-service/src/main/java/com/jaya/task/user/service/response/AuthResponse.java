@@ -79,4 +79,10 @@ public class AuthResponse {
 
 
     private String mfaToken;
+
+    private Boolean deletionPending;
+
+    private String accountStatus;
+
+    private java.time.LocalDateTime deletionScheduledPurgeAt;
 }

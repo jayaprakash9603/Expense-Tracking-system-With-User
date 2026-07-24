@@ -10,6 +10,7 @@ import {
   updateProfileAction,
   getProfileAction,
 } from "../../Redux/Auth/auth.action";
+import { resolveUserProfileImage } from "../../utils/user/resolveUserProfileImage";
 
 export const useProfileForm = () => {
   const dispatch = useDispatch();
@@ -52,7 +53,7 @@ export const useProfileForm = () => {
         occupation: user.occupation || "",
         bio: user.bio || "",
         dateOfBirth: user.dateOfBirth || "",
-        profileImage: user.profileImage || "",
+        profileImage: resolveUserProfileImage(user),
         coverImage: user.coverImage || "",
       });
     }
@@ -207,7 +208,7 @@ export const useProfileForm = () => {
         occupation: user.occupation || "",
         bio: user.bio || "",
         dateOfBirth: user.dateOfBirth || "",
-        profileImage: user.profileImage || "",
+        profileImage: resolveUserProfileImage(user),
         coverImage: user.coverImage || "",
       });
     }

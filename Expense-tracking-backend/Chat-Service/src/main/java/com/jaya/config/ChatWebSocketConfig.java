@@ -1,5 +1,7 @@
 package com.jaya.config;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import com.jaya.service.PresenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@ConditionalOnFeatureModule(FeatureCatalog.CHAT)
 public class ChatWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Autowired

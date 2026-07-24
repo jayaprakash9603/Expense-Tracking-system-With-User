@@ -72,6 +72,14 @@ public class UserDTO implements Serializable {
 
     private String currentMode;
 
+    /** ACTIVE or DELETION_PENDING during the grace window. */
+    private String accountStatus;
+
+    /** Present while a self-service deletion is scheduled. */
+    private java.time.LocalDateTime deletionScheduledPurgeAt;
+
+    private Boolean deletionPending;
+
     public boolean hasAdminRole() {
         return roles != null && (roles.contains("ADMIN") || roles.contains("ROLE_ADMIN"));
     }

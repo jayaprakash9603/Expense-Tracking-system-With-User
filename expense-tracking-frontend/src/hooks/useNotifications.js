@@ -18,6 +18,7 @@ import notificationWebSocketService from "../services/notificationWebSocket";
 const useNotifications = ({
   userId,
   autoConnect = true,
+  enabled = true,
   onNewNotification,
 } = {}) => {
   const [notifications, setNotifications] = useState([]);
@@ -180,6 +181,11 @@ const useNotifications = ({
    * Effect: Auto-connect on mount
    */
   useEffect(() => {
+    if (!enabled) {
+      disconnect();
+      return undefined;
+    }
+
     if (autoConnect && userId) {
       connect();
     }
@@ -189,7 +195,7 @@ const useNotifications = ({
         disconnect();
       }
     };
-  }, [autoConnect, userId]); // Only run on mount/unmount or userId change
+  }, [enabled, autoConnect, userId, connect, disconnect]);
 
   /**
    * Effect: Subscribe to topics when connected

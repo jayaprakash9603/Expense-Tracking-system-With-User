@@ -405,6 +405,7 @@ const Utilities = () => {
       </Box>
       )}
 
+      {utilityItems.length === 0 && communicationItems.length === 0 && (
       <Box
         sx={{
           flex: 1,
@@ -431,6 +432,7 @@ const Utilities = () => {
           </Typography>
         </Box>
       </Box>
+      )}
     </Box>
   );
 };

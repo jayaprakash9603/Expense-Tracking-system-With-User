@@ -1,5 +1,7 @@
 package com.jaya.scheduler;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import com.jaya.service.SharedResourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 @ConditionalOnProperty(name = "scheduling.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnFeatureModule(FeatureCatalog.SHARING)
 public class FriendshipScheduledJobs {
 
     private final SharedResourceService sharedResourceService;

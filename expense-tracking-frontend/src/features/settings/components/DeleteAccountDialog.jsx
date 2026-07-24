@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Modal from "../../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../../hooks/useTranslation";
 import { useTheme } from "../../../hooks/useTheme";
@@ -23,13 +23,25 @@ const formatCountdown = (targetIso) => {
   return `${minutes}m remaining`;
 };
 
-const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
+const DeleteAccountDialog = ({
+  open,
+  onClose,
+  onDeletionScheduled,
+  onDeletionCancelled,
+}) => {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const onDeletionScheduledRef = useRef(onDeletionScheduled);
+  const onDeletionCancelledRef = useRef(onDeletionCancelled);
+
+  useEffect(() => {
+    onDeletionScheduledRef.current = onDeletionScheduled;
+    onDeletionCancelledRef.current = onDeletionCancelled;
+  }, [onDeletionScheduled, onDeletionCancelled]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -37,7 +49,6 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
     try {
       const data = await fetchDeletionStatus();
       setStatus(data);
-      onStatusChange?.(data);
     } catch (e) {
       setError(
         e?.response?.data?.message || e.message || "Failed to load deletion status",
@@ -45,10 +56,17 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
     } finally {
       setLoading(false);
     }
-  }, [onStatusChange]);
+  }, []);
 
   useEffect(() => {
-    if (open) refresh();
+    if (open) {
+      refresh();
+      return;
+    }
+    setStatus(null);
+    setError(null);
+    setLoading(false);
+    setSubmitting(false);
   }, [open, refresh]);
 
   const purgeDate = useMemo(() => {
@@ -62,7 +80,6 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
   );
 
   const isPending = status?.state === "REQUESTED";
-  const actionsDisabled = submitting;
 
   const handleClose = () => {
     if (!submitting) onClose();
@@ -73,8 +90,8 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
     setError(null);
     try {
       const data = await requestSelfDeletion();
-      setStatus(data);
-      onStatusChange?.(data);
+      onDeletionScheduledRef.current?.(data);
+      onClose();
     } catch (e) {
       setError(
         e?.response?.data?.message || e.message || "Failed to request deletion",
@@ -90,7 +107,8 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
     try {
       const data = await cancelSelfDeletion();
       setStatus({ ...data, state: "CANCELLED" });
-      onStatusChange?.(null);
+      onDeletionCancelledRef.current?.(data);
+      onClose();
     } catch (e) {
       setError(
         e?.response?.data?.message || e.message || "Failed to cancel deletion",
@@ -132,7 +150,7 @@ const DeleteAccountDialog = ({ open, onClose, onStatusChange }) => {
             : t("settings.confirmDeleteAccount")
       }
       loading={loading}
-      disableActions={actionsDisabled}
+      disableActions={submitting}
       error={error}
       contentAlign="left"
       onDecline={submitting ? undefined : handleClose}

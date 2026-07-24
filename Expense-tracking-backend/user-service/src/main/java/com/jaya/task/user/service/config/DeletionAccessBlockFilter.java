@@ -22,10 +22,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Blocks normal API access for users whose account is in a non-ACTIVE state.
- * Only a narrow allow-list of endpoints (deletion status / cancel /
- * authentication / logout / admin-side flows) is permitted while a deletion
- * request is pending.
+ * Blocks API access only for terminal / in-progress purge states.
+ * During {@link AccountStatus#DELETION_PENDING} the user may sign in, use the
+ * app, export data, and cancel deletion before the scheduled purge date.
  */
 @Component
 @RequiredArgsConstructor
@@ -41,6 +40,15 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
     private final UserProfileCacheService userProfileCacheService;
     private final ObjectMapper objectMapper;
     private final UrlPathHelper pathHelper = new UrlPathHelper();
+
+    static boolean shouldBlockAccess(AccountStatus status) {
+        if (status == null || status == AccountStatus.ACTIVE || status == AccountStatus.DELETION_PENDING) {
+            return false;
+        }
+        return status == AccountStatus.PURGING
+                || status == AccountStatus.DELETED
+                || status == AccountStatus.FAILED;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -60,7 +68,7 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
         }
         String email = auth.getName();
         User user = email == null ? null : userProfileCacheService.getUserByEmail(email);
-        if (user == null || user.getAccountStatus() == null || user.getAccountStatus() == AccountStatus.ACTIVE) {
+        if (user == null || !shouldBlockAccess(user.getAccountStatus())) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -75,9 +83,12 @@ public class DeletionAccessBlockFilter extends OncePerRequestFilter {
     private void respondBlocked(HttpServletResponse response, AccountStatus status) throws IOException {
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        String message = status == AccountStatus.PURGING
+                ? "Your account is being permanently deleted. Please try again later or contact support."
+                : "This account is no longer available.";
         objectMapper.writeValue(response.getWriter(), Map.of(
                 "error", "ACCOUNT_DELETION_IN_PROGRESS",
-                "message", "Your account is scheduled for deletion. Cancel the deletion request to restore access.",
+                "message", message,
                 "accountStatus", status.name()
         ));
     }

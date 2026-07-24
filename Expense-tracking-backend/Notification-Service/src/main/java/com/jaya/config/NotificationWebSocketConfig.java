@@ -1,5 +1,7 @@
 package com.jaya.config;
 
+import com.jaya.common.feature.ConditionalOnFeatureModule;
+import com.jaya.common.feature.FeatureCatalog;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -15,6 +17,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@ConditionalOnFeatureModule(FeatureCatalog.NOTIFICATIONS)
 public class NotificationWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Value("${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:3001}")

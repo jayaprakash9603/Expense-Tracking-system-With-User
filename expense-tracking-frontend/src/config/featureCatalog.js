@@ -246,6 +246,14 @@ export const ALL_FEATURE_KEYS = Object.values(FEATURE_KEYS).filter(
 
 export const ALL_SUB_FEATURE_KEYS = Object.values(SUB_FEATURE_KEYS);
 
+/** Hub tiles on /utilities — section is dormant when none of these are enabled. */
+export const UTILITIES_HUB_FEATURE_KEYS = [
+  SUB_FEATURE_KEYS.SHARING_MY_SHARES,
+  SUB_FEATURE_KEYS.SHARING_PUBLIC,
+  SUB_FEATURE_KEYS.SHARING_SHARED_WITH_ME,
+  SUB_FEATURE_KEYS.FRIENDS_CHAT,
+];
+
 export const SHORTCUT_FEATURE_MAP = {
   GO_EXPENSES: SUB_FEATURE_KEYS.EXPENSES_LIST,
   NEW_EXPENSE: SUB_FEATURE_KEYS.EXPENSES_CREATE,
@@ -283,7 +291,8 @@ export const SIDEBAR_MENU_FEATURES = {
   auditLogs: SUB_FEATURE_KEYS.ADMIN_AUDIT,
   adminReports: SUB_FEATURE_KEYS.ADMIN_REPORTS,
   adminSettings: SUB_FEATURE_KEYS.ADMIN_SETTINGS,
-  stories: SUB_FEATURE_KEYS.ADMIN_STORIES,
+  adminStories: SUB_FEATURE_KEYS.ADMIN_STORIES,
+  storiesFeed: SUB_FEATURE_KEYS.STORIES_FEED,
 };
 
 const normalizePath = (path) => {
@@ -408,6 +417,15 @@ export const isFeatureEnabledInState = (featureFlagsState, featureKey) => {
   return isModuleEnabledInState(featureFlagsState, featureKey);
 };
 
+export const hasUtilitiesHubContentInState = (featureFlagsState) =>
+  UTILITIES_HUB_FEATURE_KEYS.some((key) =>
+    isFeatureEnabledInState(featureFlagsState, key),
+  );
+
+export const isUtilitiesAccessibleInState = (featureFlagsState) =>
+  isFeatureEnabledInState(featureFlagsState, SUB_FEATURE_KEYS.UTILITIES_TOOLS) &&
+  hasUtilitiesHubContentInState(featureFlagsState);
+
 export const isActionEnabledInState = (featureFlagsState, moduleKey, action) => {
   if (!moduleKey || !action) {
     return true;
@@ -422,6 +440,11 @@ export const isPathEnabledInState = (featureFlagsState, path) => {
 
   if (isFriendContextPath(path) && !isModuleEnabledInState(featureFlagsState, FEATURE_KEYS.FRIENDS)) {
     return false;
+  }
+
+  const normalized = normalizePath(path);
+  if (matchesPrefix(normalized, "/utilities")) {
+    return isUtilitiesAccessibleInState(featureFlagsState);
   }
 
   const featureKey = getFeatureForRoute(path);

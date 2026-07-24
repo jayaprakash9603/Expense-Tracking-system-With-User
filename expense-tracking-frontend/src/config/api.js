@@ -3,6 +3,7 @@ import {
   attachSystemErrorPayload,
   buildSystemErrorPayloadFromAxios,
 } from "../utils/api/systemErrorEvents";
+import isGracePeriodDeletionError from "../features/settings/utils/accountDeletionErrors";
 
 const isCanceledError = (error) =>
   axios.isCancel(error) ||
@@ -113,16 +114,18 @@ const handleResponseError = (error) => {
 
     switch (status) {
       case 403:
-        window.dispatchEvent(
-          new CustomEvent("show403Error", {
-            detail: {
-              message:
-                error.response.data?.message ||
-                "Access denied. You do not have permission to access this resource.",
-              originalError: error,
-            },
-          }),
-        );
+        if (!isGracePeriodDeletionError(error)) {
+          window.dispatchEvent(
+            new CustomEvent("show403Error", {
+              detail: {
+                message:
+                  error.response.data?.message ||
+                  "Access denied. You do not have permission to access this resource.",
+                originalError: error,
+              },
+            }),
+          );
+        }
         attachSystemError();
         break;
       case 404:

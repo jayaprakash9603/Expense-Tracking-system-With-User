@@ -16,7 +16,7 @@ import {
   wsDisconnected,
 } from "../../Redux/Stories/story.action";
 
-const useStoryWebSocket = (userId) => {
+const useStoryWebSocket = (userId, enabled = true) => {
   const dispatch = useDispatch();
   const clientRef = useRef(null);
   const dispatchRef = useRef(dispatch);
@@ -125,6 +125,11 @@ const useStoryWebSocket = (userId) => {
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      disconnect();
+      return undefined;
+    }
+
     if (userId) {
       connect();
     }
@@ -132,7 +137,7 @@ const useStoryWebSocket = (userId) => {
     return () => {
       disconnect();
     };
-  }, [userId, connect, disconnect]);
+  }, [userId, enabled, connect, disconnect]);
 
   return {
     connect,

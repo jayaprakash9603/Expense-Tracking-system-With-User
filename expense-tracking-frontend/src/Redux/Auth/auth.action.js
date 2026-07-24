@@ -18,6 +18,8 @@ import {
 } from "./auth.actionType";
 import { CLEAR_USER_SETTINGS } from "../UserSettings/userSettings.actionType";
 import { safeApiCall } from "../../utils/api/safeApiCall";
+import isGracePeriodDeletionError from "../../features/settings/utils/accountDeletionErrors";
+import { normalizeUserProfile } from "../../utils/user/resolveUserProfileImage";
 
 // Redirect helper function
 const redirectToHome = (navigate) => {
@@ -36,9 +38,14 @@ const loadUserDashboardPreferences = async () => {
   return true;
 };
 
-const completeLoginWithJwt = async (dispatch, jwt) => {
+const completeLoginWithJwt = async (dispatch, jwt, authMeta = {}) => {
   dispatch({ type: LOGIN_SUCCESS, payload: jwt });
   localStorage.setItem("jwt", jwt);
+
+  if (authMeta.deletionPending) {
+    sessionStorage.removeItem("deletionWelcomeNoticeSeen");
+    window.dispatchEvent(new Event("account-deletion-status-changed"));
+  }
 
   // Immediately fetch the user profile after login
   const profileResult = await dispatch(getProfileAction(jwt));
@@ -60,6 +67,7 @@ const completeLoginWithJwt = async (dispatch, jwt) => {
     user: userProfile,
     currentMode: userProfile?.currentMode,
     role: userProfile?.role,
+    deletionPending: authMeta.deletionPending || userProfile?.deletionPending,
   };
 };
 
@@ -120,7 +128,9 @@ export const loginUserAction = (loginData) => async (dispatch) => {
     };
   }
 
-  return await completeLoginWithJwt(dispatch, data.jwt);
+  return await completeLoginWithJwt(dispatch, data.jwt, {
+    deletionPending: data.deletionPending,
+  });
 };
 
 export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
@@ -137,7 +147,9 @@ export const verifyTwoFactorOtpAction = (payload) => async (dispatch) => {
     return { success: false, message: errorMessage };
   }
 
-  return await completeLoginWithJwt(dispatch, data.jwt);
+  return await completeLoginWithJwt(dispatch, data.jwt, {
+    deletionPending: data.deletionPending,
+  });
 };
 
 // Google OAuth Login Action
@@ -162,31 +174,9 @@ export const googleLoginAction = (googleData) => async (dispatch) => {
     };
   }
 
-  dispatch({ type: LOGIN_SUCCESS, payload: data.jwt });
-  localStorage.setItem("jwt", data.jwt);
-
-  // Fetch the user profile after Google authentication
-  const profileResult = await dispatch(getProfileAction(data.jwt));
-  updateAuthHeader();
-
-  // Load user dashboard preferences (non-blocking)
-  loadUserDashboardPreferences().catch(() => {});
-
-  if (!profileResult?.success) {
-    const message =
-      profileResult?.error?.message ||
-      "Failed to load profile after Google login.";
-    return { success: false, message };
-  }
-
-  const userProfile = profileResult.data;
-
-  return {
-    success: true,
-    user: userProfile,
-    currentMode: userProfile?.currentMode,
-    role: userProfile?.role,
-  };
+  return await completeLoginWithJwt(dispatch, data.jwt, {
+    deletionPending: data.deletionPending,
+  });
 };
 
 const CLOUDINARY_UPLOAD_PRESET = "expense_tracker";
@@ -303,7 +293,13 @@ export const getProfileAction = (jwt) => async (dispatch) => {
 
   if (error) {
     const status = error.status;
-    if (status === 401 || status === 403 || status === undefined) {
+    const graceDeletion =
+      status === 403 &&
+      (error.errorCode === "ACCOUNT_DELETION_IN_PROGRESS" ||
+        error.accountStatus === "DELETION_PENDING" ||
+        isGracePeriodDeletionError({ response: { data: error } }));
+
+    if (status === 401 || status === undefined || (status === 403 && !graceDeletion)) {
       localStorage.removeItem("jwt");
       dispatch({ type: LOGOUT });
     }
@@ -312,8 +308,8 @@ export const getProfileAction = (jwt) => async (dispatch) => {
     return { success: false, error };
   }
 
-  dispatch({ type: GET_PROFILE_SUCCESS, payload: data });
-  return { success: true, data };
+  dispatch({ type: GET_PROFILE_SUCCESS, payload: normalizeUserProfile(data) });
+  return { success: true, data: normalizeUserProfile(data) };
 };
 
 // Update Profile Action
@@ -333,7 +329,7 @@ export const updateProfileAction = (reqData) => async (dispatch) => {
     });
 
     // Extract user object from response (backend returns {message, user})
-    const updatedUser = data.user || data;
+    const updatedUser = normalizeUserProfile(data.user || data);
     dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: updatedUser });
 
     return { success: true, user: updatedUser };

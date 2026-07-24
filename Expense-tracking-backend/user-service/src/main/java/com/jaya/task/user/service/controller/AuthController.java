@@ -13,6 +13,7 @@ import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
 import com.jaya.task.user.service.service.OtpService;
 import com.jaya.task.user.service.service.TotpService;
 import com.jaya.task.user.service.service.UserService;
+import com.jaya.task.user.service.util.AuthDeletionMetadata;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,6 +147,7 @@ public class AuthController {
             authResponse.setJwt(token);
             authResponse.setTwoFactorRequired(false);
             authResponse.setMfaRequired(false);
+            AuthDeletionMetadata.apply(authResponse, user);
 
             return new ResponseEntity<>(authResponse, HttpStatus.OK);
         } catch (BadCredentialsException ex) {
@@ -195,6 +197,7 @@ public class AuthController {
         authResponse.setMessage("Login Success");
         authResponse.setJwt(token);
         authResponse.setTwoFactorRequired(false);
+        AuthDeletionMetadata.apply(authResponse, user);
 
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
     }

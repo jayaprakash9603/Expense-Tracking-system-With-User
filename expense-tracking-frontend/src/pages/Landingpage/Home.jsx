@@ -15,6 +15,9 @@ import Loader from "../../components/Loaders/Loader";
 import { GlobalShortcuts, RecommendationToast } from "../../features/keyboard";
 import StoryViewer from "../../components/Stories/StoryViewer";
 import TourGuide from "../../components/common/TourGuide/TourGuide";
+import AccountDeletionGraceNotice from "../../features/settings/components/AccountDeletionGraceNotice";
+import useFeature from "../../hooks/useFeature";
+import { SIDEBAR_MENU_FEATURES } from "../../config/featureCatalog";
 
 const Home = () => {
   const { colors } = useTheme();
@@ -33,6 +36,7 @@ const Home = () => {
   const isAdminMode = currentMode === "ADMIN";
   const currentPath = location.pathname || "/";
   const isAdminRoute = currentPath.startsWith("/admin");
+  const storiesFeedEnabled = useFeature(SIDEBAR_MENU_FEATURES.storiesFeed);
   const rawShouldBlock = Boolean(currentMode)
     ? (isAdminMode && !isAdminRoute) || (!isAdminMode && isAdminRoute)
     : false;
@@ -122,8 +126,8 @@ const Home = () => {
       {/* Global Floating Notifications - Visible across all pages */}
       <FloatingNotificationContainer />
 
-      {/* Story Viewer Modal - Visible across all pages */}
-      <StoryViewer />
+      {/* Story Viewer Modal - Visible across all pages when stories feed is enabled */}
+      {storiesFeedEnabled && <StoryViewer />}
 
       <div className="w-0 lg:w-[350px] flex-shrink-0">
         <Left />
@@ -142,6 +146,7 @@ const Home = () => {
         ) : (
           <HeaderBar />
         )}
+        <AccountDeletionGraceNotice />
         <div className="flex-1 overflow-x-hidden">
           <Outlet key={location?.key || location?.pathname} />
         </div>

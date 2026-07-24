@@ -1,7 +1,9 @@
 package com.jaya.task.user.service.mapper;
 
 import com.jaya.common.dto.UserDTO;
+import com.jaya.task.user.service.modal.AccountStatus;
 import com.jaya.task.user.service.modal.User;
+import com.jaya.task.user.service.util.ProfileImageResolver;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,7 +21,20 @@ public class UserMapper {
         dto.setCurrentMode(user.getCurrentMode());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
-        // Add other fields as needed, but avoid sensitive data
+        if (user.getAccountStatus() != null) {
+            dto.setAccountStatus(user.getAccountStatus().name());
+            dto.setDeletionPending(user.getAccountStatus() == AccountStatus.DELETION_PENDING);
+        }
+        dto.setDeletionScheduledPurgeAt(user.getDeletionScheduledPurgeAt());
+        dto.setImage(ProfileImageResolver.resolveDisplayImage(user));
+        dto.setCoverImage(user.getCoverImage());
+        dto.setFullName(user.getFullName());
+        dto.setMobile(user.getMobile());
+        dto.setPhoneNumber(user.getPhoneNumber());
+        dto.setLocation(user.getLocation());
+        dto.setBio(user.getBio());
+        dto.setGender(user.getGender());
+        dto.setAuthProvider(user.getAuthProvider());
 
         return dto;
     }

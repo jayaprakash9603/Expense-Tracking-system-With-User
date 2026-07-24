@@ -8,8 +8,9 @@ import Modal from "./Modal";
 import { useTranslation } from "../../hooks/useTranslation";
 import { useTheme } from "../../hooks/useTheme";
 import useFeature from "../../hooks/useFeature";
-import { FEATURE_KEYS, SIDEBAR_MENU_FEATURES } from "../../config/featureCatalog";
+import { FEATURE_KEYS, SIDEBAR_MENU_FEATURES, isUtilitiesAccessibleInState } from "../../config/featureCatalog";
 import { BRAND_GRADIENT_COLORS } from "../../config/themeConfig";
+import { resolveUserProfileImage } from "../../utils/user/resolveUserProfileImage";
 import {
   fetchStories,
   openStoryViewer,
@@ -53,8 +54,10 @@ const Left = () => {
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // Connect to WebSocket for real-time story updates
-  useStoryWebSocket(user?.id);
+  const storiesFeedEnabled = useFeature(SIDEBAR_MENU_FEATURES.storiesFeed);
+  const adminStoriesEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminStories);
+
+  useStoryWebSocket(user?.id, storiesFeedEnabled);
 
   // Check if user has ADMIN role
   const hasAdminRole =
@@ -69,7 +72,8 @@ const Left = () => {
   const groupsEnabled = useFeature(FEATURE_KEYS.GROUPS);
   const budgetsEnabled = useFeature(FEATURE_KEYS.BUDGETS);
   const reportsEnabled = useFeature(FEATURE_KEYS.REPORTS);
-  const utilitiesEnabled = useFeature(FEATURE_KEYS.UTILITIES);
+  const featureFlags = useSelector((state) => state.featureFlags);
+  const utilitiesEnabled = isUtilitiesAccessibleInState(featureFlags);
   const adminEnabled = useFeature(FEATURE_KEYS.ADMIN);
   const adminDashboardEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminDashboard);
   const adminUsersEnabled = useFeature(SIDEBAR_MENU_FEATURES.userManagement);
@@ -78,25 +82,24 @@ const Left = () => {
   const adminAuditEnabled = useFeature(SIDEBAR_MENU_FEATURES.auditLogs);
   const adminReportsEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminReports);
   const adminSettingsEnabled = useFeature(SIDEBAR_MENU_FEATURES.adminSettings);
-  const storiesEnabled = useFeature(SIDEBAR_MENU_FEATURES.stories);
 
   // Fetch stories on mount
   useEffect(() => {
-    if (user?.id && storiesEnabled) {
+    if (user?.id && storiesFeedEnabled) {
       dispatch(fetchStories(user.id));
     }
-  }, [user?.id, dispatch, storiesEnabled]);
+  }, [user?.id, dispatch, storiesFeedEnabled]);
 
   // Refetch stories when WebSocket signals a refresh is needed
   useEffect(() => {
-    if (needsRefresh && user?.id && storiesEnabled) {
+    if (needsRefresh && user?.id && storiesFeedEnabled) {
       dispatch(fetchStories(user.id));
     }
-  }, [needsRefresh, user?.id, dispatch, storiesEnabled]);
+  }, [needsRefresh, user?.id, dispatch, storiesFeedEnabled]);
 
   // Handle story bubble click
   const handleStoryClick = () => {
-    if (storiesEnabled && stories.length > 0) {
+    if (storiesFeedEnabled && stories.length > 0) {
       dispatch(openStoryViewer(0));
     }
   };
@@ -124,7 +127,7 @@ const Left = () => {
   };
 
   // Determine avatar source or fallback
-  const avatarSrc = user?.profileImage || "";
+  const avatarSrc = resolveUserProfileImage(user);
 
   return (
     <>
@@ -186,20 +189,25 @@ const Left = () => {
             className="w-[90%] max-w-[260px] h-[180px] flex flex-col justify-center items-center mb-4"
           >
             <div
-              className="w-20 h-20 mb-2 relative cursor-pointer"
-              onClick={handleStoryClick}
+              className="w-20 h-20 mb-2 relative"
+              onClick={storiesFeedEnabled ? handleStoryClick : undefined}
               style={{
-                padding: stories.length > 0 ? "3px" : "0",
+                cursor: storiesFeedEnabled ? "pointer" : "default",
+                padding: storiesFeedEnabled && stories.length > 0 ? "3px" : "0",
                 borderRadius: "50%",
                 background:
-                  stories.length > 0
+                  storiesFeedEnabled && stories.length > 0
                     ? unseenCount > 0
                       ? `linear-gradient(45deg, ${BRAND_GRADIENT_COLORS.story_ring_start}, ${BRAND_GRADIENT_COLORS.story_ring_end})`
                       : colors.border
                     : "transparent",
               }}
               title={
-                stories.length > 0 ? `${unseenCount} new stories` : "No stories"
+                storiesFeedEnabled
+                  ? stories.length > 0
+                    ? `${unseenCount} new stories`
+                    : "No stories"
+                  : undefined
               }
             >
               <Badge
@@ -225,7 +233,7 @@ const Left = () => {
                     bgcolor: colors.avatar_bg,
                     color: colors.avatar_text,
                     border:
-                      stories.length > 0
+                      storiesFeedEnabled && stories.length > 0
                         ? `2px solid ${colors.primary_bg}`
                         : "none",
                   }}
@@ -329,7 +337,7 @@ const Left = () => {
                     setIsSidebarOpen={setIsSidebarOpen}
                   />
                 )}
-                {storiesEnabled && (
+                {adminStoriesEnabled && (
                   <MenuItem
                     name={t("navigation.stories") || "Stories"}
                     path="/admin/stories"

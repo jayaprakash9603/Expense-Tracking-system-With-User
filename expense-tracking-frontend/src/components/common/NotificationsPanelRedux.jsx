@@ -15,6 +15,7 @@ import { useTheme } from "../../hooks/useTheme";
 import { useFeature } from "../../hooks/useFeature";
 import {
   isPathEnabledInState,
+  FEATURE_KEYS,
   SUB_FEATURE_KEYS,
 } from "../../config/featureCatalog";
 import {
@@ -57,6 +58,7 @@ const NotificationsPanel = ({
   const notificationPreferencesEnabled = useFeature(
     SUB_FEATURE_KEYS.NOTIFICATIONS_PREFERENCES,
   );
+  const notificationsEnabled = useFeature(FEATURE_KEYS.NOTIFICATIONS);
   const { mode, colors: themeColorsPalette } = useTheme();
   const isDark = mode === "dark";
 
@@ -78,7 +80,8 @@ const NotificationsPanel = ({
   // WebSocket hook for real-time notifications with callback
   const { isConnected } = useNotifications({
     userId: user?.id,
-    autoConnect: true,
+    autoConnect: notificationsEnabled,
+    enabled: notificationsEnabled,
     onNewNotification: useCallback(
       (notification) => {
         // ? OPTIMIZED: Add single notification to Redux instead of fetching all
@@ -95,11 +98,11 @@ const NotificationsPanel = ({
 
   // Fetch notifications on mount
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && notificationsEnabled) {
       dispatch(fetchNotifications());
       dispatch(fetchUnreadCount());
     }
-  }, [dispatch, user]);
+  }, [user?.id, notificationsEnabled, dispatch]);
 
   // Notify parent of unread count changes
   useEffect(() => {
