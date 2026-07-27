@@ -10,9 +10,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 import java.util.Map;
-import org.springframework.stereotype.Component;
 
-@Component
 public class PaymentMethodApiSteps extends StepDataSupport {
 
     @When("the user creates a payment method with details")

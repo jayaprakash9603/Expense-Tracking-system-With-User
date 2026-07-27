@@ -11,7 +11,7 @@ public final class SignupPayloadFactory {
                 resolve(dataRow, "signup_first_name", "Auto", dynamicResolver),
                 resolve(dataRow, "signup_last_name", "User", dynamicResolver),
                 resolve(dataRow, "signup_email", "${random.email}", dynamicResolver),
-                resolve(dataRow, "signup_password", "Valid@1234", dynamicResolver)
+                resolve(dataRow, "signup_password", "${suite.auth.signupPassword}", dynamicResolver)
         );
     }
 

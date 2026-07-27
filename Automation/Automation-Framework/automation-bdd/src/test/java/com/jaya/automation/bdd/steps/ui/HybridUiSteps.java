@@ -11,11 +11,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
 public class HybridUiSteps extends StepDataSupport {
     private final UiDataRowMapper uiDataRowMapper = new UiDataRowMapper();
 

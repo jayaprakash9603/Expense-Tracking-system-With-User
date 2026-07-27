@@ -3,14 +3,12 @@ package com.jaya.task.user.service.modal;
 import com.jaya.task.user.service.cache.UserCacheEntityListener;
 import com.jaya.task.user.service.converter.SetToStringConverter;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

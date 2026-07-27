@@ -4,6 +4,7 @@ import com.jaya.automation.bdd.context.BddWorld;
 import com.jaya.automation.bdd.hooks.ApiCleanupHooks;
 import com.jaya.automation.core.logging.AutomationLogger;
 import com.jaya.automation.core.logging.LoggerFactory;
+import com.jaya.automation.flows.common.service.TabRouteRegistry;
 import com.jaya.automation.flows.auth.model.LoginCredentials;
 import com.jaya.automation.flows.auth.model.SignupData;
 
@@ -14,9 +15,9 @@ public final class AuthSessionCoordinator {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(AuthSessionCoordinator.class);
     private static final Map<Long, String> THREAD_SIGNUP_EMAIL = new ConcurrentHashMap<>();
     private static final Map<Long, String> THREAD_SIGNUP_PASSWORD = new ConcurrentHashMap<>();
-    private static final String DASHBOARD_PATH = "/dashboard";
-    private static final String LOGIN_PATH = "/login";
-    private static final String REGISTER_PATH = "/register";
+    private static final String DASHBOARD_PATH = TabRouteRegistry.DASHBOARD_PATH;
+    private static final String LOGIN_PATH = TabRouteRegistry.LOGIN_PATH;
+    private static final String REGISTER_PATH = TabRouteRegistry.REGISTER_PATH;
 
     public void ensureAuthenticatedDashboardSession(SignupData signupData) {
         BddWorld.authUiFlowService();

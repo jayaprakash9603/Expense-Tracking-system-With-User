@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
+    <property name="fileExtensions" value="java"/>
+
+    <module name="FileLength">
+        <property name="max" value="500"/>
+    </module>
+
+    <module name="RegexpSingleline">
+        <property name="format" value="System\.(out|err)\.(print|println)"/>
+        <property name="message" value="Use AutomationLogger instead of System.out/err"/>
+    </module>
+
+    <module name="RegexpSingleline">
+        <property name="format" value="printStackTrace\s*\("/>
+        <property name="message" value="Do not call printStackTrace"/>
+    </module>
+
+    <module name="RegexpSingleline">
+        <property name="format" value="(?i)(password|secret|apikey|api_key)\s*=\s*&quot;[^&quot;]{3,}&quot;"/>
+        <property name="message" value="Hardcoded credential-like string literal detected"/>
+    </module>
+
+    <module name="RegexpSingleline">
+        <property name="format" value="(?i)\b(TODO|FIXME)\b"/>
+        <property name="message" value="TODO/FIXME comments are not allowed"/>
+    </module>
+
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/checkstyle-suppressions.xml"/>
+        <property name="optional" value="false"/>
+    </module>
+
+    <module name="TreeWalker">
+        <module name="OuterTypeFilename"/>
+        <module name="UnusedImports"/>
+        <module name="EmptyCatchBlock">
+            <property name="exceptionVariableName" value="expected|ignore"/>
+        </module>
+        <module name="MethodLength">
+            <property name="max" value="75"/>
+        </module>
+        <module name="ParameterNumber">
+            <property name="max" value="7"/>
+        </module>
+        <module name="IllegalCatch">
+            <property name="illegalClassNames"
+                      value="java.lang.Error, java.lang.Throwable"/>
+        </module>
+        <module name="ConstantName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="TypeName"/>
+    </module>
+</module>
+
+<!-- Deferred rules (enable later):
+     MagicNumber - ~130 violations
+     MultipleStringLiterals - ~64 groups
+     IllegalCatch java.lang.Exception - ~36 violations
+     CyclomaticComplexity - ~33 methods
+-->

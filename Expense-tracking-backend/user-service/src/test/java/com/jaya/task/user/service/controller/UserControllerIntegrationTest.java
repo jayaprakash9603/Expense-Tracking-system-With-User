@@ -175,8 +175,8 @@ class UserControllerIntegrationTest {
 
             mockMvc.perform(delete("/api/user/" + toDelete.getId())
                             .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("deleted")));
+                    .andExpect(status().isAccepted())
+                    .andExpect(content().string(containsString("deletion")));
         }
 
         @Test
@@ -185,7 +185,7 @@ class UserControllerIntegrationTest {
 
             mockMvc.perform(delete("/api/user/" + toDelete.getId())
                             .header("Authorization", "Bearer " + adminToken))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isAccepted());
         }
 
         @Test

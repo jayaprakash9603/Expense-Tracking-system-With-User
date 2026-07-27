@@ -23,6 +23,7 @@ import com.jaya.automation.core.config.AutomationConfig;
 import com.jaya.automation.core.context.TestContext;
 import com.jaya.automation.flows.auth.service.AuthUiFlowService;
 import com.jaya.automation.flows.common.service.DomainNavigationFlowService;
+import com.jaya.automation.flows.common.service.GenericUiActions;
 import com.jaya.automation.flows.common.service.UiActionExecutor;
 
 import java.util.Map;
@@ -41,6 +42,7 @@ public final class BddWorld {
     private static final ThreadLocal<JsonSchemaValidator> JSON_SCHEMA_VALIDATOR = new ThreadLocal<>();
     private static final ThreadLocal<ApiExecutionResult> API_EXECUTION_RESULT = new ThreadLocal<>();
     private static final ThreadLocal<UiActionExecutor> UI_ACTION_EXECUTOR = new ThreadLocal<>();
+    private static final ThreadLocal<GenericUiActions> GENERIC_UI_ACTIONS = new ThreadLocal<>();
     private static final ThreadLocal<AuthUiFlowService> AUTH_UI_FLOW_SERVICE = new ThreadLocal<>();
     private static final ThreadLocal<AuthApiClient> AUTH_API_CLIENT = new ThreadLocal<>();
     private static final ThreadLocal<UserProfileApiClient> USER_PROFILE_API_CLIENT = new ThreadLocal<>();
@@ -154,6 +156,14 @@ public final class BddWorld {
 
     public static UiActionExecutor uiActionExecutor() {
         return require(UI_ACTION_EXECUTOR, "UiActionExecutor");
+    }
+
+    public static void setGenericUiActions(GenericUiActions genericUiActions) {
+        GENERIC_UI_ACTIONS.set(genericUiActions);
+    }
+
+    public static GenericUiActions genericUiActions() {
+        return require(GENERIC_UI_ACTIONS, "GenericUiActions");
     }
 
     public static void setAuthUiFlowService(AuthUiFlowService service) {
@@ -392,6 +402,7 @@ public final class BddWorld {
         JSON_SCHEMA_VALIDATOR.remove();
         API_EXECUTION_RESULT.remove();
         UI_ACTION_EXECUTOR.remove();
+        GENERIC_UI_ACTIONS.remove();
         AUTH_UI_FLOW_SERVICE.remove();
         AUTH_API_CLIENT.remove();
         USER_PROFILE_API_CLIENT.remove();

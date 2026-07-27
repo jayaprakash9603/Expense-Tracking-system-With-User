@@ -178,8 +178,8 @@ class AdminControllerIntegrationTest {
 
             mockMvc.perform(delete("/api/admin/users/" + toDelete.getId())
                             .header("Authorization", "Bearer " + adminToken))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value(containsString("deleted")));
+                    .andExpect(status().isAccepted())
+                    .andExpect(jsonPath("$.message").value(containsString("deletion")));
         }
     }
 

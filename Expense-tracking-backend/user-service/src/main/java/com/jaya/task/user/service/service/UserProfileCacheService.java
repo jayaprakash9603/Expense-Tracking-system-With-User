@@ -7,6 +7,8 @@ import com.jaya.task.user.service.config.JwtProvider;
 import com.jaya.task.user.service.mapper.UserMapper;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
  */
 @Service
 public class UserProfileCacheService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserProfileCacheService.class);
 
     private final UserRepository userRepository;
     private final UserMapper mapper;
@@ -76,6 +80,7 @@ public class UserProfileCacheService {
             User user = getUserByEmail(email);
             return user != null ? user.getId() : null;
         } catch (Exception e) {
+            log.debug("Unable to resolve user id from authorization header", e);
             return null;
         }
     }

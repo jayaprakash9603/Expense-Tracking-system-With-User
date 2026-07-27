@@ -6,9 +6,7 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
-import org.springframework.stereotype.Component;
 
-@Component
 public class ExpenseUiSteps extends StepDataSupport {
     private final ExpenseScenarioCoordinator expenseScenarioCoordinator = new ExpenseScenarioCoordinator();
 

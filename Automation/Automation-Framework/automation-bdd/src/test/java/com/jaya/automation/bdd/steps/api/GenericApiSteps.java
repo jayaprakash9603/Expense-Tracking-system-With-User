@@ -11,12 +11,13 @@ import com.jaya.automation.api.validation.RuleEvaluator;
 import com.jaya.automation.api.validation.ValidationRuleEngine;
 import com.jaya.automation.bdd.steps.common.ResourceResolver;
 import com.jaya.automation.bdd.steps.common.StepDataSupport;
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -26,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
 public class GenericApiSteps extends StepDataSupport {
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(GenericApiSteps.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final Map<String, Integer> STATUS_LABELS = Map.ofEntries(
@@ -353,11 +354,34 @@ public class GenericApiSteps extends StepDataSupport {
 
     private Map<String, Object> readPayload(String payloadFile) {
         try (InputStream stream = resource(payloadFile)) {
-            return objectMapper.readValue(stream, new TypeReference<>() {
+            Map<String, Object> payload = objectMapper.readValue(stream, new TypeReference<>() {
             });
+            return resolvePayloadValues(payload);
         } catch (Exception exception) {
             throw new IllegalArgumentException("Unable to read payload file: " + payloadFile, exception);
         }
+    }
+
+    private Map<String, Object> resolvePayloadValues(Map<String, Object> payload) {
+        Map<String, Object> resolved = new LinkedHashMap<>();
+        payload.forEach((key, value) -> resolved.put(key, resolvePayloadValue(value)));
+        return resolved;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object resolvePayloadValue(Object value) {
+        if (value instanceof Map<?, ?> mapValue) {
+            Map<String, Object> nested = new LinkedHashMap<>();
+            mapValue.forEach((key, nestedValue) -> nested.put(String.valueOf(key), resolvePayloadValue(nestedValue)));
+            return nested;
+        }
+        if (value instanceof List<?> listValue) {
+            return listValue.stream().map(this::resolvePayloadValue).toList();
+        }
+        if (value instanceof String stringValue) {
+            return BddWorld.scenarioDataBinder().resolveValue(stringValue);
+        }
+        return value;
     }
 
     private InputStream resource(String payloadFile) {
@@ -393,7 +417,8 @@ public class GenericApiSteps extends StepDataSupport {
                 .ifPresent(req -> {
                     try {
                         contextJsons.put("request", objectMapper.writeValueAsString(req));
-                    } catch (Exception ignored) {
+                    } catch (Exception exception) {
+                        LOG.debug("Unable to serialize request alias for rule context: {}", exception.getMessage());
                     }
                 });
         return contextJsons;

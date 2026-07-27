@@ -3,6 +3,9 @@ package com.jaya.automation.core.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -15,6 +18,7 @@ import java.util.stream.Collectors;
 
 public final class ConfigFileParser {
 
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(ConfigFileParser.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     private ConfigFileParser() {
@@ -47,7 +51,8 @@ public final class ConfigFileParser {
                 return candidate.endsWith(".properties")
                         ? parsePropertiesStream(stream)
                         : parseYamlStream(stream);
-            } catch (IOException ignored) {
+            } catch (IOException exception) {
+                LOG.debug("Unable to read classpath config candidate {}: {}", candidate, exception.getMessage());
             }
         }
         return Map.of();
@@ -56,7 +61,8 @@ public final class ConfigFileParser {
     private static Map<String, String> parseProperties(Path file) {
         try (InputStream stream = Files.newInputStream(file)) {
             return parsePropertiesStream(stream);
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to read properties file {}: {}", file, exception.getMessage());
             return new LinkedHashMap<>();
         }
     }
@@ -73,7 +79,8 @@ public final class ConfigFileParser {
     private static Map<String, String> parseYaml(Path file) {
         try (InputStream stream = Files.newInputStream(file)) {
             return parseYamlStream(stream);
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to read YAML file {}: {}", file, exception.getMessage());
             return new LinkedHashMap<>();
         }
     }

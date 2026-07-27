@@ -1,9 +1,9 @@
 package com.jaya.automation.bdd.steps.common;
 
-import java.io.BufferedReader;
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.FileSystem;
@@ -19,6 +19,7 @@ import java.util.stream.Stream;
 
 public final class ResourceResolver {
 
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(ResourceResolver.class);
     private static final Map<String, String> SCHEMA_INDEX = new ConcurrentHashMap<>();
     private static final Map<String, String> PAYLOAD_INDEX = new ConcurrentHashMap<>();
     private static volatile boolean initialized = false;
@@ -88,7 +89,8 @@ public final class ResourceResolver {
                         String shortKey = extractKey(relativePath, suffix);
                         index.put(shortKey, fullClasspath);
                     });
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to scan resource directory {}: {}", rootDir, exception.getMessage());
         }
     }
 
@@ -117,7 +119,8 @@ public final class ResourceResolver {
                             });
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to scan jar resources in {}: {}", rootDir, exception.getMessage());
         }
     }
 

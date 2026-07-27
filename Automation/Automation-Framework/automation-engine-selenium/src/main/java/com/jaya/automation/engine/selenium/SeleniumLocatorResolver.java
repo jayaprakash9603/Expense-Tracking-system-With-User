@@ -1,7 +1,6 @@
 package com.jaya.automation.engine.selenium;
 
 import com.jaya.automation.core.ui.Locator;
-import com.jaya.automation.core.ui.LocatorType;
 import org.openqa.selenium.By;
 
 final class SeleniumLocatorResolver {

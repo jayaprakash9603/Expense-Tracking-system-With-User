@@ -1,5 +1,7 @@
 package com.jaya.task.user.service.config;
 
+import com.jaya.common.config.InternalServiceAuthProperties;
+import com.jaya.common.security.InternalServiceAuthFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +66,9 @@ public class ApplicationConfiguration {
     @Autowired
     private DeletionAccessBlockFilter deletionAccessBlockFilter;
 
+    @Autowired
+    private InternalServiceAuthProperties internalServiceAuthProperties;
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -96,6 +101,7 @@ public class ApplicationConfiguration {
                         .requestMatchers("/api/user/debug").authenticated()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().denyAll());
+        http.addFilterBefore(new InternalServiceAuthFilter(internalServiceAuthProperties), BasicAuthenticationFilter.class);
         http.addFilterBefore(jwtTokenValidator, BasicAuthenticationFilter.class);
         http.addFilterAfter(deletionAccessBlockFilter, BasicAuthenticationFilter.class);
         if (authRateLimitFilter != null) {

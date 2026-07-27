@@ -1,11 +1,15 @@
 package com.jaya.automation.engine.selenium;
 
+import com.jaya.automation.core.ui.KeyNames;
 import com.jaya.automation.core.ui.Locator;
 import com.jaya.automation.core.ui.UiElementActions;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.Select;
 
 final class SeleniumElementActions implements UiElementActions {
     private final WebDriver webDriver;
@@ -54,6 +58,55 @@ final class SeleniumElementActions implements UiElementActions {
         } catch (NoSuchElementException ex) {
             return false;
         }
+    }
+
+    @Override
+    public void doubleClick(Locator locator) {
+        waitActions.forClickable(locator);
+        WebElement element = locate(locator);
+        new Actions(webDriver).doubleClick(element).perform();
+    }
+
+    @Override
+    public void pressKey(Locator locator, String key) {
+        waitActions.forVisible(locator);
+        WebElement element = locate(locator);
+        element.sendKeys(Keys.valueOf(KeyNames.seleniumName(key)));
+    }
+
+    @Override
+    public void selectNativeOption(Locator locator, String optionText) {
+        waitActions.forVisible(locator);
+        WebElement element = locate(locator);
+        new Select(element).selectByVisibleText(optionText);
+    }
+
+    @Override
+    public void setChecked(Locator locator, boolean checked) {
+        waitActions.forClickable(locator);
+        WebElement element = locate(locator);
+        if (element.isSelected() != checked) {
+            element.click();
+        }
+    }
+
+    @Override
+    public boolean isChecked(Locator locator) {
+        waitActions.forVisible(locator);
+        return locate(locator).isSelected();
+    }
+
+    @Override
+    public String attributeOf(Locator locator, String attribute) {
+        waitActions.forVisible(locator);
+        String value = locate(locator).getDomAttribute(attribute);
+        return value == null ? "" : value;
+    }
+
+    @Override
+    public String tagNameOf(Locator locator) {
+        waitActions.forVisible(locator);
+        return locate(locator).getTagName();
     }
 
     private WebElement locate(Locator locator) {

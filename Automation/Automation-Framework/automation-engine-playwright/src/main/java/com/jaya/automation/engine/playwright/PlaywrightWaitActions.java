@@ -17,11 +17,13 @@ final class PlaywrightWaitActions implements WaitActions {
     private static final long ENABLED_POLL_INTERVAL_MS = 200;
 
     private final Page page;
+    private final PlaywrightScope scope;
     private final PlaywrightLocatorResolver locatorResolver;
     private final double timeoutMs;
 
-    PlaywrightWaitActions(Page page, Duration timeout, PlaywrightLocatorResolver locatorResolver) {
+    PlaywrightWaitActions(Page page, PlaywrightScope scope, Duration timeout, PlaywrightLocatorResolver locatorResolver) {
         this.page = page;
+        this.scope = scope;
         this.locatorResolver = locatorResolver;
         this.timeoutMs = timeout.toMillis();
     }
@@ -31,7 +33,21 @@ final class PlaywrightWaitActions implements WaitActions {
         WaitForOptions options = new WaitForOptions()
                 .setState(WaitForSelectorState.VISIBLE)
                 .setTimeout(timeoutMs);
-        page.locator(locatorResolver.resolve(locator)).first().waitFor(options);
+        scope.locator(locatorResolver.resolve(locator)).waitFor(options);
+    }
+
+    @Override
+    public boolean forVisible(Locator locator, long customTimeoutMs) {
+        try {
+            WaitForOptions options = new WaitForOptions()
+                    .setState(WaitForSelectorState.VISIBLE)
+                    .setTimeout(customTimeoutMs);
+            scope.locator(locatorResolver.resolve(locator)).waitFor(options);
+            return true;
+        } catch (PlaywrightException ex) {
+            LOG.debug("Timed visibility wait failed for locator {}: {}", locator.value(), ex.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -45,11 +61,20 @@ final class PlaywrightWaitActions implements WaitActions {
     }
 
     @Override
+    public void forDocumentReady() {
+        page.waitForLoadState(LoadState.LOAD);
+        try {
+            page.waitForLoadState(LoadState.NETWORKIDLE, new Page.WaitForLoadStateOptions().setTimeout(timeoutMs));
+        } catch (PlaywrightException ex) {
+            LOG.debug("Network idle wait timed out (non-blocking): {}", ex.getMessage());
+        }
+    }
+
+    @Override
     public boolean isVisibleSafe(Locator locator) {
         try {
-            String selector = locatorResolver.resolve(locator);
-            com.microsoft.playwright.Locator pwLocator = page.locator(selector);
-            return pwLocator.count() > 0 && pwLocator.first().isVisible();
+            com.microsoft.playwright.Locator pwLocator = scope.locator(locatorResolver.resolve(locator));
+            return pwLocator.count() > 0 && pwLocator.isVisible();
         } catch (PlaywrightException ex) {
             LOG.debug("isVisibleSafe returned false for locator: {}", locator.value());
             return false;
@@ -60,8 +85,7 @@ final class PlaywrightWaitActions implements WaitActions {
     public boolean waitForPageReady(Locator locator, long customTimeoutMs) {
         double effectiveTimeout = customTimeoutMs > 0 ? customTimeoutMs : timeoutMs;
         try {
-            String selector = locatorResolver.resolve(locator);
-            page.locator(selector).first().waitFor(
+            scope.locator(locatorResolver.resolve(locator)).waitFor(
                     new WaitForOptions()
                             .setState(WaitForSelectorState.VISIBLE)
                             .setTimeout(effectiveTimeout)
@@ -78,8 +102,7 @@ final class PlaywrightWaitActions implements WaitActions {
     public boolean waitForEnabled(Locator locator, long customTimeoutMs) {
         double effectiveTimeout = customTimeoutMs > 0 ? customTimeoutMs : timeoutMs;
         try {
-            String selector = locatorResolver.resolve(locator);
-            com.microsoft.playwright.Locator element = page.locator(selector).first();
+            com.microsoft.playwright.Locator element = scope.locator(locatorResolver.resolve(locator));
             element.waitFor(
                     new WaitForOptions()
                             .setState(WaitForSelectorState.VISIBLE)

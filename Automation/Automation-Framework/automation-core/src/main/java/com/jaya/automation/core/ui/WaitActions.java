@@ -3,9 +3,13 @@ package com.jaya.automation.core.ui;
 public interface WaitActions {
     void forVisible(Locator locator);
 
+    boolean forVisible(Locator locator, long timeoutMs);
+
     void forClickable(Locator locator);
 
     void forUrlContains(String expectedSegment);
+
+    void forDocumentReady();
 
     default boolean isVisibleSafe(Locator locator) {
         try {

@@ -13,11 +13,9 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
 
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-@Component
 public class ScenarioIdUiSteps extends StepDataSupport {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(ScenarioIdUiSteps.class);
 

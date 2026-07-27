@@ -22,8 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.restassured.RestAssured.given;
 
 public final class DefaultTokenProvider implements TokenProvider {
-    private static final String DEFAULT_JWT_SECRET = "your-secret-key-for-jwt-token-generation-min-256-bits";
-    private static final String INVALID_TOKEN = "invalid.token.value";
     private static final String HMAC_SHA_256 = "HmacSHA256";
 
     private final AutomationConfig automationConfig;
@@ -48,7 +46,7 @@ public final class DefaultTokenProvider implements TokenProvider {
 
     private String resolveToken(String alias) {
         if ("invalid".equals(alias)) {
-            return readValue("TEST_INVALID_JWT", INVALID_TOKEN);
+            return readValue("TEST_INVALID_JWT", NegativeAuthFixtures.INVALID_JWT_TOKEN);
         }
         if ("expired".equals(alias)) {
             return resolveExpiredToken();
@@ -75,7 +73,7 @@ public final class DefaultTokenProvider implements TokenProvider {
                 automationConfig.testUsername(),
                 "expired.user@example.test"
         );
-        String secret = readValue("JWT_SECRET", DEFAULT_JWT_SECRET);
+        String secret = requireValue("JWT_SECRET");
         return expiredJwt(email, "ROLE_USER", secret);
     }
 
@@ -136,7 +134,7 @@ public final class DefaultTokenProvider implements TokenProvider {
 
     private SignupAccount signupAccount(String alias, Credentials credentials) {
         String email = generatedEmail(alias);
-        String password = firstNonBlank(credentials.password(), readValue("TEST_SIGNUP_PASSWORD", "ChangeMe123!"));
+        String password = firstNonBlank(credentials.password(), requireValue("TEST_SIGNUP_PASSWORD"));
         List<String> roles = "admin".equals(alias) ? List.of("ADMIN") : List.of("USER");
         String firstName = "admin".equals(alias) ? "AutoAdmin" : "AutoUser";
         String lastName = "Automation";
@@ -193,6 +191,14 @@ public final class DefaultTokenProvider implements TokenProvider {
             return environment.trim();
         }
         return fallback;
+    }
+
+    private String requireValue(String key) {
+        String value = readValue(key, "");
+        if (!hasText(value)) {
+            throw new IllegalStateException("Missing required configuration: " + key);
+        }
+        return value.trim();
     }
 
     private String normalizeAlias(String alias) {

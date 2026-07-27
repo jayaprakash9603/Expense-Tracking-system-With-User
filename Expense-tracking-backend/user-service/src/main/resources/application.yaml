@@ -57,3 +57,9 @@ google:
 # ALLOWED_ORIGIN_PATTERNS: comma-separated CORS patterns (defaults include localhost and Netlify deploy hosts).
 # AUTH_RATE_LIMIT_PER_MINUTE: POST /auth/signin|signup|check-email per client IP per rolling minute (default 40).
 # JWT_SECRET: required for production when spring.profiles.active includes prod or production (see ProductionJwtSecretValidator).
+
+common-library:
+  feign:
+    enabled: false
+  user-profile-cache:
+    enabled: false

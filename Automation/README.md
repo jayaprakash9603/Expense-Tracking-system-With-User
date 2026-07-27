@@ -80,8 +80,8 @@ The framework follows a layered architecture:
 
 | Module | Path | Purpose | Key Classes |
 |--------|------|---------|-------------|
-| **automation-core** | `Automation-Framework/automation-core/` | Config, context, logging, UI abstractions | `AutomationConfig`, `ConfigLoader`, `UiEngine`, `TestContext`, `RetryExecutor`, `PollingWait` |
-| **automation-api** | `Automation-Framework/automation-api/` | REST API test clients and validation | `ApiEndpointRegistry` (100+ endpoints), `ApiRequestExecutor`, `ApiResponseValidator`, `ApiClient`, 10 domain API clients |
+| **automation-core** | `Automation-Framework/automation-core/` | Config, context, logging, UI abstractions | `AutomationConfig`, `ConfigLoader`, `UiEngine`, `TestContext`, `RetryExecutor`, `AutomationPaths` |
+| **automation-api** | `Automation-Framework/automation-api/` | REST API test clients and validation | `ApiEndpointRegistry` (100+ endpoints), `ApiRequestExecutor`, `ApiResponseValidator`, 10 domain API clients |
 | **automation-bdd** | `Automation-Framework/automation-bdd/` | Cucumber runners, step definitions, hooks | `ScenarioHooks`, `ApiCleanupHooks`, `BddWorld`, `GenericApiSteps`, `UserApiSteps`, `AuthUiSteps`, `ExpenseUiSteps` |
 | **automation-engine-playwright** | `Automation-Framework/automation-engine-playwright/` | Playwright browser automation | `PlaywrightUiEngine`, `PlaywrightBrowserFactory`, `PlaywrightElementActions`, `PlaywrightScreenshotService` |
 | **automation-engine-selenium** | `Automation-Framework/automation-engine-selenium/` | Selenium WebDriver automation | `SeleniumUiEngine`, `SeleniumDriverFactory`, `SeleniumElementActions`, `SeleniumScreenshotService` |
@@ -142,7 +142,7 @@ sequenceDiagram
 |-------|------|-------------|
 | **Suite init** | `@BeforeAll` | `BddWorld` loads `AutomationConfig`, creates API clients (`AuthApiClient`, etc.), resolves suite data from Helm-managed `AutomationConfiguration.properties` |
 | **Scenario setup** | `@Before` | Resets `ScenarioState`, authenticates if `@requiresCredentials`, starts UI engine if `@ui` tag present |
-| **Step execution** | -- | `GenericApiSteps` / `UserApiSteps` for API; `AuthUiSteps` / `ExpenseUiSteps` for UI; `HybridApiSteps` / `HybridUiSteps` for mixed |
+| **Step execution** | -- | `GenericApiSteps` / `UserApiSteps` for API; `AuthUiSteps` / `ExpenseUiSteps` for UI; `HybridUiSteps` for mixed |
 | **Scenario teardown** | `@After` | Captures screenshot on failure, logs step execution summary, runs `ApiCleanupHooks` for `@api` scenarios |
 | **Suite cleanup** | `@AfterAll` | Stops Playwright/Selenium, deletes test users created during signup tests |
 

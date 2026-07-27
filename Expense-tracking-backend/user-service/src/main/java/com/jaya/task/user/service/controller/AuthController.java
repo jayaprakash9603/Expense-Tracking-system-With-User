@@ -10,6 +10,8 @@ import com.jaya.task.user.service.request.VerifyLoginOtpRequest;
 import com.jaya.task.user.service.response.AuthResponse;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
+import com.jaya.task.user.service.exceptions.UserNotFoundException;
+import com.jaya.task.user.service.util.ApiMessages;
 import com.jaya.task.user.service.service.OtpService;
 import com.jaya.task.user.service.service.TotpService;
 import com.jaya.task.user.service.service.UserService;
@@ -248,23 +250,15 @@ public class AuthController {
     }
 
     @GetMapping("user/{userId:\\d+}")
-    public User findUserById(@PathVariable("userId") Integer id) throws Exception {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        } else {
-            throw new Exception("User not found with id: " + id);
-        }
+    public User findUserById(@PathVariable("userId") Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
     }
 
     @GetMapping("/{userId:\\d+}")
-    public User findUserByIds(@PathVariable("userId") Integer id) throws Exception {
-        Optional<User> userOptional = userRepository.findById(id);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        } else {
-            throw new Exception("User not found with id: " + id);
-        }
+    public User findUserByIds(@PathVariable("userId") Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
     }
 
     @PostMapping("/check-email")
@@ -378,8 +372,9 @@ public class AuthController {
             return ResponseEntity
                     .ok(Map.of("message", message, "wasPasswordCreation", String.valueOf(isOAuthUserCreatingPassword)));
         } catch (Exception e) {
+            logger.error("Failed to reset password for email={}", request.getEmail(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to reset password"));
+                    .body(Map.of(ApiMessages.ERROR_KEY, "Failed to reset password"));
         }
     }
 

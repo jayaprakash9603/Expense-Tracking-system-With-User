@@ -23,6 +23,14 @@ test:
 
 USER_SERVICE_INTERNAL_TOKEN: test-internal-token
 
+common-library:
+  feign:
+    enabled: false
+  user-profile-cache:
+    enabled: false
+  internal-service-auth:
+    token: test-internal-token
+
 # Spring Configuration
 spring:
   profiles:

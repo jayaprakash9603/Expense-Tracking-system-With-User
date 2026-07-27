@@ -2,11 +2,16 @@ package com.jaya.task.user.service.service;
 
 import com.jaya.task.user.service.cache.UserCacheEvictor;
 import com.jaya.task.user.service.config.JwtProvider;
+import com.jaya.task.user.service.exceptions.AccessDeniedOperationException;
+import com.jaya.task.user.service.exceptions.InvalidRoleException;
+import com.jaya.task.user.service.exceptions.RoleNotFoundException;
 import com.jaya.task.user.service.exceptions.UserAlreadyExistsException;
+import com.jaya.task.user.service.exceptions.UserNotFoundException;
 import com.jaya.task.user.service.modal.Role;
 import com.jaya.task.user.service.modal.User;
 import com.jaya.task.user.service.repository.RoleRepository;
 import com.jaya.task.user.service.repository.UserRepository;
+import com.jaya.task.user.service.util.ApiMessages;
 import com.jaya.task.user.service.request.UserUpdateRequest;
 import com.jaya.task.user.service.request.SignupRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,18 +64,18 @@ public class UserServiceImplementation implements UserService {
         User reqUser = findByEmail(JwtProvider.getEmailFromJwt(jwt));
 
         if (reqUser == null) {
-            throw new RuntimeException("User not found");
+            throw new UserNotFoundException(ApiMessages.USER_NOT_FOUND);
         }
 
         User userToUpdate;
         if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty()) {
 
             if (!canUpdateProfile(reqUser, updateRequest.getEmail())) {
-                throw new RuntimeException("You can only update your own profile");
+                throw new AccessDeniedOperationException("You can only update your own profile");
             }
             userToUpdate = userRepository.findByEmail(updateRequest.getEmail());
             if (userToUpdate == null) {
-                throw new RuntimeException("User not found");
+                throw new UserNotFoundException(ApiMessages.USER_NOT_FOUND);
             }
         } else {
 
@@ -137,7 +142,7 @@ public class UserServiceImplementation implements UserService {
             } else {
 
                 String originalName = role.startsWith("ROLE_") ? role.substring(5) : role;
-                throw new RuntimeException("Role not found: " + originalName);
+                throw new RoleNotFoundException("Role not found: " + originalName);
             }
         }
 
@@ -218,7 +223,7 @@ public class UserServiceImplementation implements UserService {
                 } else if (normalizedRoleName.equals("USER") || normalizedRoleName.equals("ADMIN")) {
                     role = roleRepository.save(new Role(normalizedRoleName, "Auto-created role"));
                 } else {
-                    throw new RuntimeException(
+                    throw new InvalidRoleException(
                             "Invalid role: " + roleName + ". Only USER and ADMIN roles are allowed during signup.");
                 }
                 userRoles.add(role.getName());
@@ -255,7 +260,7 @@ public class UserServiceImplementation implements UserService {
         User user = findByEmail(JwtProvider.getEmailFromJwt(jwt));
 
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new UserNotFoundException(ApiMessages.USER_NOT_FOUND);
         }
 
         if (!newMode.equals("USER") && !newMode.equals("ADMIN")) {
@@ -263,7 +268,7 @@ public class UserServiceImplementation implements UserService {
         }
 
         if (newMode.equals("ADMIN") && !user.hasRole("ADMIN")) {
-            throw new RuntimeException("User does not have ADMIN role");
+            throw new AccessDeniedOperationException("User does not have ADMIN role");
         }
 
         userRepository.updateCurrentMode(user.getId(), newMode, LocalDateTime.now());

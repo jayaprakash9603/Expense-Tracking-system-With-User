@@ -4,11 +4,9 @@ import com.jaya.automation.bdd.steps.ui.support.FriendshipScenarioCoordinator;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-import org.springframework.stereotype.Component;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Component
 public class FriendsUiSteps {
     private final FriendshipScenarioCoordinator coordinator = new FriendshipScenarioCoordinator();
 

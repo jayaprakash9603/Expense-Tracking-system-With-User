@@ -7,6 +7,16 @@ public interface UiEngine extends AutoCloseable {
 
     String currentUrl();
 
+    String pageTitle();
+
+    void reload();
+
+    void navigateBack();
+
+    void navigateForward();
+
+    FrameScope frames();
+
     UiElementActions elements();
 
     WaitActions waits();
