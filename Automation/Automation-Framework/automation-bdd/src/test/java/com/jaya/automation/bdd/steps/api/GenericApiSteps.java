@@ -412,7 +412,11 @@ public class GenericApiSteps extends StepDataSupport {
 
     private Map<String, String> buildRuleContext() {
         Map<String, String> contextJsons = new HashMap<>();
-        contextJsons.put("response", BddWorld.apiExecutionResult().bodyAsString());
+        String responseBody = BddWorld.aliasValue("response.body")
+                .map(String::valueOf)
+                .filter(value -> !value.isBlank())
+                .orElseGet(() -> BddWorld.apiExecutionResult().bodyAsString());
+        contextJsons.put("response", responseBody);
         BddWorld.apiScenarioContext().requestAlias("last")
                 .ifPresent(req -> {
                     try {

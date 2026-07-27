@@ -1,0 +1,11 @@
+{
+  "date": "${now:yyyy-MM-dd}",
+  "includeInBudget": false,
+  "expense": {
+    "expenseName": "Auto Expense ${random.number:4}",
+    "amount": 150.0,
+    "type": "LOSS",
+    "paymentMethod": "CASH",
+    "comments": "Created by automation"
+  }
+}

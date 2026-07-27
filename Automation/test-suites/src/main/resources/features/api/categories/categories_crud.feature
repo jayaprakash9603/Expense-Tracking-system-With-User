@@ -8,63 +8,64 @@ Feature: Category Service CRUD API
   @smoke
   Scenario: Create a new category
     Given request body "categoryPayload" is defined as
-      | field        | value                              |
-      | categoryName | Test Cat ${random.number:4}        |
-      | description  | Auto-generated test category       |
-      | type         | expense                            |
+      | field       | value                              |
+      | name        | Test Cat ${random.number:4}        |
+      | description | Auto-generated test category       |
+      | type        | expense                            |
     When the user sends a POST request to "categories.create" using request body "categoryPayload"
     Then the request should succeed
-    And the response field "id" should be present
-    And the response field "categoryName" should contain "Test Cat"
-    And store response field "id" as "createdCategoryId"
+    And the response field "data.id" should be present
+    And the response field "data.name" should contain "Test Cat"
+    And store response field "data.id" as "createdCategoryId"
 
   Scenario: Get category by ID
     Given request body "categoryPayload" is defined as
-      | field        | value                            |
-      | categoryName | Fetch Cat ${random.number:4}     |
-      | description  | Category for fetch test          |
-      | type         | expense                          |
+      | field       | value                            |
+      | name        | Fetch Cat ${random.number:4}     |
+      | description | Category for fetch test          |
+      | type        | expense                          |
     When the user sends a POST request to "categories.create" using request body "categoryPayload"
     Then the request should succeed
-    And store response field "id" as "categoryId"
+    And store response field "data.id" as "categoryId"
     When the user sends a GET request to "categories.by-id" with data
       | field   | value          |
       | path.id | ${categoryId}  |
     Then the response status should be 200
-    And the response field "categoryName" should contain "Fetch Cat"
+    And the response field "data.name" should contain "Fetch Cat"
 
   Scenario: Update a category
     Given request body "categoryPayload" is defined as
-      | field        | value                             |
-      | categoryName | Update Cat ${random.number:4}     |
-      | description  | Category for update test          |
-      | type         | expense                           |
+      | field       | value                             |
+      | name        | Update Cat ${random.number:4}     |
+      | description | Category for update test          |
+      | type        | expense                           |
     When the user sends a POST request to "categories.create" using request body "categoryPayload"
     Then the request should succeed
-    And store response field "id" as "categoryId"
+    And store response field "data.id" as "categoryId"
     Given request body "updatePayload" is defined as
-      | field        | value                |
-      | categoryName | Updated Category     |
-      | description  | Updated description  |
+      | field       | value                |
+      | name        | Updated Category     |
+      | description | Updated description  |
+      | type        | expense              |
     When the user sends a PUT request to "categories.update" using request body "updatePayload" with data
       | field   | value          |
       | path.id | ${categoryId}  |
     Then the response status should be 200
-    And the response field "categoryName" should equal "Updated Category"
+    And the response field "data.name" should equal "Updated Category"
 
   Scenario: Delete a category
     Given request body "categoryPayload" is defined as
-      | field        | value                              |
-      | categoryName | Delete Cat ${random.number:4}      |
-      | description  | Category for delete test           |
-      | type         | expense                            |
+      | field       | value                              |
+      | name        | Delete Cat ${random.number:4}      |
+      | description | Category for delete test           |
+      | type        | expense                            |
     When the user sends a POST request to "categories.create" using request body "categoryPayload"
     Then the request should succeed
-    And store response field "id" as "categoryId"
+    And store response field "data.id" as "categoryId"
     When the user sends a DELETE request to "categories.delete" with data
       | field   | value          |
       | path.id | ${categoryId}  |
-    Then the response status should be 200
+    Then the response status should be one of "200,204"
 
   Scenario: List all categories
     When the user sends a GET request to "categories.list"

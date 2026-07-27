@@ -78,3 +78,9 @@ Legend: H = happy path, V = validation negative, A = auth/authz negative, N = ot
 | DELETE `/api/user/payment-report-preferences`    | `preferences/report_preferences.feature` | Y   | N   | Y   | N   | N   |
 
 
+
+## Known backend defects
+
+| Endpoint | Observed |
+| --- | --- |
+| GET /api/config/features | **500** |

@@ -102,10 +102,12 @@ public final class SuiteDataCatalog {
     }
 
     private void normalizeSuiteDataAliases(Map<String, String> target) {
+        Map<String, String> aliases = new LinkedHashMap<>();
         target.forEach((key, value) -> {
             if (key.startsWith("suiteData.") && value != null && !value.isBlank()) {
-                target.putIfAbsent(key.substring("suiteData.".length()), value);
+                aliases.putIfAbsent(key.substring("suiteData.".length()), value);
             }
         });
+        aliases.forEach(target::putIfAbsent);
     }
 }

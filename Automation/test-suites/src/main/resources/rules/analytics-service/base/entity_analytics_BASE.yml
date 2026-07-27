@@ -1,0 +1,12 @@
+rules:
+  - name: response_not_empty
+    description: "Entity analytics response should not be empty"
+    condition:
+      source: "#jsonPath([response],'$')"
+      operator: "notNull"
+
+  - name: summary_present
+    description: "Entity analytics should include summary statistics"
+    condition:
+      source: "#jsonPath([response],'$.summaryStatistics')"
+      operator: "notNull"

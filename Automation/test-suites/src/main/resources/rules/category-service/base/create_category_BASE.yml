@@ -2,11 +2,11 @@ rules:
   - name: response_has_id
     description: "Created category should have an id"
     condition:
-      source: "#jsonPath([response],'$.id')"
+      source: "#jsonPath([response],'$.data.id')"
       operator: "notNull"
 
   - name: category_name_present
     description: "Response should contain category name"
     condition:
-      source: "#jsonPath([response],'$.categoryName')"
+      source: "#jsonPath([response],'$.data.name')"
       operator: "notNull"

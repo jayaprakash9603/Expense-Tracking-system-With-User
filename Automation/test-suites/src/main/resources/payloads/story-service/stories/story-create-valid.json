@@ -1,0 +1,6 @@
+{
+  "title": "Auto Story ${random.number:4}",
+  "content": "Automation story content",
+  "storyType": "INFO",
+  "severity": "LOW"
+}

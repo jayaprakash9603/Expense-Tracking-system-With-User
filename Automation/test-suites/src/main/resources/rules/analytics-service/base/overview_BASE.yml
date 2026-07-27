@@ -1,0 +1,6 @@
+rules:
+  - name: response_not_empty
+    description: "Analytics overview response should not be empty"
+    condition:
+      source: "#jsonPath([response],'$')"
+      operator: "notNull"

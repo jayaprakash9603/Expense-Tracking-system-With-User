@@ -1,0 +1,12 @@
+rules:
+  - name: response_not_empty
+    description: "Shortcut update response should not be empty"
+    condition:
+      source: "#jsonPath([response],'$')"
+      operator: "notNull"
+
+  - name: shortcuts_present
+    description: "Response should include shortcuts collection"
+    condition:
+      source: "#jsonPath([response],'$.shortcuts')"
+      operator: "notNull"

@@ -1,0 +1,7 @@
+{
+  "name": "Auto Bill ${random.number:4}",
+  "amount": 99.5,
+  "date": "${now:yyyy-MM-dd}",
+  "paymentMethod": "cash",
+  "type": "purchase"
+}

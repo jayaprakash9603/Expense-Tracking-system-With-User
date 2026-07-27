@@ -8,5 +8,5 @@ rules:
   - name: bill_name_present
     description: "Response should contain bill name"
     condition:
-      source: "#jsonPath([response],'$.billName')"
+      source: "#jsonPath([response],'$.name')"
       operator: "notNull"
