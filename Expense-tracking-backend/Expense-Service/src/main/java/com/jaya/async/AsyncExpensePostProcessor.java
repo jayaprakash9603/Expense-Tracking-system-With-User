@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -28,6 +29,7 @@ public class AsyncExpensePostProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AsyncExpensePostProcessor.class);
     private static final String CASH = "cash";
+    private static final ConcurrentHashMap<Integer, Object> USER_CACHE_LOCKS = new ConcurrentHashMap<>();
 
     private final PaymentMethodKafkaProducerService paymentMethodKafkaProducer;
     private final CategoryExpenseKafkaProducerService categoryExpenseKafkaProducer;
@@ -212,7 +214,7 @@ public class AsyncExpensePostProcessor {
         Cache cache = cacheManager.getCache("expenses");
         if (cache == null)
             return;
-        synchronized (("expenses-" + userId).intern()) {
+        synchronized (lockForUser(userId)) {
             List<Expense> cached = cache.get(userId, List.class);
             if (cached == null)
                 cached = new ArrayList<>();
@@ -331,6 +333,10 @@ public class AsyncExpensePostProcessor {
                         expense.getId(), e.getMessage());
             }
         }
+    }
+
+    private Object lockForUser(Integer userId) {
+        return USER_CACHE_LOCKS.computeIfAbsent(userId, id -> new Object());
     }
 }
 

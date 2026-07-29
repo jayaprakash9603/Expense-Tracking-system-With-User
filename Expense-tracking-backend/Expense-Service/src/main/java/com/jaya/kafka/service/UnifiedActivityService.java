@@ -506,12 +506,6 @@ public class UnifiedActivityService {
         return null;
     }
 
-    private String getExpenseCategory(Expense expense) {
-        if (expense == null)
-            return null;
-        return expense.getCategoryName();
-    }
-
     private Map<String, Object> buildExpensePayload(Expense expense) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("id", expense.getId());

@@ -58,11 +58,11 @@ public class EmailService {
         helper.setText(text, isHtml);
         helper.addAttachment(attachmentFilename, attachment);
 
-        System.out.println("email was sending");
+        logger.debug("Sending email to {}", to);
 
         mailSender.send(message);
 
-        System.out.println("email was sent successfully");
+        logger.debug("Email sent successfully to {}", to);
 
         
         EmailLog emailLog = new EmailLog();

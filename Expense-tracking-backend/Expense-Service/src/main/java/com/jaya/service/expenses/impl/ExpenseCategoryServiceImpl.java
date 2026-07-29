@@ -11,11 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExpenseCategoryServiceImpl.class);
 
     private final ExpenseRepository expenseRepository;
 
@@ -58,7 +63,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
 
             return expenses;
         } catch (Exception e) {
-            System.out.println("Error retrieving expenses by category ID: " + e.getMessage());
+            log.debug("Error retrieving expenses by category ID: {}", e.getMessage());
             throw new RuntimeException("Failed to retrieve expenses for category ID: " + categoryId, e);
         }
     }
@@ -113,7 +118,7 @@ public class ExpenseCategoryServiceImpl implements ExpenseCategoryService {
     @Override
     public List<Map<String, Object>> getTotalByCategory(Integer userId) {
         List<Object[]> result = expenseRepository.findTotalExpensesGroupedByCategory(userId);
-        System.out.println("Result size: " + result.size());
+        log.debug("Grouped expenses result size: {}", result.size());
         List<Map<String, Object>> response = new ArrayList<>();
 
         for (Object[] row : result) {

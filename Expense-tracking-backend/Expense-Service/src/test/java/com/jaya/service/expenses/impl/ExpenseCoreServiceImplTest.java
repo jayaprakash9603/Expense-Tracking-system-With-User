@@ -9,14 +9,12 @@ import com.jaya.kafka.PaymentMethodKafkaProducerService;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.Expense;
 import com.jaya.models.ExpenseCategory;
-import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.MomentumService;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.service.UserSettingsService;
-import com.jaya.service.KafkaProducerService;
 import com.jaya.util.BulkProgressTracker;
 import com.jaya.util.ExpenseValidationHelper;
 import com.jaya.util.JsonConverter;
@@ -54,8 +52,6 @@ class ExpenseCoreServiceImplTest {
     @Mock
     private ExpenseRepository expenseRepository;
     @Mock
-    private ExpenseReportRepository expenseReportRepository;
-    @Mock
     private ExpenseValidationHelper helper;
     @Mock
     private CacheManager cacheManager;
@@ -74,8 +70,6 @@ class ExpenseCoreServiceImplTest {
     @Mock
     private CategoryServiceWrapper categoryService;
     @Mock
-    private KafkaProducerService producer;
-    @Mock
     private PaymentMethodServices paymentMethodService;
     @Mock
     private JsonConverter jsonConverter;
@@ -89,8 +83,6 @@ class ExpenseCoreServiceImplTest {
     private ExpenseMapper expenseMapper;
     @Mock
     private UserSettingsService userSettingsService;
-    @Mock
-    private org.springframework.kafka.core.KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private MomentumService momentumService;
 
@@ -108,7 +100,6 @@ class ExpenseCoreServiceImplTest {
         ReflectionTestUtils.setField(expenseCoreService, "categoryExpenseKafkaProducer", categoryExpenseKafkaProducer);
         ReflectionTestUtils.setField(expenseCoreService, "paymentMethodKafkaProducer", paymentMethodKafkaProducer);
         ReflectionTestUtils.setField(expenseCoreService, "categoryService", categoryService);
-        ReflectionTestUtils.setField(expenseCoreService, "producer", producer);
         ReflectionTestUtils.setField(expenseCoreService, "paymentMethodService", paymentMethodService);
         ReflectionTestUtils.setField(expenseCoreService, "jsonConverter", jsonConverter);
         ReflectionTestUtils.setField(expenseCoreService, "budgetExpenseKafkaProducerService", budgetExpenseKafkaProducerService);
@@ -116,7 +107,6 @@ class ExpenseCoreServiceImplTest {
         ReflectionTestUtils.setField(expenseCoreService, "auditEventProducer", auditEventProducer);
         ReflectionTestUtils.setField(expenseCoreService, "expenseMapper", expenseMapper);
         ReflectionTestUtils.setField(expenseCoreService, "userSettingsService", userSettingsService);
-        ReflectionTestUtils.setField(expenseCoreService, "kafkaTemplate", kafkaTemplate);
         ReflectionTestUtils.setField(expenseCoreService, "momentumService", momentumService);
     }
 

@@ -21,6 +21,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,6 +39,8 @@ import java.util.*;
 
 @Service
 public class ExpenseReportServiceImpl implements ExpenseReportService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExpenseReportServiceImpl.class);
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseReportRepository expenseReportRepository;
@@ -440,7 +445,7 @@ public class ExpenseReportServiceImpl implements ExpenseReportService {
 
             return ResponseEntity.ok("Monthly report sent to " + request.getToEmail());
         } catch (IOException | MessagingException e) {
-            e.printStackTrace();
+            log.error("Failed to generate and send monthly report", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to generate and send the report");
         }

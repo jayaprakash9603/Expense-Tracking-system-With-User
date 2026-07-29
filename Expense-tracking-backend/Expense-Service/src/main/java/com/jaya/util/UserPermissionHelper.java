@@ -50,7 +50,8 @@ public class UserPermissionHelper {
                     friendshipService.canUserModifyExpenses(targetId, reqUser.getId()) :
                     friendshipService.canUserAccessExpenses(targetId, reqUser.getId());
 
-                    System.out.println("can access the expense"+friendshipService.canUserModifyExpenses(targetId, reqUser.getId()));
+            logger.debug("Friend can modify expenses for target {}: {}", targetId,
+                    friendshipService.canUserModifyExpenses(targetId, reqUser.getId()));
             if (!hasAccess) {
                 String action = needWriteAccess ? "modify" : "access";
                 throw new RuntimeException("You don't have permission to " + action + " this UserDTO's expenses");

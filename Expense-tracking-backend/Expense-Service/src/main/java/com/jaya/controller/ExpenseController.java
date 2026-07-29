@@ -35,6 +35,7 @@ import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.dto.cashflow.CashflowDashboardResponse;
 import com.jaya.service.cashflow.CashflowAggregationService;
+import com.jaya.service.expenses.constants.ExpenseConstants;
 
 import jakarta.mail.MessagingException;
 
@@ -54,16 +55,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/expenses")
 public class ExpenseController extends BaseExpenseController {
 
-    public static final String INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
-
-    public static String ERROR_SENDING_EMAIL = "Error sending email: ";
+    private static final Logger log = LoggerFactory.getLogger(ExpenseController.class);
 
     private final ExpenseServiceHelper helper;
-    private final IUserServiceClient IUserServiceClient;
-
     private final ExcelService excelService;
     private final EmailService emailService;
-    private final UserPermissionHelper permissionHelper;
     private final BulkProgressTracker progressTracker;
     private final TaskExecutor taskExecutor;
     private final UnifiedActivityService unifiedActivityService;
@@ -73,15 +69,9 @@ public class ExpenseController extends BaseExpenseController {
     private final com.jaya.service.ExpenseViewService expenseViewService;
 
     @Autowired
-    public ExpenseController(ExpenseService expenseService,
-            ExpenseServiceHelper helper,
-            IUserServiceClient IUserServiceClient,
-            FriendShipService friendshipService,
-            ExpenseRepository expenseRepository,
+    public ExpenseController(ExpenseServiceHelper helper,
             ExcelService excelService,
             EmailService emailService,
-            KafkaProducerService producer,
-            UserPermissionHelper permissionHelper,
             BulkProgressTracker progressTracker,
             @Qualifier("expensePostExecutor") TaskExecutor taskExecutor,
             UnifiedActivityService unifiedActivityService,
@@ -90,10 +80,8 @@ public class ExpenseController extends BaseExpenseController {
             CashflowAggregationService cashflowAggregationService,
             com.jaya.service.ExpenseViewService expenseViewService) {
         this.helper = helper;
-        this.IUserServiceClient = IUserServiceClient;
         this.excelService = excelService;
         this.emailService = emailService;
-        this.permissionHelper = permissionHelper;
         this.progressTracker = progressTracker;
         this.taskExecutor = taskExecutor;
         this.unifiedActivityService = unifiedActivityService;
@@ -105,12 +93,12 @@ public class ExpenseController extends BaseExpenseController {
 
     @PostMapping("/add-expense")
     public ResponseEntity<ExpenseDTO> addExpense(@Validated @RequestBody ExpenseDTO expenseDTO,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
-        System.out.println("target UserDTO id" + targetUser.getId());
+        log.debug("Target user id: {}", targetUser.getId());
         ExpenseDTO createdExpenseDTO = expenseService.addExpense(expenseDTO, targetUser.getId());
 
         
@@ -123,7 +111,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/{expenseId}/copy")
     public ResponseEntity<Expense> copyExpense(
             @PathVariable Integer expenseId,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
@@ -139,7 +127,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/UserDTO/{userId}")
     public ResponseEntity<?> getUserExpenses(@PathVariable Integer userId,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
         UserDTO viewer = getAuthenticatedUser(jwt);
 
         if (viewer.getId().equals(userId)) {
@@ -150,7 +138,7 @@ public class ExpenseController extends BaseExpenseController {
     }
 
     @PostMapping("/add-multiple")
-    public ResponseEntity<List<Expense>> addMultipleExpenses(@RequestHeader("Authorization") String jwt,
+    public ResponseEntity<List<Expense>> addMultipleExpenses(@RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -167,7 +155,7 @@ public class ExpenseController extends BaseExpenseController {
 
     
     @PostMapping("/add-multiple/tracked")
-    public ResponseEntity<Map<String, String>> addMultipleExpensesTracked(@RequestHeader("Authorization") String jwt,
+    public ResponseEntity<Map<String, String>> addMultipleExpensesTracked(@RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestBody List<Expense> expenses,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
@@ -201,7 +189,7 @@ public class ExpenseController extends BaseExpenseController {
     
     @GetMapping("/add-multiple/progress/{jobId}")
     public ResponseEntity<ProgressStatus> getAddMultipleProgress(@PathVariable String jobId,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
         IUserServiceClient.getUserProfile(jwt); 
         ProgressStatus status = progressTracker.get(jobId);
         if (status == null)
@@ -211,7 +199,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @DeleteMapping("/delete-all")
     public ResponseEntity<String> deleteAllExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
@@ -229,7 +217,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/expense/{id}")
     public ResponseEntity<Expense> getExpenseById(@PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
@@ -253,7 +241,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/expense/{id}/detailed")
     public ResponseEntity<?> getExpenseDetailedView(@PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) {
         try {
             UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -273,7 +261,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/fetch-expenses-by-date")
     public ResponseEntity<Object> getExpensesByDateRange(@RequestParam LocalDate from,
             @RequestParam LocalDate to,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
         return new ResponseEntity<>(expenseService.getExpensesByDateRange(from, to, targetUser.getId()), HttpStatus.OK);
@@ -281,7 +269,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/fetch-expenses")
     public ResponseEntity<List<Expense>> getAllExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -297,7 +285,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/fetch-expenses-paginated")
     public ResponseEntity<Map<String, Object>> getExpensesPaginated(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(defaultValue = "desc") String sort,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,
@@ -331,7 +319,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/summary-expenses")
     public ResponseEntity<Map<String, Object>> summary(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
@@ -344,7 +332,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Expense> updateExpense(
             @PathVariable Integer id,
             @RequestBody Expense expense,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
@@ -365,7 +353,7 @@ public class ExpenseController extends BaseExpenseController {
     @PutMapping("/edit-multiple")
     public ResponseEntity<List<Expense>> updateMultipleExpenses(
             @RequestBody List<Expense> expenses,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
@@ -382,7 +370,7 @@ public class ExpenseController extends BaseExpenseController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteExpense(
             @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = getAuthenticatedUser(jwt);
@@ -409,7 +397,7 @@ public class ExpenseController extends BaseExpenseController {
     @DeleteMapping("/delete-multiple")
     public ResponseEntity<String> deleteMultipleExpenses(
             @RequestBody List<Integer> ids,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO reqUser = getAuthenticatedUser(jwt);
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, true);
@@ -427,7 +415,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<MonthlySummary> getMonthlySummary(
             @PathVariable Integer year,
             @PathVariable Integer month,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
@@ -439,7 +427,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/yearly-summary/{year}")
     public ResponseEntity<Map<String, MonthlySummary>> getYearlySummary(
             @PathVariable Integer year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -457,7 +445,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam Integer startMonth,
             @RequestParam Integer endYear,
             @RequestParam Integer endMonth,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -472,7 +460,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/top-n")
     public ResponseEntity<List<Expense>> getTopNExpenses(
             @RequestParam int n,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -483,7 +471,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/search")
     public ResponseEntity<List<Expense>> searchExpenses(
             @RequestParam String expenseName,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -500,7 +488,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<List<ExpenseSearchDTO>> searchExpensesFuzzy(
             @RequestParam String query,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -517,7 +505,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) String paymentMethod,
             @RequestParam(required = false) Double minAmount,
             @RequestParam(required = false) Double maxAmount,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -531,7 +519,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/top-expense-names")
     public ResponseEntity<Map<String, Object>> getTopExpenseNames(
             @RequestParam int topN,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
         List<Map<String, String>> topExpenseNames = expenseService.getTopExpenseNamesAsMap(topN, targetUser.getId());
@@ -541,7 +529,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/top-expense-names")
     public ResponseEntity<Map<String, Object>> getTopExpenseNamesByPayload(
             @RequestBody TopExpenseNamesRequest request,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
         Integer targetId = request == null ? null : request.getTargetId();
         int topN = resolveTopN(request);
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -567,7 +555,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, Object>> getMonthlySpendingInsights(
             @RequestParam("year") int year,
             @RequestParam("month") int month,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -578,7 +566,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/payment-method")
     public ResponseEntity<List<String>> getPaymentMethods(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -589,7 +577,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/payment-method-summary")
     public ResponseEntity<Map<String, Map<String, Double>>> getPaymentMethodSummary(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -600,7 +588,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/gain")
     public ResponseEntity<List<Expense>> getAllGainExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -611,7 +599,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/loss")
     public ResponseEntity<List<Expense>> getLossExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -626,7 +614,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/payment-method/{paymentMethod}")
     public ResponseEntity<List<Expense>> getExpensesByPaymentMethod(
             @PathVariable String paymentMethod,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -642,7 +630,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<List<Expense>> getExpensesByTypeAndPaymentMethod(
             @PathVariable String type,
             @PathVariable String paymentMethod,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -662,7 +650,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/top-payment-methods")
     public ResponseEntity<List<String>> getTopPaymentMethods(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -675,7 +663,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/top-gains")
     public ResponseEntity<List<Expense>> getTopGains(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -687,7 +675,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/top-losses")
     public ResponseEntity<List<Expense>> getTopLosses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -702,7 +690,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<List<Expense>> getExpensesByMonthAndYear(
             @RequestParam int month,
             @RequestParam int year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -716,7 +704,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/top-gains/unique")
     public ResponseEntity<List<String>> getTopGains(
             @RequestParam(value = "limit", defaultValue = "10") int limit,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -738,7 +726,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/top-losses/unique")
     public ResponseEntity<List<String>> getTopLosses(
             @RequestParam(value = "limit", defaultValue = "10") int limit,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -758,7 +746,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/today")
     public ResponseEntity<List<Expense>> getExpensesForToday(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -772,7 +760,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/last-month")
     public ResponseEntity<List<Expense>> getExpensesForLastMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -785,7 +773,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/current-month")
     public ResponseEntity<List<Expense>> getExpensesForCurrentMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -797,7 +785,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/{id}/comments")
     public ResponseEntity<String> getCommentsForExpense(
             @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -810,7 +798,7 @@ public class ExpenseController extends BaseExpenseController {
     @DeleteMapping("/{id}/remove-comment")
     public ResponseEntity<String> removeCommentForExpense(
             @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -824,7 +812,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/{id}/generate-report")
     public ResponseEntity<ExpenseReport> generateReport(
             @PathVariable Integer id,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -839,7 +827,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/amount/{amount}")
     public ResponseEntity<List<ExpenseDetails>> getExpenseDetailsByAmount(
             @PathVariable double amount,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -852,7 +840,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<List<Expense>> getExpenseDetailsByAmountRange(
             @RequestParam double minAmount,
             @RequestParam double maxAmount,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -865,7 +853,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/total/{expenseName}")
     public ResponseEntity<String> getExpenseDetailsAndTotalByName(
             @PathVariable String expenseName,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -895,7 +883,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/total-by-category")
     public ResponseEntity<List<Map<String, Object>>> getTotalByCategory(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -909,7 +897,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/total-by-date")
     public ResponseEntity<Map<String, Double>> getTotalByDate(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -923,7 +911,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/total-today")
     public ResponseEntity<Double> getTotalForToday(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -937,7 +925,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/total-current-month")
     public ResponseEntity<Double> getTotalForCurrentMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -953,7 +941,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<?> getTotalByMonthAndYear(
             @RequestParam int month,
             @RequestParam int year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -974,7 +962,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Double> getTotalByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Double total = expenseService.getTotalByDateRange(startDate, endDate, targetUser.getId());
@@ -985,7 +973,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/payment-wise-total-current-month")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForCurrentMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -999,7 +987,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/payment-wise-total-last-month")
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForLastMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1015,7 +1003,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForDateRange(
             @RequestParam("startDate") String startDate,
             @RequestParam("endDate") String endDate,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
@@ -1036,7 +1024,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, Double>> getPaymentWiseTotalForMonth(
             @RequestParam("month") int month,
             @RequestParam("year") int year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1051,7 +1039,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalByExpenseNameAndPaymentMethodForMonth(
             @RequestParam("month") int month,
             @RequestParam("year") int year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
         Map<String, Map<String, Double>> result = expenseService.getTotalByExpenseNameAndPaymentMethod(month, year,
@@ -1065,7 +1053,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalByExpenseNameAndPaymentMethodForDateRange(
             @RequestParam("startDate") String startDateStr,
             @RequestParam("endDate") String endDateStr,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1082,7 +1070,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/total-expense-payment-method")
     public ResponseEntity<Map<String, Map<String, Double>>> getTotalExpensesGroupedByPaymentMethod(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1095,7 +1083,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/generate-excel-report")
     public ResponseEntity<?> generateExcelReport(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false) String exportPath) throws Exception {
 
@@ -1135,14 +1123,14 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/send-excel-report")
     public ResponseEntity<String> sendExcelReport(
             @RequestParam String toEmail,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
         String filePath = expenseService.generateExcelReport(targetUser.getId());
         expenseService.sendEmailWithAttachment(toEmail, "Expense Report", "Please find the attached expense report.",
                 filePath);
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1155,7 +1143,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/current-month/excel")
     public ResponseEntity<InputStreamResource> getCurrentMonthExpensesExcel(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
 
@@ -1177,7 +1165,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/current-month/email")
     public ResponseEntity<String> sendCurrentMonthExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1213,7 +1201,7 @@ public class ExpenseController extends BaseExpenseController {
                     fileName,
                     filters);
 
-            return ResponseEntity.ok("Email sent successfully");
+            return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
         } catch (Exception e) {
             
@@ -1234,7 +1222,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/last-month/email")
     public ResponseEntity<?> sendLastMonthExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1251,7 +1239,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "last_month_expenses.xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1261,7 +1249,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<String> sendExpensesByMonthAndYearEmail(
             @RequestParam int month,
             @RequestParam int year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -1279,7 +1267,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expenses_" + month + "_" + year + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1288,7 +1276,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/email/all")
     public ResponseEntity<?> sendAllExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1481,7 +1469,7 @@ public class ExpenseController extends BaseExpenseController {
                     expensesFileName + "," + billsFileName,
                     null);
 
-            return ResponseEntity.ok("Email sent successfully");
+            return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
         } catch (Exception e) {
             
@@ -1504,7 +1492,7 @@ public class ExpenseController extends BaseExpenseController {
             @PathVariable String type,
             @PathVariable String paymentMethod,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1527,7 +1515,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expenses_" + type + "_" + paymentMethod + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1537,7 +1525,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<String> sendExpensesByDateRangeEmail(
             @RequestParam LocalDate from,
             @RequestParam LocalDate to,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -1559,7 +1547,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expenses_" + from + "_to_" + to + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1568,7 +1556,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/gain/email")
     public ResponseEntity<String> sendGainExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1586,7 +1574,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "gain_expenses.xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1595,7 +1583,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/loss/email")
     public ResponseEntity<String> sendLossExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1616,7 +1604,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "loss_expenses.xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1625,7 +1613,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/today/email")
     public ResponseEntity<?> sendExpensesForTodayEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1664,7 +1652,7 @@ public class ExpenseController extends BaseExpenseController {
                     fileName,
                     filters);
 
-            return ResponseEntity.ok("Email sent successfully");
+            return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
         } catch (Exception e) {
             
@@ -1685,7 +1673,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/payment-method/{paymentMethod}/email")
     public ResponseEntity<String> sendExpensesByPaymentMethodEmail(
             @PathVariable String paymentMethod,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam String email,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -1709,7 +1697,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expenses_" + paymentMethod + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */
@@ -1719,7 +1707,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam double minAmount,
             @RequestParam double maxAmount,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1744,7 +1732,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expense_details_" + minAmount + "_" + maxAmount + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
 
     }
 
@@ -1754,7 +1742,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<String> sendSearchExpensesByEmail(
             @RequestParam String expenseName,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1777,7 +1765,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "expense_search_results_" + expenseName + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */
@@ -1787,7 +1775,7 @@ public class ExpenseController extends BaseExpenseController {
             @PathVariable Integer year,
             @PathVariable Integer month,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1805,7 +1793,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "monthly_summary_" + year + "_" + month + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */
@@ -1813,7 +1801,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/payment-method-summary/email")
     public ResponseEntity<String> sendPaymentMethodSummaryByEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1831,7 +1819,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "payment_method_summary.xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */
@@ -1840,7 +1828,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<String> sendYearlySummaryByEmail(
             @RequestParam Integer year,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1858,7 +1846,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "yearly_summary_" + year + ".xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     /** @deprecated Superseded by POST /api/expenses/reports/email. */
@@ -1870,7 +1858,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam Integer endYear,
             @RequestParam Integer endMonth,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1889,7 +1877,7 @@ public class ExpenseController extends BaseExpenseController {
                 new ByteArrayResource(bytes),
                 "monthly_summaries.xlsx");
 
-        return ResponseEntity.ok("Email sent successfully");
+        return ResponseEntity.ok(ExpenseConstants.MSG_EMAIL_SENT_SUCCESS);
     }
 
     @GetMapping("/dropdown-values")
@@ -1923,7 +1911,7 @@ public class ExpenseController extends BaseExpenseController {
     @Deprecated
     @GetMapping("/expenses/yesterday")
     public ResponseEntity<List<Expense>> getYesterdayExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1939,7 +1927,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/particular-date")
     public ResponseEntity<List<Expense>> getParticularDateExpenses(
             @RequestParam String date,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -1952,7 +1940,7 @@ public class ExpenseController extends BaseExpenseController {
     /** @deprecated Superseded by GET /api/expenses?range=current-week. */
     @Deprecated
     @GetMapping("/expenses/current-week")
-    public List<Expense> getCurrentWeekExpenses(@RequestHeader("Authorization") String jwt) {
+    public List<Expense> getCurrentWeekExpenses(@RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         return expenseService.getExpensesByCurrentWeek(reqUser.getId());
     }
@@ -1960,7 +1948,7 @@ public class ExpenseController extends BaseExpenseController {
     /** @deprecated Superseded by GET /api/expenses?range=last-week. */
     @Deprecated
     @GetMapping("/expenses/last-week")
-    public List<Expense> getLastWeekExpenses(@RequestHeader("Authorization") String jwt) {
+    public List<Expense> getLastWeekExpenses(@RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         return expenseService.getExpensesByLastWeek(reqUser.getId());
     }
@@ -1993,7 +1981,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/yesterday/email")
     public ResponseEntity<String> sendYesterdayExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -2055,7 +2043,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<String> sendDateExpensesEmail(
             @RequestParam String date,
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -2128,7 +2116,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/expenses/last-week/email")
     public ResponseEntity<String> sendLastWeekExpensesEmail(
             @RequestParam String email,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -2189,7 +2177,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/save")
     public ResponseEntity<List<Expense>> saveExpenses(
             @RequestBody List<Expense> expenses,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
 
@@ -2202,7 +2190,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/upload")
     public ResponseEntity<List<Expense>> getFileContent(
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("Authorization") String jwt) throws IOException {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws IOException {
         IUserServiceClient.getUserProfile(jwt);
         List<Expense> expenses = excelService.parseExcelFile(file);
         int i = 0;
@@ -2223,7 +2211,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/upload-categories")
     public ResponseEntity<List<ExpenseCategory>> getCategoryFileContent(
             @RequestParam("file") MultipartFile file,
-            @RequestHeader("Authorization") String jwt) throws IOException {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws IOException {
         IUserServiceClient.getUserProfile(jwt);
         List<ExpenseCategory> categories = excelService.parseCategorySummarySheet(file);
         int i = 0;
@@ -2259,7 +2247,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/expenses/delete-and-send")
     public ResponseEntity<?> deleteExpenses(
             @RequestBody Map<String, Object> requestBody,
-            @RequestHeader("Authorization") String jwt) {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) {
 
         if (requestBody == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -2284,7 +2272,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(INVALID_OR_EXPIRED_TOKEN);
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
         try {
             expenseService.deleteExpensesByIds(ids, reqUser.getId());
@@ -2334,7 +2322,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/groupedByDate")
     public ResponseEntity<?> getGroupedExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "sortOrder", defaultValue = "desc") String sortOrder,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -2348,7 +2336,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(INVALID_OR_EXPIRED_TOKEN);
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         
@@ -2371,7 +2359,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/sorted")
     public ResponseEntity<Map<String, Object>> getExpensesGroupedByDate(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "date") String sortBy,
@@ -2389,14 +2377,14 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/before/{expenseName}/{date}")
     public ResponseEntity<?> getExpensesBeforeDate(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @PathVariable String expenseName,
             @PathVariable String date,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or expired token");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
         UserDTO targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
         Expense expense = expenseService.getExpenseBeforeDateValidated(targetUser.getId(), expenseName, date);
@@ -2410,7 +2398,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/current-month-top-expenses")
     public ResponseEntity<?> getTopExpensesForCustomMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false, defaultValue = "3") Integer topCount,
             @RequestParam(required = false) Integer customStartDay) throws Exception {
@@ -2423,7 +2411,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         UserDTO targetUser;
@@ -2496,7 +2484,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/by-name")
     public ResponseEntity<?> getExpenseByName(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false) String flowType) throws Exception {
@@ -2505,7 +2493,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         
@@ -2533,7 +2521,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/monthly")
     public ResponseEntity<?> getMonthlyExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false) String flowType) {
@@ -2541,7 +2529,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         UserDTO targetUser;
@@ -2565,7 +2553,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/trend")
     public ResponseEntity<?> getExpenseTrend(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false) String flowType) throws Exception {
@@ -2573,7 +2561,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         UserDTO targetUser;
@@ -2596,7 +2584,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/payment-methods")
     public ResponseEntity<?> getPaymentMethodDistribution(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(value = "year", defaultValue = "0") int year,
@@ -2646,7 +2634,7 @@ public class ExpenseController extends BaseExpenseController {
     
     @GetMapping("/payment-methods/filtered")
     public ResponseEntity<?> getPaymentMethodDistributionFiltered(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String rangeType,
@@ -2658,7 +2646,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid or expired token"));
+                    .body(Map.of("error", ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN));
         }
 
         UserDTO targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
@@ -2716,7 +2704,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/cumulative")
     public ResponseEntity<Map<String, Object>> getCumulativeExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
@@ -2733,7 +2721,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/name-over-time")
     public ResponseEntity<Map<String, Object>> getExpenseNameOverTime(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(value = "year", defaultValue = "0") int year,
             @RequestParam(value = "limit", defaultValue = "5") int limit,
             @RequestParam(required = false) Integer targetId) throws Exception {
@@ -2752,7 +2740,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/daily-spending")
     public ResponseEntity<List<Map<String, Object>>> getDailySpending(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
@@ -2783,7 +2771,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/current-month/totals")
     public ResponseEntity<List<Map<String, Object>>> getMonthlySpendingAndIncomeCurrentMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
@@ -2800,7 +2788,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/current-month/distribution")
     public ResponseEntity<List<Map<String, Object>>> getExpenseDistributionCurrentMonth(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
@@ -2817,7 +2805,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/included-in-BudgetModel/{startDate}/{endDate}")
     public ResponseEntity<?> getIncludeInBudgetExpenses(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @PathVariable LocalDate startDate,
             @PathVariable LocalDate endDate,
             @RequestParam(required = false) Integer targetId) throws Exception {
@@ -2835,7 +2823,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         UserDTO targetUser;
@@ -2872,7 +2860,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/{budgetId}/expenses")
     public ResponseEntity<?> getExpensesForBudgetRange(
             @PathVariable Integer budgetId,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(required = false) Integer targetId) throws Exception {
@@ -2890,7 +2878,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         UserDTO targetUser;
@@ -2919,7 +2907,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false, defaultValue = "false") Boolean groupBy,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Integer targetId,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         UserDTO targetUser = permissionHelper.getTargetUserWithPermissionCheck(targetId, reqUser, false);
@@ -3091,7 +3079,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/range/offset")
     public ResponseEntity<?> getExpensesByRangeOffset(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam String rangeType,
             @RequestParam(defaultValue = "0") int offset,
             @RequestParam(required = false) String flowType,
@@ -3128,14 +3116,14 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/by-category/{categoryId}")
     public ResponseEntity<?> getExpensesByCategoryId(
             @PathVariable Integer categoryId,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         
@@ -3155,13 +3143,13 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/all-by-categories/detailed")
     public ResponseEntity<?> getAllExpensesByCategoriesDetailed(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid or expired token");
+                    .body(ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN);
         }
 
         
@@ -3277,7 +3265,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/all-by-categories/detailed/filtered")
     public ResponseEntity<Map<String, Object>> getAllExpensesByCategoriesDetailedFiltered(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String rangeType,
@@ -3288,7 +3276,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid or expired token"));
+                    .body(Map.of("error", ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN));
         }
 
         UserDTO targetUser;
@@ -3311,7 +3299,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/all-by-payment-method/detailed/filtered")
     public ResponseEntity<Map<String, Object>> getAllExpensesByPaymentMethodDetailedFiltered(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String rangeType,
@@ -3322,7 +3310,7 @@ public class ExpenseController extends BaseExpenseController {
         UserDTO reqUser = IUserServiceClient.getUserProfile(jwt);
         if (reqUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid or expired token"));
+                    .body(Map.of("error", ExpenseConstants.MSG_INVALID_OR_EXPIRED_TOKEN));
         }
 
         UserDTO targetUser;
@@ -3396,7 +3384,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/reports/history")
     public ResponseEntity<List<ReportHistory>> getReportHistory(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -3407,7 +3395,7 @@ public class ExpenseController extends BaseExpenseController {
     @GetMapping("/reports/history/status/{status}")
     public ResponseEntity<List<ReportHistory>> getReportHistoryByStatus(
             @PathVariable String status,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -3417,7 +3405,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/reports/history/recent")
     public ResponseEntity<List<ReportHistory>> getRecentReportHistory(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -3427,7 +3415,7 @@ public class ExpenseController extends BaseExpenseController {
 
     @GetMapping("/reports/history/stats")
     public ResponseEntity<Map<String, Object>> getReportStatistics(
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -3439,7 +3427,7 @@ public class ExpenseController extends BaseExpenseController {
     public ResponseEntity<List<ReportHistory>> getReportHistoryByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         UserDTO targetUser = getTargetUserWithPermission(jwt, targetId, false);
@@ -3456,7 +3444,7 @@ public class ExpenseController extends BaseExpenseController {
     @PostMapping("/reports/email")
     public ResponseEntity<?> sendReportEmail(
             @RequestBody Map<String, Object> body,
-            @RequestHeader("Authorization") String jwt) throws Exception {
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt) throws Exception {
 
         if (body == null) {
             return ResponseEntity.badRequest().body("Request body is required");
@@ -3592,7 +3580,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         String grp = (groupBy == null || groupBy.isBlank()) ? "none" : groupBy;
@@ -3667,7 +3655,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) Integer endYear,
             @RequestParam(required = false) Integer endMonth,
             @RequestParam(defaultValue = "desc") String sort,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         String r = (range == null || range.isBlank()) ? "" : range;
@@ -3710,7 +3698,7 @@ public class ExpenseController extends BaseExpenseController {
             @RequestParam(required = false) String metric,
             @RequestParam(defaultValue = "10") int n,
             @RequestParam(defaultValue = "false") boolean unique,
-            @RequestHeader("Authorization") String jwt,
+            @RequestHeader(ExpenseConstants.AUTH_HEADER) String jwt,
             @RequestParam(required = false) Integer targetId) throws Exception {
 
         String m = (metric == null || metric.isBlank()) ? "amount" : metric;

@@ -5,13 +5,17 @@ import com.jaya.dto.ExpenseSearchDTO;
 import com.jaya.common.dto.UserDTO;
 import com.jaya.mapper.ExpenseMapper;
 import com.jaya.models.*;
-import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.BudgetServices;
 import com.jaya.service.CategoryServiceWrapper;
 import com.jaya.service.PaymentMethodServices;
 import com.jaya.service.expenses.ExpenseQueryService;
+import com.jaya.service.expenses.constants.ExpenseConstants;
+
+import static com.jaya.service.expenses.constants.ExpenseConstants.*;
 import com.jaya.util.ExpenseValidationHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,16 +36,9 @@ import java.util.stream.Collectors;
 @Service
 public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
-    public static final String OTHERS = "Others";
-    private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
-    private static final String CREDIT_PAID = "creditPaid";
-    private static final String CASH = "cash";
-    private static final String MONTH = "month";
-    private static final String YEAR = "year";
-    private static final String WEEK = "week";
+    private static final Logger log = LoggerFactory.getLogger(ExpenseQueryServiceImpl.class);
 
     private final ExpenseRepository expenseRepository;
-    private final ExpenseReportRepository expenseReportRepository;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(
             Runtime.getRuntime().availableProcessors() * 2);
@@ -60,10 +57,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
     @Autowired
     private ExpenseValidationHelper helper;
 
-    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository,
-            ExpenseReportRepository expenseReportRepository) {
+    public ExpenseQueryServiceImpl(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
-        this.expenseReportRepository = expenseReportRepository;
     }
 
     @Override
@@ -157,6 +152,9 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
 
     @Override
     public List<Expense> getExpensesByType(String type, Integer userId) {
+        if (type != null && ExpenseConstants.TYPE_LOSS.equalsIgnoreCase(type)) {
+            return expenseRepository.findByLossTypeAndUser(userId);
+        }
         return expenseRepository.findExpensesWithGainTypeByUser(userId);
     }
 
@@ -292,50 +290,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         return findPrefixBasedPattern(comments);
     }
 
-    private String detectMonthBasedPattern(List<String> comments, LocalDate expenseDate) {
-        if (comments == null || comments.size() < 2 || expenseDate == null) {
-            return null;
-        }
-
-        Map<String, TemplateInfoWithOffset> templateFrequency = new HashMap<>();
-
-        for (String comment : comments) {
-
-            String template = replaceMonthsWithPlaceholder(comment);
-
-            if (!template.equals(comment) && template.contains("{MONTH}")) {
-                TemplateInfoWithOffset info = templateFrequency.get(template.toLowerCase());
-                if (info == null) {
-                    templateFrequency.put(template.toLowerCase(), new TemplateInfoWithOffset(template, 1));
-                } else {
-                    info.incrementCount();
-                }
-            }
-        }
-
-        if (templateFrequency.isEmpty()) {
-            return null;
-        }
-
-        int minFrequencyThreshold = Math.max(2, comments.size() / 3);
-
-        TemplateInfoWithOffset bestTemplate = templateFrequency.values().stream()
-                .filter(info -> info.count >= minFrequencyThreshold)
-                .max(Comparator.comparingInt((TemplateInfoWithOffset info) -> info.count)
-                        .thenComparingInt(info -> info.template.length()))
-                .orElse(null);
-
-        if (bestTemplate == null) {
-            return null;
-        }
-
-        String currentMonthName = expenseDate.getMonth().toString();
-
-        currentMonthName = currentMonthName.charAt(0) + currentMonthName.substring(1).toLowerCase();
-
-        return bestTemplate.template.replace("{MONTH}", currentMonthName);
-    }
-
     private String detectMonthBasedPatternWithOffset(List<Expense> expenses, LocalDate expenseDate) {
         if (expenses == null || expenses.size() < 2 || expenseDate == null) {
             return null;
@@ -459,10 +413,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return null;
         }
 
-        String[] months = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        };
+        String[] months = MONTH_NAMES;
 
         for (String month : months) {
             if (comment.matches("(?i).*\\b" + month + "\\b.*")) {
@@ -478,10 +429,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return 0;
         }
 
-        String[] months = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        };
+        String[] months = MONTH_NAMES;
 
         for (int i = 0; i < months.length; i++) {
             if (months[i].equalsIgnoreCase(monthName)) {
@@ -497,13 +445,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
             return text;
         }
 
-        String[] months = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-        };
-
         String result = text;
-        for (String month : months) {
+        for (String month : MONTH_NAMES) {
 
             result = result.replaceAll("(?i)\\b" + month + "\\b", "{MONTH}");
         }
@@ -612,20 +555,6 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .thenComparingInt(info -> info.originalPrefix.length()))
                 .map(info -> info.originalPrefix)
                 .orElse(null);
-    }
-
-    private static class TemplateInfo {
-        String template;
-        int count;
-
-        TemplateInfo(String template, int count) {
-            this.template = template;
-            this.count = count;
-        }
-
-        void incrementCount() {
-            this.count++;
-        }
     }
 
     private static class TemplateInfoWithOffset {
@@ -805,6 +734,8 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                                 if (pm != null)
                                     id = pm.getId();
                             } catch (Exception ignored) {
+                                log.debug("Payment method lookup failed for user {}: {}", e.getUserId(),
+                                        ignored.getMessage());
                             }
                         }
                     }
@@ -866,6 +797,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         if (c != null)
                             return c.getName();
                     } catch (Exception ignored) {
+                        log.debug("Category lookup failed for expense {}: {}", e.getCategoryId(), ignored.getMessage());
                     }
                 }
                 return null;
@@ -941,15 +873,15 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         LocalDate endDate;
 
         switch (rangeType.toLowerCase()) {
-            case WEEK:
+            case PERIOD_WEEK:
                 startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
                 endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
                 break;
-            case MONTH:
+            case PERIOD_MONTH:
                 startDate = now.withDayOfMonth(1).plusMonths(offset);
                 endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 break;
-            case YEAR:
+            case PERIOD_YEAR:
                 startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
@@ -1160,7 +1092,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
-
+            log.debug("Failed to preload category/payment metadata for user {}: {}", userId, e.getMessage());
         }
         final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
         final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
@@ -1242,15 +1174,15 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
         LocalDate endDate;
 
         switch (rangeType.toLowerCase()) {
-            case WEEK:
+            case PERIOD_WEEK:
                 startDate = now.with(DayOfWeek.MONDAY).plusWeeks(offset);
                 endDate = now.with(DayOfWeek.SUNDAY).plusWeeks(offset);
                 break;
-            case MONTH:
+            case PERIOD_MONTH:
                 startDate = now.withDayOfMonth(1).plusMonths(offset);
                 endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
                 break;
-            case YEAR:
+            case PERIOD_YEAR:
                 startDate = LocalDate.of(now.getYear(), 1, 1).plusYears(offset);
                 endDate = LocalDate.of(now.getYear(), 12, 31).plusYears(offset);
                 break;
@@ -1279,7 +1211,7 @@ public class ExpenseQueryServiceImpl implements ExpenseQueryService {
                         .collect(Collectors.toMap(ExpensePaymentMethod::getName, pm -> pm, (a, b) -> a));
             }
         } catch (Exception e) {
-
+            log.debug("Failed to preload category/payment metadata for user {}: {}", userId, e.getMessage());
         }
         final Map<Integer, ExpenseCategory> finalCategoryMap = categoryMap;
         final Map<String, ExpensePaymentMethod> finalPaymentMethodMap = paymentMethodMap;
