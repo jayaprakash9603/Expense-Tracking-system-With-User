@@ -11,7 +11,8 @@ import java.util.List;
 @FeignClient(
     name = "USER-SERVICE",
     url = "${USER_SERVICE_URL:http://localhost:6001}",
-    contextId = "commonUserServiceClient"
+    contextId = "commonUserServiceClient",
+    primary = false
 )
 @Profile("!monolithic")
 public interface FeignUserServiceClient extends IUserServiceClient {

@@ -145,7 +145,11 @@ The system can run in either **microservices mode** (Gateway + Eureka + individu
 Expense-Tracking-system-With-User/
 ├── expense-tracking-frontend/          # React 18 SPA
 ├── expense-tracker-mobile/              # Vite/React mobile-oriented client
-├── Expense-tracking-backend/           # Spring Boot backend (Maven multi-module)
+├── expense-tracking-backend/           # Spring Boot backend (Maven multi-module)
+│   ├── docker-compose.yml              # Single Docker Compose (profiles: monolith, microservices, infra, sonar)
+│   ├── expense-tracker-pod.yaml        # Kubernetes / Podman pod manifest
+│   ├── .env.example                    # Docker Compose environment variables
+│   ├── run-all-services.bat            # Start all microservices via Maven (Windows)
 │   ├── common-library/                 # Shared DTOs, Feign clients, security, ports
 │   ├── user-service/                   # Auth, registration, profile, OAuth2, MFA
 │   ├── Expense-Service/                # Expense CRUD, CSV/Excel import, insights
@@ -545,7 +549,7 @@ flowchart LR
 | **Redis** | Required (Chat Service) | Optional (`redis.enabled=false`) |
 | **Eureka** | Enabled | Disabled |
 | **Feign calls** | HTTP over network | In-process `LocalXxxServiceClient` |
-| **Docker Compose** | `expense-tracking-backend/docker-compose.yml` | `expense-tracking-backend/docker-compose.monolith.yml` |
+| **Docker Compose** | `expense-tracking-backend/docker-compose.yml --profile microservices` | `expense-tracking-backend/docker-compose.yml --profile monolith` |
 | **Recommended for** | Production, scaling | Development, demos, single-server |
 
 ```mermaid
@@ -641,33 +645,44 @@ The backend runs on `http://localhost:8080` and the frontend on `http://localhos
 ### Option B: Microservices Mode (with Docker)
 
 ```bash
-# Start infrastructure (MySQL, Kafka, Redis, Zookeeper)
-docker-compose up -d
+# Start infrastructure (MySQL, Kafka, Redis, Zookeeper) + all services
+cd expense-tracking-backend
+docker compose --profile microservices up -d
 
-# Build all services
-cd Expense-tracking-backend
+# Build all services (if running locally without Docker)
 mvn clean install -P microservices -DskipTests
 
-# Start Eureka first, then Gateway, then domain services
-java -jar eureka-server/target/eureka-server-0.0.1.jar
-java -jar Gateway/target/gateway-0.0.1-SNAPSHOT.jar
-# ... start each service JAR
-
-# Start the frontend
-cd expense-tracking-frontend
-npm install && npm start
+# Or start each service with Maven (Windows)
+run-all-services.bat
 ```
 
-### Option C: Full Docker Compose
+### Option C: Full Docker Compose (recommended for clones)
 
 ```bash
-# Microservices stack
-cd Expense-tracking-backend
-docker-compose up --build
+cd expense-tracking-backend
+copy .env.example .env          # Windows
+# cp .env.example .env          # Linux/macOS
 
-# OR monolithic stack
-cd Expense-tracking-backend
-docker-compose -f docker-compose.monolith.yml up --build
+# Monolith stack (MySQL + backend + frontend)
+docker compose --profile monolith up -d
+
+# Optional: Kafka + Redis only (local dev)
+docker compose --profile infra up -d
+
+# Optional: SonarQube
+docker compose --profile sonar up -d
+
+# From repo root — build images then start
+..\scripts\docker-build.ps1
+docker compose --profile monolith up -d
+```
+
+### Option D: Kubernetes / Podman pod
+
+```bash
+cd expense-tracking-backend
+kubectl apply -f expense-tracker-pod.yaml
+# podman play kube expense-tracker-pod.yaml
 ```
 
 ### Environment Variables

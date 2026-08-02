@@ -59,8 +59,8 @@ alwaysApply: false
 - Kafka consumers commit offsets cleanly on shutdown
 
 ### X. Dev/Prod Parity
-- `docker-compose.yml` replicates production topology locally
-- `monolithic-service` + `docker-compose.monolith.yml` for simplified local dev
+- `expense-tracking-backend/docker-compose.yml` with profiles (`monolith`, `microservices`, `infra`, `sonar`) for local deployment
+- `expense-tracking-backend/expense-tracker-pod.yaml` for Kubernetes / Podman pod deployment
 - Same JDK version (17) in dev and production
 - Same MySQL version in dev Docker and production
 

@@ -3,7 +3,6 @@ package com.jaya.common.cache.user;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.jaya.common.dto.UserDTO;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -13,7 +12,6 @@ import java.util.function.Supplier;
  * L2 Caffeine cache for {@link UserDTO} in consuming microservices.
  * Eviction: TTL + max-size. Null results are not cached.
  */
-@Component
 public class UserProfileClientCacheStore {
 
     private final Cache<Integer, UserDTO> byId;

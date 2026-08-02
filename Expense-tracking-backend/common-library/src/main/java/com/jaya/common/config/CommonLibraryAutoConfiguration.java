@@ -78,7 +78,17 @@ public class CommonLibraryAutoConfiguration {
             log.debug("Registering JwtUtil from common-library");
             return new JwtUtil();
         }
-        
+    }
+
+    @Configuration
+    @ConditionalOnClass(name = {
+            "org.springframework.security.core.Authentication",
+            "jakarta.servlet.Filter"
+    })
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    @ConditionalOnProperty(name = "common-library.security.enabled", havingValue = "true", matchIfMissing = true)
+    static class JwtFilterConfiguration {
+
         @Bean
         @ConditionalOnMissingBean
         @ConditionalOnProperty(name = "common-library.jwt.filter.enabled", havingValue = "true", matchIfMissing = false)
