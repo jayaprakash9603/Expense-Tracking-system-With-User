@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 import { loginUserAction } from "../../Redux/Auth/auth.action";
 import LockResetIcon from "@mui/icons-material/LockReset";
@@ -54,9 +54,7 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     setIsLoading(true);
     setError("");
     try {
-      await axios.post(`${API_BASE_URL}/auth/send-otp`, {
-        email: emailToSend,
-      });
+      await api.post("/auth/send-otp", { email: emailToSend }, { skipAuth: true });
       setEmail(emailToSend);
       navigate(
         `/otp-verification?mode=reset&email=${encodeURIComponent(
@@ -83,8 +81,9 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     try {
       // Check if user is OAuth user without password
       try {
-        const authCheckResponse = await axios.get(
-          `${API_BASE_URL}/auth/check-auth-method?email=${values.email}`,
+        const authCheckResponse = await api.get(
+          `/auth/check-auth-method?email=${encodeURIComponent(values.email)}`,
+          { skipAuth: true },
         );
         if (
           authCheckResponse.data.exists &&
@@ -97,9 +96,7 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
         // Ignore check errors
       }
 
-      await axios.post(`${API_BASE_URL}/auth/send-otp`, {
-        email: values.email,
-      });
+      await api.post("/auth/send-otp", { email: values.email }, { skipAuth: true });
       setEmail(values.email);
       navigate(
         `/otp-verification?mode=reset&email=${encodeURIComponent(
@@ -126,10 +123,11 @@ const ForgotPassword = ({ isPasswordCreation = false }) => {
     setIsLoading(true);
     setError("");
     try {
-      await axios.patch(`${API_BASE_URL}/auth/reset-password`, {
-        email,
-        password: values.password,
-      });
+      await api.patch(
+        "/auth/reset-password",
+        { email, password: values.password },
+        { skipAuth: true },
+      );
 
       const successMessage =
         isOAuthUser || isPasswordCreation

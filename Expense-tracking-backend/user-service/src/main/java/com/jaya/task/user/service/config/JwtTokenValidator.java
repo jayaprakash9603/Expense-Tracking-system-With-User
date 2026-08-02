@@ -39,8 +39,9 @@ public class JwtTokenValidator extends OncePerRequestFilter {
         if (path == null) {
             return false;
         }
-        // SockJS handshake/info/xhr must not fail when a stale Authorization header is present
-        return path.startsWith("/notifications")
+        // Public auth and realtime handshake paths must not fail when a stale Authorization header is present
+        return path.startsWith("/auth")
+                || path.startsWith("/notifications")
                 || path.startsWith("/chat")
                 || path.startsWith("/ws-stories");
     }

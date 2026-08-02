@@ -17,8 +17,7 @@ import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 import { IconButton, InputAdornment } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
-import { API_BASE_URL } from "../../config/api";
-import axios from "axios";
+import { api } from "../../config/api";
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 import {
   isFeatureEnabledInState,
@@ -107,9 +106,7 @@ const Register = () => {
 
   const checkEmailAvailability = async (email) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/check-email`, {
-        email,
-      });
+      const response = await api.post("/auth/check-email", { email }, { skipAuth: true });
       if (!response.data.isAvailable) {
         setEmailError("This email is already taken");
         return false;
