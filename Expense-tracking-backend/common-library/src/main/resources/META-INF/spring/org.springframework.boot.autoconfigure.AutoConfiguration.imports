@@ -2,6 +2,7 @@
 # These configurations are automatically applied when common-library is on the classpath
 
 com.jaya.common.config.CommonLibraryAutoConfiguration
+com.jaya.common.config.CommonFeignClientsAutoConfiguration
 com.jaya.common.config.ConditionalEurekaConfig
 com.jaya.common.config.UserProfileCacheAutoConfiguration
 com.jaya.common.config.InternalServiceAuthAutoConfiguration

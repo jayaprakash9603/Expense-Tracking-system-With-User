@@ -99,18 +99,8 @@ public class CommonLibraryAutoConfiguration {
     }
     
     /**
-     * Feign client configuration - imports client beans when OpenFeign is on classpath
-     * and running in microservices mode (not monolithic).
+     * Feign clients are registered via {@link CommonFeignClientsAutoConfiguration}.
      */
-    @Configuration
-    @ConditionalOnClass(name = "org.springframework.cloud.openfeign.FeignClient")
-    @ConditionalOnProperty(name = "common-library.feign.enabled", havingValue = "true", matchIfMissing = true)
-    @ComponentScan(basePackages = "com.jaya.common.service.client.feign")
-    static class FeignClientConfiguration {
-        public FeignClientConfiguration() {
-            log.debug("Feign client configuration enabled - scanning feign clients");
-        }
-    }
     
     /**
      * Local client configuration for monolithic mode.
