@@ -471,10 +471,15 @@ const SummaryOverview = ({ summary, loading = false }) => {
             <div
               className="summary-top-expenses-list"
               style={{
-                padding: isMobile ? 10 : 8,
+                padding: isMobile ? 10 : 12,
                 display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: isMobile ? 8 : 8,
+                // Mobile: single column. Tablet/desktop: 2-up to fill wide overview.
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "repeat(2, minmax(0, 1fr))",
+                gap: isMobile ? 8 : 10,
+                width: "100%",
+                boxSizing: "border-box",
               }}
             >
               {s.topExpenses.map((e, i) => (
@@ -482,7 +487,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   key={i}
                   className="summary-top-expense-item"
                   style={{
-                    padding: isMobile ? "12px 12px" : "12px",
+                    padding: isMobile ? "12px 12px" : "12px 14px",
                     borderRadius: 10,
                     display: "flex",
                     alignItems: "center",
@@ -493,6 +498,10 @@ const SummaryOverview = ({ summary, loading = false }) => {
                     border: `1px solid ${colors.border_color}`,
                     boxSizing: "border-box",
                     width: "100%",
+                    minWidth: 0,
+                    transition: preferReducedMotion
+                      ? "none"
+                      : "border-color 180ms ease, background-color 180ms ease",
                   }}
                 >
                   <div
