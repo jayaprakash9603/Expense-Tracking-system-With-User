@@ -2311,35 +2311,63 @@
     font-size: 0.85rem;
   }
 
-  /* Payment Methods: title single line, controls on next line */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+  /* Payment Methods + Category: compact single-row header */
+  .payment-methods .chart-header,
+  .category-breakdown .chart-header,
+  .reusable-pie-chart .chart-header,
+  .payment-methods .pie-chart-header,
+  .category-breakdown .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
   }
-  .payment-methods .chart-header h3 {
-    width: 100%;
+  .payment-methods .chart-header h3,
+  .category-breakdown .chart-header h3,
+  .reusable-pie-chart .chart-header h3 {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.78rem !important;
   }
-  .payment-methods .chart-controls {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    gap: 8px;
+  .payment-methods .chart-controls,
+  .category-breakdown .chart-controls,
+  .reusable-pie-chart .chart-controls,
+  .payment-methods .pie-chart-controls,
+  .category-breakdown .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    flex-shrink: 0;
   }
-  .payment-methods .chart-controls .time-selector {
-    min-width: 140px; /* slightly wider for readability */
+  .payment-methods .chart-controls .time-selector,
+  .category-breakdown .chart-controls .time-selector,
+  .reusable-pie-chart .chart-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
     flex: 0 0 auto;
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    height: 32px;
   }
-  .payment-methods .chart-controls .type-toggle {
-    margin-left: 6px; /* reduce left margin on mobile */
-    padding: 4px 6px;
+  .payment-methods .chart-controls .type-toggle,
+  .category-breakdown .chart-controls .type-toggle,
+  .reusable-pie-chart .chart-controls .type-toggle {
+    margin-left: 0;
+    padding: 2px;
   }
-  .payment-methods .chart-controls .type-toggle .toggle-btn {
-    padding: 6px 8px;
-    font-size: 12px;
+  .payment-methods .chart-controls .type-toggle .toggle-btn,
+  .category-breakdown .chart-controls .type-toggle .toggle-btn,
+  .reusable-pie-chart .chart-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px !important;
+    transform: none !important;
   }
 }
 
@@ -2876,28 +2904,27 @@
     flex-shrink: 0;
   }
 
-  /* Category Breakdown adjustments */
-  .category-breakdown .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  /* Category Breakdown + Payment Methods — keep header on one row */
+  .category-breakdown .chart-header,
+  .payment-methods .chart-header,
+  .reusable-pie-chart .chart-header,
+  .category-breakdown .pie-chart-header,
+  .payment-methods .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
   }
 
-  .category-breakdown .chart-controls {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  /* Payment Methods adjustments */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .payment-methods .chart-controls {
-    width: 100%;
-    flex-wrap: wrap;
+  .category-breakdown .chart-controls,
+  .payment-methods .chart-controls,
+  .reusable-pie-chart .chart-controls,
+  .category-breakdown .pie-chart-controls,
+  .payment-methods .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
   }
 
   /* Summary Overview - stack chart and metrics */
@@ -3295,20 +3322,41 @@
     font-size: 1rem;
   }
 
-  /* Payment Methods mobile */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    gap: 8px;
+  /* Payment Methods / Category — compact single-row header on phones */
+  .payment-methods .chart-header,
+  .category-breakdown .chart-header,
+  .reusable-pie-chart .chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
   }
 
-  .payment-methods .chart-controls {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 6px;
+  .payment-methods .chart-controls,
+  .category-breakdown .chart-controls,
+  .reusable-pie-chart .chart-controls {
+    width: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    margin-left: auto !important;
   }
 
-  .payment-methods .type-toggle {
+  .payment-methods .type-toggle,
+  .category-breakdown .type-toggle {
     margin-left: 0;
+  }
+
+  .payment-methods .chart-header h3,
+  .category-breakdown .chart-header h3,
+  .reusable-pie-chart .chart-header h3 {
+    font-size: 0.72rem !important;
+  }
+
+  .payment-methods .total-amount-bottom,
+  .category-breakdown .total-amount-bottom,
+  .reusable-pie-chart .total-amount-bottom {
+    font-size: 0.82rem !important;
+    padding: 8px 10px !important;
   }
 }
 
@@ -3774,15 +3822,43 @@
     padding: 14px;
   }
 
-  .dashboard-chart-header.is-mobile,
-  .dashboard-chart-header:not(.daily-spending-header) {
+  .dashboard-chart-header.is-mobile:not(.pie-chart-header):not(.daily-spending-header),
+  .dashboard-chart-header:not(.daily-spending-header):not(.pie-chart-header) {
     align-items: flex-start !important;
   }
 
-  .dashboard-chart-controls:not(.daily-spending-controls) {
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) {
     width: 100% !important;
     justify-content: flex-start;
     margin-left: 0;
+  }
+
+  /* Pie charts (Category / Payment): title + controls stay one row */
+  .pie-chart-header.dashboard-chart-header,
+  .category-breakdown .pie-chart-header,
+  .payment-methods .pie-chart-header,
+  .reusable-pie-chart .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+
+  .pie-chart-controls.dashboard-chart-controls,
+  .category-breakdown .pie-chart-controls,
+  .payment-methods .pie-chart-controls,
+  .reusable-pie-chart .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0;
+  }
+
+  .reusable-pie-chart .recharts-legend-item,
+  .category-breakdown .recharts-legend-item,
+  .payment-methods .recharts-legend-item {
+    font-size: 10px !important;
   }
 
   .daily-spending-chart .daily-spending-header {
@@ -3806,7 +3882,7 @@
   }
 
   .reusable-pie-chart .recharts-responsive-container {
-    min-height: 280px !important;
+    min-height: 240px !important;
   }
 }
 
@@ -3831,17 +3907,36 @@
     background: none !important;
   }
 
-  .dashboard-chart-controls:not(.daily-spending-controls) .time-selector {
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) .time-selector {
     min-width: 110px;
     max-width: 140px;
     padding: 8px 10px;
     font-size: 13px;
   }
 
-  .dashboard-chart-controls:not(.daily-spending-controls) .type-toggle .toggle-btn {
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) .type-toggle .toggle-btn {
     padding: 6px 8px;
     font-size: 12px;
     min-height: 36px;
+  }
+
+  .pie-chart-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+    height: 32px;
+  }
+
+  .pie-chart-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px !important;
+    transform: none !important;
+  }
+
+  .pie-chart-header h3 {
+    font-size: 0.78rem !important;
   }
 
   .daily-spending-chart .daily-spending-title {

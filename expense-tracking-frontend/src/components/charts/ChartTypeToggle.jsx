@@ -9,8 +9,9 @@ import { useTranslation } from "../../hooks/useTranslation";
  * @param {string} selectedType - Currently selected type
  * @param {function} onToggle - Callback when type changes
  * @param {Array} options - Array of type options { value, label, color }
+ * @param {boolean} compact - Smaller padding/type for dense chart headers
  */
-const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
+const ChartTypeToggle = ({ selectedType, onToggle, options, compact }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
@@ -18,13 +19,14 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
 
   return (
     <div
-      className="type-toggle"
+      className={`type-toggle${compact ? " is-compact" : ""}`}
       style={{
         display: "inline-flex",
         flexDirection: "row",
         alignItems: "center",
         flexWrap: "nowrap",
-        gap: 4,
+        gap: compact ? 2 : 4,
+        padding: compact ? 2 : undefined,
       }}
     >
       {options.map((opt) => {
@@ -47,13 +49,20 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
                 selectedType === opt.value ? opt.color : colors.border_color
               }`,
               fontWeight: selectedType === opt.value ? 700 : 500,
-              transform:
-                selectedType === opt.value ? "scale(1.05)" : "scale(1)",
+              transform: selectedType === opt.value && !compact ? "scale(1.05)" : "scale(1)",
               boxShadow:
-                selectedType === opt.value
+                selectedType === opt.value && !compact
                   ? `0 0 0 3px ${opt.color}20, 0 2px 8px ${opt.color}40`
-                  : "none",
+                  : selectedType === opt.value
+                    ? `0 0 0 2px ${opt.color}25`
+                    : "none",
               transition: "all 0.2s ease",
+              padding: compact ? "3px 6px" : undefined,
+              fontSize: compact ? 10 : undefined,
+              minHeight: compact ? 28 : undefined,
+              borderRadius: compact ? 5 : undefined,
+              lineHeight: 1.2,
+              whiteSpace: "nowrap",
             }}
           >
             {label}
@@ -67,6 +76,7 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
 ChartTypeToggle.propTypes = {
   selectedType: PropTypes.string.isRequired,
   onToggle: PropTypes.func,
+  compact: PropTypes.bool,
   options: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
@@ -78,6 +88,7 @@ ChartTypeToggle.propTypes = {
 };
 
 ChartTypeToggle.defaultProps = {
+  compact: false,
   options: [
     {
       value: "loss",
