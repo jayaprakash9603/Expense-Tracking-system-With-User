@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Typography, Chip, IconButton, Tooltip } from "@mui/material";
+import { Typography, Chip, IconButton, Tooltip, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -24,6 +24,7 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../../hooks/useTheme";
+import useResponsivePageShell from "../../../hooks/useResponsivePageShell";
 import {
   FEATURE_KEYS,
   isActionEnabledInState,
@@ -62,6 +63,14 @@ const getPaymentMethodIcon = (methodName, color = "#f97316", size = 16) => {
 
 const ViewExpense = () => {
   const { colors } = useTheme();
+  const {
+    isMobile,
+    isCompact,
+    containerStyle,
+    mainRowSx,
+    sideColumnSx,
+    contentColumnSx,
+  } = useResponsivePageShell();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id, friendId } = useParams();
@@ -191,20 +200,6 @@ const ViewExpense = () => {
   const formatDate = (date) => {
     if (!date) return "-";
     return dayjs(date).format(displayDateFormat);
-  };
-
-  // Main container style
-  const containerStyle = {
-    width: "calc(100vw - 370px)",
-    height: "calc(100vh - 100px)",
-    backgroundColor: colors.secondary_bg,
-    borderRadius: "8px",
-    marginRight: "20px",
-    border: `1px solid ${colors.border_color}`,
-    padding: "16px 24px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
   };
 
   // Budget status colors helper
@@ -474,6 +469,14 @@ const ViewExpense = () => {
       <PageHeader
         title="View Expense"
         onClose={handleOnClose}
+        titleClassName={
+          isMobile
+            ? "font-extrabold text-xl"
+            : isCompact
+              ? "font-extrabold text-2xl"
+              : "font-extrabold text-4xl"
+        }
+        containerClassName="w-full flex justify-between items-center gap-2 mb-1 min-w-0"
         rightContent={
           (editEnabled || deleteEnabled) ? (
           <div className="flex items-center gap-2">
@@ -485,8 +488,8 @@ const ViewExpense = () => {
                   backgroundColor: "#00DAC6",
                   color: "#000",
                   "&:hover": { backgroundColor: "#00b8a0" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <EditIcon sx={{ fontSize: 18 }} />
@@ -501,8 +504,8 @@ const ViewExpense = () => {
                   backgroundColor: "#ff4d4f",
                   color: "#fff",
                   "&:hover": { backgroundColor: "#d9363e" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <DeleteIcon sx={{ fontSize: 18 }} />
@@ -514,13 +517,10 @@ const ViewExpense = () => {
         }
       />
 
-      {/* Main Content - Two Column Layout */}
-      <div className="flex gap-4 flex-1" style={{ overflow: "hidden" }}>
-        {/* Left Column - Hero Expense Card + Category + Payment (Equal Heights) */}
-        <div
-          className="flex flex-col gap-3"
-          style={{ width: "340px", flexShrink: 0 }}
-        >
+      {/* Main Content - stacks on mobile/tablet */}
+      <Box sx={mainRowSx}>
+        {/* Left Column - Hero Expense Card + Category + Payment */}
+        <Box sx={sideColumnSx}>
           {/* Hero Expense Card */}
           <div
             style={{
@@ -1213,13 +1213,10 @@ const ViewExpense = () => {
               </div>
             );
           })()}
-        </div>
+        </Box>
 
         {/* Right Column - Statistics & Budgets */}
-        <div
-          className="flex flex-col gap-3 flex-1"
-          style={{ overflow: "hidden" }}
-        >
+        <Box sx={contentColumnSx}>
           {/* Occurrence Statistics */}
           {occurrenceInfo && (
             <div
@@ -1432,7 +1429,7 @@ const ViewExpense = () => {
                     "& fieldset": { borderColor: colors.border_color },
                   },
                 }}
-                sx={{ width: 220 }}
+                sx={{ width: isMobile ? "100%" : 220, maxWidth: "100%" }}
               />
             </div>
 
@@ -1483,8 +1480,8 @@ const ViewExpense = () => {
               }
             />
           </div>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </div>
   );
 };

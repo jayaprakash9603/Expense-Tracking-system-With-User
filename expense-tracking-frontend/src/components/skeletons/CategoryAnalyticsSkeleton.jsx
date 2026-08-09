@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Grid, Skeleton } from "@mui/material";
+import { Box, Grid, Skeleton, useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import PageHeader from "../PageHeader";
 
@@ -9,6 +9,7 @@ import PageHeader from "../PageHeader";
  */
 const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
   const { colors } = useTheme();
+  const isCompact = useMediaQuery("(max-width:900px)");
 
   const cardStyle = {
     backgroundColor: colors.primary_bg,
@@ -39,16 +40,24 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
         }
         onClose={onClose}
         rightContent={
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+            }}
+          >
             <Skeleton
               variant="rounded"
-              width={100}
+              width={isCompact ? 80 : 100}
               height={36}
               sx={{ bgcolor: colors.border_color }}
             />
             <Skeleton
               variant="rounded"
-              width={100}
+              width={isCompact ? 80 : 100}
               height={36}
               sx={{ bgcolor: colors.border_color }}
             />
@@ -68,23 +77,28 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
         }
       />
 
-      {/* Main Content - Two Column Layout */}
+      {/* Main Content - stacks on mobile/tablet */}
       <Box
         sx={{
           flex: 1,
           display: "flex",
+          flexDirection: isCompact ? "column" : "row",
           gap: 1.5,
-          overflow: "hidden",
+          overflow: isCompact ? "visible" : "hidden",
+          minWidth: 0,
+          width: "100%",
         }}
       >
-        {/* LEFT COLUMN - 280px Sidebar */}
+        {/* LEFT COLUMN */}
         <Box
           sx={{
-            width: "280px",
-            minWidth: "280px",
+            width: isCompact ? "100%" : "280px",
+            minWidth: isCompact ? 0 : "280px",
+            maxWidth: isCompact ? "100%" : "280px",
             display: "flex",
             flexDirection: "column",
             gap: 1.5,
+            boxSizing: "border-box",
           }}
         >
           {/* Category Details Card - Hero Style */}
@@ -280,10 +294,12 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
         <Box
           sx={{
             flex: 1,
+            width: isCompact ? "100%" : "auto",
             display: "flex",
             flexDirection: "column",
             gap: 1.5,
             minWidth: 0,
+            boxSizing: "border-box",
           }}
         >
           {/* Occurrence Statistics - 2 Rows of 4 Cards */}

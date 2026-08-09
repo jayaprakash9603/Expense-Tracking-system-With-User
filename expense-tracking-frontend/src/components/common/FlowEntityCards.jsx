@@ -135,13 +135,14 @@ const FlowEntityCards = ({
       <div
         className="flex flex-wrap justify-start custom-scrollbar"
         style={{
-          maxHeight: isMobile ? 200 : isTablet ? 250 : 360,
+          maxHeight: isMobile ? "none" : isTablet ? 280 : 360,
           overflowY: "auto",
           overflowX: "hidden",
           paddingRight: isMobile ? 4 : isTablet ? 8 : 16,
-          gap: isMobile ? 8 : 16,
+          gap: isMobile ? 10 : 12,
           width: "100%",
-          paddingLeft: "16px",
+          paddingLeft: isMobile ? 8 : 16,
+          boxSizing: "border-box",
         }}
       >
         {entities.map((entity, idx) => {
@@ -162,8 +163,13 @@ const FlowEntityCards = ({
                 minHeight: "130px",
                 maxHeight: "130px",
                 height: "130px",
-                width: isMobile ? "100%" : 220,
-                padding: "16px 20px",
+                width: isMobile
+                  ? "100%"
+                  : isTablet
+                    ? "calc(50% - 12px)"
+                    : 220,
+                maxWidth: isMobile ? "100%" : isTablet ? "calc(50% - 12px)" : 220,
+                padding: isMobile ? "14px 16px" : "16px 20px",
                 boxSizing: "border-box",
                 overflow: "hidden",
                 cursor: "pointer",
@@ -175,7 +181,7 @@ const FlowEntityCards = ({
                   ? `2px solid ${entity.color || colors.primary_accent}`
                   : `1px solid ${colors.border_color}`,
                 borderLeft: `6px solid ${entity.color}`,
-                margin: "4px",
+                margin: isMobile ? "0" : "4px",
                 borderRadius: "8px",
                 boxShadow: isShareSelected
                   ? `0 6px 18px ${entity.color || colors.primary_accent}25`

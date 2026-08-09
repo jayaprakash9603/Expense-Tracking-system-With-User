@@ -37,6 +37,7 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import dayjs from "dayjs";
 
 import { useTheme } from "../../hooks/useTheme";
+import useResponsivePageShell from "../../hooks/useResponsivePageShell";
 import PageHeader from "../../components/PageHeader";
 import CustomDataTable from "../../components/common/CustomDataTable";
 import CategoryAnalyticsSkeleton from "../../components/skeletons/CategoryAnalyticsSkeleton";
@@ -154,6 +155,14 @@ const CategoryAnalyticsView = ({
   editRouteBase = "/category-flow/edit",
 }) => {
   const { colors, mode } = useTheme();
+  const {
+    isMobile,
+    isCompact,
+    containerStyle,
+    mainRowSx,
+    sideColumnSx,
+    contentColumnSx,
+  } = useResponsivePageShell();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const params = useParams();
@@ -392,20 +401,6 @@ const CategoryAnalyticsView = ({
   const formatDate = (date) => {
     if (!date) return "-";
     return dayjs(date).format(displayDateFormat);
-  };
-
-  // Container styles
-  const containerStyle = {
-    width: "calc(100vw - 370px)",
-    height: "calc(100vh - 100px)",
-    backgroundColor: colors.secondary_bg,
-    borderRadius: "8px",
-    marginRight: "20px",
-    border: `1px solid ${colors.border_color}`,
-    padding: "16px 24px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
   };
 
   // Compact columns for the narrow Recent Transactions panel
@@ -732,7 +727,7 @@ const CategoryAnalyticsView = ({
             <Box>
               <Typography
                 sx={{
-                  fontSize: "2rem",
+                  fontSize: isMobile ? "1.15rem" : isCompact ? "1.4rem" : "2rem",
                   fontWeight: 700,
                   color: colors.primary_text,
                   lineHeight: 1.2,
@@ -745,7 +740,16 @@ const CategoryAnalyticsView = ({
         }
         onClose={handleOnClose}
         rightContent={
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              maxWidth: isMobile ? "100%" : "none",
+            }}
+          >
             {/* Date Range Preset */}
             <AppSelect
               size="small"
@@ -753,7 +757,7 @@ const CategoryAnalyticsView = ({
               ariaLabel="Date range preset"
               value={dateRangePreset}
               onChange={(e) => handleDateRangeChange(e.target.value)}
-              sx={{ minWidth: 140 }}
+              sx={{ minWidth: isMobile ? 110 : 140 }}
               options={DATE_RANGE_PRESETS}
             />
 
@@ -764,7 +768,7 @@ const CategoryAnalyticsView = ({
               ariaLabel="Trend type"
               value={trendType}
               onChange={(e) => handleTrendTypeChange(e.target.value)}
-              sx={{ minWidth: 100 }}
+              sx={{ minWidth: isMobile ? 88 : 100 }}
               options={TREND_TYPE_OPTIONS}
             />
 
@@ -784,8 +788,8 @@ const CategoryAnalyticsView = ({
                   backgroundColor: "#00DAC6",
                   color: "#000",
                   "&:hover": { backgroundColor: "#00b8a0" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <EditIcon sx={{ fontSize: 18 }} />
@@ -809,8 +813,8 @@ const CategoryAnalyticsView = ({
                   backgroundColor: "#ff4d4f",
                   color: "#fff",
                   "&:hover": { backgroundColor: "#d9363e" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <DeleteIcon sx={{ fontSize: 18 }} />
@@ -825,6 +829,9 @@ const CategoryAnalyticsView = ({
         <Box
           sx={{
             display: "flex",
+            flexWrap: "wrap",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
             gap: 2,
             padding: "12px 0",
             borderBottom: `1px solid ${colors.border_color}`,
@@ -874,24 +881,15 @@ const CategoryAnalyticsView = ({
         </Box>
       )}
 
-      {/* Main Content - Two Column Layout (Left Sidebar + Right Content) */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          gap: 1.5,
-          overflow: "visible",
-          minHeight: 0,
-        }}
-      >
+      {/* Main Content - stacks on mobile/tablet */}
+      <Box sx={mainRowSx}>
         {/* LEFT COLUMN - Category Details, Payment Chart, Recent Transactions */}
         <Box
           sx={{
-            width: "280px",
-            minWidth: "280px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
+            ...sideColumnSx,
+            width: isCompact ? "100%" : "280px",
+            minWidth: isCompact ? 0 : "280px",
+            maxWidth: isCompact ? "100%" : "280px",
           }}
         >
           <AnalyticsHeroCard
@@ -1017,15 +1015,7 @@ const CategoryAnalyticsView = ({
         </Box>
 
         {/* RIGHT CONTENT AREA */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
-            minWidth: 0,
-          }}
-        >
+        <Box sx={contentColumnSx}>
           <AnalyticsMetricGrid
             items={occurrenceMetricItems}
             sx={{ flexShrink: 0 }}
