@@ -25,7 +25,7 @@ import {
   useMediaQuery,
   Skeleton,
 } from "@mui/material";
-import { AppSelect } from "../../components/ui";
+import { AppSelect } from "../components/ui";
 import {
   AccessTime as TimeIcon,
   Visibility as ViewIcon,

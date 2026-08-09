@@ -7,7 +7,7 @@ import {
   faSortDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { AppSelect } from "../../components/ui";
+import { AppSelect } from "../components/ui";
 
 const DefaultColumnFilter = ({
   column: { filterValue, setFilter, preFilteredRows, id },
