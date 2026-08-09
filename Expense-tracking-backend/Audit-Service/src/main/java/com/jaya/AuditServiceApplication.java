@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.jaya.service", "com.jaya.client"})
 @EnableAsync
 public class AuditServiceApplication {
 

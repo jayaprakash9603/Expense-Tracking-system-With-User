@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients
+@EnableFeignClients(basePackages = {"com.jaya.service", "com.jaya.client"})
 public class ChatServiceApplication {
 
 	public static void main(String[] args) {
