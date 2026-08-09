@@ -134,7 +134,8 @@ const OverflowActionMenu = ({
 
   if (visibleItems.length === 0) return null;
 
-  const triggerSize = buttonSize === "small" ? 36 : 40;
+  // Prefer ≥44px touch targets on compact/mobile triggers
+  const triggerSize = buttonSize === "small" ? 44 : 40;
 
   return (
     <>

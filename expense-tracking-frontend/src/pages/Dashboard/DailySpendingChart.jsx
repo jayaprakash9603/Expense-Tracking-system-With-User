@@ -102,7 +102,7 @@
  *    - This will fetch all types but still filter in the UI
  */
 
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -117,6 +117,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
+import SpendingDayDetailSheet from "../../components/charts/SpendingDayDetailSheet";
 import {
   getAccentFunctionalIcon,
   applyAccentToIcon,
@@ -200,12 +201,16 @@ const DailySpendingChart = ({
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
+  const [mobileDetailPoint, setMobileDetailPoint] = useState(null);
 
   const isYearView = timeframe === "this_year" || timeframe === "last_year";
   const isAllTimeView = timeframe === "all_time";
 
-  // Chart configuration
-  const chartHeight = height || (isMobile ? 220 : isTablet ? 260 : 300);
+  // Chart plot needs enough vertical room on phones (axis + line readable)
+  const chartHeight = height || (isMobile ? 300 : isTablet ? 300 : 320);
+  const plotHeight = isMobile
+    ? Math.max(Number(chartHeight) || 0, 300)
+    : chartHeight;
   const hideXAxis =
     !isYearView &&
     !isAllTimeView &&
@@ -692,12 +697,26 @@ const DailySpendingChart = ({
       );
   };
 
-  const handleChartClick = (state) => {
-    if (typeof onPointClick !== "function") return;
-    const point = state?.activePayload?.[0]?.payload;
-    if (!point) return;
-    onPointClick(point);
-  };
+  const handleChartClick = useCallback(
+    (state) => {
+      const point = state?.activePayload?.[0]?.payload;
+      if (!point) return;
+
+      // Small screens: full-screen detail sheet unless parent owns drilldown
+      if (isMobile && typeof onPointClick !== "function") {
+        setMobileDetailPoint(point);
+      }
+
+      if (typeof onPointClick === "function") {
+        onPointClick(point);
+      }
+    },
+    [isMobile, onPointClick],
+  );
+
+  const closeMobileDetail = useCallback(() => {
+    setMobileDetailPoint(null);
+  }, []);
 
   const chartData = (() => {
     if (isOverlayAllMode) {
@@ -1030,8 +1049,9 @@ const DailySpendingChart = ({
         <div
           className="dashboard-chart-plot"
           style={{
-            height: isMobile ? Math.max(chartHeight, 260) : chartHeight,
+            height: plotHeight,
             width: "100%",
+            minHeight: isMobile ? 300 : undefined,
             position: "relative",
           }}
         >
@@ -1041,10 +1061,10 @@ const DailySpendingChart = ({
               key={animationKey}
               onClick={handleChartClick}
               margin={{
-                top: 8,
-                right: isMobile ? 4 : 12,
-                left: isMobile ? 0 : 4,
-                bottom: 4,
+                top: 10,
+                right: isMobile ? 8 : 12,
+                left: isMobile ? -8 : 4,
+                bottom: isMobile ? 8 : 4,
               }}
             >
             <defs>
@@ -1112,7 +1132,8 @@ const DailySpendingChart = ({
 
             <YAxis
               stroke={colors.primary_text}
-              fontSize={12}
+              fontSize={isMobile ? 11 : 12}
+              width={isMobile ? 40 : 48}
               tickLine={false}
               tickFormatter={(value) =>
                 `${currencySymbol}${Math.round(value / 1000)}K`
@@ -1123,6 +1144,7 @@ const DailySpendingChart = ({
               wrapperStyle={{
                 zIndex: 2000,
                 outline: "none",
+                display: isMobile ? "none" : undefined,
               }}
               cursor={{
                 stroke: theme.color,
@@ -1135,6 +1157,9 @@ const DailySpendingChart = ({
               animationDuration={150}
               animationEasing="ease-out"
               content={(props) => {
+                // Mobile uses full-screen SpendingDayDetailSheet on tap
+                if (isMobile) return null;
+
                 const point = props?.payload?.[0]?.payload;
 
                 const hasAnyOverlayBudgets = (() => {
@@ -1259,6 +1284,18 @@ const DailySpendingChart = ({
         </ResponsiveContainer>
         </div>
       )}
+
+      {/* Mobile: tooltip-style day detail covering the full screen */}
+      {isMobile ? (
+        <SpendingDayDetailSheet
+          open={Boolean(mobileDetailPoint)}
+          onClose={closeMobileDetail}
+          point={mobileDetailPoint}
+          selectedType={activeType}
+          theme={theme}
+          timeframe={timeframe}
+        />
+      ) : null}
     </div>
   );
 };

@@ -1,14 +1,14 @@
 import React from "react";
 import PropTypes from "prop-types";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import { Stack } from "@mui/material";
+import { useMediaQuery } from "@mui/material";
 import { useTheme } from "../hooks/useTheme";
 import ReportActionMenu from "./common/ReportActionMenu";
 
 /**
  * DashboardHeader
- * Reusable header for dashboard-like pages.
- * Shows title/subtitle and an action menu with refresh/export (and optional filter hook).
+ * Compact, responsive header: title + subtitle on the left, actions on the right.
+ * On small screens stays a single horizontal bar (no stacked/centered menu).
  */
 const DashboardHeader = ({
   title,
@@ -19,64 +19,135 @@ const DashboardHeader = ({
   onCustomize,
 }) => {
   const { colors, mode } = useTheme();
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
 
   const defaultTitle = (
-    <Stack direction="row" alignItems="center" spacing={1}>
-      <MonetizationOnIcon sx={{ fontSize: 28, color: colors.primary_accent }} />
-      <span>Financial Dashboard</span>
-    </Stack>
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: isMobile ? 6 : 8,
+        minWidth: 0,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: isMobile ? 28 : 36,
+          height: isMobile ? 28 : 36,
+          borderRadius: "50%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          background: `${colors.primary_accent}22`,
+          color: colors.primary_accent,
+        }}
+      >
+        <MonetizationOnIcon sx={{ fontSize: isMobile ? 16 : 22 }} />
+      </span>
+      <span
+        style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Financial Dashboard
+      </span>
+    </span>
   );
 
   return (
-    <div 
-      className="dashboard-header"
+    <header
+      className={`dashboard-header${isMobile ? " is-mobile" : ""}${
+        isTablet ? " is-tablet" : ""
+      }`}
       style={{
         display: "flex",
+        flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        padding: "20px 24px",
-        background: mode === "dark" 
-          ? `linear-gradient(135deg, rgba(31,41,55,0.8) 0%, rgba(17,24,39,0.8) 100%)`
-          : `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(243,244,246,0.9) 100%)`,
+        gap: isMobile ? 8 : 16,
+        padding: isMobile ? "12px 12px" : isTablet ? "14px 16px" : "18px 22px",
+        background:
+          mode === "dark"
+            ? "linear-gradient(135deg, rgba(31,41,55,0.85) 0%, rgba(17,24,39,0.9) 100%)"
+            : "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%)",
+        border: `1px solid ${colors.border_color}`,
         borderBottom: `1px solid ${colors.border_color}`,
-        borderRadius: "16px",
-        marginBottom: "24px",
-        boxShadow: mode === "dark" ? "0 4px 20px rgba(0,0,0,0.2)" : "0 4px 20px rgba(0,0,0,0.05)",
+        borderRadius: isMobile ? "12px" : "16px",
+        marginBottom: isMobile ? 12 : 20,
+        boxShadow:
+          mode === "dark"
+            ? "0 4px 16px rgba(0,0,0,0.22)"
+            : "0 4px 16px rgba(0,0,0,0.05)",
         backdropFilter: "blur(10px)",
+        width: "100%",
+        boxSizing: "border-box",
+        position: "relative",
       }}
     >
-      <div className="header-left">
+      <div
+        className="header-left"
+        style={{ flex: "1 1 auto", minWidth: 0, paddingRight: 8 }}
+      >
         <div className="header-title">
-          <h1 style={{ 
-            color: colors.primary_accent, 
-            margin: 0, 
-            fontSize: "24px", 
-            fontWeight: "700",
-            letterSpacing: "-0.5px"
-          }}>
+          <h1
+            style={{
+              color: colors.primary_accent,
+              margin: 0,
+              fontSize: isMobile ? "1rem" : isTablet ? "1.25rem" : "1.5rem",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.25,
+              display: "flex",
+              alignItems: "center",
+              minWidth: 0,
+            }}
+          >
             {title ?? defaultTitle}
           </h1>
           {subtitle && (
-            <p style={{ 
-              color: colors.secondary_text, 
-              margin: "4px 0 0 0", 
-              fontSize: "14px",
-              fontWeight: "500"
-            }}>
+            <p
+              style={{
+                color: colors.secondary_text,
+                margin: isMobile ? "2px 0 0 34px" : "4px 0 0 44px",
+                fontSize: isMobile ? "11px" : "13px",
+                fontWeight: 500,
+                lineHeight: 1.35,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: isMobile ? "nowrap" : "normal",
+                maxWidth: "100%",
+              }}
+            >
               {subtitle}
             </p>
           )}
         </div>
       </div>
-      <div className="header-actions" style={{ display: "flex", alignItems: "center" }}>
+
+      <div
+        className="header-actions"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          flexShrink: 0,
+          marginLeft: "auto",
+        }}
+      >
         <ReportActionMenu
           onRefresh={onRefresh}
           onExport={onExport}
           onFilter={onFilter}
           onCustomize={onCustomize}
+          buttonSize={isMobile ? "small" : "medium"}
+          ariaLabel="Dashboard actions"
         />
       </div>
-    </div>
+    </header>
   );
 };
 

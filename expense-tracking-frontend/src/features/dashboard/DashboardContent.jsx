@@ -37,7 +37,7 @@ const SECTION_COMPONENTS = {
   ),
   "daily-spending": ({ isMobile, isTablet, analyticsLoading }) => (
     <DailySpendingContainer
-      height={isMobile ? 280 : isTablet ? 320 : 360}
+      height={isMobile ? 320 : isTablet ? 340 : 360}
       refreshTrigger={Math.random()}
       showSkeleton={analyticsLoading}
       fillMissingDays={false}
@@ -397,13 +397,17 @@ export default function DashboardContent() {
     );
   };
 
+  // On small screens, drop the outer card chrome so each section reads as its own card
+  const flattenShell = isMobile || isTablet;
+
   return (
     <div
-      className="expense-dashboard"
+      className={`expense-dashboard${flattenShell ? " is-flat-shell" : ""}`}
       style={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: flattenShell ? "transparent" : colors.secondary_bg,
         color: colors.primary_text,
-        border: `1px solid ${colors.border_color}`,
+        border: flattenShell ? "none" : `1px solid ${colors.border_color}`,
+        boxShadow: flattenShell ? "none" : undefined,
       }}
     >
       <DashboardHeader

@@ -30,9 +30,8 @@ const formatNumber0 = (v) =>
 /**
  * MonthlyTrendChart
  * Displays monthly expense bars + average line for a given year.
- * Accepts normalized { labels, datasets: [{ data }] } structure.
+ * Compact header on small screens: title left, year controls right.
  */
-
 const MonthlyTrendChart = ({
   data,
   year,
@@ -46,7 +45,7 @@ const MonthlyTrendChart = ({
   const isAtCurrentYear = year >= currentYear;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
-  const chartHeight = isMobile ? 240 : isTablet ? 320 : 480;
+  const chartHeight = isMobile ? 260 : isTablet ? 320 : 480;
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
@@ -82,6 +81,23 @@ const MonthlyTrendChart = ({
         ? TrendingDown
         : TrendingFlat;
 
+  const navBtnSx = {
+    width: isMobile ? 40 : 36,
+    height: isMobile ? 40 : 36,
+    borderRadius: "10px",
+    border: `1px solid ${colors.border_color}`,
+    backgroundColor: colors.tertiary_bg,
+    color: colors.primary_accent,
+    "&:hover": {
+      backgroundColor: `${colors.primary_accent}18`,
+      borderColor: colors.primary_accent,
+    },
+    "&.Mui-disabled": {
+      opacity: 0.4,
+      color: colors.secondary_text,
+    },
+  };
+
   return (
     <div
       className={`chart-container monthly-trend${isMobile ? " is-mobile" : ""}`}
@@ -90,51 +106,71 @@ const MonthlyTrendChart = ({
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
         overflow: "visible",
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
+      {/* Row 1: title + year controls aligned */}
       <div
-        className={`chart-header dashboard-chart-header${
-          isMobile ? " is-mobile" : ""
-        }`}
+        className="chart-header dashboard-chart-header monthly-trend-header"
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: isMobile ? 8 : 12,
+          flexWrap: "nowrap",
+          width: "100%",
+          marginBottom: hasYoyComparison ? 8 : 12,
+        }}
       >
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-          <h3
-            style={{
-              color: colors.primary_text,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              margin: 0,
+        <h3
+          className="monthly-trend-title"
+          style={{
+            color: colors.primary_text,
+            display: "flex",
+            alignItems: "center",
+            gap: isMobile ? 6 : 8,
+            margin: 0,
+            minWidth: 0,
+            flex: "1 1 auto",
+            fontSize: isMobile ? "0.9rem" : "1.05rem",
+            fontWeight: 600,
+            lineHeight: 1.25,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          <TrendingUp
+            sx={{
+              fontSize: isMobile ? 18 : 22,
+              color: colors.primary_accent,
+              flexShrink: 0,
             }}
-          >
-            <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
-            Monthly Expense Trend
-          </h3>
-          {hasYoyComparison && (
-            <div className="trend-stats">
-              <span
-                className={
-                  yoyDirection === "down"
-                    ? "trend-down"
-                    : yoyDirection === "flat"
-                      ? "trend-flat"
-                      : "trend-up"
-                }
-              >
-                <TrendIcon sx={{ fontSize: 16 }} aria-hidden="true" />
-                {`${Math.abs(yoyChange.percentChange).toFixed(1)}% vs last year`}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="chart-controls dashboard-chart-controls monthly-year-controls">
+          />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {isMobile ? "Monthly Trend" : "Monthly Expense Trend"}
+          </span>
+        </h3>
+
+        <div
+          className="chart-controls dashboard-chart-controls monthly-year-controls"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            flexShrink: 0,
+            marginLeft: "auto",
+          }}
+        >
           <IconButton
             className="nav-btn nav-left"
             size="small"
             onClick={onPrevYear}
             aria-label="Previous year"
             title="Go to previous year"
-            sx={{ color: colors.primary_accent }}
+            sx={navBtnSx}
           >
             <ChevronLeft />
           </IconButton>
@@ -148,6 +184,14 @@ const MonthlyTrendChart = ({
               border: `1px solid ${
                 isAtCurrentYear ? colors.primary_accent : colors.border_color
               }`,
+              minWidth: isMobile ? 56 : 64,
+              textAlign: "center",
+              borderRadius: 10,
+              padding: isMobile ? "8px 10px" : "6px 12px",
+              fontWeight: 700,
+              fontSize: isMobile ? "0.9rem" : "0.95rem",
+              fontVariantNumeric: "tabular-nums",
+              lineHeight: 1.2,
             }}
             title={isAtCurrentYear ? "Current year" : undefined}
           >
@@ -167,6 +211,7 @@ const MonthlyTrendChart = ({
                 : "Go to next year"
             }
             sx={{
+              ...navBtnSx,
               color: isAtCurrentYear
                 ? colors.secondary_text
                 : colors.primary_accent,
@@ -176,73 +221,114 @@ const MonthlyTrendChart = ({
           </IconButton>
         </div>
       </div>
-      <div
-        className="dashboard-chart-plot"
-        style={{ width: "100%", height: chartHeight, position: "relative" }}
-      >
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={chartRows}
-          margin={{
-            top: 8,
-            right: isMobile ? 4 : 12,
-            left: isMobile ? 0 : 4,
-            bottom: 4,
+
+      {/* Row 2: YoY badge — full width under header, not stacked into title column */}
+      {hasYoyComparison && (
+        <div
+          className="trend-stats monthly-trend-yoy"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginBottom: 12,
+            width: "100%",
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
-          <XAxis
-            dataKey="month"
-            stroke={colors.secondary_text}
-            fontSize={isMobile ? 10 : 12}
-            interval={isMobile ? "preserveStartEnd" : 0}
-            tick={{ fontSize: isMobile ? 10 : 12 }}
-          />
-          <YAxis
-            stroke={colors.secondary_text}
-            fontSize={isMobile ? 10 : 12}
-            width={isMobile ? 36 : 48}
-            tickFormatter={(value) =>
-              `${currencySymbol}${Math.round(value / 1000)}K`
+          <span
+            className={
+              yoyDirection === "down"
+                ? "trend-down"
+                : yoyDirection === "flat"
+                  ? "trend-flat"
+                  : "trend-up"
             }
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border_color}`,
-              borderRadius: "8px",
-              color: colors.primary_text,
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: isMobile ? 12 : 13,
+              fontWeight: 600,
+              lineHeight: 1.3,
             }}
-            labelStyle={{
-              color: colors.primary_text,
-              fontWeight: "600",
+          >
+            <TrendIcon sx={{ fontSize: isMobile ? 14 : 16 }} aria-hidden="true" />
+            {`${Math.abs(yoyChange.percentChange).toFixed(1)}% vs last year`}
+          </span>
+        </div>
+      )}
+
+      <div
+        className="dashboard-chart-plot"
+        style={{
+          width: "100%",
+          height: chartHeight,
+          minHeight: isMobile ? 240 : undefined,
+          position: "relative",
+        }}
+      >
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={chartRows}
+            margin={{
+              top: 8,
+              right: isMobile ? 6 : 12,
+              left: isMobile ? -6 : 4,
+              bottom: isMobile ? 4 : 4,
             }}
-            itemStyle={{
-              color: colors.primary_text,
-            }}
-            formatter={(value, name) => [
-              `${currencySymbol}${formatNumber0(value)}`,
-              name === "expenses" ? "Expenses" : "Average",
-            ]}
-          />
-          <Bar
-            dataKey="expenses"
-            fill={colors.primary_accent}
-            radius={[4, 4, 0, 0]}
-          />
-          <Line
-            type="monotone"
-            dataKey="average"
-            stroke="#ffcc00"
-            strokeDasharray="5 5"
-            dot={false}
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
+            <XAxis
+              dataKey="month"
+              stroke={colors.secondary_text}
+              fontSize={isMobile ? 10 : 12}
+              interval={0}
+              tick={{ fontSize: isMobile ? 9 : 12 }}
+              height={isMobile ? 28 : 36}
+            />
+            <YAxis
+              stroke={colors.secondary_text}
+              fontSize={isMobile ? 10 : 12}
+              width={isMobile ? 40 : 48}
+              tick={{ fontSize: isMobile ? 10 : 12 }}
+              tickFormatter={(value) =>
+                `${currencySymbol}${Math.round(value / 1000)}K`
+              }
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: colors.secondary_bg,
+                border: `1px solid ${colors.border_color}`,
+                borderRadius: "8px",
+                color: colors.primary_text,
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+              labelStyle={{
+                color: colors.primary_text,
+                fontWeight: "600",
+              }}
+              itemStyle={{
+                color: colors.primary_text,
+              }}
+              formatter={(value, name) => [
+                `${currencySymbol}${formatNumber0(value)}`,
+                name === "expenses" ? "Expenses" : "Average",
+              ]}
+            />
+            <Bar
+              dataKey="expenses"
+              fill={colors.primary_accent}
+              radius={[4, 4, 0, 0]}
+            />
+            <Line
+              type="monotone"
+              dataKey="average"
+              stroke="#ffcc00"
+              strokeDasharray="5 5"
+              dot={false}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
 
-      {/* Loading indicator when skeleton is disabled */}
       {loading && (
         <div
           style={{
@@ -266,7 +352,7 @@ MonthlyTrendChart.propTypes = {
   data: PropTypes.shape({
     labels: PropTypes.arrayOf(PropTypes.string),
     datasets: PropTypes.arrayOf(
-      PropTypes.shape({ data: PropTypes.arrayOf(PropTypes.number) })
+      PropTypes.shape({ data: PropTypes.arrayOf(PropTypes.number) }),
     ),
   }),
   year: PropTypes.number.isRequired,
