@@ -1,4 +1,18 @@
 import React from "react";
+import { AppSelect } from "../../components/ui";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "", label: "-- Select Payment Method --" },
+  { value: "cash", label: "Cash" },
+  { value: "creditNeedToPaid", label: "Credit Due" },
+  { value: "creditPaid", label: "Credit Paid" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "-- Select Category --" },
+  { value: "loss", label: "Loss" },
+  { value: "gain", label: "Gain" },
+];
 
 const Filters = ({
   searchTerm,
@@ -69,16 +83,14 @@ const Filters = ({
       )}
       {searchTerm === "Expenses By Payment Method" && (
         <div className="form-group mb-3 width">
-          <select
+          <AppSelect
             className="form-control"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option value="">-- Select Payment Method --</option>
-            <option value="cash">Cash</option>
-            <option value="creditNeedToPaid">Credit Due</option>
-            <option value="creditPaid">Credit Paid</option>
-          </select>
+            onValueChange={setPaymentMethod}
+            options={PAYMENT_METHOD_OPTIONS}
+            ariaLabel="Payment method"
+            size="small"
+          />
         </div>
       )}
       {searchTerm === "Within Range Expenses" && (
@@ -106,42 +118,38 @@ const Filters = ({
       {searchTerm === "Expenses By Type and Payment Method" && (
         <div className="form-group mb-3">
           <div className="width">
-            <select
+            <AppSelect
               className="form-control mb-3"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">-- Select Category --</option>
-              <option value="loss">Loss</option>
-              <option value="gain">Gain</option>
-            </select>
+              onValueChange={setCategory}
+              options={CATEGORY_OPTIONS}
+              ariaLabel="Category"
+              size="small"
+            />
           </div>
           <div className="width">
-            <select
+            <AppSelect
               className="form-control"
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <option value="">-- Select Payment Method --</option>
-              <option value="cash">Cash</option>
-              <option value="creditNeedToPaid">Credit Due</option>
-              <option value="creditPaid">Credit Paid</option>
-            </select>
+              onValueChange={setPaymentMethod}
+              options={PAYMENT_METHOD_OPTIONS}
+              ariaLabel="Payment method"
+              size="small"
+            />
           </div>
         </div>
       )}
       {searchTerm === "Expenses By Type" && (
         <div className="form-group mb-3">
           <div className="width">
-            <select
+            <AppSelect
               className="form-control mb-3"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <option value="">-- Select Category --</option>
-              <option value="loss">Loss</option>
-              <option value="gain">Gain</option>
-            </select>
+              onValueChange={setCategory}
+              options={CATEGORY_OPTIONS}
+              ariaLabel="Category"
+              size="small"
+            />
           </div>
         </div>
       )}

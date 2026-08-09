@@ -56,6 +56,7 @@ import {
   WorkspacePremium as CrownIcon,
   RocketLaunch as RocketIcon,
 } from "@mui/icons-material";
+import { AppSelect } from "../../components/ui";
 
 const ExpensesDashboard = () => {
   const [isDark, setIsDark] = useState(true);
@@ -1647,20 +1648,19 @@ const ExpensesDashboard = () => {
                 } focus:ring-2 focus:ring-cyan-400 transition-all duration-300`}
               />
 
-              <select
-                className={`w-full p-3 rounded-xl border ${
-                  isDark
-                    ? "border-gray-600 bg-gray-700"
-                    : "border-gray-300 bg-white"
-                } focus:ring-2 focus:ring-cyan-400 transition-all duration-300`}
-              >
-                <option>Select Category</option>
-                {expenseData.map((category) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <AppSelect
+                value=""
+                options={[
+                  { value: "", label: "Select Category" },
+                  ...expenseData.map((category) => ({
+                    value: category.name,
+                    label: category.name,
+                  })),
+                ]}
+                ariaLabel="Expense category"
+                size="small"
+                placeholder="Select Category"
+              />
 
               <input
                 type="text"

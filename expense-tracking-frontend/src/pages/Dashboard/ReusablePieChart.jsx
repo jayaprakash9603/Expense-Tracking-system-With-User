@@ -12,6 +12,7 @@ import {
   Sector,
 } from "recharts";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
+import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
 import EmptyStateCard from "../../components/EmptyStateCard";
 import {
   getEntityIcon,
@@ -461,43 +462,38 @@ const ReusablePieChart = ({
             }}
           >
             {onTimeframeChange && (
-              <select
-                className="time-selector"
+              <ChartTimeframeSelector
                 value={timeframe}
-                onChange={(e) => onTimeframeChange(e.target.value)}
-                aria-label="Timeframe"
-                style={{
-                  backgroundColor: themeColors.tertiary_bg,
-                  color: themeColors.primary_text,
-                  border: `1px solid ${themeColors.border_color}`,
-                  fontSize: isMobile ? 11 : 13,
-                  padding: isMobile ? "4px 6px" : "6px 10px",
-                  minWidth: isMobile ? 88 : 120,
-                  maxWidth: isMobile ? 110 : 160,
-                  height: isMobile ? 32 : 36,
-                  borderRadius: 8,
-                  lineHeight: 1.2,
-                }}
-              >
-                <option value="this_month">
-                  {isMobile ? "Month" : "This Month"}
-                </option>
-                <option value="last_month">
-                  {isMobile ? "Last Mo" : "Last Month"}
-                </option>
-                <option value="last_3_months">
-                  {isMobile ? "3 Mo" : "Last 3 Months"}
-                </option>
-                <option value="this_year">
-                  {isMobile ? "Year" : "This Year"}
-                </option>
-                <option value="last_year">
-                  {isMobile ? "Last Yr" : "Last Year"}
-                </option>
-                <option value="all_time">
-                  {isMobile ? "All" : "All Time"}
-                </option>
-              </select>
+                onChange={onTimeframeChange}
+                ariaLabel="Timeframe"
+                compact
+                options={[
+                  {
+                    value: "this_month",
+                    label: isMobile ? "Month" : "This Month",
+                  },
+                  {
+                    value: "last_month",
+                    label: isMobile ? "Last Mo" : "Last Month",
+                  },
+                  {
+                    value: "last_3_months",
+                    label: isMobile ? "3 Mo" : "Last 3 Months",
+                  },
+                  {
+                    value: "this_year",
+                    label: isMobile ? "Year" : "This Year",
+                  },
+                  {
+                    value: "last_year",
+                    label: isMobile ? "Last Yr" : "Last Year",
+                  },
+                  {
+                    value: "all_time",
+                    label: isMobile ? "All" : "All Time",
+                  },
+                ]}
+              />
             )}
             {onFlowTypeChange && (
               <ChartTypeToggle

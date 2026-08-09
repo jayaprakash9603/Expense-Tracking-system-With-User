@@ -3,10 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Switch,
   FormControlLabel,
@@ -17,6 +13,7 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
+import { AppSelect } from "../ui";
 import {
   FileDownload as FileDownloadIcon,
   PieChart as PieChartIcon,
@@ -359,51 +356,35 @@ const ExcelDownload = () => {
               <CalendarIcon fontSize="small" />
               Date Range
             </Typography>
-            <FormControl fullWidth size="small">
-              <InputLabel>Select Period</InputLabel>
-              <Select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                label="Select Period"
-              >
-                {dateRangeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              label="Select Period"
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              options={dateRangeOptions}
+            />
 
             {dateRange === "monthly" && (
               <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                <FormControl size="small" sx={{ flex: 1 }}>
-                  <InputLabel>Year</InputLabel>
-                  <Select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    label="Year"
-                  >
-                    {years.map((year) => (
-                      <MenuItem key={year} value={year}>
-                        {year}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ flex: 1 }}>
-                  <InputLabel>Month</InputLabel>
-                  <Select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    label="Month"
-                  >
-                    {months.map((month) => (
-                      <MenuItem key={month.value} value={month.value}>
-                        {month.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <AppSelect
+                  size="small"
+                  label="Year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  sx={{ flex: 1 }}
+                  options={years.map((year) => ({
+                    value: year,
+                    label: String(year),
+                  }))}
+                />
+                <AppSelect
+                  size="small"
+                  label="Month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  sx={{ flex: 1 }}
+                  options={months}
+                />
               </Box>
             )}
 

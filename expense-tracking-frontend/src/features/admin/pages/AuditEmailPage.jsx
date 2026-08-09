@@ -5,18 +5,28 @@ import {
   Box,
   Button,
   CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
   Typography,
   Alert,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import { API_BASE_URL } from "../../../config/api";
 import { expensesTypesEmail } from "../../../pages/Input Fields/InputFields";
 import HighlightedText from "../../../components/common/HighlightedText";
 import { createFuzzyFilterOptions } from "../../../utils/data/fuzzyMatchUtils";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "", label: "-- Select Payment Method --" },
+  { value: "cash", label: "Cash" },
+  { value: "creditNeedToPaid", label: "Credit Due" },
+  { value: "creditPaid", label: "Credit Paid" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "-- Select Category --" },
+  { value: "loss", label: "Loss" },
+  { value: "gain", label: "Gain" },
+];
 
 const AuditEmail = () => {
   const [logTypes] = useState(expensesTypesEmail);
@@ -340,18 +350,12 @@ const AuditEmail = () => {
       )}
       {searchTerm === "Expenses By Payment Method" && (
         <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel>Select Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value="">-- Select Payment Method --</MenuItem>
-              <MenuItem value="cash">Cash</MenuItem>
-              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-              <MenuItem value="creditPaid">Credit Paid</MenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            label="Select Payment Method"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            options={PAYMENT_METHOD_OPTIONS}
+          />
         </Box>
       )}
       {searchTerm === "Within Range Expenses" && (
@@ -377,44 +381,29 @@ const AuditEmail = () => {
       )}
       {searchTerm === "Expenses By Type and Payment Method" && (
         <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Select Category</InputLabel>
-            <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <MenuItem value="">-- Select Category --</MenuItem>
-              <MenuItem value="loss">Loss</MenuItem>
-              <MenuItem value="gain">Gain</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Select Payment Method</InputLabel>
-            <Select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            >
-              <MenuItem value="">-- Select Payment Method --</MenuItem>
-              <MenuItem value="cash">Cash</MenuItem>
-              <MenuItem value="creditNeedToPaid">Credit Due</MenuItem>
-              <MenuItem value="creditPaid">Credit Paid</MenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            label="Select Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            sx={{ mb: 2 }}
+            options={CATEGORY_OPTIONS}
+          />
+          <AppSelect
+            label="Select Payment Method"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            options={PAYMENT_METHOD_OPTIONS}
+          />
         </Box>
       )}
       {searchTerm === "Expenses By Type" && (
         <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth>
-            <InputLabel>Select Category</InputLabel>
-            <Select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-            >
-              <MenuItem value="">-- Select Category --</MenuItem>
-              <MenuItem value="loss">Loss</MenuItem>
-              <MenuItem value="gain">Gain</MenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            label="Select Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            options={CATEGORY_OPTIONS}
+          />
         </Box>
       )}
       {searchTerm === "Expenses Within Amount Range" && (

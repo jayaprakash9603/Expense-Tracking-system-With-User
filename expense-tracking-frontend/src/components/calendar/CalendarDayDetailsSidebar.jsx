@@ -6,10 +6,9 @@ import {
   IconButton,
   Divider,
   Chip,
-  Select,
-  MenuItem,
   Tooltip,
 } from "@mui/material";
+import { AppSelect } from "../ui";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ArrowDownwardRoundedIcon from "@mui/icons-material/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@mui/icons-material/ArrowUpwardRounded";
@@ -912,31 +911,18 @@ const CalendarDayDetailsSidebar = ({
           </IconButton>
         </Box>
 
-        <Select
-          size="small"
+        <AppSelect
           value={pageSize}
-          onChange={(e) => setPageSize(Number(e.target.value) || 5)}
-          sx={{
-            height: 30,
-            minWidth: 64,
-            color: colors.primary_text,
-            backgroundColor: colors.secondary_bg,
-            borderRadius: 1.5,
-            ".MuiOutlinedInput-notchedOutline": {
-              borderColor: colors.border,
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: colors.primary_accent,
-            },
-            ".MuiSvgIcon-root": { color: colors.primary_text },
-          }}
-        >
-          {[5, 10, 20].map((n) => (
-            <MenuItem key={n} value={n}>
-              {n}
-            </MenuItem>
-          ))}
-        </Select>
+          onValueChange={(val) => setPageSize(Number(val) || 5)}
+          options={[5, 10, 20].map((n) => ({ value: n, label: String(n) }))}
+          ariaLabel="Rows per page"
+          size="small"
+          density="compact"
+          fullWidth={false}
+          displayEmpty={false}
+          showSelectedCheck={false}
+          sx={{ minWidth: 64 }}
+        />
       </Box>
     </Box>
   );

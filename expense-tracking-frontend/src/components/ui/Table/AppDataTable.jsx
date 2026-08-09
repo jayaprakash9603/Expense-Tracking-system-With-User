@@ -34,10 +34,7 @@ import {
   Box,
   Typography,
   InputAdornment,
-  Select,
-  MenuItem,
   Chip,
-  FormControl,
   Skeleton,
   Fade,
 } from "@mui/material";
@@ -51,6 +48,7 @@ import {
   LastPage,
 } from "@mui/icons-material";
 import AppTextField from "../TextField/AppTextField";
+import AppSelect from "../Select/AppSelect";
 import AppTable from "./AppTable";
 import { useTheme } from "../../../hooks/useTheme";
 
@@ -331,41 +329,25 @@ const AppDataTable = forwardRef(function AppDataTable(
             {filterable &&
               filterPosition === "inline" &&
               filterableColumns.map((col) => (
-                <FormControl
+                <AppSelect
                   key={col.field}
                   size="small"
-                  sx={{ minWidth: 120 }}
-                >
-                  <Select
-                    value={activeFilters[col.field] || ""}
-                    onChange={(e) =>
-                      handleFilterChange(col.field, e.target.value)
-                    }
-                    displayEmpty
-                    sx={{
-                      backgroundColor: colors.secondary_bg,
-                      color: colors.primary_text,
-                      fontSize: "0.8rem",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.border_color,
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.primary_accent,
-                      },
-                    }}
-                  >
-                    <MenuItem value="">
-                      <span style={{ color: colors.secondary_text }}>
-                        {col.label}
-                      </span>
-                    </MenuItem>
-                    {filterOptions[col.field]?.map((value) => (
-                      <MenuItem key={value} value={value}>
-                        {col.formatFilter ? col.formatFilter(value) : value}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                  fullWidth={false}
+                  ariaLabel={col.label}
+                  placeholder={col.label}
+                  value={activeFilters[col.field] || ""}
+                  onChange={(e) =>
+                    handleFilterChange(col.field, e.target.value)
+                  }
+                  sx={{ minWidth: 120, fontSize: "0.8rem" }}
+                  options={[
+                    { value: "", label: col.label },
+                    ...(filterOptions[col.field]?.map((value) => ({
+                      value,
+                      label: col.formatFilter ? col.formatFilter(value) : value,
+                    })) || []),
+                  ]}
+                />
               ))}
 
             {/* Search */}
@@ -421,38 +403,26 @@ const AppDataTable = forwardRef(function AppDataTable(
               sx={{ color: colors.secondary_text, fontSize: 20 }}
             />
             {filterableColumns.map((col) => (
-              <FormControl key={col.field} size="small" sx={{ minWidth: 100 }}>
-                <Select
-                  value={activeFilters[col.field] || ""}
-                  onChange={(e) =>
-                    handleFilterChange(col.field, e.target.value)
-                  }
-                  displayEmpty
-                  sx={{
-                    backgroundColor: colors.secondary_bg,
-                    color: colors.primary_text,
-                    fontSize: "0.75rem",
-                    height: 32,
-                    "& .MuiOutlinedInput-notchedOutline": {
-                      borderColor: colors.border_color,
-                    },
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: colors.primary_accent,
-                    },
-                  }}
-                >
-                  <MenuItem value="">
-                    <span style={{ color: colors.secondary_text }}>
-                      {col.label}
-                    </span>
-                  </MenuItem>
-                  {filterOptions[col.field]?.map((value) => (
-                    <MenuItem key={value} value={value}>
-                      {col.formatFilter ? col.formatFilter(value) : value}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AppSelect
+                key={col.field}
+                size="compact"
+                density="compact"
+                fullWidth={false}
+                ariaLabel={col.label}
+                placeholder={col.label}
+                value={activeFilters[col.field] || ""}
+                onChange={(e) =>
+                  handleFilterChange(col.field, e.target.value)
+                }
+                sx={{ minWidth: 100 }}
+                options={[
+                  { value: "", label: col.label },
+                  ...(filterOptions[col.field]?.map((value) => ({
+                    value,
+                    label: col.formatFilter ? col.formatFilter(value) : value,
+                  })) || []),
+                ]}
+              />
             ))}
 
             {activeFilterCount > 0 && (
@@ -566,27 +536,19 @@ const AppDataTable = forwardRef(function AppDataTable(
             >
               Rows:
             </Typography>
-            <Select
+            <AppSelect
+              size="compact"
+              density="compact"
+              fullWidth={false}
+              ariaLabel="Rows per page"
               value={rowsPerPage}
               onChange={handleRowsPerPageChange}
-              size="small"
-              sx={{
-                backgroundColor: colors.secondary_bg,
-                color: colors.primary_text,
-                fontSize: "0.75rem",
-                height: 28,
-                minWidth: 50,
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.border_color,
-                },
-              }}
-            >
-              {rowsPerPageOptions.map((opt) => (
-                <MenuItem key={opt} value={opt}>
-                  {opt}
-                </MenuItem>
-              ))}
-            </Select>
+              sx={{ minWidth: 50 }}
+              options={rowsPerPageOptions.map((opt) => ({
+                value: opt,
+                label: String(opt),
+              }))}
+            />
 
             {/* Page navigation */}
             <Box sx={{ display: "flex", alignItems: "center" }}>

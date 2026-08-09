@@ -7,6 +7,7 @@ import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { formatDate } from "../../utils/formatting/dateFormatter";
 import usePreserveNavigationState from "../../hooks/usePreserveNavigationState";
+import { AppSelect } from "../../components/ui";
 import {
   Accordion,
   AccordionSummary,
@@ -746,84 +747,45 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                     }}
                   />
 
-                  <select
+                  <AppSelect
                     value={filterCategory}
-                    onChange={(e) => setFilterCategory(e.target.value)}
-                    className="px-3 py-1 rounded-md text-sm focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: colors.primary_bg,
-                      color: colors.primary_text,
-                      border: `1px solid ${colors.primary_accent}`,
-                    }}
-                  >
-                    <option
-                      value=""
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      All Categories
-                    </option>
-                    {categories.map((cat) => (
-                      <option
-                        key={cat}
-                        value={cat}
-                        style={{ backgroundColor: colors.primary_bg }}
-                      >
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                    onValueChange={setFilterCategory}
+                    options={[
+                      { value: "", label: "All Categories" },
+                      ...categories.map((cat) => ({ value: cat, label: cat })),
+                    ]}
+                    ariaLabel="Filter by category"
+                    size="small"
+                    density="compact"
+                    fullWidth={false}
+                    displayEmpty={false}
+                    showSelectedCheck={false}
+                    sx={{ minWidth: 140 }}
+                  />
 
-                  <select
+                  <AppSelect
                     value={`${sortBy}-${sortOrder}`}
-                    onChange={(e) => {
-                      const [field, order] = e.target.value.split("-");
+                    onValueChange={(val) => {
+                      const [field, order] = val.split("-");
                       setSortBy(field);
                       setSortOrder(order);
                     }}
-                    className="px-3 py-1 rounded-md text-sm focus:outline-none focus:ring-1"
-                    style={{
-                      backgroundColor: colors.primary_bg,
-                      color: colors.primary_text,
-                      border: `1px solid ${colors.primary_accent}`,
-                    }}
-                  >
-                    <option
-                      value="name-asc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Name A-Z
-                    </option>
-                    <option
-                      value="name-desc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Name Z-A
-                    </option>
-                    <option
-                      value="amount-desc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Amount High-Low
-                    </option>
-                    <option
-                      value="amount-asc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Amount Low-High
-                    </option>
-                    <option
-                      value="date-desc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Date Newest
-                    </option>
-                    <option
-                      value="date-asc"
-                      style={{ backgroundColor: colors.primary_bg }}
-                    >
-                      Date Oldest
-                    </option>
-                  </select>
+                    options={[
+                      { value: "name-asc", label: "Name A-Z" },
+                      { value: "name-desc", label: "Name Z-A" },
+                      { value: "amount-desc", label: "Amount High-Low" },
+                      { value: "amount-asc", label: "Amount Low-High" },
+                      { value: "date-desc", label: "Date Newest" },
+                      { value: "date-asc", label: "Date Oldest" },
+                    ]}
+                    ariaLabel="Sort bills"
+                    size="small"
+                    density="compact"
+                    fullWidth={false}
+                    displayEmpty={false}
+                    showSelectedCheck={false}
+                    sx={{ minWidth: 160 }}
+                  />
                 </div>
 
                 {/* Summary */}

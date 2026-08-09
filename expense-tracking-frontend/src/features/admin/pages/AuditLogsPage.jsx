@@ -7,10 +7,6 @@ import {
   Typography,
   TextField,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Grid,
   Chip,
   Alert,
@@ -31,6 +27,7 @@ import {
   Card,
   CardContent,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import {
   Email as EmailIcon,
   Refresh as RefreshIcon,
@@ -234,42 +231,34 @@ const AuditLogs = () => {
               />
             </Grid>
             <Grid item xs={6}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Month</InputLabel>
-                <Select
-                  value={filters.month}
-                  onChange={(e) => handleFilterChange("month", e.target.value)}
-                  label="Month"
-                >
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <MenuItem key={i + 1} value={i + 1}>
-                      {new Date(0, i).toLocaleString("default", {
-                        month: "long",
-                      })}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AppSelect
+                size="small"
+                label="Month"
+                value={filters.month}
+                onChange={(e) => handleFilterChange("month", e.target.value)}
+                options={Array.from({ length: 12 }, (_, i) => ({
+                  value: i + 1,
+                  label: new Date(0, i).toLocaleString("default", {
+                    month: "long",
+                  }),
+                }))}
+              />
             </Grid>
           </Grid>
         );
 
       case "action-type":
         return (
-          <FormControl size="small" fullWidth>
-            <InputLabel>Action Type</InputLabel>
-            <Select
-              value={filters.actionType}
-              onChange={(e) => handleFilterChange("actionType", e.target.value)}
-              label="Action Type"
-            >
-              {actionTypes.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <AppSelect
+            size="small"
+            label="Action Type"
+            value={filters.actionType}
+            onChange={(e) => handleFilterChange("actionType", e.target.value)}
+            options={actionTypes.map((type) => ({
+              value: type,
+              label: type.charAt(0).toUpperCase() + type.slice(1),
+            }))}
+          />
         );
 
       case "expense-id":
@@ -288,22 +277,15 @@ const AuditLogs = () => {
         return (
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Time Range</InputLabel>
-                <Select
-                  value={filters.timeRange}
-                  onChange={(e) =>
-                    handleFilterChange("timeRange", e.target.value)
-                  }
-                  label="Time Range"
-                >
-                  {timeRangeOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AppSelect
+                size="small"
+                label="Time Range"
+                value={filters.timeRange}
+                onChange={(e) =>
+                  handleFilterChange("timeRange", e.target.value)
+                }
+                options={timeRangeOptions}
+              />
             </Grid>
             <Grid item xs={6}>
               <TextField
@@ -488,22 +470,15 @@ const AuditLogs = () => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Log Type</InputLabel>
-                <Select
-                  value={filters.logType}
-                  onChange={(e) =>
-                    handleFilterChange("logType", e.target.value)
-                  }
-                  label="Log Type"
-                >
-                  {logTypeOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <AppSelect
+                size="small"
+                label="Log Type"
+                value={filters.logType}
+                onChange={(e) =>
+                  handleFilterChange("logType", e.target.value)
+                }
+                options={logTypeOptions}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
               {renderFilterInputs()}

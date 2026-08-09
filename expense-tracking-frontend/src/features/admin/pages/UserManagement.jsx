@@ -7,13 +7,10 @@ import {
   IconButton,
   TextField,
   Button,
-  MenuItem as MuiMenuItem,
-  Select,
-  FormControl,
-  InputLabel,
   CircularProgress,
   Pagination,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -206,31 +203,33 @@ const UserManagement = () => {
               startAdornment: <SearchIcon className="mr-2" />,
             }}
           />
-          <FormControl size="small" style={{ minWidth: 150 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={filterStatus}
-              onChange={handleStatusFilterChange}
-              label="Status"
-            >
-              <MuiMenuItem value="all">All Status</MuiMenuItem>
-              <MuiMenuItem value="active">Active</MuiMenuItem>
-              <MuiMenuItem value="inactive">Inactive</MuiMenuItem>
-              <MuiMenuItem value="suspended">Suspended</MuiMenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" style={{ minWidth: 150 }}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              value={filterRole}
-              onChange={handleRoleFilterChange}
-              label="Role"
-            >
-              <MuiMenuItem value="ALL">All Roles</MuiMenuItem>
-              <MuiMenuItem value="ADMIN">Admin</MuiMenuItem>
-              <MuiMenuItem value="USER">User</MuiMenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            size="small"
+            fullWidth={false}
+            label="Status"
+            value={filterStatus}
+            onChange={handleStatusFilterChange}
+            sx={{ minWidth: 150 }}
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+              { value: "suspended", label: "Suspended" },
+            ]}
+          />
+          <AppSelect
+            size="small"
+            fullWidth={false}
+            label="Role"
+            value={filterRole}
+            onChange={handleRoleFilterChange}
+            sx={{ minWidth: 150 }}
+            options={[
+              { value: "ALL", label: "All Roles" },
+              { value: "ADMIN", label: "Admin" },
+              { value: "USER", label: "User" },
+            ]}
+          />
         </div>
       </SectionCard>
 

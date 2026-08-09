@@ -8,6 +8,7 @@ import "../Home/Home.css";
 import FilteredTable from "./FilteredTable";
 import Loader from "../../components/Loaders/Loader";
 import FilterComponent from "../Filter/FilterComponent";
+import { AppSelect } from "../../components/ui";
 import { logoutAction } from "../../Redux/Auth/auth.action";
 import {
   getExpensesAction,
@@ -145,17 +146,21 @@ const HomePage = () => {
           />
         </div>
         <div className="sort-order-container">
-          <select
+          <AppSelect
             id="sortOrder"
             className="sort-order-select"
             value={sortOrder}
             onChange={handleSortOrderChange}
             disabled={sortLoading}
-          >
-            <option value="">Sort By</option>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
+            options={[
+              { value: "", label: "Sort By" },
+              { value: "asc", label: "Ascending" },
+              { value: "desc", label: "Descending" },
+            ]}
+            ariaLabel="Sort order"
+            size="small"
+            fullWidth={false}
+          />
 
           {sortLoading && <Loader />}
         </div>

@@ -1,25 +1,29 @@
-// components/FilterDropdown.jsx
 import React from "react";
+import { AppSelect } from "../../components/ui";
 import "./FilterComponent.css";
 
-const FilterDropdown = ({ filterBy, setFilterBy }) => {
-  const handleFilterChange = (e) => setFilterBy(e.target.value);
+const FILTER_OPTIONS = [
+  { value: "filters", label: "Filters" },
+  { value: "allColumns", label: "All expenses" },
+  { value: "expenseName", label: "Expense Name" },
+  { value: "amount", label: "Amount" },
+  { value: "type", label: "Type" },
+  { value: "paymentMethod", label: "Payment Method" },
+  { value: "date", label: "Date" },
+];
 
+const FilterDropdown = ({ filterBy, setFilterBy }) => {
   return (
-    <select
+    <AppSelect
       id="filterBy"
       className="filter-dropdown p-2 rounded"
       value={filterBy}
-      onChange={handleFilterChange}
-    >
-      <option value="filters">Filters</option>
-      <option value="allColumns">All expenses</option>
-      <option value="expenseName">Expense Name</option>
-      <option value="amount">Amount</option>
-      <option value="type">Type</option>
-      <option value="paymentMethod">Payment Method</option>
-      <option value="date">Date</option>
-    </select>
+      onValueChange={setFilterBy}
+      options={FILTER_OPTIONS}
+      ariaLabel="Filter by column"
+      size="small"
+      displayEmpty={false}
+    />
   );
 };
 

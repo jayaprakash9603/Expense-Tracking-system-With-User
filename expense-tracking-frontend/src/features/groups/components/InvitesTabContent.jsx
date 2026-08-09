@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AppSelect } from "../../../components/ui";
 
 const ROLE_OPTIONS = [
   { value: "ADMIN", label: "Admin" },
@@ -153,20 +154,19 @@ const InvitesTabContent = ({
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <select
+                    <AppSelect
                       value={roleSelections[friend.id] || "MEMBER"}
-                      onChange={(e) =>
-                        handleRoleChange(friend.id, e.target.value)
+                      onValueChange={(role) =>
+                        handleRoleChange(friend.id, role)
                       }
-                      className="bg-gray-700 text-white px-2 py-1 rounded-lg mr-2"
-                      style={{ marginRight: "12px", outline: "none" }}
-                    >
-                      {ROLE_OPTIONS.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={ROLE_OPTIONS}
+                      ariaLabel="Invite role"
+                      size="small"
+                      fullWidth={false}
+                      displayEmpty={false}
+                      showSelectedCheck={false}
+                      sx={{ marginRight: "12px", minWidth: 120 }}
+                    />
                     <button
                       onClick={() => handleInvite(friend)}
                       className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors"

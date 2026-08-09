@@ -11,6 +11,7 @@ import {
 } from "../../Redux/Expenses/expense.action";
 import { getSuggestions } from "../Suggestions/fetchSuggestions";
 import { API_BASE_URL } from "../../config/api";
+import { AppSelect } from "../ui";
 
 function CreateExpenses() {
   const location = useLocation();
@@ -403,30 +404,33 @@ function CreateExpenses() {
           </div>
           <div className="mb-3">
             <label htmlFor="type">Transaction Type:</label>
-            <select
+            <AppSelect
               id="type"
-              className="form-select"
               value={formState.type}
               onChange={handleChange}
-            >
-              <option value="gain">Gain</option>
-              <option value="loss">Loss</option>
-            </select>
+              options={[
+                { value: "gain", label: "Gain" },
+                { value: "loss", label: "Loss" },
+              ]}
+              ariaLabel="Transaction type"
+              size="small"
+              displayEmpty={false}
+            />
           </div>
           <div className="mb-3">
             <label htmlFor="paymentMethod">Payment Method:</label>
-            <select
+            <AppSelect
               id="paymentMethod"
-              className="form-select"
               value={formState.paymentMethod}
               onChange={handleChange}
-            >
-              {paymentMethods.map((method, index) => (
-                <option key={index} value={method}>
-                  {methodMapping1[method] || method}
-                </option>
-              ))}
-            </select>
+              options={paymentMethods.map((method) => ({
+                value: method,
+                label: methodMapping1[method] || method,
+              }))}
+              ariaLabel="Payment method"
+              size="small"
+              displayEmpty={false}
+            />
           </div>
           <div className="mb-3">
             <label htmlFor="comments">Comments:</label>

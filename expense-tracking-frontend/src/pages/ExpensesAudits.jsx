@@ -7,6 +7,7 @@ import {
   faSortDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AppSelect } from "../../components/ui";
 
 const DefaultColumnFilter = ({
   column: { filterValue, setFilter, preFilteredRows, id },
@@ -188,16 +189,20 @@ const ExpensesAudits = ({ data, loading, error }) => {
         >
           {">>"}
         </button>
-        <select
+        <AppSelect
           value={pageSize}
-          onChange={(e) => setPageSize(Number(e.target.value))}
-        >
-          {[14, 20, 30, 50, 100].map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
+          onValueChange={(val) => setPageSize(Number(val))}
+          options={[14, 20, 30, 50, 100].map((size) => ({
+            value: size,
+            label: String(size),
+          }))}
+          ariaLabel="Rows per page"
+          size="small"
+          density="compact"
+          fullWidth={false}
+          displayEmpty={false}
+          showSelectedCheck={false}
+        />
       </div>
     </div>
   );

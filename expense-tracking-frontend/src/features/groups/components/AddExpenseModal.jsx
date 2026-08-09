@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "../../../hooks/useTheme";
+import { AppSelect } from "../../../components/ui";
 
 const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
   const { colors } = useTheme();
@@ -66,23 +67,22 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
             >
               Category
             </label>
-            <select
+            <AppSelect
               value={newExpense.category}
-              onChange={(e) =>
-                setNewExpense({ ...newExpense, category: e.target.value })
+              onValueChange={(category) =>
+                setNewExpense({ ...newExpense, category })
               }
-              className="w-full px-4 py-2 rounded-lg border-none outline-none"
-              style={{
-                backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
-              }}
-            >
-              <option value="Food">Food</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Accommodation">Accommodation</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Other">Other</option>
-            </select>
+              options={[
+                { value: "Food", label: "Food" },
+                { value: "Transportation", label: "Transportation" },
+                { value: "Accommodation", label: "Accommodation" },
+                { value: "Entertainment", label: "Entertainment" },
+                { value: "Other", label: "Other" },
+              ]}
+              ariaLabel="Category"
+              size="small"
+              displayEmpty={false}
+            />
           </div>
           <div>
             <label

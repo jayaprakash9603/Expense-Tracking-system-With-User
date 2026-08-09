@@ -1,4 +1,12 @@
 import React from "react";
+import { AppSelect } from "../../components/ui";
+
+const ACTION_TYPE_OPTIONS = [
+  { value: "", label: "Select" },
+  { value: "create", label: "Create" },
+  { value: "update", label: "Update" },
+  { value: "delete", label: "Delete" },
+];
 
 const Filters = ({
   searchTerm,
@@ -69,17 +77,14 @@ const Filters = ({
 
       {searchTerm === "Logs by Action Type" && (
         <div className="form-group mb-3">
-          <select
+          <AppSelect
             className="log-period"
-            placeholder="Enter Action Type"
             value={actionType}
-            onChange={(e) => setActionType(e.target.value)}
-          >
-            <option value="">Select</option>
-            <option value="create">Create</option>
-            <option value="update">Update</option>
-            <option value="delete">Delete</option>
-          </select>
+            onValueChange={setActionType}
+            options={ACTION_TYPE_OPTIONS}
+            ariaLabel="Action type"
+            size="small"
+          />
         </div>
       )}
 
@@ -93,16 +98,14 @@ const Filters = ({
             onChange={(e) => setExpenseId(e.target.value)}
           />
 
-          <select
+          <AppSelect
             className="log-period"
             value={actionType}
-            onChange={(e) => setActionType(e.target.value)}
-          >
-            <option value="">Select</option>
-            <option value="create">Create</option>
-            <option value="update">Update</option>
-            <option value="delete">Delete</option>
-          </select>
+            onValueChange={setActionType}
+            options={ACTION_TYPE_OPTIONS}
+            ariaLabel="Action type"
+            size="small"
+          />
         </div>
       )}
 

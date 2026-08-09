@@ -7,12 +7,10 @@ import {
   Tooltip,
   Box,
   Grid,
-  FormControl,
-  Select,
-  MenuItem,
   CircularProgress,
   TextField,
 } from "@mui/material";
+import { AppSelect } from "../../components/ui";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
@@ -749,56 +747,26 @@ const CategoryAnalyticsView = ({
         rightContent={
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {/* Date Range Preset */}
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <Select
-                value={dateRangePreset}
-                onChange={(e) => handleDateRangeChange(e.target.value)}
-                sx={{
-                  color: colors.primary_text,
-                  backgroundColor: colors.primary_bg,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: colors.border_color,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#00DAC6",
-                  },
-                  fontSize: "0.85rem",
-                  height: 36,
-                }}
-              >
-                {DATE_RANGE_PRESETS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              fullWidth={false}
+              ariaLabel="Date range preset"
+              value={dateRangePreset}
+              onChange={(e) => handleDateRangeChange(e.target.value)}
+              sx={{ minWidth: 140 }}
+              options={DATE_RANGE_PRESETS}
+            />
 
             {/* Trend Type */}
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <Select
-                value={trendType}
-                onChange={(e) => handleTrendTypeChange(e.target.value)}
-                sx={{
-                  color: colors.primary_text,
-                  backgroundColor: colors.primary_bg,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: colors.border_color,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#00DAC6",
-                  },
-                  fontSize: "0.85rem",
-                  height: 36,
-                }}
-              >
-                {TREND_TYPE_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              fullWidth={false}
+              ariaLabel="Trend type"
+              value={trendType}
+              onChange={(e) => handleTrendTypeChange(e.target.value)}
+              sx={{ minWidth: 100 }}
+              options={TREND_TYPE_OPTIONS}
+            />
 
             {/* Edit Button */}
             <Tooltip title={`Edit ${entityLabel}`}>

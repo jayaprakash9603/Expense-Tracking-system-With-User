@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
+import { AppSelect } from "../ui";
 import {
   TrendingUp,
   TrendingDown,
@@ -603,31 +604,23 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             >
               Budgets per page:
             </span>
-            <select
+            <AppSelect
               value={cardsPerPage}
-              onChange={(e) => {
-                setCardsPerPage(Number(e.target.value));
+              onValueChange={(val) => {
+                setCardsPerPage(Number(val));
                 setCurrentPage(1);
               }}
-              style={{
-                padding: "6px 10px",
-                background: colors.primary_bg,
-                color: colors.primary_text,
-                border: `1px solid ${colors.border_color}`,
-                borderRadius: "6px",
-                fontSize: "13px",
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              <option value={8}>8</option>
-              <option value={12}>12</option>
-              <option value={16}>16</option>
-              <option value={20}>20</option>
-              <option value={40}>40</option>
-              <option value={80}>80</option>
-              <option value={100}>100</option>
-            </select>
+              options={[8, 12, 16, 20, 40, 80, 100].map((n) => ({
+                value: n,
+                label: String(n),
+              }))}
+              ariaLabel="Budgets per page"
+              size="small"
+              density="compact"
+              fullWidth={false}
+              displayEmpty={false}
+              showSelectedCheck={false}
+            />
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import React from "react";
 import { AttachMoney as AttachMoneyIcon } from "@mui/icons-material";
 import { useTheme } from "../hooks/useTheme";
+import { AppSelect } from "./ui";
 
 const SplitCalculatorModal = ({
   show,
@@ -48,20 +49,23 @@ const SplitCalculatorModal = ({
             <label className="block text-gray-300 text-sm font-medium mb-2">
               Split Type
             </label>
-            <select
+            <AppSelect
               value={splitCalculator.splitType}
-              onChange={(e) =>
+              onValueChange={(splitType) =>
                 setSplitCalculator({
                   ...splitCalculator,
-                  splitType: e.target.value,
+                  splitType,
                 })
               }
-              className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border-none outline-none"
-            >
-              <option value="equal">Equal Split</option>
-              <option value="percentage">Percentage Split</option>
-              <option value="custom">Custom Amounts</option>
-            </select>
+              options={[
+                { value: "equal", label: "Equal Split" },
+                { value: "percentage", label: "Percentage Split" },
+                { value: "custom", label: "Custom Amounts" },
+              ]}
+              ariaLabel="Split type"
+              size="small"
+              displayEmpty={false}
+            />
           </div>
 
           <div>

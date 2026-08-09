@@ -3,13 +3,11 @@ import dayjs from "dayjs";
 import {
   TextField,
   InputAdornment,
-  Select,
-  MenuItem,
-  FormControl,
   Tooltip,
   IconButton,
   Skeleton,
 } from "@mui/material";
+import { AppSelect } from "../../ui";
 import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -461,51 +459,21 @@ const CustomDataTable = ({
             <FilterListIcon
               sx={{ fontSize: 16, color: colors.secondary_text }}
             />
-            <FormControl size="small" sx={{ minWidth: 110 }}>
-              <Select
-                value={filterValue}
-                onChange={(e) => setFilterValue(e.target.value)}
-                displayEmpty
-                sx={{
-                  backgroundColor: colors.secondary_bg,
-                  fontSize: fontSizes.filter,
-                  height: "36px",
-                  color: colors.primary_text,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: colors.border_color,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: accentColor,
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: accentColor,
-                  },
-                  "& .MuiSelect-icon": { color: colors.secondary_text },
-                }}
-                MenuProps={{
-                  PaperProps: {
-                    sx: {
-                      backgroundColor: colors.secondary_bg,
-                      border: `1px solid ${colors.border_color}`,
-                      "& .MuiMenuItem-root": {
-                        fontSize: fontSizes.filter,
-                        color: colors.primary_text,
-                        "&:hover": { backgroundColor: colors.primary_bg },
-                        "&.Mui-selected": {
-                          backgroundColor: `${accentColor}20`,
-                        },
-                      },
-                    },
-                  },
-                }}
-              >
-                {filterConfig.options.map((opt) => (
-                  <MenuItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              value={filterValue}
+              onValueChange={setFilterValue}
+              options={filterConfig.options.map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+              }))}
+              ariaLabel="Table filter"
+              size="small"
+              density="compact"
+              fullWidth={false}
+              displayEmpty={false}
+              showSelectedCheck={false}
+              sx={{ minWidth: 110 }}
+            />
           </div>
         )}
 

@@ -23,10 +23,7 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   Switch,
   FormControlLabel,
   Tooltip,
@@ -54,6 +51,7 @@ import { useFeature } from "../../hooks/useFeature";
 import { SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 import { api } from "../../config/api";
 import { AdminPanelContainer } from "../../features/admin";
+import { AppSelect } from "../../components/ui";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 
 // Story types and severity options
@@ -760,56 +758,45 @@ const AdminStoryManagement = () => {
             />
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Story Type</InputLabel>
-                  <Select
-                    value={formData.storyType}
-                    label="Story Type"
-                    onChange={(e) =>
-                      handleFormChange("storyType", e.target.value)
-                    }
-                  >
-                    {STORY_TYPES.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <AppSelect
+                  label="Story Type"
+                  value={formData.storyType}
+                  onChange={(e) =>
+                    handleFormChange("storyType", e.target.value)
+                  }
+                  options={STORY_TYPES}
+                />
               </Grid>
               <Grid item xs={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Severity</InputLabel>
-                  <Select
-                    value={formData.severity}
-                    label="Severity"
-                    onChange={(e) =>
-                      handleFormChange("severity", e.target.value)
-                    }
-                  >
-                    {SEVERITY_OPTIONS.map((sev) => (
-                      <MenuItem key={sev.value} value={sev.value}>
+                <AppSelect
+                  label="Severity"
+                  value={formData.severity}
+                  onChange={(e) =>
+                    handleFormChange("severity", e.target.value)
+                  }
+                >
+                  {SEVERITY_OPTIONS.map((sev) => (
+                    <MenuItem key={sev.value} value={sev.value}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
                         <Box
                           sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
+                            width: 12,
+                            height: 12,
+                            borderRadius: "50%",
+                            backgroundColor: sev.color,
                           }}
-                        >
-                          <Box
-                            sx={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: "50%",
-                              backgroundColor: sev.color,
-                            }}
-                          />
-                          {sev.label}
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                        />
+                        {sev.label}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </AppSelect>
               </Grid>
             </Grid>
             <TextField
@@ -960,22 +947,15 @@ const AdminStoryManagement = () => {
                       />
                     </Grid>
                     <Grid item xs={3}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel>Type</InputLabel>
-                        <Select
-                          value={cta.ctaType}
-                          label="Type"
-                          onChange={(e) =>
-                            updateCtaButton(index, "ctaType", e.target.value)
-                          }
-                        >
-                          {CTA_TYPES.map((type) => (
-                            <MenuItem key={type.value} value={type.value}>
-                              {type.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <AppSelect
+                        size="small"
+                        label="Type"
+                        value={cta.ctaType}
+                        onChange={(e) =>
+                          updateCtaButton(index, "ctaType", e.target.value)
+                        }
+                        options={CTA_TYPES}
+                      />
                     </Grid>
                     <Grid item xs={3}>
                       <TextField

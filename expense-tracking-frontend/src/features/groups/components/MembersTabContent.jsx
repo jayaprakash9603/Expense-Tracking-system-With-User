@@ -1,4 +1,5 @@
 import React from "react";
+import { AppSelect } from "../../../components/ui";
 
 const MembersTabContent = ({
   groupData,
@@ -104,19 +105,24 @@ const MembersTabContent = ({
 
               {groupData.currentUserPermissions.canPromoteMembers &&
                 member.userId !== userId && (
-                  <select
+                  <AppSelect
                     value={member.role}
-                    onChange={(e) =>
-                      handleRoleChange(member.userId, e.target.value)
+                    onValueChange={(role) =>
+                      handleRoleChange(member.userId, role)
                     }
-                    className="bg-gray-600 text-white px-3 py-1 rounded border-none outline-none"
-                  >
-                    {["VIEWER", "MEMBER", "MODERATOR", "ADMIN"].map((role) => (
-                      <option key={role} value={role}>
-                        {role.charAt(0) + role.slice(1).toLowerCase()}
-                      </option>
-                    ))}
-                  </select>
+                    options={["VIEWER", "MEMBER", "MODERATOR", "ADMIN"].map(
+                      (role) => ({
+                        value: role,
+                        label: role.charAt(0) + role.slice(1).toLowerCase(),
+                      }),
+                    )}
+                    ariaLabel="Member role"
+                    size="small"
+                    fullWidth={false}
+                    displayEmpty={false}
+                    showSelectedCheck={false}
+                    sx={{ minWidth: 120 }}
+                  />
                 )}
 
               {groupData.currentUserPermissions.canManageMembers &&

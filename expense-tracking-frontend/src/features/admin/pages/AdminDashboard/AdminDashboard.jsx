@@ -10,6 +10,7 @@ import {
 } from "../../../../Redux/Admin/admin.action";
 import { getAccentFunctionalIcon } from "../../../../utils/ui/iconMapping";
 import { useTheme } from "../../../../hooks/useTheme";
+import { AppSelect } from "../../../../components/ui";
 import "./AdminDashboard.css";
 
 const AdminDashboard = () => {
@@ -397,25 +398,37 @@ const AdminDashboard = () => {
               </span>
             </div>
             <div className="expense-section-actions">
-              <select
+              <AppSelect
                 className="expense-filter-select"
                 value={statusFilter}
                 onChange={handleStatusFilterChange}
-              >
-                <option value="all">All Users</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-              <select
+                options={[
+                  { value: "all", label: "All Users" },
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                  { value: "suspended", label: "Suspended" },
+                ]}
+                ariaLabel="Filter by status"
+                size="small"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
+              <AppSelect
                 className="expense-filter-select"
                 value={roleFilter}
                 onChange={handleRoleFilterChange}
-              >
-                <option value="ALL">All Roles</option>
-                <option value="ADMIN">Admin</option>
-                <option value="USER">User</option>
-              </select>
+                options={[
+                  { value: "ALL", label: "All Roles" },
+                  { value: "ADMIN", label: "Admin" },
+                  { value: "USER", label: "User" },
+                ]}
+                ariaLabel="Filter by role"
+                size="small"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
               <button className="expense-btn primary">
                 <span>{fnIcon("add", 18)}</span>
                 Add User
@@ -736,12 +749,21 @@ const AdminDashboard = () => {
             <h2>Advanced Analytics</h2>
           </div>
           <div className="expense-section-actions">
-            <select className="expense-filter-select">
-              <option value="7d">Last 7 days</option>
-              <option value="30d">Last 30 days</option>
-              <option value="90d">Last 90 days</option>
-              <option value="1y">Last year</option>
-            </select>
+            <AppSelect
+              className="expense-filter-select"
+              value="7d"
+              options={[
+                { value: "7d", label: "Last 7 days" },
+                { value: "30d", label: "Last 30 days" },
+                { value: "90d", label: "Last 90 days" },
+                { value: "1y", label: "Last year" },
+              ]}
+              ariaLabel="Analytics time range"
+              size="small"
+              fullWidth={false}
+              displayEmpty={false}
+              showSelectedCheck={false}
+            />
             <button className="expense-btn primary">
               <span>{fnIcon("chart", 20)}</span>
               Generate Report

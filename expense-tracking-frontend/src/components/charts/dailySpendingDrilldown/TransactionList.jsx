@@ -2,12 +2,10 @@ import React from "react";
 import PropTypes from "prop-types";
 import {
   Box,
-  FormControl,
   IconButton,
-  MenuItem,
-  Select,
   Typography,
 } from "@mui/material";
+import { AppSelect } from "../../ui";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 
@@ -153,34 +151,19 @@ const TransactionList = ({
                     alignItems: "center",
                   }}
                 >
-                  <FormControl size="small" sx={{ minWidth: 72 }}>
-                    <Select
-                      value={rowsPerPage}
-                      onChange={(e) => onRowsPerPageChange?.(e.target.value)}
-                      renderValue={(v) => String(v)}
-                      sx={{
-                        color: colors?.primary_text,
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: colors?.border_color,
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: `${
-                            colors?.primary_accent || "#5b7fff"
-                          }66`,
-                        },
-                        "& .MuiSvgIcon-root": {
-                          color: colors?.primary_text,
-                        },
-                      }}
-                    >
-                      {rowsPerPageOptions.map((n) => (
-                        <MenuItem key={n} value={n}>
-                          {n}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                  <AppSelect
+                    size="small"
+                    fullWidth={false}
+                    ariaLabel="Rows per page"
+                    value={rowsPerPage}
+                    onValueChange={(v) => onRowsPerPageChange?.(v)}
+                    renderValue={(v) => String(v)}
+                    sx={{ minWidth: 72 }}
+                    options={rowsPerPageOptions.map((n) => ({
+                      value: n,
+                      label: String(n),
+                    }))}
+                  />
                 </Box>
               </Box>
             </Box>

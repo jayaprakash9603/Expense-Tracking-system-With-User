@@ -1,0 +1,45 @@
+.app-select__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select__value-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.app-select__placeholder {
+  opacity: 0.85;
+}
+
+.app-select--compact .MuiInputBase-root {
+  min-width: 88px;
+}
+
+.app-select--compact .MuiSelect-select {
+  padding-left: 10px !important;
+  padding-right: 28px !important;
+}
+
+@media (max-width: 600px) {
+  .app-select--compact {
+    min-width: 0;
+  }
+
+  .app-select--compact .MuiInputBase-root {
+    min-width: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-select .MuiInputBase-root,
+  .app-select__menu-paper .MuiMenuItem-root {
+    transition: none !important;
+  }
+}

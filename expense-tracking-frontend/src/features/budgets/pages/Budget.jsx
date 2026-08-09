@@ -35,9 +35,6 @@ import {
   TextField,
   Tabs,
   Tab,
-  Select,
-  FormControl,
-  InputLabel,
   Grid,
   Popover,
   MenuList,
@@ -75,6 +72,7 @@ import useUserSettings from "../../../hooks/useUserSettings";
 import SharedOverviewCards from "../../../components/charts/SharedOverviewCards";
 import BudgetCardsSkeleton from "../../../components/skeletons/BudgetCardsSkeleton";
 import usePreserveNavigationState from "../../../hooks/usePreserveNavigationState";
+import { AppSelect } from "../../../components/ui";
 import { useOrderedSelection } from "../../../hooks/useOrderedSelection";
 import { setBudgetSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 import {
@@ -1435,7 +1433,7 @@ const Budget = () => {
                 )}
               </Box>
 
-              {/* Sort Controls with MUI Select */}
+              {/* Sort Controls */}
               <Box
                 sx={{
                   display: "flex",
@@ -1443,135 +1441,36 @@ const Budget = () => {
                   flex: 1,
                 }}
               >
-                <FormControl size="small" fullWidth variant="outlined">
-                  <InputLabel
-                    sx={{
-                      color: colors.secondary_text,
-                      fontSize: "0.875rem",
-                      backgroundColor: colors.secondary_bg,
-                      px: 0.5,
-                      "&.Mui-focused": {
-                        color: colors.primary_accent,
-                      },
-                    }}
-                  >
-                    Sort By
-                  </InputLabel>
-                  <Select
-                    value={sortBy}
-                    label="Sort By"
-                    onChange={(e) => setSortBy(e.target.value)}
-                    sx={{
-                      bgcolor: colors.secondary_bg,
-                      color: colors.primary_text,
-                      borderRadius: "8px",
-                      height: "48px",
-                      fontSize: "0.875rem",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.border_color,
-                        borderWidth: "1.5px",
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.primary_accent,
-                        borderWidth: "1.5px",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: colors.primary_accent,
-                        borderWidth: "2px",
-                      },
-                      "& .MuiSvgIcon-root": {
-                        color: colors.primary_accent,
-                      },
-                      "& .MuiSelect-select": {
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        py: 1.5,
-                      },
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        sx: {
-                          bgcolor: colors.primary_bg,
-                          color: colors.primary_text,
-                          border: `1px solid ${colors.border_color}`,
-                          borderRadius: "8px",
-                          mt: 0.5,
-                          maxHeight: 300,
-                          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
-                          "& .MuiMenuItem-root": {
-                            fontSize: "0.875rem",
-                            py: 1.5,
-                            px: 2,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            "&:hover": {
-                              bgcolor: colors.hover_bg,
-                            },
-                            "&.Mui-selected": {
-                              bgcolor: colors.active_bg,
-                              "&:hover": { bgcolor: colors.hover_bg },
-                            },
-                          },
-                        },
-                      },
-                    }}
-                  >
-                    <MenuItem value="name">
-                      <Typography
-                        sx={{
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <EditNoteIcon sx={{ fontSize: 18 }} />
-                        Name
-                      </Typography>
-                    </MenuItem>
-                    <MenuItem value="amount">
-                      <Typography
-                        sx={{
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <MonetizationOnIcon sx={{ fontSize: 18 }} />
-                        Amount
-                      </Typography>
-                    </MenuItem>
-                    <MenuItem value="remaining">
-                      <Typography
-                        sx={{
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <AttachMoneyIcon sx={{ fontSize: 18 }} />
-                        Remaining
-                      </Typography>
-                    </MenuItem>
-                    <MenuItem value="date">
-                      <Typography
-                        sx={{
-                          fontSize: "0.875rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <CalendarMonthIcon sx={{ fontSize: 18 }} />
-                        Date
-                      </Typography>
-                    </MenuItem>
-                  </Select>
-                </FormControl>
+                <AppSelect
+                  label="Sort By"
+                  value={sortBy}
+                  onValueChange={setSortBy}
+                  options={[
+                    {
+                      value: "name",
+                      label: "Name",
+                      icon: <EditNoteIcon sx={{ fontSize: 18 }} />,
+                    },
+                    {
+                      value: "amount",
+                      label: "Amount",
+                      icon: <MonetizationOnIcon sx={{ fontSize: 18 }} />,
+                    },
+                    {
+                      value: "remaining",
+                      label: "Remaining",
+                      icon: <AttachMoneyIcon sx={{ fontSize: 18 }} />,
+                    },
+                    {
+                      value: "date",
+                      label: "Date",
+                      icon: <CalendarMonthIcon sx={{ fontSize: 18 }} />,
+                    },
+                  ]}
+                  ariaLabel="Sort budgets by"
+                  size="small"
+                  displayEmpty={false}
+                />
 
                 <IconButton
                   onClick={handleSortToggle}

@@ -1,4 +1,5 @@
 import React from "react";
+import { AppSelect } from "../../../components/ui";
 
 const AddMemberModal = ({
   newMemberEmail,
@@ -31,16 +32,19 @@ const AddMemberModal = ({
           <label className="block text-gray-300 text-sm font-medium mb-2">
             Role
           </label>
-          <select
+          <AppSelect
             value={newMemberRole}
-            onChange={(e) => setNewMemberRole(e.target.value)}
-            className="w-full bg-gray-700 text-white px-4 py-2 rounded-lg border-none outline-none"
-          >
-            <option value="VIEWER">Viewer</option>
-            <option value="MEMBER">Member</option>
-            <option value="MODERATOR">Moderator</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+            onValueChange={setNewMemberRole}
+            options={[
+              { value: "VIEWER", label: "Viewer" },
+              { value: "MEMBER", label: "Member" },
+              { value: "MODERATOR", label: "Moderator" },
+              { value: "ADMIN", label: "Admin" },
+            ]}
+            ariaLabel="Member role"
+            size="small"
+            displayEmpty={false}
+          />
         </div>
       </div>
       <div className="flex space-x-3 mt-6">

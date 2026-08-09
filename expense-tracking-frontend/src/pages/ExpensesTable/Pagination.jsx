@@ -1,5 +1,7 @@
-// Pagination.jsx (JSX file)
 import React from "react";
+import { AppSelect } from "../../components/ui";
+
+const PAGE_SIZE_OPTIONS = [7, 10, 20, 30, 50, 100];
 
 const Pagination = ({
   pageIndex,
@@ -35,16 +37,20 @@ const Pagination = ({
       >
         {">>"}
       </button>
-      <select
+      <AppSelect
         value={pageSize}
-        onChange={(e) => setPageSize(Number(e.target.value))}
-      >
-        {[7, 10, 20, 30, 50, 100].map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </select>
+        onValueChange={(val) => setPageSize(Number(val))}
+        options={PAGE_SIZE_OPTIONS.map((size) => ({
+          value: size,
+          label: String(size),
+        }))}
+        ariaLabel="Rows per page"
+        size="small"
+        density="compact"
+        fullWidth={false}
+        displayEmpty={false}
+        showSelectedCheck={false}
+      />
     </div>
   );
 };

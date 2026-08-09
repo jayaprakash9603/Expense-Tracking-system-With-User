@@ -7,6 +7,21 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import EmailLoader from "../components/Loaders/EmailLoader";
 import { expensesTypesEmail } from "./Input Fields/InputFields";
 import { API_BASE_URL } from "../config/api";
+import { AppSelect } from "../components/ui";
+
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "", label: "-- Select Payment Method --" },
+  { value: "cash", label: "Cash" },
+  { value: "creditNeedToPaid", label: "Credit Due" },
+  { value: "creditPaid", label: "Credit Paid" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "", label: "-- Select Category --" },
+  { value: "loss", label: "Loss" },
+  { value: "gain", label: "Gain" },
+];
+
 const ExpensesEmail = () => {
   const [logTypes, setLogTypes] = useState([]);
   const [filteredLogTypes, setFilteredLogTypes] = useState([]);
@@ -391,16 +406,14 @@ const ExpensesEmail = () => {
       )}
       {searchTerm === "Expenses By Payment Method" && (
         <div className="form-group mb-3 ">
-          <select
+          <AppSelect
             className="log-period"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option value="">-- Select Payment Method --</option>
-            <option value="cash">Cash</option>
-            <option value="creditNeedToPaid">Credit Due</option>
-            <option value="creditPaid">Credit Paid</option>
-          </select>
+            onValueChange={setPaymentMethod}
+            options={PAYMENT_METHOD_OPTIONS}
+            ariaLabel="Payment method"
+            size="small"
+          />
         </div>
       )}
       {searchTerm === "Within Range Expenses" && (
@@ -423,39 +436,35 @@ const ExpensesEmail = () => {
       )}
       {searchTerm === "Expenses By Type and Payment Method" && (
         <div className="form-group mb-3">
-          <select
+          <AppSelect
             className="log-period mb-3"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">-- Select Category --</option>
-            <option value="loss">Loss</option>
-            <option value="gain">Gain</option>
-          </select>
+            onValueChange={setCategory}
+            options={CATEGORY_OPTIONS}
+            ariaLabel="Category"
+            size="small"
+          />
 
-          <select
+          <AppSelect
             className="log-period"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-          >
-            <option value="">-- Select Payment Method --</option>
-            <option value="cash">Cash</option>
-            <option value="creditNeedToPaid">Credit Due</option>
-            <option value="creditPaid">Credit Paid</option>
-          </select>
+            onValueChange={setPaymentMethod}
+            options={PAYMENT_METHOD_OPTIONS}
+            ariaLabel="Payment method"
+            size="small"
+          />
         </div>
       )}
       {searchTerm === "Expenses By Type" && (
         <div className="form-group mb-3">
-          <select
+          <AppSelect
             className="log-period"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">-- Select Category --</option>
-            <option value="loss">Loss</option>
-            <option value="gain">Gain</option>
-          </select>
+            onValueChange={setCategory}
+            options={CATEGORY_OPTIONS}
+            ariaLabel="Category"
+            size="small"
+          />
         </div>
       )}
       {searchTerm === "Expenses Within Amount Range" && (
