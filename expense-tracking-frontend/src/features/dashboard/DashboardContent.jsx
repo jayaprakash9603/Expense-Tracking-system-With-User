@@ -37,7 +37,7 @@ const SECTION_COMPONENTS = {
   ),
   "daily-spending": ({ isMobile, isTablet, analyticsLoading }) => (
     <DailySpendingContainer
-      height={isMobile ? 200 : isTablet ? 240 : 280}
+      height={isMobile ? 280 : isTablet ? 320 : 360}
       refreshTrigger={Math.random()}
       showSkeleton={analyticsLoading}
       fillMissingDays={false}
@@ -91,7 +91,7 @@ const SECTION_COMPONENTS = {
     <MonthlyTrendContainer
       initialYear={currentYear}
       refreshTrigger={Math.random()}
-      height={isMobile ? 260 : isTablet ? 380 : 600}
+      height={isMobile ? 300 : isTablet ? 380 : 520}
       maxYear={currentYear}
       showSkeleton={analyticsLoading}
     />

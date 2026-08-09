@@ -84,98 +84,124 @@ const MonthlyTrendChart = ({
 
   return (
     <div
-      className="chart-container monthly-trend"
+      className={`chart-container monthly-trend${isMobile ? " is-mobile" : ""}`}
       style={{
         position: "relative",
         backgroundColor: colors.secondary_bg,
         border: `1px solid ${colors.border_color}`,
+        overflow: "visible",
       }}
     >
-      <div className="chart-header">
-        <h3
-          style={{
-            color: colors.primary_text,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            margin: 0,
-          }}
-        >
-          <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
-          Monthly Expense Trend
-        </h3>
-        {hasYoyComparison && (
-          <div className="trend-stats">
-            <span
-              className={
-                yoyDirection === "down"
-                  ? "trend-down"
-                  : yoyDirection === "flat"
-                    ? "trend-flat"
-                    : "trend-up"
-              }
-            >
-              <TrendIcon sx={{ fontSize: 16 }} aria-hidden="true" />
-              {`${Math.abs(yoyChange.percentChange).toFixed(1)}% vs last year`}
-            </span>
-          </div>
-        )}
+      <div
+        className={`chart-header dashboard-chart-header${
+          isMobile ? " is-mobile" : ""
+        }`}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+          <h3
+            style={{
+              color: colors.primary_text,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              margin: 0,
+            }}
+          >
+            <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
+            Monthly Expense Trend
+          </h3>
+          {hasYoyComparison && (
+            <div className="trend-stats">
+              <span
+                className={
+                  yoyDirection === "down"
+                    ? "trend-down"
+                    : yoyDirection === "flat"
+                      ? "trend-flat"
+                      : "trend-up"
+                }
+              >
+                <TrendIcon sx={{ fontSize: 16 }} aria-hidden="true" />
+                {`${Math.abs(yoyChange.percentChange).toFixed(1)}% vs last year`}
+              </span>
+            </div>
+          )}
+        </div>
+        <div className="chart-controls dashboard-chart-controls monthly-year-controls">
+          <IconButton
+            className="nav-btn nav-left"
+            size="small"
+            onClick={onPrevYear}
+            aria-label="Previous year"
+            title="Go to previous year"
+            sx={{ color: colors.primary_accent }}
+          >
+            <ChevronLeft />
+          </IconButton>
+          <span
+            className={`year-chip ${isAtCurrentYear ? "current" : ""}`}
+            style={{
+              backgroundColor: colors.tertiary_bg,
+              color: isAtCurrentYear
+                ? colors.primary_accent
+                : colors.primary_text,
+              border: `1px solid ${
+                isAtCurrentYear ? colors.primary_accent : colors.border_color
+              }`,
+            }}
+            title={isAtCurrentYear ? "Current year" : undefined}
+          >
+            {year}
+          </span>
+          <IconButton
+            className={`nav-btn nav-right ${
+              isAtCurrentYear ? "is-disabled" : ""
+            }`}
+            size="small"
+            onClick={onNextYear}
+            disabled={isAtCurrentYear}
+            aria-label="Next year"
+            title={
+              isAtCurrentYear
+                ? "You're viewing the current year"
+                : "Go to next year"
+            }
+            sx={{
+              color: isAtCurrentYear
+                ? colors.secondary_text
+                : colors.primary_accent,
+            }}
+          >
+            <ChevronRight />
+          </IconButton>
+        </div>
       </div>
-      <div className="chart-nav-bar">
-        <IconButton
-          className="nav-btn nav-left"
-          size="small"
-          onClick={onPrevYear}
-          aria-label="Previous year"
-          title="Go to previous year"
-          sx={{ color: colors.primary_accent }}
-        >
-          <ChevronLeft />
-        </IconButton>
-        <span
-          className={`year-chip ${isAtCurrentYear ? "current" : ""}`}
-          style={{
-            backgroundColor: colors.tertiary_bg,
-            color: isAtCurrentYear
-              ? colors.primary_accent
-              : colors.primary_text,
-            border: `1px solid ${
-              isAtCurrentYear ? colors.primary_accent : colors.border_color
-            }`,
-          }}
-          title={isAtCurrentYear ? "Current year" : undefined}
-        >
-          {year}
-        </span>
-        <IconButton
-          className={`nav-btn nav-right ${
-            isAtCurrentYear ? "is-disabled" : ""
-          }`}
-          size="small"
-          onClick={onNextYear}
-          disabled={isAtCurrentYear}
-          aria-label="Next year"
-          title={
-            isAtCurrentYear
-              ? "You're viewing the current year"
-              : "Go to next year"
-          }
-          sx={{
-            color: isAtCurrentYear
-              ? colors.secondary_text
-              : colors.primary_accent,
+      <div
+        className="dashboard-chart-plot"
+        style={{ width: "100%", height: chartHeight, position: "relative" }}
+      >
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart
+          data={chartRows}
+          margin={{
+            top: 8,
+            right: isMobile ? 4 : 12,
+            left: isMobile ? 0 : 4,
+            bottom: 4,
           }}
         >
-          <ChevronRight />
-        </IconButton>
-      </div>
-      <ResponsiveContainer width="100%" height={chartHeight}>
-        <ComposedChart data={chartRows}>
           <CartesianGrid strokeDasharray="3 3" stroke={colors.border_color} />
-          <XAxis dataKey="month" stroke={colors.secondary_text} fontSize={12} />
+          <XAxis
+            dataKey="month"
+            stroke={colors.secondary_text}
+            fontSize={isMobile ? 10 : 12}
+            interval={isMobile ? "preserveStartEnd" : 0}
+            tick={{ fontSize: isMobile ? 10 : 12 }}
+          />
           <YAxis
             stroke={colors.secondary_text}
-            fontSize={12}
+            fontSize={isMobile ? 10 : 12}
+            width={isMobile ? 36 : 48}
             tickFormatter={(value) =>
               `${currencySymbol}${Math.round(value / 1000)}K`
             }
@@ -214,6 +240,7 @@ const MonthlyTrendChart = ({
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
 
       {/* Loading indicator when skeleton is disabled */}
       {loading && (

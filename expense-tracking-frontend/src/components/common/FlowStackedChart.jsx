@@ -189,7 +189,12 @@ const FlowStackedChart = ({
               barSegments={barSegments}
             />
           }
-          wrapperStyle={{ zIndex: 9999 }}
+          wrapperStyle={{
+            zIndex: 9999,
+            outline: "none",
+            overflow: "visible",
+            pointerEvents: "none",
+          }}
           allowEscapeViewBox={{ x: true, y: true }}
         />
         {barSegments.map((seg, i) => {

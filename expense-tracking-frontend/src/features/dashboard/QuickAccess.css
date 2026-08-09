@@ -1,9 +1,9 @@
-/* QuickAccess - alternative pill design */
+/* QuickAccess - responsive multi-column pill actions */
 .quick-access {
   position: relative;
   z-index: 4;
-  margin-top: 30px;
-  margin-bottom: 32px; /* Add spacing below Quick Access */
+  margin-top: 0;
+  margin-bottom: 0;
   width: 100%;
   background: #1b1b1b;
   border-radius: 12px;
@@ -11,6 +11,9 @@
   box-sizing: border-box;
   backdrop-filter: blur(6px);
   border: 1px solid rgba(20, 184, 166, 0.06);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .qa-header {
@@ -19,12 +22,14 @@
   justify-content: space-between;
   gap: 12px;
 }
+
 .qa-title {
   color: #fff;
   font-weight: 700;
   font-size: 16px;
   margin: 0;
 }
+
 .qa-divider {
   flex: 1;
   height: 1px;
@@ -37,50 +42,60 @@
   border: none;
 }
 
+/* Default: 2 buttons per row (works in half-width dashboard panels) */
 .qa-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr); /* six equal columns */
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 12px;
+  width: 100%;
 }
 
 .qa-box {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 999px; /* pill */
-  background: #0b0b0b; /* card background as requested */
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: #0b0b0b;
   border: 1px solid rgba(255, 255, 255, 0.03);
   cursor: pointer;
-  min-width: 170px;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
   transition: transform 0.12s ease, box-shadow 0.12s ease,
     border-color 0.12s ease;
 }
 
+.qa-box:hover {
+  transform: translateY(-1px);
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
 .qa-box .qa-icon {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
+
 .qa-svg {
   color: #fff !important;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
+
 .qa-text {
   color: #fff;
   font-weight: 700;
-  font-size: 14px;
-}
-.qa-chevron {
-  margin-left: auto;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .qa-icon-expense {
@@ -102,24 +117,62 @@
   background: linear-gradient(135deg, #f59e0b, #f97316);
 }
 
-/* responsive */
-@media (max-width: 1200px) {
-  .qa-grid {
-    grid-template-columns: repeat(3, 1fr);
+/* Wider half/full panels: 3 per row */
+@media (min-width: 1100px) {
+  .section-type-full .qa-grid,
+  .dashboard-section-quick-access.section-type-full .qa-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
+/* Large desktop full-width Quick Access: up to 6 per row */
+@media (min-width: 1400px) {
+  .section-type-full .qa-grid,
+  .dashboard-section-quick-access.section-type-full .qa-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* Tablet / medium: keep 2 per row */
 @media (max-width: 900px) {
   .qa-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .qa-text {
+    font-size: 12px;
   }
 }
 
+/* Small phones: still 2 per row, tighter pills */
 @media (max-width: 480px) {
-  .qa-grid {
-    grid-template-columns: 1fr;
+  .quick-access {
+    padding: 10px 12px;
   }
+
+  .qa-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
   .qa-box {
-    justify-content: flex-start;
+    padding: 8px 10px;
+    min-height: 42px;
+    gap: 8px;
+  }
+
+  .qa-box .qa-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .qa-svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .qa-text {
+    font-size: 11px;
   }
 }

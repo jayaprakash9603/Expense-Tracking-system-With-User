@@ -305,10 +305,22 @@ const ReusablePieChart = ({
   // Responsive radii - use MUI useMediaQuery for reactive updates
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
-  const defaultInner = donut ? (isMobile ? 45 : isTablet ? 60 : 80) : 0;
-  const defaultOuter = isMobile ? 85 : isTablet ? 110 : 150;
+  // Percentage radii so pie fills the card width across breakpoints
+  const defaultInner = donut
+    ? isMobile
+      ? "38%"
+      : isTablet
+        ? "42%"
+        : "48%"
+    : 0;
+  const defaultOuter = isMobile ? "72%" : isTablet ? "78%" : "82%";
   const iRadius = innerRadius ?? defaultInner;
   const oRadius = outerRadius ?? defaultOuter;
+  const chartHeight = isMobile
+    ? Math.max(height, 320)
+    : isTablet
+      ? Math.max(height, 380)
+      : height;
 
   // Handle mouse events
   const onPieEnter = (_, index) => setActiveIndex(index);
@@ -367,7 +379,11 @@ const ReusablePieChart = ({
         border: `1px solid ${themeColors.border_color}`,
       }}
     >
-      <div className="chart-header">
+      <div
+        className={`chart-header dashboard-chart-header${
+          isMobile ? " is-mobile" : ""
+        }`}
+      >
         <h3
           style={{
             color: themeColors.primary_text,
@@ -375,6 +391,7 @@ const ReusablePieChart = ({
             alignItems: "center",
             gap: 8,
             margin: 0,
+            minWidth: 0,
           }}
         >
           {titleIcon
@@ -382,10 +399,12 @@ const ReusablePieChart = ({
             : getAccentFunctionalIcon("chart", themeColors.primary_accent, {
                 sx: { fontSize: 22 },
               })}
-          {typeof title === "string" ? stripLeadingEmoji(title) : title}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {typeof title === "string" ? stripLeadingEmoji(title) : title}
+          </span>
         </h3>
         {controls && (
-          <div className="chart-controls">
+          <div className="chart-controls dashboard-chart-controls">
             {onTimeframeChange && (
               <select
                 className="time-selector"
@@ -419,22 +438,25 @@ const ReusablePieChart = ({
         )}
       </div>
       {loading && skeleton ? (
-        <div style={{ height }} className="chart-loading-wrapper">
+        <div style={{ height: chartHeight }} className="chart-loading-wrapper">
           {skeleton}
         </div>
       ) : (
-        <Box sx={{ position: "relative", width: "100%", height }}>
+        <Box
+          className="dashboard-chart-plot"
+          sx={{ position: "relative", width: "100%", height: chartHeight }}
+        >
           {showEmpty ? (
             <EmptyStateCard
               icon="chart"
               title="No distribution data"
               message="We couldn't find any data for this timeframe yet."
-              height={height}
+              height={chartHeight}
               bordered={false}
             />
           ) : (
-            <ResponsiveContainer width="100%" height={height}>
-              <PieChart onMouseLeave={onPieLeave}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart onMouseLeave={onPieLeave} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
                 <defs>
                   {/* Drop shadow filter for 3D effect */}
                   <filter

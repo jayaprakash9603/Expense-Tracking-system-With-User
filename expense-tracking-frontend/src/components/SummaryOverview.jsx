@@ -161,30 +161,43 @@ const SummaryOverview = ({ summary, loading = false }) => {
     >
       {/* Header Section */}
       <div
-        className="chart-header"
+        className="chart-header dashboard-chart-header summary-overview-header"
         style={{
           background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
-          padding: "14px 24px",
+          padding: isMobile ? "12px 14px" : "14px 24px",
           borderBottom: `1px solid ${colors.border_color}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: 10,
+          flexWrap: "wrap",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            minWidth: 0,
+            flex: "1 1 auto",
+          }}
+        >
           <div
             style={{
               fontSize: "24px",
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+              flexShrink: 0,
             }}
           >
-          {getAccentFunctionalIcon("search", colors.primary_accent, { sx: { fontSize: 24 } })}
+            {getAccentFunctionalIcon("search", colors.primary_accent, {
+              sx: { fontSize: isMobile ? 20 : 24 },
+            })}
           </div>
           <h3
             style={{
               color: colors.primary_text,
               margin: 0,
-              fontSize: "18px",
+              fontSize: isMobile ? "15px" : "18px",
               fontWeight: "600",
               letterSpacing: "-0.5px",
             }}
@@ -194,13 +207,15 @@ const SummaryOverview = ({ summary, loading = false }) => {
         </div>
         <div
           style={{
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            padding: "6px 12px",
+            padding: isMobile ? "6px 10px" : "6px 12px",
             borderRadius: "20px",
             background: `linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)`,
             boxShadow: "0 2px 8px rgba(67, 233, 123, 0.3)",
+            flexShrink: 0,
+            marginLeft: "auto",
           }}
         >
           <span
@@ -216,9 +231,10 @@ const SummaryOverview = ({ summary, loading = false }) => {
           <span
             style={{
               color: "#ffffff",
-              fontSize: "12px",
+              fontSize: isMobile ? "11px" : "12px",
               fontWeight: "600",
               letterSpacing: "0.3px",
+              whiteSpace: "nowrap",
             }}
           >
             {t("dashboard.overview.liveSummary")}
@@ -227,15 +243,16 @@ const SummaryOverview = ({ summary, loading = false }) => {
       </div>
 
       {/* Quick Metrics Grid */}
-      <div style={{ padding: isMobile ? "16px" : "20px 24px 16px" }}>
+      <div style={{ padding: isMobile ? "12px" : "20px 24px 16px" }}>
         <div
           style={{
             display: "grid",
+            width: "100%",
             gridTemplateColumns: isMobile
-              ? "repeat(2, 1fr)"
+              ? "repeat(2, minmax(0, 1fr))"
               : isTablet
-              ? "repeat(3, 1fr)"
-              : "repeat(5, 1fr)",
+                ? "repeat(3, minmax(0, 1fr))"
+                : "repeat(5, minmax(0, 1fr))",
             gap: isMobile ? "8px" : "12px",
           }}
         >
@@ -304,15 +321,16 @@ const SummaryOverview = ({ summary, loading = false }) => {
       </div>
 
       {/* KPI Cards */}
-      <div style={{ padding: isMobile ? "0 16px 16px" : "0 24px 20px" }}>
+      <div style={{ padding: isMobile ? "0 12px 12px" : "0 24px 20px" }}>
         <div
           style={{
             display: "grid",
+            width: "100%",
             gridTemplateColumns: isMobile
               ? "1fr"
               : isTablet
-              ? "repeat(2, 1fr)"
-              : "repeat(3, 1fr)",
+                ? "repeat(2, minmax(0, 1fr))"
+                : "repeat(3, minmax(0, 1fr))",
             gap: isMobile ? "8px" : "12px",
           }}
         >

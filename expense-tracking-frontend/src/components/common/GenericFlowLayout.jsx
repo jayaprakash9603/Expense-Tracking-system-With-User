@@ -215,7 +215,10 @@ const GenericFlowLayout = ({
           paddingRight: isMobile ? 8 : isTablet ? 24 : 60,
           height: isMobile ? 120 : isTablet ? 160 : 220,
           minWidth: 0,
-          overflow: "hidden",
+          // Allow chart tooltips to paint above cards below (overflow:hidden clips them)
+          overflow: "visible",
+          position: "relative",
+          zIndex: 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

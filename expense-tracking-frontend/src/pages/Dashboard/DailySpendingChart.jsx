@@ -830,7 +830,7 @@ const DailySpendingChart = ({
   const headerIcon = icon
     ? applyAccentToIcon(icon, colors.primary_accent)
     : getAccentFunctionalIcon("chart", colors.primary_accent, {
-        sx: { fontSize: 22 },
+        sx: { fontSize: isMobile ? 16 : 18 },
       });
   const timeframeSelectorOptions =
     timeframeOptions && timeframeOptions.length > 0
@@ -980,22 +980,29 @@ const DailySpendingChart = ({
         border: `1px solid ${colors.border_color}`,
       }}
     >
-      {/* Chart header */}
-      <div className="chart-header">
+      {/* Chart header — compact single row: title | dropdown + Loss/Gain */}
+      <div className="chart-header dashboard-chart-header daily-spending-header">
         <h3
+          className="daily-spending-title"
           style={{
             color: colors.primary_text,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             margin: 0,
+            minWidth: 0,
+            fontSize: isMobile ? "0.85rem" : "0.95rem",
+            fontWeight: 600,
+            lineHeight: 1.2,
           }}
         >
           {headerIcon}
-          {chartTitle}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {chartTitle}
+          </span>
         </h3>
         {!hideControls ? (
-          <div className="chart-controls">
+          <div className="chart-controls dashboard-chart-controls daily-spending-controls">
             <ChartTimeframeSelector
               value={timeframe}
               onChange={onTimeframeChange}
@@ -1020,12 +1027,25 @@ const DailySpendingChart = ({
           bordered={false}
         />
       ) : (
-        <div style={{ height: chartHeight, width: "100%", position: "relative" }}>
+        <div
+          className="dashboard-chart-plot"
+          style={{
+            height: isMobile ? Math.max(chartHeight, 260) : chartHeight,
+            width: "100%",
+            position: "relative",
+          }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
               key={animationKey}
               onClick={handleChartClick}
+              margin={{
+                top: 8,
+                right: isMobile ? 4 : 12,
+                left: isMobile ? 0 : 4,
+                bottom: 4,
+              }}
             >
             <defs>
               {!isOverlayAllMode ? (

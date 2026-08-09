@@ -34,6 +34,7 @@ import FilterPopover from "../../../components/ui/FilterPopover";
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ViewExpenseSkeleton from "../../../components/skeletons/ViewExpenseSkeleton";
+import { AnalyticsMetricGrid } from "../../../components/analytics";
 import {
   getExpenseDetailedView,
   clearExpenseDetailedView,
@@ -1254,146 +1255,103 @@ const ViewExpense = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                {[
+              <AnalyticsMetricGrid
+                items={[
                   {
+                    id: "this-month",
                     label: "This Month",
                     value: occurrenceInfo.occurrencesThisMonth || 0,
-                    type: "number",
                     icon: (
-                      <ScheduleIcon sx={{ fontSize: 18, color: "#3b82f6" }} />
+                      <ScheduleIcon sx={{ fontSize: 16, color: "#3b82f6" }} />
                     ),
                     accentColor: "#3b82f6",
                     tooltip: "Number of times this expense occurred this month",
                   },
                   {
+                    id: "this-year",
                     label: "This Year",
                     value: occurrenceInfo.occurrencesThisYear || 0,
-                    type: "number",
                     icon: (
-                      <DateRangeIcon sx={{ fontSize: 18, color: "#8b5cf6" }} />
+                      <DateRangeIcon
+                        sx={{ fontSize: 16, color: colors.primary_accent || "#00dac6" }}
+                      />
                     ),
-                    accentColor: "#8b5cf6",
+                    accentColor: colors.primary_accent || "#00dac6",
                     tooltip: "Number of times this expense occurred this year",
                   },
                   {
+                    id: "average",
                     label: "Average",
-                    value: occurrenceInfo.averageAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.averageAmount),
                     highlight: true,
                     icon: (
-                      <ShowChartIcon sx={{ fontSize: 18, color: "#00dac6" }} />
+                      <ShowChartIcon sx={{ fontSize: 16, color: "#00dac6" }} />
                     ),
                     accentColor: "#00dac6",
                     tooltip: "Average amount spent on this expense",
                   },
                   {
+                    id: "all-time",
                     label: "All Time",
-                    value: occurrenceInfo.totalAmountAllTime,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.totalAmountAllTime),
                     highlight: true,
                     icon: (
                       <AccountBalanceWalletIcon
-                        sx={{ fontSize: 18, color: "#00dac6" }}
+                        sx={{ fontSize: 16, color: "#00dac6" }}
                       />
                     ),
                     accentColor: "#00dac6",
                     tooltip: "Total amount spent on this expense over all time",
                   },
                   {
+                    id: "first",
                     label: "First",
-                    value: occurrenceInfo.firstOccurrence,
-                    type: "date",
-                    icon: <EventIcon sx={{ fontSize: 18, color: "#f59e0b" }} />,
+                    value: formatDate(occurrenceInfo.firstOccurrence),
+                    icon: <EventIcon sx={{ fontSize: 16, color: "#f59e0b" }} />,
                     accentColor: "#f59e0b",
                     tooltip: "Date of the first occurrence of this expense",
                   },
                   {
+                    id: "last",
                     label: "Last",
-                    value: occurrenceInfo.lastOccurrence,
-                    type: "date",
+                    value: formatDate(occurrenceInfo.lastOccurrence),
                     icon: (
                       <CalendarTodayIcon
-                        sx={{ fontSize: 18, color: "#ec4899" }}
+                        sx={{ fontSize: 16, color: "#fb923c" }}
                       />
                     ),
-                    accentColor: "#ec4899",
+                    accentColor: "#fb923c",
                     tooltip:
                       "Date of the most recent occurrence of this expense",
                   },
                   {
+                    id: "min",
                     label: "Min",
-                    value: occurrenceInfo.minAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.minAmount),
+                    highlight: true,
                     icon: (
                       <ArrowDownwardIcon
-                        sx={{ fontSize: 18, color: "#22c55e" }}
+                        sx={{ fontSize: 16, color: "#22c55e" }}
                       />
                     ),
                     accentColor: "#22c55e",
                     tooltip: "Minimum amount spent on this expense",
                   },
                   {
+                    id: "max",
                     label: "Max",
-                    value: occurrenceInfo.maxAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.maxAmount),
+                    highlight: true,
                     icon: (
                       <ArrowUpwardIcon
-                        sx={{ fontSize: 18, color: "#ef4444" }}
+                        sx={{ fontSize: 16, color: "#ef4444" }}
                       />
                     ),
                     accentColor: "#ef4444",
                     tooltip: "Maximum amount spent on this expense",
                   },
-                ].map((stat, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: colors.secondary_bg,
-                      padding: "12px 14px",
-                      borderRadius: "8px",
-                      border: `1px solid ${colors.border_color}`,
-                      borderLeft: `3px solid ${stat.accentColor}`,
-                      transition: "all 0.2s ease",
-                    }}
-                    className="hover:scale-[1.02]"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      {stat.icon}
-                      <Tooltip title={stat.tooltip} arrow placement="top">
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            color: colors.secondary_text,
-                            textTransform: "uppercase",
-                            fontWeight: "500",
-                            letterSpacing: "0.5px",
-                            cursor: "help",
-                          }}
-                        >
-                          {stat.label}
-                        </span>
-                      </Tooltip>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: stat.highlight ? "1.15rem" : "1.05rem",
-                        fontWeight: "700",
-                        color: stat.highlight
-                          ? stat.accentColor
-                          : colors.primary_text,
-                        marginTop: "4px",
-                      }}
-                    >
-                      {stat.type === "currency"
-                        ? formatCurrency(stat.value)
-                        : stat.type === "date"
-                          ? formatDate(stat.value)
-                          : stat.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                ]}
+              />
             </div>
           )}
 

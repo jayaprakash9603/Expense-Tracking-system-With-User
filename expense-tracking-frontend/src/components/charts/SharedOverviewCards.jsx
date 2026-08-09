@@ -86,9 +86,10 @@ const SharedOverviewCards = ({
 
   const containerStyle = {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "20px",
-    marginBottom: "32px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
+    gap: "16px",
+    marginBottom: "24px",
+    width: "100%",
   };
 
   if (isBudget) {

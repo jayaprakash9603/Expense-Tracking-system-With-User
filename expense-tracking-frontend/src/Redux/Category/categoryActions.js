@@ -21,6 +21,7 @@ import {
   CLEAR_CATEGORY_ANALYTICS,
 } from "./categoryTypes";
 import { api, API_BASE_URL } from "../../config/api"; // Import the api instance
+import { canFetchEntityAnalytics } from "../../utils/feature/analyticsFeatureAccess";
 
 export const fetchCategories = (targetId) => {
   return async (dispatch) => {
@@ -236,8 +237,17 @@ export const deleteCategory = (categoryId, targetId) => async (dispatch) => {
  * @param {number} options.targetId - Optional target user ID for friend expense viewing
  */
 export const fetchCategoryAnalytics =
-  (categoryId, { startDate, endDate, trendType = "MONTHLY", targetId } = {}) =>
-  async (dispatch) => {
+  (categoryId, { startDate, endDate, trendType = "MONTHLY", targetId, signal } = {}) =>
+  async (dispatch, getState) => {
+    const featureFlags = getState()?.featureFlags;
+    if (!canFetchEntityAnalytics(featureFlags, "CATEGORY")) {
+      dispatch({
+        type: FETCH_CATEGORY_ANALYTICS_FAILURE,
+        payload: "Category analytics is currently unavailable",
+      });
+      return null;
+    }
+
     dispatch({ type: FETCH_CATEGORY_ANALYTICS_REQUEST });
 
     try {
@@ -250,7 +260,9 @@ export const fetchCategoryAnalytics =
         ...(targetId && { targetId }),
       };
 
-      const { data } = await api.post("/api/analytics/entity", payload);
+      const { data } = await api.post("/api/analytics/entity", payload, {
+        signal,
+      });
 
       // Extract data from ApiResponse wrapper
       const analytics = data?.data || data;
@@ -261,6 +273,15 @@ export const fetchCategoryAnalytics =
 
       return analytics;
     } catch (error) {
+      if (
+        axios.isCancel(error) ||
+        error?.code === "ERR_CANCELED" ||
+        error?.name === "CanceledError" ||
+        error?.message === "canceled"
+      ) {
+        return null;
+      }
+
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data ||

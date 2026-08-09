@@ -13,7 +13,9 @@ import { getCategoryIcon, getPaymentMethodIcon } from "../../utils/ui/iconMappin
 import { handleSelectableSurfaceMouseDown } from "../../utils/ui/selectableSurface";
 import {
   FEATURE_KEYS,
+  SUB_FEATURE_KEYS,
   isActionEnabledInState,
+  isFeatureEnabledInState,
 } from "../../config/featureCatalog";
 
 const sanitizeAttributeValue = (value) =>
@@ -54,6 +56,14 @@ const ExpenseCard = React.memo(
     const featureFlags = useSelector((state) => state.featureFlags);
     const editEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "edit");
     const deleteEnabled = isActionEnabledInState(featureFlags, FEATURE_KEYS.EXPENSES, "delete");
+    const categoryAnalyticsEnabled = isFeatureEnabledInState(
+      featureFlags,
+      SUB_FEATURE_KEYS.CATEGORIES_ANALYTICS,
+    );
+    const paymentAnalyticsEnabled = isFeatureEnabledInState(
+      featureFlags,
+      SUB_FEATURE_KEYS.PAYMENT_METHODS_ANALYTICS,
+    );
 
     const type =
       flowTab === "all" ? row.type || row.expense?.type || "outflow" : flowTab;
@@ -178,11 +188,14 @@ const ExpenseCard = React.memo(
       return `${window.location.origin}${routePath}`;
     }, [row, friendId, isFriendView]);
 
-    // Navigate to category analytics page
+    // Navigate to category analytics page (skip when analytics sub-feature is dormant)
     const handleCategoryClick = useCallback(
       (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (!categoryAnalyticsEnabled) {
+          return;
+        }
         const categoryId =
           row.categoryId || row.category?.id || row.expense?.categoryId;
         if (categoryId) {
@@ -192,7 +205,7 @@ const ExpenseCard = React.memo(
           navigate(categoryPath);
         }
       },
-      [row, friendId, isFriendView, navigate],
+      [row, friendId, isFriendView, navigate, categoryAnalyticsEnabled],
     );
 
     // Generate full URL for category tooltip
@@ -206,11 +219,14 @@ const ExpenseCard = React.memo(
       return `${window.location.origin}${routePath}`;
     }, [row, friendId, isFriendView]);
 
-    // Navigate to payment method analytics page (or payment method list if ID not available)
+    // Navigate to payment method analytics (skip when analytics sub-feature is dormant)
     const handlePaymentMethodClick = useCallback(
       (event) => {
         event.preventDefault();
         event.stopPropagation();
+        if (!paymentAnalyticsEnabled) {
+          return;
+        }
         const paymentMethodId =
           row.paymentMethodId ||
           row.paymentMethod?.id ||
@@ -221,14 +237,13 @@ const ExpenseCard = React.memo(
             : `/payment-method/view/${paymentMethodId}`;
           navigate(paymentPath);
         } else if (rawPaymentMethod && rawPaymentMethod !== t("cashflow.labels.unknownPayment")) {
-          // Fallback: navigate to payment method list when ID not available
           const listPath = isFriendView
             ? `/payment-method/${friendId}`
             : "/payment-method";
           navigate(listPath);
         }
       },
-      [row, friendId, isFriendView, navigate, rawPaymentMethod, t],
+      [row, friendId, isFriendView, navigate, rawPaymentMethod, t, paymentAnalyticsEnabled],
     );
 
     // Generate full URL for payment method tooltip

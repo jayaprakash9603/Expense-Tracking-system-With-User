@@ -84,7 +84,8 @@ const ModernOverviewCard = ({
   percentage,
   trend = "up", // "up" or "down"
   sparklineData = [3, 4, 3, 5, 8, 6, 7], // default dummy data
-  variant = "blue"
+  variant = "blue",
+  compact = false,
 }) => {
   const { mode: themeMode } = useTheme();
   const isDark = themeMode === "dark";
@@ -92,16 +93,20 @@ const ModernOverviewCard = ({
 
   return (
     <div
+      className={`modern-overview-card${compact ? " is-compact" : ""}`}
       style={{
         background: isDark ? styles.darkBg : styles.bg,
-        borderRadius: "16px",
-        padding: "20px",
+        borderRadius: compact ? "12px" : "16px",
+        padding: compact ? "12px" : "20px",
         position: "relative",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        minHeight: "130px",
+        minHeight: compact ? "108px" : "130px",
+        height: "100%",
+        width: "100%",
+        minWidth: 0,
         boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)",
       }}
     >
@@ -139,25 +144,77 @@ const ModernOverviewCard = ({
         </div>
         
         {percentage && (
-          <div style={{ display: "flex", alignItems: "center", gap: "2px", color: isDark ? styles.darkTextColor : styles.textColor, fontSize: "13px", fontWeight: 600 }}>
-            {trend === "up" ? <TrendingUpIcon sx={{ fontSize: 16 }} /> : <TrendingDownIcon sx={{ fontSize: 16 }} />}
-            {percentage}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "2px",
+              color: isDark ? styles.darkTextColor : styles.textColor,
+              fontSize: compact ? "10px" : "13px",
+              fontWeight: 600,
+              maxWidth: "58%",
+              textAlign: "right",
+              lineHeight: 1.2,
+            }}
+          >
+            {trend === "up" ? (
+              <TrendingUpIcon sx={{ fontSize: compact ? 14 : 16, flexShrink: 0 }} />
+            ) : (
+              <TrendingDownIcon sx={{ fontSize: compact ? 14 : 16, flexShrink: 0 }} />
+            )}
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+              {percentage}
+            </span>
           </div>
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", zIndex: 1, marginTop: "16px" }}>
-        <div>
-          <div style={{ color: isDark ? styles.darkTextColor : styles.textColor, fontSize: "13px", fontWeight: 500, marginBottom: "4px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: 8,
+          zIndex: 1,
+          marginTop: compact ? "10px" : "16px",
+          minWidth: 0,
+        }}
+      >
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div
+            style={{
+              color: isDark ? styles.darkTextColor : styles.textColor,
+              fontSize: compact ? "11px" : "13px",
+              fontWeight: 500,
+              marginBottom: "4px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
             {title}
           </div>
-          <div style={{ color: isDark ? styles.darkValueColor : styles.valueColor, fontSize: "24px", fontWeight: 700, lineHeight: 1 }}>
+          <div
+            style={{
+              color: isDark ? styles.darkValueColor : styles.valueColor,
+              fontSize: compact ? "1.15rem" : "24px",
+              fontWeight: 700,
+              lineHeight: 1.1,
+              fontVariantNumeric: "tabular-nums",
+              wordBreak: "break-word",
+            }}
+          >
             {value}
           </div>
         </div>
-        
-        <div style={{ paddingBottom: "2px" }}>
-          <SimpleSparkline data={sparklineData} color={styles.lineColor} width={50} height={20} />
+
+        <div style={{ paddingBottom: "2px", flexShrink: 0 }}>
+          <SimpleSparkline
+            data={sparklineData}
+            color={styles.lineColor}
+            width={compact ? 40 : 50}
+            height={compact ? 16 : 20}
+          />
         </div>
       </div>
     </div>

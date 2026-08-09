@@ -3528,3 +3528,305 @@
 .summary-overview.tablet {
   padding: 16px;
 }
+
+/* ========================================
+   Dashboard responsive polish (2026)
+   Chart headers, full-bleed plots, metric grids
+   ======================================== */
+
+.expense-dashboard .metrics-grid {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.expense-dashboard .metrics-grid > * {
+  min-width: 0;
+}
+
+.expense-dashboard .chart-container {
+  overflow: visible;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-chart-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 10px 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.dashboard-chart-header h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-chart-controls {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  margin-left: auto;
+  width: auto !important;
+  max-width: 100%;
+}
+
+.dashboard-chart-controls .time-selector {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.dashboard-chart-controls .type-toggle {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  margin-left: 0 !important;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dashboard-chart-controls .type-toggle .toggle-btn {
+  white-space: nowrap;
+}
+
+.monthly-year-controls {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.monthly-year-controls .year-chip {
+  min-width: 64px;
+  text-align: center;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+}
+
+.dashboard-chart-plot {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  position: relative;
+  overflow: visible;
+}
+
+.dashboard-chart-plot .recharts-responsive-container {
+  width: 100% !important;
+  min-height: 0;
+}
+
+.expense-dashboard .daily-spending-chart,
+.expense-dashboard .monthly-trend,
+.expense-dashboard .reusable-pie-chart,
+.expense-dashboard .payment-methods,
+.expense-dashboard .category-breakdown {
+  width: 100%;
+  max-width: 100%;
+}
+
+.expense-dashboard .payment-methods .chart-header,
+.expense-dashboard .category-breakdown .chart-header,
+.expense-dashboard .daily-spending-chart .chart-header,
+.expense-dashboard .monthly-trend .chart-header {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+.expense-dashboard .payment-methods .chart-controls,
+.expense-dashboard .category-breakdown .chart-controls,
+.expense-dashboard .daily-spending-chart .chart-controls {
+  width: auto !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Daily Spending Pattern — compact single-row header */
+.daily-spending-chart .daily-spending-header,
+.expense-dashboard .daily-spending-chart .daily-spending-header {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.daily-spending-chart .daily-spending-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+.daily-spending-chart .daily-spending-controls,
+.expense-dashboard .daily-spending-chart .daily-spending-controls {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  flex: 0 0 auto;
+}
+
+.daily-spending-chart .daily-spending-controls .time-selector {
+  min-width: 96px !important;
+  max-width: 128px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  height: 30px;
+  line-height: 1.2;
+}
+
+.daily-spending-chart .daily-spending-controls .type-toggle {
+  padding: 2px !important;
+  gap: 2px !important;
+}
+
+.daily-spending-chart .daily-spending-controls .type-toggle .toggle-btn {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  min-height: 28px !important;
+  border-radius: 5px !important;
+  font-weight: 600;
+  transform: none !important;
+}
+
+@media (max-width: 900px) {
+  .expense-dashboard {
+    width: calc(100vw - 24px);
+    margin: 8px 12px 8px 0;
+    padding: 14px;
+  }
+
+  .dashboard-chart-header.is-mobile,
+  .dashboard-chart-header:not(.daily-spending-header) {
+    align-items: flex-start !important;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls) {
+    width: 100% !important;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .daily-spending-chart .daily-spending-header {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+
+  .daily-spending-chart .daily-spending-controls {
+    width: auto !important;
+    margin-left: 0 !important;
+  }
+
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .expense-dashboard .chart-container {
+    padding: 12px !important;
+    min-height: 0;
+  }
+
+  .reusable-pie-chart .recharts-responsive-container {
+    min-height: 280px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .expense-dashboard {
+    width: calc(100vw - 16px);
+    margin: 8px;
+    padding: 10px;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .dashboard-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .header-left .header-title h1 {
+    font-size: 1.35rem !important;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls) .time-selector {
+    min-width: 110px;
+    max-width: 140px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls) .type-toggle .toggle-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .daily-spending-chart .daily-spending-title {
+    font-size: 0.8rem !important;
+  }
+
+  .daily-spending-chart .daily-spending-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    height: 28px;
+  }
+
+  .daily-spending-chart .daily-spending-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 26px !important;
+  }
+
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 12px;
+  }
+
+  .summary-overview .overview-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .kpi-row {
+    flex-direction: column;
+  }
+
+  .reusable-pie-chart .total-amount-bottom,
+  .payment-methods .total-amount-bottom,
+  .category-breakdown .total-amount-bottom {
+    position: static;
+    margin-top: 10px;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 901px) {
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}

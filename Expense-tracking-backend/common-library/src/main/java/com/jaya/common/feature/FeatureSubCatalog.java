@@ -255,6 +255,7 @@ public final class FeatureSubCatalog {
         defs.add(sub(FeatureCatalog.CATEGORIES, "list", List.of("/category-flow"), List.of("/api/categories")));
         defs.add(sub(FeatureCatalog.CATEGORIES, "reports", List.of("/category-flow/reports"), List.of()));
         defs.add(sub(FeatureCatalog.CATEGORIES, "calendar", List.of("/category-flow/calendar"), List.of()));
+        // Entity analytics API (/api/analytics/entity) is gated by entityType in AnalyticsEntityService
         defs.add(sub(FeatureCatalog.CATEGORIES, "analytics", List.of("/category-flow/view"), List.of()));
 
         defs.add(sub(FeatureCatalog.PAYMENT_METHODS, "create", List.of("/payment-method/create"), List.of()));
@@ -265,6 +266,7 @@ public final class FeatureSubCatalog {
         defs.add(sub(FeatureCatalog.PAYMENT_METHODS, "list", List.of("/payment-method"), List.of("/api/payment-methods")));
         defs.add(sub(FeatureCatalog.PAYMENT_METHODS, "reports", List.of("/payment-method/reports"), List.of()));
         defs.add(sub(FeatureCatalog.PAYMENT_METHODS, "calendar", List.of("/payment-method/calendar"), List.of()));
+        // Entity analytics API (/api/analytics/entity) is gated by entityType in AnalyticsEntityService
         defs.add(sub(FeatureCatalog.PAYMENT_METHODS, "analytics", List.of("/payment-method/view"), List.of()));
 
         defs.add(sub(FeatureCatalog.BILLS, "create", List.of("/bill/create"), List.of()));

@@ -17,7 +17,16 @@ const ChartTypeToggle = ({ selectedType, onToggle, options }) => {
   if (!onToggle || !options || options.length === 0) return null;
 
   return (
-    <div className="type-toggle">
+    <div
+      className="type-toggle"
+      style={{
+        display: "inline-flex",
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        gap: 4,
+      }}
+    >
       {options.map((opt) => {
         const label = opt.labelKey ? t(opt.labelKey) : opt.label || opt.value;
 
