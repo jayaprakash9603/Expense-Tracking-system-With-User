@@ -95,10 +95,14 @@ const AppSelect = React.forwardRef(
     const currentSize =
       sizeConfig[isCompact ? "compact" : size] || sizeConfig.medium;
 
-    const bgColor = colors.active_bg || colors.secondary_bg || "#29282b";
+    // Rest state stays neutral like a native select; the accent only appears on
+    // hover and focus so toolbars aren't dominated by tinted controls.
+    const bgColor = colors.input_bg || colors.secondary_bg || "#222222";
+    const hoverBgColor = colors.button_inactive || bgColor;
     const textColor = colors.primary_text || "#fff";
     const borderColor = colors.border_color || "rgb(75, 85, 99)";
     const focusBorderColor = colors.primary_accent || "#00dac6";
+    const hoverBorderColor = focusBorderColor;
     const errorBorderColor = colors.error || "#ff4d4f";
     const placeholderColor =
       colors.placeholder_text || colors.secondary_text || "#9ca3af";
@@ -207,15 +211,19 @@ const AppSelect = React.forwardRef(
         height: multiple ? "auto" : currentSize.height,
         fontSize: currentSize.fontSize,
         borderRadius: `${currentSize.radius}px`,
-        transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+        transition:
+          "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
       },
       "& .MuiOutlinedInput-root": {
         "& fieldset": {
           borderColor: error ? errorBorderColor : borderColor,
           borderWidth: error ? "2px" : "1px",
         },
+        "&:hover": {
+          backgroundColor: error ? bgColor : hoverBgColor,
+        },
         "&:hover fieldset": {
-          borderColor: error ? errorBorderColor : focusBorderColor,
+          borderColor: error ? errorBorderColor : hoverBorderColor,
         },
         "&.Mui-focused fieldset": {
           borderColor: error ? errorBorderColor : focusBorderColor,
@@ -237,8 +245,13 @@ const AppSelect = React.forwardRef(
         pr: "32px !important",
       },
       "& .MuiSelect-icon": {
-        color: focusBorderColor,
-        opacity: 0.9,
+        color: colors.secondary_text || placeholderColor,
+        opacity: 0.65,
+        transition: "color 0.2s ease, opacity 0.2s ease",
+      },
+      "&:hover .MuiSelect-icon, & .Mui-focused .MuiSelect-icon": {
+        color: error ? errorBorderColor : focusBorderColor,
+        opacity: 1,
       },
       "& .MuiInputLabel-root": {
         color: colors.secondary_text || placeholderColor,
