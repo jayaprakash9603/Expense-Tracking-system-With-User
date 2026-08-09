@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   FETCH_BILLS_REQUEST,
   FETCH_BILLS_SUCCESS,
@@ -38,6 +37,9 @@ import {
   CHECK_OCR_STATUS_FAILURE,
 } from "./bill.actionType";
 import { api } from "../../config/api";
+import { getContainer } from "../../platform/container";
+import { BILL_REPOSITORY_KEY } from "../../features/bills/adapters";
+import { listBills } from "../../features/bills/usecases";
 
 // Fetch all bills
 export const fetchBills =
@@ -45,17 +47,14 @@ export const fetchBills =
   async (dispatch) => {
     dispatch({ type: FETCH_BILLS_REQUEST });
     try {
-      const config = {
-        params: targetId ? { targetId, month, year } : { month, year },
-      };
-
-      const response = await api.get(`api/bills`, config);
-      console.log("Fetched Bills:", response.data); // Debugging log
+      const repo = getContainer().getRepository(BILL_REPOSITORY_KEY);
+      const data = await listBills(repo, { month, year, targetId });
+      console.log("Fetched Bills:", data);
       dispatch({
         type: FETCH_BILLS_SUCCESS,
-        payload: response.data,
+        payload: data,
       });
-      return response.data;
+      return data;
     } catch (error) {
       dispatch({
         type: FETCH_BILLS_FAILURE,

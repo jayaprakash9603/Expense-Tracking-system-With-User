@@ -26,7 +26,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 
 const excelReportTypes = [
   {
@@ -149,28 +149,29 @@ const ExcelDownload = () => {
     setSuccess(false);
 
     try {
-      const token = localStorage.getItem("jwt");
       const dateParams = getDateParams();
 
-      let url = `${API_BASE_URL}/api/analytics/report/excel?reportType=${reportType.toUpperCase()}&includeCharts=${includeCharts}&includeFormulas=${includeFormulas}&includeConditionalFormatting=${includeConditionalFormatting}`;
+      const params = {
+        reportType: reportType.toUpperCase(),
+        includeCharts,
+        includeFormulas,
+        includeConditionalFormatting,
+      };
 
       if (dateParams.allTime) {
-        url += `&allTime=true`;
+        params.allTime = true;
       } else if (dateParams.startDate && dateParams.endDate) {
-        url += `&startDate=${dateParams.startDate}&endDate=${dateParams.endDate}`;
+        params.startDate = dateParams.startDate;
+        params.endDate = dateParams.endDate;
       }
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/api/analytics/report/excel", {
+        responseType: "blob",
+        params,
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to download report (${response.status})`);
-      }
-
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get("Content-Disposition");
+      const blob = response.data;
+      const contentDisposition = response.headers["content-disposition"];
       let filename = `expense_report_${dateRange}.xlsx`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename=(.+)/);

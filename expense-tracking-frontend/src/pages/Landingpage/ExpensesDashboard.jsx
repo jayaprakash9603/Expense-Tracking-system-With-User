@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { useTheme, useMediaQuery, Skeleton } from "@mui/material";
-import axios from "axios";
 import {
   PieChart,
   Pie,
@@ -47,7 +46,7 @@ import {
   getHomeExpensesAction,
   getExpensesSummaryAction,
 } from "../../Redux/Expenses/expense.action";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 import { getCategoryIcon } from "../../utils/ui/iconMapping";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import {
@@ -298,20 +297,12 @@ const ExpensesDashboard = () => {
       setError("Please log in to view the monthly report.");
       return;
     }
-    const headers = { Authorization: `Bearer ${token}` };
     const fetchData = async () => {
       try {
         const [spendingRes, totalsRes, distributionRes] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/api/expenses/current-month/daily-spending`,
-            { headers }
-          ),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/totals`, {
-            headers,
-          }),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/distribution`, {
-            headers,
-          }),
+          api.get("/api/expenses/current-month/daily-spending"),
+          api.get("/api/expenses/current-month/totals"),
+          api.get("/api/expenses/current-month/distribution"),
         ]);
         setDailySpendingData(
           spendingRes.data.length > 0 ? spendingRes.data : defaultDailySpending

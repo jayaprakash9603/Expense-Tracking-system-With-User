@@ -83,10 +83,6 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
 
-  const jwt = localStorage.getItem("jwt");
-  const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
-
   // Routing hooks (used in callbacks and UI)
   const { friendId } = useParams();
   const { navigateWithState } = usePreserveNavigationState();
@@ -189,17 +185,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bills/import/excel`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: formData,
+      const response = await api.post("/api/bills/import/excel", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         setImportedBills(data.bills || []);
         setUploadFeedback({
           status: FEEDBACK_STATUS.SUCCESS,
@@ -223,7 +215,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
     } finally {
       setIsUploading(false);
     }
-  }, [selectedFile, targetId, jwt, API_BASE_URL, resetImportState]);
+  }, [selectedFile, targetId, resetImportState]);
 
   // Save bills using tracked bulk import
   const handleSaveBills = useCallback(async () => {
@@ -244,23 +236,17 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
 
     try {
       const requestBody = importedBills;
-      const url = new URL(`${API_BASE_URL}/api/bills/add-multiple/tracked`);
-      if (targetId) {
-        url.searchParams.append("targetId", targetId);
-      }
+      const response = await api.post(
+        "/api/bills/add-multiple/tracked",
+        requestBody,
+        {
+          params: targetId ? { targetId } : undefined,
+        }
+      );
 
-      const response = await fetch(url.toString(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jwt}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status >= 200 && response.status < 300) {
         setJobId(data.jobId);
         setSaveFeedback({
           status: FEEDBACK_STATUS.SUCCESS,
@@ -291,25 +277,19 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       });
       setSaving(false);
     }
-  }, [importedBills, targetId, jwt, API_BASE_URL]);
+  }, [importedBills, targetId]);
 
   // Poll progress for tracked bulk import
   // Poll progress for tracked bulk import
   const pollProgress = useCallback(
     async (currentJobId) => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/bills/add-multiple/progress/${currentJobId}`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${jwt}`,
-            },
-          }
+        const response = await api.get(
+          `/api/bills/add-multiple/progress/${currentJobId}`
         );
 
-        if (response.ok) {
-          const progressData = await response.json();
+        if (response.status >= 200 && response.status < 300) {
+          const progressData = response.data;
           setProgress(progressData);
 
           if (progressData.status === "COMPLETED") {
@@ -362,8 +342,6 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       }
     },
     [
-      jwt,
-      API_BASE_URL,
       onImportComplete,
       importedBills.length,
       friendId,

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   Box,
   Button,
@@ -21,7 +20,7 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import CategoryIcon from "@mui/icons-material/Category";
 import PaymentIcon from "@mui/icons-material/Payment";
-import { api, API_BASE_URL } from "../../../config/api";
+import { api } from "../../../config/api";
 import { expensesTypesEmail } from "../../../pages/Input Fields/InputFields";
 import { AppAutocomplete } from "../../../components/ui";
 import ReusableFilterField from "../../../components/ReusableFilterField";
@@ -50,7 +49,6 @@ const ExpenseEmail = () => {
   const [loading, setLoading] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  const jwt = localStorage.getItem("jwt");
   const muiTheme = useMuiTheme();
   const { colors, mode } = useTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
@@ -82,12 +80,7 @@ const ExpenseEmail = () => {
       return;
     }
     try {
-      const response = await api.get(url, {
-        params,
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
+      const response = await api.get(url, { params });
       if (response.status === 204) {
         alert("No Expenses were found.");
         handleClearAll();
@@ -112,59 +105,58 @@ const ExpenseEmail = () => {
   const getEmailParams = () => {
     let url = "";
     let params = { email };
-    const baseUrl = `${API_BASE_URL}`;
     switch (searchTerm) {
       case "Today":
-        url = `${baseUrl}/api/expenses/email/today`;
+        url = "/api/expenses/email/today";
         break;
       case "Yesterday":
-        url = `${baseUrl}/api/expenses/email/yesterday`;
+        url = "/api/expenses/email/yesterday";
         break;
       case "Last Week":
-        url = `${baseUrl}/api/expenses/email/current-week`;
+        url = "/api/expenses/email/current-week";
         break;
       case "Current Week":
-        url = `${baseUrl}/api/expenses/email/last-week`;
+        url = "/api/expenses/email/last-week";
         break;
       case "Current Month":
-        url = `${baseUrl}/api/expenses/email/current-month`;
+        url = "/api/expenses/email/current-month";
         break;
       case "Last Month":
-        url = `${baseUrl}/api/expenses/email/last-month`;
+        url = "/api/expenses/email/last-month";
         break;
       case "All Expenses":
-        url = `${baseUrl}/api/expenses/email/all`;
+        url = "/api/expenses/email/all";
         break;
       case "Within Range Expenses":
-        url = `${baseUrl}/api/expenses/email/range`;
+        url = "/api/expenses/email/range";
         params.startDate = fromDay;
         params.endDate = toDay;
         break;
       case "Expenses By Name":
-        url = `${baseUrl}/api/expenses/email/name`;
+        url = "/api/expenses/email/name";
         params.expenseName = expenseName;
         break;
       case "Expenses By Payment Method":
-        url = `${baseUrl}/api/expenses/email/payment-method/${paymentMethod}`;
+        url = `/api/expenses/email/payment-method/${paymentMethod}`;
         break;
       case "Expenses By Type and Payment Method":
-        url = `${baseUrl}/api/expenses/email/type-payment-method/${category}/${paymentMethod}`;
+        url = `/api/expenses/email/type-payment-method/${category}/${paymentMethod}`;
         break;
       case "Expenses By Type":
-        url = `${baseUrl}/api/expenses/email/type/${category}`;
+        url = `/api/expenses/email/type/${category}`;
         break;
       case "Expenses Within Amount Range":
-        url = `${baseUrl}/api/expenses/email/amount-range`;
+        url = "/api/expenses/email/amount-range";
         params.minAmount = minAmount;
         params.maxAmount = maxAmount;
         break;
       case "Particular Month Expenses":
-        url = `${baseUrl}/api/expenses/email/by-month`;
+        url = "/api/expenses/email/by-month";
         params.month = startMonth;
         params.year = startYear;
         break;
       case "Particular Date Expenses":
-        url = `${baseUrl}/api/expenses/email/by-date`;
+        url = "/api/expenses/email/by-date";
         params.date = fromDay;
         break;
       default:

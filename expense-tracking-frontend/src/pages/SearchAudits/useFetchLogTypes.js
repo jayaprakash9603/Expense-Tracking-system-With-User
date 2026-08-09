@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 
 const useFetchLogTypes = () => {
   const [logTypes, setLogTypes] = useState([]);
@@ -8,8 +7,8 @@ const useFetchLogTypes = () => {
 
   useEffect(() => {
     const fetchLogTypes = () => {
-      axios
-        .get(`${API_BASE_URL}/audit-logs/audit-types`)
+      api
+        .get("/audit-logs/audit-types")
         .then((response) => {
           setLogTypes(response.data);
           setFilteredLogTypes(response.data);

@@ -24,6 +24,14 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"),
+        "@platform": path.resolve(__dirname, "src/platform"),
+        "@api": path.resolve(__dirname, "src/api"),
+        "@features": path.resolve(__dirname, "src/features"),
+        "@shared": path.resolve(__dirname, "src/shared"),
+        "@ui": path.resolve(__dirname, "src/components/ui"),
+        "@hooks": path.resolve(__dirname, "src/hooks"),
+        "@utils": path.resolve(__dirname, "src/utils"),
+        "@redux": path.resolve(__dirname, "src/Redux"),
       },
     },
     define: {
@@ -51,7 +59,9 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       globals: true,
-      environment: "jsdom",
+      // Prefer node for port/use-case unit tests; DOM suites can override with
+      // @vitest-environment jsdom at the top of the file.
+      environment: "node",
       setupFiles: ["./src/setupTests.js"],
       css: false,
     },

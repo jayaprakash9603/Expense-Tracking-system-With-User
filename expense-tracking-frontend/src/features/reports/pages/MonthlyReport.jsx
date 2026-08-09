@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   LineChart,
   Line,
@@ -15,7 +14,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { API_BASE_URL } from "../../../config/api";
+import { api } from "../../../config/api";
 import { useTheme, useMediaQuery } from "@mui/material";
 
 const MonthlyReport = () => {
@@ -50,20 +49,12 @@ const MonthlyReport = () => {
       setError("Please log in to view the monthly report.");
       return;
     }
-    const headers = { Authorization: `Bearer ${token}` };
     const fetchData = async () => {
       try {
         const [spendingRes, totalsRes, distributionRes] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/api/expenses/current-month/daily-spending`,
-            { headers }
-          ),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/totals`, {
-            headers,
-          }),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/distribution`, {
-            headers,
-          }),
+          api.get("/api/expenses/current-month/daily-spending"),
+          api.get("/api/expenses/current-month/totals"),
+          api.get("/api/expenses/current-month/distribution"),
         ]);
         setDailySpendingData(
           spendingRes.data.length > 0 ? spendingRes.data : defaultDailySpending

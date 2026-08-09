@@ -55,7 +55,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src --ext .js,.jsx"
+    "lint": "eslint src --ext .js,.jsx",
+    "generate:endpoints": "node scripts/generate-endpoint-catalog.mjs"
   },
   "eslintConfig": {
     "extends": [

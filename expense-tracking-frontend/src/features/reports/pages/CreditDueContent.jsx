@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Pie, Bar, Line, PolarArea } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -15,7 +14,7 @@ import {
   RadialLinearScale,
 } from "chart.js";
 import { Skeleton, useMediaQuery, useTheme } from "@mui/material";
-import { API_BASE_URL } from "../../../config/api";
+import { api } from "../../../config/api";
 import { useNavigate, useParams } from "react-router";
 import { Box, Typography, Divider, IconButton } from "@mui/material";
 
@@ -68,10 +67,10 @@ const CreditDueContent = () => {
     }
 
     const year = 2025;
-    const headers = { Authorization: `Bearer ${token}` };
 
     const fetchData = async () => {
       try {
+        const queryParams = { year, targetId: friendId || "" };
         const [
           byNameRes,
           monthlyRes,
@@ -80,50 +79,14 @@ const CreditDueContent = () => {
           cumulativeRes,
           nameOverTimeRes,
         ] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/api/expenses/by-name?year=${year}&targetId=${
-              friendId || ""
-            }`,
-            {
-              headers,
-            }
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/expenses/monthly?year=${year}&targetId=${
-              friendId || ""
-            }`,
-            {
-              headers,
-            }
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/expenses/trend?year=${year}&targetId=${
-              friendId || ""
-            }`,
-            {
-              headers,
-            }
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/expenses/payment-methods?year=${year}&targetId=${
-              friendId || ""
-            }`,
-            { headers }
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/expenses/cumulative?year=${year}&targetId=${
-              friendId || ""
-            }`,
-            {
-              headers,
-            }
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/expenses/name-over-time?year=${year}&limit=5&targetId=${
-              friendId || ""
-            }`,
-            { headers }
-          ),
+          api.get("/api/expenses/by-name", { params: queryParams }),
+          api.get("/api/expenses/monthly", { params: queryParams }),
+          api.get("/api/expenses/trend", { params: queryParams }),
+          api.get("/api/expenses/payment-methods", { params: queryParams }),
+          api.get("/api/expenses/cumulative", { params: queryParams }),
+          api.get("/api/expenses/name-over-time", {
+            params: { ...queryParams, limit: 5 },
+          }),
         ]);
 
         const assignColors = (data, isMultiDataset = false) => {

@@ -7,6 +7,7 @@
  */
 
 import { generateShades, generateMuiColor, lighten, darken } from "../utils/theme/colorUtils";
+import { SEMANTIC } from "../shared/theme/tokens";
 
 /**
  * Preset Color Palettes
@@ -158,32 +159,32 @@ export const getIconFilterForPalette = (paletteId, mode, isActive = false) => {
 };
 
 /**
- * Semantic Colors (consistent across all palettes)
- * These colors have fixed meaning and don't change with palette selection.
+ * Semantic Colors (consistent across all palettes).
+ * Single source: shared/theme/tokens.js SEMANTIC — avoid #ff4d4f / #4caf50 drift.
  */
 export const SEMANTIC_COLORS = {
   success: {
-    main: "#22c55e",
-    light: "#4ade80",
-    dark: "#16a34a",
+    main: SEMANTIC.success,
+    light: SEMANTIC.successLight,
+    dark: SEMANTIC.successDark,
     contrastText: "#ffffff",
   },
   warning: {
-    main: "#f59e0b",
-    light: "#fbbf24",
-    dark: "#d97706",
+    main: SEMANTIC.warning,
+    light: SEMANTIC.warningLight,
+    dark: SEMANTIC.warningDark,
     contrastText: "#000000",
   },
   error: {
-    main: "#ef4444",
-    light: "#f87171",
-    dark: "#dc2626",
+    main: SEMANTIC.error,
+    light: SEMANTIC.errorLight,
+    dark: SEMANTIC.errorDark,
     contrastText: "#ffffff",
   },
   info: {
-    main: "#3b82f6",
-    light: "#60a5fa",
-    dark: "#2563eb",
+    main: SEMANTIC.info,
+    light: SEMANTIC.infoLight,
+    dark: SEMANTIC.infoDark,
     contrastText: "#ffffff",
   },
 };
