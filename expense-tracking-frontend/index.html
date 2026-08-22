@@ -4,15 +4,129 @@
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Expense Tracking System" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta
+      name="description"
+      content="Expensio Finance is a personal and household expense tracker for daily spending, monthly budgets, recurring bills, shared costs, and clear reports. Built for people who want useful financial records, not a spreadsheet they abandon."
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://expensio.finance/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Expensio Finance" />
+    <meta
+      property="og:title"
+      content="Expensio Finance | Expense Tracker, Budgets, and Shared Bills"
+    />
+    <meta
+      property="og:description"
+      content="Track spending, budgets, bills, and shared expenses in one place. Public guides and a working tracker, not a login-only shell."
+    />
+    <meta property="og:url" content="https://expensio.finance/" />
+    <meta property="og:image" content="https://expensio.finance/favicon.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Expensio Finance | Expense Tracker, Budgets, and Shared Bills"
+    />
+    <meta
+      name="twitter:description"
+      content="Track spending, budgets, bills, and shared expenses in one place."
+    />
+    <meta name="twitter:image" content="https://expensio.finance/favicon.jpg" />
     <link rel="apple-touch-icon" href="/favicon.jpg" />
     <link rel="manifest" href="/manifest.json" />
-    <title>Expensio Finance</title>
+    <title>Expensio Finance | Expense Tracker, Budgets, and Shared Bills</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://expensio.finance/#organization",
+            "name": "Expensio Finance",
+            "url": "https://expensio.finance/",
+            "logo": "https://expensio.finance/favicon.jpg",
+            "email": "support@expensio.com"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://expensio.finance/#website",
+            "name": "Expensio Finance",
+            "url": "https://expensio.finance/",
+            "publisher": { "@id": "https://expensio.finance/#organization" }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Expensio Finance",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "url": "https://expensio.finance/",
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "description": "Personal and household expense tracker for daily spending, monthly budgets, recurring bills, and shared costs."
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <article>
+        <h1>Expensio Finance — expense tracker, budgets, and shared bills</h1>
+        <p>
+          Expensio Finance is a personal and household expense tracker for daily
+          spending, monthly budgets, recurring bills, and shared costs. It is
+          built for people who want a record they can keep on a weekday, not a
+          spreadsheet they abandon.
+        </p>
+        <nav aria-label="Public pages">
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/guides">Guides</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/help">Help</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/login">Sign in</a></li>
+            <li><a href="/register">Create account</a></li>
+          </ul>
+        </nav>
+        <h2>Public guides</h2>
+        <ul>
+          <li>
+            <a href="/guides/how-to-track-daily-expenses"
+              >How to track daily expenses without quitting after a week</a
+            >
+          </li>
+          <li>
+            <a href="/guides/build-a-monthly-budget"
+              >Build a monthly budget that survives a normal month</a
+            >
+          </li>
+          <li>
+            <a href="/guides/split-shared-bills"
+              >Split shared bills fairly without a group chat argument</a
+            >
+          </li>
+          <li>
+            <a href="/guides/read-expense-reports"
+              >How to read expense reports and find the leak</a
+            >
+          </li>
+          <li>
+            <a href="/guides/never-miss-a-recurring-bill"
+              >Never miss a recurring bill</a
+            >
+          </li>
+        </ul>
+      </article>
+    </div>
+    <noscript>
+      <p>
+        Expensio Finance works best with JavaScript enabled. The guides,
+        features, help, privacy, and terms pages above remain readable as HTML.
+      </p>
+    </noscript>
     <script type="module" src="/src/index.js"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 {
-  "short_name": "Expense Tracking System",
-  "name": "Expense Tracking System",
+  "short_name": "Expensio",
+  "name": "Expensio Finance",
   "icons": [
     {
       "src": "assests/expenses.png",

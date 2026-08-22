@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import expensioSeoPlugin from "./vite.seoPlugin.js";
 
 // Vite replacement for CRA. Keeps `process.env.REACT_APP_*` and
 // `process.env.NODE_ENV` working via `define` so source files don't need edits.
@@ -20,6 +21,7 @@ export default defineConfig(({ mode }) => {
         // Allow JSX in .js files (CRA behavior)
         include: "**/*.{js,jsx,ts,tsx}",
       }),
+      expensioSeoPlugin(),
     ],
     resolve: {
       alias: {

@@ -1,28 +1,17 @@
+import { lazy, Suspense } from "react";
 import { Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import { useSelector } from "react-redux";
 import Loader from "./components/Loaders/Loader";
-import { GlobalErrorHandler } from "./features/errors";
 import { useAppInitialization } from "./hooks/useAppInitialization";
-import { getAuthRoutes, getAppRoutes } from "./routes/AppRoutes";
+import { getPublicRoutes } from "./routes/PublicRoutes";
+import { AppSeo, isPublicMarketingPath } from "./seo";
 import { LanguageProvider } from "./i18n/LanguageContext";
-import OAuthCallback from "./pages/OAuthCallback";
-import {
-  KeyboardShortcutProvider,
-  ShortcutGuideModal,
-  AltKeyOverlay,
-} from "./features/keyboard";
-// Import WebSocket Service
-import "./services/socketService";
 
-/**
- * Main App Component
- * Responsibilities:
- * - Initialize app on mount (via useAppInitialization hook)
- * - Render appropriate routes based on authentication state
- * - Apply theme to the app
- * - Provide language context for i18n support
- */
+const GuestAuthApp = lazy(() => import("./routes/GuestAuthApp"));
+const AuthenticatedApp = lazy(() => import("./routes/AuthenticatedApp"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
+
 function App() {
   const location = useLocation();
   const { auth, theme } = useSelector((store) => store);
@@ -31,12 +20,26 @@ function App() {
 
   const isDark = theme?.mode === "dark";
   const isOAuthCallback = location.pathname === "/oauth/callback";
+  const isLoggedIn = Boolean(jwt && auth.user);
+  const showPublicSite =
+    isPublicMarketingPath(location.pathname) &&
+    !(isLoggedIn && location.pathname === "/");
 
-  // Google OAuth popup must work regardless of JWT/session or init loading state.
   if (isOAuthCallback) {
     return (
       <LanguageProvider>
-        <OAuthCallback />
+        <Suspense fallback={<Loader />}>
+          <OAuthCallback />
+        </Suspense>
+      </LanguageProvider>
+    );
+  }
+
+  if (showPublicSite) {
+    return (
+      <LanguageProvider>
+        <AppSeo />
+        <Routes>{getPublicRoutes({ includeHome: true })}</Routes>
       </LanguageProvider>
     );
   }
@@ -45,26 +48,23 @@ function App() {
     return <Loader />;
   }
 
-  // Render authentication routes if user is not authenticated
   if (!jwt || !auth.user) {
     return (
       <LanguageProvider>
-        <Routes>{getAuthRoutes()}</Routes>
+        <AppSeo />
+        <Suspense fallback={<Loader />}>
+          <GuestAuthApp />
+        </Suspense>
       </LanguageProvider>
     );
   }
 
-  // Render main application routes for authenticated users
   return (
     <LanguageProvider>
-      <KeyboardShortcutProvider>
-        <div className={isDark ? "dark" : "light"}>
-          <Routes>{getAppRoutes()}</Routes>
-        </div>
-        <GlobalErrorHandler />
-        <ShortcutGuideModal />
-        <AltKeyOverlay />
-      </KeyboardShortcutProvider>
+      <AppSeo />
+      <Suspense fallback={<Loader />}>
+        <AuthenticatedApp isDark={isDark} />
+      </Suspense>
     </LanguageProvider>
   );
 }

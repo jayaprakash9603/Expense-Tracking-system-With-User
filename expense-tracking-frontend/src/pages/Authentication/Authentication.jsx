@@ -106,6 +106,12 @@ const Authentication = () => {
               more intuitive way. Take control of your financial 
               journey today.
             </p>
+            <a
+              href="/"
+              className="z-10 mt-4 text-sm text-[#14b8a6] underline underline-offset-4 hover:text-[#99f6e4]"
+            >
+              Back to the public site
+            </a>
           </div>
         </div>
 
@@ -140,7 +146,7 @@ const Authentication = () => {
             </div>
 
             <Routes>
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

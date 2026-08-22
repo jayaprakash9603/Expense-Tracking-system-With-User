@@ -8,14 +8,16 @@ import { setTheme } from "../Redux/Theme/theme.actions";
 import { preloadUserPreferences } from "../services/userPreferencesService";
 
 export const useAppInitialization = (jwt, auth) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => Boolean(jwt));
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    setLoading(true);
+    if (jwt) {
+      setLoading(true);
+    }
 
     const initializeApp = async () => {
       try {

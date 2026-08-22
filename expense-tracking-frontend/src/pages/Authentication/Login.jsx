@@ -316,6 +316,14 @@ const Login = () => {
                 >
                   Forgot Password?
                 </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="text-sm"
+                  style={{ color: "#14b8a6", background: "none", border: 0, cursor: "pointer" }}
+                >
+                  About Expensio
+                </button>
                 <div className="flex items-center justify-center gap-2">
                   <p className="text-gray-400 text-sm m-0">
                     Don't have an account?
