@@ -78,7 +78,7 @@ const getStatusMeta = (status) => {
   };
 };
 
-const SystemErrorIndicator = ({ isDark, buttonStyle, iconColor }) => {
+const SystemErrorIndicator = ({ isDark }) => {
   const { colors = {}, mode } = useTheme();
   const [errors, setErrors] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -241,30 +241,20 @@ const SystemErrorIndicator = ({ isDark, buttonStyle, iconColor }) => {
     <div className="relative" ref={panelRef}>
       {/* Enhanced trigger button with smooth transitions */}
       <button
-        type="button"
         onClick={() => setIsPanelOpen((prev) => !prev)}
-        className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
+        className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
         title="System alerts"
         aria-label="System alerts"
         aria-expanded={isPanelOpen}
-        style={
-          buttonStyle || {
-            backgroundColor: colors.button_inactive,
-            padding: 8,
-            borderRadius: 12,
-          }
-        }
+        style={{
+          backgroundColor: colors.button_inactive,
+        }}
       >
         <Badge
           badgeContent={Math.min(errors.length, 99)}
           color="error"
           max={99}
-          overlap="circular"
-          anchorOrigin={{ vertical: "top", horizontal: "right" }}
           sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
             "& .MuiBadge-badge": {
               fontSize: "0.625rem",
               height: "16px",
@@ -274,16 +264,8 @@ const SystemErrorIndicator = ({ isDark, buttonStyle, iconColor }) => {
           }}
         >
           <InfoOutlinedIcon
-            sx={{
-              fontSize: 18,
-              display: "block",
-              color:
-                errors.length > 0
-                  ? resolvedIsDark
-                    ? "#f87171"
-                    : "#b91c1c"
-                  : iconColor || colors.icon_default,
-            }}
+            className="w-5 h-5 transition-colors"
+            style={{ color: errors.length > 0 ? (resolvedIsDark ? "#f87171" : "#b91c1c") : colors.icon_default }}
           />
         </Badge>
       </button>

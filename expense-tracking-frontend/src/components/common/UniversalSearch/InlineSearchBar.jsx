@@ -3,10 +3,10 @@ import {
   Box,
   InputBase,
   IconButton,
+  Popper,
   Paper,
   Typography,
   CircularProgress,
-  useMediaQuery,
 } from "@mui/material";
 import { useSelector } from "react-redux";
 import SearchIcon from "@mui/icons-material/Search";
@@ -32,7 +32,6 @@ const InlineSearchBar = () => {
   const { colors, mode } = useTheme();
   const { t } = useTranslation();
   const isDark = mode === "dark";
-  const isMobile = useMediaQuery("(max-width:600px)");
   const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   // Get user settings at parent level for performance
@@ -61,7 +60,6 @@ const InlineSearchBar = () => {
     selectResult,
     allResults,
     setQuery,
-    openSearch,
   } = useUniversalSearch();
 
   // Helper to format amount and date for search results
@@ -102,10 +100,6 @@ const InlineSearchBar = () => {
 
   // Expand and focus on click
   const handleExpand = () => {
-    if (!isExpanded && !isMobile) {
-      openSearch();
-      return;
-    }
     setIsExpanded(true);
     setTimeout(() => {
       inputRef.current?.focus();
@@ -218,114 +212,93 @@ const InlineSearchBar = () => {
       ref={containerRef}
       sx={{
         position: "relative",
-        width: isExpanded ? (isMobile ? "min(68vw, 220px)" : "240px") : "auto",
+        width: "350px",
         display: "flex",
         justifyContent: "flex-end",
-        flexShrink: 0,
       }}
     >
-      {/* Search Input Container — high-contrast collapsed control */}
+      {/* Search Input Container - Fixed width to prevent layout shift */}
       <Box
         onClick={!isExpanded ? handleExpand : undefined}
-        role={!isExpanded ? "button" : undefined}
-        aria-label={!isExpanded ? t("search.openSearch") || "Search" : undefined}
-        tabIndex={!isExpanded ? 0 : undefined}
-        onKeyDown={
-          !isExpanded
-            ? (e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleExpand();
-                }
-              }
-            : undefined
-        }
         sx={{
           display: "flex",
           alignItems: "center",
-          borderRadius: "10px",
+          borderRadius: "8px",
           backgroundColor: isExpanded
-            ? isDark
-              ? "rgba(255,255,255,0.06)"
-              : colors.tertiary_bg
-            : isDark
-              ? "rgba(255,255,255,0.07)"
-              : colors.tertiary_bg,
-          border: isExpanded
-            ? `1px solid ${colors.primary_accent}`
-            : "none",
+            ? "transparent"
+            : colors.button_inactive,
+          border: `1px solid ${
+            isExpanded
+              ? colors.border_color
+              : "transparent"
+          }`,
           cursor: isExpanded ? "text" : "pointer",
-          transition: "background-color 0.2s ease",
-          width: isExpanded ? "100%" : "auto",
-          minWidth: isExpanded ? undefined : isMobile ? 40 : undefined,
-          height: 40,
-          px: isExpanded ? 0.5 : isMobile ? 0 : 0.75,
-          overflow: isExpanded ? "hidden" : "visible",
-          boxShadow: "none",
+          transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)", // Slower animation (0.5s)
+          width: isExpanded ? "100%" : "auto", // Auto width when collapsed to fit Ctrl+K
+          height: "36px",
+          overflow: "hidden",
+          transformOrigin: "right center", // Animate from right to left
           "&:hover": {
             backgroundColor: isExpanded
-              ? isDark
-                ? "rgba(255,255,255,0.08)"
-                : colors.hover_bg
-              : isDark
-                ? "rgba(255,255,255,0.11)"
-                : colors.hover_bg,
+              ? "transparent"
+              : colors.hover_bg,
+            transform: isExpanded ? "none" : "scale(1.1)", // Match hover scale effect
           },
         }}
       >
-        {/* Search Icon with Ctrl+K hint when collapsed (desktop/tablet) */}
+        {/* Search Icon with Ctrl+K hint when collapsed */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: isExpanded ? 36 : isMobile ? 40 : "auto",
-            height: 40,
-            gap: "5px",
-            px: isExpanded ? 0.5 : isMobile ? 0 : 1,
+            minWidth: isExpanded ? "36px" : "auto",
+            height: "36px",
+            gap: "6px",
+            px: isExpanded ? 0 : 1,
           }}
         >
           <SearchIcon
             sx={{
-              fontSize: 18,
-              flexShrink: 0,
-              color: isDark ? "#f3f4f6" : colors.primary_text,
+              fontSize: "20px",
+              color: colors.icon_default,
             }}
           />
-          {/* Shortcut chips — hide on phones (touch); high-contrast on larger screens */}
-          {!isExpanded && !isMobile && (
+          {/* Ctrl+K hint - only shown when collapsed */}
+          {!isExpanded && (
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: "4px",
+                gap: "2px",
               }}
             >
               <Box
                 sx={{
-                  padding: "2px 5px",
-                  borderRadius: "5px",
-                  backgroundColor: colors.primary_accent,
+                  padding: "2px 4px",
+                  borderRadius: "4px",
+                  backgroundColor: isDark
+                    ? colors.hover_bg
+                    : colors.hover_bg,
                   fontSize: "10px",
-                  fontWeight: 700,
-                  color: "#0a0a0a",
-                  lineHeight: 1.1,
-                  letterSpacing: "0.02em",
+                  fontWeight: 500,
+                  color: colors.secondary_text,
+                  lineHeight: 1,
                 }}
               >
                 {isMac ? "⌘" : "Ctrl"}
               </Box>
               <Box
                 sx={{
-                  padding: "2px 5px",
-                  borderRadius: "5px",
+                  padding: "2px 4px",
+                  borderRadius: "4px",
                   backgroundColor: isDark
-                    ? "rgba(255,255,255,0.12)"
-                    : colors.border_color,
+                    ? colors.hover_bg
+                    : colors.hover_bg,
                   fontSize: "10px",
-                  fontWeight: 700,
-                  color: isDark ? "#f3f4f6" : colors.primary_text,
-                  lineHeight: 1.1,
+                  fontWeight: 500,
+                  color: colors.secondary_text,
+                  lineHeight: 1,
                 }}
               >
                 K

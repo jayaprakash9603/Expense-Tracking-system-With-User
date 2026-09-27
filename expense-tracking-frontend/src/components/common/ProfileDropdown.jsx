@@ -8,9 +8,6 @@ import {
 } from "../../Redux/Auth/auth.action";
 import Modal from "../../shared/ui/overlays/Modal";
 import { useTranslation } from "../../hooks/useTranslation";
-import useFeature from "../../hooks/useFeature";
-import { FEATURE_KEYS } from "../../config/featureCatalog";
-import { resolveUserProfileImage } from "../../utils/user/resolveUserProfileImage";
 
 /**
  * ProfileDropdown Component
@@ -56,7 +53,7 @@ const ProfileDropdown = ({
     return `${firstInitial}${lastInitial}`;
   };
 
-  const avatarSrc = resolveUserProfileImage(user);
+  const avatarSrc = user?.profileImage || "";
 
   const handleProfileClick = () => {
     setIsProfileOpen(!isProfileOpen);
@@ -101,7 +98,6 @@ const ProfileDropdown = ({
   // Check if user has ADMIN role
   const hasAdminRole =
     user?.roles?.includes("ADMIN") || user?.roles?.includes("ROLE_ADMIN");
-  const adminFeatureEnabled = useFeature(FEATURE_KEYS.ADMIN);
 
   return (
     <>
@@ -110,19 +106,17 @@ const ProfileDropdown = ({
         <button
           onClick={handleProfileClick}
           data-shortcut="profile"
-          className="flex items-center gap-1 focus:outline-none group ml-0.5"
+          className="flex items-center gap-2 focus:outline-none group"
         >
           <Avatar
             sx={{
               width: 32,
               height: 32,
               bgcolor: "#14b8a6",
-              color: "#0a0a0a",
-              fontWeight: 700,
-              fontSize: "12px",
+              fontSize: "14px",
               transition: "transform 0.2s",
               "&:hover": {
-                transform: "scale(1.05)",
+                transform: "scale(1.1)",
               },
             }}
             src={avatarSrc}
@@ -132,9 +126,9 @@ const ProfileDropdown = ({
 
           {/* Dropdown Arrow */}
           <svg
-            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+            className={`w-4 h-4 transition-transform duration-200 ${
               isProfileOpen ? "rotate-180" : ""
-            } ${isDark ? "text-gray-300" : "text-gray-600"}`}
+            } ${isDark ? "text-gray-400" : "text-gray-600"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -283,7 +277,7 @@ const ProfileDropdown = ({
               </button>
 
               {/* Mode Switch Button - Only show if user has ADMIN role */}
-              {showModeSwitch && hasAdminRole && adminFeatureEnabled && (
+              {showModeSwitch && hasAdminRole && (
                 <>
                   <div
                     className={`my-2 mx-4 h-px ${
