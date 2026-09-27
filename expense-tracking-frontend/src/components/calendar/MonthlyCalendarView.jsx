@@ -20,6 +20,8 @@ import useUserSettings from "../../hooks/useUserSettings";
 import CalendarDayCell from "./CalendarDayCell";
 import HeatmapModeToggle from "./HeatmapModeToggle";
 import SpendingMomentumInsight from "./SpendingMomentumInsight";
+import CalendarViewSkeleton from "../skeletons/CalendarViewSkeleton";
+import { AppSkeleton } from "../ui";
 import { getFinanceCalendarColors } from "../../config/financeColorTokens";
 import {
   getDaysArray,
@@ -114,19 +116,23 @@ const SummaryCard = ({
       >
         {label}
       </Typography>
-      <Typography
-        variant="body1"
-        sx={{
-          color: colors.primary_text,
-          fontWeight: 700,
-          fontSize: "1.05rem",
-          lineHeight: 1.25,
-          mt: 0.25,
-        }}
-      >
-        {currencySymbol}
-        {formatCompactNumber(amount)}
-      </Typography>
+      {typeof amount === "string" && amount === "loading" ? (
+        <AppSkeleton variant="text" width="72%" height={24} sx={{ mt: 0.25 }} />
+      ) : (
+        <Typography
+          variant="body1"
+          sx={{
+            color: colors.primary_text,
+            fontWeight: 700,
+            fontSize: "1.05rem",
+            lineHeight: 1.25,
+            mt: 0.25,
+          }}
+        >
+          {currencySymbol}
+          {formatCompactNumber(amount)}
+        </Typography>
+      )}
     </Box>
   </Box>
 );
@@ -313,6 +319,8 @@ const MonthlyCalendarView = ({
 
   // Styling
   containerStyle = {},
+
+  loading = false,
 }) => {
   const muiTheme = useMuiTheme();
   const isSmallScreen = useMediaQuery(muiTheme.breakpoints.down("sm"));
@@ -554,7 +562,7 @@ const MonthlyCalendarView = ({
           {showSummaryCards && (
             <SummaryCard
               label={resolvedSummaryConfig.spendingLabel}
-              amount={totalSpending}
+              amount={loading ? "loading" : totalSpending}
               accentColor={resolvedSummaryConfig.spendingColor}
               textColor={resolvedSummaryConfig.spendingTextColor}
               iconType="down"
@@ -576,7 +584,7 @@ const MonthlyCalendarView = ({
           {showSummaryCards && (
             <SummaryCard
               label={resolvedSummaryConfig.incomeLabel}
-              amount={totalIncome}
+              amount={loading ? "loading" : totalIncome}
               accentColor={resolvedSummaryConfig.incomeColor}
               textColor={resolvedSummaryConfig.incomeTextColor}
               iconType="up"
@@ -587,7 +595,7 @@ const MonthlyCalendarView = ({
           )}
         </Box>
 
-        {showSpendingMomentum && momentumInsight && (
+        {showSpendingMomentum && !loading && momentumInsight && (
           <Box
             sx={{
               display: "flex",
@@ -627,10 +635,11 @@ const MonthlyCalendarView = ({
               onChange={setHeatmapMode}
               lossColor={resolvedSummaryConfig.spendingColor}
               gainColor={resolvedSummaryConfig.incomeColor}
-              background={colors.card_bg}
+              bothColor={colors.primary_accent || "#4563ff"}
+              background={colors.secondary_bg}
               borderColor={colors.border_color}
-              textColor={colors.secondary_text}
-              selectedTextColor={colors.button_text}
+              textColor={colors.primary_text}
+              mutedTextColor={colors.secondary_text}
             />
           )}
 
@@ -739,7 +748,9 @@ const MonthlyCalendarView = ({
               ))}
             </Grid>
 
-            {/* Calendar days */}
+            {loading ? (
+              <CalendarViewSkeleton isSmallScreen={isSmallScreen} />
+            ) : (
             <Box
               sx={{
                 display: "grid",
@@ -880,6 +891,7 @@ const MonthlyCalendarView = ({
                 />
               ))}
             </Box>
+            )}
           </Box>
         </Box>
 
@@ -908,7 +920,7 @@ const MonthlyCalendarView = ({
 
 SummaryCard.propTypes = {
   label: PropTypes.string.isRequired,
-  amount: PropTypes.number.isRequired,
+  amount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   accentColor: PropTypes.string.isRequired,
   textColor: PropTypes.string.isRequired,
   iconType: PropTypes.oneOf(["up", "down"]),
@@ -977,6 +989,7 @@ MonthlyCalendarView.propTypes = {
   showBackButton: PropTypes.bool,
   containerStyle: PropTypes.object,
   disableDaysWithoutData: PropTypes.bool,
+  loading: PropTypes.bool,
 };
 
 export default MonthlyCalendarView;

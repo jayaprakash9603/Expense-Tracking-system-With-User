@@ -721,6 +721,20 @@ export const hi = {
     },
   },
 
+  calendarPage: {
+    title: "कैलेंडर दृश्य",
+    heatmapMode: {
+      groupLabel: "कैलेंडर प्रदर्शन मोड",
+      loss: "खर्च",
+      gain: "आय",
+      both: "दोनों",
+    },
+    summary: {
+      spending: "खर्च",
+      income: "आय",
+    },
+  },
+
   // Dashboard
   dashboard: {
     title: "वित्तीय डैशबोर्ड",

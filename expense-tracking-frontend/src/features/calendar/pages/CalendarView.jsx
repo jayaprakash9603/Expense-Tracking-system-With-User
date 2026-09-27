@@ -12,7 +12,7 @@ import { api } from "../../../config/api";
 
 const CalendarView = () => {
   const dispatch = useDispatch();
-  const { cashflowExpenses } = useSelector((state) => state.expenses);
+  const { cashflowExpenses, loading } = useSelector((state) => state.expenses);
   const navigate = useNavigate();
   const { friendId } = useParams();
   const [monthOffset, setMonthOffset] = React.useState(0);
@@ -139,6 +139,7 @@ const CalendarView = () => {
       showTodayIndicator={true}
       showJumpToToday={true}
       showBackButton={true}
+      loading={loading}
     />
   );
 };

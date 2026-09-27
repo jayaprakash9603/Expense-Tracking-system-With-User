@@ -291,6 +291,20 @@ export const en = {
     },
   },
 
+  calendarPage: {
+    title: "Calendar View",
+    heatmapMode: {
+      groupLabel: "Calendar display mode",
+      loss: "Spending",
+      gain: "Income",
+      both: "Both",
+    },
+    summary: {
+      spending: "Spending",
+      income: "Income",
+    },
+  },
+
   // New Expense
   newExpense: {
     title: "New Expense",

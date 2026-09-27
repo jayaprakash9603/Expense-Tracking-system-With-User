@@ -727,6 +727,20 @@ export const te = {
     },
   },
 
+  calendarPage: {
+    title: "క్యాలెండర్ వీక్షణ",
+    heatmapMode: {
+      groupLabel: "క్యాలెండర్ ప్రదర్శన మోడ్",
+      loss: "ఖర్చు",
+      gain: "ఆదాయం",
+      both: "రెండూ",
+    },
+    summary: {
+      spending: "ఖర్చు",
+      income: "ఆదాయం",
+    },
+  },
+
   // Dashboard
   dashboard: {
     title: "ఆర్థిక డ్యాష్‌బోర్డ్",
