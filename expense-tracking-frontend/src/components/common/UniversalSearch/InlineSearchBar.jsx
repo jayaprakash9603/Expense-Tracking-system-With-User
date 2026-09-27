@@ -243,38 +243,33 @@ const InlineSearchBar = () => {
         sx={{
           display: "flex",
           alignItems: "center",
-          borderRadius: "12px",
+          borderRadius: "10px",
           backgroundColor: isExpanded
             ? isDark
               ? "rgba(255,255,255,0.06)"
               : colors.tertiary_bg
             : isDark
-              ? "rgba(255,255,255,0.08)"
+              ? "rgba(255,255,255,0.07)"
               : colors.tertiary_bg,
-          border: `1px solid ${
-            isExpanded
-              ? colors.primary_accent
-              : isDark
-                ? "rgba(255,255,255,0.22)"
-                : colors.border_color
-          }`,
+          border: isExpanded
+            ? `1px solid ${colors.primary_accent}`
+            : "none",
           cursor: isExpanded ? "text" : "pointer",
-          transition: "background-color 0.2s ease, border-color 0.2s ease",
+          transition: "background-color 0.2s ease",
           width: isExpanded ? "100%" : "auto",
-          minWidth: isExpanded ? undefined : isMobile ? 44 : undefined,
-          height: 44,
-          px: isExpanded ? 0.5 : isMobile ? 0 : 1,
+          minWidth: isExpanded ? undefined : isMobile ? 40 : undefined,
+          height: 40,
+          px: isExpanded ? 0.5 : isMobile ? 0 : 0.75,
           overflow: isExpanded ? "hidden" : "visible",
-          boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
+          boxShadow: "none",
           "&:hover": {
             backgroundColor: isExpanded
               ? isDark
                 ? "rgba(255,255,255,0.08)"
                 : colors.hover_bg
               : isDark
-                ? "rgba(255,255,255,0.12)"
+                ? "rgba(255,255,255,0.11)"
                 : colors.hover_bg,
-            borderColor: colors.primary_accent,
           },
         }}
       >
@@ -284,15 +279,15 @@ const InlineSearchBar = () => {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: isExpanded ? 40 : isMobile ? 44 : "auto",
-            height: 44,
-            gap: "6px",
-            px: isExpanded ? 0.5 : isMobile ? 0 : 1.25,
+            minWidth: isExpanded ? 36 : isMobile ? 40 : "auto",
+            height: 40,
+            gap: "5px",
+            px: isExpanded ? 0.5 : isMobile ? 0 : 1,
           }}
         >
           <SearchIcon
             sx={{
-              fontSize: 22,
+              fontSize: 18,
               flexShrink: 0,
               color: isDark ? "#f3f4f6" : colors.primary_text,
             }}
@@ -308,10 +303,10 @@ const InlineSearchBar = () => {
             >
               <Box
                 sx={{
-                  padding: "3px 6px",
-                  borderRadius: "6px",
+                  padding: "2px 5px",
+                  borderRadius: "5px",
                   backgroundColor: colors.primary_accent,
-                  fontSize: "11px",
+                  fontSize: "10px",
                   fontWeight: 700,
                   color: "#0a0a0a",
                   lineHeight: 1.1,
@@ -322,14 +317,14 @@ const InlineSearchBar = () => {
               </Box>
               <Box
                 sx={{
-                  padding: "3px 6px",
-                  borderRadius: "6px",
+                  padding: "2px 5px",
+                  borderRadius: "5px",
                   backgroundColor: isDark
-                    ? "rgba(255,255,255,0.14)"
+                    ? "rgba(255,255,255,0.12)"
                     : colors.border_color,
-                  fontSize: "11px",
+                  fontSize: "10px",
                   fontWeight: 700,
-                  color: colors.primary_text,
+                  color: isDark ? "#f3f4f6" : colors.primary_text,
                   lineHeight: 1.1,
                 }}
               >

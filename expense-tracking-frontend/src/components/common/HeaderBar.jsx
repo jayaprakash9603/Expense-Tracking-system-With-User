@@ -48,28 +48,34 @@ const HeaderBar = () => {
   const isCompactHeader = useMediaQuery("(max-width:1024px)");
   const headerIconColor = isDark ? "#f3f4f6" : colors.primary_text;
 
+  const headerIconSize = 18;
+  const headerActionSize = 40;
+
   const headerIconSx = {
-    fontSize: 22,
-    color: headerIconColor,
+    fontSize: headerIconSize,
+    color: "inherit",
     display: "block",
   };
 
-  // High-contrast header actions (dark-on-dark #28282a was nearly invisible)
+  const headerActionSurface = isDark
+    ? "rgba(255, 255, 255, 0.07)"
+    : colors.tertiary_bg;
+
   const headerActionButtonStyle = {
-    width: 44,
-    height: 44,
+    width: headerActionSize,
+    height: headerActionSize,
+    minWidth: headerActionSize,
+    minHeight: headerActionSize,
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     padding: 0,
-    borderRadius: 12,
-    backgroundColor: isDark ? "rgba(255,255,255,0.08)" : colors.tertiary_bg,
+    borderRadius: 10,
+    backgroundColor: headerActionSurface,
     color: headerIconColor,
     lineHeight: 1,
-    border: `1px solid ${
-      isDark ? "rgba(255,255,255,0.22)" : colors.border_color
-    }`,
-    boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
+    border: "none",
+    boxShadow: "none",
     cursor: "pointer",
     flexShrink: 0,
   };
@@ -78,8 +84,7 @@ const HeaderBar = () => {
     ...headerActionButtonStyle,
     backgroundColor: colors.primary_accent,
     color: "#0a0a0a",
-    border: `1px solid ${colors.primary_accent}`,
-    boxShadow: `0 2px 10px ${colors.primary_accent}50`,
+    boxShadow: `0 2px 8px ${colors.primary_accent}40`,
   };
 
   const toggleAppSidebar = () => {
@@ -215,7 +220,7 @@ const HeaderBar = () => {
               className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
               style={menuButtonStyle}
             >
-              <MenuRoundedIcon sx={{ fontSize: 24 }} />
+              <MenuRoundedIcon sx={{ fontSize: 20 }} />
             </button>
           ) : null}
         </div>
@@ -268,7 +273,7 @@ const HeaderBar = () => {
 
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
         <div
-          className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0"
+          className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"
           style={{ color: colors.primary_text }}
         >
           {/* Inline Search Bar */}
@@ -284,12 +289,12 @@ const HeaderBar = () => {
             type="button"
             onClick={toggleMasking}
             data-shortcut="masking"
-            className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
+            className="transition-all duration-200 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
             style={
               maskingEnabled
                 ? {
                     ...headerActionButtonStyle,
-                    border: `1px solid ${colors.primary_accent}`,
+                    border: "none",
                     color: colors.primary_accent,
                     backgroundColor: isDark
                       ? `${colors.primary_accent}22`
@@ -366,7 +371,7 @@ const HeaderBar = () => {
                     },
                   }}
                 >
-                  <Share2 size={20} color={headerIconColor} strokeWidth={2} />
+                  <Share2 size={18} color={headerIconColor} strokeWidth={2} />
                 </Badge>
               </button>
             </div>

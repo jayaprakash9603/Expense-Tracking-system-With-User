@@ -110,16 +110,16 @@ const ProfileDropdown = ({
         <button
           onClick={handleProfileClick}
           data-shortcut="profile"
-          className="flex items-center gap-2 focus:outline-none group"
+          className="flex items-center gap-1 focus:outline-none group ml-0.5"
         >
           <Avatar
             sx={{
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               bgcolor: "#14b8a6",
               color: "#0a0a0a",
               fontWeight: 700,
-              fontSize: "13px",
+              fontSize: "12px",
               transition: "transform 0.2s",
               "&:hover": {
                 transform: "scale(1.05)",
@@ -132,9 +132,9 @@ const ProfileDropdown = ({
 
           {/* Dropdown Arrow */}
           <svg
-            className={`w-4 h-4 transition-transform duration-200 ${
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
               isProfileOpen ? "rotate-180" : ""
-            } ${isDark ? "text-gray-200" : "text-gray-600"}`}
+            } ${isDark ? "text-gray-300" : "text-gray-600"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

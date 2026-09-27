@@ -275,7 +275,7 @@ const SystemErrorIndicator = ({ isDark, buttonStyle, iconColor }) => {
         >
           <InfoOutlinedIcon
             sx={{
-              fontSize: 22,
+              fontSize: 18,
               display: "block",
               color:
                 errors.length > 0
