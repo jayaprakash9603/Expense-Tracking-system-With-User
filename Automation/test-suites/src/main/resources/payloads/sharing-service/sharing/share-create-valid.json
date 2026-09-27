@@ -1,0 +1,11 @@
+{
+  "resourceType": "EXPENSE",
+  "resourceRefs": [
+    {
+      "type": "EXPENSE",
+      "externalRef": "auto-ref-${random.number:4}"
+    }
+  ],
+  "permission": "READ",
+  "expiryDays": 7
+}

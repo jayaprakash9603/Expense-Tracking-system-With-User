@@ -1,6 +1,5 @@
 package com.jaya.service.expenses.impl;
 
-import ch.qos.logback.classic.Logger;
 import com.jaya.async.AsyncExpensePostProcessor;
 import com.jaya.dto.ExpenseBudgetLinkingEvent;
 import com.jaya.dto.ExpenseDTO;
@@ -16,10 +15,12 @@ import com.jaya.kafka.AuditEventProducer;
 import com.jaya.kafka.CategoryExpenseKafkaProducerService;
 import com.jaya.kafka.PaymentMethodKafkaProducerService;
 import com.jaya.models.*;
-import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.*;
 import com.jaya.service.expenses.ExpenseCoreService;
+import com.jaya.service.expenses.constants.ExpenseConstants;
+
+import static com.jaya.service.expenses.constants.ExpenseConstants.*;
 import com.jaya.util.JsonConverter;
 import com.jaya.util.ExpenseValidationHelper;
 import com.jaya.util.BulkProgressTracker;
@@ -27,6 +28,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.persistence.FlushModeType;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -49,18 +51,9 @@ import java.util.stream.Collectors;
 @Service
 public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ExpenseCoreServiceImpl.class);
+
     private final ExpenseRepository expenseRepository;
-    private final ExpenseReportRepository expenseReportRepository;
-
-    public static final String OTHERS = "Others";
-    private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
-    private static final String CREDIT_PAID = "creditPaid";
-    private static final String CASH = "cash";
-    private static final String MONTH = "month";
-    private static final String YEAR = "year";
-    private static final String WEEK = "week";
-
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(ExpenseCoreServiceImpl.class);
 
     @Autowired
     private ExpenseValidationHelper helper;
@@ -88,9 +81,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     @Autowired
     private CategoryServiceWrapper categoryService;
-
-    @Autowired
-    private KafkaProducerService producer;
 
     @Autowired
     private PaymentMethodServices paymentMethodService;
@@ -121,10 +111,8 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-budget-linking-events";
 
-    public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository,
-            ExpenseReportRepository expenseReportRepository) {
+    public ExpenseCoreServiceImpl(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
-        this.expenseReportRepository = expenseReportRepository;
     }
 
     @Override
@@ -323,7 +311,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     categoryService.save(category);
                 }
             } catch (Exception e) {
-                System.out.println("Error removing expense from category: " + e.getMessage());
+                logger.debug("Error removing expense from category: {}", e.getMessage());
             }
         }
 
@@ -337,8 +325,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     Map<Integer, Set<Integer>> expenseIdsMap = paymentMethod.getExpenseIds();
                     Set<Integer> userExpenseSet = expenseIdsMap.getOrDefault(userId, new HashSet<>());
                     userExpenseSet.remove(expense.getId());
-                    System.out.println(
-                            "Removing expense ID " + expense.getId() + " from payment method " + userExpenseSet);
+                    logger.debug("Removing expense ID {} from payment method {}", expense.getId(), userExpenseSet);
                     if (userExpenseSet.isEmpty()) {
                         expenseIdsMap.remove(userId);
                     } else {
@@ -347,7 +334,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     paymentMethodService.save(paymentMethod);
                 }
             } catch (Exception e) {
-                System.out.println("Error removing expense from payment method: " + e.getMessage());
+                logger.debug("Error removing expense from payment method: {}", e.getMessage());
             }
         }
 
@@ -586,11 +573,12 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         ExpenseCategory othersCategory = null;
         try {
-            List<ExpenseCategory> others = categoryService.getByName(OTHERS, UserDTO.getId());
+            List<ExpenseCategory> others = categoryService.getByName(CATEGORY_OTHERS, UserDTO.getId());
             if (others != null && !others.isEmpty()) {
                 othersCategory = others.get(0);
             }
         } catch (Exception ignore) {
+            logger.debug("Could not load Others category during bulk import setup: {}", ignore.getMessage());
         }
         if (othersCategory == null) {
             try {
@@ -659,15 +647,17 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
         ExpenseCategory othersCategory = null;
         try {
-            List<ExpenseCategory> others = categoryService.getByName(OTHERS, UserDTO.getId());
+            List<ExpenseCategory> others = categoryService.getByName(CATEGORY_OTHERS, UserDTO.getId());
             if (others != null && !others.isEmpty())
                 othersCategory = others.get(0);
         } catch (Exception ignore) {
+            logger.debug("Could not load Others category during stateless bulk import: {}", ignore.getMessage());
         }
         if (othersCategory == null) {
             try {
                 othersCategory = createOthersCategory(UserDTO.getId());
             } catch (Exception ignore) {
+                logger.debug("Could not create Others category during stateless bulk import: {}", ignore.getMessage());
             }
         }
 
@@ -741,7 +731,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         budgetCache.put(budgetId, BudgetModel);
                     }
                 } catch (Exception ignore) {
-
+                    logger.debug("Budget lookup failed for budgetId {}: {}", budgetId, ignore.getMessage());
                 }
             }
             if (BudgetModel != null && !expenseDate.isBefore(BudgetModel.getStartDate())
@@ -775,6 +765,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                                     .orElse(matches.get(0));
                         }
                     } catch (Exception ignore) {
+                        logger.debug("Category lookup by name failed for '{}': {}", categoryName, ignore.getMessage());
                     }
                     cachedByName = Optional.ofNullable(found);
                     categoryNameCache.put(key, cachedByName);
@@ -799,6 +790,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     try {
                         found = categoryService.getById(categoryId, UserDTO.getId());
                     } catch (Exception ignore) {
+                        logger.debug("Category lookup by id failed for {}: {}", categoryId, ignore.getMessage());
                     }
                     cachedById = Optional.ofNullable(found);
                     categoryIdCache.put(categoryId, cachedById);
@@ -897,7 +889,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                                 categoryService.save(oldCategory);
                             }
                         } catch (Exception e) {
-                            System.out.println("Error removing expense from old category: " + e.getMessage());
+                            logger.debug("Error removing expense from old category: {}", e.getMessage());
                         }
                     }
 
@@ -918,7 +910,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                             }
                         } catch (Exception e) {
                             try {
-                                ExpenseCategory category = categoryService.getByName(OTHERS, userId).get(0);
+                                ExpenseCategory category = categoryService.getByName(CATEGORY_OTHERS, userId).get(0);
                                 existingExpense.setCategoryId(category.getId());
                                 existingExpense.setCategoryName(category.getName());
                                 if (category.getExpenseIds() == null) {
@@ -932,7 +924,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                             } catch (Exception notFound) {
                                 ExpenseCategory createdCategory = new ExpenseCategory();
                                 createdCategory.setDescription("Others Description");
-                                createdCategory.setName(OTHERS);
+                                createdCategory.setName(CATEGORY_OTHERS);
                                 try {
                                     ExpenseCategory newCategory = categoryService.create(createdCategory, userId);
                                     existingExpense.setCategoryId(newCategory.getId());
@@ -945,7 +937,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                                     newCategory.getExpenseIds().put(userId, expenseSet);
                                     categoryService.save(newCategory);
                                 } catch (Exception createError) {
-                                    System.out.println("Error creating Others category: " + createError.getMessage());
+                                    logger.debug("Error creating Others category: {}", createError.getMessage());
                                 }
                             }
                         }
@@ -1104,7 +1096,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         ExpenseCategory othersCategory = null;
         try {
 
-            List<ExpenseCategory> othersCategories = categoryService.getByName(OTHERS, userId);
+            List<ExpenseCategory> othersCategories = categoryService.getByName(CATEGORY_OTHERS, userId);
 
             if (othersCategories != null && !othersCategories.isEmpty()) {
                 othersCategory = othersCategories.get(0);
@@ -1116,7 +1108,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
         } catch (Exception e) {
             logger.info("Error preparing 'Others' category: " + e.getMessage());
-            e.printStackTrace();
+            logger.warn("Failed to process bulk expense import row", e);
 
         }
 
@@ -1152,7 +1144,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                     try {
                         category = categoryService.getById(categoryId, userId);
                     } catch (Exception e) {
-                        System.out.println("Specified category not found: " + e.getMessage());
+                        logger.debug("Specified category not found: {}", e.getMessage());
 
                     }
                 }
@@ -1162,7 +1154,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                         category = othersCategory;
                     } else {
                         try {
-                            List<ExpenseCategory> existingOthers = categoryService.getByName(OTHERS, userId);
+                            List<ExpenseCategory> existingOthers = categoryService.getByName(CATEGORY_OTHERS, userId);
                             if (existingOthers != null && !existingOthers.isEmpty()) {
                                 category = existingOthers.get(0);
 
@@ -1279,7 +1271,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             List<Expense> expenses = expenseRepository.findAllByUserIdAndIdIn(userId, validExpenseIds);
 
             if (!expenses.isEmpty()) {
-                System.out.println("Retrieved " + expenses.size() + " expenses for UserDTO " + userId);
+                logger.debug("Retrieved {} expenses for user {}", expenses.size(), userId);
             }
 
             return expenses;
@@ -1351,7 +1343,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
 
     private ExpenseCategory createOthersCategory(Integer userId) throws Exception {
         try {
-            List<ExpenseCategory> existingCategories = categoryService.getByName(OTHERS, userId);
+            List<ExpenseCategory> existingCategories = categoryService.getByName(CATEGORY_OTHERS, userId);
             if (existingCategories != null && !existingCategories.isEmpty()) {
                 ExpenseCategory existingCategory = existingCategories.get(0);
 
@@ -1369,7 +1361,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             ExpenseCategory newCategory = new ExpenseCategory();
-            newCategory.setName(OTHERS);
+            newCategory.setName(CATEGORY_OTHERS);
             newCategory.setDescription("Default category for uncategorized expenses");
             newCategory.setColor("#808080");
             newCategory.setIcon("category");
@@ -1385,7 +1377,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             return categoryService.create(newCategory, userId);
         } catch (Exception e) {
             System.err.println("Error creating 'Others' category: " + e.getMessage());
-            e.printStackTrace();
+            logger.warn("Failed to process bulk expense import row", e);
             throw new Exception("Failed to create 'Others' category: " + e.getMessage());
         }
     }
@@ -1496,13 +1488,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         } catch (Exception e) {
 
             try {
-                ExpenseCategory category = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
+                ExpenseCategory category = categoryService.getByName(CATEGORY_OTHERS, UserDTO.getId()).get(0);
                 expense.setCategoryId(category.getId());
                 expense.setCategoryName(category.getName());
             } catch (Exception notFound) {
                 ExpenseCategory createdCategory = new ExpenseCategory();
                 createdCategory.setDescription("Others Description");
-                createdCategory.setName(OTHERS);
+                createdCategory.setName(CATEGORY_OTHERS);
                 ExpenseCategory newCategory = categoryService.create(createdCategory, UserDTO.getId());
                 expense.setCategoryId(newCategory.getId());
                 expense.setCategoryName(newCategory.getName());
@@ -1516,7 +1508,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         String paymentType = details.getType().equalsIgnoreCase("loss") ? "expense" : "income";
 
         PaymentMethodEvent event = new PaymentMethodEvent(UserDTO.getId(), savedExpense.getId(), paymentMethodName,
-                paymentType, "Automatically created for expense: " + details.getPaymentMethod(), CASH,
+                paymentType, "Automatically created for expense: " + details.getPaymentMethod(), PAYMENT_CASH,
                 getThemeAppropriateColor("salary"), "CREATE");
 
         paymentMethodKafkaProducer.sendPaymentMethodEvent(event);
@@ -1589,39 +1581,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
         }
     }
 
-    private void updateExpenseCache(Expense savedExpense, Integer userId) {
-        updateExpenseCache(Collections.singletonList(savedExpense), userId);
-    }
-
-    public void updateExpenseCache(List<Expense> savedExpenses, Integer userId) {
-        Cache cache = cacheManager.getCache("expenses");
-        if (cache == null) {
-            logger.warn("Cache 'expenses' not found");
-            return;
-        }
-
-        if (savedExpenses == null || savedExpenses.isEmpty()) {
-            logger.warn("No expenses provided to update cache for UserDTO: {}", userId);
-            return;
-        }
-
-        List<Expense> cachedExpenses = cache.get(userId, List.class);
-        if (cachedExpenses == null) {
-            cachedExpenses = new ArrayList<>();
-        }
-
-        cachedExpenses.addAll(savedExpenses);
-        cache.put(userId, cachedExpenses);
-
-        if (savedExpenses.size() == 1) {
-            logger.info("Added expense ID {} to cache for UserDTO: {}", savedExpenses.get(0).getId(), userId);
-        } else {
-            List<Integer> expenseIds = savedExpenses.stream().map(Expense::getId).collect(Collectors.toList());
-            logger.info("Added {} expenses with IDs {} to cache for UserDTO: {}", savedExpenses.size(), expenseIds,
-                    userId);
-        }
-    }
-
     private Set<Integer> validateAndExtractBudgetIds(Expense expense, UserDTO UserDTO) throws Exception {
         Set<Integer> validBudgetIds = new HashSet<>();
         for (Integer budgetId : expense.getBudgetIds()) {
@@ -1630,10 +1589,10 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             try {
                 budgetOpt = budgetService.getBudgetById(budgetId, UserDTO.getId());
             } catch (Exception e) {
+                logger.debug("Budget lookup failed for budgetId {}: {}", budgetId, e.getMessage());
                 continue;
             }
 
-            System.out.println("testing after catch");
             if (budgetOpt != null) {
                 BudgetModel BudgetModel = budgetOpt;
                 LocalDate expenseDate = expense.getDate();
@@ -1843,13 +1802,13 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             }
 
             try {
-                ExpenseCategory others = categoryService.getByName(OTHERS, UserDTO.getId()).get(0);
+                ExpenseCategory others = categoryService.getByName(CATEGORY_OTHERS, UserDTO.getId()).get(0);
                 existingExpense.setCategoryId(others.getId());
                 existingExpense.setCategoryName(others.getName());
             } catch (Exception notFound) {
                 ExpenseCategory createdCategory = new ExpenseCategory();
                 createdCategory.setDescription("Others Description");
-                createdCategory.setName(OTHERS);
+                createdCategory.setName(CATEGORY_OTHERS);
                 try {
                     ExpenseCategory newCategory = categoryService.create(createdCategory, UserDTO.getId());
                     existingExpense.setCategoryId(newCategory.getId());
@@ -1938,7 +1897,7 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
                 HttpServletRequest req = getCurrentHttpRequest();
                 if (req != null) {
                     ip = req.getRemoteAddr();
-                    userAgent = req.getHeader("UserDTO-Agent");
+                    userAgent = req.getHeader("User-Agent");
                     method = req.getMethod();
                     endpoint = req.getRequestURI();
                     Object cidAttr = req.getAttribute("correlationId");
@@ -1987,36 +1946,6 @@ public class ExpenseCoreServiceImpl implements ExpenseCoreService {
             logger.info("Audit published {}", event);
         } catch (Exception ex) {
             logger.warn("Audit publish failed (action={} expenseId={}): {}", actionType, expense.getId(),
-                    ex.getMessage());
-        }
-    }
-
-    private void publishBulkSummaryAudit(String actionType, List<Expense> expenses, UserDTO UserDTO, String details) {
-        if (expenses == null || expenses.isEmpty() || UserDTO == null)
-            return;
-        try {
-            com.jaya.models.AuditEvent bulk = com.jaya.models.AuditEvent.builder()
-                    .userId(UserDTO.getId())
-                    .username(UserDTO.getUsername())
-                    .entityId("bulk:" + expenses.size())
-                    .entityType("EXPENSE")
-                    .actionType(actionType)
-                    .details(details)
-                    .status("SUCCESS")
-                    .source("SERVICE")
-                    .build();
-            if (TransactionSynchronizationManager.isSynchronizationActive()) {
-                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        auditEventProducer.publishAuditEvent(bulk);
-                    }
-                });
-            } else {
-                auditEventProducer.publishAuditEvent(bulk);
-            }
-        } catch (Exception ex) {
-            logger.warn("Bulk audit publish failed (action={} count={}): {}", actionType, expenses.size(),
                     ex.getMessage());
         }
     }

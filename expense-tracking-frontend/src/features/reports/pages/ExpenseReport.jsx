@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import useUserSettings from "../../../hooks/useUserSettings";
 import { useTheme } from "../../../hooks/useTheme";
 import ReportActionMenu from "../../../components/common/ReportActionMenu";
+import { AppSelect } from "../../../components/ui";
 import { setBillSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 import NoDataPlaceholder from "../../../components/NoDataPlaceholder";
 
@@ -183,29 +184,42 @@ const ReportHeader = ({
       </div>
     </div>
     <div className="expense-header-controls">
-      <select
+      <AppSelect
+        className="expense-timeframe-selector"
         value={selectedTimeframe}
-        onChange={(e) => setSelectedTimeframe(e.target.value)}
+        onValueChange={setSelectedTimeframe}
+        options={[
+          { value: "all", label: "All Time" },
+          { value: "week", label: "Week" },
+          { value: "month", label: "Month" },
+          { value: "year", label: "This Year" },
+          { value: "last_year", label: "Last Year" },
+        ]}
+        ariaLabel="Timeframe"
+        size="small"
+        fullWidth={false}
+        displayEmpty={false}
+        showSelectedCheck={false}
+        preferNativeOnMobile
+      />
+      <AppSelect
         className="expense-timeframe-selector"
-      >
-        <option value="all">All Time</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-        <option value="year">This Year</option>
-        <option value="last_year">Last Year</option>
-      </select>
-      <select
         value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-        className="expense-timeframe-selector"
-      >
-        <option value="all">All Categories</option>
-        {uniqueCategories.map((category) => (
-          <option key={category} value={category}>
-            {category}
-          </option>
-        ))}
-      </select>
+        onValueChange={setSelectedCategory}
+        options={[
+          { value: "all", label: "All Categories" },
+          ...uniqueCategories.map((category) => ({
+            value: category,
+            label: category,
+          })),
+        ]}
+        ariaLabel="Category filter"
+        size="small"
+        fullWidth={false}
+        displayEmpty={false}
+        showSelectedCheck={false}
+        preferNativeOnMobile
+      />
 
       <ReportActionMenu
         onRefresh={() => handleReportMenuItemClick("refresh")}

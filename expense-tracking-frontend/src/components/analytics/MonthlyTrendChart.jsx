@@ -60,7 +60,10 @@ const MonthlyTrendChart = ({
             border: `1px solid ${colors.border_color}`,
             borderRadius: "8px",
             padding: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            position: "relative",
+            zIndex: 9999,
+            pointerEvents: "none",
           }}
         >
           <Typography
@@ -120,6 +123,8 @@ const MonthlyTrendChart = ({
     borderRadius: "12px",
     padding: compact ? "10px 12px" : "16px 20px",
     position: "relative",
+    overflow: "visible",
+    zIndex: 20,
   };
 
   if (!chartData || chartData.length === 0) {
@@ -236,7 +241,11 @@ const MonthlyTrendChart = ({
             axisLine={{ stroke: colors.border_color }}
             tickFormatter={formatCurrency}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip
+            content={<CustomTooltip />}
+            wrapperStyle={{ zIndex: 9999, outline: "none" }}
+            allowEscapeViewBox={{ x: true, y: true }}
+          />
           <Area
             type="monotone"
             dataKey="amount"

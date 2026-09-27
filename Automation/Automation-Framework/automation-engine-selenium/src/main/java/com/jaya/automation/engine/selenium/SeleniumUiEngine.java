@@ -1,19 +1,25 @@
 package com.jaya.automation.engine.selenium;
 
 import com.jaya.automation.core.config.AutomationConfig;
+import com.jaya.automation.core.ui.FrameScope;
 import com.jaya.automation.core.ui.ScreenshotService;
 import com.jaya.automation.core.ui.UiElementActions;
 import com.jaya.automation.core.ui.UiEngine;
 import com.jaya.automation.core.ui.UiEngineException;
 import com.jaya.automation.core.ui.WaitActions;
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 public final class SeleniumUiEngine implements UiEngine {
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(SeleniumUiEngine.class);
     private final AutomationConfig config;
     private WebDriver webDriver;
+    private SeleniumLocatorResolver locatorResolver;
     private UiElementActions elementActions;
     private WaitActions waitActions;
+    private FrameScope frameScope;
     private ScreenshotService screenshotService;
 
     public SeleniumUiEngine(AutomationConfig config) {
@@ -26,10 +32,11 @@ public final class SeleniumUiEngine implements UiEngine {
             return;
         }
         this.webDriver = SeleniumDriverFactory.create(config);
-        SeleniumLocatorResolver resolver = new SeleniumLocatorResolver();
-        SeleniumWaitActions seleniumWaitActions = new SeleniumWaitActions(webDriver, config.explicitWait(), resolver);
+        this.locatorResolver = new SeleniumLocatorResolver();
+        SeleniumWaitActions seleniumWaitActions = new SeleniumWaitActions(webDriver, config.explicitWait(), locatorResolver);
         this.waitActions = seleniumWaitActions;
-        this.elementActions = new SeleniumElementActions(webDriver, resolver, seleniumWaitActions);
+        this.elementActions = new SeleniumElementActions(webDriver, locatorResolver, seleniumWaitActions);
+        this.frameScope = new SeleniumFrameScope(webDriver, locatorResolver);
         this.screenshotService = new SeleniumScreenshotService((TakesScreenshot) webDriver);
     }
 
@@ -43,6 +50,36 @@ public final class SeleniumUiEngine implements UiEngine {
     public String currentUrl() {
         ensureStarted();
         return webDriver.getCurrentUrl();
+    }
+
+    @Override
+    public String pageTitle() {
+        ensureStarted();
+        return webDriver.getTitle();
+    }
+
+    @Override
+    public void reload() {
+        ensureStarted();
+        webDriver.navigate().refresh();
+    }
+
+    @Override
+    public void navigateBack() {
+        ensureStarted();
+        webDriver.navigate().back();
+    }
+
+    @Override
+    public void navigateForward() {
+        ensureStarted();
+        webDriver.navigate().forward();
+    }
+
+    @Override
+    public FrameScope frames() {
+        ensureStarted();
+        return frameScope;
     }
 
     @Override
@@ -82,7 +119,8 @@ public final class SeleniumUiEngine implements UiEngine {
             if (webDriver != null) {
                 webDriver.quit();
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            LOG.debug("Selenium restart cleanup failed, continuing with fresh start: {}", exception.getMessage());
         }
         webDriver = null;
         start();

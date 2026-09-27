@@ -33,6 +33,7 @@ import com.jaya.automation.core.ui.UiEngine;
 import com.jaya.automation.data.excel.ExcelDatasetResolver;
 import com.jaya.automation.flows.auth.service.AuthUiFlowService;
 import com.jaya.automation.flows.common.service.DomainNavigationFlowService;
+import com.jaya.automation.flows.common.service.GenericUiActions;
 import com.jaya.automation.flows.common.service.UiActionExecutor;
 import io.cucumber.java.After;
 import io.cucumber.java.AfterAll;
@@ -140,6 +141,7 @@ public class ScenarioHooks {
         DomainNavigationFlowService domainNavigationFlowService = new DomainNavigationFlowService(uiEngine);
         BddWorld.setDomainNavigationFlow(domainNavigationFlowService);
         BddWorld.setUiActionExecutor(new UiActionExecutor(uiEngine, domainNavigationFlowService));
+        BddWorld.setGenericUiActions(new GenericUiActions(uiEngine));
     }
 
     private UiEngine resolveUiEngine(AutomationConfig config) {
@@ -225,7 +227,8 @@ public class ScenarioHooks {
         for (UiEngine uiEngine : SHARED_ENGINES) {
             try {
                 uiEngine.stop();
-            } catch (Exception ignored) {
+            } catch (Exception exception) {
+                LOG.debug("Unable to stop shared UI engine during suite teardown: {}", exception.getMessage());
             }
         }
         SHARED_ENGINES.clear();
@@ -372,7 +375,8 @@ public class ScenarioHooks {
                 SHARED_ENGINES.remove(PREWARMED_SINGLE_THREAD_UI_ENGINE);
                 try {
                     PREWARMED_SINGLE_THREAD_UI_ENGINE.stop();
-                } catch (Exception ignored) {
+                } catch (Exception exception) {
+                    LOG.debug("Unable to stop prewarmed UI engine: {}", exception.getMessage());
                 }
             }
             UiEngine prewarmedEngine = UiEngineFactory.create(config);

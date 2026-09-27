@@ -1,5 +1,8 @@
 package com.jaya.automation.api.contract;
 
+import com.jaya.automation.core.logging.AutomationLogger;
+import com.jaya.automation.core.logging.LoggerFactory;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -21,6 +24,7 @@ import java.util.stream.Stream;
 
 public final class CatalogValidator {
 
+    private static final AutomationLogger LOG = LoggerFactory.getLogger(CatalogValidator.class);
     private static final Pattern ENDPOINT_KEY_PATTERN =
             Pattern.compile("request to \"([^\"]+)\"");
     private static final Pattern SCHEMA_KEY_PATTERN =
@@ -133,7 +137,8 @@ public final class CatalogValidator {
                         String relative = root.relativize(p).toString().replace('\\', '/');
                         keys.add(extractShortKey(relative, suffix));
                     });
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to scan filesystem keys under {}: {}", root, exception.getMessage());
         }
     }
 
@@ -161,7 +166,8 @@ public final class CatalogValidator {
                             });
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to scan jar keys in {}: {}", rootDir, exception.getMessage());
         }
     }
 
@@ -185,7 +191,8 @@ public final class CatalogValidator {
             walker.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".feature"))
                     .forEach(p -> parseFeatureFile(p, endpointKeys, schemaKeys));
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to scan feature references under {}: {}", root, exception.getMessage());
         }
     }
 
@@ -205,7 +212,8 @@ public final class CatalogValidator {
                     schemaKeys.add(schemaMatcher.group(1));
                 }
             }
-        } catch (IOException ignored) {
+        } catch (IOException exception) {
+            LOG.debug("Unable to read feature file {}: {}", featurePath, exception.getMessage());
         }
     }
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Typography, Chip, IconButton, Tooltip } from "@mui/material";
+import { Typography, Chip, IconButton, Tooltip, Box } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -24,6 +24,7 @@ import ShowChartIcon from "@mui/icons-material/ShowChart";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { useTheme } from "../../../hooks/useTheme";
+import useResponsivePageShell from "../../../hooks/useResponsivePageShell";
 import {
   FEATURE_KEYS,
   isActionEnabledInState,
@@ -34,6 +35,7 @@ import FilterPopover from "../../../components/ui/FilterPopover";
 import { TextField, InputAdornment } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ViewExpenseSkeleton from "../../../components/skeletons/ViewExpenseSkeleton";
+import { AnalyticsMetricGrid } from "../../../components/analytics";
 import {
   getExpenseDetailedView,
   clearExpenseDetailedView,
@@ -61,6 +63,14 @@ const getPaymentMethodIcon = (methodName, color = "#f97316", size = 16) => {
 
 const ViewExpense = () => {
   const { colors } = useTheme();
+  const {
+    isMobile,
+    isCompact,
+    containerStyle,
+    mainRowSx,
+    sideColumnSx,
+    contentColumnSx,
+  } = useResponsivePageShell();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { id, friendId } = useParams();
@@ -190,20 +200,6 @@ const ViewExpense = () => {
   const formatDate = (date) => {
     if (!date) return "-";
     return dayjs(date).format(displayDateFormat);
-  };
-
-  // Main container style
-  const containerStyle = {
-    width: "calc(100vw - 370px)",
-    height: "calc(100vh - 100px)",
-    backgroundColor: colors.secondary_bg,
-    borderRadius: "8px",
-    marginRight: "20px",
-    border: `1px solid ${colors.border_color}`,
-    padding: "16px 24px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
   };
 
   // Budget status colors helper
@@ -473,6 +469,14 @@ const ViewExpense = () => {
       <PageHeader
         title="View Expense"
         onClose={handleOnClose}
+        titleClassName={
+          isMobile
+            ? "font-extrabold text-xl"
+            : isCompact
+              ? "font-extrabold text-2xl"
+              : "font-extrabold text-4xl"
+        }
+        containerClassName="w-full flex justify-between items-center gap-2 mb-1 min-w-0"
         rightContent={
           (editEnabled || deleteEnabled) ? (
           <div className="flex items-center gap-2">
@@ -484,8 +488,8 @@ const ViewExpense = () => {
                   backgroundColor: "#00DAC6",
                   color: "#000",
                   "&:hover": { backgroundColor: "#00b8a0" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <EditIcon sx={{ fontSize: 18 }} />
@@ -500,8 +504,8 @@ const ViewExpense = () => {
                   backgroundColor: "#ff4d4f",
                   color: "#fff",
                   "&:hover": { backgroundColor: "#d9363e" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <DeleteIcon sx={{ fontSize: 18 }} />
@@ -513,13 +517,10 @@ const ViewExpense = () => {
         }
       />
 
-      {/* Main Content - Two Column Layout */}
-      <div className="flex gap-4 flex-1" style={{ overflow: "hidden" }}>
-        {/* Left Column - Hero Expense Card + Category + Payment (Equal Heights) */}
-        <div
-          className="flex flex-col gap-3"
-          style={{ width: "340px", flexShrink: 0 }}
-        >
+      {/* Main Content - stacks on mobile/tablet */}
+      <Box sx={mainRowSx}>
+        {/* Left Column - Hero Expense Card + Category + Payment */}
+        <Box sx={sideColumnSx}>
           {/* Hero Expense Card */}
           <div
             style={{
@@ -1212,13 +1213,10 @@ const ViewExpense = () => {
               </div>
             );
           })()}
-        </div>
+        </Box>
 
         {/* Right Column - Statistics & Budgets */}
-        <div
-          className="flex flex-col gap-3 flex-1"
-          style={{ overflow: "hidden" }}
-        >
+        <Box sx={contentColumnSx}>
           {/* Occurrence Statistics */}
           {occurrenceInfo && (
             <div
@@ -1254,146 +1252,103 @@ const ViewExpense = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                {[
+              <AnalyticsMetricGrid
+                items={[
                   {
+                    id: "this-month",
                     label: "This Month",
                     value: occurrenceInfo.occurrencesThisMonth || 0,
-                    type: "number",
                     icon: (
-                      <ScheduleIcon sx={{ fontSize: 18, color: "#3b82f6" }} />
+                      <ScheduleIcon sx={{ fontSize: 16, color: "#3b82f6" }} />
                     ),
                     accentColor: "#3b82f6",
                     tooltip: "Number of times this expense occurred this month",
                   },
                   {
+                    id: "this-year",
                     label: "This Year",
                     value: occurrenceInfo.occurrencesThisYear || 0,
-                    type: "number",
                     icon: (
-                      <DateRangeIcon sx={{ fontSize: 18, color: "#8b5cf6" }} />
+                      <DateRangeIcon
+                        sx={{ fontSize: 16, color: colors.primary_accent || "#00dac6" }}
+                      />
                     ),
-                    accentColor: "#8b5cf6",
+                    accentColor: colors.primary_accent || "#00dac6",
                     tooltip: "Number of times this expense occurred this year",
                   },
                   {
+                    id: "average",
                     label: "Average",
-                    value: occurrenceInfo.averageAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.averageAmount),
                     highlight: true,
                     icon: (
-                      <ShowChartIcon sx={{ fontSize: 18, color: "#00dac6" }} />
+                      <ShowChartIcon sx={{ fontSize: 16, color: "#00dac6" }} />
                     ),
                     accentColor: "#00dac6",
                     tooltip: "Average amount spent on this expense",
                   },
                   {
+                    id: "all-time",
                     label: "All Time",
-                    value: occurrenceInfo.totalAmountAllTime,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.totalAmountAllTime),
                     highlight: true,
                     icon: (
                       <AccountBalanceWalletIcon
-                        sx={{ fontSize: 18, color: "#00dac6" }}
+                        sx={{ fontSize: 16, color: "#00dac6" }}
                       />
                     ),
                     accentColor: "#00dac6",
                     tooltip: "Total amount spent on this expense over all time",
                   },
                   {
+                    id: "first",
                     label: "First",
-                    value: occurrenceInfo.firstOccurrence,
-                    type: "date",
-                    icon: <EventIcon sx={{ fontSize: 18, color: "#f59e0b" }} />,
+                    value: formatDate(occurrenceInfo.firstOccurrence),
+                    icon: <EventIcon sx={{ fontSize: 16, color: "#f59e0b" }} />,
                     accentColor: "#f59e0b",
                     tooltip: "Date of the first occurrence of this expense",
                   },
                   {
+                    id: "last",
                     label: "Last",
-                    value: occurrenceInfo.lastOccurrence,
-                    type: "date",
+                    value: formatDate(occurrenceInfo.lastOccurrence),
                     icon: (
                       <CalendarTodayIcon
-                        sx={{ fontSize: 18, color: "#ec4899" }}
+                        sx={{ fontSize: 16, color: "#fb923c" }}
                       />
                     ),
-                    accentColor: "#ec4899",
+                    accentColor: "#fb923c",
                     tooltip:
                       "Date of the most recent occurrence of this expense",
                   },
                   {
+                    id: "min",
                     label: "Min",
-                    value: occurrenceInfo.minAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.minAmount),
+                    highlight: true,
                     icon: (
                       <ArrowDownwardIcon
-                        sx={{ fontSize: 18, color: "#22c55e" }}
+                        sx={{ fontSize: 16, color: "#22c55e" }}
                       />
                     ),
                     accentColor: "#22c55e",
                     tooltip: "Minimum amount spent on this expense",
                   },
                   {
+                    id: "max",
                     label: "Max",
-                    value: occurrenceInfo.maxAmount,
-                    type: "currency",
+                    value: formatCurrency(occurrenceInfo.maxAmount),
+                    highlight: true,
                     icon: (
                       <ArrowUpwardIcon
-                        sx={{ fontSize: 18, color: "#ef4444" }}
+                        sx={{ fontSize: 16, color: "#ef4444" }}
                       />
                     ),
                     accentColor: "#ef4444",
                     tooltip: "Maximum amount spent on this expense",
                   },
-                ].map((stat, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      backgroundColor: colors.secondary_bg,
-                      padding: "12px 14px",
-                      borderRadius: "8px",
-                      border: `1px solid ${colors.border_color}`,
-                      borderLeft: `3px solid ${stat.accentColor}`,
-                      transition: "all 0.2s ease",
-                    }}
-                    className="hover:scale-[1.02]"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      {stat.icon}
-                      <Tooltip title={stat.tooltip} arrow placement="top">
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            color: colors.secondary_text,
-                            textTransform: "uppercase",
-                            fontWeight: "500",
-                            letterSpacing: "0.5px",
-                            cursor: "help",
-                          }}
-                        >
-                          {stat.label}
-                        </span>
-                      </Tooltip>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: stat.highlight ? "1.15rem" : "1.05rem",
-                        fontWeight: "700",
-                        color: stat.highlight
-                          ? stat.accentColor
-                          : colors.primary_text,
-                        marginTop: "4px",
-                      }}
-                    >
-                      {stat.type === "currency"
-                        ? formatCurrency(stat.value)
-                        : stat.type === "date"
-                          ? formatDate(stat.value)
-                          : stat.value}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                ]}
+              />
             </div>
           )}
 
@@ -1474,7 +1429,7 @@ const ViewExpense = () => {
                     "& fieldset": { borderColor: colors.border_color },
                   },
                 }}
-                sx={{ width: 220 }}
+                sx={{ width: isMobile ? "100%" : 220, maxWidth: "100%" }}
               />
             </div>
 
@@ -1525,8 +1480,8 @@ const ViewExpense = () => {
               }
             />
           </div>
-        </div>
-      </div>
+        </Box>
+      </Box>
     </div>
   );
 };

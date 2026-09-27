@@ -1,6 +1,17 @@
 {
   "compilerOptions": {
-    "baseUrl": "src"
+    "baseUrl": "src",
+    "paths": {
+      "@/*": ["./*"],
+      "@platform/*": ["platform/*"],
+      "@api/*": ["api/*"],
+      "@features/*": ["features/*"],
+      "@shared/*": ["shared/*"],
+      "@ui/*": ["components/ui/*"],
+      "@hooks/*": ["hooks/*"],
+      "@utils/*": ["utils/*"],
+      "@redux/*": ["Redux/*"]
+    }
   },
   "exclude": ["node_modules", "build", "dist"]
 }

@@ -3,9 +3,8 @@ package com.jaya.common.feature;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-@RestController
 @RequestMapping("/api/config")
 public class FeatureConfigController {
 
@@ -16,6 +15,7 @@ public class FeatureConfigController {
     }
 
     @GetMapping("/features")
+    @ResponseBody
     public ResponseEntity<FeatureConfigResponse> getFeatures() {
         return ResponseEntity.ok(new FeatureConfigResponse(
                 properties.isDormancyEnabled(),

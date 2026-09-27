@@ -2,9 +2,7 @@ package com.jaya.automation.bdd.steps.api;
 
 import com.jaya.automation.bdd.context.BddWorld;
 import io.cucumber.java.en.Given;
-import org.springframework.stereotype.Component;
 
-@Component
 public class AuthTokenSteps {
     @Given("store response token field {string} as token alias {string}")
     public void storeResponseTokenFieldAsAlias(String tokenJsonPath, String tokenAlias) {

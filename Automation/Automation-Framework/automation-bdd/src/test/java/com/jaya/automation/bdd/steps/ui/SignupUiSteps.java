@@ -8,9 +8,7 @@ import com.jaya.automation.flows.auth.model.SignupData;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
-import org.springframework.stereotype.Component;
 
-@Component
 public class SignupUiSteps extends StepDataSupport {
     private final SignupPayloadFactory signupPayloadFactory = new SignupPayloadFactory();
     private final AuthSessionCoordinator authSessionCoordinator = new AuthSessionCoordinator();

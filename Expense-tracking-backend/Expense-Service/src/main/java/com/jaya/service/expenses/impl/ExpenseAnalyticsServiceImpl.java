@@ -8,6 +8,7 @@ import com.jaya.models.MonthlySummary;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.expenses.ExpenseAnalyticsService;
 import com.jaya.service.expenses.ExpenseCoreService;
+import com.jaya.service.expenses.constants.ExpenseConstants;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,28 +24,20 @@ import java.util.stream.Collectors;
 @Service
 public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
 
-    private static final String LABELS = "labels";
-    private static final String LABEL = "label";
-    private static final String DATA_SETS = "datasets";
-    
-    private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
-    private static final String CREDIT_PAID = "creditPaid";
-    private static final String CASH = "cash";
-    private static final String GAIN = "gain";
-    private static final String INCOME = "income";
-    private static final String LOSS = "loss";
-    private static final String EXPENSE = "expense";
-    private static final int SCALE = 2;
+    private static final String LABELS = ExpenseConstants.KEY_LABELS;
+    private static final String LABEL = ExpenseConstants.KEY_LABEL;
+    private static final String DATA_SETS = ExpenseConstants.KEY_DATASETS;
+
+    private static final String CREDIT_NEED_TO_PAID = ExpenseConstants.CREDIT_NEED_TO_PAID;
+    private static final String CREDIT_PAID = ExpenseConstants.CREDIT_PAID;
+    private static final String CASH = ExpenseConstants.PAYMENT_CASH;
+    private static final String GAIN = ExpenseConstants.TYPE_GAIN;
+    private static final String INCOME = ExpenseConstants.TYPE_INCOME;
+    private static final String LOSS = ExpenseConstants.TYPE_LOSS;
+    private static final String EXPENSE = ExpenseConstants.TYPE_EXPENSE;
+    private static final int SCALE = ExpenseConstants.DECIMAL_SCALE;
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private static final String[] MONTH_NAMES = {
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-    };
-    private static final String[] MONTH_LABELS = {
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    };
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(ExpenseConstants.DATE_FORMAT_PATTERN);
 
     private final ExpenseRepository expenseRepository;
 
@@ -79,7 +72,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         for (int month = 1; month <= 12; month++) {
             MonthlySummary monthlySummary = getMonthlySummary(year, month, userId);
             if (hasRelevantData(monthlySummary)) {
-                yearlySummary.put(MONTH_NAMES[month - 1], monthlySummary);
+                yearlySummary.put(ExpenseConstants.MONTH_NAMES[month - 1], monthlySummary);
             }
         }
 
@@ -265,7 +258,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, userId);
         Double[] data = processMonthlyData(results);
 
-        return createSingleDatasetChart("Expenses ($)", MONTH_LABELS, data);
+        return createSingleDatasetChart("Expenses ($)", ExpenseConstants.MONTH_LABELS, data);
     }
 
     @Override
@@ -279,7 +272,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         List<Object[]> results = expenseRepository.findMonthlyLossExpensesByUserId(year, userId);
         Double[] data = processMonthlyData(results);
 
-        return createSingleDatasetChart("Expense Trend ($)", MONTH_LABELS, data);
+        return createSingleDatasetChart("Expense Trend ($)", ExpenseConstants.MONTH_LABELS, data);
     }
 
     @Override
@@ -950,7 +943,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
         private Map<String, Object> buildTimeAnalysisResponse(Map<String, Map<Integer, Double>> monthlySums,
                 List<String> topExpenseNames) {
             Map<String, Object> response = new LinkedHashMap<>();
-            response.put(LABELS, MONTH_LABELS);
+            response.put(LABELS, ExpenseConstants.MONTH_LABELS);
 
             List<Map<String, Object>> datasets = new ArrayList<>();
             for (String name : topExpenseNames) {
@@ -976,7 +969,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
             Double[] data = mapCumulativeDataToArray(monthlyTotals, cumulativeData);
 
             Map<String, Object> response = new LinkedHashMap<>();
-            response.put(LABELS, MONTH_LABELS);
+            response.put(LABELS, ExpenseConstants.MONTH_LABELS);
             response.put(DATA_SETS, List.of(Map.of(LABEL, "Cumulative Expenses ($)", "data", data)));
 
             return response;
@@ -1103,7 +1096,7 @@ public class ExpenseAnalyticsServiceImpl implements ExpenseAnalyticsService {
                 BigDecimal negativeAmount = amount.negate();
                 totalLoss = totalLoss.add(negativeAmount);
                 updateCashSummaryForLoss(cashSummary, paymentMethod, negativeAmount);
-                updateCreditPaid(totalCreditPaid, paymentMethod, amount);
+                totalCreditPaid = updateCreditPaid(totalCreditPaid, paymentMethod, amount);
                 categoryBreakdown.merge(category, negativeAmount, BigDecimal::add);
             }
         }

@@ -5,15 +5,12 @@ import {
   Popover,
   Box,
   Typography,
-  Select,
-  MenuItem,
   TextField,
   Button,
-  FormControl,
-  InputLabel,
   IconButton,
   Chip,
 } from "@mui/material";
+import { AppSelect } from "./Select";
 import CloseIcon from "@mui/icons-material/Close";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -344,30 +341,14 @@ export default function FilterPopover({
         </IconButton>
       </Box>
 
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel sx={{ color: colors.secondary_text }}>Operator</InputLabel>
-        <Select
-          value={operator}
-          label="Operator"
-          onChange={(e) => setOperator(e.target.value)}
-          sx={{
-            color: colors.primary_text,
-            ".MuiOutlinedInput-notchedOutline": {
-              borderColor: colors.border_color,
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: colors.primary_accent,
-            },
-            ".MuiSvgIcon-root": { color: colors.icon_muted },
-          }}
-        >
-          {currentOperators.map((op) => (
-            <MenuItem key={op.value} value={op.value}>
-              {op.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <AppSelect
+        size="small"
+        label="Operator"
+        value={operator}
+        onChange={(e) => setOperator(e.target.value)}
+        sx={{ mb: 2 }}
+        options={currentOperators}
+      />
 
       {/* Conditional Rendering based on Type and Operator */}
       {type === "date" && operator === "range" ? (

@@ -1,0 +1,97 @@
+# Expense Tracker — Docker Hub only (no source code / no build required)
+#
+# Share this single file. Anyone with Docker can run:
+#
+#   docker compose -f docker-compose.hub.yml pull
+#   docker compose -f docker-compose.hub.yml up -d
+#
+# Optional: copy docker-compose.hub.env.example to .env next to this file.
+#
+# Stop / cleanup:
+#   docker compose -f docker-compose.hub.yml down
+#   docker compose -f docker-compose.hub.yml down -v   # also delete MySQL data
+#
+# Access:
+#   Frontend → http://localhost:9999
+#   Backend  → http://localhost:8080
+#   Swagger  → http://localhost:8080/swagger-ui.html
+#   MySQL    → localhost:4000 (user: root, password: 123456 by default)
+#
+# Images (Docker Hub):
+#   jayaprakash9603/expense-tracker-monolith:1.1.0
+#   jayaprakash9603/expense-tracker-frontend:1.1.0
+#   mysql:8.0
+
+name: expense-tracker-hub
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: expense-tracker-mysql
+    ports:
+      - "${MYSQL_PORT:-4000}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-expense_tracker_monolith}
+    networks:
+      - expense-net
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  monolith:
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-monolith:${APP_VERSION:-1.1.0}
+    pull_policy: always
+    container_name: expense-tracker-monolith
+    ports:
+      - "${MONOLITH_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: monolithic
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-expense_tracker_monolith}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-key-change-in-production-min-32-chars}
+      SERVICE_INTERNAL_TOKEN: ${SERVICE_INTERNAL_TOKEN:-dev-internal-service-token-change-in-production}
+      KAFKA_ENABLED: ${KAFKA_ENABLED:-false}
+      REDIS_ENABLED: ${REDIS_ENABLED:-false}
+      APP_VERSION: ${APP_VERSION:-1.1.0}
+    networks:
+      - expense-net
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/api/config/features > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  frontend:
+    image: ${DOCKER_REGISTRY:-jayaprakash9603}/expense-tracker-frontend:${APP_VERSION:-1.1.0}
+    pull_policy: always
+    container_name: expense-tracker-frontend
+    ports:
+      - "${FRONTEND_PORT:-9999}:80"
+    networks:
+      - expense-net
+    depends_on:
+      monolith:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  expense-net:
+    driver: bridge
+
+volumes:
+  mysql_data:

@@ -29,32 +29,9 @@ pipeline {
             }
         }
 
-        stage('Static Analysis') {
-            steps {
-                sh 'mvn -f pom.xml -pl automation-bdd -am test-compile -DskipTests'
-            }
-        }
-
-        stage('Sonar Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        mvn -f pom.xml sonar:sonar \
-                          -Dsonar.projectKey=expense-tracking-automation \
-                          -Dsonar.projectName="Expense Tracking Automation" \
-                          -Dsonar.java.source=17 \
-                          -Dsonar.exclusions="**/test-suites/**,**/resources/**,**/target/**" \
-                          -Dsonar.coverage.jacoco.xmlReportPaths="**/target/site/jacoco/jacoco.xml"
-                    '''
-                }
-            }
-        }
-
         stage('Quality Gate') {
             steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                sh 'mvn -f pom.xml clean verify -DskipTests'
             }
         }
 

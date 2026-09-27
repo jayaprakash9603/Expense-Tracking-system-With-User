@@ -3,10 +3,6 @@ import {
   Box,
   Typography,
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   Switch,
   FormControlLabel,
@@ -17,6 +13,7 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
+import { AppSelect } from "../ui";
 import {
   FileDownload as FileDownloadIcon,
   PieChart as PieChartIcon,
@@ -29,7 +26,7 @@ import {
   CalendarMonth as CalendarIcon,
 } from "@mui/icons-material";
 import { useTheme } from "../../hooks/useTheme";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 
 const excelReportTypes = [
   {
@@ -152,28 +149,29 @@ const ExcelDownload = () => {
     setSuccess(false);
 
     try {
-      const token = localStorage.getItem("jwt");
       const dateParams = getDateParams();
 
-      let url = `${API_BASE_URL}/api/analytics/report/excel?reportType=${reportType.toUpperCase()}&includeCharts=${includeCharts}&includeFormulas=${includeFormulas}&includeConditionalFormatting=${includeConditionalFormatting}`;
+      const params = {
+        reportType: reportType.toUpperCase(),
+        includeCharts,
+        includeFormulas,
+        includeConditionalFormatting,
+      };
 
       if (dateParams.allTime) {
-        url += `&allTime=true`;
+        params.allTime = true;
       } else if (dateParams.startDate && dateParams.endDate) {
-        url += `&startDate=${dateParams.startDate}&endDate=${dateParams.endDate}`;
+        params.startDate = dateParams.startDate;
+        params.endDate = dateParams.endDate;
       }
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get("/api/analytics/report/excel", {
+        responseType: "blob",
+        params,
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to download report (${response.status})`);
-      }
-
-      const blob = await response.blob();
-      const contentDisposition = response.headers.get("Content-Disposition");
+      const blob = response.data;
+      const contentDisposition = response.headers["content-disposition"];
       let filename = `expense_report_${dateRange}.xlsx`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename=(.+)/);
@@ -359,51 +357,35 @@ const ExcelDownload = () => {
               <CalendarIcon fontSize="small" />
               Date Range
             </Typography>
-            <FormControl fullWidth size="small">
-              <InputLabel>Select Period</InputLabel>
-              <Select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                label="Select Period"
-              >
-                {dateRangeOptions.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              label="Select Period"
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              options={dateRangeOptions}
+            />
 
             {dateRange === "monthly" && (
               <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-                <FormControl size="small" sx={{ flex: 1 }}>
-                  <InputLabel>Year</InputLabel>
-                  <Select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    label="Year"
-                  >
-                    {years.map((year) => (
-                      <MenuItem key={year} value={year}>
-                        {year}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl size="small" sx={{ flex: 1 }}>
-                  <InputLabel>Month</InputLabel>
-                  <Select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    label="Month"
-                  >
-                    {months.map((month) => (
-                      <MenuItem key={month.value} value={month.value}>
-                        {month.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <AppSelect
+                  size="small"
+                  label="Year"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  sx={{ flex: 1 }}
+                  options={years.map((year) => ({
+                    value: year,
+                    label: String(year),
+                  }))}
+                />
+                <AppSelect
+                  size="small"
+                  label="Month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  sx={{ flex: 1 }}
+                  options={months}
+                />
               </Box>
             )}
 

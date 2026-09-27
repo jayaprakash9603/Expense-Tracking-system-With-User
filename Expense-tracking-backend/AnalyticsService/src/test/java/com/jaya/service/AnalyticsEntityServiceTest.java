@@ -1,9 +1,11 @@
 package com.jaya.service;
 
+import com.jaya.common.feature.FeatureFlagProperties;
 import com.jaya.dto.AnalyticsEntityType;
 import com.jaya.dto.AnalyticsRequestDTO;
 import com.jaya.dto.CategoryAnalyticsDTO;
 import com.jaya.testutil.TestDataFactory;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,8 +26,17 @@ class AnalyticsEntityServiceTest {
     @Mock
     private CategoryAnalyticsService categoryAnalyticsService;
 
+    @Mock
+    private FeatureFlagProperties featureFlagProperties;
+
     @InjectMocks
     private AnalyticsEntityService analyticsEntityService;
+
+    @BeforeEach
+    void enableAnalyticsFeatures() {
+        lenient().when(featureFlagProperties.isEnabled(anyString())).thenReturn(true);
+        lenient().when(featureFlagProperties.isSubFeatureEnabled(anyString())).thenReturn(true);
+    }
 
     // ─── normalizeRequest Tests ──────────────────────────────────────
 

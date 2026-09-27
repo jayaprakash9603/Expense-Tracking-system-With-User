@@ -8,19 +8,17 @@ import React, { useCallback, useState } from "react";
 import {
   Box,
   TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   IconButton,
   Tooltip,
   InputAdornment,
   Chip,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
   useMediaQuery,
 } from "@mui/material";
+import { AppSelect } from "../../../../components/ui";
 import {
   Search as SearchIcon,
   Clear as ClearIcon,
@@ -241,96 +239,44 @@ const ActivityFilters = ({
             }}
           >
             {/* Service Filter */}
-            <FormControl size="small" sx={{ minWidth: 100, flex: 1 }}>
-              <InputLabel
-                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
-              >
-                Service
-              </InputLabel>
-              <Select
-                value={filters.serviceFilter}
-                onChange={handleServiceChange}
-                label="Service"
-                sx={{
-                  height: "42px",
-                  bgcolor: colors.secondary_bg,
-                  color: colors.primary_text,
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  "& fieldset": { borderColor: colors.border_color },
-                  "&:hover fieldset": { borderColor: colors.primary_accent },
-                }}
-              >
-                {Object.entries(SERVICE_LABELS).map(([key, label]) => (
-                  <MenuItem key={key} value={key} sx={{ fontSize: "0.85rem" }}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              label="Service"
+              value={filters.serviceFilter}
+              onChange={handleServiceChange}
+              sx={{ minWidth: 100, flex: 1 }}
+              options={Object.entries(SERVICE_LABELS).map(([key, label]) => ({
+                value: key,
+                label,
+              }))}
+            />
 
             {/* Time Range Filter */}
-            <FormControl size="small" sx={{ minWidth: 90, flex: 1 }}>
-              <InputLabel
-                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
-              >
-                Time
-              </InputLabel>
-              <Select
-                value={filters.timeRange}
-                onChange={handleTimeRangeChange}
-                label="Time"
-                sx={{
-                  height: "42px",
-                  bgcolor: colors.secondary_bg,
-                  color: colors.primary_text,
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  "& fieldset": { borderColor: colors.border_color },
-                  "&:hover fieldset": { borderColor: colors.primary_accent },
-                }}
-              >
-                {Object.entries(TIME_RANGE_LABELS).map(([key, label]) => (
-                  <MenuItem
-                    key={key}
-                    value={key}
-                    disabled={key === TIME_RANGES.CUSTOM}
-                    sx={{ fontSize: "0.85rem" }}
-                  >
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              label="Time"
+              value={filters.timeRange}
+              onChange={handleTimeRangeChange}
+              sx={{ minWidth: 90, flex: 1 }}
+              options={Object.entries(TIME_RANGE_LABELS).map(([key, label]) => ({
+                value: key,
+                label,
+                disabled: key === TIME_RANGES.CUSTOM,
+              }))}
+            />
 
             {/* Sort By */}
-            <FormControl size="small" sx={{ minWidth: 90, flex: 1 }}>
-              <InputLabel
-                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
-              >
-                Sort
-              </InputLabel>
-              <Select
-                value={filters.sortBy}
-                onChange={handleSortByChange}
-                label="Sort"
-                sx={{
-                  height: "42px",
-                  bgcolor: colors.secondary_bg,
-                  color: colors.primary_text,
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  "& fieldset": { borderColor: colors.border_color },
-                  "&:hover fieldset": { borderColor: colors.primary_accent },
-                }}
-              >
-                {Object.entries(SORT_LABELS).map(([key, label]) => (
-                  <MenuItem key={key} value={key} sx={{ fontSize: "0.85rem" }}>
-                    {label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              label="Sort"
+              value={filters.sortBy}
+              onChange={handleSortByChange}
+              sx={{ minWidth: 90, flex: 1 }}
+              options={Object.entries(SORT_LABELS).map(([key, label]) => ({
+                value: key,
+                label,
+              }))}
+            />
           </Box>
 
           {/* Action Buttons */}

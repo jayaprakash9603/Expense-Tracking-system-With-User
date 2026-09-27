@@ -13,6 +13,10 @@ import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/googleOAuth";
 import { RootErrorBoundary } from "./features/errors";
+import { injectBaseThemeStyles } from "./utils/theme/themeInjector";
+
+// Ensure CSS vars for scrollbar / selection / body are present before first paint.
+injectBaseThemeStyles();
 
 // Log the Google Client ID for debugging (remove in production)
 console.log(

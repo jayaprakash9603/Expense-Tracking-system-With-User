@@ -1,0 +1,6 @@
+{
+  "type": "AUDIT",
+  "dateRange": "LAST_7_DAYS",
+  "format": "PDF",
+  "name": "Auto Report"
+}

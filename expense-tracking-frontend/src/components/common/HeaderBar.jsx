@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Badge } from "@mui/material";
+import { Badge, useMediaQuery } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import { Share2 } from "lucide-react";
 import { useMasking } from "../../hooks/useMasking";
 import { useTheme } from "../../hooks/useTheme";
@@ -41,9 +42,37 @@ const HeaderBar = () => {
   const sharingCreateEnabled = useFeature(SUB_FEATURE_KEYS.SHARING_CREATE);
 
   const isDark = mode === "dark";
+  const isCompactHeader = useMediaQuery("(max-width:1024px)");
+
+  // High-contrast header actions (dark-on-dark #28282a was nearly invisible)
   const headerActionButtonStyle = {
-    backgroundColor: colors.button_inactive,
-    color: colors.icon_default,
+    width: 44,
+    height: 44,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    borderRadius: 12,
+    backgroundColor: isDark ? "rgba(255,255,255,0.08)" : colors.tertiary_bg,
+    color: colors.primary_text,
+    border: `1px solid ${
+      isDark ? "rgba(255,255,255,0.22)" : colors.border_color
+    }`,
+    boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
+    cursor: "pointer",
+    flexShrink: 0,
+  };
+
+  const menuButtonStyle = {
+    ...headerActionButtonStyle,
+    backgroundColor: colors.primary_accent,
+    color: "#0a0a0a",
+    border: `1px solid ${colors.primary_accent}`,
+    boxShadow: `0 2px 10px ${colors.primary_accent}50`,
+  };
+
+  const toggleAppSidebar = () => {
+    window.dispatchEvent(new CustomEvent("app-sidebar-toggle"));
   };
 
   // Calculate total selected items for sharing
@@ -154,18 +183,34 @@ const HeaderBar = () => {
       <UniversalSearchModal />
 
       <div
-        className="h-[50px] flex items-center justify-between px-4 sm:px-6 transition-colors"
+        className="flex items-center justify-between px-3 sm:px-5 transition-colors"
         style={{
           backgroundColor: colors.primary_bg,
+          borderBottom: `1px solid ${
+            isDark ? "rgba(255,255,255,0.08)" : colors.border_color
+          }`,
+          minHeight: 56,
+          height: 56,
+          boxSizing: "border-box",
         }}
       >
-        {/* Left Section: Empty or logo */}
-        <div className="flex items-center gap-3">
-          {/* Placeholder for left content */}
+        {/* Left: mobile/tablet menu */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isCompactHeader ? (
+            <button
+              type="button"
+              onClick={toggleAppSidebar}
+              aria-label={t("header.openMenu", "Open menu")}
+              className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={menuButtonStyle}
+            >
+              <MenuRoundedIcon sx={{ fontSize: 24 }} />
+            </button>
+          ) : null}
         </div>
 
         {/* Center Section: Global messages or Deletion Pending Indicator */}
-        <div className="flex-1 flex justify-end px-2">
+        <div className="flex-1 flex justify-end px-2 min-w-0">
           {isPending ? (
             <div
               className="flex items-center gap-2 px-3 py-1 rounded-full border text-xs"
@@ -212,8 +257,8 @@ const HeaderBar = () => {
 
         {/* Right Section: Search, Masking Toggle, Theme Toggle & Profile */}
         <div
-          className="flex items-center gap-3 sm:gap-4"
-          style={{ color: colors.icon_default }}
+          className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0"
+          style={{ color: colors.primary_text }}
         >
           {/* Inline Search Bar */}
           {searchEnabled && (
@@ -225,18 +270,33 @@ const HeaderBar = () => {
           {/* Masking Toggle Button */}
           <button
             id="header-masking"
+            type="button"
             onClick={toggleMasking}
             data-shortcut="masking"
-            className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
-            style={headerActionButtonStyle}
+            className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
+            style={
+              maskingEnabled
+                ? {
+                    ...headerActionButtonStyle,
+                    border: `1px solid ${colors.primary_accent}`,
+                    color: colors.primary_accent,
+                    backgroundColor: isDark
+                      ? `${colors.primary_accent}22`
+                      : `${colors.primary_accent}18`,
+                  }
+                : headerActionButtonStyle
+            }
+            aria-label={
+              maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
+            }
             title={
               maskingEnabled ? t("header.showAmounts") : t("header.hideAmounts")
             }
           >
             {maskingEnabled ? (
-              <VisibilityOffIcon className="w-5 h-5" />
+              <VisibilityOffIcon sx={{ fontSize: 22 }} />
             ) : (
-              <VisibilityIcon className="w-5 h-5" />
+              <VisibilityIcon sx={{ fontSize: 22 }} />
             )}
           </button>
 
@@ -244,21 +304,26 @@ const HeaderBar = () => {
           {!themeLocked && (
           <button
             id="header-theme"
+            type="button"
             onClick={handleThemeToggle}
             data-shortcut="theme"
-            className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+            className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
             style={headerActionButtonStyle}
+            aria-label={
+              isDark ? t("header.switchToLight") : t("header.switchToDark")
+            }
             title={
               isDark ? t("header.switchToLight") : t("header.switchToDark")
             }
           >
             {isDark ? (
-              // Sun Icon (Light Mode)
               <svg
-                className="w-5 h-5"
+                width={22}
+                height={22}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
               >
                 <path
                   fillRule="evenodd"
@@ -267,12 +332,13 @@ const HeaderBar = () => {
                 />
               </svg>
             ) : (
-              // Moon Icon (Dark Mode)
               <svg
-                className="w-5 h-5"
+                width={22}
+                height={22}
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
               >
                 <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
               </svg>
@@ -287,9 +353,11 @@ const HeaderBar = () => {
             <div className="relative">
               <button
                 id="header-share"
+                type="button"
                 onClick={handleShareClick}
-                className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+                className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
                 style={headerActionButtonStyle}
+                aria-label={t("header.shareSelected", "Share Selected Items")}
                 title={t("header.shareSelected", "Share Selected Items")}
               >
                 <Badge
@@ -305,7 +373,7 @@ const HeaderBar = () => {
                     },
                   }}
                 >
-                  <Share2 className="w-5 h-5" />
+                  <Share2 size={20} />
                 </Badge>
               </button>
             </div>
@@ -316,10 +384,12 @@ const HeaderBar = () => {
           <div className="relative">
             <button
               id="header-notifications"
+              type="button"
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               data-shortcut="notifications"
-              className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+              className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
               style={headerActionButtonStyle}
+              aria-label={t("header.notifications")}
               title={t("header.notifications")}
             >
               <Badge
@@ -336,10 +406,12 @@ const HeaderBar = () => {
                 }}
               >
                 <svg
-                  className="w-5 h-5"
+                  width={22}
+                  height={22}
                   fill="currentColor"
                   viewBox="0 0 20 20"
                   xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden
                 >
                   <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
                 </svg>

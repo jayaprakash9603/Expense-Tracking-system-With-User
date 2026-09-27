@@ -100,12 +100,16 @@ const DailySpendingDrilldownDrawer = ({
 
   return (
     <Drawer
-      anchor="right"
+      anchor={isMobile ? "bottom" : "right"}
       open={open}
       onClose={onClose}
       PaperProps={{
         sx: {
           width: isMobile ? "100%" : 440,
+          height: isMobile ? "100dvh" : "100%",
+          maxHeight: isMobile ? "100dvh" : "100%",
+          borderTopLeftRadius: isMobile ? 0 : undefined,
+          borderTopRightRadius: isMobile ? 0 : undefined,
           background: colors?.secondary_bg || "#0b0b10",
           color: colors?.primary_text || "#fff",
           overflowX: "hidden",

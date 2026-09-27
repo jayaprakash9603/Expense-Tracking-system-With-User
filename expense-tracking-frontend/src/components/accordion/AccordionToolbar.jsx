@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
-import { AppAutocomplete } from "../ui";
+import { AppAutocomplete, AppSelect } from "../ui";
 
 export default function AccordionToolbar({
   showGroupSearch,
@@ -116,38 +116,50 @@ export default function AccordionToolbar({
           <>
             <label className="pm-toolbar-label">
               <span>Sort groups:</span>
-              <select
+              <AppSelect
                 value={groupSort?.key || "default"}
-                onChange={(e) =>
+                onValueChange={(key) =>
                   onGroupSortChange?.({
                     ...(groupSort || { direction: "desc" }),
-                    key: e.target.value,
+                    key,
                   })
                 }
-                aria-label="Sort groups by"
-              >
-                <option value="default">Default</option>
-                <option value="amount">Amount</option>
-                <option value="count">Count</option>
-                <option value="name">Name</option>
-              </select>
+                options={[
+                  { value: "default", label: "Default" },
+                  { value: "amount", label: "Amount" },
+                  { value: "count", label: "Count" },
+                  { value: "name", label: "Name" },
+                ]}
+                ariaLabel="Sort groups by"
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
             </label>
 
             <label className="pm-toolbar-label">
               <span>Dir:</span>
-              <select
+              <AppSelect
                 value={groupSort?.direction || "desc"}
-                onChange={(e) =>
+                onValueChange={(direction) =>
                   onGroupSortChange?.({
                     ...(groupSort || { key: "default" }),
-                    direction: e.target.value,
+                    direction,
                   })
                 }
-                aria-label="Group sort direction"
-              >
-                <option value="desc">Desc</option>
-                <option value="asc">Asc</option>
-              </select>
+                options={[
+                  { value: "desc", label: "Desc" },
+                  { value: "asc", label: "Asc" },
+                ]}
+                ariaLabel="Group sort direction"
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
             </label>
           </>
         ) : null}

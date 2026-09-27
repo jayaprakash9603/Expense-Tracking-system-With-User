@@ -9,6 +9,12 @@ logging:
 spring:
   application:
     name: GATEWAY-SERVICE
+  autoconfigure:
+    exclude:
+      - com.jaya.common.config.CommonLibraryAutoConfiguration
+      - com.jaya.common.feature.FeatureDormancyAutoConfiguration
+      - com.jaya.common.config.InternalServiceAuthAutoConfiguration
+      - com.jaya.common.config.UserProfileCacheAutoConfiguration
   main:
     allow-bean-definition-overriding: true
   cloud:

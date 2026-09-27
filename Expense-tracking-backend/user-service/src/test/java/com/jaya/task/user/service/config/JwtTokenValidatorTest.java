@@ -86,6 +86,13 @@ class JwtTokenValidatorTest {
         }
 
         @Test
+        void skipsAuthPathsWhenStaleAuthorizationHeaderPresent() {
+            when(request.getRequestURI()).thenReturn("/auth/check-email");
+
+            assertThat(validator.shouldNotFilter(request)).isTrue();
+        }
+
+        @Test
         void rejectsMalformedToken() throws Exception {
             when(request.getHeader("Authorization")).thenReturn("Bearer not.a.valid.jwt.token");
 

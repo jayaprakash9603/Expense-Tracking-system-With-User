@@ -1,6 +1,7 @@
 package com.jaya.automation.app;
 
 import com.jaya.automation.core.config.AutomationConfig;
+import com.jaya.automation.core.util.AutomationPaths;
 import com.jaya.automation.core.logging.AutomationLogger;
 import com.jaya.automation.core.logging.LoggerFactory;
 
@@ -11,7 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class TestExecutionLauncher {
-    private static final String RERUN_FEATURE_FILE = "automation-bdd/target/reports/rerun/rerun.txt";
+    private static final String RERUN_FEATURE_FILE = AutomationPaths.RERUN_FEATURE_FILE;
+    private static final String BDD_MODULE = AutomationPaths.BDD_MODULE;
     private static final String PLAIN_RUNNER_CLASS = "AutomationCucumberTest";
     private static final String SPRING_RUNNER_CLASS = "SpringBootCucumberTest";
     private static final AutomationLogger LOG = LoggerFactory.getLogger(TestExecutionLauncher.class);
@@ -27,7 +29,7 @@ public final class TestExecutionLauncher {
         command.add("-f");
         command.add("pom.xml");
         command.add("-pl");
-        command.add("automation-bdd");
+        command.add(BDD_MODULE);
         command.add("-am");
         command.add("test");
         command.add("-Dtest=" + testClass(options.executionRunner()));

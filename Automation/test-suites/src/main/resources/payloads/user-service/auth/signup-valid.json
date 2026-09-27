@@ -2,5 +2,5 @@
   "firstName": "Auto",
   "lastName": "Tester",
   "email": "auto.signup@example.test",
-  "password": "ChangeMe123!"
+  "password": "${suite.auth.password}"
 }

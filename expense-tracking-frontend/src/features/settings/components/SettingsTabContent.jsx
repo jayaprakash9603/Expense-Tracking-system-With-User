@@ -1,4 +1,5 @@
 import React from "react";
+import { AppSelect } from "../../../components/ui";
 
 const currencyOptions = [
   { value: "USD", label: "USD ($)" },
@@ -91,22 +92,20 @@ const SettingsTabContent = ({
               />
             )}
             {field.type === "select" && (
-              <select
+              <AppSelect
                 value={groupSettings[field.valueKey]}
-                onChange={(e) =>
+                onValueChange={(val) =>
                   setGroupSettings({
                     ...groupSettings,
-                    [field.valueKey]: e.target.value,
+                    [field.valueKey]: val,
                   })
                 }
-                {...field.inputProps}
-              >
-                {field.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                options={field.options}
+                ariaLabel={field.label}
+                size="small"
+                className={field.inputProps?.className}
+                displayEmpty={false}
+              />
             )}
           </div>
         ))}

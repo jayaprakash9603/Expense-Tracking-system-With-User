@@ -4,11 +4,8 @@ import {
   TextField,
   Switch,
   FormControlLabel,
-  Select,
-  MenuItem as MuiMenuItem,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import SaveIcon from "@mui/icons-material/Save";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import {
@@ -110,19 +107,18 @@ const AdminSettings = () => {
             Get real-time push notifications in your browser
           </p>
 
-          <FormControl fullWidth className="mt-4">
-            <InputLabel>Notification Frequency</InputLabel>
-            <Select
-              value={notificationFrequency}
-              onChange={(e) => setNotificationFrequency(e.target.value)}
-              label="Notification Frequency"
-            >
-              <MuiMenuItem value="instant">Instant</MuiMenuItem>
-              <MuiMenuItem value="hourly">Hourly Digest</MuiMenuItem>
-              <MuiMenuItem value="daily">Daily Digest</MuiMenuItem>
-              <MuiMenuItem value="weekly">Weekly Summary</MuiMenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            className="mt-4"
+            label="Notification Frequency"
+            value={notificationFrequency}
+            onChange={(e) => setNotificationFrequency(e.target.value)}
+            options={[
+              { value: "instant", label: "Instant" },
+              { value: "hourly", label: "Hourly Digest" },
+              { value: "daily", label: "Daily Digest" },
+              { value: "weekly", label: "Weekly Summary" },
+            ]}
+          />
         </div>
       </SectionCard>
 
@@ -177,18 +173,16 @@ const AdminSettings = () => {
       {/* Appearance Settings */}
       <SectionCard title="Appearance Settings" className="mb-6">
         <div className="space-y-4">
-          <FormControl fullWidth>
-            <InputLabel>Default Theme</InputLabel>
-            <Select
-              value={defaultTheme}
-              onChange={(e) => setDefaultTheme(e.target.value)}
-              label="Default Theme"
-            >
-              <MuiMenuItem value="light">Light</MuiMenuItem>
-              <MuiMenuItem value="dark">Dark</MuiMenuItem>
-              <MuiMenuItem value="auto">Auto (System Preference)</MuiMenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            label="Default Theme"
+            value={defaultTheme}
+            onChange={(e) => setDefaultTheme(e.target.value)}
+            options={[
+              { value: "light", label: "Light" },
+              { value: "dark", label: "Dark" },
+              { value: "auto", label: "Auto (System Preference)" },
+            ]}
+          />
 
           <FormControlLabel
             control={
@@ -251,20 +245,19 @@ const AdminSettings = () => {
             Automatically backup system data at scheduled intervals
           </p>
 
-          <FormControl fullWidth className="mt-4">
-            <InputLabel>Backup Frequency</InputLabel>
-            <Select
-              value={backupFrequency}
-              onChange={(e) => setBackupFrequency(e.target.value)}
-              label="Backup Frequency"
-              disabled={!autoBackup}
-            >
-              <MuiMenuItem value="hourly">Every Hour</MuiMenuItem>
-              <MuiMenuItem value="daily">Daily</MuiMenuItem>
-              <MuiMenuItem value="weekly">Weekly</MuiMenuItem>
-              <MuiMenuItem value="monthly">Monthly</MuiMenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            className="mt-4"
+            label="Backup Frequency"
+            value={backupFrequency}
+            onChange={(e) => setBackupFrequency(e.target.value)}
+            disabled={!autoBackup}
+            options={[
+              { value: "hourly", label: "Every Hour" },
+              { value: "daily", label: "Daily" },
+              { value: "weekly", label: "Weekly" },
+              { value: "monthly", label: "Monthly" },
+            ]}
+          />
         </div>
       </SectionCard>
 

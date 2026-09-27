@@ -31,6 +31,7 @@ const ReportActionMenu = ({
       ariaLabel={ariaLabel}
       buttonSize={buttonSize}
       className="overflow-action-menu-trigger"
+      menuTitle="Actions"
     />
   );
 };

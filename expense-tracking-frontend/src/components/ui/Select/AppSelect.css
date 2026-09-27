@@ -1,0 +1,66 @@
+.app-select__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-select__value-icon {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.app-select__placeholder {
+  opacity: 0.85;
+}
+
+/*
+ * Legacy skins such as .time-selector and .expense-filter-select were authored
+ * for a raw <select> element. AppSelect draws its own outlined border, so those
+ * rules would stack a second box around the control and repaint it teal on
+ * hover/focus. Strip the box here and let the sizing rules through.
+ */
+.app-select.app-select.time-selector,
+.app-select.app-select.expense-filter-select,
+.app-select.app-select.time-selector:hover,
+.app-select.app-select.time-selector:focus,
+.app-select.app-select.time-selector:focus-within,
+.app-select.app-select.expense-filter-select:hover,
+.app-select.app-select.expense-filter-select:focus,
+.app-select.app-select.expense-filter-select:focus-within {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.app-select--compact .MuiInputBase-root {
+  min-width: 88px;
+}
+
+.app-select--compact .MuiSelect-select {
+  padding-left: 10px !important;
+  padding-right: 28px !important;
+}
+
+@media (max-width: 600px) {
+  .app-select--compact {
+    min-width: 0;
+  }
+
+  .app-select--compact .MuiInputBase-root {
+    min-width: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-select .MuiInputBase-root,
+  .app-select__menu-paper .MuiMenuItem-root {
+    transition: none !important;
+  }
+}

@@ -1,13 +1,6 @@
 import React from "react";
-import {
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  InputAdornment,
-  Grid,
-} from "@mui/material";
+import { TextField, InputAdornment, Grid } from "@mui/material";
+import { AppSelect } from "./ui";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -93,32 +86,6 @@ const ReusableFilterField = ({
       "&.Mui-focused": {
         color: "#00dac6",
       },
-    },
-    "& .MuiSelect-icon": {
-      color: colors.primary_text,
-    },
-    ...sx,
-  });
-
-  const getSelectStyles = () => ({
-    minHeight: 56,
-    bgcolor: colors.secondary_bg,
-    borderRadius: 2,
-    color: colors.primary_text,
-    "& fieldset": {
-      borderColor: colors.border_color,
-      borderWidth: "1px",
-      borderStyle: "solid",
-    },
-    "&:hover fieldset": {
-      borderColor: "#00dac6",
-      borderWidth: "1px",
-      borderStyle: "solid",
-    },
-    "&.Mui-focused fieldset": {
-      borderColor: "#00dac6",
-      borderWidth: "2px",
-      borderStyle: "solid",
     },
     "& .MuiSelect-icon": {
       color: colors.primary_text,
@@ -225,29 +192,28 @@ const ReusableFilterField = ({
 
   // Render Select for dropdown
   const renderSelect = () => (
-    <FormControl fullWidth={fullWidth} disabled={disabled}>
-      <InputLabel sx={{ color: colors.secondary_text }}>{label}</InputLabel>
-      <Select
-        size={size}
-        value={value}
-        onChange={onChange}
-        label={label}
-        required={required}
-        sx={getSelectStyles()}
-        startAdornment={
-          startAdornment ? (
-            <InputAdornment position="start">{startAdornment}</InputAdornment>
-          ) : undefined
-        }
-        {...restProps}
-      >
-        {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+    <AppSelect
+      label={label}
+      value={value}
+      onChange={onChange}
+      options={options}
+      size={size}
+      fullWidth={fullWidth}
+      required={required}
+      disabled={disabled}
+      startAdornment={
+        startAdornment ? (
+          <InputAdornment position="start">{startAdornment}</InputAdornment>
+        ) : undefined
+      }
+      sx={{
+        "& .MuiInputBase-root": {
+          minHeight: 56,
+        },
+        ...sx,
+      }}
+      {...restProps}
+    />
   );
 
   // Choose renderer based on type

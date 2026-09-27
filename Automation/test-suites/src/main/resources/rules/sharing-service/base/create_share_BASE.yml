@@ -1,0 +1,11 @@
+rules:
+  - name: response_not_empty
+    description: "Response body should not be empty"
+    condition:
+      source: "#jsonPath([response],'$')"
+      operator: "notNull"
+  - name: response_has_identifier
+    description: "Response should contain an identifier when applicable"
+    condition:
+      source: "#jsonPath([response],'$.token')"
+      operator: "notNull"

@@ -14,6 +14,7 @@ import {
   convertToOldFormat,
 } from "../../components/conversions/formatUtils";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
+import { AppSelect } from "../../components/ui";
 
 function EditExpense() {
   const dispatch = useDispatch();
@@ -323,32 +324,36 @@ function EditExpense() {
           </div>
           <div className="mb-3">
             <label htmlFor="type">Transaction Type:</label>
-            <select
+            <AppSelect
               id="type"
-              className="form-select"
               value={expenses.type}
-              onChange={(e) =>
-                setExpenses({ ...expenses, type: e.target.value })
+              onValueChange={(type) =>
+                setExpenses({ ...expenses, type })
               }
-            >
-              <option value="gain">Gain</option>
-              <option value="loss">Loss</option>
-            </select>
+              options={[
+                { value: "gain", label: "Gain" },
+                { value: "loss", label: "Loss" },
+              ]}
+              ariaLabel="Transaction type"
+              size="small"
+            />
           </div>
           <div className="mb-3">
             <label htmlFor="paymentMethod">Payment Method:</label>
-            <select
+            <AppSelect
               id="paymentMethod"
-              className="form-select"
               value={expenses.paymentMethod}
-              onChange={(e) =>
-                setExpenses({ ...expenses, paymentMethod: e.target.value })
+              onValueChange={(paymentMethod) =>
+                setExpenses({ ...expenses, paymentMethod })
               }
-            >
-              <option value="cash">Cash</option>
-              <option value="creditNeedToPaid">Credit Card Due</option>
-              <option value="creditPaid">Credit Card Paid</option>
-            </select>
+              options={[
+                { value: "cash", label: "Cash" },
+                { value: "creditNeedToPaid", label: "Credit Card Due" },
+                { value: "creditPaid", label: "Credit Card Paid" },
+              ]}
+              ariaLabel="Payment method"
+              size="small"
+            />
           </div>
           <div className="mb-3">
             <label htmlFor="comments">Comments:</label>

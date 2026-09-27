@@ -1,6 +1,8 @@
 /* Recharts tooltips are informational and must not trap the pointer outside a chart. */
 .recharts-tooltip-wrapper {
   pointer-events: none !important;
+  z-index: 9999 !important;
+  overflow: visible !important;
 }
 body {
   margin: 0;

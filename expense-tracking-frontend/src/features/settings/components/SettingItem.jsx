@@ -4,18 +4,12 @@ import {
   Typography,
   Switch,
   Button,
-  FormControl,
-  Select,
-  MenuItem,
-  ListItemText,
   IconButton,
   Slider,
 } from "@mui/material";
-import {
-  Check as CheckIcon,
-  ChevronRight as ChevronRightIcon,
-} from "@mui/icons-material";
+import { ChevronRight as ChevronRightIcon } from "@mui/icons-material";
 import { useTranslation } from "../../../hooks/useTranslation";
+import { AppSelect } from "../../../components/ui";
 
 /**
  * SettingItem Component
@@ -178,120 +172,27 @@ const SettingItem = ({
         )}
 
         {isSelect && (
-          <FormControl size="small" sx={{ minWidth: 140 }} disabled={disabled}>
-            <Select
-              value={selectValue}
-              onChange={onSelectChange}
-              disabled={disabled}
-              sx={{
-                color: colors.primary_text,
-                backgroundColor: colors.secondary_bg,
-                borderRadius: 2,
-                fontWeight: 600,
-                fontSize: "0.9rem",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.border_color,
-                  borderWidth: "1.5px",
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.primary_accent,
-                  borderWidth: "2px",
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.primary_accent,
-                  borderWidth: "2px",
-                },
-                "& .MuiSvgIcon-root": {
-                  color: colors.primary_accent,
-                },
-                "& .MuiSelect-select": {
-                  py: 1.2,
-                  px: 1.5,
-                },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    backgroundColor: colors.tertiary_bg,
-                    border: `1px solid ${colors.border_color}`,
-                    borderRadius: 2,
-                    mt: 1,
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-                    maxHeight: 320,
-                    "& .MuiMenuItem-root": {
-                      color: colors.primary_text,
-                      fontSize: "0.9rem",
-                      fontWeight: 500,
-                      py: 1.5,
-                      px: 2,
-                      transition: "all 0.2s ease",
-                      "&:hover": {
-                        backgroundColor: colors.hover_bg,
-                        transform: "translateX(4px)",
-                      },
-                      "&.Mui-selected": {
-                        backgroundColor: `${colors.primary_accent}20`,
-                        color: colors.primary_accent,
-                        fontWeight: 600,
-                        borderLeft: `3px solid ${colors.primary_accent}`,
-                        "&:hover": {
-                          backgroundColor: `${colors.primary_accent}30`,
-                        },
-                      },
-                    },
-                  },
-                },
-              }}
-            >
-              {selectOptions.map((option) => {
-                const optionLabel = option.labelKey
-                  ? t(option.labelKey)
-                  : option.label;
-                const OptionIcon = option.icon;
-                return (
-                  <MenuItem key={option.value} value={option.value}>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        width: "100%",
-                      }}
-                    >
-                      {OptionIcon && (
-                        <OptionIcon
-                          sx={{
-                            fontSize: "1.1rem",
-                            color: colors.primary_accent,
-                            mr: 1,
-                            flexShrink: 0,
-                          }}
-                        />
-                      )}
-                      <ListItemText
-                        primary={optionLabel}
-                        sx={{
-                          "& .MuiListItemText-primary": {
-                            fontSize: "0.9rem",
-                            fontWeight:
-                              selectValue === option.value ? 600 : 500,
-                          },
-                        }}
-                      />
-                      {selectValue === option.value && (
-                        <CheckIcon
-                          sx={{
-                            fontSize: "1.2rem",
-                            color: colors.primary_accent,
-                            ml: 1,
-                          }}
-                        />
-                      )}
-                    </Box>
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
+          <AppSelect
+            size="small"
+            fullWidth={false}
+            disabled={disabled}
+            value={selectValue}
+            onChange={onSelectChange}
+            ariaLabel={typeof title === "string" ? title : "Setting"}
+            options={selectOptions.map((option) => {
+              const OptionIcon = option.icon;
+              return {
+                value: option.value,
+                label: option.labelKey ? t(option.labelKey) : option.label,
+                icon: OptionIcon ? (
+                  <OptionIcon
+                    sx={{ fontSize: "1.1rem", color: colors.primary_accent }}
+                  />
+                ) : undefined,
+              };
+            })}
+            sx={{ minWidth: 140 }}
+          />
         )}
 
         {isNavigation && (

@@ -1,4 +1,5 @@
 import React from "react";
+import { useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import ModernOverviewCard from "../../components/common/ModernOverviewCard";
@@ -57,10 +58,22 @@ const MetricsGrid = ({
 }) => {
   const settings = useUserSettings();
   const currencySymbol = propCurrencySymbol || settings.getCurrency().symbol;
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(max-width:900px)");
+
+  const gridStyle = {
+    display: "grid",
+    width: "100%",
+    gridTemplateColumns:
+      isMobile || isTablet
+        ? "repeat(2, minmax(0, 1fr))"
+        : "repeat(4, minmax(0, 1fr))",
+    gap: isMobile ? 10 : isTablet ? 14 : 20,
+  };
 
   if (loading) {
     return (
-      <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+      <div className="metrics-grid" style={gridStyle}>
         {[...Array(4)].map((_, i) => (
           <MetricCardSkeleton key={i} />
         ))}
@@ -85,9 +98,10 @@ const MetricsGrid = ({
   const ccTrendDirection = (analyticsSummary?.creditBillPaymentComparison?.trend || "").toLowerCase();
 
   return (
-    <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+    <div className="metrics-grid" style={gridStyle}>
       <ModernOverviewCard
         title="Total Balance"
+        compact={isMobile}
         value={`${currencySymbol}${formatNumber0(analyticsSummary?.remainingBudget ?? 0)}`}
         icon={<WalletIcon />}
         percentage={tbChangeText}
@@ -103,6 +117,7 @@ const MetricsGrid = ({
         trend={msTrendDirection === "decrease" ? "down" : "up"}
         variant="purple"
         sparklineData={[10, 8, 12, 10, 15, 14, 18]}
+        compact={isMobile}
       />
       <ModernOverviewCard
         title="Credit Due"
@@ -112,6 +127,7 @@ const MetricsGrid = ({
         trend={cdTrendDirection === "decrease" ? "down" : "up"}
         variant="yellow"
         sparklineData={[4, 5, 4, 3, 5, 6, 7]}
+        compact={isMobile}
       />
       <ModernOverviewCard
         title="Credit Card Bill Paid"
@@ -125,6 +141,7 @@ const MetricsGrid = ({
         trend={ccTrendDirection === "decrease" ? "down" : "up"}
         variant="red"
         sparklineData={[8, 9, 11, 10, 13, 14, 16]}
+        compact={isMobile}
       />
     </div>
   );

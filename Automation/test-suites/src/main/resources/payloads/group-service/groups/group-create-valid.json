@@ -1,0 +1,4 @@
+{
+  "name": "Auto Group ${random.number:4}",
+  "description": "Automation group"
+}

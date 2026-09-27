@@ -125,7 +125,7 @@ public class TotpService {
             return Base64.getEncoder().encodeToString(combined);
         } catch (Exception e) {
             logger.error("Failed to encrypt TOTP secret", e);
-            throw new RuntimeException("Encryption failed", e);
+            throw new IllegalStateException("Encryption failed", e);
         }
     }
 
@@ -154,7 +154,7 @@ public class TotpService {
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
             logger.error("Failed to decrypt TOTP secret", e);
-            throw new RuntimeException("Decryption failed", e);
+            throw new IllegalStateException("Decryption failed", e);
         }
     }
 
@@ -195,7 +195,7 @@ public class TotpService {
             return "data:image/png;base64," + base64Image;
         } catch (QrGenerationException e) {
             logger.error("Failed to generate QR code for email={}", email, e);
-            throw new RuntimeException("QR code generation failed", e);
+            throw new IllegalStateException("QR code generation failed", e);
         }
     }
 

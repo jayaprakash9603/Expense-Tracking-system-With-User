@@ -6,6 +6,7 @@ import com.jaya.task.user.service.repository.UserRepository;
 import com.jaya.task.user.service.request.*;
 import com.jaya.task.user.service.service.CustomUserServiceImplementation;
 import com.jaya.task.user.service.service.TotpService;
+import com.jaya.task.user.service.util.ApiMessages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +51,7 @@ import java.util.*;
 public class MfaController {
 
     private static final Logger logger = LoggerFactory.getLogger(MfaController.class);
+    private static final String ERROR_KEY = ApiMessages.ERROR_KEY;
     private static final String ISSUER = "Expensio Finance";
 
     @Autowired
@@ -78,19 +80,12 @@ public class MfaController {
     @GetMapping("/status")
     public ResponseEntity<?> getMfaStatus(@RequestHeader("Authorization") String jwt) {
         try {
-            String email;
-            try {
-                email = JwtProvider.getEmailFromJwt(jwt);
-            } catch (Exception ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or missing token"));
+            Optional<User> userOptional = findUserByJwt(jwt);
+            if (userOptional.isEmpty()) {
+                return extractEmail(jwt).isPresent() ? userNotFoundResponse() : invalidTokenResponse();
             }
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
+            User user = userOptional.get();
+            String email = user.getEmail();
 
             int remainingBackupCodes = user.getMfaBackupCodes() != null
                     ? totpService.countRemainingBackupCodes(user.getMfaBackupCodes())
@@ -112,7 +107,7 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error checking MFA status", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to check MFA status"));
+                    .body(Map.of(ERROR_KEY, "Failed to check MFA status"));
         }
     }
 
@@ -131,19 +126,12 @@ public class MfaController {
     @PostMapping("/setup")
     public ResponseEntity<?> setupMfa(@RequestHeader("Authorization") String jwt) {
         try {
-            String email;
-            try {
-                email = JwtProvider.getEmailFromJwt(jwt);
-            } catch (Exception ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or missing token"));
+            Optional<User> userOptional = findUserByJwt(jwt);
+            if (userOptional.isEmpty()) {
+                return extractEmail(jwt).isPresent() ? userNotFoundResponse() : invalidTokenResponse();
             }
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
+            User user = userOptional.get();
+            String email = user.getEmail();
 
             
             String secret = totpService.generateSecret();
@@ -162,7 +150,7 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error during MFA setup", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to setup MFA"));
+                    .body(Map.of(ERROR_KEY, "Failed to setup MFA"));
         }
     }
 
@@ -184,23 +172,16 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody MfaEnableRequest request) {
         try {
-            String email;
-            try {
-                email = JwtProvider.getEmailFromJwt(jwt);
-            } catch (Exception ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or missing token"));
+            Optional<User> userOptional = findUserByJwt(jwt);
+            if (userOptional.isEmpty()) {
+                return extractEmail(jwt).isPresent() ? userNotFoundResponse() : invalidTokenResponse();
             }
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
+            User user = userOptional.get();
+            String email = user.getEmail();
 
             if (user.isMfaEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "MFA is already enabled"));
+                        .body(Map.of(ERROR_KEY, "MFA is already enabled"));
             }
 
             
@@ -210,7 +191,7 @@ public class MfaController {
             if (!totpService.verifyCode(tempSecret, otp)) {
                 logger.warn("Invalid OTP during MFA enable for user: {}", email);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "Invalid verification code. Please try again."));
+                        .body(Map.of(ERROR_KEY, "Invalid verification code. Please try again."));
             }
 
             
@@ -241,7 +222,7 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error enabling MFA", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to enable MFA"));
+                    .body(Map.of(ERROR_KEY, "Failed to enable MFA"));
         }
     }
 
@@ -267,7 +248,7 @@ public class MfaController {
             
             if (mfaToken == null || mfaToken.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "MFA token is required"));
+                        .body(Map.of(ERROR_KEY, "MFA token is required"));
             }
 
             String email;
@@ -275,15 +256,16 @@ public class MfaController {
                 
                 email = JwtProvider.getEmailFromJwt("Bearer " + mfaToken);
             } catch (Exception e) {
+                logger.debug("Invalid JWT token", e);
                 logger.warn("Invalid or expired MFA token");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or expired MFA token. Please login again."));
+                        .body(Map.of(ERROR_KEY, "Invalid or expired MFA token. Please login again."));
             }
 
             User user = userRepository.findByEmail(email);
             if (user == null || !user.isMfaEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "User not found or MFA not enabled"));
+                        .body(Map.of(ERROR_KEY, "User not found or MFA not enabled"));
             }
 
             boolean isValid = false;
@@ -321,7 +303,7 @@ public class MfaController {
                         ? "Invalid backup code. You have " + remainingBackupCodes + " backup codes remaining."
                         : "Invalid verification code";
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", errorMsg));
+                        .body(Map.of(ERROR_KEY, errorMsg));
             }
 
             
@@ -347,7 +329,7 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error during MFA verification", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "MFA verification failed"));
+                    .body(Map.of(ERROR_KEY, "MFA verification failed"));
         }
     }
 
@@ -368,23 +350,16 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody MfaDisableRequest request) {
         try {
-            String email;
-            try {
-                email = JwtProvider.getEmailFromJwt(jwt);
-            } catch (Exception ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or missing token"));
+            Optional<User> userOptional = findUserByJwt(jwt);
+            if (userOptional.isEmpty()) {
+                return extractEmail(jwt).isPresent() ? userNotFoundResponse() : invalidTokenResponse();
             }
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
+            User user = userOptional.get();
+            String email = user.getEmail();
 
             if (!user.isMfaEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "MFA is not enabled"));
+                        .body(Map.of(ERROR_KEY, "MFA is not enabled"));
             }
 
             
@@ -400,14 +375,14 @@ public class MfaController {
                     verified = passwordEncoder.matches(request.getPassword(), user.getPassword());
                 } else {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(Map.of("error", "Password verification not available. Please use OTP."));
+                            .body(Map.of(ERROR_KEY, "Password verification not available. Please use OTP."));
                 }
             }
 
             if (!verified) {
                 logger.warn("Failed verification during MFA disable for user: {}", email);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "Invalid verification. Please check your " +
+                        .body(Map.of(ERROR_KEY, "Invalid verification. Please check your " +
                                 (request.isUseOtp() ? "code" : "password") + " and try again."));
             }
 
@@ -426,7 +401,7 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error disabling MFA", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to disable MFA"));
+                    .body(Map.of(ERROR_KEY, "Failed to disable MFA"));
         }
     }
 
@@ -448,30 +423,23 @@ public class MfaController {
             @RequestHeader("Authorization") String jwt,
             @RequestBody Map<String, String> request) {
         try {
-            String email;
-            try {
-                email = JwtProvider.getEmailFromJwt(jwt);
-            } catch (Exception ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "Invalid or missing token"));
+            Optional<User> userOptional = findUserByJwt(jwt);
+            if (userOptional.isEmpty()) {
+                return extractEmail(jwt).isPresent() ? userNotFoundResponse() : invalidTokenResponse();
             }
-            User user = userRepository.findByEmail(email);
-
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "User not found"));
-            }
+            User user = userOptional.get();
+            String email = user.getEmail();
 
             if (!user.isMfaEnabled()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "MFA is not enabled"));
+                        .body(Map.of(ERROR_KEY, "MFA is not enabled"));
             }
 
             
             String otp = request.get("otp");
             if (otp == null || !totpService.verifyCodeWithEncryptedSecret(user.getMfaSecret(), otp)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "Invalid verification code"));
+                        .body(Map.of(ERROR_KEY, "Invalid verification code"));
             }
 
             
@@ -494,7 +462,31 @@ public class MfaController {
         } catch (Exception e) {
             logger.error("Error regenerating backup codes", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to regenerate backup codes"));
+                    .body(Map.of(ERROR_KEY, "Failed to regenerate backup codes"));
         }
+    }
+
+    private Optional<String> extractEmail(String jwt) {
+        try {
+            return Optional.of(JwtProvider.getEmailFromJwt(jwt));
+        } catch (Exception ex) {
+            logger.debug("Invalid JWT token", ex);
+            return Optional.empty();
+        }
+    }
+
+    private ResponseEntity<?> invalidTokenResponse() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(ERROR_KEY, ApiMessages.INVALID_OR_MISSING_TOKEN));
+    }
+
+    private ResponseEntity<?> userNotFoundResponse() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(ERROR_KEY, ApiMessages.USER_NOT_FOUND));
+    }
+
+    private Optional<User> findUserByJwt(String jwt) {
+        return extractEmail(jwt)
+                .flatMap(email -> Optional.ofNullable(userRepository.findByEmail(email)));
     }
 }

@@ -259,13 +259,13 @@ const CashFlowChart = ({
             cursor={false}
             content={tooltipContent}
             wrapperStyle={{
-              zIndex: 10,
+              zIndex: 9999,
               outline: "none",
               overflow: "visible",
               pointerEvents: "none",
             }}
             isAnimationActive={false}
-            allowEscapeViewBox={{ x: false, y: true }}
+            allowEscapeViewBox={{ x: true, y: true }}
           />
           {Array.isArray(chartData) && chartData.length > 0 && (
             <ReferenceLine

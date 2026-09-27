@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +40,9 @@ public class BulkExpenseBudgetService {
 
     @Autowired
     private BulkProgressTracker progressTracker;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     private static final String EXPENSE_BUDGET_LINKING_TOPIC = "expense-BudgetModel-linking-events";
     private static final int BATCH_SIZE = 20;
@@ -368,8 +372,6 @@ public class BulkExpenseBudgetService {
                 Long oldBudgetId = budgetData.getId();
 
                 if (oldToNewBudgetIds.containsKey(oldBudgetId)) {
-                    processedCount.incrementAndGet();
-                    updateProgressIfNeeded(jobId, processedCount.get());
                     continue;
                 }
 
@@ -433,8 +435,7 @@ public class BulkExpenseBudgetService {
         log.info("Completed processing {} expenses", expenses.size());
     }
 
-    @Transactional
-    private void processExpenseBatch(
+    void processExpenseBatch(
             List<BulkExpenseBudgetRequest.ExpenseData> batch,
             Integer userId,
             String jobId,
@@ -468,7 +469,7 @@ public class BulkExpenseBudgetService {
         }
 
         if (!expensesToSave.isEmpty()) {
-            List<Expense> savedExpenses = expenseRepository.saveAll(expensesToSave);
+            List<Expense> savedExpenses = transactionTemplate.execute(status -> expenseRepository.saveAll(expensesToSave));
 
             for (int i = 0; i < savedExpenses.size(); i++) {
                 Expense savedExpense = savedExpenses.get(i);
@@ -492,6 +493,7 @@ public class BulkExpenseBudgetService {
                 }
 
                 successCount.incrementAndGet();
+                processedCount.incrementAndGet();
 
                 if (i % 3 == 0) {
                     progressTracker.addRecentItem(jobId,
@@ -502,8 +504,7 @@ public class BulkExpenseBudgetService {
             }
         }
 
-        int current = processedCount.addAndGet(batch.size());
-        updateProgressIfNeeded(jobId, current);
+        updateProgressIfNeeded(jobId, processedCount.get());
 
         int budgetCount = oldToNewBudgetIds.size();
         int expenseCount = oldToNewExpenseIds.size();

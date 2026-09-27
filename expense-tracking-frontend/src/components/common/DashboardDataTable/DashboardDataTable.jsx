@@ -17,6 +17,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { useTheme } from "../../../hooks/useTheme";
+import { AppSelect } from "../../ui";
 import "./DashboardDataTable.css";
 
 const SortIcon = ({ direction }) => {
@@ -210,17 +211,20 @@ const DashboardDataTable = ({
           <div className="dashboard-data-table__footer-controls">
             <label className="dashboard-data-table__page-size">
               Rows per page
-              <select
+              <AppSelect
                 value={pageSize}
-                onChange={(event) => table.setPageSize(Number(event.target.value))}
-                aria-label="Rows per page"
-              >
-                {pageSizeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(val) => table.setPageSize(Number(val))}
+                options={pageSizeOptions.map((option) => ({
+                  value: option,
+                  label: String(option),
+                }))}
+                ariaLabel="Rows per page"
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
             </label>
             <span className="dashboard-data-table__page-indicator">
               Page {pageIndex + 1} of {Math.max(pageCount, 1)}

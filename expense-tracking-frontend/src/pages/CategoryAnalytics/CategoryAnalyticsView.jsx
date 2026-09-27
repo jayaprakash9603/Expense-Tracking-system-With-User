@@ -3,25 +3,20 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Typography,
-  Chip,
   IconButton,
   Tooltip,
   Box,
   Grid,
-  FormControl,
-  Select,
-  MenuItem,
   CircularProgress,
   TextField,
 } from "@mui/material";
+import { AppSelect } from "../../components/ui";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { ExpenseListTable } from "../../components/common/ExpenseListTable/ExpenseListTable";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import TrendingDownIcon from "@mui/icons-material/TrendingDown";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
@@ -34,7 +29,6 @@ import ReceiptIcon from "@mui/icons-material/Receipt";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import CategoryIcon from "@mui/icons-material/Category";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
-import EditNoteIcon from "@mui/icons-material/EditNote";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import EventIcon from "@mui/icons-material/Event";
 import LightbulbOutlinedIcon from "@mui/icons-material/LightbulbOutlined";
@@ -43,15 +37,14 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import dayjs from "dayjs";
 
 import { useTheme } from "../../hooks/useTheme";
+import useResponsivePageShell from "../../hooks/useResponsivePageShell";
 import PageHeader from "../../components/PageHeader";
 import CustomDataTable from "../../components/common/CustomDataTable";
 import CategoryAnalyticsSkeleton from "../../components/skeletons/CategoryAnalyticsSkeleton";
 import { getFunctionalIcon } from "../../utils/ui/iconMapping";
 import {
-  AnalyticsKPICard,
-  BudgetStatusCard,
-  InsightsPanel,
-  ExpenseHighlightCard,
+  AnalyticsHeroCard,
+  AnalyticsMetricGrid,
   MonthlyTrendChart,
   PaymentDistributionChart,
 } from "../../components/analytics";
@@ -59,6 +52,10 @@ import {
   fetchCategoryAnalytics,
   clearCategoryAnalytics,
 } from "../../Redux/Category/categoryActions";
+import {
+  canFetchEntityAnalytics,
+  isBrowserTabActive,
+} from "../../utils/feature/analyticsFeatureAccess";
 
 // Category icon mapping
 const getCategoryIcon = (categoryName, size = 32, color = "#00DAC6") => {
@@ -157,7 +154,15 @@ const CategoryAnalyticsView = ({
   analyticsKeys = DEFAULT_ANALYTICS_KEYS,
   editRouteBase = "/category-flow/edit",
 }) => {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const {
+    isMobile,
+    isCompact,
+    containerStyle,
+    mainRowSx,
+    sideColumnSx,
+    contentColumnSx,
+  } = useResponsivePageShell();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const params = useParams();
@@ -183,9 +188,27 @@ const CategoryAnalyticsView = ({
   const categoryAnalytics = analyticsState?.[analyticsKeys.data];
   const categoryAnalyticsLoading = analyticsState?.[analyticsKeys.loading];
   const categoryAnalyticsError = analyticsState?.[analyticsKeys.error];
+  const featureFlags = useSelector((state) => state.featureFlags);
 
   const { dateFormat } = useSelector((state) => state.userSettings || {});
   const displayDateFormat = dateFormat || "DD/MM/YYYY";
+  const analyticsAllowed = canFetchEntityAnalytics(featureFlags, entityType);
+  const abortControllerRef = useRef(null);
+
+  const dispatchAnalyticsFetch = (id, options = {}) => {
+    if (!id || !analyticsAllowed || !isBrowserTabActive()) {
+      return;
+    }
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    dispatch(
+      fetchAnalytics(id, {
+        ...options,
+        signal: controller.signal,
+      }),
+    );
+  };
 
   // Calculate date range based on preset - memoized to prevent recalculation
   const dateRange = useMemo(() => {
@@ -230,47 +253,66 @@ const CategoryAnalyticsView = ({
     };
   }, [dateRangePreset, customStartDate, customEndDate]);
 
-  // Initial load - runs only once when component mounts
+  // Initial load — wait for dormancy flags; skip when feature dormant or tab hidden
   useEffect(() => {
-    // Create a unique key for this request
     const requestKey = `${categoryId}-${friendId}-${dateRange.startDate}-${dateRange.endDate}-${trendType}`;
 
-    // Only fetch if we haven't fetched yet OR if the categoryId changed
-    if (categoryId && !hasFetchedRef.current) {
+    if (
+      categoryId &&
+      analyticsAllowed &&
+      isBrowserTabActive() &&
+      !hasFetchedRef.current
+    ) {
       hasFetchedRef.current = true;
       currentRequestRef.current = requestKey;
+      dispatchAnalyticsFetch(categoryId, {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        trendType,
+        targetId: friendId,
+      });
+    }
 
-      dispatch(
-        fetchAnalytics(categoryId, {
+    const onVisibilityChange = () => {
+      if (!isBrowserTabActive()) {
+        abortControllerRef.current?.abort();
+        // Allow a fresh fetch when the tab becomes active again
+        hasFetchedRef.current = false;
+        return;
+      }
+      if (categoryId && analyticsAllowed && !hasFetchedRef.current) {
+        hasFetchedRef.current = true;
+        dispatchAnalyticsFetch(categoryId, {
           startDate: dateRange.startDate,
           endDate: dateRange.endDate,
           trendType,
           targetId: friendId,
-        }),
-      );
-    }
+        });
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
-    // Cleanup on unmount
     return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
       hasFetchedRef.current = false;
       currentRequestRef.current = null;
       dispatch(clearAnalytics());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, friendId]);
+  }, [categoryId, friendId, analyticsAllowed]);
 
   // Handle filter changes - explicit user action triggers
   const handleTrendTypeChange = (newTrendType) => {
     setTrendType(newTrendType);
     if (categoryId) {
-      dispatch(
-        fetchAnalytics(categoryId, {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-          trendType: newTrendType,
-          targetId: friendId,
-        }),
-      );
+      dispatchAnalyticsFetch(categoryId, {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        trendType: newTrendType,
+        targetId: friendId,
+      });
     }
   };
 
@@ -300,41 +342,35 @@ const CategoryAnalyticsView = ({
         default:
           startDate = now.subtract(6, "month");
       }
-      dispatch(
-        fetchAnalytics(categoryId, {
-          startDate: startDate.format("YYYY-MM-DD"),
-          endDate: endDate.format("YYYY-MM-DD"),
-          trendType,
-          targetId: friendId,
-        }),
-      );
+      dispatchAnalyticsFetch(categoryId, {
+        startDate: startDate.format("YYYY-MM-DD"),
+        endDate: endDate.format("YYYY-MM-DD"),
+        trendType,
+        targetId: friendId,
+      });
     }
   };
 
   const handleCustomDateApply = () => {
     if (categoryId && customStartDate && customEndDate) {
-      dispatch(
-        fetchAnalytics(categoryId, {
-          startDate: customStartDate,
-          endDate: customEndDate,
-          trendType,
-          targetId: friendId,
-        }),
-      );
+      dispatchAnalyticsFetch(categoryId, {
+        startDate: customStartDate,
+        endDate: customEndDate,
+        trendType,
+        targetId: friendId,
+      });
     }
   };
 
   // Fetch analytics data - called manually for refresh
   const handleRefresh = () => {
     if (categoryId) {
-      dispatch(
-        fetchAnalytics(categoryId, {
-          startDate: dateRange.startDate,
-          endDate: dateRange.endDate,
-          trendType,
-          targetId: friendId,
-        }),
-      );
+      dispatchAnalyticsFetch(categoryId, {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        trendType,
+        targetId: friendId,
+      });
     }
   };
 
@@ -365,20 +401,6 @@ const CategoryAnalyticsView = ({
   const formatDate = (date) => {
     if (!date) return "-";
     return dayjs(date).format(displayDateFormat);
-  };
-
-  // Container styles
-  const containerStyle = {
-    width: "calc(100vw - 370px)",
-    height: "calc(100vh - 100px)",
-    backgroundColor: colors.secondary_bg,
-    borderRadius: "8px",
-    marginRight: "20px",
-    border: `1px solid ${colors.border_color}`,
-    padding: "16px 24px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
   };
 
   // Compact columns for the narrow Recent Transactions panel
@@ -412,49 +434,96 @@ const CategoryAnalyticsView = ({
     insights = null,
   } = categoryAnalytics || {};
 
-  // Prepare KPI data
-  const kpiData = useMemo(
+  const occurrenceMetricItems = useMemo(
     () => [
       {
-        title: "Total Spend",
-        value: formatCurrency(summaryStatistics?.totalSpent || 0),
-        trend: trendAnalytics?.previousVsCurrentMonth?.percentageChange || 0,
-        trendLabel: "vs last month",
-        accentColor: "#00DAC6",
-        icon: <TrendingDownIcon />,
-      },
-      {
-        title: "Transactions",
+        id: "this-month",
+        label: "This Month",
         value:
-          summaryStatistics?.totalTransactions ||
-          summaryStatistics?.transactionCount ||
-          0,
-        trend: null,
-        accentColor: "#f97316",
+          trendAnalytics?.previousVsCurrentMonth?.currentMonthTransactions || 0,
+        icon: getFunctionalIcon("schedule", {
+          sx: { fontSize: 16, color: colors.primary_accent },
+        }),
+        accentColor: colors.primary_accent,
+        tooltip: "Transactions in the current calendar month",
       },
       {
-        title: "Avg. Expense",
+        id: "this-year",
+        label: "This Year",
+        value: summaryStatistics?.totalTransactions || 0,
+        icon: (
+          <CalendarTodayIcon
+            sx={{ fontSize: 16, color: colors.primary_accent }}
+          />
+        ),
+        accentColor: colors.primary_accent,
+        tooltip: "Total transactions in the selected range / year",
+      },
+      {
+        id: "average",
+        label: "Average",
         value: formatCurrency(summaryStatistics?.averageExpense || 0),
-        trend: null,
-        accentColor: "#8b5cf6",
+        icon: getFunctionalIcon("trend", {
+          sx: { fontSize: 16, color: "#00DAC6" },
+        }),
+        accentColor: "#00DAC6",
+        highlight: true,
+        tooltip: "Average amount per transaction",
       },
       {
-        title: "Budget Status",
-        value: `${Math.round(budgetAnalytics?.usagePercentage || budgetAnalytics?.overallBudgetUsage || 0)}%`,
-        trend: null,
-        accentColor:
-          (budgetAnalytics?.usagePercentage ||
-            budgetAnalytics?.overallBudgetUsage ||
-            0) >= 90
-            ? "#ff4d4f"
-            : (budgetAnalytics?.usagePercentage ||
-                  budgetAnalytics?.overallBudgetUsage ||
-                  0) >= 70
-              ? "#faad14"
-              : "#52c41a",
+        id: "all-time",
+        label: "All Time",
+        value: formatCurrency(summaryStatistics?.totalSpent || 0),
+        icon: getFunctionalIcon("expense", {
+          sx: { fontSize: 16, color: "#00DAC6" },
+        }),
+        accentColor: "#00DAC6",
+        highlight: true,
+        tooltip: "Total amount across all recorded transactions",
+      },
+      {
+        id: "first",
+        label: "First",
+        value: formatDate(expenseHighlights?.oldestExpense?.date) || "N/A",
+        icon: <EventIcon sx={{ fontSize: 16, color: "#f59e0b" }} />,
+        accentColor: "#f59e0b",
+        tooltip: "Date of the earliest transaction",
+      },
+      {
+        id: "last",
+        label: "Last",
+        value: formatDate(expenseHighlights?.mostRecentExpense?.date) || "N/A",
+        icon: <EventIcon sx={{ fontSize: 16, color: "#fb923c" }} />,
+        accentColor: "#fb923c",
+        tooltip: "Date of the most recent transaction",
+      },
+      {
+        id: "min",
+        label: "Min",
+        value: formatCurrency(summaryStatistics?.minExpense || 0),
+        icon: <ArrowDownwardIcon sx={{ fontSize: 16, color: "#22c55e" }} />,
+        accentColor: "#22c55e",
+        highlight: true,
+        tooltip: "Smallest single transaction amount",
+      },
+      {
+        id: "max",
+        label: "Max",
+        value: formatCurrency(summaryStatistics?.maxExpense || 0),
+        icon: <ArrowUpwardIcon sx={{ fontSize: 16, color: "#ef4444" }} />,
+        accentColor: "#ef4444",
+        highlight: true,
+        tooltip: "Largest single transaction amount",
       },
     ],
-    [summaryStatistics, budgetAnalytics, trendAnalytics, formatCurrency],
+    [
+      trendAnalytics,
+      summaryStatistics,
+      expenseHighlights,
+      formatCurrency,
+      formatDate,
+      colors.primary_accent,
+    ],
   );
 
   // Prepare chart data for Monthly Trend - fields must match MonthlyTrendChart expectations
@@ -658,7 +727,7 @@ const CategoryAnalyticsView = ({
             <Box>
               <Typography
                 sx={{
-                  fontSize: "2rem",
+                  fontSize: isMobile ? "1.15rem" : isCompact ? "1.4rem" : "2rem",
                   fontWeight: 700,
                   color: colors.primary_text,
                   lineHeight: 1.2,
@@ -671,58 +740,37 @@ const CategoryAnalyticsView = ({
         }
         onClose={handleOnClose}
         rightContent={
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+              justifyContent: "flex-end",
+              maxWidth: isMobile ? "100%" : "none",
+            }}
+          >
             {/* Date Range Preset */}
-            <FormControl size="small" sx={{ minWidth: 140 }}>
-              <Select
-                value={dateRangePreset}
-                onChange={(e) => handleDateRangeChange(e.target.value)}
-                sx={{
-                  color: colors.primary_text,
-                  backgroundColor: colors.primary_bg,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: colors.border_color,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#00DAC6",
-                  },
-                  fontSize: "0.85rem",
-                  height: 36,
-                }}
-              >
-                {DATE_RANGE_PRESETS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              fullWidth={false}
+              ariaLabel="Date range preset"
+              value={dateRangePreset}
+              onChange={(e) => handleDateRangeChange(e.target.value)}
+              sx={{ minWidth: isMobile ? 110 : 140 }}
+              options={DATE_RANGE_PRESETS}
+            />
 
             {/* Trend Type */}
-            <FormControl size="small" sx={{ minWidth: 100 }}>
-              <Select
-                value={trendType}
-                onChange={(e) => handleTrendTypeChange(e.target.value)}
-                sx={{
-                  color: colors.primary_text,
-                  backgroundColor: colors.primary_bg,
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: colors.border_color,
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "#00DAC6",
-                  },
-                  fontSize: "0.85rem",
-                  height: 36,
-                }}
-              >
-                {TREND_TYPE_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <AppSelect
+              size="small"
+              fullWidth={false}
+              ariaLabel="Trend type"
+              value={trendType}
+              onChange={(e) => handleTrendTypeChange(e.target.value)}
+              sx={{ minWidth: isMobile ? 88 : 100 }}
+              options={TREND_TYPE_OPTIONS}
+            />
 
             {/* Edit Button */}
             <Tooltip title={`Edit ${entityLabel}`}>
@@ -740,8 +788,8 @@ const CategoryAnalyticsView = ({
                   backgroundColor: "#00DAC6",
                   color: "#000",
                   "&:hover": { backgroundColor: "#00b8a0" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <EditIcon sx={{ fontSize: 18 }} />
@@ -765,8 +813,8 @@ const CategoryAnalyticsView = ({
                   backgroundColor: "#ff4d4f",
                   color: "#fff",
                   "&:hover": { backgroundColor: "#d9363e" },
-                  width: 36,
-                  height: 36,
+                  width: 44,
+                  height: 44,
                 }}
               >
                 <DeleteIcon sx={{ fontSize: 18 }} />
@@ -781,6 +829,9 @@ const CategoryAnalyticsView = ({
         <Box
           sx={{
             display: "flex",
+            flexWrap: "wrap",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
             gap: 2,
             padding: "12px 0",
             borderBottom: `1px solid ${colors.border_color}`,
@@ -830,172 +881,26 @@ const CategoryAnalyticsView = ({
         </Box>
       )}
 
-      {/* Main Content - Two Column Layout (Left Sidebar + Right Content) */}
-      <Box
-        sx={{
-          flex: 1,
-          display: "flex",
-          gap: 1.5,
-          overflow: "hidden",
-        }}
-      >
+      {/* Main Content - stacks on mobile/tablet */}
+      <Box sx={mainRowSx}>
         {/* LEFT COLUMN - Category Details, Payment Chart, Recent Transactions */}
         <Box
           sx={{
-            width: "280px",
-            minWidth: "280px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
+            ...sideColumnSx,
+            width: isCompact ? "100%" : "280px",
+            minWidth: isCompact ? 0 : "280px",
+            maxWidth: isCompact ? "100%" : "280px",
           }}
         >
-          {/* Category Details Card - Hero Style */}
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.secondary_bg} 100%)`,
-              border: `2px solid ${categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f"}`,
-              borderRadius: "12px",
-              padding: "14px 16px",
-              flexShrink: 0,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Accent stripe at top */}
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: "4px",
-                background:
-                  categoryMetadata?.type === "CREDIT"
-                    ? "linear-gradient(90deg, #52c41a, #73d13d)"
-                    : "linear-gradient(90deg, #ff4d4f, #ff7875)",
-              }}
-            />
-
-            {/* Amount - Large and Prominent */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1.5,
-                marginBottom: 1.5,
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "1.5rem",
-                  fontWeight: 800,
-                  color:
-                    categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f",
-                }}
-              >
-                {formatCurrency(summaryStatistics?.totalSpent || 0)}
-              </Typography>
-              <Chip
-                label={categoryMetadata?.type === "CREDIT" ? "CREDIT" : "DEBIT"}
-                size="small"
-                sx={{
-                  backgroundColor:
-                    categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize: "0.6rem",
-                  height: "22px",
-                  letterSpacing: "0.5px",
-                }}
-              />
-            </Box>
-
-            {/* Percentage Progress Bar */}
-            <Box sx={{ marginBottom: 1.5 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    flex: 1,
-                    height: "8px",
-                    backgroundColor: `${colors.border_color}50`,
-                    borderRadius: "4px",
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: `${Math.min(summaryStatistics?.categoryPercentageOfAllExpenses || 0, 100)}%`,
-                      height: "100%",
-                      backgroundColor:
-                        (summaryStatistics?.categoryPercentageOfAllExpenses ||
-                          0) >= 80
-                          ? "#f59e0b"
-                          : (summaryStatistics?.categoryPercentageOfAllExpenses ||
-                                0) >= 50
-                            ? "#eab308"
-                            : "#22c55e",
-                      borderRadius: "4px",
-                      transition: "width 0.3s ease",
-                    }}
-                  />
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    color: colors.primary_text,
-                    minWidth: "45px",
-                  }}
-                >
-                  {summaryStatistics?.categoryPercentageOfAllExpenses?.toFixed(
-                    0,
-                  ) || 0}
-                  %
-                </Typography>
-              </Box>
-              <Typography
-                sx={{
-                  fontSize: "0.65rem",
-                  color: colors.secondary_text,
-                  marginTop: 0.5,
-                }}
-              >
-                of all expenses
-              </Typography>
-            </Box>
-
-            {/* Comments/Description Section */}
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 0.5,
-                backgroundColor: colors.secondary_bg,
-                padding: "8px 10px",
-                borderRadius: "8px",
-                border: `1px solid ${colors.border_color}`,
-                borderLeft: `3px solid ${categoryMetadata?.type === "CREDIT" ? "#52c41a" : "#ff4d4f"}`,
-              }}
-            >
-              <EditNoteIcon sx={{ fontSize: "0.875rem", marginTop: "1px" }} />
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  color: colors.primary_text,
-                  fontWeight: 500,
-                  lineHeight: 1.4,
-                }}
-              >
-                {categoryMetadata?.categoryName || "Category"} Expenses
-              </Typography>
-            </Box>
-          </Box>
+          <AnalyticsHeroCard
+            amountLabel={formatCurrency(summaryStatistics?.totalSpent || 0)}
+            flowType={categoryMetadata?.type === "CREDIT" ? "CREDIT" : "DEBIT"}
+            sharePercent={
+              summaryStatistics?.categoryPercentageOfAllExpenses || 0
+            }
+            shareCaption="of all expenses"
+            footerLabel={`${categoryMetadata?.categoryName || entityLabel || "Item"} expenses`}
+          />
 
           {/* Payment Distribution Pie Chart */}
           <Box sx={{ flex: 1, minHeight: "200px" }}>
@@ -1110,356 +1015,22 @@ const CategoryAnalyticsView = ({
         </Box>
 
         {/* RIGHT CONTENT AREA */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
-            minWidth: 0,
-          }}
-        >
-          {/* Occurrence Statistics - Individual Cards Without Container */}
-          <Grid container spacing={1.5} sx={{ marginBottom: 1.5 }}>
-            {/* Row 1 */}
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  {getFunctionalIcon("schedule", {
-                    sx: { fontSize: 14, color: colors.primary_accent },
-                  })}
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    This Month
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: colors.primary_text,
-                  }}
-                >
-                  {trendAnalytics?.previousVsCurrentMonth
-                    ?.currentMonthTransactions || 0}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  <CalendarTodayIcon sx={{ fontSize: "0.875rem" }} />
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    This Year
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: colors.primary_text,
-                  }}
-                >
-                  {summaryStatistics?.totalTransactions || 0}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  {getFunctionalIcon("trend", {
-                    sx: { fontSize: 14, color: colors.primary_accent },
-                  })}
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Average
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: "#00DAC6",
-                  }}
-                >
-                  {formatCurrency(summaryStatistics?.averageExpense || 0)}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  {getFunctionalIcon("expense", {
-                    sx: { fontSize: 14, color: colors.primary_accent },
-                  })}
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: colors.secondary_text,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    All Time
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: "#00DAC6",
-                  }}
-                >
-                  {formatCurrency(summaryStatistics?.totalSpent || 0)}
-                </Typography>
-              </Box>
-            </Grid>
-
-            {/* Row 2 */}
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  <EventIcon sx={{ fontSize: "0.85rem", color: "#8b5cf6" }} />
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: "#8b5cf6",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    First
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    color: colors.primary_text,
-                  }}
-                >
-                  {formatDate(expenseHighlights?.oldestExpense?.date) || "N/A"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  <EventIcon sx={{ fontSize: "0.85rem", color: "#f97316" }} />
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: "#f97316",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Last
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    color: colors.primary_text,
-                  }}
-                >
-                  {formatDate(expenseHighlights?.mostRecentExpense?.date) ||
-                    "N/A"}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  <ArrowDownwardIcon
-                    sx={{ fontSize: 14, color: colors.primary_accent }}
-                  />
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: "#22c55e",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Min
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: colors.primary_text,
-                  }}
-                >
-                  {formatCurrency(summaryStatistics?.minExpense || 0)}
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={3}>
-              <Box
-                sx={{
-                  border: `1px solid ${colors.border_color}`,
-                  borderRadius: "10px",
-                  padding: "12px",
-                  backgroundColor: colors.primary_bg,
-                  height: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    marginBottom: 0.5,
-                  }}
-                >
-                  <ArrowUpwardIcon
-                    sx={{ fontSize: 14, color: colors.primary_accent }}
-                  />
-                  <Typography
-                    sx={{
-                      fontSize: "0.65rem",
-                      color: "#ef4444",
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Max
-                  </Typography>
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color: "#ef4444",
-                  }}
-                >
-                  {formatCurrency(summaryStatistics?.maxExpense || 0)}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
+        <Box sx={contentColumnSx}>
+          <AnalyticsMetricGrid
+            items={occurrenceMetricItems}
+            sx={{ flexShrink: 0 }}
+          />
 
           {/* Monthly Spending Chart - Middle Section */}
-          <Box sx={{ flex: 1, minHeight: "200px" }}>
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: "200px",
+              overflow: "visible",
+              position: "relative",
+              zIndex: 20,
+            }}
+          >
             <MonthlyTrendChart
               data={trendChartData}
               title={`${trendType.charAt(0) + trendType.slice(1).toLowerCase()} Spending Trend`}
@@ -1714,196 +1285,105 @@ const CategoryAnalyticsView = ({
                   })}
                   Overview & Patterns
                 </Typography>
-                <Grid container spacing={0.75}>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "0.5rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Active Days
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.85rem",
-                          fontWeight: 700,
-                          color: "#f97316",
-                        }}
-                      >
-                        {summaryStatistics?.activeDays || 0}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "0.5rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Cost/Day
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.85rem",
-                          fontWeight: 700,
-                          color: "#00DAC6",
-                        }}
-                      >
-                        {formatCurrency(summaryStatistics?.costPerDay || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "0.5rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Consistency
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.85rem",
-                          fontWeight: 700,
-                          color: "#ec4899",
-                        }}
-                      >
-                        {summaryStatistics?.consistency || 0} mo
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "0.5rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Trend
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.85rem",
-                          fontWeight: 700,
-                          color:
-                            (trendAnalytics?.previousVsCurrentMonth
-                              ?.percentageChange || 0) >= 0
-                              ? "#ef4444"
-                              : "#22c55e",
-                        }}
-                      >
-                        {(trendAnalytics?.previousVsCurrentMonth
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 0.875,
+                    flex: 1,
+                  }}
+                >
+                  {[
+                    {
+                      label: "Active Days",
+                      value: summaryStatistics?.activeDays || 0,
+                      color: "#f97316",
+                    },
+                    {
+                      label: "Daily Avg",
+                      value: formatCurrency(summaryStatistics?.costPerDay || 0),
+                      color: "#00DAC6",
+                    },
+                    {
+                      label: "Consistency",
+                      value: `${summaryStatistics?.consistency || 0} mo`,
+                      color: "#fb7185",
+                    },
+                    {
+                      label: "Trend",
+                      value: `${
+                        (trendAnalytics?.previousVsCurrentMonth
                           ?.percentageChange || 0) >= 0
                           ? "+"
-                          : ""}
-                        {trendAnalytics?.previousVsCurrentMonth?.percentageChange?.toFixed(
+                          : ""
+                      }${
+                        trendAnalytics?.previousVsCurrentMonth?.percentageChange?.toFixed(
                           1,
-                        ) || 0}
-                        %
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={6}>
+                        ) || 0
+                      }%`,
+                      color:
+                        (trendAnalytics?.previousVsCurrentMonth
+                          ?.percentageChange || 0) >= 0
+                          ? "#ef4444"
+                          : "#22c55e",
+                    },
+                    {
+                      label: "Usage",
+                      value: `${Math.round(budgetAnalytics?.usagePercentage || 0)}%`,
+                      color:
+                        (budgetAnalytics?.usagePercentage || 0) >= 90
+                          ? "#ef4444"
+                          : "#00DAC6",
+                    },
+                    {
+                      label: "Remaining",
+                      value: formatCurrency(budgetAnalytics?.remaining || 0),
+                      color: "#22c55e",
+                    },
+                  ].map((item) => (
                     <Box
+                      key={item.label}
                       sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
+                        px: 1,
+                        py: 1,
+                        borderRadius: "8px",
+                        border: `1px solid ${colors.border_color}`,
+                        backgroundColor:
+                          mode === "dark"
+                            ? "rgba(255,255,255,0.02)"
+                            : colors.secondary_bg,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0.35,
+                        minWidth: 0,
                       }}
                     >
                       <Typography
                         sx={{
-                          fontSize: "0.5rem",
+                          fontSize: 10,
+                          fontWeight: 600,
+                          letterSpacing: "0.06em",
                           color: colors.secondary_text,
                           textTransform: "uppercase",
                         }}
                       >
-                        Usage
+                        {item.label}
                       </Typography>
                       <Typography
                         sx={{
-                          fontSize: "0.85rem",
+                          fontSize: "0.95rem",
                           fontWeight: 700,
-                          color:
-                            (budgetAnalytics?.usagePercentage || 0) >= 90
-                              ? "#ef4444"
-                              : "#00DAC6",
+                          color: item.color,
+                          fontVariantNumeric: "tabular-nums",
+                          lineHeight: 1.2,
+                          wordBreak: "break-word",
                         }}
                       >
-                        {Math.round(budgetAnalytics?.usagePercentage || 0)}%
+                        {item.value}
                       </Typography>
                     </Box>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Box
-                      sx={{
-                        padding: "6px",
-                        backgroundColor: `${colors.secondary_bg}80`,
-                        borderRadius: "6px",
-                        textAlign: "center",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          fontSize: "0.5rem",
-                          color: colors.secondary_text,
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Remaining
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: "0.85rem",
-                          fontWeight: 700,
-                          color: "#22c55e",
-                        }}
-                      >
-                        {formatCurrency(budgetAnalytics?.remaining || 0)}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
+                  ))}
+                </Box>
               </Box>
             </Grid>
           </Grid>

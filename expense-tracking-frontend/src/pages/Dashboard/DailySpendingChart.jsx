@@ -102,7 +102,7 @@
  *    - This will fetch all types but still filter in the UI
  */
 
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
@@ -117,6 +117,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useMediaQuery } from "@mui/material";
+import SpendingDayDetailSheet from "../../components/charts/SpendingDayDetailSheet";
 import {
   getAccentFunctionalIcon,
   applyAccentToIcon,
@@ -200,12 +201,16 @@ const DailySpendingChart = ({
   // Responsive breakpoints
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
+  const [mobileDetailPoint, setMobileDetailPoint] = useState(null);
 
   const isYearView = timeframe === "this_year" || timeframe === "last_year";
   const isAllTimeView = timeframe === "all_time";
 
-  // Chart configuration
-  const chartHeight = height || (isMobile ? 220 : isTablet ? 260 : 300);
+  // Chart plot needs enough vertical room on phones (axis + line readable)
+  const chartHeight = height || (isMobile ? 300 : isTablet ? 300 : 320);
+  const plotHeight = isMobile
+    ? Math.max(Number(chartHeight) || 0, 300)
+    : chartHeight;
   const hideXAxis =
     !isYearView &&
     !isAllTimeView &&
@@ -692,12 +697,26 @@ const DailySpendingChart = ({
       );
   };
 
-  const handleChartClick = (state) => {
-    if (typeof onPointClick !== "function") return;
-    const point = state?.activePayload?.[0]?.payload;
-    if (!point) return;
-    onPointClick(point);
-  };
+  const handleChartClick = useCallback(
+    (state) => {
+      const point = state?.activePayload?.[0]?.payload;
+      if (!point) return;
+
+      // Small screens: full-screen detail sheet unless parent owns drilldown
+      if (isMobile && typeof onPointClick !== "function") {
+        setMobileDetailPoint(point);
+      }
+
+      if (typeof onPointClick === "function") {
+        onPointClick(point);
+      }
+    },
+    [isMobile, onPointClick],
+  );
+
+  const closeMobileDetail = useCallback(() => {
+    setMobileDetailPoint(null);
+  }, []);
 
   const chartData = (() => {
     if (isOverlayAllMode) {
@@ -830,7 +849,7 @@ const DailySpendingChart = ({
   const headerIcon = icon
     ? applyAccentToIcon(icon, colors.primary_accent)
     : getAccentFunctionalIcon("chart", colors.primary_accent, {
-        sx: { fontSize: 22 },
+        sx: { fontSize: isMobile ? 16 : 18 },
       });
   const timeframeSelectorOptions =
     timeframeOptions && timeframeOptions.length > 0
@@ -980,22 +999,29 @@ const DailySpendingChart = ({
         border: `1px solid ${colors.border_color}`,
       }}
     >
-      {/* Chart header */}
-      <div className="chart-header">
+      {/* Chart header — compact single row: title | dropdown + Loss/Gain */}
+      <div className="chart-header dashboard-chart-header daily-spending-header">
         <h3
+          className="daily-spending-title"
           style={{
             color: colors.primary_text,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 6,
             margin: 0,
+            minWidth: 0,
+            fontSize: isMobile ? "0.85rem" : "0.95rem",
+            fontWeight: 600,
+            lineHeight: 1.2,
           }}
         >
           {headerIcon}
-          {chartTitle}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {chartTitle}
+          </span>
         </h3>
         {!hideControls ? (
-          <div className="chart-controls">
+          <div className="chart-controls dashboard-chart-controls daily-spending-controls">
             <ChartTimeframeSelector
               value={timeframe}
               onChange={onTimeframeChange}
@@ -1020,12 +1046,26 @@ const DailySpendingChart = ({
           bordered={false}
         />
       ) : (
-        <div style={{ height: chartHeight, width: "100%", position: "relative" }}>
+        <div
+          className="dashboard-chart-plot"
+          style={{
+            height: plotHeight,
+            width: "100%",
+            minHeight: isMobile ? 300 : undefined,
+            position: "relative",
+          }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={chartData}
               key={animationKey}
               onClick={handleChartClick}
+              margin={{
+                top: 10,
+                right: isMobile ? 8 : 12,
+                left: isMobile ? -8 : 4,
+                bottom: isMobile ? 8 : 4,
+              }}
             >
             <defs>
               {!isOverlayAllMode ? (
@@ -1092,7 +1132,8 @@ const DailySpendingChart = ({
 
             <YAxis
               stroke={colors.primary_text}
-              fontSize={12}
+              fontSize={isMobile ? 11 : 12}
+              width={isMobile ? 40 : 48}
               tickLine={false}
               tickFormatter={(value) =>
                 `${currencySymbol}${Math.round(value / 1000)}K`
@@ -1103,6 +1144,7 @@ const DailySpendingChart = ({
               wrapperStyle={{
                 zIndex: 2000,
                 outline: "none",
+                display: isMobile ? "none" : undefined,
               }}
               cursor={{
                 stroke: theme.color,
@@ -1115,6 +1157,9 @@ const DailySpendingChart = ({
               animationDuration={150}
               animationEasing="ease-out"
               content={(props) => {
+                // Mobile uses full-screen SpendingDayDetailSheet on tap
+                if (isMobile) return null;
+
                 const point = props?.payload?.[0]?.payload;
 
                 const hasAnyOverlayBudgets = (() => {
@@ -1239,6 +1284,18 @@ const DailySpendingChart = ({
         </ResponsiveContainer>
         </div>
       )}
+
+      {/* Mobile: tooltip-style day detail covering the full screen */}
+      {isMobile ? (
+        <SpendingDayDetailSheet
+          open={Boolean(mobileDetailPoint)}
+          onClose={closeMobileDetail}
+          point={mobileDetailPoint}
+          selectedType={activeType}
+          theme={theme}
+          timeframe={timeframe}
+        />
+      ) : null}
     </div>
   );
 };

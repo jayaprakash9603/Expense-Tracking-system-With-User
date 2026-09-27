@@ -3,15 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem as MuiMenuItem,
   TextField,
   CircularProgress,
   Alert,
   Snackbar,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -207,50 +204,42 @@ const Reports = () => {
       <SectionCard title="Generate New Report">
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormControl fullWidth>
-              <InputLabel>Report Type</InputLabel>
-              <Select
-                value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                label="Report Type"
-              >
-                {reportTypes.map((type) => (
-                  <MuiMenuItem key={type.value} value={type.value}>
-                    {type.label}
-                  </MuiMenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth>
-              <InputLabel>Date Range</InputLabel>
-              <Select
-                value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
-                label="Date Range"
-              >
-                <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
-                <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
-                <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
-                <MuiMenuItem value="1y">Last Year</MuiMenuItem>
-                <MuiMenuItem value="all">All Time</MuiMenuItem>
-                <MuiMenuItem value="custom">Custom Range</MuiMenuItem>
-              </Select>
-            </FormControl>
+            <AppSelect
+              label="Report Type"
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              options={reportTypes.map((type) => ({
+                value: type.value,
+                label: type.label,
+                description: type.description,
+              }))}
+            />
+            <AppSelect
+              label="Date Range"
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              options={[
+                { value: "7d", label: "Last 7 Days" },
+                { value: "30d", label: "Last 30 Days" },
+                { value: "90d", label: "Last 90 Days" },
+                { value: "1y", label: "Last Year" },
+                { value: "all", label: "All Time" },
+                { value: "custom", label: "Custom Range" },
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormControl fullWidth>
-              <InputLabel>Format</InputLabel>
-              <Select
-                value={format}
-                onChange={(e) => setFormat(e.target.value)}
-                label="Format"
-              >
-                <MuiMenuItem value="pdf">PDF</MuiMenuItem>
-                <MuiMenuItem value="excel">Excel</MuiMenuItem>
-                <MuiMenuItem value="csv">CSV</MuiMenuItem>
-              </Select>
-            </FormControl>
+            <AppSelect
+              label="Format"
+              value={format}
+              onChange={(e) => setFormat(e.target.value)}
+              options={[
+                { value: "pdf", label: "PDF" },
+                { value: "excel", label: "Excel" },
+                { value: "csv", label: "CSV" },
+              ]}
+            />
             <TextField
               label="Report Name (Optional)"
               variant="outlined"

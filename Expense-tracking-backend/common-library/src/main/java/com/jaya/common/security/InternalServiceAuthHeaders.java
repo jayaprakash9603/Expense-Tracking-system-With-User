@@ -2,9 +2,7 @@ package com.jaya.common.security;
 
 import com.jaya.common.config.InternalServiceAuthProperties;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 
-@Component
 public class InternalServiceAuthHeaders {
 
     private final InternalServiceAuthProperties properties;

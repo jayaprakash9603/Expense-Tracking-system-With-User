@@ -29,7 +29,7 @@ import {
   PaymentMethodCalendarView,
   PaymentMethodAnalyticsView,
 } from "../features/payment-methods";
-import { Bill, BillReport, CreateBill, EditBill, BillCalendarView } from "../features/bills";
+import { Bill, CreateBill, EditBill, BillCalendarView } from "../features/bills";
 import { UploadBills, Upload } from "../features/upload";
 import {
   Cashflow,
@@ -47,7 +47,12 @@ import {
   CategoryAnalyticsView,
   CategoryCalendarView,
 } from "../features/categories";
-import { TransactionsContent, CreditDueContent, Reports } from "../features/reports";
+import {
+  TransactionsContent,
+  CreditDueContent,
+  Reports,
+  BillReport,
+} from "../features/reports";
 import { Utilities } from "../features/utilities";
 import {
   Budget,

@@ -48,11 +48,30 @@ mvn exec:java -pl Automation-Framework/automation-api \
   -Dexec.mainClass="com.jaya.automation.api.contract.CatalogValidationRunner"
 ```
 
+## Naming Conventions (Critical)
+
+Runtime lookup uses **filename stem only** — folder paths are organizational.
+
+| Artifact | File pattern | Feature reference | Example |
+|----------|--------------|-------------------|---------|
+| Schema | `<service>-<name>.schema.json` | `match the "expense-item" schema` | `expense-item.schema.json` |
+| Payload | `<service>-<name>-valid.json` | `uses the "expense-create-valid" payload` | `expense-create-valid.json` |
+| Rule | `<operation>_BASE.yml` | `pass validation rules for "expense-service" "create_expense"` | `create_expense_BASE.yml` |
+| Endpoint | global `key` in YAML | `request to "expenses.create"` | unique across all services |
+
+**Rules:**
+- Every schema and payload basename must be **globally unique** across all services.
+- Prefer `<service>-` prefix on all new schema/payload files (e.g. `chat-message-item`, not `message-item`).
+- Endpoint `key` values must be unique; duplicates fail catalog load at build time.
+- All services share one `API_BASE_URL` (monolith/gateway); separation is by path only.
+
 ## Adding a New Service
 
 1. Create `config/endpoints/<new-service>/` with domain YAML files.
-2. Create `schemas/<new-service>/<domain>/` and add response schemas.
-3. Create `payloads/<new-service>/<domain>/` if POST/PUT payloads are needed.
-4. Create `features/api/<new-service>/<domain>/` and write feature files.
+2. Create `schemas/<new-service>/<domain>/` with globally unique basenames.
+3. Create `payloads/<new-service>/<domain>/` with `-valid`/`-invalid` suffixes.
+4. Add `rules/<new-service>/base/<operation>_BASE.yml` for smoke scenarios.
+5. Create `features/api/<new-service>/<domain>/` and write feature files.
+6. Add `coverage/<new-service>-coverage.md` using the H/V/A/N/S legend.
 
-See `docs/FEATURE_AUTHORING_GUIDE.md` for the complete 5-step workflow.
+See `docs/FEATURE_AUTHORING_GUIDE.md` for the complete workflow.

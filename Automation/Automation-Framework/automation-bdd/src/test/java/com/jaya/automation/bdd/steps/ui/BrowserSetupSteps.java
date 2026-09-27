@@ -10,7 +10,6 @@ import com.jaya.automation.core.logging.LoggerFactory;
 import com.jaya.automation.core.ui.UiEngine;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
-import org.springframework.stereotype.Component;
 
 /**
  * Explicit browser lifecycle step definitions following the company
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
  *   <li>Explicit close/cleanup steps for multi-browser scenarios</li>
  * </ul>
  */
-@Component
 public class BrowserSetupSteps extends StepDataSupport {
     private static final AutomationLogger LOG = LoggerFactory.getLogger(BrowserSetupSteps.class);
 

@@ -3,15 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem as MuiMenuItem,
   Button,
   CircularProgress,
   Pagination,
   Alert,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { AdminPanelContainer, SectionCard } from "../components";
@@ -232,36 +229,29 @@ const AuditLogs = () => {
               startAdornment: <SearchIcon className="mr-2" />,
             }}
           />
-          <FormControl size="small" fullWidth>
-            <InputLabel>Action Type</InputLabel>
-            <Select
-              value={filterType}
-              onChange={handleFilterTypeChange}
-              label="Action Type"
-            >
-              <MuiMenuItem value="all">All Types</MuiMenuItem>
-              <MuiMenuItem value="USER_MANAGEMENT">User Management</MuiMenuItem>
-              <MuiMenuItem value="ROLE_MANAGEMENT">Role Management</MuiMenuItem>
-              <MuiMenuItem value="CREATE">Create</MuiMenuItem>
-              <MuiMenuItem value="UPDATE">Update</MuiMenuItem>
-              <MuiMenuItem value="DELETE">Delete</MuiMenuItem>
-              <MuiMenuItem value="LOGIN">Login</MuiMenuItem>
-              <MuiMenuItem value="LOGOUT">Logout</MuiMenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" fullWidth>
-            <InputLabel>Time Range</InputLabel>
-            <Select
-              value={filterDate}
-              onChange={handleFilterDateChange}
-              label="Time Range"
-            >
-              <MuiMenuItem value="24h">Last 24 Hours</MuiMenuItem>
-              <MuiMenuItem value="7d">Last 7 Days</MuiMenuItem>
-              <MuiMenuItem value="30d">Last 30 Days</MuiMenuItem>
-              <MuiMenuItem value="90d">Last 90 Days</MuiMenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            size="small"
+            label="Action Type"
+            value={filterType}
+            onChange={handleFilterTypeChange}
+            options={[
+              { value: "all", label: "All Types" },
+              { value: "USER_MANAGEMENT", label: "User Management" },
+              { value: "ROLE_MANAGEMENT", label: "Role Management" },
+              { value: "CREATE", label: "Create" },
+              { value: "UPDATE", label: "Update" },
+              { value: "DELETE", label: "Delete" },
+              { value: "LOGIN", label: "Login" },
+              { value: "LOGOUT", label: "Logout" },
+            ]}
+          />
+          <AppSelect
+            size="small"
+            label="Time Range"
+            value={filterDate}
+            onChange={handleFilterDateChange}
+            options={timeframeOptions}
+          />
         </div>
       </SectionCard>
 

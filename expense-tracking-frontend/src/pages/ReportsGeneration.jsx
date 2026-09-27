@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ExpensesEmail from "./ExpensesEmail";
+import { AppSelect } from "../components/ui";
 
 // import ExpenseSummaryEmailSender from "./ExpenseSummaryEmailSender";
 import "../Styles/ReportsGeneration.css";
@@ -12,8 +13,8 @@ const ReportsGeneration = () => {
   const [selectedReport, setSelectedReport] = useState(null);
   const [Url, setUrl] = useState(null);
 
-  const handleDropdownChange = (event) => {
-    setSelectedReport(event.target.value);
+  const handleDropdownChange = (value) => {
+    setSelectedReport(value);
     setUrl(null);
   };
 
@@ -21,13 +22,20 @@ const ReportsGeneration = () => {
     <div className="main-container">
       <div>
         <div className="select-div">
-          <select onChange={handleDropdownChange} className="select-dropdown">
-            <option value="select">Select Report</option>
-
-            <option value="expenseReport">Expense Report</option>
-            <option value="searchExpenses">Search Expenses</option>
-            <option value="searchAudits">Search Audits</option>
-          </select>
+          <AppSelect
+            className="select-dropdown"
+            value={selectedReport || "select"}
+            onValueChange={handleDropdownChange}
+            options={[
+              { value: "select", label: "Select Report" },
+              { value: "expenseReport", label: "Expense Report" },
+              { value: "searchExpenses", label: "Search Expenses" },
+              { value: "searchAudits", label: "Search Audits" },
+            ]}
+            ariaLabel="Select report"
+            size="small"
+            displayEmpty={false}
+          />
         </div>
         <div className="component-div">
           {selectedReport === "select" && <></>}

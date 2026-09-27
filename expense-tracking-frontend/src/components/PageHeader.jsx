@@ -14,22 +14,42 @@ const PageHeader = ({
 
   return (
     <>
-      <div className={containerClassName}>
-        <p style={{ color: colors.primary_text }} className={titleClassName}>
-          {title}
-        </p>
+      <div className={containerClassName} style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: "1 1 auto", overflow: "hidden" }}>
+          {typeof title === "string" ? (
+            <p
+              style={{
+                color: colors.primary_text,
+                margin: 0,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+              className={titleClassName}
+            >
+              {title}
+            </p>
+          ) : (
+            <div className={titleClassName} style={{ color: colors.primary_text }}>
+              {title}
+            </div>
+          )}
+        </div>
 
-        <div className="flex items-center gap-3">
+        <div
+          className="flex items-center gap-2 sm:gap-3"
+          style={{ flexShrink: 0 }}
+        >
           {rightContent}
 
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="flex items-center justify-center w-9 h-9 text-[24px] font-bold rounded transition-colors"
-              style={{ 
-                backgroundColor: colors.button_inactive, 
+              className="flex items-center justify-center w-11 h-11 text-[24px] font-bold rounded transition-colors"
+              style={{
+                backgroundColor: colors.button_inactive,
                 color: colors.primary_accent,
- border: `1px solid ${colors.border_color}`,
+                border: `1px solid ${colors.border_color}`,
               }}
               aria-label="Close"
             >

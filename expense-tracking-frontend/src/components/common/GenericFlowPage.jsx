@@ -293,7 +293,10 @@ const GenericFlowPage = ({
           minWidth: 0,
           maxWidth: "100%",
           boxSizing: "border-box",
-          overflow: "hidden",
+          // Allow chart tooltips to paint above cards below (overflow:hidden clips them)
+          overflow: "visible",
+          position: "relative",
+          zIndex: 20,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

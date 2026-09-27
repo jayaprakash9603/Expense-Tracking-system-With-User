@@ -1,0 +1,9 @@
+{
+  "shortcuts": [
+    {
+      "actionId": "nav.dashboard",
+      "customKeys": "ctrl+d",
+      "enabled": true
+    }
+  ]
+}

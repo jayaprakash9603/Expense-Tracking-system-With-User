@@ -3,15 +3,8 @@ import PropTypes from "prop-types";
 import { useTheme } from "../hooks/useTheme";
 import useUserSettings from "../hooks/useUserSettings";
 import { useTranslation } from "../hooks/useTranslation";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
 import { useMediaQuery } from "@mui/material";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import { getAccentFunctionalIcon } from "../utils/ui/iconMapping";
 import EmptyStateCard from "./EmptyStateCard";
 
@@ -23,8 +16,7 @@ const formatNumber0 = (v) =>
 
 /**
  * SummaryOverview
- * Modern, UI/UX optimized application metrics card with enhanced visual design
- * Now uses only dynamic data from backend - no fallback static data
+ * Application metrics card — responsive: full-width individual cards on small screens.
  */
 const SummaryOverview = ({ summary, loading = false }) => {
   const { colors } = useTheme();
@@ -33,34 +25,36 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const currencySymbol = settings.getCurrency().symbol;
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
+  const preferReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const containerStyle = {
     backgroundColor: colors.secondary_bg,
     border: `1px solid ${colors.border_color}`,
-    borderRadius: "16px",
+    borderRadius: isMobile ? "12px" : "16px",
     overflow: "hidden",
     boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+    width: "100%",
+    boxSizing: "border-box",
   };
 
   const showEmpty = !summary && !loading;
 
-  // Return null if no data and not loading
   if (showEmpty) {
     return (
       <div className="chart-container summary-overview" style={containerStyle}>
         <div
-          className="chart-header"
+          className="chart-header summary-overview-header"
           style={{
             background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
-            padding: "14px 24px",
+            padding: isMobile ? "12px 14px" : "14px 24px",
             borderBottom: `1px solid ${colors.border_color}`,
           }}
         >
-          <h3 style={{ color: colors.primary_text, margin: 0 }}>
+          <h3 style={{ color: colors.primary_text, margin: 0, fontSize: isMobile ? 15 : 18 }}>
             {t("dashboard.overview.title")}
           </h3>
         </div>
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: isMobile ? 14 : 20 }}>
           <EmptyStateCard
             icon="search"
             title={t("dashboard.overview.title")}
@@ -96,31 +90,26 @@ const SummaryOverview = ({ summary, loading = false }) => {
       iconKey: "spending",
       title: t("dashboard.overview.totalExpenses"),
       value: `${currencySymbol}${formatNumber0(s.totalExpenses)}`,
-      gradient: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     },
     {
       iconKey: "bank",
       title: t("dashboard.overview.creditDue"),
       value: `${currencySymbol}${formatNumber0(Math.abs(s.creditDue))}`,
-      gradient: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
     },
     {
       iconKey: "budget",
       title: t("dashboard.overview.activeBudgets"),
       value: s.budgetsActive,
-      gradient: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
     },
     {
       iconKey: "friends",
       title: t("dashboard.overview.friends"),
       value: s.friendsCount,
-      gradient: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
     },
     {
       iconKey: "groups",
       title: t("dashboard.overview.groups"),
       value: s.groupsCount,
-      gradient: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
     },
   ];
 
@@ -130,95 +119,104 @@ const SummaryOverview = ({ summary, loading = false }) => {
       title: t("dashboard.overview.avgDailySpend"),
       value: `${currencySymbol}${formatNumber0(s.averageDaily)}`,
       subtitle: t("dashboard.overview.last30Days"),
-      color: "#667eea",
     },
     {
       iconKey: "savings",
       title: t("dashboard.overview.savingsRate"),
       value: `${formatPercent1(s.savingsRate)}%`,
       subtitle: t("dashboard.overview.ofIncome"),
-      color: "#43e97b",
     },
     {
       iconKey: "calendar",
       title: t("dashboard.overview.upcomingBills"),
       value: `${currencySymbol}${formatNumber0(s.upcomingBills)}`,
       subtitle: t("dashboard.overview.dueThisPeriod"),
-      color: "#f5576c",
     },
   ];
 
+  const sectionPad = isMobile ? "12px" : "20px 24px 16px";
+  const sectionPadBottom = isMobile ? "0 12px 12px" : "0 24px 20px";
+  const cardRadius = isMobile ? 12 : 12;
+
   return (
     <div
-      className="chart-container summary-overview"
-      style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
-        borderRadius: "16px",
-        overflow: "hidden",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-      }}
+      className={`chart-container summary-overview${isMobile ? " is-mobile" : ""}${
+        isTablet ? " is-tablet" : ""
+      }`}
+      style={containerStyle}
     >
-      {/* Header Section */}
+      {/* Header */}
       <div
-        className="chart-header"
+        className="chart-header dashboard-chart-header summary-overview-header"
         style={{
           background: `linear-gradient(135deg, ${colors.primary_accent}15 0%, ${colors.primary_accent}05 100%)`,
-          padding: "14px 24px",
+          padding: isMobile ? "12px 14px" : "14px 24px",
           borderBottom: `1px solid ${colors.border_color}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          gap: 8,
+          flexWrap: "nowrap",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div
-            style={{
-              fontSize: "24px",
-              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-            }}
-          >
-          {getAccentFunctionalIcon("search", colors.primary_accent, { sx: { fontSize: 24 } })}
-          </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            minWidth: 0,
+            flex: "1 1 auto",
+          }}
+        >
+          {getAccentFunctionalIcon("search", colors.primary_accent, {
+            sx: { fontSize: isMobile ? 20 : 24, flexShrink: 0 },
+          })}
           <h3
             style={{
               color: colors.primary_text,
               margin: 0,
-              fontSize: "18px",
-              fontWeight: "600",
-              letterSpacing: "-0.5px",
+              fontSize: isMobile ? "0.95rem" : "1.125rem",
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
             {t("dashboard.overview.title")}
           </h3>
         </div>
         <div
+          className="summary-live-badge"
           style={{
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
-            gap: "6px",
-            padding: "6px 12px",
-            borderRadius: "20px",
-            background: `linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)`,
-            boxShadow: "0 2px 8px rgba(67, 233, 123, 0.3)",
+            gap: 6,
+            padding: isMobile ? "6px 10px" : "6px 12px",
+            borderRadius: 20,
+            background: `linear-gradient(135deg, ${colors.primary_accent} 0%, #0d9488 100%)`,
+            boxShadow: `0 2px 8px ${colors.primary_accent}40`,
+            flexShrink: 0,
+            minHeight: 32,
           }}
         >
           <span
             style={{
               display: "inline-block",
-              width: "6px",
-              height: "6px",
+              width: 6,
+              height: 6,
               borderRadius: "50%",
               backgroundColor: "#ffffff",
-              animation: "pulse 2s infinite",
+              animation: preferReducedMotion ? "none" : "summaryPulse 2s infinite",
             }}
           />
           <span
             style={{
               color: "#ffffff",
-              fontSize: "12px",
-              fontWeight: "600",
+              fontSize: isMobile ? 11 : 12,
+              fontWeight: 600,
               letterSpacing: "0.3px",
+              whiteSpace: "nowrap",
             }}
           >
             {t("dashboard.overview.liveSummary")}
@@ -226,142 +224,175 @@ const SummaryOverview = ({ summary, loading = false }) => {
         </div>
       </div>
 
-      {/* Quick Metrics Grid */}
-      <div style={{ padding: isMobile ? "16px" : "20px 24px 16px" }}>
+      {/* Metric cards — full-width stack on mobile */}
+      <div className="summary-metrics-section" style={{ padding: sectionPad }}>
         <div
+          className="summary-metrics-grid"
           style={{
             display: "grid",
+            width: "100%",
             gridTemplateColumns: isMobile
-              ? "repeat(2, 1fr)"
+              ? "1fr"
               : isTablet
-              ? "repeat(3, 1fr)"
-              : "repeat(5, 1fr)",
-            gap: isMobile ? "8px" : "12px",
+                ? "repeat(3, minmax(0, 1fr))"
+                : "repeat(5, minmax(0, 1fr))",
+            gap: isMobile ? 10 : 12,
           }}
         >
           {metricsData.map((metric, i) => (
             <div
               key={i}
+              className="summary-metric-card"
               style={{
                 background: colors.tertiary_bg,
-                borderRadius: isMobile ? "10px" : "12px",
-                padding: isMobile ? "12px 10px" : "16px 12px",
+                borderRadius: cardRadius,
+                padding: isMobile ? "14px 14px" : "16px 12px",
                 border: `1px solid ${colors.border_color}`,
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                cursor: "pointer",
+                transition: preferReducedMotion
+                  ? "none"
+                  : "border-color 0.2s ease, box-shadow 0.2s ease",
                 position: "relative",
                 overflow: "hidden",
+                minWidth: 0,
+                display: "flex",
+                flexDirection: isMobile ? "row" : "column",
+                alignItems: isMobile ? "center" : "stretch",
+                gap: isMobile ? 12 : 0,
               }}
             >
               <div
+                aria-hidden
                 style={{
                   position: "absolute",
                   top: 0,
                   right: 0,
-                  width: isMobile ? "40px" : "60px",
-                  height: isMobile ? "40px" : "60px",
-                  background: metric.gradient,
-                  opacity: 0.08,
+                  width: isMobile ? 48 : 60,
+                  height: isMobile ? 48 : 60,
+                  background: colors.primary_accent,
+                  opacity: 0.1,
                   borderRadius: "50%",
                   transform: "translate(30%, -30%)",
+                  pointerEvents: "none",
                 }}
               />
               <div
                 style={{
-                  fontSize: isMobile ? "20px" : "24px",
-                  marginBottom: isMobile ? "6px" : "8px",
-                  filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                  width: isMobile ? 40 : "auto",
+                  height: isMobile ? 40 : "auto",
+                  borderRadius: isMobile ? 10 : 0,
+                  background: isMobile
+                    ? `${colors.primary_accent}18`
+                    : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: isMobile ? 0 : 8,
+                  flexShrink: 0,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
-                {getAccentFunctionalIcon(metric.iconKey, colors.primary_accent, { sx: { fontSize: isMobile ? 20 : 24 } })}
+                {getAccentFunctionalIcon(metric.iconKey, colors.primary_accent, {
+                  sx: { fontSize: isMobile ? 22 : 24 },
+                })}
               </div>
-              <div
-                style={{
-                  fontSize: isMobile ? "10px" : "11px",
-                  color: colors.secondary_text,
-                  marginBottom: isMobile ? "2px" : "4px",
-                  fontWeight: "500",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  lineHeight: 1.2,
-                }}
-              >
-                {metric.title}
-              </div>
-              <div
-                style={{
-                  fontSize: isMobile ? "14px" : "18px",
-                  color: colors.primary_text,
-                  fontWeight: "700",
-                  letterSpacing: "-0.5px",
-                }}
-              >
-                {metric.value}
+              <div style={{ minWidth: 0, flex: 1, position: "relative", zIndex: 1 }}>
+                <div
+                  style={{
+                    fontSize: isMobile ? 11 : 11,
+                    color: colors.secondary_text,
+                    marginBottom: 2,
+                    fontWeight: 500,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.4px",
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {metric.title}
+                </div>
+                <div
+                  style={{
+                    fontSize: isMobile ? "1.25rem" : "1.125rem",
+                    color: colors.primary_text,
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    fontVariantNumeric: "tabular-nums",
+                    wordBreak: "break-word",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {metric.value}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ padding: isMobile ? "0 16px 16px" : "0 24px 20px" }}>
+      {/* KPI cards — always stacked on mobile */}
+      <div className="summary-kpi-section" style={{ padding: sectionPadBottom }}>
         <div
+          className="summary-kpi-grid"
           style={{
             display: "grid",
+            width: "100%",
             gridTemplateColumns: isMobile
               ? "1fr"
               : isTablet
-              ? "repeat(2, 1fr)"
-              : "repeat(3, 1fr)",
-            gap: isMobile ? "8px" : "12px",
+                ? "repeat(2, minmax(0, 1fr))"
+                : "repeat(3, minmax(0, 1fr))",
+            gap: isMobile ? 10 : 12,
           }}
         >
           {kpiData.map((kpi, i) => (
             <div
               key={i}
+              className="summary-kpi-card"
               style={{
                 background: colors.tertiary_bg,
-                borderRadius: "12px",
-                padding: "16px",
+                borderRadius: cardRadius,
+                padding: isMobile ? "14px 16px" : "16px",
                 border: `1px solid ${colors.border_color}`,
-                transition: "all 0.3s ease",
+                transition: preferReducedMotion
+                  ? "none"
+                  : "border-color 0.2s ease, box-shadow 0.2s ease",
                 position: "relative",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = kpi.color;
-                e.currentTarget.style.boxShadow = `0 4px 16px ${kpi.color}20`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = colors.border_color;
-                e.currentTarget.style.boxShadow = "none";
+                minWidth: 0,
               }}
             >
               <div
+                aria-hidden
                 style={{
                   position: "absolute",
-                  top: "-10px",
-                  right: "-10px",
-                  fontSize: "48px",
-                  opacity: 0.1,
+                  top: -8,
+                  right: -4,
+                  opacity: 0.08,
+                  pointerEvents: "none",
                 }}
               >
-                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, { sx: { fontSize: 48, opacity: 0.1 } })}
+                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, {
+                  sx: { fontSize: isMobile ? 56 : 48 },
+                })}
               </div>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
-                  marginBottom: "8px",
+                  gap: 8,
+                  marginBottom: isMobile ? 10 : 8,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
-                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, { sx: { fontSize: 20 } })}
+                {getAccentFunctionalIcon(kpi.iconKey, colors.primary_accent, {
+                  sx: { fontSize: isMobile ? 22 : 20 },
+                })}
                 <div
                   style={{
-                    fontSize: "12px",
+                    fontSize: isMobile ? 13 : 12,
                     color: colors.secondary_text,
-                    fontWeight: "500",
+                    fontWeight: 600,
                   }}
                 >
                   {kpi.title}
@@ -369,20 +400,27 @@ const SummaryOverview = ({ summary, loading = false }) => {
               </div>
               <div
                 style={{
-                  fontSize: "24px",
+                  fontSize: isMobile ? "1.75rem" : "1.5rem",
                   color: colors.primary_text,
-                  fontWeight: "700",
-                  marginBottom: "4px",
-                  letterSpacing: "-0.5px",
+                  fontWeight: 700,
+                  marginBottom: 4,
+                  letterSpacing: "-0.03em",
+                  fontVariantNumeric: "tabular-nums",
+                  wordBreak: "break-word",
+                  lineHeight: 1.15,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 {kpi.value}
               </div>
               <div
                 style={{
-                  fontSize: "11px",
+                  fontSize: isMobile ? 12 : 11,
                   color: colors.secondary_text,
-                  opacity: 0.8,
+                  opacity: 0.85,
+                  position: "relative",
+                  zIndex: 1,
                 }}
               >
                 {kpi.subtitle}
@@ -392,81 +430,100 @@ const SummaryOverview = ({ summary, loading = false }) => {
         </div>
       </div>
 
-      {/* Top Expenses Section */}
-      <div style={{ padding: "0 24px 24px" }}>
+      {/* Top Expenses — individual rows */}
+      <div
+        className="summary-top-expenses-section"
+        style={{ padding: isMobile ? "0 12px 12px" : "0 24px 24px" }}
+      >
         <div
+          className="summary-top-expenses"
           style={{
             background: colors.tertiary_bg,
-            borderRadius: "12px",
+            borderRadius: cardRadius,
             border: `1px solid ${colors.border_color}`,
             overflow: "hidden",
           }}
         >
           <div
             style={{
-              padding: "16px",
+              padding: isMobile ? "12px 14px" : "16px",
               borderBottom: `1px solid ${colors.border_color}`,
               background: `linear-gradient(135deg, ${colors.primary_accent}08 0%, transparent 100%)`,
             }}
           >
             <div
               style={{
-                fontSize: "14px",
+                fontSize: isMobile ? 13 : 14,
                 color: colors.primary_text,
-                fontWeight: "600",
+                fontWeight: 600,
                 display: "flex",
                 alignItems: "center",
-                gap: "8px",
+                gap: 8,
               }}
             >
-              <span>🔝</span>
+              <TrendingUpIcon
+                sx={{ fontSize: isMobile ? 18 : 20, color: colors.primary_accent }}
+              />
               {t("dashboard.overview.topExpenses")}
             </div>
           </div>
           {s.topExpenses.length > 0 ? (
             <div
+              className="summary-top-expenses-list"
               style={{
-                padding: "8px",
+                padding: isMobile ? 10 : 12,
                 display: "grid",
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
-                gap: "8px",
+                // Mobile: single column. Tablet/desktop: 2-up to fill wide overview.
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "repeat(2, minmax(0, 1fr))",
+                gap: isMobile ? 8 : 10,
+                width: "100%",
+                boxSizing: "border-box",
               }}
             >
               {s.topExpenses.map((e, i) => (
                 <div
                   key={i}
+                  className="summary-top-expense-item"
                   style={{
-                    padding: "12px",
-                    borderRadius: "8px",
+                    padding: isMobile ? "12px 12px" : "12px 14px",
+                    borderRadius: 10,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    transition: "all 0.2s ease",
-                    cursor: "pointer",
-                    background: "transparent",
+                    gap: 10,
+                    minHeight: 52,
+                    background: colors.secondary_bg || "transparent",
                     border: `1px solid ${colors.border_color}`,
+                    boxSizing: "border-box",
+                    width: "100%",
+                    minWidth: 0,
+                    transition: preferReducedMotion
+                      ? "none"
+                      : "border-color 180ms ease, background-color 180ms ease",
                   }}
                 >
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "10px",
+                      gap: 10,
                       flex: 1,
                       minWidth: 0,
                     }}
                   >
                     <div
                       style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "8px",
-                        background: `linear-gradient(135deg, ${colors.primary_accent}20 0%, ${colors.primary_accent}10 100%)`,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background: `${colors.primary_accent}20`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "16px",
-                        fontWeight: "700",
+                        fontSize: 14,
+                        fontWeight: 700,
                         color: colors.primary_accent,
                         flexShrink: 0,
                       }}
@@ -476,10 +533,10 @@ const SummaryOverview = ({ summary, loading = false }) => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div
                         style={{
-                          fontSize: "13px",
+                          fontSize: isMobile ? 14 : 13,
                           color: colors.primary_text,
-                          fontWeight: "600",
-                          marginBottom: "2px",
+                          fontWeight: 600,
+                          marginBottom: 2,
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -490,7 +547,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                       </div>
                       <div
                         style={{
-                          fontSize: "10px",
+                          fontSize: 11,
                           color: colors.secondary_text,
                         }}
                       >
@@ -503,11 +560,12 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   </div>
                   <div
                     style={{
-                      fontSize: "14px",
+                      fontSize: isMobile ? 15 : 14,
                       color: colors.primary_text,
-                      fontWeight: "700",
+                      fontWeight: 700,
                       whiteSpace: "nowrap",
-                      marginLeft: "8px",
+                      fontVariantNumeric: "tabular-nums",
+                      flexShrink: 0,
                     }}
                   >
                     {currencySymbol}
@@ -519,13 +577,15 @@ const SummaryOverview = ({ summary, loading = false }) => {
           ) : (
             <div
               style={{
-                padding: "32px",
+                padding: isMobile ? 24 : 32,
                 textAlign: "center",
                 color: colors.secondary_text,
               }}
             >
-              {getAccentFunctionalIcon("chart", colors.primary_accent, { sx: { fontSize: 32, mb: 1 } })}
-              <div style={{ fontSize: "14px", fontWeight: "500" }}>
+              {getAccentFunctionalIcon("chart", colors.primary_accent, {
+                sx: { fontSize: 32, mb: 1 },
+              })}
+              <div style={{ fontSize: 14, fontWeight: 500 }}>
                 {t("dashboard.overview.noExpensesData")}
               </div>
             </div>
@@ -535,13 +595,19 @@ const SummaryOverview = ({ summary, loading = false }) => {
 
       <style>
         {`
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
+          @keyframes summaryPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          .summary-overview.is-mobile {
+            padding: 0 !important;
+          }
+          .summary-overview.is-mobile .summary-metric-card,
+          .summary-overview.is-mobile .summary-kpi-card,
+          .summary-overview.is-mobile .summary-top-expense-item {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
           }
         `}
       </style>

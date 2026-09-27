@@ -1,5 +1,6 @@
 package com.jaya.automation.core.config;
 
+import com.jaya.automation.core.util.AutomationPaths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -78,7 +79,7 @@ public final class ConfigLoader {
     }
 
     private ArtifactSettings buildArtifactSettings(String runId) {
-        String artifactRoot = readValue("ARTIFACTS_ROOT", "target/artifacts");
+        String artifactRoot = readValue("ARTIFACTS_ROOT", AutomationPaths.DEFAULT_ARTIFACTS_ROOT);
         boolean screenshotAlways = readBoolean("CAPTURE_SCREENSHOT_ALWAYS", false);
         return new ArtifactSettings(artifactRoot, runId, screenshotAlways, true);
     }

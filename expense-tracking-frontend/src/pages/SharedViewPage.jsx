@@ -24,10 +24,8 @@ import {
   Badge,
   useMediaQuery,
   Skeleton,
-  FormControl,
-  Select,
-  MenuItem,
 } from "@mui/material";
+import { AppSelect } from "../components/ui";
 import {
   AccessTime as TimeIcon,
   Visibility as ViewIcon,
@@ -1521,39 +1519,29 @@ const SharedViewPage = () => {
 
         {/* Right: Sort Filter */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              displayEmpty
-              sx={{
-                backgroundColor: colors.card_bg,
-                color: colors.primary_text,
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.border,
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.accent,
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.accent,
-                },
-                "& .MuiSvgIcon-root": { color: colors.primary_text },
-              }}
-              startAdornment={
-                <InputAdornment position="start">
-                  <SortIcon sx={{ color: colors.secondary_text, mr: 0.5 }} />
-                </InputAdornment>
-              }
-            >
-              <MenuItem value="default">Default Order</MenuItem>
-              <MenuItem value="name">Sort by Name</MenuItem>
-              <MenuItem value="amount-high">Amount: High to Low</MenuItem>
-              <MenuItem value="amount-low">Amount: Low to High</MenuItem>
-              <MenuItem value="date-new">Date: Newest First</MenuItem>
-              <MenuItem value="date-old">Date: Oldest First</MenuItem>
-            </Select>
-          </FormControl>
+          <AppSelect
+            value={sortBy}
+            onValueChange={setSortBy}
+            options={[
+              { value: "default", label: "Default Order" },
+              { value: "name", label: "Sort by Name" },
+              { value: "amount-high", label: "Amount: High to Low" },
+              { value: "amount-low", label: "Amount: Low to High" },
+              { value: "date-new", label: "Date: Newest First" },
+              { value: "date-old", label: "Date: Oldest First" },
+            ]}
+            ariaLabel="Sort shared items"
+            size="small"
+            fullWidth={false}
+            displayEmpty={false}
+            showSelectedCheck={false}
+            startAdornment={
+              <InputAdornment position="start">
+                <SortIcon sx={{ color: colors.secondary_text, mr: 0.5 }} />
+              </InputAdornment>
+            }
+            sx={{ minWidth: 180 }}
+          />
         </Box>
       </Box>
 

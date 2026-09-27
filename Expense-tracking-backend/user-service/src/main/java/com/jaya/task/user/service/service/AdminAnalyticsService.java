@@ -216,9 +216,12 @@ public class AdminAnalyticsService {
         LocalDateTime lastMonthStart = monthStart.minusMonths(1);
         long lastMonthUsers = userRepository.countByCreatedAtBetween(lastMonthStart, monthStart);
 
-        double growth = lastMonthUsers > 0
-                ? ((double) (newThisMonth - lastMonthUsers) / lastMonthUsers) * 100
-                : (newThisMonth > 0 ? 100 : 0);
+        double growth;
+        if (lastMonthUsers > 0) {
+            growth = ((double) (newThisMonth - lastMonthUsers) / lastMonthUsers) * 100;
+        } else {
+            growth = newThisMonth > 0 ? 100 : 0;
+        }
 
         
         long activeUsers = userRepository.countByUpdatedAtAfter(weekStart);

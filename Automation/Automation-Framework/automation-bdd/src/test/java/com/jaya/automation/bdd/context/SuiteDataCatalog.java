@@ -69,6 +69,8 @@ public final class SuiteDataCatalog {
     private void injectCoreConfigValues(Map<String, String> target, AutomationConfig automationConfig) {
         target.putIfAbsent("auth.username", automationConfig.testUsername());
         target.putIfAbsent("auth.password", automationConfig.testPassword());
+        target.putIfAbsent("auth.signupPassword", readSignupPassword());
+        normalizeSuiteDataAliases(target);
         String apiBaseUrl = automationConfig.apiBaseUrl();
         target.putIfAbsent("api.user.baseUrl", apiBaseUrl);
         target.putIfAbsent("api.expense.baseUrl", apiBaseUrl);
@@ -85,5 +87,27 @@ public final class SuiteDataCatalog {
         target.putIfAbsent("api.story.baseUrl", apiBaseUrl);
         target.putIfAbsent("api.analytics.baseUrl", apiBaseUrl);
         target.putIfAbsent("api.audit.baseUrl", apiBaseUrl);
+    }
+
+    private String readSignupPassword() {
+        String property = System.getProperty("TEST_SIGNUP_PASSWORD");
+        if (property != null && !property.isBlank()) {
+            return property.trim();
+        }
+        String environment = System.getenv("TEST_SIGNUP_PASSWORD");
+        if (environment != null && !environment.isBlank()) {
+            return environment.trim();
+        }
+        return "";
+    }
+
+    private void normalizeSuiteDataAliases(Map<String, String> target) {
+        Map<String, String> aliases = new LinkedHashMap<>();
+        target.forEach((key, value) -> {
+            if (key.startsWith("suiteData.") && value != null && !value.isBlank()) {
+                aliases.putIfAbsent(key.substring("suiteData.".length()), value);
+            }
+        });
+        aliases.forEach(target::putIfAbsent);
     }
 }

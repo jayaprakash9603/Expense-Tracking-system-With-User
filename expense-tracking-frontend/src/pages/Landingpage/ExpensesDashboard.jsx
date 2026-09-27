@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
 import { useTheme, useMediaQuery, Skeleton } from "@mui/material";
-import axios from "axios";
 import {
   PieChart,
   Pie,
@@ -47,7 +46,7 @@ import {
   getHomeExpensesAction,
   getExpensesSummaryAction,
 } from "../../Redux/Expenses/expense.action";
-import { API_BASE_URL } from "../../config/api";
+import { api } from "../../config/api";
 import { getCategoryIcon } from "../../utils/ui/iconMapping";
 import { useTheme as useAppTheme } from "../../hooks/useTheme";
 import {
@@ -56,6 +55,7 @@ import {
   WorkspacePremium as CrownIcon,
   RocketLaunch as RocketIcon,
 } from "@mui/icons-material";
+import { AppSelect } from "../../components/ui";
 
 const ExpensesDashboard = () => {
   const [isDark, setIsDark] = useState(true);
@@ -297,20 +297,12 @@ const ExpensesDashboard = () => {
       setError("Please log in to view the monthly report.");
       return;
     }
-    const headers = { Authorization: `Bearer ${token}` };
     const fetchData = async () => {
       try {
         const [spendingRes, totalsRes, distributionRes] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/api/expenses/current-month/daily-spending`,
-            { headers }
-          ),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/totals`, {
-            headers,
-          }),
-          axios.get(`${API_BASE_URL}/api/expenses/current-month/distribution`, {
-            headers,
-          }),
+          api.get("/api/expenses/current-month/daily-spending"),
+          api.get("/api/expenses/current-month/totals"),
+          api.get("/api/expenses/current-month/distribution"),
         ]);
         setDailySpendingData(
           spendingRes.data.length > 0 ? spendingRes.data : defaultDailySpending
@@ -1647,20 +1639,19 @@ const ExpensesDashboard = () => {
                 } focus:ring-2 focus:ring-cyan-400 transition-all duration-300`}
               />
 
-              <select
-                className={`w-full p-3 rounded-xl border ${
-                  isDark
-                    ? "border-gray-600 bg-gray-700"
-                    : "border-gray-300 bg-white"
-                } focus:ring-2 focus:ring-cyan-400 transition-all duration-300`}
-              >
-                <option>Select Category</option>
-                {expenseData.map((category) => (
-                  <option key={category.name} value={category.name}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <AppSelect
+                value=""
+                options={[
+                  { value: "", label: "Select Category" },
+                  ...expenseData.map((category) => ({
+                    value: category.name,
+                    label: category.name,
+                  })),
+                ]}
+                ariaLabel="Expense category"
+                size="small"
+                placeholder="Select Category"
+              />
 
               <input
                 type="text"

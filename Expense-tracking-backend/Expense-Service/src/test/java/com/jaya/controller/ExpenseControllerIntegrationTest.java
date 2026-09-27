@@ -85,15 +85,9 @@ class ExpenseControllerIntegrationTest {
     @BeforeEach
     void setUp() {
         ExpenseController controller = new ExpenseController(
-                expenseService,
                 expenseServiceHelper,
-                userClient,
-                friendShipService,
-                expenseRepository,
                 excelService,
                 emailService,
-                kafkaProducerService,
-                userPermissionHelper,
                 bulkProgressTracker,
                 new SyncTaskExecutor(),
                 unifiedActivityService,

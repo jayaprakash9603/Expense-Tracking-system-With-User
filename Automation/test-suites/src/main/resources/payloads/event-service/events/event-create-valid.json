@@ -1,0 +1,9 @@
+{
+  "eventName": "Auto Event ${random.number:4}",
+  "description": "Automation event",
+  "eventType": "WEDDING",
+  "status": "PLANNING",
+  "startDate": "${now:yyyy-MM-dd}",
+  "endDate": "${now+7d:yyyy-MM-dd}",
+  "totalBudget": 1000
+}

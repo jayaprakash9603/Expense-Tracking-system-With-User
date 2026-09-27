@@ -12,12 +12,10 @@ import {
   Badge,
   Chip,
   Pagination,
-  Select,
-  MenuItem,
-  FormControl,
   Avatar,
   Tooltip,
 } from "@mui/material";
+import { AppSelect } from "../../../../components/ui";
 import {
   ExpandMore as ExpandIcon,
   ExpandLess as CollapseIcon,
@@ -476,29 +474,21 @@ const AccordionItem = React.memo(
                     >
                       Show:
                     </Typography>
-                    <FormControl size="small" sx={{ minWidth: 70 }}>
-                      <Select
-                        value={pageSize}
-                        onChange={(e) => changePageSize(e.target.value)}
-                        sx={{
-                          height: 28,
-                          fontSize: "0.75rem",
-                          "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: colors.border_color,
-                          },
-                          color: colors.primary_text,
-                          "& .MuiSelect-select": {
-                            py: 0.5,
-                          },
-                        }}
-                      >
-                        {PAGINATION.PAGE_SIZE_OPTIONS.map((size) => (
-                          <MenuItem key={size} value={size}>
-                            {size}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <AppSelect
+                      value={pageSize}
+                      onValueChange={(val) => changePageSize(Number(val))}
+                      options={PAGINATION.PAGE_SIZE_OPTIONS.map((size) => ({
+                        value: size,
+                        label: String(size),
+                      }))}
+                      ariaLabel="Activities per page"
+                      size="small"
+                      density="compact"
+                      fullWidth={false}
+                      displayEmpty={false}
+                      showSelectedCheck={false}
+                      sx={{ minWidth: 70 }}
+                    />
                   </Box>
 
                   {/* Pagination Controls - Only if more than 1 page */}

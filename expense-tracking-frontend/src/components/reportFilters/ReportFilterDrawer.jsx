@@ -13,11 +13,8 @@ import {
   TextField,
   Stack,
   IconButton,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
 } from "@mui/material";
+import { AppSelect } from "../ui";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTheme } from "../../hooks/useTheme";
 import {
@@ -220,23 +217,16 @@ const ReportFilterDrawer = ({
   const renderSelect = (section) => {
     const current = localValues[section.field] ?? "";
     return (
-      <FormControl fullWidth size="small" sx={fieldSx}>
-        <InputLabel id={`${section.id}-label`}>{section.label}</InputLabel>
-        <Select
-          labelId={`${section.id}-label`}
-          value={current}
-          label={section.label}
-          onChange={(event) =>
-            handleFieldChange(section.field, event.target.value)
-          }
-        >
-          {section.options.map((option) => (
-            <MenuItem key={`${section.id}-${option.value}`} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <AppSelect
+        size="small"
+        label={section.label}
+        value={current}
+        onChange={(event) =>
+          handleFieldChange(section.field, event.target.value)
+        }
+        sx={fieldSx}
+        options={section.options}
+      />
     );
   };
 

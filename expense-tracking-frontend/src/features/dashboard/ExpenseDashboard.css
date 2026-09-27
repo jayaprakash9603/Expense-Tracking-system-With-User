@@ -391,6 +391,21 @@
   justify-content: space-between;
 }
 
+/* Top Expenses: 2-up on tablet/desktop; phones stay single column via media query */
+.expense-dashboard .summary-overview .summary-top-expenses-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.expense-dashboard .summary-overview .summary-top-expense-item {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .expense-dashboard .summary-overview .overview-metrics {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2073,17 +2088,20 @@
 /* Mobile <= 600px: single column, compact headers and controls */
 @media (max-width: 600px) {
   .dashboard-header {
-    flex-direction: column;
+    flex-direction: row;
     gap: 8px;
-    align-items: stretch;
+    align-items: center;
+    flex-wrap: nowrap;
   }
   .header-actions {
     display: flex;
     flex-wrap: nowrap;
     justify-content: flex-end;
     gap: 6px;
-    width: 100%;
-    overflow: hidden; /* prevent wrapping */
+    width: auto;
+    flex-shrink: 0;
+    margin-left: auto;
+    overflow: visible;
   }
   .header-actions .action-btn {
     flex: 0 0 auto;
@@ -2095,7 +2113,7 @@
   .metric-card {
     padding: 14px;
   }
-  .chart-container {
+  .chart-container:not(.summary-overview) {
     padding: 12px;
   }
   .chart-header h3 {
@@ -2113,20 +2131,23 @@
     gap: 16px;
   }
 
-  /* Align Application Overview and Category Breakdown heights tighter on small screens */
+  /* Application Overview: natural height, individual cards */
   .summary-overview,
   .category-breakdown {
-    min-height: 300px;
+    min-height: 0;
+  }
+  .summary-overview.chart-container {
+    padding: 0 !important;
   }
   .summary-overview .overview-chart {
-    min-width: 140px;
+    min-width: unset;
   }
   .summary-overview .metric-value {
-    font-size: 1rem;
+    font-size: 1.15rem;
   }
   .summary-overview .metric-icon {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -2235,13 +2256,16 @@
 
 @media (max-width: 768px) {
   .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-start;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: nowrap;
   }
 
   .header-actions {
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
+    margin-left: auto;
     justify-content: flex-end;
   }
 
@@ -2302,35 +2326,63 @@
     font-size: 0.85rem;
   }
 
-  /* Payment Methods: title single line, controls on next line */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+  /* Payment Methods + Category: compact single-row header */
+  .payment-methods .chart-header,
+  .category-breakdown .chart-header,
+  .reusable-pie-chart .chart-header,
+  .payment-methods .pie-chart-header,
+  .category-breakdown .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
   }
-  .payment-methods .chart-header h3 {
-    width: 100%;
+  .payment-methods .chart-header h3,
+  .category-breakdown .chart-header h3,
+  .reusable-pie-chart .chart-header h3 {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-size: 0.78rem !important;
   }
-  .payment-methods .chart-controls {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    gap: 8px;
+  .payment-methods .chart-controls,
+  .category-breakdown .chart-controls,
+  .reusable-pie-chart .chart-controls,
+  .payment-methods .pie-chart-controls,
+  .category-breakdown .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    flex-shrink: 0;
   }
-  .payment-methods .chart-controls .time-selector {
-    min-width: 140px; /* slightly wider for readability */
+  .payment-methods .chart-controls .time-selector,
+  .category-breakdown .chart-controls .time-selector,
+  .reusable-pie-chart .chart-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
     flex: 0 0 auto;
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+    height: 32px;
   }
-  .payment-methods .chart-controls .type-toggle {
-    margin-left: 6px; /* reduce left margin on mobile */
-    padding: 4px 6px;
+  .payment-methods .chart-controls .type-toggle,
+  .category-breakdown .chart-controls .type-toggle,
+  .reusable-pie-chart .chart-controls .type-toggle {
+    margin-left: 0;
+    padding: 2px;
   }
-  .payment-methods .chart-controls .type-toggle .toggle-btn {
-    padding: 6px 8px;
-    font-size: 12px;
+  .payment-methods .chart-controls .type-toggle .toggle-btn,
+  .category-breakdown .chart-controls .type-toggle .toggle-btn,
+  .reusable-pie-chart .chart-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px !important;
+    transform: none !important;
   }
 }
 
@@ -2849,40 +2901,45 @@
     min-height: 320px;
   }
 
-  /* Monthly Trend chart adjustments */
-  .monthly-trend .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .monthly-trend .chart-header .chart-right-controls {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  /* Category Breakdown adjustments */
-  .category-breakdown .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
+  /* Monthly Trend — keep title + year controls on one row */
+  .monthly-trend .chart-header,
+  .monthly-trend .monthly-trend-header,
+  .monthly-trend .dashboard-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
     gap: 8px;
   }
 
-  .category-breakdown .chart-controls {
-    width: 100%;
-    justify-content: flex-start;
+  .monthly-trend .chart-header .chart-right-controls,
+  .monthly-trend .monthly-year-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex-shrink: 0;
   }
 
-  /* Payment Methods adjustments */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  /* Category Breakdown + Payment Methods — keep header on one row */
+  .category-breakdown .chart-header,
+  .payment-methods .chart-header,
+  .reusable-pie-chart .chart-header,
+  .category-breakdown .pie-chart-header,
+  .payment-methods .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
   }
 
-  .payment-methods .chart-controls {
-    width: 100%;
-    flex-wrap: wrap;
+  .category-breakdown .chart-controls,
+  .payment-methods .chart-controls,
+  .reusable-pie-chart .chart-controls,
+  .category-breakdown .pie-chart-controls,
+  .payment-methods .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
   }
 
   /* Summary Overview - stack chart and metrics */
@@ -2891,8 +2948,9 @@
     gap: 16px;
   }
 
-  .summary-overview .overview-metrics {
-    grid-template-columns: repeat(2, 1fr);
+  .summary-overview .overview-metrics,
+  .summary-overview .summary-metrics-grid {
+    grid-template-columns: 1fr !important;
     width: 100%;
   }
 
@@ -2900,6 +2958,10 @@
     width: 100%;
     min-width: unset;
     justify-content: center;
+  }
+
+  .summary-overview .summary-kpi-grid {
+    grid-template-columns: 1fr !important;
   }
 
   /* Recent Transactions - maintain grid but adjust */
@@ -2974,20 +3036,23 @@
     width: calc(100vw - 16px);
   }
 
-  /* Dashboard header responsive */
+  /* Dashboard header responsive — keep title + menu on one row */
   .dashboard-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: flex-start;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: nowrap;
   }
 
   .header-left .header-title h1 {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 
   .header-actions {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    flex-shrink: 0;
+    margin-left: auto;
+    justify-content: flex-end;
   }
 
   .header-actions .action-btn {
@@ -3020,20 +3085,29 @@
     font-size: 11px;
   }
 
-  /* Monthly Trend mobile */
-  .monthly-trend .chart-header {
-    flex-direction: column;
-    gap: 8px;
+  /* Monthly Trend mobile — compact single-row header */
+  .monthly-trend .chart-header,
+  .monthly-trend .monthly-trend-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
   }
 
   .monthly-trend .chart-nav-bar {
-    justify-content: center;
-    gap: 8px;
+    justify-content: flex-end;
+    gap: 6px;
   }
 
   .monthly-trend .year-chip {
-    font-size: 0.85rem;
-    padding: 4px 10px;
+    font-size: 0.9rem;
+    padding: 8px 10px;
+    min-width: 56px;
+  }
+
+  .monthly-trend .monthly-year-controls .nav-btn {
+    width: 40px !important;
+    height: 40px !important;
   }
 
   /* Category Breakdown mobile */
@@ -3041,9 +3115,12 @@
     padding-bottom: 8px;
   }
 
-  /* Summary Overview - mobile layout */
+  /* Summary Overview - mobile: individual full-width cards, no double padding */
   .summary-overview {
-    padding: 16px;
+    padding: 0 !important;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .summary-overview .overview-content {
@@ -3051,19 +3128,23 @@
     gap: 12px;
   }
 
-  .summary-overview .overview-metrics {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .summary-overview .overview-metrics,
+  .summary-overview .summary-metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
-  .summary-overview .overview-metric {
-    padding: 10px;
+  .summary-overview .overview-metric,
+  .summary-overview .summary-metric-card {
+    padding: 14px !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .summary-overview .metric-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 
   .summary-overview .metric-title {
@@ -3071,7 +3152,7 @@
   }
 
   .summary-overview .metric-value {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
   }
 
   .summary-overview .overview-chart {
@@ -3079,22 +3160,35 @@
     min-width: unset;
   }
 
-  /* KPI cards in summary */
-  .kpi-row {
+  /* KPI cards in summary — stacked individuals */
+  .kpi-row,
+  .summary-overview .summary-kpi-grid {
     flex-direction: column;
-    gap: 8px;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
   }
 
-  .kpi-card {
-    padding: 10px;
+  .kpi-card,
+  .summary-overview .summary-kpi-card {
+    padding: 14px 16px !important;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .kpi-title {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
   }
 
   .kpi-value {
-    font-size: 0.95rem;
+    font-size: 1.35rem;
+  }
+
+  .summary-overview .summary-top-expenses-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  .summary-overview .summary-top-expense-item {
+    min-height: 52px;
   }
 
   /* Recent Transactions - single column on mobile */
@@ -3243,20 +3337,41 @@
     font-size: 1rem;
   }
 
-  /* Payment Methods mobile */
-  .payment-methods .chart-header {
-    flex-direction: column;
-    gap: 8px;
+  /* Payment Methods / Category — compact single-row header on phones */
+  .payment-methods .chart-header,
+  .category-breakdown .chart-header,
+  .reusable-pie-chart .chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
   }
 
-  .payment-methods .chart-controls {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 6px;
+  .payment-methods .chart-controls,
+  .category-breakdown .chart-controls,
+  .reusable-pie-chart .chart-controls {
+    width: auto !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    margin-left: auto !important;
   }
 
-  .payment-methods .type-toggle {
+  .payment-methods .type-toggle,
+  .category-breakdown .type-toggle {
     margin-left: 0;
+  }
+
+  .payment-methods .chart-header h3,
+  .category-breakdown .chart-header h3,
+  .reusable-pie-chart .chart-header h3 {
+    font-size: 0.72rem !important;
+  }
+
+  .payment-methods .total-amount-bottom,
+  .category-breakdown .total-amount-bottom,
+  .reusable-pie-chart .total-amount-bottom {
+    font-size: 0.82rem !important;
+    padding: 8px 10px !important;
   }
 }
 
@@ -3283,19 +3398,22 @@
     font-size: 0.9rem;
   }
 
-  .summary-overview .overview-metrics {
-    gap: 6px;
+  .summary-overview .overview-metrics,
+  .summary-overview .summary-metrics-grid {
+    gap: 10px !important;
+    grid-template-columns: 1fr !important;
   }
 
-  .summary-overview .overview-metric {
-    padding: 8px;
-    gap: 8px;
+  .summary-overview .overview-metric,
+  .summary-overview .summary-metric-card {
+    padding: 14px !important;
+    gap: 12px;
   }
 
   .summary-overview .metric-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 
   .budget-overview .budget-progress {
@@ -3497,8 +3615,11 @@
   padding: 12px;
 }
 
-.monthly-trend.mobile .chart-header {
-  flex-direction: column;
+.monthly-trend.mobile .chart-header,
+.monthly-trend.is-mobile .monthly-trend-header {
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
   gap: 8px;
 }
 
@@ -3527,4 +3648,525 @@
 /* Summary Overview - Tablet specific */
 .summary-overview.tablet {
   padding: 16px;
+}
+
+/* ========================================
+   Dashboard responsive polish (2026)
+   Chart headers, full-bleed plots, metric grids
+   ======================================== */
+
+.expense-dashboard .metrics-grid {
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.expense-dashboard .metrics-grid > * {
+  min-width: 0;
+}
+
+.expense-dashboard .chart-container {
+  overflow: visible;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.dashboard-chart-header {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 10px 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.dashboard-chart-header h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-chart-controls {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  margin-left: auto;
+  width: auto !important;
+  max-width: 100%;
+}
+
+.dashboard-chart-controls .time-selector {
+  flex: 0 0 auto;
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.dashboard-chart-controls .type-toggle {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  margin-left: 0 !important;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dashboard-chart-controls .type-toggle .toggle-btn {
+  white-space: nowrap;
+}
+
+.monthly-year-controls {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.monthly-year-controls .year-chip {
+  min-width: 64px;
+  text-align: center;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 700;
+}
+
+.dashboard-chart-plot {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  position: relative;
+  overflow: visible;
+}
+
+.dashboard-chart-plot .recharts-responsive-container {
+  width: 100% !important;
+  min-height: 0;
+}
+
+.expense-dashboard .daily-spending-chart,
+.expense-dashboard .monthly-trend,
+.expense-dashboard .reusable-pie-chart,
+.expense-dashboard .payment-methods,
+.expense-dashboard .category-breakdown {
+  width: 100%;
+  max-width: 100%;
+}
+
+.expense-dashboard .payment-methods .chart-header,
+.expense-dashboard .category-breakdown .chart-header,
+.expense-dashboard .daily-spending-chart .chart-header,
+.expense-dashboard .monthly-trend .chart-header {
+  flex-direction: row !important;
+  align-items: center !important;
+}
+
+.expense-dashboard .payment-methods .chart-controls,
+.expense-dashboard .category-breakdown .chart-controls,
+.expense-dashboard .daily-spending-chart .chart-controls {
+  width: auto !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Daily Spending Pattern — compact single-row header */
+.daily-spending-chart .daily-spending-header,
+.expense-dashboard .daily-spending-chart .daily-spending-header {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.daily-spending-chart .daily-spending-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+.daily-spending-chart .daily-spending-controls,
+.expense-dashboard .daily-spending-chart .daily-spending-controls {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  flex: 0 0 auto;
+}
+
+.daily-spending-chart .daily-spending-controls .time-selector {
+  min-width: 96px !important;
+  max-width: 128px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border-radius: 6px !important;
+  height: 30px;
+  line-height: 1.2;
+}
+
+.daily-spending-chart .daily-spending-controls .type-toggle {
+  padding: 2px !important;
+  gap: 2px !important;
+}
+
+.daily-spending-chart .daily-spending-controls .type-toggle .toggle-btn {
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  min-height: 28px !important;
+  border-radius: 5px !important;
+  font-weight: 600;
+  transform: none !important;
+}
+
+@media (max-width: 900px) {
+  .expense-dashboard {
+    width: calc(100vw - 24px);
+    margin: 8px 12px 8px 0;
+    padding: 14px;
+  }
+
+  .dashboard-chart-header.is-mobile:not(.pie-chart-header):not(.daily-spending-header),
+  .dashboard-chart-header:not(.daily-spending-header):not(.pie-chart-header) {
+    align-items: flex-start !important;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) {
+    width: 100% !important;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  /* Pie charts (Category / Payment): title + controls stay one row */
+  .pie-chart-header.dashboard-chart-header,
+  .category-breakdown .pie-chart-header,
+  .payment-methods .pie-chart-header,
+  .reusable-pie-chart .pie-chart-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+
+  .pie-chart-controls.dashboard-chart-controls,
+  .category-breakdown .pie-chart-controls,
+  .payment-methods .pie-chart-controls,
+  .reusable-pie-chart .pie-chart-controls {
+    width: auto !important;
+    margin-left: auto !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0;
+  }
+
+  .reusable-pie-chart .recharts-legend-item,
+  .category-breakdown .recharts-legend-item,
+  .payment-methods .recharts-legend-item {
+    font-size: 10px !important;
+  }
+
+  .daily-spending-chart .daily-spending-header {
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+
+  .daily-spending-chart .daily-spending-controls {
+    width: auto !important;
+    margin-left: 0 !important;
+  }
+
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .expense-dashboard .chart-container {
+    padding: 12px !important;
+    min-height: 0;
+  }
+
+  .reusable-pie-chart .recharts-responsive-container {
+    min-height: 240px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .expense-dashboard {
+    width: 100%;
+    max-width: 100vw;
+    margin: 0;
+    padding: 6px;
+    height: auto;
+    min-height: calc(100vh - 80px);
+  }
+
+  .dashboard-header {
+    margin-bottom: 10px;
+    padding-bottom: 0;
+  }
+
+  .header-left .header-title h1 {
+    font-size: 1rem !important;
+    -webkit-text-fill-color: unset !important;
+    background: none !important;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) .time-selector {
+    min-width: 110px;
+    max-width: 140px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .dashboard-chart-controls:not(.daily-spending-controls):not(.pie-chart-controls) .type-toggle .toggle-btn {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
+  .pie-chart-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    padding: 4px 6px !important;
+    font-size: 11px !important;
+    height: 32px;
+  }
+
+  .pie-chart-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 28px !important;
+    transform: none !important;
+  }
+
+  .pie-chart-header h3 {
+    font-size: 0.78rem !important;
+  }
+
+  .daily-spending-chart .daily-spending-title {
+    font-size: 0.8rem !important;
+  }
+
+  .daily-spending-chart .daily-spending-controls .time-selector {
+    min-width: 88px !important;
+    max-width: 110px !important;
+    padding: 3px 6px !important;
+    font-size: 11px !important;
+    height: 28px;
+  }
+
+  .daily-spending-chart .daily-spending-controls .type-toggle .toggle-btn {
+    padding: 3px 6px !important;
+    font-size: 10px !important;
+    min-height: 26px !important;
+  }
+
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 12px;
+  }
+
+  .summary-overview .overview-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .kpi-row {
+    flex-direction: column;
+  }
+
+  .reusable-pie-chart .total-amount-bottom,
+  .payment-methods .total-amount-bottom,
+  .category-breakdown .total-amount-bottom {
+    position: static;
+    margin-top: 10px;
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 901px) {
+  .expense-dashboard .metrics-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* ========================================
+   Mobile: flatten nested shells + compact header
+   Sections appear as individual cards on small screens
+   ======================================== */
+
+.expense-dashboard.is-flat-shell {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 8px !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100vw;
+}
+
+.expense-dashboard.is-flat-shell .dashboard-section {
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.expense-dashboard.is-flat-shell .section-row > .dashboard-section > * {
+  flex: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.expense-dashboard.is-flat-shell .section-row .chart-container,
+.expense-dashboard.is-flat-shell .section-row .summary-overview,
+.expense-dashboard.is-flat-shell .section-row .recent-transactions,
+.expense-dashboard.is-flat-shell .section-row .budget-overview,
+.expense-dashboard.is-flat-shell .section-row .quick-access {
+  height: auto !important;
+  flex: none !important;
+}
+
+.dashboard-header.is-mobile,
+.dashboard-header.is-tablet {
+  flex-direction: row !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+.dashboard-header.is-mobile .header-actions,
+.dashboard-header.is-tablet .header-actions {
+  width: auto !important;
+  margin-left: auto !important;
+  justify-content: flex-end !important;
+}
+
+.dashboard-header.is-mobile .header-left,
+.dashboard-header.is-tablet .header-left {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dashboard-header.is-mobile::before {
+  width: 56px;
+  height: 2px;
+}
+
+@media (max-width: 900px) {
+  /* Outer dashboard shell: stop looking like a card wrapping cards */
+  .expense-dashboard {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 8px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100vw;
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  .expense-dashboard .dashboard-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 100%;
+  }
+
+  .expense-dashboard .dashboard-header .header-actions {
+    width: auto !important;
+  }
+
+  /* Each section stands alone as its own card */
+  .expense-dashboard .dashboard-section,
+  .expense-dashboard .section-row > .dashboard-section {
+    margin-bottom: 10px;
+  }
+
+  .expense-dashboard .section-row {
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .expense-dashboard .dashboard-section.section-type-full {
+    margin-bottom: 10px !important;
+  }
+
+  .expense-dashboard .chart-container,
+  .expense-dashboard .summary-overview,
+  .expense-dashboard .quick-access,
+  .expense-dashboard .recent-transactions,
+  .expense-dashboard .budget-overview,
+  .expense-dashboard .metrics-grid .modern-overview-card,
+  .expense-dashboard .metric-card {
+    border-radius: 12px !important;
+  }
+
+  /* Avoid nested min-height forcing oversized empty shells */
+  .expense-dashboard .chart-row > div > *,
+  .expense-dashboard .chart-row > div > .chart-container,
+  .expense-dashboard .chart-row > div > .summary-overview,
+  .expense-dashboard .section-row .chart-container,
+  .expense-dashboard .section-row .summary-overview {
+    min-height: 0 !important;
+  }
+
+  .expense-dashboard .bottom-section > * {
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .expense-dashboard {
+    padding: 6px !important;
+  }
+
+  .dashboard-header,
+  .expense-dashboard .dashboard-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .header-actions {
+    width: auto !important;
+    justify-content: flex-end !important;
+  }
+
+  .header-left .header-title h1 {
+    font-size: 1rem !important;
+    -webkit-text-fill-color: unset !important;
+    background: none !important;
+  }
+
+  .header-left .header-title p {
+    font-size: 11px !important;
+    margin-top: 2px !important;
+  }
+
+  /* Stacked nested chrome: remove extra padding from section wrappers */
+  .expense-dashboard .dashboard-section {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  .expense-dashboard.customization-active .dashboard-section {
+    border: 1px dashed rgba(128, 128, 128, 0.35) !important;
+    padding: 4px !important;
+  }
 }

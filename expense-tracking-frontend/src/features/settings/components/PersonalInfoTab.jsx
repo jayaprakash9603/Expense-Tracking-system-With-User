@@ -4,16 +4,13 @@ import {
   CardContent,
   Typography,
   IconButton,
-  MenuItem,
   Grid,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
   Button,
   Chip,
   CircularProgress,
 } from "@mui/material";
+import { AppSelect } from "../../../components/ui";
 import {
   Edit,
   Close,
@@ -293,38 +290,27 @@ const PersonalInfoTab = ({
                   />
                 </Grid>
                 <Grid item xs={6}>
-                  <FormControl fullWidth>
-                    <InputLabel sx={{ color: "#aaa" }}>Gender</InputLabel>
-                    <Select
-                      value={formData.gender}
-                      onChange={(e) =>
-                        handleInputChange({
-                          target: { name: "gender", value: e.target.value },
-                        })
-                      }
-                      sx={{
+                  <AppSelect
+                    label="Gender"
+                    value={formData.gender}
+                    onChange={(e) =>
+                      handleInputChange({
+                        target: { name: "gender", value: e.target.value },
+                      })
+                    }
+                    sx={{
+                      "& .MuiInputBase-root": {
                         backgroundColor: "rgba(26, 26, 26, 0.8)",
-                        color: "white",
                         borderRadius: "12px",
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "rgba(20, 184, 166, 0.3)",
-                        },
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#14b8a6",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#14b8a6",
-                        },
-                      }}
-                    >
-                      <MenuItem value="Male">Male</MenuItem>
-                      <MenuItem value="Female">Female</MenuItem>
-                      <MenuItem value="Other">Other</MenuItem>
-                      <MenuItem value="Prefer not to say">
-                        Prefer not to say
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
+                      },
+                    }}
+                    options={[
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                      { value: "Other", label: "Other" },
+                      { value: "Prefer not to say", label: "Prefer not to say" },
+                    ]}
+                  />
                 </Grid>
                 <Grid item xs={6}>
                   <TextField
@@ -542,39 +528,30 @@ const PersonalInfoTab = ({
             </div>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={4}>
-                <FormControl fullWidth>
-                  <InputLabel sx={{ color: "#aaa" }}>Monthly Income</InputLabel>
-                  <Select
-                    value={formData.financialProfile.monthlyIncome}
-                    onChange={(e) =>
-                      handleInputChange({
-                        target: {
-                          name: "financialProfile.monthlyIncome",
-                          value: e.target.value,
-                        },
-                      })
-                    }
-                    sx={{
+                <AppSelect
+                  label="Monthly Income"
+                  value={formData.financialProfile.monthlyIncome}
+                  onChange={(e) =>
+                    handleInputChange({
+                      target: {
+                        name: "financialProfile.monthlyIncome",
+                        value: e.target.value,
+                      },
+                    })
+                  }
+                  sx={{
+                    "& .MuiInputBase-root": {
                       backgroundColor: "rgba(26, 26, 26, 0.8)",
-                      color: "white",
                       borderRadius: "12px",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "rgba(20, 184, 166, 0.3)",
-                      },
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#14b8a6",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        borderColor: "#14b8a6",
-                      },
-                    }}
-                  >
-                    <MenuItem value={3000}>$3,000 - $4,000</MenuItem>
-                    <MenuItem value={5000}>$4,000 - $6,000</MenuItem>
-                    <MenuItem value={6500}>$6,000 - $8,000</MenuItem>
-                    <MenuItem value={10000}>$8,000+</MenuItem>
-                  </Select>
-                </FormControl>
+                    },
+                  }}
+                  options={[
+                    { value: 3000, label: "$3,000 - $4,000" },
+                    { value: 5000, label: "$4,000 - $6,000" },
+                    { value: 6500, label: "$6,000 - $8,000" },
+                    { value: 10000, label: "$8,000+" },
+                  ]}
+                />
               </Grid>
               <Grid item xs={12} sm={4}>
                 <TextField

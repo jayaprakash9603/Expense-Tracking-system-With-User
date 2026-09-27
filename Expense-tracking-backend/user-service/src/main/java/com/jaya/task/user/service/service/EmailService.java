@@ -82,7 +82,7 @@ public class EmailService {
             logger.info("OTP email sent successfully to: {}", to);
         } catch (MessagingException e) {
             logger.error("Failed to send OTP email to: {}", to, e);
-            throw new RuntimeException("Failed to send OTP email", e);
+            throw new IllegalStateException("Failed to send OTP email", e);
         }
     }
 

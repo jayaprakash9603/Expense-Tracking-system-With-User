@@ -3,6 +3,7 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import { getAccentFunctionalIcon } from "../../../utils/ui/iconMapping";
 import { useTheme } from "../../../hooks/useTheme";
 import useUserSettings from "../../../hooks/useUserSettings";
+import { AppSelect } from "../../../components/ui";
 import "../styles/InvestmentDashboard.css";
 
 const InvestmentDashboard = () => {
@@ -349,25 +350,28 @@ const InvestmentDashboard = () => {
             >
               <div className="investment-form-group">
                 <label>Investment Category</label>
-                <select
+                <AppSelect
                   value={newInvestment.category}
-                  onChange={(e) =>
+                  onValueChange={(category) =>
                     setNewInvestment({
                       ...newInvestment,
-                      category: e.target.value,
+                      category,
                     })
                   }
+                  options={[
+                    { value: "", label: "Select Category" },
+                    { value: "Mutual Funds", label: "Mutual Funds" },
+                    { value: "Stocks", label: "Stocks" },
+                    { value: "Fixed Deposits", label: "Fixed Deposits" },
+                    { value: "Gold", label: "Gold" },
+                    { value: "Crypto", label: "Crypto" },
+                    { value: "Real Estate", label: "Real Estate" },
+                    { value: "Bonds", label: "Bonds" },
+                  ]}
+                  ariaLabel="Investment category"
+                  size="small"
                   required
-                >
-                  <option value="">Select Category</option>
-                  <option value="Mutual Funds">Mutual Funds</option>
-                  <option value="Stocks">Stocks</option>
-                  <option value="Fixed Deposits">Fixed Deposits</option>
-                  <option value="Gold">Gold</option>
-                  <option value="Crypto">Crypto</option>
-                  <option value="Real Estate">Real Estate</option>
-                  <option value="Bonds">Bonds</option>
-                </select>
+                />
               </div>
               <div className="investment-form-group">
                 <label>Amount ({currencySymbol})</label>

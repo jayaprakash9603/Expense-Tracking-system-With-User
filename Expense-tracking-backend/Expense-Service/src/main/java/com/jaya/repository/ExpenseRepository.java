@@ -255,7 +255,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
 
         @Query("SELECT e FROM Expense e JOIN FETCH e.expense d WHERE " +
                         "(e.userId = :userId) AND " +
-                        "(d.expenseName LIKE %:expenseName% OR :expenseName IS NULL) AND " +
+                        "(d.expenseName LIKE CONCAT('%', :expenseName, '%') OR :expenseName IS NULL) AND " +
                         "(e.date BETWEEN :startDate AND :endDate OR :startDate IS NULL OR :endDate IS NULL) AND " +
                         "(d.type = :type OR :type IS NULL) AND " +
                         "(d.paymentMethod = :paymentMethod OR :paymentMethod IS NULL) AND " +

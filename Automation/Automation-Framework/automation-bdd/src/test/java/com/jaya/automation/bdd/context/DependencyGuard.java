@@ -117,7 +117,7 @@ public final class DependencyGuard {
             HttpRequest request = "HEAD".equals(method)
                     ? builder.method("HEAD", HttpRequest.BodyPublishers.noBody()).build()
                     : builder.GET().build();
-            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            httpClient.send(request, HttpResponse.BodyHandlers.discarding());
             return ReachabilityResult.reachable();
         } catch (ConnectException ex) {
             return ReachabilityResult.refused();

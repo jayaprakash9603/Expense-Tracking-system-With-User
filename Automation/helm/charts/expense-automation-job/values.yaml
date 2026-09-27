@@ -55,7 +55,7 @@ app:
 
 automation:
   baseUrl: "https://jjayaprakash.netlify.app"
-  apiBaseUrl: "http://localhost:8080"
+  apiBaseUrl: ""
 
   browser:
     type: "chrome"
@@ -119,10 +119,12 @@ automation:
 
   suiteData:
     auth:
-      username: "jaya@gmail.com"
+      username: ""
+      password: ""
+      signupPassword: ""
       invalidUsername: "invalid@example.test"
       invalidPassword: "invalid-pass"
-      testEmail: "jaya@gmail.com"
+      testEmail: ""
     api:
       defaultPage: 0
       defaultLimit: 20

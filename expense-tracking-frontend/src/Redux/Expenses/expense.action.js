@@ -1,5 +1,7 @@
-import axios from "axios";
 import { api, API_BASE_URL } from "../../config/api";
+import { getContainer } from "../../platform/container";
+import { EXPENSE_REPOSITORY_KEY } from "../../features/expenses/adapters";
+import { listExpenses, createExpense } from "../../features/expenses/usecases";
 import {
   CLEAR_ERROR,
   CREATE_EXPENSE_FAILURE,
@@ -92,11 +94,10 @@ export const getExpensesAction =
     dispatch({ type: GET_ALL_EXPENSES_REQUEST });
 
     try {
-      const { data } = await api.get(`/api/expenses/fetch-expenses`, {
-        params: {
-          sortOrder,
-          targetId: targetId || "", // Include targetId if provided
-        },
+      const repo = getContainer().getRepository(EXPENSE_REPOSITORY_KEY);
+      const data = await listExpenses(repo, {
+        sortOrder,
+        targetId: targetId || "",
       });
 
       console.log("all expenses", data);
@@ -313,15 +314,8 @@ export const createExpenseAction =
     dispatch({ type: CREATE_EXPENSE_REQUEST });
 
     try {
-      // Add targetId to the URL if it's provided
-      const endpoint = targetId
-        ? `/api/expenses/add-expense?targetId=${targetId}`
-        : `/api/expenses/add-expense`;
-
-      const { data } = await api.post(
-        endpoint,
-        expenseData, // Send the expense data in the body of the POST request
-      );
+      const repo = getContainer().getRepository(EXPENSE_REPOSITORY_KEY);
+      const data = await createExpense(repo, expenseData, targetId);
 
       dispatch({ type: CREATE_EXPENSE_SUCCESS, payload: data });
       console.log("Expense created successfully:", data);

@@ -1,7 +1,6 @@
 package com.jaya.automation.engine.selenium;
 
 import com.jaya.automation.core.config.AutomationConfig;
-import com.jaya.automation.core.config.BrowserType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;

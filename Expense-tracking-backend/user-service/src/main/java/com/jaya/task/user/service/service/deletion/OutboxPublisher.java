@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Best-effort background publisher for the deletion outbox. Uses
@@ -50,7 +51,8 @@ public class OutboxPublisher {
             try {
                 if (template != null) {
                     Object payload = objectMapper.readValue(entry.getPayload(), Object.class);
-                    template.send(entry.getTopic(), entry.getMessageKey(), payload).get();
+                    template.send(entry.getTopic(), entry.getMessageKey(), payload)
+                            .get(30, TimeUnit.SECONDS);
                 }
                 entry.setPublishedAt(LocalDateTime.now());
                 entry.setLastError(null);

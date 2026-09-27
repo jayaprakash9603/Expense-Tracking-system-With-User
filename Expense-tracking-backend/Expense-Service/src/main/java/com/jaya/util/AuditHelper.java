@@ -158,7 +158,7 @@ public class AuditHelper {
             if (attributes != null) {
                 HttpServletRequest request = attributes.getRequest();
                 auditEvent.setIpAddress(getClientIpAddress(request));
-                auditEvent.setUserAgent(request.getHeader("UserDTO-Agent"));
+                auditEvent.setUserAgent(request.getHeader("User-Agent"));
                 auditEvent.setMethod(request.getMethod());
                 auditEvent.setEndpoint(request.getRequestURI());
                 auditEvent.setSessionId(request.getSession().getId());
@@ -189,7 +189,7 @@ public class AuditHelper {
     }
 
     private String determineSource(HttpServletRequest request) {
-        String userAgent = request.getHeader("UserDTO-Agent");
+        String userAgent = request.getHeader("User-Agent");
         if (userAgent != null) {
             userAgent = userAgent.toLowerCase();
             if (userAgent.contains("mobile") || userAgent.contains("android") || userAgent.contains("iphone")) {

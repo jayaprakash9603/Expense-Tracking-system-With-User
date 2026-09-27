@@ -4,7 +4,6 @@ import com.jaya.automation.core.config.AutomationConfig;
 import com.jaya.automation.core.ui.UiEngine;
 
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Per-scenario test context holding configuration, scenario state, UI engine,

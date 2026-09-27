@@ -18,6 +18,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFriends } from "../../../Redux/Friends/friendsActions";
 import { createGroup } from "../../../Redux/Groups/groupsActions";
+import { AppSelect } from "../../../components/ui";
 import { useTheme } from "../../../hooks/useTheme";
 import { getAccentFunctionalIcon, isEmojiGlyph } from "../../../utils/ui/iconMapping";
 
@@ -907,34 +908,25 @@ const CreateGroup = () => {
                                       <span className="text-sm text-teal-400 font-medium">
                                         Role:
                                       </span>
-                                      <select
+                                      <AppSelect
                                         value={
                                           formData.memberRoles[friend.id] ||
                                           "MEMBER"
                                         }
-                                        onChange={(e) =>
-                                          handleRoleChange(
-                                            friend.id,
-                                            e.target.value
-                                          )
+                                        onValueChange={(role) =>
+                                          handleRoleChange(friend.id, role)
                                         }
-                                        className="px-2 py-1 rounded text-white text-xs"
-                                        style={{
-                                          backgroundColor: "#3a3a3a",
-                                          minWidth: "180px",
-                                          outline: "none",
-                                          border: "none",
-                                        }}
-                                      >
-                                        {availableRoles.map((role) => (
-                                          <option
-                                            key={role.value}
-                                            value={role.value}
-                                          >
-                                            {role.label}
-                                          </option>
-                                        ))}
-                                      </select>
+                                        options={availableRoles.map((role) => ({
+                                          value: role.value,
+                                          label: role.label,
+                                        }))}
+                                        ariaLabel="Member role"
+                                        size="small"
+                                        fullWidth={false}
+                                        displayEmpty={false}
+                                        showSelectedCheck={false}
+                                        sx={{ minWidth: 180 }}
+                                      />
                                     </div>
                                   </div>
                                   <button
@@ -1050,23 +1042,22 @@ const CreateGroup = () => {
                         {/* Role Selection and Add/Remove Button - Same Line */}
                         <div className="flex items-center space-x-1">
                           {isSelected && (
-                            <select
+                            <AppSelect
                               value={formData.memberRoles[friendId] || "MEMBER"}
-                              onChange={(e) =>
-                                handleRoleChange(friendId, e.target.value)
+                              onValueChange={(role) =>
+                                handleRoleChange(friendId, role)
                               }
-                              className="px-2 py-1 rounded text-white text-xs"
-                              style={{
-                                backgroundColor: "#3a3a3a",
-                                width: "180px",
-                              }}
-                            >
-                              {availableRoles.map((role) => (
-                                <option key={role.value} value={role.value}>
-                                  {role.label}
-                                </option>
-                              ))}
-                            </select>
+                              options={availableRoles.map((role) => ({
+                                value: role.value,
+                                label: role.label,
+                              }))}
+                              ariaLabel="Member role"
+                              size="small"
+                              fullWidth={false}
+                              displayEmpty={false}
+                              showSelectedCheck={false}
+                              sx={{ width: 180 }}
+                            />
                           )}
                           <button
                             type="button"

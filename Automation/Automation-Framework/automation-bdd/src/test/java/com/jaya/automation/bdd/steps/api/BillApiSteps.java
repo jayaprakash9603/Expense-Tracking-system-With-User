@@ -12,9 +12,7 @@ import io.cucumber.java.en.When;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.springframework.stereotype.Component;
 
-@Component
 public class BillApiSteps extends StepDataSupport {
 
     @When("the user creates a bill with items")

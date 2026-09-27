@@ -4,11 +4,9 @@ import com.jaya.automation.bdd.context.BddWorld;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-import org.springframework.stereotype.Component;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Component
 public class NavigationUiSteps {
 
     @When("the user switches to admin mode")

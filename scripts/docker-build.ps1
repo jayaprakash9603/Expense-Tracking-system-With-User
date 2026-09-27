@@ -25,8 +25,8 @@ function Read-VersionFile {
     return (Get-Content $Path -Raw).Trim()
 }
 
-if (Test-Path ".env") {
-    Get-Content ".env" | ForEach-Object {
+if (Test-Path (Join-Path $backendDir ".env")) {
+    Get-Content (Join-Path $backendDir ".env") | ForEach-Object {
         if ($_ -match '^\s*([^#][^=]+)=(.*)$') {
             $name = $matches[1].Trim()
             $value = $matches[2].Trim().Trim('"')
@@ -51,6 +51,7 @@ if ($WithGitSha -or $env:IMAGE_TAG_WITH_GIT_SHA -eq "true") {
 }
 
 $backendDir = Join-Path $repoRoot "expense-tracking-backend"
+$composeFile = Join-Path $backendDir "docker-compose.yml"
 $monolithTargetDir = Join-Path $backendDir "monolithic-service\target"
 $expectedJar = Join-Path $monolithTargetDir "monolithic-service-$appVersion.jar"
 $existingJars = @()
@@ -86,7 +87,7 @@ Write-Host "Building Docker images (release $appVersion)..." -ForegroundColor Cy
 $env:APP_VERSION = $appVersion
 $env:DOCKER_REGISTRY = $registry
 
-docker compose build monolith frontend
+docker compose -f $composeFile build monolith frontend
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 docker tag "${monolithImage}:${appVersion}" "${monolithImage}:latest"
@@ -120,4 +121,4 @@ if ($Push) {
 }
 
 Write-Host ""
-Write-Host "Start stack: docker compose up -d" -ForegroundColor Cyan
+Write-Host "Start stack: cd expense-tracking-backend && docker compose --profile monolith up -d" -ForegroundColor Cyan

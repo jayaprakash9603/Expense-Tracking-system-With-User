@@ -8,18 +8,21 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.Ordered;
 
 @AutoConfiguration
 @Slf4j
 @EnableConfigurationProperties(FeatureFlagProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-@ComponentScan(basePackageClasses = FeatureConfigController.class)
 public class FeatureDormancyAutoConfiguration {
 
     public FeatureDormancyAutoConfiguration() {
         log.info("Feature dormancy auto-configuration enabled");
+    }
+
+    @Bean
+    public FeatureConfigController featureConfigController(FeatureFlagProperties properties) {
+        return new FeatureConfigController(properties);
     }
 
     @Bean

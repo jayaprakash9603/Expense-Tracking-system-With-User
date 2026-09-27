@@ -6,8 +6,6 @@ import {
   Chip,
   IconButton,
   Collapse,
-  Select,
-  MenuItem,
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
@@ -22,6 +20,7 @@ import {
   NOTIFICATION_METHODS,
   NOTIFICATION_FREQUENCY_OPTIONS,
 } from "../constants/notificationConfig";
+import { AppSelect } from "../../../components/ui";
 
 /**
  * Individual Notification Item Component
@@ -219,38 +218,23 @@ const NotificationItem = ({
             >
               Notification Frequency
             </Typography>
-            <Select
+            <AppSelect
               value={frequency}
-              onChange={(e) => onFrequencyChange(e.target.value)}
+              onValueChange={onFrequencyChange}
               size="small"
               fullWidth
-              sx={{
-                fontSize: "13px",
-                "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: colors.border_color,
-                },
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: serviceColor,
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: serviceColor,
-                },
-              }}
-            >
-              {NOTIFICATION_FREQUENCY_OPTIONS.map((option) => {
+              ariaLabel="Notification Frequency"
+              options={NOTIFICATION_FREQUENCY_OPTIONS.map((option) => {
                 const OptionIcon = option.icon;
-                return (
-                  <MenuItem key={option.value} value={option.value}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {OptionIcon && (
-                        <OptionIcon sx={{ fontSize: "1rem", opacity: 0.85 }} />
-                      )}
-                      {option.label}
-                    </Box>
-                  </MenuItem>
-                );
+                return {
+                  value: option.value,
+                  label: option.label,
+                  icon: OptionIcon ? (
+                    <OptionIcon sx={{ fontSize: "1rem", opacity: 0.85 }} />
+                  ) : undefined,
+                };
               })}
-            </Select>
+            />
           </Box>
 
           {/* Delivery Methods */}

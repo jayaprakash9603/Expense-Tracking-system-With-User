@@ -81,6 +81,11 @@ public final class ExpenseConstants {
     public static final String MSG_EXPENSE_NOT_FOUND = "Expense not found";
     public static final String MSG_UNAUTHORIZED_ACCESS = "Unauthorized access to expense";
 
+    public static final String AUTH_HEADER = "Authorization";
+    public static final String MSG_EMAIL_SENT_SUCCESS = "Email sent successfully";
+    public static final String MSG_INVALID_OR_EXPIRED_TOKEN = "Invalid or expired token";
+    public static final String HTTP_USER_AGENT_HEADER = "User-Agent";
+
     
     public static final String STATUS_ACTIVE = "active";
     public static final String STATUS_INACTIVE = "inactive";

@@ -215,7 +215,7 @@ public class UnifiedActivityEventService {
             return;
 
         builder.ipAddress(getClientIpAddress(request))
-                .userAgent(request.getHeader("UserDTO-Agent"))
+                .userAgent(request.getHeader("User-Agent"))
                 .sessionId(request.getSession(false) != null ? request.getSession().getId() : null)
                 .correlationId(request.getHeader("X-Correlation-ID"))
                 .requestId(request.getHeader("X-Request-ID"))

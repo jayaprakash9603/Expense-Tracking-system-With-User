@@ -12,7 +12,7 @@ endpoints:
 
   - key: shortcuts.create
     method: POST
-    path: /api/shortcuts
+    path: /api/shortcuts/update
     auth: true
 
   - key: shortcuts.delete

@@ -1,10 +1,11 @@
 package com.jaya.ratelimit;
 
-import com.jaya.error.exceptions.RateLimitExceededException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -24,6 +25,10 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
             org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
+        if (HttpMethod.OPTIONS.equals(exchange.getRequest().getMethod())) {
+            return chain.filter(exchange);
+        }
+
         ServerHttpRequest request = exchange.getRequest();
         String userId = request.getHeaders().getFirst("X-User-ID");
         if (userId == null || userId.isBlank()) {
@@ -34,7 +39,8 @@ public class RateLimitingFilter implements GlobalFilter, Ordered {
         if (!rateLimiter.tryConsume(key)) {
             int remaining = rateLimiter.remaining(key);
             log.warn("Rate limit exceeded user={} path={} remaining={}", userId, request.getPath().value(), remaining);
-            throw new RateLimitExceededException("Rate limit exceeded for user " + userId);
+            exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+            return exchange.getResponse().setComplete();
         }
         return chain.filter(exchange);
     }

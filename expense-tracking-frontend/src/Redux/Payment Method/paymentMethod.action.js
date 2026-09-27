@@ -1,8 +1,16 @@
+import axios from "axios";
 import { api } from "../../config/api";
 import {
   getPaymentMethodFlowCacheDescriptor,
   getPaymentMethodFlowCacheKeyFromDescriptor,
 } from "../../utils/cache/paymentMethodFlowCacheUtils";
+import { canFetchEntityAnalytics } from "../../utils/feature/analyticsFeatureAccess";
+
+const isCanceledError = (error) =>
+  axios.isCancel(error) ||
+  error?.code === "ERR_CANCELED" ||
+  error?.name === "CanceledError" ||
+  error?.message === "canceled";
 import {
   CREATE_PAYMENT_METHOD_FAILURE,
   CREATE_PAYMENT_METHOD_REQUEST,
@@ -130,9 +138,18 @@ export const deletePaymentMethod =
 export const fetchPaymentMethodAnalytics =
   (
     paymentMethodId,
-    { startDate, endDate, trendType = "MONTHLY", targetId } = {},
+    { startDate, endDate, trendType = "MONTHLY", targetId, signal } = {},
   ) =>
-  async (dispatch) => {
+  async (dispatch, getState) => {
+    const featureFlags = getState()?.featureFlags;
+    if (!canFetchEntityAnalytics(featureFlags, "PAYMENT_METHOD")) {
+      dispatch({
+        type: FETCH_PAYMENT_METHOD_ANALYTICS_FAILURE,
+        payload: "Payment method analytics is currently unavailable",
+      });
+      return null;
+    }
+
     dispatch({ type: FETCH_PAYMENT_METHOD_ANALYTICS_REQUEST });
 
     try {
@@ -145,7 +162,9 @@ export const fetchPaymentMethodAnalytics =
         ...(targetId && { targetId }),
       };
 
-      const { data } = await api.post("/api/analytics/entity", payload);
+      const { data } = await api.post("/api/analytics/entity", payload, {
+        signal,
+      });
 
       const analytics = data?.data || data;
       dispatch({
@@ -155,6 +174,10 @@ export const fetchPaymentMethodAnalytics =
 
       return analytics;
     } catch (error) {
+      if (isCanceledError(error)) {
+        return null;
+      }
+
       const errorMessage =
         error.response?.data?.message ||
         error.response?.data ||

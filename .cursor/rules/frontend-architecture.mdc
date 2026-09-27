@@ -1,0 +1,31 @@
+---
+description: Hexagonal frontend architecture — ports, adapters, design system, import rules
+globs:
+  - expense-tracking-frontend/src/**/*.{js,jsx}
+alwaysApply: false
+---
+
+# Frontend architecture (ports & adapters)
+
+## Layers
+
+- `platform/` — composition root, HTTP/realtime/storage/auth ports & adapters, appConfig
+- `api/endpoints/` — generated catalog + overrides; use `endpointId` keys, never scatter new path literals
+- `features/<name>/ports|adapters|usecases` — contracts, driven adapters, pure use-cases
+- `components/ui/` — design-system primitives; prefer over raw `@mui/material` in feature code
+
+## Hard rules
+
+1. `usecases/` must not import `react`, `react-redux`, or `axios`.
+2. New HTTP goes through `HttpPort.request({ endpointId })` or a feature repository — not raw axios/fetch to the backend.
+3. Cross-feature imports only via the target feature's `index.js` barrel.
+4. Prefer `@platform`, `@api`, `@features`, `@ui`, `@shared` path aliases over deep `../../../`.
+5. Design tokens: colors via `useTheme().colors` / `--color-*`; spacing/radius via `shared/theme/tokens.js`. Use `SEMANTIC` for error/success (not `#ff4d4f` / `#4caf50`).
+6. Transport switch is config-only: `REACT_APP_TRANSPORT` or `window.__APP_CONFIG__` (`live` | `snow` | `mock`). Do not hardcode simulator URLs in features.
+7. After adding Automation YAML endpoints, run `npm run generate:endpoints`.
+
+## Adding a feature
+
+Mirror `features/expenses` or `features/bills`: port → http/mock adapters → register in `platform/bootstrap.js` → thin Redux thunks calling use-cases → public `index.js` barrel.
+
+See `docs/frontend-architecture.md` for full how-tos.

@@ -12,6 +12,7 @@ import {
   Sector,
 } from "recharts";
 import ChartTypeToggle from "../../components/charts/ChartTypeToggle";
+import ChartTimeframeSelector from "../../components/charts/ChartTimeframeSelector";
 import EmptyStateCard from "../../components/EmptyStateCard";
 import {
   getEntityIcon,
@@ -216,6 +217,25 @@ const stripLeadingEmoji = (text) => {
   );
 };
 
+/** camelCase / snake_case → Title Case for legend labels */
+const humanizeLabel = (name) => {
+  if (typeof name !== "string" || !name.trim()) return name;
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
+const compactTitle = (title, isMobile) => {
+  if (!isMobile || typeof title !== "string") return title;
+  const t = stripLeadingEmoji(title);
+  if (/category/i.test(t)) return "Categories";
+  if (/payment/i.test(t)) return "Payments";
+  return t;
+};
+
 const ReusablePieChart = ({
   title = "Pie Chart",
   titleIcon,
@@ -305,10 +325,22 @@ const ReusablePieChart = ({
   // Responsive radii - use MUI useMediaQuery for reactive updates
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
-  const defaultInner = donut ? (isMobile ? 45 : isTablet ? 60 : 80) : 0;
-  const defaultOuter = isMobile ? 85 : isTablet ? 110 : 150;
+  // Percentage radii so pie fills the card width across breakpoints
+  const defaultInner = donut
+    ? isMobile
+      ? "38%"
+      : isTablet
+        ? "42%"
+        : "48%"
+    : 0;
+  const defaultOuter = isMobile ? "72%" : isTablet ? "78%" : "82%";
   const iRadius = innerRadius ?? defaultInner;
   const oRadius = outerRadius ?? defaultOuter;
+  const chartHeight = isMobile
+    ? Math.min(Math.max(height, 240), 280)
+    : isTablet
+      ? Math.max(height, 340)
+      : height;
 
   // Handle mouse events
   const onPieEnter = (_, index) => setActiveIndex(index);
@@ -348,67 +380,126 @@ const ReusablePieChart = ({
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
         style={{
-          fontSize: isMobile ? "10px" : "12px",
+          fontSize: isMobile ? "9px" : "12px",
           fontWeight: activeIndex === index ? 700 : 600,
           textShadow:
             themeMode === "dark" ? "0 1px 2px rgba(0,0,0,0.5)" : "none",
         }}
       >
-        {`${(percent * 100).toFixed(1)}%`}
+        {`${(percent * 100).toFixed(isMobile ? 0 : 1)}%`}
       </text>
     );
   };
 
+  const displayTitle = compactTitle(
+    typeof title === "string" ? stripLeadingEmoji(title) : title,
+    isMobile,
+  );
+
   return (
     <div
-      className={className}
+      className={`${className}${isMobile ? " is-mobile" : ""}`}
       style={{
         backgroundColor: themeColors.secondary_bg,
         border: `1px solid ${themeColors.border_color}`,
+        width: "100%",
+        boxSizing: "border-box",
       }}
     >
-      <div className="chart-header">
+      <div
+        className={`chart-header dashboard-chart-header pie-chart-header${
+          isMobile ? " is-mobile" : ""
+        }`}
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: isMobile ? 6 : 10,
+          flexWrap: "nowrap",
+          width: "100%",
+          marginBottom: isMobile ? 8 : 12,
+        }}
+      >
         <h3
           style={{
             color: themeColors.primary_text,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: isMobile ? 4 : 8,
             margin: 0,
+            minWidth: 0,
+            flex: "1 1 auto",
+            fontSize: isMobile ? "0.78rem" : "1.05rem",
+            fontWeight: 600,
+            lineHeight: 1.2,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
           {titleIcon
             ? applyAccentToIcon(titleIcon, themeColors.primary_accent)
             : getAccentFunctionalIcon("chart", themeColors.primary_accent, {
-                sx: { fontSize: 22 },
+                sx: { fontSize: isMobile ? 16 : 22, flexShrink: 0 },
               })}
-          {typeof title === "string" ? stripLeadingEmoji(title) : title}
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+            {displayTitle}
+          </span>
         </h3>
         {controls && (
-          <div className="chart-controls">
+          <div
+            className="chart-controls dashboard-chart-controls pie-chart-controls"
+            style={{
+              display: "inline-flex",
+              flexDirection: "row",
+              alignItems: "center",
+              flexWrap: "nowrap",
+              gap: isMobile ? 4 : 8,
+              flexShrink: 0,
+              marginLeft: "auto",
+              width: "auto",
+            }}
+          >
             {onTimeframeChange && (
-              <select
-                className="time-selector"
+              <ChartTimeframeSelector
                 value={timeframe}
-                onChange={(e) => onTimeframeChange(e.target.value)}
-                style={{
-                  backgroundColor: themeColors.tertiary_bg,
-                  color: themeColors.primary_text,
-                  border: `1px solid ${themeColors.border_color}`,
-                }}
-              >
-                <option value="this_month">This Month</option>
-                <option value="last_month">Last Month</option>
-                <option value="last_3_months">Last 3 Months</option>
-                <option value="this_year">This Year</option>
-                <option value="last_year">Last Year</option>
-                <option value="all_time">All Time</option>
-              </select>
+                onChange={onTimeframeChange}
+                ariaLabel="Timeframe"
+                compact
+                options={[
+                  {
+                    value: "this_month",
+                    label: isMobile ? "Month" : "This Month",
+                  },
+                  {
+                    value: "last_month",
+                    label: isMobile ? "Last Mo" : "Last Month",
+                  },
+                  {
+                    value: "last_3_months",
+                    label: isMobile ? "3 Mo" : "Last 3 Months",
+                  },
+                  {
+                    value: "this_year",
+                    label: isMobile ? "Year" : "This Year",
+                  },
+                  {
+                    value: "last_year",
+                    label: isMobile ? "Last Yr" : "Last Year",
+                  },
+                  {
+                    value: "all_time",
+                    label: isMobile ? "All" : "All Time",
+                  },
+                ]}
+              />
             )}
             {onFlowTypeChange && (
               <ChartTypeToggle
                 selectedType={flowType}
                 onToggle={onFlowTypeChange}
+                compact={isMobile}
                 options={[
                   { value: "loss", label: "Loss", color: "#ef4444" },
                   { value: "gain", label: "Gain", color: "#10b981" },
@@ -419,22 +510,33 @@ const ReusablePieChart = ({
         )}
       </div>
       {loading && skeleton ? (
-        <div style={{ height }} className="chart-loading-wrapper">
+        <div style={{ height: chartHeight }} className="chart-loading-wrapper">
           {skeleton}
         </div>
       ) : (
-        <Box sx={{ position: "relative", width: "100%", height }}>
+        <Box
+          className="dashboard-chart-plot"
+          sx={{ position: "relative", width: "100%", height: chartHeight }}
+        >
           {showEmpty ? (
             <EmptyStateCard
               icon="chart"
               title="No distribution data"
               message="We couldn't find any data for this timeframe yet."
-              height={height}
+              height={chartHeight}
               bordered={false}
             />
           ) : (
-            <ResponsiveContainer width="100%" height={height}>
-              <PieChart onMouseLeave={onPieLeave}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart
+                onMouseLeave={onPieLeave}
+                margin={{
+                  top: isMobile ? 4 : 8,
+                  right: isMobile ? 4 : 8,
+                  bottom: isMobile ? 4 : 8,
+                  left: isMobile ? 4 : 8,
+                }}
+              >
                 <defs>
                   {/* Drop shadow filter for 3D effect */}
                   <filter
@@ -529,10 +631,12 @@ const ReusablePieChart = ({
                 {legend && (
                   <Legend
                     verticalAlign="bottom"
-                    height={36}
+                    height={isMobile ? 28 : 36}
                     wrapperStyle={{
                       color: themeColors.primary_text,
                       fontSize: isMobile ? "10px" : "12px",
+                      lineHeight: 1.2,
+                      paddingTop: isMobile ? 2 : 4,
                     }}
                     onMouseEnter={handleLegendMouseEnter}
                     onMouseLeave={handleLegendMouseLeave}
@@ -541,26 +645,42 @@ const ReusablePieChart = ({
                       const iconKey = entry.payload?.icon || value || "";
                       const iconColor =
                         entry.payload?.fill || entry.color || "#14b8a6";
+                      const label = humanizeLabel(value);
                       return (
                         <span
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: "4px",
+                            gap: isMobile ? 3 : 4,
+                            maxWidth: isMobile ? 96 : 160,
                           }}
+                          title={label}
                         >
                           <span
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              fontSize: "1em",
+                              fontSize: isMobile ? "0.85em" : "1em",
+                              flexShrink: 0,
                             }}
                           >
                             {getEntityIcon(entityType, iconKey, {
-                              sx: { color: iconColor, fontSize: "1em" },
+                              sx: {
+                                color: iconColor,
+                                fontSize: isMobile ? "0.85em" : "1em",
+                              },
                             })}
                           </span>
-                          <span>{value}</span>
+                          <span
+                            style={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              fontSize: isMobile ? 10 : 12,
+                            }}
+                          >
+                            {label}
+                          </span>
                         </span>
                       );
                     }}
@@ -575,7 +695,12 @@ const ReusablePieChart = ({
       {renderFooterTotal && !loading && !showEmpty && (
         <div
           className="total-amount total-amount-bottom"
-          style={{ color: themeColors.primary_text }}
+          style={{
+            color: themeColors.primary_text,
+            fontSize: isMobile ? "0.85rem" : undefined,
+            padding: isMobile ? "8px 10px" : undefined,
+            marginTop: isMobile ? 8 : undefined,
+          }}
         >
           {footerPrefix} {currencySymbol}
           {formatNumber0(totalAmount)}

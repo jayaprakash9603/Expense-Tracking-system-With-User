@@ -5,6 +5,10 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class TabRouteRegistry {
+    public static final String LOGIN_PATH = "/login";
+    public static final String REGISTER_PATH = "/register";
+    public static final String DASHBOARD_PATH = "/dashboard";
+
     private final Map<String, String> labelToPath;
 
     public TabRouteRegistry() {
@@ -21,10 +25,10 @@ public final class TabRouteRegistry {
 
     private Map<String, String> buildRoutes() {
         Map<String, String> routes = new LinkedHashMap<>();
-        routes.put(normalize("Login"), "/login");
-        routes.put(normalize("Signup"), "/register");
-        routes.put(normalize("Dashboard"), "/dashboard");
-        routes.put(normalize("Home"), "/dashboard");
+        routes.put(normalize("Login"), LOGIN_PATH);
+        routes.put(normalize("Signup"), REGISTER_PATH);
+        routes.put(normalize("Dashboard"), DASHBOARD_PATH);
+        routes.put(normalize("Home"), DASHBOARD_PATH);
         routes.put(normalize("Expenses"), "/expenses");
         routes.put(normalize("Categories"), "/category-flow");
         routes.put(normalize("Payments"), "/payment-method");

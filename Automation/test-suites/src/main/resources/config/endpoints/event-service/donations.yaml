@@ -1,0 +1,21 @@
+endpoints:
+
+  - key: events.donations.create
+    method: POST
+    path: /api/events/donations
+    auth: true
+
+  - key: events.donations.list
+    method: GET
+    path: /api/events/{eventId}/donations/user/{userId}
+    auth: true
+
+  - key: events.budgets.create
+    method: POST
+    path: /api/events/budgets
+    auth: true
+
+  - key: events.budgets.list
+    method: GET
+    path: /api/events/{eventId}/budgets/user/{userId}
+    auth: true

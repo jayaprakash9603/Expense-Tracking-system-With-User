@@ -11,6 +11,7 @@ import {
   DEFAULT_REPORT_FLOW_TYPES,
 } from "../constants/reportFilters";
 import { isFeatureEnabledInState } from "../config/featureCatalog";
+import { AppSelect } from "./ui";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -81,16 +82,6 @@ const ReportHeader = ({
       menuOnExport ||
       typeof onDownloadPdf === "function" ||
       typeof onCustomize === "function");
-  const selectStyle = {
-    background: colors.primary_bg,
-    border: `1px solid ${colors.border_color}`,
-    color: colors.primary_text,
-    padding: "8px 12px",
-    borderRadius: "6px",
-    fontSize: "14px",
-    cursor: "pointer",
-  };
-
   const hasMatchingTimeframe = useMemo(
     () => timeframeOptions.some((option) => option.value === timeframe),
     [timeframe, timeframeOptions],
@@ -300,41 +291,45 @@ const ReportHeader = ({
             marginLeft: "-20px",
           }}
         >
-          <select
+          <AppSelect
+            className="timeframe-selector"
             value={flowType}
-            onChange={(e) =>
-              onFlowTypeChange && onFlowTypeChange(e.target.value)
-            }
+            onValueChange={(v) => onFlowTypeChange?.(v)}
+            options={flowTypeOptions}
+            ariaLabel="Flow type"
+            size="small"
+            density="compact"
+            fullWidth={false}
+            displayEmpty={false}
+            showSelectedCheck={false}
+            preferNativeOnMobile
+            sx={{ minWidth: 120 }}
+          />
+          <AppSelect
             className="timeframe-selector"
-            style={selectStyle}
-            aria-label="Flow type"
-          >
-            {flowTypeOptions.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </select>
-          <select
             value={timeframeSelectValue}
-            onChange={(e) =>
-              onTimeframeChange && onTimeframeChange(e.target.value)
-            }
-            className="timeframe-selector"
-            style={selectStyle}
-            aria-label="Timeframe"
-          >
-            {shouldShowPlaceholderOption ? (
-              <option value={CUSTOM_TIMEFRAME_PLACEHOLDER} disabled>
-                Select option
-              </option>
-            ) : null}
-            {timeframeOptions.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
+            onValueChange={(v) => onTimeframeChange?.(v)}
+            options={[
+              ...(shouldShowPlaceholderOption
+                ? [
+                    {
+                      value: CUSTOM_TIMEFRAME_PLACEHOLDER,
+                      label: "Select option",
+                      disabled: true,
+                    },
+                  ]
+                : []),
+              ...timeframeOptions,
+            ]}
+            ariaLabel="Timeframe"
+            size="small"
+            density="compact"
+            fullWidth={false}
+            displayEmpty={false}
+            showSelectedCheck={false}
+            preferNativeOnMobile
+            sx={{ minWidth: 140 }}
+          />
           {extraSelects.map((selectConfig, index) => {
             const options = Array.isArray(selectConfig.options)
               ? selectConfig.options
@@ -343,34 +338,35 @@ const ReportHeader = ({
               selectConfig.value === undefined || selectConfig.value === null
                 ? ""
                 : selectConfig.value;
+            const mappedOptions = [
+              ...(selectConfig.placeholderOption
+                ? [
+                    {
+                      value: selectConfig.placeholderOption.value,
+                      label: selectConfig.placeholderOption.label,
+                      disabled:
+                        selectConfig.placeholderOption.disabled !== false,
+                    },
+                  ]
+                : []),
+              ...options,
+            ];
             return (
-              <select
+              <AppSelect
                 key={selectConfig.id || `extra-select-${index}`}
-                value={value}
-                onChange={(event) =>
-                  selectConfig.onChange?.(event.target.value)
-                }
                 className="timeframe-selector"
-                style={selectStyle}
-                aria-label={selectConfig.ariaLabel || "Additional filter"}
-              >
-                {selectConfig.placeholderOption ? (
-                  <option
-                    value={selectConfig.placeholderOption.value}
-                    disabled={selectConfig.placeholderOption.disabled !== false}
-                  >
-                    {selectConfig.placeholderOption.label}
-                  </option>
-                ) : null}
-                {options.map((option) => (
-                  <option
-                    key={option.value ?? option.label}
-                    value={option.value}
-                  >
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                value={value}
+                onValueChange={(v) => selectConfig.onChange?.(v)}
+                options={mappedOptions}
+                ariaLabel={selectConfig.ariaLabel || "Additional filter"}
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={Boolean(selectConfig.placeholderOption)}
+                showSelectedCheck={false}
+                preferNativeOnMobile
+                sx={{ minWidth: 140 }}
+              />
             );
           })}
           {showFilterButton && typeof onFilter === "function" ? (

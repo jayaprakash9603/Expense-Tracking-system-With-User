@@ -1,28 +1,41 @@
-import React from "react";
+import React, { useId, useMemo, isValidElement } from "react";
 import {
   Select as MuiSelect,
   MenuItem,
   FormControl,
   InputLabel,
   FormHelperText,
+  ListSubheader,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Box,
+  useMediaQuery,
 } from "@mui/material";
+import CheckIcon from "@mui/icons-material/Check";
 import PropTypes from "prop-types";
 import { useTheme } from "../../../hooks/useTheme";
+import "./AppSelect.css";
 
 /**
- * AppSelect - Base wrapper for MUI Select component
+ * AppSelect — theme-aware MUI Select for Expensio.
  *
- * Provides consistent theming across the application.
+ * Follows MUI Select a11y (labelId / aria-label) and supports:
+ * - options API or MenuItem children
+ * - icons + secondary text on options
+ * - grouped options
+ * - compact density for chart/toolbar headers
+ * - native select on small screens when `preferNativeOnMobile`
  *
  * @example
  * <AppSelect
+ *   label="Category"
  *   value={category}
  *   onChange={(e) => setCategory(e.target.value)}
  *   options={[
- *     { value: 'food', label: 'Food' },
- *     { value: 'transport', label: 'Transport' },
+ *     { value: "food", label: "Food", icon: <RestaurantIcon /> },
+ *     { value: "transport", label: "Transport" },
  *   ]}
- *   label="Category"
  * />
  */
 const AppSelect = React.forwardRef(
@@ -30,125 +43,376 @@ const AppSelect = React.forwardRef(
     {
       value,
       onChange,
+      onValueChange,
       options = [],
+      groups,
+      children,
       label,
-      placeholder = "Select...",
-      error = false,
+      placeholder = "Select…",
       helperText = "",
+      error = false,
       disabled = false,
       size = "medium",
+      density = "comfortable",
       fullWidth = true,
       required = false,
       multiple = false,
       displayEmpty = true,
       renderValue,
+      showSelectedCheck = true,
+      startAdornment,
+      preferNativeOnMobile = false,
+      id: idProp,
+      name,
+      ariaLabel,
+      className = "",
       sx = {},
+      MenuProps: menuPropsOverride,
+      FormControlProps = {},
+      SelectProps = {},
       ...restProps
     },
     ref,
   ) => {
-    const { colors } = useTheme();
+    const { colors, mode } = useTheme();
+    const reactId = useId();
+    const isMobile = useMediaQuery("(max-width:600px)");
+    const useNative = Boolean(preferNativeOnMobile && isMobile && !multiple);
 
-    // Size configurations
+    const selectId = idProp || `app-select-${reactId}`;
+    const labelId = label ? `${selectId}-label` : undefined;
+    const helperId = helperText ? `${selectId}-helper` : undefined;
+
+    const isCompact = density === "compact" || size === "compact";
+    const resolvedSize = isCompact ? "small" : size === "large" ? "medium" : size;
+
     const sizeConfig = {
-      small: {
-        height: "40px",
-        fontSize: "14px",
-      },
-      medium: {
-        height: "48px",
-        fontSize: "15px",
-      },
-      large: {
-        height: "56px",
-        fontSize: "16px",
-      },
+      compact: { height: 32, fontSize: 12, itemPy: 0.75, radius: 8 },
+      small: { height: 40, fontSize: 14, itemPy: 1, radius: 10 },
+      medium: { height: 48, fontSize: 15, itemPy: 1.25, radius: 10 },
+      large: { height: 56, fontSize: 16, itemPy: 1.5, radius: 12 },
     };
+    const currentSize =
+      sizeConfig[isCompact ? "compact" : size] || sizeConfig.medium;
 
-    const currentSize = sizeConfig[size] || sizeConfig.medium;
-
-    // Theme-aware colors
-    const bgColor = colors.active_bg || colors.secondary_bg || "#29282b";
+    // Rest state stays neutral like a native select; the accent only appears on
+    // hover and focus so toolbars aren't dominated by tinted controls.
+    const bgColor = colors.input_bg || colors.secondary_bg || "#222222";
+    const hoverBgColor = colors.button_inactive || bgColor;
     const textColor = colors.primary_text || "#fff";
     const borderColor = colors.border_color || "rgb(75, 85, 99)";
     const focusBorderColor = colors.primary_accent || "#00dac6";
+    const hoverBorderColor = focusBorderColor;
     const errorBorderColor = colors.error || "#ff4d4f";
-    const placeholderColor = colors.placeholder_text || "#9ca3af";
+    const placeholderColor =
+      colors.placeholder_text || colors.secondary_text || "#9ca3af";
+    const menuBg = colors.tertiary_bg || colors.primary_bg || "#1f1f23";
+
+    const flatOptions = useMemo(() => {
+      if (Array.isArray(groups) && groups.length > 0) {
+        return groups.flatMap((g) => g.options || []);
+      }
+      return options;
+    }, [groups, options]);
+
+    const handleChange = (event) => {
+      onChange?.(event);
+      onValueChange?.(event?.target?.value);
+    };
+
+    const defaultRenderValue = (selected) => {
+      if (
+        selected === undefined ||
+        selected === null ||
+        selected === "" ||
+        (Array.isArray(selected) && selected.length === 0)
+      ) {
+        return (
+          <span className="app-select__placeholder" style={{ color: placeholderColor }}>
+            {placeholder}
+          </span>
+        );
+      }
+
+      if (multiple && Array.isArray(selected)) {
+        if (selected.length <= 2) {
+          return selected
+            .map((val) => {
+              const option = flatOptions.find((opt) => opt.value === val);
+              return option?.label || val;
+            })
+            .join(", ");
+        }
+        return (
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+            {selected.slice(0, 2).map((val) => {
+              const option = flatOptions.find((opt) => opt.value === val);
+              return (
+                <Chip
+                  key={String(val)}
+                  size="small"
+                  label={option?.label || val}
+                  sx={{
+                    height: 22,
+                    fontSize: 11,
+                    bgcolor: `${focusBorderColor}22`,
+                    color: textColor,
+                    border: `1px solid ${focusBorderColor}44`,
+                  }}
+                />
+              );
+            })}
+            {selected.length > 2 ? (
+              <Chip
+                size="small"
+                label={`+${selected.length - 2}`}
+                sx={{
+                  height: 22,
+                  fontSize: 11,
+                  bgcolor: colors.hover_bg,
+                  color: textColor,
+                }}
+              />
+            ) : null}
+          </Box>
+        );
+      }
+
+      const option = flatOptions.find((opt) => opt.value === selected);
+      if (!option) return selected;
+
+      return (
+        <span className="app-select__value">
+          {option.icon ? (
+            <span className="app-select__value-icon" aria-hidden>
+              {isValidElement(option.icon)
+                ? React.cloneElement(option.icon, {
+                    sx: {
+                      fontSize: isCompact ? 14 : 18,
+                      color: focusBorderColor,
+                      ...(option.icon.props?.sx || {}),
+                    },
+                  })
+                : option.icon}
+            </span>
+          ) : null}
+          {option.label}
+        </span>
+      );
+    };
 
     const formControlSx = {
       width: fullWidth ? "100%" : "auto",
+      minWidth: isCompact ? 96 : undefined,
       "& .MuiInputBase-root": {
         backgroundColor: bgColor,
         color: textColor,
-        height: currentSize.height,
+        minHeight: currentSize.height,
+        height: multiple ? "auto" : currentSize.height,
         fontSize: currentSize.fontSize,
-        borderRadius: "8px",
+        borderRadius: `${currentSize.radius}px`,
+        transition:
+          "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
       },
       "& .MuiOutlinedInput-root": {
         "& fieldset": {
           borderColor: error ? errorBorderColor : borderColor,
           borderWidth: error ? "2px" : "1px",
         },
+        "&:hover": {
+          backgroundColor: error ? bgColor : hoverBgColor,
+        },
         "&:hover fieldset": {
-          borderColor: error ? errorBorderColor : borderColor,
+          borderColor: error ? errorBorderColor : hoverBorderColor,
         },
         "&.Mui-focused fieldset": {
           borderColor: error ? errorBorderColor : focusBorderColor,
           borderWidth: "2px",
         },
+        "&.Mui-focused": {
+          boxShadow: error
+            ? `0 0 0 3px ${errorBorderColor}22`
+            : `0 0 0 3px ${focusBorderColor}22`,
+        },
+        "&.Mui-disabled": {
+          opacity: 0.55,
+        },
+      },
+      "& .MuiSelect-select": {
+        display: "flex",
+        alignItems: "center",
+        py: isCompact ? "4px" : undefined,
+        pr: "32px !important",
       },
       "& .MuiSelect-icon": {
         color: colors.secondary_text || placeholderColor,
+        opacity: 0.65,
+        transition: "color 0.2s ease, opacity 0.2s ease",
+      },
+      "&:hover .MuiSelect-icon, & .Mui-focused .MuiSelect-icon": {
+        color: error ? errorBorderColor : focusBorderColor,
+        opacity: 1,
       },
       "& .MuiInputLabel-root": {
         color: colors.secondary_text || placeholderColor,
         "&.Mui-focused": {
           color: error ? errorBorderColor : focusBorderColor,
         },
+        "&.Mui-error": {
+          color: errorBorderColor,
+        },
+      },
+      "& .MuiFormHelperText-root": {
+        marginLeft: 0.5,
+        fontSize: "0.75rem",
       },
       ...sx,
     };
 
     const menuProps = {
       PaperProps: {
+        className: "app-select__menu-paper",
         sx: {
-          backgroundColor: colors.primary_bg || "#1f1f23",
+          mt: 0.75,
+          backgroundColor: menuBg,
           color: textColor,
-          borderRadius: "8px",
-          border: `1px solid ${colors.border_color || "rgba(255, 255, 255, 0.1)"}`,
-          boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
+          borderRadius: "12px",
+          border: `1px solid ${
+            mode === "dark" ? `${focusBorderColor}40` : borderColor
+          }`,
+          boxShadow:
+            mode === "dark"
+              ? "0 16px 40px rgba(0,0,0,0.5)"
+              : "0 12px 32px rgba(15,23,42,0.12)",
+          backgroundImage: "none",
+          maxHeight: 360,
           "& .MuiMenuItem-root": {
             fontSize: currentSize.fontSize,
-            padding: "10px 16px",
+            borderRadius: "8px",
+            mx: 0.75,
+            my: 0.25,
+            py: currentSize.itemPy,
+            minHeight: isCompact ? 36 : 44,
+            gap: 1,
+            transition: "background-color 0.15s ease, transform 0.15s ease",
             "&:hover": {
-              backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+              backgroundColor: colors.hover_bg || "rgba(255,255,255,0.08)",
             },
             "&.Mui-selected": {
-              backgroundColor: colors.selected_bg || "rgba(0, 218, 198, 0.15)",
+              backgroundColor: `${focusBorderColor}22`,
+              color: textColor,
+              fontWeight: 600,
               "&:hover": {
-                backgroundColor: colors.selected_bg || "rgba(0, 218, 198, 0.2)",
+                backgroundColor: `${focusBorderColor}33`,
               },
             },
+            "&.Mui-focusVisible": {
+              backgroundColor: `${focusBorderColor}18`,
+              outline: `2px solid ${focusBorderColor}`,
+              outlineOffset: -2,
+            },
           },
+          "& .MuiListSubheader-root": {
+            backgroundColor: menuBg,
+            color: colors.secondary_text,
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            lineHeight: "32px",
+          },
+          ...(menuPropsOverride?.PaperProps?.sx || {}),
         },
+        ...(menuPropsOverride?.PaperProps || {}),
       },
+      ...menuPropsOverride,
     };
 
-    // Default render value for placeholder
-    const defaultRenderValue = (selected) => {
-      if (!selected || (Array.isArray(selected) && selected.length === 0)) {
-        return <span style={{ color: placeholderColor }}>{placeholder}</span>;
+    const renderOptionContent = (option) => {
+      const selected =
+        multiple && Array.isArray(value)
+          ? value.includes(option.value)
+          : value === option.value;
+
+      return (
+        <>
+          {option.icon ? (
+            <ListItemIcon
+              sx={{
+                minWidth: 36,
+                color: selected ? focusBorderColor : colors.secondary_text,
+              }}
+            >
+              {isValidElement(option.icon)
+                ? React.cloneElement(option.icon, {
+                    sx: {
+                      fontSize: 20,
+                      color: selected ? focusBorderColor : colors.secondary_text,
+                      ...(option.icon.props?.sx || {}),
+                    },
+                  })
+                : option.icon}
+            </ListItemIcon>
+          ) : null}
+          <ListItemText
+            primary={option.label}
+            secondary={option.description}
+            primaryTypographyProps={{
+              fontSize: currentSize.fontSize,
+              fontWeight: selected ? 600 : 500,
+              color: textColor,
+            }}
+            secondaryTypographyProps={{
+              fontSize: "0.72rem",
+              color: colors.secondary_text,
+            }}
+          />
+          {showSelectedCheck && selected && !multiple ? (
+            <CheckIcon sx={{ fontSize: 18, color: focusBorderColor, ml: 1 }} />
+          ) : null}
+        </>
+      );
+    };
+
+    const renderOptions = () => {
+      if (children) return children;
+
+      if (Array.isArray(groups) && groups.length > 0) {
+        return groups.flatMap((group) => [
+          <ListSubheader key={`group-${group.label}`} disableSticky>
+            {group.label}
+          </ListSubheader>,
+          ...(group.options || []).map((option) => (
+            <MenuItem
+              key={String(option.value)}
+              value={option.value}
+              disabled={option.disabled}
+            >
+              {renderOptionContent(option)}
+            </MenuItem>
+          )),
+        ]);
       }
-      if (multiple && Array.isArray(selected)) {
-        return selected
-          .map((val) => {
-            const option = options.find((opt) => opt.value === val);
-            return option?.label || val;
-          })
-          .join(", ");
-      }
-      const option = options.find((opt) => opt.value === selected);
-      return option?.label || selected;
+
+      return flatOptions.map((option) =>
+        useNative ? (
+          <option
+            key={String(option.value)}
+            value={option.value}
+            disabled={option.disabled}
+          >
+            {option.label}
+          </option>
+        ) : (
+          <MenuItem
+            key={String(option.value)}
+            value={option.value}
+            disabled={option.disabled}
+          >
+            {renderOptionContent(option)}
+          </MenuItem>
+        ),
+      );
     };
 
     return (
@@ -157,32 +421,52 @@ const AppSelect = React.forwardRef(
         error={error}
         disabled={disabled}
         required={required}
-        size={size === "large" ? "medium" : size}
+        size={resolvedSize}
+        className={`app-select${isCompact ? " app-select--compact" : ""} ${className}`.trim()}
         sx={formControlSx}
+        {...FormControlProps}
       >
-        {label && <InputLabel>{label}</InputLabel>}
+        {label && !useNative ? (
+          <InputLabel id={labelId} htmlFor={selectId}>
+            {label}
+          </InputLabel>
+        ) : null}
+        {label && useNative ? (
+          <InputLabel shrink htmlFor={selectId}>
+            {label}
+          </InputLabel>
+        ) : null}
+
         <MuiSelect
           ref={ref}
-          value={value}
-          onChange={onChange}
+          id={selectId}
+          name={name}
+          labelId={labelId}
+          value={value ?? (multiple ? [] : "")}
+          onChange={handleChange}
           label={label}
           multiple={multiple}
+          native={useNative}
           displayEmpty={displayEmpty}
-          renderValue={renderValue || defaultRenderValue}
-          MenuProps={menuProps}
+          renderValue={useNative ? undefined : renderValue || defaultRenderValue}
+          startAdornment={startAdornment}
+          MenuProps={useNative ? undefined : menuProps}
+          inputProps={{
+            "aria-label": !label ? ariaLabel || placeholder : undefined,
+            "aria-describedby": helperId,
+            ...(SelectProps.inputProps || {}),
+          }}
+          {...SelectProps}
           {...restProps}
         >
-          {options.map((option) => (
-            <MenuItem
-              key={option.value}
-              value={option.value}
-              disabled={option.disabled}
-            >
-              {option.label}
-            </MenuItem>
-          ))}
+          {renderOptions()}
         </MuiSelect>
-        {helperText && <FormHelperText>{helperText}</FormHelperText>}
+
+        {helperText ? (
+          <FormHelperText id={helperId} role={error ? "alert" : undefined}>
+            {helperText}
+          </FormHelperText>
+        ) : null}
       </FormControl>
     );
   },
@@ -190,43 +474,49 @@ const AppSelect = React.forwardRef(
 
 AppSelect.displayName = "AppSelect";
 
+const optionShape = PropTypes.shape({
+  value: PropTypes.any.isRequired,
+  label: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
+  description: PropTypes.string,
+  icon: PropTypes.node,
+  disabled: PropTypes.bool,
+});
+
 AppSelect.propTypes = {
-  /** Selected value */
   value: PropTypes.any,
-  /** Change handler */
   onChange: PropTypes.func,
-  /** Array of options */
-  options: PropTypes.arrayOf(
+  onValueChange: PropTypes.func,
+  options: PropTypes.arrayOf(optionShape),
+  groups: PropTypes.arrayOf(
     PropTypes.shape({
-      value: PropTypes.any.isRequired,
       label: PropTypes.string.isRequired,
-      disabled: PropTypes.bool,
+      options: PropTypes.arrayOf(optionShape).isRequired,
     }),
   ),
-  /** Input label */
+  children: PropTypes.node,
   label: PropTypes.string,
-  /** Placeholder text */
   placeholder: PropTypes.string,
-  /** Error state */
-  error: PropTypes.bool,
-  /** Helper text */
   helperText: PropTypes.string,
-  /** Disabled state */
+  error: PropTypes.bool,
   disabled: PropTypes.bool,
-  /** Input size */
-  size: PropTypes.oneOf(["small", "medium", "large"]),
-  /** Full width */
+  size: PropTypes.oneOf(["compact", "small", "medium", "large"]),
+  density: PropTypes.oneOf(["compact", "comfortable"]),
   fullWidth: PropTypes.bool,
-  /** Required field */
   required: PropTypes.bool,
-  /** Allow multiple selections */
   multiple: PropTypes.bool,
-  /** Display empty value */
   displayEmpty: PropTypes.bool,
-  /** Custom render function for selected value */
   renderValue: PropTypes.func,
-  /** Additional MUI sx styles */
+  showSelectedCheck: PropTypes.bool,
+  startAdornment: PropTypes.node,
+  preferNativeOnMobile: PropTypes.bool,
+  id: PropTypes.string,
+  name: PropTypes.string,
+  ariaLabel: PropTypes.string,
+  className: PropTypes.string,
   sx: PropTypes.object,
+  MenuProps: PropTypes.object,
+  FormControlProps: PropTypes.object,
+  SelectProps: PropTypes.object,
 };
 
 export default AppSelect;

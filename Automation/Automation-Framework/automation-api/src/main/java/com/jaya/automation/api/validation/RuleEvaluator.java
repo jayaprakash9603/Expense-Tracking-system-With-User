@@ -61,8 +61,17 @@ public final class RuleEvaluator {
         if (json == null) {
             throw new IllegalArgumentException("Context key not found: " + contextKey);
         }
-        Object result = JsonPath.from(json).get(jsonPathExpr);
+        Object result = readJsonPath(json, jsonPathExpr);
         return result != null ? result.toString() : null;
+    }
+
+    private static Object readJsonPath(String json, String jsonPathExpr) {
+        JsonPath jsonPath = JsonPath.from(json);
+        Object result = jsonPath.get(jsonPathExpr);
+        if (result == null && jsonPathExpr.startsWith("$.")) {
+            result = jsonPath.get(jsonPathExpr.substring(2));
+        }
+        return result;
     }
 
     private static boolean applyOperator(String operator, String source, String target) {

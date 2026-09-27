@@ -9,6 +9,7 @@ import useUserSettings from "../hooks/useUserSettings";
 import { useTheme } from "../hooks/useTheme";
 import AccordionToolbar from "./accordion/AccordionToolbar";
 import NoDataPlaceholder from "./NoDataPlaceholder";
+import { AppSelect } from "./ui";
 import { applyColumnFilter } from "../utils/data/filterLogic";
 
 /**
@@ -845,12 +846,11 @@ export function GenericAccordionGroup({
                           <div className="pm-row-sort-controls">
                             <label className="pm-toolbar-label">
                               <span>Sort rows:</span>
-                              <select
+                              <AppSelect
                                 value={
                                   rowSortUiByGroup[groupKey]?.key || "none"
                                 }
-                                onChange={(e) => {
-                                  const key = e.target.value;
+                                onValueChange={(key) => {
                                   setRowSortUiByGroup((prev) => ({
                                     ...prev,
                                     [groupKey]: {
@@ -876,25 +876,29 @@ export function GenericAccordionGroup({
                                     [groupKey]: 1,
                                   }));
                                 }}
-                                aria-label="Sort rows by"
-                              >
-                                <option value="none">None</option>
-                                {columns.map((c) => (
-                                  <option key={c.key} value={c.key}>
-                                    {c.label}
-                                  </option>
-                                ))}
-                              </select>
+                                options={[
+                                  { value: "none", label: "None" },
+                                  ...columns.map((c) => ({
+                                    value: c.key,
+                                    label: c.label,
+                                  })),
+                                ]}
+                                ariaLabel="Sort rows by"
+                                size="small"
+                                density="compact"
+                                fullWidth={false}
+                                displayEmpty={false}
+                                showSelectedCheck={false}
+                              />
                             </label>
                             <label className="pm-toolbar-label">
                               <span>Dir:</span>
-                              <select
+                              <AppSelect
                                 value={
                                   rowSortUiByGroup[groupKey]?.direction ||
                                   "desc"
                                 }
-                                onChange={(e) => {
-                                  const direction = e.target.value;
+                                onValueChange={(direction) => {
                                   setRowSortUiByGroup((prev) => ({
                                     ...prev,
                                     [groupKey]: {
@@ -922,11 +926,17 @@ export function GenericAccordionGroup({
                                     [groupKey]: 1,
                                   }));
                                 }}
-                                aria-label="Row sort direction"
-                              >
-                                <option value="desc">Desc</option>
-                                <option value="asc">Asc</option>
-                              </select>
+                                options={[
+                                  { value: "desc", label: "Desc" },
+                                  { value: "asc", label: "Asc" },
+                                ]}
+                                ariaLabel="Row sort direction"
+                                size="small"
+                                density="compact"
+                                fullWidth={false}
+                                displayEmpty={false}
+                                showSelectedCheck={false}
+                              />
                             </label>
                           </div>
                         )}
@@ -1085,22 +1095,27 @@ export function GenericAccordionGroup({
           <div className="pm-group-page-size">
             <label>
               <span className="pm-page-size-label">Groups per page:</span>
-              <select
+              <AppSelect
                 value={groupsPerPage}
-                onChange={(e) => {
-                  e.stopPropagation(); // Also prevent propagation on select
-                  const val = Number(e.target.value) || defaultGroupsPerPage;
-                  setGroupsPerPage(val);
+                onValueChange={(val) => {
+                  const next = Number(val) || defaultGroupsPerPage;
+                  setGroupsPerPage(next);
                   setGroupsPage(1);
                 }}
-                onClick={(e) => e.stopPropagation()} // Prevent click propagation
-              >
-                {groupPageSizeOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+                options={groupPageSizeOptions.map((opt) => ({
+                  value: opt,
+                  label: String(opt),
+                }))}
+                ariaLabel="Groups per page"
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+                SelectProps={{
+                  onClick: (e) => e.stopPropagation(),
+                }}
+              />
             </label>
           </div>
         </div>

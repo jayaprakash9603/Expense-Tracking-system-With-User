@@ -3,6 +3,8 @@ package com.jaya.task.user.service.config;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -14,6 +16,7 @@ import java.util.Set;
 
 public final class JwtProvider {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtProvider.class);
     private static final long STANDARD_TOKEN_EXPIRY = 86400000;
     private static final long MFA_TOKEN_EXPIRY = 300000;
 
@@ -82,6 +85,7 @@ public final class JwtProvider {
             Boolean mfaPending = claims.get("mfa_pending", Boolean.class);
             return Boolean.TRUE.equals(mfaPending);
         } catch (Exception e) {
+            log.debug("Unable to determine whether JWT is MFA pending", e);
             return false;
         }
     }

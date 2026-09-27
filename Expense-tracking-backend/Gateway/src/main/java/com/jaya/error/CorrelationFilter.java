@@ -22,19 +22,24 @@ public class CorrelationFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String incoming = request.getHeaders().getFirst("X-Request-ID");
         final String requestId = (incoming == null || incoming.isBlank()) ? UUID.randomUUID().toString() : incoming;
+        final ServerWebExchange forwardedExchange;
         if (incoming == null || incoming.isBlank()) {
-            exchange.getRequest().mutate().header("X-Request-ID", requestId).build();
+            forwardedExchange = exchange.mutate()
+                    .request(request.mutate().header("X-Request-ID", requestId).build())
+                    .build();
+        } else {
+            forwardedExchange = exchange;
         }
         long start = System.currentTimeMillis();
         log.info("Incoming request id={} method={} path={}", requestId, request.getMethod(),
                 request.getURI().getPath());
-        return chain.filter(exchange)
+        return chain.filter(forwardedExchange)
                 .doOnError(err -> log.error("Request failed id={} path={} error={}", requestId,
                         request.getURI().getPath(), err.getMessage()))
                 .doFinally(sig -> {
                     long dur = System.currentTimeMillis() - start;
                     log.info("Completed request id={} status={} durationMs={}", requestId,
-                            exchange.getResponse().getStatusCode(), dur);
+                            forwardedExchange.getResponse().getStatusCode(), dur);
                 });
     }
 

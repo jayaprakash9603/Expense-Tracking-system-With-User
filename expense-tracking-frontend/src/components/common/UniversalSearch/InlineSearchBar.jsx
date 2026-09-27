@@ -3,10 +3,10 @@ import {
   Box,
   InputBase,
   IconButton,
-  Popper,
   Paper,
   Typography,
   CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
 import { useSelector } from "react-redux";
 import SearchIcon from "@mui/icons-material/Search";
@@ -32,6 +32,7 @@ const InlineSearchBar = () => {
   const { colors, mode } = useTheme();
   const { t } = useTranslation();
   const isDark = mode === "dark";
+  const isMobile = useMediaQuery("(max-width:600px)");
   const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 
   // Get user settings at parent level for performance
@@ -217,88 +218,111 @@ const InlineSearchBar = () => {
         justifyContent: "flex-end",
       }}
     >
-      {/* Search Input Container - Fixed width to prevent layout shift */}
+      {/* Search Input Container — high-contrast collapsed control */}
       <Box
         onClick={!isExpanded ? handleExpand : undefined}
+        role={!isExpanded ? "button" : undefined}
+        aria-label={!isExpanded ? t("search.openSearch") || "Search" : undefined}
+        tabIndex={!isExpanded ? 0 : undefined}
+        onKeyDown={
+          !isExpanded
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleExpand();
+                }
+              }
+            : undefined
+        }
         sx={{
           display: "flex",
           alignItems: "center",
-          borderRadius: "8px",
+          borderRadius: "12px",
           backgroundColor: isExpanded
-            ? "transparent"
-            : colors.button_inactive,
+            ? isDark
+              ? "rgba(255,255,255,0.06)"
+              : colors.tertiary_bg
+            : isDark
+              ? "rgba(255,255,255,0.08)"
+              : colors.tertiary_bg,
           border: `1px solid ${
             isExpanded
-              ? colors.border_color
-              : "transparent"
+              ? colors.primary_accent
+              : isDark
+                ? "rgba(255,255,255,0.22)"
+                : colors.border_color
           }`,
           cursor: isExpanded ? "text" : "pointer",
-          transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)", // Slower animation (0.5s)
-          width: isExpanded ? "100%" : "auto", // Auto width when collapsed to fit Ctrl+K
-          height: "36px",
+          transition: "background-color 0.2s ease, border-color 0.2s ease",
+          width: isExpanded ? (isMobile ? "min(68vw, 220px)" : "240px") : "auto",
+          minWidth: isExpanded ? undefined : isMobile ? 44 : undefined,
+          height: 44,
           overflow: "hidden",
-          transformOrigin: "right center", // Animate from right to left
+          boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
           "&:hover": {
             backgroundColor: isExpanded
-              ? "transparent"
-              : colors.hover_bg,
-            transform: isExpanded ? "none" : "scale(1.1)", // Match hover scale effect
+              ? isDark
+                ? "rgba(255,255,255,0.08)"
+                : colors.hover_bg
+              : isDark
+                ? "rgba(255,255,255,0.12)"
+                : colors.hover_bg,
+            borderColor: colors.primary_accent,
           },
         }}
       >
-        {/* Search Icon with Ctrl+K hint when collapsed */}
+        {/* Search Icon with Ctrl+K hint when collapsed (desktop/tablet) */}
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minWidth: isExpanded ? "36px" : "auto",
-            height: "36px",
+            minWidth: isExpanded ? 40 : isMobile ? 44 : "auto",
+            height: 44,
             gap: "6px",
-            px: isExpanded ? 0 : 1,
+            px: isExpanded ? 0.5 : isMobile ? 0 : 1.25,
           }}
         >
           <SearchIcon
             sx={{
-              fontSize: "20px",
-              color: colors.icon_default,
+              fontSize: 22,
+              color: colors.primary_text,
             }}
           />
-          {/* Ctrl+K hint - only shown when collapsed */}
-          {!isExpanded && (
+          {/* Shortcut chips — hide on phones (touch); high-contrast on larger screens */}
+          {!isExpanded && !isMobile && (
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: "2px",
+                gap: "4px",
               }}
             >
               <Box
                 sx={{
-                  padding: "2px 4px",
-                  borderRadius: "4px",
-                  backgroundColor: isDark
-                    ? colors.hover_bg
-                    : colors.hover_bg,
-                  fontSize: "10px",
-                  fontWeight: 500,
-                  color: colors.secondary_text,
-                  lineHeight: 1,
+                  padding: "3px 6px",
+                  borderRadius: "6px",
+                  backgroundColor: colors.primary_accent,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "#0a0a0a",
+                  lineHeight: 1.1,
+                  letterSpacing: "0.02em",
                 }}
               >
                 {isMac ? "⌘" : "Ctrl"}
               </Box>
               <Box
                 sx={{
-                  padding: "2px 4px",
-                  borderRadius: "4px",
+                  padding: "3px 6px",
+                  borderRadius: "6px",
                   backgroundColor: isDark
-                    ? colors.hover_bg
-                    : colors.hover_bg,
-                  fontSize: "10px",
-                  fontWeight: 500,
-                  color: colors.secondary_text,
-                  lineHeight: 1,
+                    ? "rgba(255,255,255,0.14)"
+                    : colors.border_color,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: colors.primary_text,
+                  lineHeight: 1.1,
                 }}
               >
                 K

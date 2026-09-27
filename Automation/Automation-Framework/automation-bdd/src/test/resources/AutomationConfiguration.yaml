@@ -74,15 +74,16 @@ app:
 
 suiteData:
   auth:
-    username: "jaya@gmail.com"
+    username: ""
     password: ""
+    signupPassword: ""
     invalidUsername: "invalid@example.test"
     invalidPassword: "invalid-pass"
-    testEmail: "jaya@gmail.com"
+    testEmail: ""
   api:
     defaultPage: 0
     defaultLimit: 20
-    baseUrl: "http://localhost:8080"
+    baseUrl: ""
   expenses:
     defaultType: LOSS
     defaultPaymentMethod: CASH

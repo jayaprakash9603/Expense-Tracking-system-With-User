@@ -1,0 +1,16 @@
+endpoints:
+
+  - key: expenses.internal.by-id
+    method: GET
+    path: /api/expenses/internal/get-by-id
+    auth: true
+
+  - key: expenses.internal.save
+    method: POST
+    path: /api/expenses/internal/save-single
+    auth: true
+
+  - key: expenses.internal.search-fuzzy
+    method: GET
+    path: /api/expenses/internal/search/fuzzy
+    auth: true

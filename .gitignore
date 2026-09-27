@@ -9,3 +9,7 @@ debug-*.log
 .code-review-graph
 .playwright-mcp
 .vscode
+
+# SonarQube local scan credentials
+.sonar-token
+.env

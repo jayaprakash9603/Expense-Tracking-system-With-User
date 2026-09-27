@@ -3,6 +3,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import InboxOutlinedIcon from "@mui/icons-material/InboxOutlined";
 import Checkbox from "@mui/material/Checkbox";
 import { handleSelectableSurfaceMouseDown } from "../../../utils/ui/selectableSurface";
+import { AppSelect } from "../../ui";
 import "../../PaymentMethodAccordion.css"; // Reuse existing styles
 
 // Define stable default objects outside component
@@ -526,13 +527,20 @@ const GroupedDataTable = ({
           <div className="pm-page-size pm-right" style={{ display: "flex", justifyContent: "flex-end", position: "relative" }}>
             <label>
               <span className="pm-page-size-label">Rows per page:</span>
-              <select value={pageSize} onChange={handlePageSizeChange}>
-                {pageSizeOptions.map((ps) => (
-                  <option key={ps} value={ps}>
-                    {ps}
-                  </option>
-                ))}
-              </select>
+              <AppSelect
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                options={pageSizeOptions.map((ps) => ({
+                  value: ps,
+                  label: String(ps),
+                }))}
+                ariaLabel="Rows per page"
+                size="small"
+                density="compact"
+                fullWidth={false}
+                displayEmpty={false}
+                showSelectedCheck={false}
+              />
             </label>
           </div>
         </div>

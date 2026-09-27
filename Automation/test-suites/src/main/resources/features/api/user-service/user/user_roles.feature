@@ -53,4 +53,4 @@ Feature: User role mapping APIs
       | path.userId | ${ctx.conflictUserId} |
       | path.roleId | ${ctx.conflictRoleId} |
     Then the response should indicate "conflict"
-    And the response should match the "error-map" schema
+    And the response should match the "user-error-map" schema

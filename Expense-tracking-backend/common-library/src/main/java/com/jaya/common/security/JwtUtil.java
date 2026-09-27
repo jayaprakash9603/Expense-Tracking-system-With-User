@@ -39,11 +39,11 @@ public class JwtUtil {
      */
     public Claims extractAllClaims(String token) {
         String cleanToken = cleanToken(token);
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(cleanToken)
-                .getPayload();
+                .parseClaimsJws(cleanToken)
+                .getBody();
     }
 
     /**
@@ -94,10 +94,10 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             String cleanToken = cleanToken(token);
-            Jwts.parser()
-                .verifyWith(getSigningKey())
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
                 .build()
-                .parseSignedClaims(cleanToken);
+                .parseClaimsJws(cleanToken);
             return !isTokenExpired(token);
         } catch (Exception e) {
             log.warn("Token validation failed: {}", e.getMessage());

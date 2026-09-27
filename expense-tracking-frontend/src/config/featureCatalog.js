@@ -337,16 +337,30 @@ export const getParentModule = (featureKey) => {
   return featureKey.split(".")[0];
 };
 
+/** Matches backend dormant defaults so APIs do not fire before flags load. */
+const DEFAULT_DORMANT_MODULES = new Set([
+  FEATURE_KEYS.FRIENDS,
+  FEATURE_KEYS.GROUPS,
+  FEATURE_KEYS.SHARING,
+  FEATURE_KEYS.CHAT,
+  FEATURE_KEYS.STORIES,
+  FEATURE_KEYS.ADMIN,
+  FEATURE_KEYS.THEME_CUSTOMIZATION,
+]);
+
+const DEFAULT_DORMANT_SUB_FEATURES = new Set([
+  SUB_FEATURE_KEYS.CALENDAR_SPENDING_MOMENTUM,
+]);
+
 export const buildDefaultModules = () =>
   ALL_FEATURE_KEYS.reduce((acc, key) => {
-    // Dark-only by default until /api/config/features confirms otherwise
-    acc[key] = key === FEATURE_KEYS.THEME_CUSTOMIZATION ? false : true;
+    acc[key] = !DEFAULT_DORMANT_MODULES.has(key);
     return acc;
   }, {});
 
 export const buildDefaultSubFeatures = () =>
   ALL_SUB_FEATURE_KEYS.reduce((acc, key) => {
-    acc[key] = true;
+    acc[key] = !DEFAULT_DORMANT_SUB_FEATURES.has(key);
     return acc;
   }, {});
 

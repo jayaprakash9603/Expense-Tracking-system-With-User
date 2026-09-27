@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import DetailedExpensesTable from "../pages/DetailedExpensesTable/DetailsExpensesTable";
 // import DailySummary from "./DailySummary";
 import ExpensesAudits from "./ExpensesAudits";
-import { API_BASE_URL } from "../config/api";
+import { api } from "../config/api";
 
 const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
   const [expensesData, setExpensesData] = useState([]);
@@ -18,13 +17,13 @@ const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
     }
   }, [selectedReport, Url]);
 
-  const token = localStorage.getItem("jwt");
-
-  if (!token) {
-    alert("Authorization token is missing.");
-    return;
-  }
   const fetchData = async (reportType) => {
+    const token = localStorage.getItem("jwt");
+    if (!token) {
+      alert("Authorization token is missing.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -33,40 +32,22 @@ const ExpenseTableParent = ({ Url, setUrl, selectedReport }) => {
 
       switch (reportType) {
         case "searchExpenses":
-          response = await axios.get(
-            Url || `${API_BASE_URL}/api/expenses/fetch-expenses`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+          response = await api.get(
+            Url || "/api/expenses/fetch-expenses"
           );
           if (response.status === 204 || response.data.length === 0) {
             alert("No expenses found.");
-            response = await axios.get(`${API_BASE_URL}/api/expenses/user`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+            response = await api.get("/api/expenses/user");
           }
           setExpensesData(response.data);
           break;
         case "searchAudits":
-          response = await axios.get(
-            Url || `${API_BASE_URL}/api/audit-logs/all`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+          response = await api.get(
+            Url || "/api/audit-logs/all"
           );
           if (response.status === 204 || response.data.length === 0) {
             alert("No logs found.");
-            response = await axios.get(`${API_BASE_URL}/audit-logs/all`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
+            response = await api.get("/audit-logs/all");
           }
           setAuditsData(response.data);
           break;

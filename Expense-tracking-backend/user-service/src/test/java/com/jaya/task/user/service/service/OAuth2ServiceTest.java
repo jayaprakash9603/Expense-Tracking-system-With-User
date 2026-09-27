@@ -115,6 +115,7 @@ class OAuth2ServiceTest {
             existingGoogleUser.setRoles(new HashSet<>(Set.of("USER")));
 
             when(userRepository.findByEmail("google@example.com")).thenReturn(existingGoogleUser);
+            when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
             UserDetails mockUserDetails = org.springframework.security.core.userdetails.User
                     .withUsername("google@example.com")

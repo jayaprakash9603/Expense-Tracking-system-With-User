@@ -2,11 +2,13 @@ package com.jaya.service;
 
 import com.jaya.common.dto.UserDTO;
 import com.jaya.common.service.client.IUserServiceClient;
-import com.jaya.util.ExpenseValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -22,12 +24,10 @@ import java.util.function.Function;
 @Component
 public class ExpenseServiceHelper {
 
+    private static final Logger log = LoggerFactory.getLogger(ExpenseServiceHelper.class);
+
     @Autowired
     private IUserServiceClient IUserServiceClient;
-
-
-    @Autowired
-    private ExpenseValidationHelper helper;
 
 
     
@@ -295,8 +295,7 @@ public class ExpenseServiceHelper {
         } catch (RuntimeException e) {
             return handleRuntimeException(e);
         } catch (Exception e) {
-            System.out.println("Error " + errorContext + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error {}: {}", errorContext, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error " + errorContext + ": " + e.getMessage()));
         }

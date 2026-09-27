@@ -10,9 +10,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.assertj.core.api.Assertions;
-import org.springframework.stereotype.Component;
 
-@Component
 public class AuthUiSteps extends StepDataSupport {
     private final AuthSessionCoordinator authSessionCoordinator = new AuthSessionCoordinator();
     private final SignupPayloadFactory signupPayloadFactory = new SignupPayloadFactory();
@@ -49,7 +47,7 @@ public class AuthUiSteps extends StepDataSupport {
     public void userLogsInUsingInvalidCredentials() {
         AutomationConfig config = BddWorld.config();
         String username = dataValue("invalid_username", "invalid@example.test");
-        String password = dataValue("invalid_password", "invalid-password");
+        String password = dataValue("invalid_password", "${suite.auth.invalidPassword}");
         String expected = dataValue("expected_error", "");
         LoginCredentials credentials = new LoginCredentials(username, password);
         String errorMessage = BddWorld.authUiFlowService().loginExpectingError(config.baseUrl(), credentials, expected);

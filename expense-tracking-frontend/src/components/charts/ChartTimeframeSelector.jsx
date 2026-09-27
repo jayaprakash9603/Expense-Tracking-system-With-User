@@ -1,43 +1,46 @@
-import React from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { useTheme } from "../../hooks/useTheme";
 import { useTranslation } from "../../hooks/useTranslation";
+import { AppSelect } from "../ui";
 
 /**
- * ChartTimeframeSelector - Dropdown for selecting chart timeframe
- *
- * @param {string} value - Currently selected timeframe value
- * @param {function} onChange - Callback when timeframe changes
- * @param {Array} options - Array of timeframe options { value, label }
+ * ChartTimeframeSelector - Compact AppSelect for chart timeframe filters
  */
-const ChartTimeframeSelector = ({ value, onChange, options }) => {
-  const { colors } = useTheme();
+const ChartTimeframeSelector = ({
+  value,
+  onChange,
+  options,
+  ariaLabel = "Timeframe",
+  compact = true,
+}) => {
   const { t } = useTranslation();
 
-  if (!onChange || !options || options.length === 0) return null;
+  const mappedOptions = useMemo(() => {
+    if (!options?.length) return [];
+    return options.map((opt) => ({
+      value: opt.value,
+      label: opt.labelKey ? t(opt.labelKey) : opt.label || opt.value,
+      disabled: opt.disabled,
+    }));
+  }, [options, t]);
+
+  if (!onChange || mappedOptions.length === 0) return null;
 
   return (
-    <select
-      className="time-selector"
+    <AppSelect
+      className="time-selector chart-timeframe-selector"
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      style={{
-        backgroundColor: colors.tertiary_bg,
-        color: colors.primary_text,
-        border: `1px solid ${colors.border_color}`,
-      }}
-    >
-      {options.map((opt) => {
-        const optionLabel = opt.labelKey
-          ? t(opt.labelKey)
-          : opt.label || opt.value;
-        return (
-          <option key={opt.value} value={opt.value}>
-            {optionLabel}
-          </option>
-        );
-      })}
-    </select>
+      onValueChange={onChange}
+      options={mappedOptions}
+      ariaLabel={ariaLabel}
+      size={compact ? "compact" : "small"}
+      density={compact ? "compact" : "comfortable"}
+      fullWidth={false}
+      displayEmpty={false}
+      showSelectedCheck={false}
+      preferNativeOnMobile
+      sx={{ minWidth: compact ? 96 : 140 }}
+    />
   );
 };
 
@@ -49,8 +52,11 @@ ChartTimeframeSelector.propTypes = {
       value: PropTypes.string.isRequired,
       label: PropTypes.string,
       labelKey: PropTypes.string,
-    })
+      disabled: PropTypes.bool,
+    }),
   ),
+  ariaLabel: PropTypes.string,
+  compact: PropTypes.bool,
 };
 
 ChartTimeframeSelector.defaultProps = {

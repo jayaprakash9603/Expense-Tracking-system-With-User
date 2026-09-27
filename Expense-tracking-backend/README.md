@@ -148,14 +148,48 @@ All inter-service URLs are set in `monolithic-service/src/main/resources/applica
 
 ---
 
-## Docker
+## Docker and Kubernetes
 
-- **Microservices**: Use the existing `docker-compose.yml` in this directory to run infrastructure (MySQL, Redis, Kafka, Zookeeper), Eureka, Gateway, and all domain services. See the compose file and env for service URLs and ports.
-- **Monolith**: From the `expense-tracking-backend` directory run:
-  ```bash
-  docker compose -f docker-compose.monolith.yml up -d
-  ```
-  This starts MySQL (5000), Redis (6379), Kafka (9092), Zookeeper, and the monolithic application on **port 8080**. The monolith image is built with `-P monolithic` via `monolithic-service/Dockerfile`. Set the frontend to `REACT_APP_API_BASE_URL=http://localhost:8080`.
+All deployment files live in this directory:
+
+| File | Purpose |
+|------|---------|
+| `docker-compose.yml` | Single compose file — use profiles to pick a stack |
+| `expense-tracker-pod.yaml` | Single-pod Kubernetes / Podman deployment |
+| `.env.example` | Environment variables for Docker Compose |
+| `run-all-services.bat` | Start all microservices locally via Maven (Windows) |
+
+### Quick start (monolith — recommended after clone)
+
+```bash
+cd expense-tracking-backend
+copy .env.example .env          # Windows
+# cp .env.example .env          # Linux/macOS
+docker compose --profile monolith up -d
+```
+
+Access: frontend `http://localhost:9999`, backend `http://localhost:8080`.
+
+### Compose profiles
+
+| Profile | Command | What starts |
+|---------|---------|---------------|
+| **monolith** | `docker compose --profile monolith up -d` | MySQL + monolith + frontend |
+| **microservices** | `docker compose --profile microservices up -d` | MySQL + Kafka + Redis + Eureka + Gateway + 14 services + frontend |
+| **infra** | `docker compose --profile infra up -d` | Kafka + Zookeeper + Redis + Kafka UI (no app) |
+| **sonar** | `docker compose --profile sonar up -d` | SonarQube on port 9001 |
+
+Build images from repo root first (optional):
+
+```powershell
+..\scripts\docker-build.ps1
+```
+
+### Kubernetes pod
+
+```bash
+kubectl apply -f expense-tracker-pod.yaml
+```
 
 ---
 

@@ -14,7 +14,7 @@ public final class ArtifactPaths {
     }
 
     public static Path runRoot() {
-        Path root = Path.of(System.getProperty("ARTIFACTS_ROOT", "target/artifacts"));
+        Path root = Path.of(System.getProperty("ARTIFACTS_ROOT", AutomationPaths.DEFAULT_ARTIFACTS_ROOT));
         return ensureDirectory(root.resolve(runId()));
     }
 

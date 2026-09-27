@@ -13,7 +13,7 @@ Feature: Auth OTP and MFA API
     Then the request should succeed
 
   Scenario: Check auth method for user
-    When the user sends a GET request to "auth.check-auth-method" with data
+    When the user sends a GET request to "auth.check-method" with data
       | field       | value                      |
       | query.email | ${suite.auth.test.email}   |
     Then the request should succeed

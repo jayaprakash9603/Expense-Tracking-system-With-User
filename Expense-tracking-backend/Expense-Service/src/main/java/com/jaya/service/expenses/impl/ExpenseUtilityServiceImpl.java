@@ -4,9 +4,11 @@ import com.jaya.dto.ExpenseDTO;
 import com.jaya.dto.ExpenseDetailsDTO;
 import com.jaya.models.DropdownValues;
 import com.jaya.models.Expense;
-import com.jaya.repository.ExpenseReportRepository;
 import com.jaya.repository.ExpenseRepository;
 import com.jaya.service.expenses.ExpenseUtilityService;
+import com.jaya.service.expenses.constants.ExpenseConstants;
+
+import static com.jaya.service.expenses.constants.ExpenseConstants.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,18 +20,10 @@ import java.util.stream.Collectors;
 @Service
 public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
 
-
-    private static final String CREDIT_NEED_TO_PAID = "creditNeedToPaid";
-    private static final String CREDIT_PAID = "creditPaid";
-    private static final String CASH = "cash";
-
-
     private final ExpenseRepository expenseRepository;
-    private final ExpenseReportRepository expenseReportRepository;
 
-    public ExpenseUtilityServiceImpl(ExpenseRepository expenseRepository, ExpenseReportRepository expenseReportRepository) {
+    public ExpenseUtilityServiceImpl(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
-        this.expenseReportRepository = expenseReportRepository;
     }
 
 
@@ -182,7 +176,7 @@ public class ExpenseUtilityServiceImpl implements ExpenseUtilityService {
 
     @Override
     public List<String> getPaymentMethods(Integer userId) {
-        List<String> paymentMethodsList = new ArrayList<>(Arrays.asList(CASH, CREDIT_PAID, CREDIT_NEED_TO_PAID));
+        List<String> paymentMethodsList = new ArrayList<>(Arrays.asList(PAYMENT_CASH, CREDIT_PAID, CREDIT_NEED_TO_PAID));
         return paymentMethodsList;
     }
     @Override

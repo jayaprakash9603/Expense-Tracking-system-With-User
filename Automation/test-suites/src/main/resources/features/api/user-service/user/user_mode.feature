@@ -24,7 +24,7 @@ Feature: User mode switch API
       | key        | value       |
       | query.mode | SUPER_ADMIN |
     Then the response should indicate "bad request"
-    And the response should match the "error-map" schema
+    And the response should match the "user-error-map" schema
 
   @auth @negative @regression
   Scenario: Missing authorization token on switch mode is rejected

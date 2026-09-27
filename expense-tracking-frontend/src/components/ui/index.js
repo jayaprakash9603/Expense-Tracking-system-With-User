@@ -131,3 +131,45 @@ export { DetailDrawer, DetailSection, DetailItem } from "./Drawer";
 // POPOVER COMPONENTS
 // ============================================================================
 export { default as FilterPopover } from "./FilterPopover";
+
+// ============================================================================
+// TABS COMPONENTS
+// ============================================================================
+// Theme-aware tab navigation
+export { AppTabs } from "./Tabs";
+
+// ============================================================================
+// SKELETON COMPONENTS
+// ============================================================================
+// Loading placeholders for async content
+export { AppSkeleton } from "./Skeleton";
+
+// ============================================================================
+// PAGINATION COMPONENTS
+// ============================================================================
+// Page navigation for tables and lists
+export { AppPagination } from "./Pagination";
+
+// ============================================================================
+// AVATAR COMPONENTS
+// ============================================================================
+// User/entity avatar with density sizing
+export { AppAvatar } from "./Avatar";
+
+// ============================================================================
+// EMPTY STATE COMPONENTS
+// ============================================================================
+// Centered placeholder for empty lists and panels
+export { AppEmptyState } from "./EmptyState";
+
+// ============================================================================
+// DATE PICKER COMPONENTS
+// ============================================================================
+// Theme-aware date input (MUI X DatePicker)
+export { AppDatePicker } from "./DatePicker";
+
+// ============================================================================
+// BADGE COMPONENTS
+// ============================================================================
+// Notification/count badge overlay
+export { AppBadge } from "./Badge";
