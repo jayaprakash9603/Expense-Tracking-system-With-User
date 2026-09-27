@@ -41,8 +41,8 @@ const JumpToTodayButton = ({
 
   const baseStyles = {
     position: position,
-    background: "#00dac6",
-    color: "#fff",
+    background: "var(--color-primary-accent)",
+    color: "var(--color-button-text, #fff)",
     padding: "8px 16px",
     borderRadius: "24px",
     boxShadow: 3,
@@ -51,6 +51,7 @@ const JumpToTodayButton = ({
     display: "flex",
     alignItems: "center",
     gap: 1,
+    flexShrink: 0,
     cursor: isDisabled ? "default" : "pointer",
     ...(isDisabled
       ? {
@@ -60,8 +61,8 @@ const JumpToTodayButton = ({
         }
       : {
           "&:hover": {
-            background: "#00b8a3",
-            transform: "scale(1.05)",
+            filter: "brightness(0.92)",
+            transform: "scale(1.03)",
             boxShadow: 4,
           },
         }),

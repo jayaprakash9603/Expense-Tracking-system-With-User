@@ -401,18 +401,32 @@ const MonthlyCalendarView = ({
         ...containerStyle,
       }}
     >
-      {/* Back button */}
-      {showBackButton && onBack && (
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+      {/* Page header: back, title, and calendar actions (in flow — no overlap) */}
+      <Box
+        component="header"
+        sx={{
+          flexShrink: 0,
+          mb: 2,
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "44px minmax(0, 1fr)",
+            md: "44px minmax(0, 1fr) minmax(0, max-content)",
+          },
+          gridTemplateRows: { xs: "auto auto", md: "auto" },
+          alignItems: "center",
+          columnGap: 1,
+          rowGap: 1.25,
+        }}
+      >
+        {showBackButton && onBack ? (
           <IconButton
             sx={{
-              position: "absolute",
-              top: 16,
-              left: 16,
-              color: "#14b8a6",
+              color: "var(--color-primary-accent)",
               backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
+              width: 44,
+              height: 44,
               "&:hover": { backgroundColor: "var(--color-hover-bg)" },
-              zIndex: 10,
             }}
             onClick={onBack}
             aria-label="Back"
@@ -426,34 +440,75 @@ const MonthlyCalendarView = ({
             >
               <path
                 d="M15 18L9 12L15 6"
-                stroke="#14b8a6"
+                stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
           </IconButton>
-        </Box>
-      )}
+        ) : (
+          <Box aria-hidden sx={{ width: 44, height: 44 }} />
+        )}
 
-      {/* Header title */}
-      <Typography
-        variant="h5"
-        sx={{
-          position: "absolute",
-          top: 12,
-          left: "50%",
-          transform: "translateX(-50%)",
-          fontWeight: 700,
-          textAlign: "center",
-          color: "var(--color-primary-text)",
-          m: 0,
-          zIndex: 15,
-          letterSpacing: 0.5,
-        }}
-      >
-        {title}
-      </Typography>
+        <Typography
+          variant="h5"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            textAlign: "center",
+            color: "var(--color-primary-text)",
+            m: 0,
+            letterSpacing: 0.5,
+            px: { xs: 0.5, sm: 1 },
+            minWidth: 0,
+          }}
+        >
+          {title}
+        </Typography>
+
+        {(showJumpToToday || (showHeatmap && showHeatmapModeToggle)) && (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              justifyContent: { xs: "center", md: "flex-end" },
+              gap: 1,
+              gridColumn: { xs: "1 / -1", md: "3" },
+              gridRow: { xs: 2, md: 1 },
+              maxWidth: "100%",
+            }}
+          >
+            {showHeatmap && showHeatmapModeToggle && (
+              <HeatmapModeToggle
+                value={heatmapMode}
+                onChange={setHeatmapMode}
+                lossColor={resolvedSummaryConfig.spendingColor}
+                gainColor={resolvedSummaryConfig.incomeColor}
+                bothColor={colors.primary_accent || "#4563ff"}
+                background={colors.secondary_bg}
+                borderColor={colors.border_color}
+                textColor={colors.primary_text}
+                mutedTextColor={colors.secondary_text}
+              />
+            )}
+
+            {showJumpToToday && (
+              <JumpToTodayButton
+                onClick={handleJumpToToday}
+                isToday={isViewingCurrentMonth}
+                visible={true}
+                hideWhenActive={true}
+                position="static"
+                customPosition={{}}
+                viewType="month"
+                zIndex={1}
+              />
+            )}
+          </Box>
+        )}
+      </Box>
 
       {/* Summary and navigation controls */}
       <Box
@@ -462,7 +517,6 @@ const MonthlyCalendarView = ({
           flexDirection: "column",
           alignItems: "stretch",
           mb: 2,
-          mt: 3,
           gap: 1.5,
           px: { xs: 0.5, sm: 1 },
         }}
@@ -530,51 +584,6 @@ const MonthlyCalendarView = ({
           </Box>
         )}
       </Box>
-
-      {/* Top-right controls: Heatmap mode + Current Month */}
-      {(showJumpToToday || (showHeatmap && showHeatmapModeToggle)) && (
-        <Box
-          sx={{
-            position: "absolute",
-            top: 16,
-            right: 30,
-            zIndex: 22,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 1,
-            maxWidth: isSmallScreen ? "calc(100% - 120px)" : "none",
-            flexWrap: isSmallScreen ? "wrap" : "nowrap",
-          }}
-        >
-          {showHeatmap && showHeatmapModeToggle && (
-            <HeatmapModeToggle
-              value={heatmapMode}
-              onChange={setHeatmapMode}
-              lossColor={resolvedSummaryConfig.spendingColor}
-              gainColor={resolvedSummaryConfig.incomeColor}
-              bothColor={colors.primary_accent || "#4563ff"}
-              background={colors.secondary_bg}
-              borderColor={colors.border_color}
-              textColor={colors.primary_text}
-              mutedTextColor={colors.secondary_text}
-            />
-          )}
-
-          {showJumpToToday && (
-            <JumpToTodayButton
-              onClick={handleJumpToToday}
-              isToday={isViewingCurrentMonth}
-              visible={true}
-              hideWhenActive={true}
-              position="static"
-              customPosition={{}}
-              viewType="month"
-              zIndex={20}
-            />
-          )}
-        </Box>
-      )}
 
       {/* Calendar grid + optional right panel (desktop) */}
       <Box
