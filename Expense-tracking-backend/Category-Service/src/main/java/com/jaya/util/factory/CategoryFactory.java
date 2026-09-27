@@ -21,10 +21,17 @@ public class CategoryFactory {
     }
 
     public Category createGlobalCategory(String name, String description, String type) {
+        return createGlobalCategory(name, description, type, CategoryConstants.DEFAULT_ICON,
+                CategoryConstants.DEFAULT_COLOR);
+    }
+
+    public Category createGlobalCategory(String name, String description, String type, String icon, String color) {
         Category category = createBaseCategory();
         category.setName(name);
         category.setDescription(description);
         category.setType(type);
+        category.setIcon(icon != null ? icon : CategoryConstants.DEFAULT_ICON);
+        category.setColor(color != null ? color : CategoryConstants.DEFAULT_COLOR);
         category.setUserId(CategoryConstants.GLOBAL_USER_ID);
         category.setGlobal(true);
         return category;

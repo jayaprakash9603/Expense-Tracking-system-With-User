@@ -24,6 +24,9 @@ public interface CategoryRepository extends JpaRepository<Category, Integer> {
         @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.isGlobal = true")
         List<Category> findGlobalByNameAndType(@Param("name") String name, @Param("type") String type);
 
+        @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND c.isGlobal = true")
+        List<Category> findGlobalByName(@Param("name") String name);
+
         @Query("SELECT c FROM Category c WHERE LOWER(c.name) = LOWER(:name) AND LOWER(c.type) = LOWER(:type) AND c.userId = :userId AND c.id != :excludeId")
         List<Category> findByNameAndTypeAndUserIdExcluding(@Param("name") String name, @Param("type") String type,
                         @Param("userId") Integer userId, @Param("excludeId") Integer excludeId);

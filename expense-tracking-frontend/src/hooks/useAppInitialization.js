@@ -15,6 +15,11 @@ export const useAppInitialization = (jwt, auth) => {
   const location = useLocation();
 
   useEffect(() => {
+    if (jwt && auth?.user) {
+      setLoading(false);
+      return;
+    }
+
     if (jwt) {
       setLoading(true);
     }
@@ -37,7 +42,7 @@ export const useAppInitialization = (jwt, auth) => {
           return;
         }
 
-        await Promise.all([
+        const [, profileResult] = await Promise.all([
           preloadUserPreferences(dispatch, themeLocked),
           dispatch(getProfileAction(jwt)),
         ]);
@@ -48,7 +53,13 @@ export const useAppInitialization = (jwt, auth) => {
           dispatch(setTheme(themeLocked ? "dark" : settings.themeMode));
         }
 
-        handleInitialNavigation(auth, location, isInitialLoad, navigate);
+        const profileUser = profileResult?.data ?? auth?.user;
+        handleInitialNavigation(
+          { currentMode: profileUser?.currentMode ?? auth?.currentMode },
+          location,
+          isInitialLoad,
+          navigate,
+        );
         setIsInitialLoad(false);
       } catch (error) {
         console.error("Error initializing app:", error);
@@ -59,7 +70,7 @@ export const useAppInitialization = (jwt, auth) => {
     };
 
     initializeApp();
-  }, [jwt, dispatch]);
+  }, [jwt, dispatch, auth?.user]);
 
   return { loading };
 };

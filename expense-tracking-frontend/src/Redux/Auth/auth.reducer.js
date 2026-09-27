@@ -68,6 +68,13 @@ export const authReducer = (state = initialState, action) => {
         loading: false,
       };
     case LOGIN_SUCCESS:
+      return {
+        ...state,
+        jwt: action.payload,
+        // Keep loading until profile hydration finishes (GET_PROFILE_*).
+        loading: Boolean(action.payload),
+        error: null,
+      };
     case REGISTER_SUCCESS:
       return { ...state, jwt: action.payload, loading: false, error: null };
     case LOGIN_FAILURE:

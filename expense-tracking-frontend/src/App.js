@@ -44,7 +44,10 @@ function App() {
     );
   }
 
-  if (loading) {
+  const isSessionHydrating =
+    Boolean(jwt) && !auth.user && (loading || auth.loading);
+
+  if (loading || isSessionHydrating) {
     return <Loader />;
   }
 

@@ -35,7 +35,7 @@ const Home = () => {
   const { friendship, friends, loading } = useSelector(
     (state) => state.friends || {},
   );
-  const currentMode = useSelector((state) => state.auth?.currentMode || "USER");
+  const currentMode = useSelector((state) => state.auth?.currentMode ?? null);
   const [showFriendInfo, setShowFriendInfo] = useState(true);
   const [isModeSwitching, setIsModeSwitching] = useState(false);
   const previousModeRef = useRef(currentMode);
@@ -43,9 +43,10 @@ const Home = () => {
   const currentPath = location.pathname || "/";
   const isAdminRoute = currentPath.startsWith("/admin");
   const storiesFeedEnabled = useFeature(SIDEBAR_MENU_FEATURES.storiesFeed);
-  const rawShouldBlock = Boolean(currentMode)
-    ? (isAdminMode && !isAdminRoute) || (!isAdminMode && isAdminRoute)
-    : false;
+  const rawShouldBlock =
+    currentMode != null
+      ? (isAdminMode && !isAdminRoute) || (!isAdminMode && isAdminRoute)
+      : false;
   const shouldBlockAccess = !isModeSwitching && rawShouldBlock;
 
   useLayoutEffect(() => {

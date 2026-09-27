@@ -59,6 +59,10 @@ spring:
       properties:
         spring.deserializer.value.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
 
+app:
+  category:
+    seed-global-defaults: ${CATEGORY_SEED_GLOBAL_DEFAULTS:true}
+
 # Kafka topics configuration
 kafka:
   topics:

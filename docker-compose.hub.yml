@@ -29,7 +29,7 @@ services:
     image: mysql:8.0
     container_name: expense-tracker-mysql
     ports:
-      - "${MYSQL_PORT:-4000}:3306"
+      - "${MYSQL_PORT:-4001}:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-expense_tracker_monolith}

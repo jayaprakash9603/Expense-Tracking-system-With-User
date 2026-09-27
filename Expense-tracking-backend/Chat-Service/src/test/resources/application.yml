@@ -12,7 +12,7 @@ spring:
     discovery:
       enabled: false
   datasource:
-    url: jdbc:h2:mem:chat_service_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:chat_service_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;DATABASE_TO_LOWER=TRUE
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -22,7 +22,9 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        # MySQL dialect over H2's MySQL mode: repository queries use MySQL-only
+        # functions such as DATE(), which H2Dialect cannot type-check.
+        dialect: org.hibernate.dialect.MySQLDialect
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
