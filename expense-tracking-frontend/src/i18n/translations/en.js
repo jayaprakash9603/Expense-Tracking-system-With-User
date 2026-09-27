@@ -293,6 +293,7 @@ export const en = {
 
   calendarPage: {
     title: "Calendar View",
+    dayViewTitle: "Day View",
     heatmapMode: {
       groupLabel: "Calendar display mode",
       loss: "Spending",

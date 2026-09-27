@@ -729,6 +729,7 @@ export const te = {
 
   calendarPage: {
     title: "క్యాలెండర్ వీక్షణ",
+    dayViewTitle: "రోజు వీక్షణ",
     heatmapMode: {
       groupLabel: "క్యాలెండర్ ప్రదర్శన మోడ్",
       loss: "ఖర్చు",

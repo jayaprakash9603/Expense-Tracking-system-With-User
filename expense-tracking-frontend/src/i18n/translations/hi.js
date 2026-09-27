@@ -723,6 +723,7 @@ export const hi = {
 
   calendarPage: {
     title: "कैलेंडर दृश्य",
+    dayViewTitle: "दिन दृश्य",
     heatmapMode: {
       groupLabel: "कैलेंडर प्रदर्शन मोड",
       loss: "खर्च",

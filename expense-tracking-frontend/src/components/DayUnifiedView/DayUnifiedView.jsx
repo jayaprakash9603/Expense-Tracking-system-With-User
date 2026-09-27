@@ -6,10 +6,10 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
+import FinanceSummaryCard from "../calendar/FinanceSummaryCard";
+import DayNavigator from "../calendar/DayNavigator";
+import { useTranslation } from "../../hooks/useTranslation";
 import ToastNotification from "../../shared/ui/feedback/ToastNotification";
 import Modal from "../../shared/ui/overlays/Modal";
 import EditIcon from "@mui/icons-material/Edit";
@@ -57,6 +57,7 @@ const DayUnifiedView = ({
   emptyTitle = "No data!",
 }) => {
   const { colors, mode } = useAppTheme();
+  const { t } = useTranslation();
   const settings = useUserSettings();
   const financeColors = getFinanceCalendarColors(mode);
   const currencySymbol = settings.getCurrency().symbol;
@@ -217,27 +218,9 @@ const DayUnifiedView = ({
     backgroundColor: colors.tertiary_bg,
   };
 
-  // Summary card configuration (Spending & Income) - uses calendar color tokens for theme support
-  const summaryCards = [
-    {
-      key: "losses",
-      label: "Spending",
-      amount: totalLosses,
-      outerColor: financeColors.spending.base,
-      iconBg: financeColors.spending.icon,
-      valueColor: financeColors.spending.text,
-      svgPath: "M16 8v16M16 24l7-7M16 24l-7-7",
-    },
-    {
-      key: "gains",
-      label: "Income",
-      amount: totalGains,
-      outerColor: financeColors.income.base,
-      iconBg: financeColors.income.icon,
-      valueColor: financeColors.income.text,
-      svgPath: "M16 24V8M16 8L9 15M16 8L23 15",
-    },
-  ];
+  const spendingLabel = t("calendarPage.summary.spending", "Spending");
+  const incomeLabel = t("calendarPage.summary.income", "Income");
+  const summaryAmount = loading ? "loading" : null;
 
   // Helper to classify a transaction type
   const classifyType = (t) => {
@@ -349,313 +332,62 @@ const DayUnifiedView = ({
           letterSpacing: 0.5,
         }}
       >
-        Day View
+        {t("calendarPage.dayViewTitle", "Day View")}
       </Typography>
-      {/* Summary cards + date picker */}
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          alignItems: "stretch",
           mb: 2,
-          justifyContent: "center",
-          gap: isSmallScreen ? 1 : 2,
-          position: "relative",
-          // Provide vertical offset so content does not overlap with absolute header
           mt: 3,
-          flexDirection: isSmallScreen ? "column" : "row",
-          paddingTop: isSmallScreen ? 0 : 1,
-          pt: isSmallScreen ? 0 : 1,
+          gap: 1.5,
+          px: { xs: 0.5, sm: 1 },
         }}
       >
-        {/* Left (Spending) Card */}
-        {(() => {
-          const c = summaryCards[0];
-          return (
-            <Box
-              key={c.key}
-              sx={{
-                background: c.outerColor,
-                borderRadius: "40px",
-                py: 1.5,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                boxShadow: 2,
-                minWidth: isSmallScreen ? "100%" : 190,
-                maxWidth: isSmallScreen ? "100%" : 190,
-                mr: isSmallScreen ? 0 : 4,
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  mb: 0.5,
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  height: 40,
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 48,
-                    minWidth: 48,
-                    maxWidth: 48,
-                    height: 48,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: c.iconBg,
-                    borderRadius: "50%",
-                    mr: 1,
-                    ml: 1.5,
-                  }}
-                >
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 32 32"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{ display: "block" }}
-                  >
-                    <circle cx="16" cy="16" r="15" fill={c.iconBg} />
-                    <path
-                      d={c.svgPath}
-                      stroke={colors.button_text}
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    height: "100%",
-                    flex: 1,
-                    ml: -0.5,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: c.valueColor,
-                      fontWeight: 700,
-                      lineHeight: 1.2,
-                      textAlign: "justify",
-                    }}
-                  >
-                    {c.label}
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    color="#fff"
-                    fontWeight={700}
-                    sx={{
-                      lineHeight: 1.2,
-                      fontSize: "1.25rem",
-                      textAlign: "left",
-                      mt: 0.5,
-                    }}
-                  >
-                    {currencySymbol}
-                    {formatAmount(c.amount)}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          );
-        })()}
-        {/* Date Picker Center */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: isSmallScreen ? "column" : "row",
             alignItems: "center",
             justifyContent: "center",
-            gap: isSmallScreen ? 1 : 2,
-            minWidth: isSmallScreen ? "100%" : 260,
+            gap: { xs: 1.25, sm: 2 },
+            flexDirection: isSmallScreen ? "column" : "row",
+            width: "100%",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <IconButton
-              onClick={handlePrevDay}
-              sx={{ color: colors.secondary_accent, mr: 1 }}
-            >
-              <ArrowBackIcon />
-            </IconButton>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                value={currentDay}
-                onChange={(newValue) => {
-                  if (newValue) goToDay(newValue);
-                }}
-                sx={{
-                  background: colors.secondary_bg,
-                  borderRadius: 2,
-                  color: colors.primary_text,
-                  ".MuiInputBase-input": {
-                    color: colors.primary_text,
-                    fontSize: 14,
-                    fontWeight: 600,
-                  },
-                  ".MuiSvgIcon-root": { color: colors.secondary_accent },
-                  width: 180,
-                }}
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    variant: "outlined",
-                    sx: { color: colors.primary_text },
-                  },
-                  popper: {
-                    sx: {
-                      "& .MuiPaper-root": {
-                        backgroundColor: colors.card_bg,
-                        color: colors.primary_text,
-                        border: `1px solid ${colors.border_color}`,
-                      },
-                      "& .MuiPickersDay-root": {
-                        color: colors.primary_text,
-                        "&:hover": { backgroundColor: colors.hover_bg },
-                        "&.Mui-selected": {
-                          backgroundColor: colors.primary_accent,
-                          color: colors.button_text,
-                        },
-                      },
-                      "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
-                      "& .MuiPickersCalendarHeader-switchViewButton": { color: colors.primary_accent },
-                      "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
-                      "& .MuiDayCalendar-weekDayLabel": { color: colors.icon_muted },
-                      "& .MuiPickersYear-yearButton": {
-                        color: colors.primary_text,
-                        "&:hover": { backgroundColor: colors.hover_bg },
-                        "&.Mui-selected": { backgroundColor: colors.primary_accent, color: colors.button_text },
-                      },
-                    },
-                  },
-                }}
-                disableFuture
-                format={dateFormat}
-              />
-            </LocalizationProvider>
-            <IconButton
-              onClick={handleNextDay}
-              sx={{ color: colors.secondary_accent, ml: 1 }}
-            >
-              <ArrowBackIcon style={{ transform: "scaleX(-1)" }} />
-            </IconButton>
-          </Box>
+          <FinanceSummaryCard
+            label={spendingLabel}
+            amount={summaryAmount ?? totalLosses}
+            accentColor={financeColors.spending.base}
+            textColor={financeColors.spending.text}
+            iconType="down"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+            colors={colors}
+          />
+          <DayNavigator
+            selectedDate={currentDay}
+            onPrevDay={handlePrevDay}
+            onNextDay={handleNextDay}
+            onDateChange={(newValue) => {
+              if (newValue) goToDay(newValue);
+            }}
+            isSmallScreen={isSmallScreen}
+            colors={colors}
+            dateFormat={dateFormat}
+            disableNext={isViewingToday}
+          />
+          <FinanceSummaryCard
+            label={incomeLabel}
+            amount={summaryAmount ?? totalGains}
+            accentColor={financeColors.income.base}
+            textColor={financeColors.income.text}
+            iconType="up"
+            isSmallScreen={isSmallScreen}
+            currencySymbol={currencySymbol}
+            colors={colors}
+          />
         </Box>
-        {/* Right (Income) Card */}
-        {(() => {
-          const c = summaryCards[1];
-          return (
-            <Box
-              key={c.key}
-              sx={{
-                background: c.outerColor,
-                borderRadius: "40px",
-                py: 1.5,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                boxShadow: 2,
-                minWidth: isSmallScreen ? "100%" : 190,
-                maxWidth: isSmallScreen ? "100%" : 190,
-                ml: isSmallScreen ? 0 : 4,
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  mb: 0.5,
-                  flexDirection: "row",
-                  justifyContent: "space-around",
-                  height: 40,
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 48,
-                    minWidth: 48,
-                    maxWidth: 48,
-                    height: 48,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: c.iconBg,
-                    borderRadius: "50%",
-                    mr: 1,
-                    ml: 1.5,
-                  }}
-                >
-                  <svg
-                    width="32"
-                    height="32"
-                    viewBox="0 0 32 32"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    style={{ display: "block" }}
-                  >
-                    <circle cx="16" cy="16" r="15" fill={c.iconBg} />
-                    <path
-                      d={c.svgPath}
-                      stroke={colors.button_text}
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    height: "100%",
-                    flex: 1,
-                    ml: -0.5,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      color: c.valueColor,
-                      fontWeight: 700,
-                      lineHeight: 1.2,
-                      textAlign: "justify",
-                    }}
-                  >
-                    {c.label}
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    color="#fff"
-                    fontWeight={700}
-                    sx={{
-                      lineHeight: 1.2,
-                      fontSize: "1.25rem",
-                      textAlign: "left",
-                      mt: 0.5,
-                    }}
-                  >
-                    {currencySymbol}
-                    {formatAmount(c.amount)}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          );
-        })()}
       </Box>
       {/* Scrollable content */}
       <Box
