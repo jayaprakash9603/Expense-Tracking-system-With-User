@@ -388,6 +388,7 @@ const MonthlyCalendarView = ({
         backgroundColor: "var(--color-secondary-bg)",
         padding: "16px",
         borderRadius: "8px",
+        border: "1px solid var(--color-border-color)",
         width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
         height: isSmallScreen ? "auto" : "calc(100vh - 100px)",
         marginRight: isSmallScreen ? "0" : "20px",
@@ -603,46 +604,58 @@ const MonthlyCalendarView = ({
               overflow: "hidden",
               background: colors.primary_bg,
               borderRadius: 2,
+              border: "1px solid var(--color-border-color)",
+              boxShadow: `inset 0 1px 0 ${hexToRgba(colors.border_color, mode === "light" ? 0.65 : 0.85)}`,
               p: 2,
               minHeight: isSmallScreen ? "auto" : "0px",
               height: isSmallScreen ? "auto" : "100%",
               display: "flex",
               flexDirection: "column",
               minWidth: 0,
+              boxSizing: "border-box",
             }}
           >
             {/* Weekday headers */}
+            <Box
+              sx={{
+                mb: 2,
+                p: 0.75,
+                borderRadius: 2,
+                border: "1px solid var(--color-border-color)",
+                backgroundColor: "var(--color-secondary-bg)",
+                boxShadow: `inset 0 1px 0 ${hexToRgba(colors.border_color, mode === "light" ? 0.5 : 0.7)}`,
+                position: "relative",
+                ...(showSummaryCards
+                  ? {
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        left: 8,
+                        right: 8,
+                        bottom: 0,
+                        height: 3,
+                        borderRadius: "0 0 6px 6px",
+                        background: (() => {
+                          const total = totalIncome + Math.abs(totalSpending);
+                          if (total === 0)
+                            return `linear-gradient(90deg, ${colors.secondary_bg} 100%, ${colors.secondary_bg} 100%)`;
+                          const incomePercent = (totalIncome / total) * 100;
+                          return `linear-gradient(90deg, ${resolvedSummaryConfig.incomeColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} 100%)`;
+                        })(),
+                        zIndex: 1,
+                        pointerEvents: "none",
+                      },
+                    }
+                  : null),
+              }}
+            >
             <Grid
               container
               spacing={1}
               columns={7}
               sx={{
-                mb: 2,
-                background: colors.primary_bg,
-                borderRadius: 2,
-                borderBottom: 0,
                 position: "relative",
-                ...(showSummaryCards
-                  ? {
-                      "::after": {
-                        content: '""',
-                        position: "absolute",
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        height: 4,
-                        borderRadius: "0 0 8px 8px",
-                        background: (() => {
-                          const total = totalIncome + Math.abs(totalSpending);
-                          if (total === 0)
-                            return `linear-gradient(90deg, ${colors.primary_bg} 100%, ${colors.primary_bg} 100%)`;
-                          const incomePercent = (totalIncome / total) * 100;
-                          return `linear-gradient(90deg, ${resolvedSummaryConfig.incomeColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} ${incomePercent}%, ${resolvedSummaryConfig.spendingColor} 100%)`;
-                        })(),
-                        zIndex: 1,
-                      },
-                    }
-                  : null),
+                zIndex: 2,
               }}
             >
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, idx) => {
@@ -659,14 +672,17 @@ const MonthlyCalendarView = ({
                           : colors.primary_text,
                         py: 1,
                         letterSpacing: isWeekendHeader ? 0.6 : 1,
-                        border: "none",
+                        border: `1px solid ${hexToRgba(
+                          colors.border_color,
+                          isWeekendHeader ? 0.55 : 0.35,
+                        )}`,
                         borderRadius: 2,
                         backgroundColor: isWeekendHeader
                           ? hexToRgba(
                               weekendTokens.tint,
                               mode === "light" ? 0.1 : 0.14,
                             )
-                          : "transparent",
+                          : hexToRgba(colors.border_color, mode === "light" ? 0.06 : 0.12),
                       }}
                     >
                       {d}
@@ -675,6 +691,7 @@ const MonthlyCalendarView = ({
                 );
               })}
             </Grid>
+            </Box>
 
             {loading ? (
               <CalendarViewSkeleton isSmallScreen={isSmallScreen} />

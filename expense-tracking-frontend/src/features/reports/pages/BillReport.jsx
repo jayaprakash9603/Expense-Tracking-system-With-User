@@ -40,7 +40,10 @@ import useBillReportFilters, {
 } from "../hooks/reportFilters/useBillReportFilters";
 import useBillReportLayout from "../../bills/hooks/useBillReportLayout";
 import SectionCustomizationModal from "../../../components/common/SectionCustomization/SectionCustomizationModal";
-import { OverviewCardSkeleton } from "../../../components/skeletons/CommonSkeletons";
+import {
+  OverviewCardSkeleton,
+  ReportHeaderSkeleton,
+} from "../../../components/skeletons/CommonSkeletons";
 import { setBillSelection } from "../../../Redux/SharedSelection/sharedSelection.action";
 import NoDataPlaceholder from "../../../components/NoDataPlaceholder";
 
@@ -668,68 +671,58 @@ const CategoryDetails = ({ analytics, currencySymbol = "₹" }) => (
   </div>
 );
 
-const LoadingSkeleton = () => (
-  <div className="bill-report">
-    <div className="bill-report-header">
-      <div
-        className="header-left"
-        style={{ display: "flex", alignItems: "center", gap: 12 }}
-      >
-        <div
-          className="skeleton-back-btn"
-          style={{ transform: "translateY(-15px)" }}
-        />
-        <div>
-          <div className="skeleton-title large" />
-          <div
-            className="skeleton-subtitle"
-            style={{ marginTop: 6, width: 260 }}
-          />
+const BillReportLoadingView = () => {
+  const { colors, mode } = useTheme();
+
+  return (
+    <div
+      className={`bill-report ${mode}`}
+      style={{
+        position: "relative",
+        background: colors.secondary_bg,
+        color: "var(--color-primary-text)",
+        border: "1px solid var(--color-border-color)",
+      }}
+    >
+      <ReportHeaderSkeleton controls={4} showDateRange showActionMenu />
+
+      <div className="summary-cards">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <OverviewCardSkeleton key={i} />
+        ))}
+      </div>
+
+      <div className="chart-report-grid">
+        <div className="chart-container chart-half-width">
+          <div className="skeleton-title" />
+          <BarChartSkeletonInner />
+        </div>
+
+        <div className="chart-container chart-half-width">
+          <div className="skeleton-title" />
+          <PieChartSkeletonInner />
+        </div>
+
+        <div className="chart-container full-width">
+          <div className="skeleton-title" />
+          <LineAreaChartSkeletonInner />
+        </div>
+
+        <div className="chart-container chart-half-width">
+          <div className="skeleton-title" />
+          <RadialChartSkeletonInner />
+        </div>
+
+        <div className="chart-container chart-half-width">
+          <div className="skeleton-title" />
+          <BarChartSkeletonInner />
         </div>
       </div>
-      <div className="bill-header-controls">
-        <div className="skeleton-select" />
-        <div className="skeleton-select" />
-        <div className="skeleton-select" />
-      </div>
+
+      <TableSkeleton />
     </div>
-
-    <div className="summary-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
-      {Array.from({ length: 4 }).map((_, i) => (
-        <OverviewCardSkeleton key={i} />
-      ))}
-    </div>
-
-    <div className="chart-report-grid">
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <BarChartSkeletonInner />
-      </div>
-
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <PieChartSkeletonInner />
-      </div>
-
-      <div className="chart-container full-width">
-        <div className="skeleton-title" />
-        <LineAreaChartSkeletonInner />
-      </div>
-
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <RadialChartSkeletonInner />
-      </div>
-
-      <div className="chart-container chart-half-width">
-        <div className="skeleton-title" />
-        <BarChartSkeletonInner />
-      </div>
-    </div>
-
-    <TableSkeleton />
-  </div>
-);
+  );
+};
 
 const BillReport = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("this_month");
@@ -1319,8 +1312,7 @@ const BillReport = () => {
   };
 
   if (loading) {
-    // Keep skeleton lightweight; optionally we could pass theme classes here.
-    return <LoadingSkeleton />;
+    return <BillReportLoadingView />;
   }
 
   return (

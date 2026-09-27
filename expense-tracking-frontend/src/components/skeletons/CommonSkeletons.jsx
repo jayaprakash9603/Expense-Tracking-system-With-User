@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "../../hooks/useTheme";
+import "../ReportHeader.css";
 import { DailySpendingSkeleton } from "../../pages/Dashboard";
 
 /**
@@ -99,7 +100,11 @@ export const HeaderSkeleton = ({
  *
  * @param {number} controls - Number of control skeletons (default: 4 for flowType, timeframe, filter, export)
  */
-export const ReportHeaderSkeleton = ({ controls = 4 }) => {
+export const ReportHeaderSkeleton = ({
+  controls = 4,
+  showDateRange = true,
+  showActionMenu = true,
+}) => {
   const { colors, mode } = useTheme();
 
   return (
@@ -120,79 +125,81 @@ export const ReportHeaderSkeleton = ({ controls = 4 }) => {
       }}
     >
       <div
-        className="header-left"
-        style={{ display: "flex", alignItems: "center", gap: 12 }}
+        className={`report-header__inner${
+          showDateRange ? "" : " report-header__inner--no-center"
+        }`.trim()}
       >
-        {/* Back button skeleton */}
-        <div
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            ...getSkeletonStyle(mode),
-          }}
-        />
-        <div>
+        <div className="report-header__left header-left">
           <div
-            className="skeleton-title"
             style={{
-              height: "28px",
-              width: "250px",
-              ...getSkeletonStyle(mode),
-              marginBottom: "6px",
-            }}
-          />
-          <div
-            className="skeleton-subtitle"
-            style={{
-              height: "14px",
-              width: "180px",
+              width: "44px",
+              height: "44px",
+              borderRadius: "50%",
+              flexShrink: 0,
               ...getSkeletonStyle(mode),
             }}
           />
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div
+              className="skeleton-title"
+              style={{
+                height: "28px",
+                width: "min(250px, 100%)",
+                ...getSkeletonStyle(mode),
+                marginBottom: "6px",
+              }}
+            />
+            <div
+              className="skeleton-subtitle"
+              style={{
+                height: "14px",
+                width: "min(200px, 80%)",
+                ...getSkeletonStyle(mode),
+              }}
+            />
+          </div>
         </div>
-      </div>
-      <div
-        className="header-center"
-        style={{
-          flex: "1 1 220px",
-          minWidth: 220,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div
-          className="skeleton-date-range"
-          style={{
-            width: 280,
-            height: 48,
-            borderRadius: "999px",
-            ...getSkeletonStyle(mode),
-            opacity: 0.5,
-          }}
-        />
-      </div>
-      <div
-        className="header-controls"
-        style={{
-          display: "flex",
-          gap: "12px",
-          alignItems: "center",
-        }}
-      >
-        {[...Array(controls)].map((_, i) => (
-          <div
-            key={i}
-            className="skeleton-control"
-            style={{
-              height: "36px",
-              width: i < 2 ? "100px" : "90px",
-              ...getSkeletonStyle(mode),
-              borderRadius: "6px",
-            }}
-          />
-        ))}
+        {showDateRange ? (
+          <div className="report-header__center header-center">
+            <div
+              className="skeleton-date-range"
+              style={{
+                width: "min(320px, 100%)",
+                height: 44,
+                borderRadius: "999px",
+                ...getSkeletonStyle(mode),
+                opacity: 0.85,
+              }}
+            />
+          </div>
+        ) : null}
+        <div className="report-header__controls header-controls">
+          {[...Array(controls)].map((_, i) => (
+            <div
+              key={i}
+              className="skeleton-control"
+              style={{
+                height: "36px",
+                width: i < 2 ? "100px" : "92px",
+                flexShrink: 0,
+                ...getSkeletonStyle(mode),
+                borderRadius: "8px",
+              }}
+            />
+          ))}
+          {showActionMenu ? (
+            <div
+              className="report-header__menu-slot skeleton-menu"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: "10px",
+                flexShrink: 0,
+                ...getSkeletonStyle(mode),
+              }}
+            />
+          ) : null}
+        </div>
       </div>
     </div>
   );

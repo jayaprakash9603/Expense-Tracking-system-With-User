@@ -1430,13 +1430,17 @@
 }
 
 .summary-card-skeleton {
-  background: linear-gradient(135deg, #0b0b0b 0%, #141414 100%);
+  background: linear-gradient(
+    135deg,
+    var(--card-bg-start, #1b1b1b) 0%,
+    var(--card-bg-end, #0b0b0b) 100%
+  );
   padding: 18px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid #222;
+  border: 1px solid var(--card-border, #333333);
 }
 
 .skeleton-icon {
@@ -1465,7 +1469,8 @@
 .chart-skeleton {
   padding: 18px;
   border-radius: 12px;
-  border: 1px solid #222;
+  border: 1px solid var(--chart-border, #333333);
+  background: var(--chart-bg, #1b1b1b);
 }
 
 .skeleton-chart {
@@ -1512,8 +1517,8 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: #0b0b0b;
-  border: 1px solid #222;
+  background: var(--chart-bg, #1b1b1b);
+  border: 1px solid var(--chart-border, #333333);
 }
 
 .skeleton-line-chart {
@@ -1593,7 +1598,8 @@
 .table-skeleton {
   padding: 18px;
   border-radius: 12px;
-  border: 1px solid #222;
+  border: 1px solid var(--table-container-border, #333333);
+  background: var(--table-container-bg, #1b1b1b);
 }
 
 .skeleton-row {
@@ -1608,22 +1614,37 @@
   border-radius: 6px;
 }
 
-.skeleton-title,
-.skeleton-select,
-.summary-card-skeleton,
-.skeleton-icon,
-.skeleton-content .skeleton-text,
-.skeleton-number,
-.skeleton-bar,
-.skeleton-cell {
-  /* background: linear-gradient(
+.bill-report .skeleton-title,
+.bill-report .skeleton-select,
+.bill-report .skeleton-icon,
+.bill-report .skeleton-content .skeleton-text,
+.bill-report .skeleton-number,
+.bill-report .skeleton-bar,
+.bill-report .skeleton-cell {
+  background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.02) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.02) 100%
-  ); */
+    var(--skeleton-start, #2a2a2a) 25%,
+    var(--skeleton-mid, #3a3a3a) 50%,
+    var(--skeleton-end, #2a2a2a) 75%
+  );
   background-size: 200% 100%;
   animation: skeletonShimmer 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bill-report .skeleton-title,
+  .bill-report .skeleton-select,
+  .bill-report .skeleton-bar,
+  .bill-report .skeleton-cell,
+  .bill-report .skeleton-line-dot,
+  .bill-report .skeleton-radial-bar,
+  .bill-report .skeleton-pie-ring,
+  .bill-report-header .skeleton-subtitle,
+  .bill-report-header .skeleton-select,
+  .bill-report-header .skeleton-date,
+  .bill-report-header .skeleton-back-btn {
+    animation: none;
+  }
 }
 
 .bill-report .summary-cards,

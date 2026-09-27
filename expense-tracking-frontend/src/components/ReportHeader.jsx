@@ -12,6 +12,7 @@ import {
 } from "../constants/reportFilters";
 import { isFeatureEnabledInState } from "../config/featureCatalog";
 import { AppSelect } from "./ui";
+import "./ReportHeader.css";
 
 /**
  * ReportHeader - Generic header for analytics report pages (payment methods, categories, etc.)
@@ -210,24 +211,11 @@ const ReportHeader = ({
       }}
     >
       <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "24px",
-          width: "100%",
-          flexWrap: "wrap",
-        }}
+        className={`report-header__inner${
+          derivedCenterContent ? "" : " report-header__inner--no-center"
+        }`.trim()}
       >
-        <div
-          className="header-left"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            flex: "1 1 280px",
-            minWidth: 240,
-          }}
-        >
+        <div className="report-header__left header-left">
           {showBackButton && (
             <BackButton
               sx={{
@@ -264,33 +252,12 @@ const ReportHeader = ({
         </div>
 
         {derivedCenterContent ? (
-          <div
-            className="header-center"
-            style={{
-              flex: "1 1 220px",
-              minWidth: 220,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <div className="report-header__center header-center">
             {derivedCenterContent}
           </div>
         ) : null}
 
-        <div
-          className="header-controls"
-          style={{
-            display: "flex",
-            gap: "12px",
-            alignItems: "center",
-            flexWrap: "wrap",
-            justifyContent: "flex-end",
-            flex: "1 1 320px",
-            minWidth: 260,
-            marginLeft: "-20px",
-          }}
-        >
+        <div className="report-header__controls header-controls">
           <AppSelect
             className="timeframe-selector"
             value={flowType}
@@ -303,7 +270,7 @@ const ReportHeader = ({
             displayEmpty={false}
             showSelectedCheck={false}
             preferNativeOnMobile
-            sx={{ minWidth: 120 }}
+            sx={{ minWidth: 108, maxWidth: 140 }}
           />
           <AppSelect
             className="timeframe-selector"
@@ -328,7 +295,7 @@ const ReportHeader = ({
             displayEmpty={false}
             showSelectedCheck={false}
             preferNativeOnMobile
-            sx={{ minWidth: 140 }}
+            sx={{ minWidth: 120, maxWidth: 160 }}
           />
           {extraSelects.map((selectConfig, index) => {
             const options = Array.isArray(selectConfig.options)
@@ -365,7 +332,7 @@ const ReportHeader = ({
                 displayEmpty={Boolean(selectConfig.placeholderOption)}
                 showSelectedCheck={false}
                 preferNativeOnMobile
-                sx={{ minWidth: 140 }}
+                sx={{ minWidth: 120, maxWidth: 160 }}
               />
             );
           })}
@@ -432,12 +399,14 @@ const ReportHeader = ({
             </button>
           ) : null}
           {hasBuiltInMenu ? (
-            <ReportActionMenu
-              onRefresh={onRefresh}
-              onExport={menuOnExport}
-              onDownloadPdf={onDownloadPdf}
-              onCustomize={onCustomize}
-            />
+            <div className="report-header__menu-slot">
+              <ReportActionMenu
+                onRefresh={onRefresh}
+                onExport={menuOnExport}
+                onDownloadPdf={onDownloadPdf}
+                onCustomize={onCustomize}
+              />
+            </div>
           ) : null}
           {rightActions ? (
             <div
