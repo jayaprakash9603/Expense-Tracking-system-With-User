@@ -61,6 +61,7 @@ const InlineSearchBar = () => {
     selectResult,
     allResults,
     setQuery,
+    openSearch,
   } = useUniversalSearch();
 
   // Helper to format amount and date for search results
@@ -101,6 +102,10 @@ const InlineSearchBar = () => {
 
   // Expand and focus on click
   const handleExpand = () => {
+    if (!isExpanded && !isMobile) {
+      openSearch();
+      return;
+    }
     setIsExpanded(true);
     setTimeout(() => {
       inputRef.current?.focus();
@@ -213,9 +218,10 @@ const InlineSearchBar = () => {
       ref={containerRef}
       sx={{
         position: "relative",
-        width: "350px",
+        width: isExpanded ? (isMobile ? "min(68vw, 220px)" : "240px") : "auto",
         display: "flex",
         justifyContent: "flex-end",
+        flexShrink: 0,
       }}
     >
       {/* Search Input Container — high-contrast collapsed control */}
@@ -254,9 +260,10 @@ const InlineSearchBar = () => {
           }`,
           cursor: isExpanded ? "text" : "pointer",
           transition: "background-color 0.2s ease, border-color 0.2s ease",
-          width: isExpanded ? (isMobile ? "min(68vw, 220px)" : "240px") : "auto",
+          width: isExpanded ? "100%" : "auto",
           minWidth: isExpanded ? undefined : isMobile ? 44 : undefined,
           height: 44,
+          px: isExpanded ? 0.5 : isMobile ? 0 : 1,
           overflow: "hidden",
           boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
           "&:hover": {

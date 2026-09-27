@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -93,8 +93,16 @@ const CashFlowChart = ({
     () => new Set(selectedBars.map((b) => b.idx)),
     [selectedBars],
   );
+  useEffect(() => {
+    setHoverBarIndex(null);
+  }, [chartData, activeRange, offset, flowTab, setHoverBarIndex]);
+
   const tooltipContent = useCallback(
     (tooltipProps) => {
+      if (hoverBarIndex === null || hoverBarIndex === undefined) {
+        return null;
+      }
+
       const computedLabel =
         typeof tooltipFormatter === "function"
           ? tooltipFormatter(tooltipProps.label, tooltipProps.payload)
@@ -122,6 +130,11 @@ const CashFlowChart = ({
       hoverBarIndex,
     ],
   );
+
+  const isTooltipActive =
+    typeof hoverBarIndex === "number" &&
+    hoverBarIndex >= 0 &&
+    hoverBarIndex < chartData.length;
 
   // Theme-aware colors
   const gridColor = colors.border_color;
@@ -256,6 +269,7 @@ const CashFlowChart = ({
             width={80}
           />
             <Tooltip
+            active={isTooltipActive}
             cursor={false}
             content={tooltipContent}
             wrapperStyle={{
@@ -263,6 +277,7 @@ const CashFlowChart = ({
               outline: "none",
               overflow: "visible",
               pointerEvents: "none",
+              visibility: isTooltipActive ? "visible" : "hidden",
             }}
             isAnimationActive={false}
             allowEscapeViewBox={{ x: true, y: true }}

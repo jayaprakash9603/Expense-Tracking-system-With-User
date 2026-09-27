@@ -114,13 +114,15 @@ const ProfileDropdown = ({
         >
           <Avatar
             sx={{
-              width: 32,
-              height: 32,
+              width: 36,
+              height: 36,
               bgcolor: "#14b8a6",
-              fontSize: "14px",
+              color: "#0a0a0a",
+              fontWeight: 700,
+              fontSize: "13px",
               transition: "transform 0.2s",
               "&:hover": {
-                transform: "scale(1.1)",
+                transform: "scale(1.05)",
               },
             }}
             src={avatarSrc}
@@ -132,7 +134,7 @@ const ProfileDropdown = ({
           <svg
             className={`w-4 h-4 transition-transform duration-200 ${
               isProfileOpen ? "rotate-180" : ""
-            } ${isDark ? "text-gray-400" : "text-gray-600"}`}
+            } ${isDark ? "text-gray-200" : "text-gray-600"}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

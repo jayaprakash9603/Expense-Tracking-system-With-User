@@ -34,7 +34,7 @@ const HeaderBar = () => {
   const { isMasking, toggleMasking } = useMasking();
   const maskingEnabled = isMasking();
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(5);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
   const { t } = useTranslation();
   const searchEnabled = useFeature(FEATURE_KEYS.SEARCH);
   const { status, isPending, submitting, cancelDeletion } = useAccountDeletionStatus();
@@ -346,7 +346,10 @@ const HeaderBar = () => {
           </button>
           )}
 
-          <SystemErrorIndicator isDark={isDark} />
+          <SystemErrorIndicator
+            isDark={isDark}
+            buttonStyle={headerActionButtonStyle}
+          />
 
           {/* Share Button */}
           {sharingCreateEnabled && totalSelectedItems > 0 && (

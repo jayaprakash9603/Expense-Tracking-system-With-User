@@ -78,7 +78,7 @@ const getStatusMeta = (status) => {
   };
 };
 
-const SystemErrorIndicator = ({ isDark }) => {
+const SystemErrorIndicator = ({ isDark, buttonStyle }) => {
   const { colors = {}, mode } = useTheme();
   const [errors, setErrors] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -241,14 +241,19 @@ const SystemErrorIndicator = ({ isDark }) => {
     <div className="relative" ref={panelRef}>
       {/* Enhanced trigger button with smooth transitions */}
       <button
+        type="button"
         onClick={() => setIsPanelOpen((prev) => !prev)}
-        className="p-2 rounded-lg transition-all duration-200 hover:scale-110"
+        className="transition-all duration-200 hover:opacity-95 active:scale-[0.97] focus:outline-none focus-visible:ring-2"
         title="System alerts"
         aria-label="System alerts"
         aria-expanded={isPanelOpen}
-        style={{
-          backgroundColor: colors.button_inactive,
-        }}
+        style={
+          buttonStyle || {
+            backgroundColor: colors.button_inactive,
+            padding: 8,
+            borderRadius: 12,
+          }
+        }
       >
         <Badge
           badgeContent={Math.min(errors.length, 99)}
