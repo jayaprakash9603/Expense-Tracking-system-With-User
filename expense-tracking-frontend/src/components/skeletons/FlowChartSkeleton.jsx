@@ -2,21 +2,49 @@ import React from "react";
 import { Box, Skeleton, useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 
+const skeletonMotionSx = {
+  "@media (prefers-reduced-motion: reduce)": {
+    animation: "none",
+  },
+};
+
+const resolveBarCount = (activeRange, isMobile, isTablet) => {
+  if (activeRange === "week") {
+    return isMobile ? 7 : 7;
+  }
+  if (activeRange === "year") {
+    return isMobile ? 6 : isTablet ? 10 : 12;
+  }
+  return isMobile ? 12 : isTablet ? 20 : 30;
+};
+
+const resolveXLabelCount = (barCount, isMobile) =>
+  Math.min(isMobile ? 4 : 8, Math.max(4, Math.floor(barCount / 4)));
+
 /**
- * FlowChartSkeleton
- * Skeleton loading state for flow page charts (pie chart, bar chart)
- * Used in CategoryFlow, PaymentMethodFlow, and similar flow pages
+ * Skeleton for flow page stacked bar charts (categories, payment methods).
  */
-const FlowChartSkeleton = ({ variant = "bar" }) => {
+const FlowChartSkeleton = ({ variant = "bar", activeRange = "month" }) => {
   const { colors } = useTheme();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery((theme) =>
     theme.breakpoints.between("sm", "lg"),
   );
 
+  const baseSx = {
+    bgcolor: colors.hover_bg,
+    ...skeletonMotionSx,
+  };
+
+  const barCount = resolveBarCount(activeRange, isMobile, isTablet);
+  const xLabelCount = resolveXLabelCount(barCount, isMobile);
+
   if (variant === "pie") {
     return (
       <Box
+        role="status"
+        aria-label="Loading chart"
+        aria-busy="true"
         sx={{
           width: "100%",
           height: "100%",
@@ -27,7 +55,6 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
           padding: 2,
         }}
       >
-        {/* Pie Chart Circle */}
         <Box
           sx={{
             position: "relative",
@@ -39,13 +66,9 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
             variant="circular"
             width="100%"
             height="100%"
-            sx={{
-              bgcolor: colors.hover_bg,
-              opacity: 0.6,
-            }}
+            sx={{ ...baseSx, opacity: 0.6 }}
             animation="wave"
           />
-          {/* Inner circle for donut effect */}
           <Box
             sx={{
               position: "absolute",
@@ -59,38 +82,21 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
             }}
           />
         </Box>
-
-        {/* Legend Items */}
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1,
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {Array.from({ length: 4 }).map((_, index) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                animation: "pulse 1.5s ease-in-out infinite",
-                animationDelay: `${index * 0.15}s`,
-              }}
-            >
+            <Box key={index} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Skeleton
                 variant="rounded"
                 width={12}
                 height={12}
-                sx={{ bgcolor: colors.hover_bg, borderRadius: "2px" }}
+                sx={{ ...baseSx, borderRadius: "2px" }}
                 animation="wave"
               />
               <Skeleton
                 variant="text"
                 width={isMobile ? 50 : 70}
                 height={14}
-                sx={{ bgcolor: colors.hover_bg }}
+                sx={baseSx}
                 animation="wave"
               />
             </Box>
@@ -100,11 +106,11 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
     );
   }
 
-  // Bar chart variant (default)
-  const barCount = isMobile ? 6 : isTablet ? 8 : 12;
-
   return (
     <Box
+      role="status"
+      aria-label="Loading chart"
+      aria-busy="true"
       sx={{
         width: "100%",
         height: "100%",
@@ -112,9 +118,9 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
         flexDirection: "row",
         position: "relative",
         padding: "10px",
+        boxSizing: "border-box",
       }}
     >
-      {/* Y-Axis Labels */}
       <Box
         sx={{
           width: "40px",
@@ -124,30 +130,30 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
           paddingBottom: "30px",
           paddingRight: "8px",
           alignItems: "flex-end",
+          flexShrink: 0,
         }}
       >
-        {[1, 2, 3, 4].map((_, i) => (
+        {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton
             key={i}
             variant="text"
             width={28}
             height={12}
-            sx={{ bgcolor: colors.hover_bg, opacity: 0.5 }}
+            sx={{ ...baseSx, opacity: 0.5 }}
             animation="wave"
           />
         ))}
       </Box>
 
-      {/* Chart Area */}
       <Box
         sx={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
           position: "relative",
+          minWidth: 0,
         }}
       >
-        {/* Grid Lines */}
         <Box
           sx={{
             position: "absolute",
@@ -159,9 +165,10 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
             flexDirection: "column",
             justifyContent: "space-between",
             zIndex: 0,
+            pointerEvents: "none",
           }}
         >
-          {[1, 2, 3, 4].map((_, i) => (
+          {Array.from({ length: 5 }).map((_, i) => (
             <Box
               key={i}
               sx={{
@@ -174,22 +181,21 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
           ))}
         </Box>
 
-        {/* Bars */}
         <Box
           sx={{
             flex: 1,
             display: "flex",
             alignItems: "flex-end",
-            justifyContent: "space-around",
-            gap: isMobile ? 0.5 : 1,
+            justifyContent: "space-between",
+            gap: isMobile ? 0.25 : 0.5,
             paddingBottom: "10px",
             zIndex: 1,
+            minHeight: 0,
           }}
         >
           {Array.from({ length: barCount }).map((_, index) => {
-            // Pseudo-random heights for visual variety
-            const pseudoRandom = Math.abs(Math.sin(index * 7.5 + 42));
-            const heightPercent = 25 + pseudoRandom * 65;
+            const pseudoRandom = Math.abs(Math.sin(index * 12.9898 + 78.233));
+            const heightPercent = 20 + pseudoRandom * 70;
 
             return (
               <Box
@@ -199,7 +205,8 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
                   height: "100%",
                   display: "flex",
                   alignItems: "flex-end",
-                  maxWidth: 40,
+                  minWidth: 0,
+                  maxWidth: activeRange === "month" && !isMobile ? 12 : 40,
                 }}
               >
                 <Skeleton
@@ -208,11 +215,9 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
                   width="100%"
                   animation="wave"
                   sx={{
-                    bgcolor: colors.hover_bg,
+                    ...baseSx,
                     borderRadius: "4px 4px 0 0",
                     opacity: 0.6,
-                    animation: "pulse 1.5s ease-in-out infinite",
-                    animationDelay: `${index * 0.08}s`,
                   }}
                 />
               </Box>
@@ -220,21 +225,21 @@ const FlowChartSkeleton = ({ variant = "bar" }) => {
           })}
         </Box>
 
-        {/* X-Axis Labels */}
         <Box
           sx={{
+            height: 20,
             display: "flex",
-            justifyContent: "space-around",
-            paddingTop: "8px",
+            justifyContent: "space-between",
+            paddingTop: "4px",
           }}
         >
-          {Array.from({ length: Math.min(barCount, 6) }).map((_, i) => (
+          {Array.from({ length: xLabelCount }).map((_, i) => (
             <Skeleton
               key={i}
               variant="text"
               width={isMobile ? 20 : 30}
               height={12}
-              sx={{ bgcolor: colors.hover_bg, opacity: 0.4 }}
+              sx={{ ...baseSx, opacity: 0.4 }}
               animation="wave"
             />
           ))}

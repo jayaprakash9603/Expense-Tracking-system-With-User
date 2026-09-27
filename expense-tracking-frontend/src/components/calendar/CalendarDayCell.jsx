@@ -1,6 +1,8 @@
 import React, { useMemo } from "react";
-import { Box, Typography, Tooltip } from "@mui/material";
+import { Box, Typography, Tooltip, useMediaQuery } from "@mui/material";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
+import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
+import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import { keyframes } from "@mui/system";
 import { formatAmount } from "../../utils/formatting/formatAmount";
 import DateIndicator from "../DateIndicator";
@@ -39,16 +41,37 @@ export default function CalendarDayCell({
   incomeKey,
   spendingColor,
   incomeColor,
+  spendingTextColor,
+  incomeTextColor,
   heatmapBackground,
   showMixedAmountsOverlay = true,
+  isWeekend = false,
+  heatmapMode = "both",
+  themeMode = "dark",
   avgDailySpend,
   iconsKey,
   renderIcon,
   maxIcons = 4,
 }) {
+  const reduceMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+
   const spending = safeNumber(dayData?.[spendingKey]);
   const income = safeNumber(dayData?.[incomeKey]);
   const hasMixedAmounts = spending !== 0 && income !== 0;
+  const isBothHeatmap = heatmapMode === "both";
+  const stackAmounts = hasMixedAmounts && isBothHeatmap;
+  const isLight = themeMode === "light";
+
+  const pillSurface = (baseColor, textColor) => ({
+    color: textColor || colors.primary_text,
+    background: isLight
+      ? hexToRgba(baseColor, 0.14)
+      : hexToRgba(baseColor, 0.28),
+    border: `1px solid ${hexToRgba(baseColor, isLight ? 0.45 : 0.55)}`,
+    boxShadow: isLight
+      ? `0 1px 0 ${hexToRgba("#ffffff", 0.85)} inset`
+      : `0 1px 0 ${hexToRgba("#ffffff", 0.08)} inset`,
+  });
 
   const iconItemsRaw = iconsKey ? dayData?.[iconsKey] : null;
   const iconItems = Array.isArray(iconItemsRaw) ? iconItemsRaw : [];
@@ -194,9 +217,13 @@ export default function CalendarDayCell({
           zIndex: 3,
           background: heatmapBackground || colors.secondary_bg,
           border: isActive
-            ? `1px solid ${colors.primary_accent || colors.secondary_accent}`
-            : "1px solid transparent",
-          boxShadow: 1,
+            ? `2px solid ${colors.primary_accent || colors.secondary_accent}`
+            : isWeekend
+              ? `1px dashed ${hexToRgba(colors.border_color || colors.border, isLight ? 0.9 : 0.65)}`
+              : `1px solid ${hexToRgba(colors.border_color || colors.border, isLight ? 0.35 : 0.2)}`,
+          boxShadow: isWeekend
+            ? `inset 0 0 0 1px ${hexToRgba(isLight ? "#64748b" : "#94a3b8", isLight ? 0.06 : 0.1)}`
+            : 1,
           transition: "transform 120ms ease, box-shadow 120ms ease",
           willChange: "transform",
           ...(canClick
@@ -213,7 +240,7 @@ export default function CalendarDayCell({
                 filter: "grayscale(0.25)",
               }
             : null),
-          ...(isToday
+          ...(isToday && !reduceMotion
             ? {
                 animation: `${gentlePulse} 2.8s ease-in-out infinite`,
               }
@@ -228,7 +255,10 @@ export default function CalendarDayCell({
           overflow: "hidden",
         }}
       >
-        {!showIcons && hasMixedAmounts && showMixedAmountsOverlay && (
+        {!showIcons &&
+          hasMixedAmounts &&
+          showMixedAmountsOverlay &&
+          !heatmapBackground && (
           <Box
             aria-hidden
             sx={{
@@ -310,7 +340,10 @@ export default function CalendarDayCell({
           <Typography
             variant="body1"
             fontWeight={700}
-            color={colors.primary_text}
+            color={
+              isWeekend ? colors.secondary_text || colors.placeholder_text : colors.primary_text
+            }
+            sx={{ fontVariantNumeric: "tabular-nums" }}
           >
             {dayNumber}
           </Typography>
@@ -320,55 +353,102 @@ export default function CalendarDayCell({
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "row",
-                alignItems: "flex-start",
+                flexDirection: stackAmounts ? "column" : "row",
+                alignItems: "center",
                 justifyContent: "center",
-                gap: 1,
+                gap: stackAmounts ? 0.45 : 0.75,
                 width: "100%",
-                mt: 1.6,
+                mt: stackAmounts ? 0.75 : 1.35,
+                px: 0.25,
               }}
             >
               {spending !== 0 && (
-                <Typography
+                <Box
                   className="amountPill"
-                  variant="caption"
-                  sx={{
-                    color: colors.primary_text,
-                    background: hexToRgba(spendingColor, 0.22),
-                    display: "inline-block",
-                    fontWeight: 800,
-                    borderRadius: 1,
-                    px: 1.2,
-                    minWidth: 32,
-                    textAlign: "center",
-                  }}
-                >
-                  {formatAmount(Math.abs(spending), {
+                  role="img"
+                  aria-label={`Spending ${formatAmount(Math.abs(spending), {
                     currencySymbol,
                     maximumFractionDigits: 0,
-                  })}
-                </Typography>
+                  })}`}
+                  sx={{
+                    ...pillSurface(spendingColor, spendingTextColor),
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.35,
+                    fontWeight: 800,
+                    borderRadius: 1,
+                    px: 0.75,
+                    py: 0.2,
+                    minWidth: stackAmounts ? "100%" : 32,
+                    maxWidth: "100%",
+                  }}
+                >
+                  <TrendingDownRoundedIcon
+                    sx={{ fontSize: 13, color: spendingColor, flexShrink: 0 }}
+                    aria-hidden
+                  />
+                  <Typography
+                    component="span"
+                    variant="caption"
+                    sx={{
+                      fontWeight: 800,
+                      fontVariantNumeric: "tabular-nums",
+                      lineHeight: 1.2,
+                      color: "inherit",
+                      fontSize: stackAmounts ? "0.68rem" : "0.72rem",
+                    }}
+                  >
+                    {formatAmount(Math.abs(spending), {
+                      currencySymbol,
+                      maximumFractionDigits: 0,
+                    })}
+                  </Typography>
+                </Box>
               )}
               {income !== 0 && (
-                <Typography
+                <Box
                   className="amountPill"
-                  variant="caption"
-                  sx={{
-                    color: colors.primary_text,
-                    background: hexToRgba(incomeColor, 0.18),
-                    display: "inline-block",
-                    fontWeight: 800,
-                    borderRadius: 1,
-                    px: 1.2,
-                    minWidth: 32,
-                    textAlign: "center",
-                  }}
-                >
-                  {formatAmount(income, {
+                  role="img"
+                  aria-label={`Income ${formatAmount(income, {
                     currencySymbol,
                     maximumFractionDigits: 0,
-                  })}
-                </Typography>
+                  })}`}
+                  sx={{
+                    ...pillSurface(incomeColor, incomeTextColor),
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.35,
+                    fontWeight: 800,
+                    borderRadius: 1,
+                    px: 0.75,
+                    py: 0.2,
+                    minWidth: stackAmounts ? "100%" : 32,
+                    maxWidth: "100%",
+                  }}
+                >
+                  <TrendingUpRoundedIcon
+                    sx={{ fontSize: 13, color: incomeColor, flexShrink: 0 }}
+                    aria-hidden
+                  />
+                  <Typography
+                    component="span"
+                    variant="caption"
+                    sx={{
+                      fontWeight: 800,
+                      fontVariantNumeric: "tabular-nums",
+                      lineHeight: 1.2,
+                      color: "inherit",
+                      fontSize: stackAmounts ? "0.68rem" : "0.72rem",
+                    }}
+                  >
+                    {formatAmount(income, {
+                      currencySymbol,
+                      maximumFractionDigits: 0,
+                    })}
+                  </Typography>
+                </Box>
               )}
             </Box>
           )}

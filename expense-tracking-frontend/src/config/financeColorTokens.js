@@ -32,8 +32,17 @@ export const FINANCE_COLOR_TOKENS = {
         text: "#14532d",
       },
     },
+    weekend: {
+      dark: { tint: "#94a3b8", alpha: 0.085, header: "#cbd5e1" },
+      light: { tint: "#64748b", alpha: 0.07, header: "#475569" },
+    },
   },
 };
+
+export function getCalendarWeekendTokens(mode = "dark") {
+  const key = mode === "light" ? "light" : "dark";
+  return FINANCE_COLOR_TOKENS.calendar.weekend[key];
+}
 
 export function getFinanceCalendarColors(mode = "dark") {
   const key = mode === "light" ? "light" : "dark";

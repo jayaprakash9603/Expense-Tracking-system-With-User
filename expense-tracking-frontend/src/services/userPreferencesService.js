@@ -1,14 +1,6 @@
 import { api } from "../config/api";
 import { setTheme } from "../Redux/Theme/theme.actions";
 
-/**
- * Service responsible for preloading user preferences
- * Handles dashboard layout, theme, and language preferences
- */
-
-/**
- * Preloads dashboard preferences from backend
- */
 const preloadDashboardPreferences = async () => {
   try {
     const { data } = await api.get("/api/user/report-preferences/dashboard");
@@ -19,51 +11,40 @@ const preloadDashboardPreferences = async () => {
   } catch {
     return false;
   }
+  return false;
 };
 
-/**
- * Preloads theme preference from backend
- */
-const preloadThemePreference = async (dispatch, themeLocked = false) => {
+const fetchUserSettings = async () => {
+  try {
+    const { data } = await api.get("/api/settings");
+    return data || null;
+  } catch {
+    return null;
+  }
+};
+
+const applySettingsPreferences = (dispatch, settings, themeLocked = false) => {
   if (themeLocked) {
     dispatch(setTheme("dark"));
-    return true;
+    return;
   }
-  try {
-    const { data } = await api.get("/api/settings");
-    if (data?.themeMode) {
-      localStorage.setItem("theme", data.themeMode);
-      dispatch(setTheme(data.themeMode));
-      return true;
-    }
-  } catch {
-    return false;
+  if (settings?.themeMode) {
+    localStorage.setItem("theme", settings.themeMode);
+    dispatch(setTheme(settings.themeMode));
+  }
+  if (settings?.language) {
+    localStorage.setItem("language", settings.language);
   }
 };
 
 /**
- * Preloads language preference from backend
- */
-const preloadLanguagePreference = async () => {
-  try {
-    const { data } = await api.get("/api/settings");
-    if (data?.language) {
-      localStorage.setItem("language", data.language);
-      return true;
-    }
-  } catch {
-    return false;
-  }
-};
-
-/**
- * Preloads all user preferences (dashboard layout, theme, and language)
- * This runs before the app fully initializes to prevent UI flashing
+ * Preloads dashboard layout, theme, and language in parallel (single /api/settings call).
  */
 export const preloadUserPreferences = async (dispatch, themeLocked = false) => {
-  await Promise.all([
+  const [, settings] = await Promise.all([
     preloadDashboardPreferences(),
-    preloadThemePreference(dispatch, themeLocked),
-    preloadLanguagePreference(),
+    fetchUserSettings(),
   ]);
+  applySettingsPreferences(dispatch, settings, themeLocked);
+  return settings;
 };

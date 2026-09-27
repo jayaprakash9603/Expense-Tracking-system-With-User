@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getProfileAction } from "../Redux/Auth/auth.action";
@@ -6,13 +6,22 @@ import { fetchOrCreateUserSettings } from "../Redux/UserSettings/userSettings.ac
 import { fetchFeatureFlags } from "../Redux/FeatureFlags";
 import { setTheme } from "../Redux/Theme/theme.actions";
 import { preloadUserPreferences } from "../services/userPreferencesService";
+import { withTimeout } from "../utils/async/withTimeout";
+
+const INIT_TIMEOUT_MS = 20000;
 
 export const useAppInitialization = (jwt, auth) => {
   const [loading, setLoading] = useState(() => Boolean(jwt));
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const isInitialLoadRef = useRef(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (jwt) {
+      import("../routes/AuthenticatedApp").catch(() => {});
+    }
+  }, [jwt]);
 
   useEffect(() => {
     if (jwt && auth?.user) {
@@ -24,13 +33,26 @@ export const useAppInitialization = (jwt, auth) => {
       setLoading(true);
     }
 
+    let cancelled = false;
+
     const initializeApp = async () => {
       try {
-        const flags = await dispatch(fetchFeatureFlags());
+        const flagsPromise = withTimeout(
+          dispatch(fetchFeatureFlags()),
+          INIT_TIMEOUT_MS,
+          "Feature flags",
+        ).catch((error) => {
+          console.warn(error?.message || error);
+          return null;
+        });
 
-        // When theme customization is dormant, lock the app to dark mode and
-        // normalize any persisted/light preference so direct state.theme readers
-        // (tables, dropdowns, overlays) render dark too.
+        if (!jwt) {
+          await flagsPromise;
+          return;
+        }
+
+        const flags = await flagsPromise;
+
         const themeLocked =
           flags?.dormancyEnabled === true &&
           flags?.modules?.themeCustomization === false;
@@ -38,39 +60,73 @@ export const useAppInitialization = (jwt, auth) => {
           dispatch(setTheme("dark"));
         }
 
-        if (!jwt) {
-          return;
-        }
-
-        const [, profileResult] = await Promise.all([
-          preloadUserPreferences(dispatch, themeLocked),
+        const profilePromise = withTimeout(
           dispatch(getProfileAction(jwt)),
-        ]);
+          INIT_TIMEOUT_MS,
+          "Profile",
+        ).catch((error) => {
+          console.warn(error?.message || error);
+          return null;
+        });
 
-        const settings = dispatch(fetchOrCreateUserSettings());
+        const preferencesPromise = withTimeout(
+          preloadUserPreferences(dispatch, themeLocked),
+          INIT_TIMEOUT_MS,
+          "User preferences",
+        ).catch((error) => {
+          console.warn(error?.message || error);
+          return null;
+        });
 
-        if (settings?.themeMode) {
-          dispatch(setTheme(themeLocked ? "dark" : settings.themeMode));
+        const settingsPromise = withTimeout(
+          dispatch(fetchOrCreateUserSettings()),
+          INIT_TIMEOUT_MS,
+          "User settings",
+        ).catch((error) => {
+          console.warn(error?.message || error);
+          return null;
+        });
+
+        const [profileResult, settingsFromPreload, settingsFromStore] =
+          await Promise.all([
+            profilePromise,
+            preferencesPromise,
+            settingsPromise,
+          ]);
+
+        const settings = settingsFromStore || settingsFromPreload;
+        if (settings?.themeMode && !themeLocked) {
+          dispatch(setTheme(settings.themeMode));
         }
 
         const profileUser = profileResult?.data ?? auth?.user;
-        handleInitialNavigation(
-          { currentMode: profileUser?.currentMode ?? auth?.currentMode },
-          location,
-          isInitialLoad,
-          navigate,
-        );
-        setIsInitialLoad(false);
+        if (!cancelled) {
+          handleInitialNavigation(
+            { currentMode: profileUser?.currentMode ?? auth?.currentMode },
+            location,
+            isInitialLoadRef.current,
+            navigate,
+          );
+          isInitialLoadRef.current = false;
+        }
       } catch (error) {
         console.error("Error initializing app:", error);
-        setIsInitialLoad(false);
+        if (!cancelled) {
+          isInitialLoadRef.current = false;
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     initializeApp();
-  }, [jwt, dispatch, auth?.user]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [jwt, dispatch, auth?.user, auth?.currentMode]);
 
   return { loading };
 };

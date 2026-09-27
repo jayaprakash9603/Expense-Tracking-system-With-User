@@ -16,7 +16,8 @@ import recentIconAsset from "../../assests/recent.png";
 import FlowExpenseTable from "./FlowExpenseTable";
 import NoDataPlaceholder from "../NoDataPlaceholder";
 import FlowChartSkeleton from "../skeletons/FlowChartSkeleton";
-import FlowEntityCardsSkeleton from "../skeletons/FlowEntityCardsSkeleton";
+import FlowSearchToolbarSkeleton from "../skeletons/FlowSearchToolbarSkeleton";
+import FlowToggleSkeleton from "../skeletons/FlowToggleSkeleton";
 import useFlowCards from "../../hooks/useFlowCards";
 import {
   getEntityExpenses,
@@ -271,19 +272,23 @@ const GenericFlowPage = ({
         </Dialog>
       )}
       <div style={{ position: "absolute", top: 16, right: 16, zIndex: 5 }}>
-        <FlowToggleButton
-          flowTab={flowTab}
-          setFlowTab={setFlowTab}
-          totals={totals}
-          isMobile={isMobile}
-          onResetSelections={() => {
-            setSelectedEntity(null);
-            setSelectedExpenses([]);
-            setShowExpenseTable(false);
-          }}
-          shrinkFlowBtn={shrinkFlowBtn}
-          setShrinkFlowBtn={setShrinkFlowBtn}
-        />
+        {loading ? (
+          <FlowToggleSkeleton isMobile={isMobile} />
+        ) : (
+          <FlowToggleButton
+            flowTab={flowTab}
+            setFlowTab={setFlowTab}
+            totals={totals}
+            isMobile={isMobile}
+            onResetSelections={() => {
+              setSelectedEntity(null);
+              setSelectedExpenses([]);
+              setShowExpenseTable(false);
+            }}
+            shrinkFlowBtn={shrinkFlowBtn}
+            setShrinkFlowBtn={setShrinkFlowBtn}
+          />
+        )}
       </div>
       <div
         className="w-full rounded-lg p-4 mb-4"
@@ -303,7 +308,7 @@ const GenericFlowPage = ({
         }}
       >
         {loading ? (
-          <FlowChartSkeleton variant="bar" />
+          <FlowChartSkeleton variant="bar" activeRange={activeRange} />
         ) : pieData.length === 0 ? (
           <NoDataPlaceholder
             size="sm"
@@ -338,24 +343,31 @@ const GenericFlowPage = ({
       )}
       {!showExpenseTable && (
         <>
-          <SearchNavigationBar
-            search={search}
-            setSearch={setSearch}
-            onFilterToggle={() => setPopoverOpen((v) => !v)}
-            filterRef={filterBtnRef}
-            isMobile={isMobile}
-            isTablet={isTablet}
-            placeholder={t("flows.search.placeholder", {
-              entityPlural: entityConfig.plural,
-            })}
-            navItems={navItems}
-            friendId={friendId}
-            isFriendView={isFriendView}
-            hasWriteAccess={hasWriteAccess}
-            navigate={navigate}
-            addNewOptions={addNewOptions}
-            currentFlow={routeBase}
-          />
+          {loading ? (
+            <FlowSearchToolbarSkeleton
+              isMobile={isMobile}
+              isTablet={isTablet}
+            />
+          ) : (
+            <SearchNavigationBar
+              search={search}
+              setSearch={setSearch}
+              onFilterToggle={() => setPopoverOpen((v) => !v)}
+              filterRef={filterBtnRef}
+              isMobile={isMobile}
+              isTablet={isTablet}
+              placeholder={t("flows.search.placeholder", {
+                entityPlural: entityConfig.plural,
+              })}
+              navItems={navItems}
+              friendId={friendId}
+              isFriendView={isFriendView}
+              hasWriteAccess={hasWriteAccess}
+              navigate={navigate}
+              addNewOptions={addNewOptions}
+              currentFlow={routeBase}
+            />
+          )}
           <SortPopover
             open={popoverOpen}
             anchorRect={filterBtnRef.current?.getBoundingClientRect() || null}

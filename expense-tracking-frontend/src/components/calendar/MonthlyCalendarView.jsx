@@ -20,14 +20,20 @@ import HeatmapModeToggle from "./HeatmapModeToggle";
 import SpendingMomentumInsight from "./SpendingMomentumInsight";
 import CalendarViewSkeleton from "../skeletons/CalendarViewSkeleton";
 import FinanceSummaryCard from "./FinanceSummaryCard";
-import { getFinanceCalendarColors } from "../../config/financeColorTokens";
+import {
+  getFinanceCalendarColors,
+  getCalendarWeekendTokens,
+} from "../../config/financeColorTokens";
 import {
   getDaysArray,
   getSalaryDateLastWorkingDay,
   getPaydayDistanceText,
 } from "../../utils/calendar/calendarDates";
 import { computeMonthCalendarStats } from "../../utils/calendar/calendarMetrics";
-import { buildHeatmapBackground } from "../../utils/calendar/calendarHeatmap";
+import {
+  buildHeatmapBackground,
+  hexToRgba,
+} from "../../utils/calendar/calendarHeatmap";
 import { formatCompactNumber } from "../../utils/formatting/numberFormatters";
 
 /**
@@ -236,6 +242,11 @@ const MonthlyCalendarView = ({
 
   const financeColors = useMemo(
     () => getFinanceCalendarColors(mode),
+    [mode],
+  );
+
+  const weekendTokens = useMemo(
+    () => getCalendarWeekendTokens(mode),
     [mode],
   );
 
@@ -634,24 +645,35 @@ const MonthlyCalendarView = ({
                   : null),
               }}
             >
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-                <Grid item xs={1} key={d}>
-                  <Typography
-                    align="center"
-                    variant="subtitle2"
-                    sx={{
-                      fontWeight: 700,
-                      color: colors.primary_text,
-                      py: 1,
-                      letterSpacing: 1,
-                      border: "none",
-                      borderRadius: 2,
-                    }}
-                  >
-                    {d}
-                  </Typography>
-                </Grid>
-              ))}
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, idx) => {
+                const isWeekendHeader = idx === 0 || idx === 6;
+                return (
+                  <Grid item xs={1} key={d}>
+                    <Typography
+                      align="center"
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: isWeekendHeader ? 800 : 700,
+                        color: isWeekendHeader
+                          ? weekendTokens.header
+                          : colors.primary_text,
+                        py: 1,
+                        letterSpacing: isWeekendHeader ? 0.6 : 1,
+                        border: "none",
+                        borderRadius: 2,
+                        backgroundColor: isWeekendHeader
+                          ? hexToRgba(
+                              weekendTokens.tint,
+                              mode === "light" ? 0.1 : 0.14,
+                            )
+                          : "transparent",
+                      }}
+                    >
+                      {d}
+                    </Typography>
+                  </Grid>
+                );
+              })}
             </Grid>
 
             {loading ? (
@@ -730,17 +752,26 @@ const MonthlyCalendarView = ({
                     ? 0
                     : maxIncome;
 
+                const bothOnDay =
+                  effectiveSpending > 0 && effectiveIncome > 0;
                 const heatmapBackground = showHeatmap
                   ? buildHeatmapBackground({
                       baseBg: colors.secondary_bg,
                       accentColor: colors.primary_accent,
                       isWeekend,
+                      weekendTint: weekendTokens.tint,
+                      weekendAlpha: weekendTokens.alpha,
+                      themeMode: mode,
                       spending: effectiveSpending,
                       income: effectiveIncome,
                       maxSpending: effectiveMaxSpending,
                       maxIncome: effectiveMaxIncome,
                       spendingColor: resolvedSummaryConfig.spendingColor,
                       incomeColor: resolvedSummaryConfig.incomeColor,
+                      emphasizeBothSplit:
+                        showHeatmapModeToggle &&
+                        heatmapMode === "both" &&
+                        bothOnDay,
                     })
                   : null;
 
@@ -772,9 +803,16 @@ const MonthlyCalendarView = ({
                       incomeKey={resolvedSummaryConfig.incomeKey}
                       spendingColor={resolvedSummaryConfig.spendingColor}
                       incomeColor={resolvedSummaryConfig.incomeColor}
+                      spendingTextColor={resolvedSummaryConfig.spendingTextColor}
+                      incomeTextColor={resolvedSummaryConfig.incomeTextColor}
                       colors={colors}
                       currencySymbol={currencySymbol}
                       heatmapBackground={heatmapBackground}
+                      isWeekend={isWeekend}
+                      heatmapMode={
+                        showHeatmapModeToggle ? heatmapMode : "both"
+                      }
+                      themeMode={mode}
                       showMixedAmountsOverlay={
                         !(showHeatmapModeToggle && heatmapMode !== "both")
                       }

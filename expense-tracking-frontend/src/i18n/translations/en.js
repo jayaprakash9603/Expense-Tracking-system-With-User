@@ -326,6 +326,8 @@ export const en = {
     budgetTable: {
       noBudgets: "No budgets available",
       noBudgetsHint: "Create a budget first, or adjust your filters.",
+      noMatching: "No matching budgets",
+      noMatchingHint: "Clear column filters or change your search.",
     },
     autocomplete: {
       noOptions: "No options",
@@ -382,6 +384,8 @@ export const en = {
     budgetTable: {
       noBudgets: "No budgets available",
       noBudgetsHint: "Create a budget first, or adjust your filters.",
+      noMatching: "No matching budgets",
+      noMatchingHint: "Clear column filters or change your search.",
     },
     autocomplete: {
       noOptions: "No options",

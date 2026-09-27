@@ -2,58 +2,79 @@ import React from "react";
 import { Box, Skeleton, useMediaQuery } from "@mui/material";
 import { useTheme } from "../../hooks/useTheme";
 
-/**
- * FlowEntityCardsSkeleton
- * Skeleton loading state for FlowEntityCards component
- * Used in CategoryFlow, PaymentMethodFlow, and similar flow pages
- */
-const FlowEntityCardsSkeleton = ({ cardCount = 6 }) => {
-  const { colors } = useTheme();
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery((theme) =>
-    theme.breakpoints.between("sm", "lg"),
-  );
+const skeletonMotionSx = {
+  "@media (prefers-reduced-motion: reduce)": {
+    animation: "none",
+  },
+};
 
-  const displayCount = isMobile ? 2 : isTablet ? 4 : cardCount;
-  const cardWidth = isMobile ? "100%" : 220;
+/**
+ * Skeleton loading state for FlowEntityCards (category / payment method cards).
+ */
+const FlowEntityCardsSkeleton = ({ isMobile, isTablet, cardCount }) => {
+  const { colors } = useTheme();
+  const mqMobile = useMediaQuery((theme) => theme.breakpoints.down("sm"));
+  const mqTablet = useMediaQuery((theme) =>
+    theme.breakpoints.between("sm", "md"),
+  );
+  const mobile = isMobile ?? mqMobile;
+  const tablet = isTablet ?? mqTablet;
+
+  const displayCount =
+    cardCount ?? (mobile ? 4 : tablet ? 8 : 12);
+
+  const cardWidth = mobile ? "100%" : tablet ? "calc(50% - 12px)" : 220;
+  const maxWidth = mobile ? "100%" : tablet ? "calc(50% - 12px)" : 220;
+
+  const baseSx = {
+    bgcolor: colors.hover_bg,
+    ...skeletonMotionSx,
+  };
 
   return (
     <Box
+      role="status"
+      aria-label="Loading categories"
+      aria-busy="true"
+      className="custom-scrollbar"
       sx={{
         display: "flex",
         flexWrap: "wrap",
         justifyContent: "flex-start",
-        gap: isMobile ? 1 : 2,
-        maxHeight: isMobile ? 200 : isTablet ? 250 : 360,
-        overflowY: "auto",
+        gap: mobile ? "10px" : "12px",
+        maxHeight: mobile ? "none" : tablet ? 280 : 360,
+        minHeight: mobile ? 280 : tablet ? 280 : 360,
+        overflowY: mobile ? "visible" : "auto",
         overflowX: "hidden",
-        paddingRight: isMobile ? "4px" : isTablet ? "8px" : "16px",
-        paddingLeft: "16px",
+        paddingRight: mobile ? "4px" : tablet ? "8px" : "16px",
+        paddingLeft: mobile ? "8px" : "16px",
         width: "100%",
+        boxSizing: "border-box",
       }}
-      className="custom-scrollbar"
     >
       {Array.from({ length: displayCount }).map((_, index) => (
         <Box
           key={index}
           sx={{
             width: cardWidth,
-            minWidth: isMobile ? "100%" : 200,
-            maxWidth: isMobile ? "100%" : 240,
+            minWidth: mobile ? "100%" : 200,
+            maxWidth,
             height: 130,
-            bgcolor: colors.card_bg,
-            borderRadius: 2,
+            minHeight: 130,
+            maxHeight: 130,
+            bgcolor: colors.primary_bg,
+            borderRadius: "8px",
             border: `1px solid ${colors.border_color}`,
-            padding: isMobile ? 1.5 : 2,
+            borderLeft: `6px solid ${colors.hover_bg}`,
+            padding: mobile ? "14px 16px" : "16px 20px",
+            boxSizing: "border-box",
+            margin: mobile ? 0 : "4px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
             display: "flex",
             flexDirection: "column",
-            gap: 1.5,
-            marginBottom: "16px",
-            animation: "pulse 1.5s ease-in-out infinite",
-            animationDelay: `${index * 0.1}s`,
+            gap: 1,
           }}
         >
-          {/* Header Row - Icon + Name + Menu */}
           <Box
             sx={{
               display: "flex",
@@ -62,70 +83,46 @@ const FlowEntityCardsSkeleton = ({ cardCount = 6 }) => {
               gap: 1,
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              {/* Category/Payment Method Icon */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
               <Skeleton
                 variant="circular"
-                width={32}
-                height={32}
-                sx={{ bgcolor: colors.hover_bg }}
+                width={20}
+                height={20}
+                sx={baseSx}
                 animation="wave"
               />
-              {/* Entity Name */}
               <Skeleton
                 variant="text"
-                width={80}
+                width={mobile ? 100 : 88}
                 height={20}
-                sx={{ bgcolor: colors.hover_bg }}
+                sx={{ ...baseSx, flexShrink: 0 }}
                 animation="wave"
               />
             </Box>
-            {/* Menu Icon */}
             <Skeleton
               variant="circular"
-              width={24}
-              height={24}
-              sx={{ bgcolor: colors.hover_bg, opacity: 0.5 }}
-              animation="wave"
-            />
-          </Box>
-
-          {/* Amount Row */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Skeleton
-              variant="rounded"
-              width={90}
+              width={28}
               height={28}
-              sx={{ bgcolor: colors.hover_bg, borderRadius: 1 }}
+              sx={{ ...baseSx, opacity: 0.5, flexShrink: 0 }}
               animation="wave"
             />
           </Box>
 
-          {/* Footer Row - Expense Count Badge */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mt: "auto",
-            }}
-          >
-            <Skeleton
-              variant="rounded"
-              width={80}
-              height={20}
-              sx={{ bgcolor: colors.hover_bg, borderRadius: 1, opacity: 0.6 }}
-              animation="wave"
-            />
-            {/* Color indicator */}
-            <Skeleton
-              variant="rounded"
-              width={4}
-              height={40}
-              sx={{ bgcolor: colors.hover_bg, borderRadius: 1 }}
-              animation="wave"
-            />
-          </Box>
+          <Skeleton
+            variant="text"
+            width={mobile ? "45%" : 96}
+            height={28}
+            sx={{ ...baseSx, mt: 0.5 }}
+            animation="wave"
+          />
+
+          <Skeleton
+            variant="text"
+            width={mobile ? "55%" : 112}
+            height={18}
+            sx={{ ...baseSx, opacity: 0.55, mt: "auto" }}
+            animation="wave"
+          />
         </Box>
       ))}
     </Box>

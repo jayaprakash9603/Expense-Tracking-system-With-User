@@ -32,13 +32,16 @@ export function buildHeatmapBackground({
   baseBg,
   accentColor,
   isWeekend,
-  weekendAlpha = 0.06,
+  weekendAlpha,
+  weekendTint,
+  themeMode = "dark",
   spending,
   income,
   maxSpending,
   maxIncome,
   spendingColor,
   incomeColor,
+  emphasizeBothSplit = false,
 }) {
   const safeSpending = Number.isFinite(Number(spending)) ? Number(spending) : 0;
   const safeIncome = Number.isFinite(Number(income)) ? Number(income) : 0;
@@ -48,21 +51,34 @@ export function buildHeatmapBackground({
   const incomeIntensity =
     maxIncome > 0 ? clamp(safeIncome / maxIncome, 0, 1) : 0;
 
-  // Keep heatmap subtle: don’t overpower content.
-  const spendingAlpha = spendingIntensity * 0.42;
-  const incomeAlpha = incomeIntensity * 0.38;
+  const isLight = themeMode === "light";
+  const spendCap = isLight ? 0.36 : 0.4;
+  const incomeCap = isLight ? 0.32 : 0.36;
+  const bothDampen = emphasizeBothSplit ? 0.82 : 1;
+
+  const spendingAlpha = spendingIntensity * spendCap * bothDampen;
+  const incomeAlpha = incomeIntensity * incomeCap * bothDampen;
+
+  const weekendColor =
+    weekendTint ||
+    accentColor ||
+    (isLight ? "#64748b" : "#94a3b8");
+  const resolvedWeekendAlpha =
+    weekendAlpha ?? (isLight ? 0.07 : 0.085);
 
   const weekendOverlay = isWeekend
-    ? `linear-gradient(${hexToRgba(accentColor, weekendAlpha)}, ${hexToRgba(
-        accentColor,
-        weekendAlpha
+    ? `linear-gradient(${hexToRgba(weekendColor, resolvedWeekendAlpha)}, ${hexToRgba(
+        weekendColor,
+        resolvedWeekendAlpha,
       )}),`
     : "";
 
   if (safeSpending > 0 && safeIncome > 0) {
     const spend = hexToRgba(spendingColor, spendingAlpha);
     const inc = hexToRgba(incomeColor, incomeAlpha);
-    return `linear-gradient(135deg, ${spend} 0%, ${spend} 50%, ${inc} 50%, ${inc} 100%), ${weekendOverlay} ${baseBg}`;
+    const seamStart = emphasizeBothSplit ? "48%" : "50%";
+    const seamEnd = emphasizeBothSplit ? "52%" : "50%";
+    return `linear-gradient(135deg, ${spend} 0%, ${spend} ${seamStart}, ${inc} ${seamEnd}, ${inc} 100%), ${weekendOverlay} ${baseBg}`;
   }
 
   if (safeSpending > 0) {

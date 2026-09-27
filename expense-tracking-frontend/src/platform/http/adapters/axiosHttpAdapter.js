@@ -26,6 +26,7 @@ export const createAxiosHttpAdapter = ({
 } = {}) => {
   const instance = axios.create({
     baseURL,
+    timeout: 30000,
     headers: {
       "Content-Type": "application/json",
     },

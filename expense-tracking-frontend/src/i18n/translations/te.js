@@ -219,6 +219,12 @@ export const te = {
     messages: {
       errorLoadingBudgets: "బడ్జెట్లు లోడ్ చేయలేకపోయాం",
     },
+    budgetTable: {
+      noBudgets: "బడ్జెట్లు అందుబాటులో లేవు",
+      noBudgetsHint: "ముందుగా బడ్జెట్ సృష్టించండి, లేదా ఫిల్టర్లను సర్దుబాటు చేయండి.",
+      noMatching: "సరిపోలే బడ్జెట్లు లేవు",
+      noMatchingHint: "కాలమ్ ఫిల్టర్లను తొలగించండి లేదా శోధన మార్చండి.",
+    },
     autocomplete: {
       noOptions: "ఎంపికలు లేవు",
     },
@@ -270,6 +276,12 @@ export const te = {
     messages: {
       updateError: "ఏదో తప్పు జరిగింది. దయచేసి మళ్లీ ప్రయత్నించండి.",
       errorLoadingBudgets: "బడ్జెట్లు లోడ్ చేయలేకపోయాం",
+    },
+    budgetTable: {
+      noBudgets: "బడ్జెట్లు అందుబాటులో లేవు",
+      noBudgetsHint: "ముందుగా బడ్జెట్ సృష్టించండి, లేదా ఫిల్టర్లను సర్దుబాటు చేయండి.",
+      noMatching: "సరిపోలే బడ్జెట్లు లేవు",
+      noMatchingHint: "కాలమ్ ఫిల్టర్లను తొలగించండి లేదా శోధన మార్చండి.",
     },
     autocomplete: {
       noOptions: "ఎంపికలు లేవు",

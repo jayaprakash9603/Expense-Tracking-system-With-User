@@ -742,7 +742,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
         {showTable && (
           <div
             className={`w-full relative mt-3 overflow-hidden ${
-              isCreateMode ? "mb-20 lg:mb-0" : ""
+              isCreateMode && budgets.length > 0 ? "mb-20 lg:mb-0" : ""
             }`}
             style={{
               ...tableVars,
@@ -769,6 +769,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
               budgets={budgets}
               selectedBudgetIds={selectedBudgetIds}
               onSelectionChange={setSelectedBudgetIds}
+              translationPrefix={i18nPrefix}
             />
           </div>
         )}
@@ -788,11 +789,15 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
 
         <div
           className={`w-full flex justify-end mt-4 sm:mt-8 ${
-            isCreateMode
+            isCreateMode && !(showTable && budgets.length === 0)
               ? "pb-4 lg:pb-0 sticky bottom-0 left-0 right-0 pt-4 lg:pt-0 lg:static z-10 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] lg:shadow-none"
               : ""
           }`}
-          style={isCreateMode ? { backgroundColor: colors.secondary_bg } : undefined}
+          style={
+            isCreateMode && !(showTable && budgets.length === 0)
+              ? { backgroundColor: colors.secondary_bg }
+              : undefined
+          }
         >
           {hasWriteAccess && (
             <SubmitButton

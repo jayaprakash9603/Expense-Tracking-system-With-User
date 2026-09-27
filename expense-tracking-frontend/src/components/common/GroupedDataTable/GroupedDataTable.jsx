@@ -165,7 +165,7 @@ const GroupedDataTable = ({
   const useScroll = pageSize > BASE_VISIBLE_ROWS;
   // Only show scroll when we actually have more rows than visible area
   const hasMoreRowsThanVisible = pageSlice.length > BASE_VISIBLE_ROWS;
-  const isEmpty = pageSlice.length === 0;
+  const isEmpty = sortedRows.length === 0;
   const needsScrollContainer = !isEmpty && useScroll && hasMoreRowsThanVisible;
   // If pageSlice is smaller than pageSize (e.g. last page), do we fill?
   // GenericAccordionGroup logic:
@@ -194,7 +194,7 @@ const GroupedDataTable = ({
         }
       >
         <table
-          className={`pm-expense-table pm-fixed ${pageSlice.length === 0 ? "pm-empty-state" : ""} ${compactEmpty && pageSlice.length === 0 ? "pm-empty-compact-table" : ""}`}
+          className={`pm-expense-table pm-fixed ${isEmpty ? "pm-empty-state" : ""} ${compactEmpty && isEmpty ? "pm-empty-compact-table" : ""}`}
         >
           {columns && (
             <colgroup>

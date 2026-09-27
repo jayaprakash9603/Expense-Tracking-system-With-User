@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Routes, useLocation } from "react-router-dom";
 import "./App.css";
 import { useSelector } from "react-redux";
@@ -9,7 +9,9 @@ import { AppSeo, isPublicMarketingPath } from "./seo";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
 const GuestAuthApp = lazy(() => import("./routes/GuestAuthApp"));
-const AuthenticatedApp = lazy(() => import("./routes/AuthenticatedApp"));
+const AuthenticatedApp = lazy(() =>
+  import(/* webpackPrefetch: true */ "./routes/AuthenticatedApp"),
+);
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 
 function App() {
@@ -17,6 +19,12 @@ function App() {
   const { auth, theme } = useSelector((store) => store);
   const jwt = localStorage.getItem("jwt");
   const { loading } = useAppInitialization(jwt, auth);
+
+  useEffect(() => {
+    if (jwt) {
+      import("./routes/AuthenticatedApp").catch(() => {});
+    }
+  }, [jwt]);
 
   const isDark = theme?.mode === "dark";
   const isOAuthCallback = location.pathname === "/oauth/callback";

@@ -95,9 +95,9 @@ const FlowEntityCards = ({
     closeMenu(e);
   };
 
-  if (loading && !search) {
+  if (loading) {
     return (
-      <FlowEntityCardsSkeleton cardCount={isMobile ? 2 : isTablet ? 4 : 6} />
+      <FlowEntityCardsSkeleton isMobile={isMobile} isTablet={isTablet} />
     );
   }
 

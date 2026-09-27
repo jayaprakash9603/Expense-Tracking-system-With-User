@@ -9,13 +9,23 @@ const BudgetSelectionTable = ({
   budgets = [],
   selectedBudgetIds = [],
   onSelectionChange,
+  translationPrefix = "newExpense",
 }) => {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const noBudgetsTitle = t("newExpense.budgetTable.noBudgets", "No budgets available");
+  const budgetTableKey = `${translationPrefix}.budgetTable`;
+  const noBudgetsTitle = t(`${budgetTableKey}.noBudgets`, "No budgets available");
   const noBudgetsSubtitle = t(
-    "newExpense.budgetTable.noBudgetsHint",
+    `${budgetTableKey}.noBudgetsHint`,
     "Create a budget first, or adjust your filters."
+  );
+  const noMatchingTitle = t(
+    `${budgetTableKey}.noMatching`,
+    "No matching budgets"
+  );
+  const noMatchingSubtitle = t(
+    `${budgetTableKey}.noMatchingHint`,
+    "Clear column filters or change your search."
   );
 
   // --- Table Configuration ---
@@ -27,6 +37,13 @@ const BudgetSelectionTable = ({
     setSort,
     filteredRows,
   } = useBudgetTableConfig(budgets, t);
+
+  const isDatasetEmpty = !budgets?.length;
+  const isViewEmpty = filteredRows.length === 0;
+  const resolvedEmptyTitle = isDatasetEmpty ? noBudgetsTitle : noMatchingTitle;
+  const resolvedEmptySubtitle = isDatasetEmpty
+    ? noBudgetsSubtitle
+    : noMatchingSubtitle;
 
   // --- Filter Popover State ---
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -103,7 +120,8 @@ const BudgetSelectionTable = ({
     <div
       className="w-full relative"
       style={{
-        maxHeight: filteredRows.length > 0 ? "360px" : undefined,
+        maxHeight: filteredRows.length > 0 ? "360px" : "auto",
+        height: isViewEmpty ? "auto" : undefined,
         overflow: "hidden",
         borderRadius: "10px",
         border: `1px solid ${colors.border_color}`,
@@ -136,9 +154,9 @@ const BudgetSelectionTable = ({
           className="w-full"
           defaultPageSize={5}
           showPagination={filteredRows.length > 0}
-          compactEmpty={filteredRows.length === 0}
-          emptyTitle={noBudgetsTitle}
-          emptySubtitle={noBudgetsSubtitle}
+          compactEmpty={isViewEmpty}
+          emptyTitle={resolvedEmptyTitle}
+          emptySubtitle={resolvedEmptySubtitle}
         />
       <FilterPopover
         open={Boolean(filterAnchorEl)}

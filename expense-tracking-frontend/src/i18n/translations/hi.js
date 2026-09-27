@@ -218,6 +218,12 @@ export const hi = {
     messages: {
       errorLoadingBudgets: "बजट लोड नहीं हो पाए",
     },
+    budgetTable: {
+      noBudgets: "कोई बजट उपलब्ध नहीं",
+      noBudgetsHint: "पहले बजट बनाएँ, या फ़िल्टर समायोजित करें।",
+      noMatching: "कोई मेल खाता बजट नहीं",
+      noMatchingHint: "कॉलम फ़िल्टर हटाएँ या खोज बदलें।",
+    },
     autocomplete: {
       noOptions: "कोई विकल्प उपलब्ध नहीं",
     },
@@ -269,6 +275,12 @@ export const hi = {
     messages: {
       updateError: "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
       errorLoadingBudgets: "बजट लोड नहीं हो पाए",
+    },
+    budgetTable: {
+      noBudgets: "कोई बजट उपलब्ध नहीं",
+      noBudgetsHint: "पहले बजट बनाएँ, या फ़िल्टर समायोजित करें।",
+      noMatching: "कोई मेल खाता बजट नहीं",
+      noMatchingHint: "कॉलम फ़िल्टर हटाएँ या खोज बदलें।",
     },
     autocomplete: {
       noOptions: "कोई विकल्प उपलब्ध नहीं",
