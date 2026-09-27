@@ -19,7 +19,7 @@ const PageHeader = ({
           {typeof title === "string" ? (
             <p
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 margin: 0,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -30,7 +30,7 @@ const PageHeader = ({
               {title}
             </p>
           ) : (
-            <div className={titleClassName} style={{ color: colors.primary_text }}>
+            <div className={titleClassName} style={{ color: "var(--color-primary-text)" }}>
               {title}
             </div>
           )}
@@ -48,8 +48,8 @@ const PageHeader = ({
               className="flex items-center justify-center w-11 h-11 text-[24px] font-bold rounded transition-colors"
               style={{
                 backgroundColor: colors.button_inactive,
-                color: colors.primary_accent,
-                border: `1px solid ${colors.border_color}`,
+                color: "var(--color-primary-accent)",
+                border: "1px solid var(--color-border-color)",
               }}
               aria-label="Close"
             >

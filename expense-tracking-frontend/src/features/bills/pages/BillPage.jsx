@@ -218,8 +218,8 @@ const Bill = () => {
       sx={{
         height: "calc(100vh - 100px)",
         width: "calc(100vw - 370px)",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
         position: "relative",
         overflow: "hidden",
         borderRadius: "8px",
@@ -300,7 +300,7 @@ const Bill = () => {
               width: "8px",
             },
             "&::-webkit-scrollbar-track": {
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "4px",
             },
             "&::-webkit-scrollbar-thumb": {
@@ -348,7 +348,7 @@ const Bill = () => {
               color="primary"
               sx={{
                 "& .MuiPaginationItem-root": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   "&.Mui-selected": {
                     backgroundColor: colors.primary_accent,
                     color: colors.button_text,

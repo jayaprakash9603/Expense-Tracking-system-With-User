@@ -147,7 +147,7 @@ const HeaderBar = () => {
       <div
         className="h-[50px] flex items-center justify-between px-4 sm:px-6 transition-colors"
         style={{
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
         }}
       >
         {/* Left Section: Empty or logo */}

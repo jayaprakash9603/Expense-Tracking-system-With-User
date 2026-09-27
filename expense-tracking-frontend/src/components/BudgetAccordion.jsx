@@ -62,7 +62,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
         style={{
           padding: "32px",
           textAlign: "center",
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
         }}
       >
         <Typography variant="h6">No budgets found</Typography>
@@ -115,7 +115,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
             title={getViewExpenseUrl(expenseId)}
             onClick={(e) => handleNameClick(e, expenseId)}
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               cursor: "pointer",
             }}
             onMouseEnter={(e) => {
@@ -240,7 +240,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
           <Typography
             variant="body2"
             style={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               marginLeft: "24px",
               fontSize: "0.875rem",
             }}
@@ -262,13 +262,13 @@ const BudgetAccordionGroup = ({ budgets }) => {
           <Box style={{ textAlign: "right" }}>
             <Typography
               variant="caption"
-              style={{ color: colors.secondary_text, display: "block" }}
+              style={{ color: "var(--color-secondary-text)", display: "block" }}
             >
               Spent
             </Typography>
             <Typography
               variant="body1"
-              style={{ color: colors.primary_text, fontWeight: 600 }}
+              style={{ color: "var(--color-primary-text)", fontWeight: 600 }}
             >
               {currencySymbol}
               {budget.totalLoss?.toFixed(2) || "0.00"}
@@ -278,13 +278,13 @@ const BudgetAccordionGroup = ({ budgets }) => {
           <Box style={{ textAlign: "right" }}>
             <Typography
               variant="caption"
-              style={{ color: colors.secondary_text, display: "block" }}
+              style={{ color: "var(--color-secondary-text)", display: "block" }}
             >
               Allocated
             </Typography>
             <Typography
               variant="body1"
-              style={{ color: colors.primary_text, fontWeight: 600 }}
+              style={{ color: "var(--color-primary-text)", fontWeight: 600 }}
             >
               {currencySymbol}
               {budget.allocatedAmount?.toFixed(2) || "0.00"}
@@ -294,7 +294,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
           <Box style={{ textAlign: "right" }}>
             <Typography
               variant="caption"
-              style={{ color: colors.secondary_text, display: "block" }}
+              style={{ color: "var(--color-secondary-text)", display: "block" }}
             >
               Used
             </Typography>
@@ -312,7 +312,7 @@ const BudgetAccordionGroup = ({ budgets }) => {
               background: isDarkMode
                 ? "rgba(255, 255, 255, 0.1)"
                 : "rgba(0, 0, 0, 0.05)",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 500,
             }}
           />

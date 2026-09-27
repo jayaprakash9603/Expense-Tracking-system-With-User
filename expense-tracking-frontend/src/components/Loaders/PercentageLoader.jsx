@@ -121,7 +121,7 @@ const PercentageLoader = ({
         <Typography
           variant="caption"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             textAlign: "center",
             fontSize: "0.8rem",
           }}
@@ -135,7 +135,7 @@ const PercentageLoader = ({
         <Typography
           variant="body2"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             textAlign: "center",
             fontSize: "0.85rem",
             maxWidth: 340,

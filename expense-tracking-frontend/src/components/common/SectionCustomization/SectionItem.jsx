@@ -60,7 +60,7 @@ const SectionItem = ({
               color: isActive
                 ? (colors.primary_accent || "#14b8a6")
                 : colors.secondary_text,
-              "&.Mui-checked": { color: colors.primary_accent || "#14b8a6" },
+              "&.Mui-checked": { color: "var(--color-primary-accent)" || "#14b8a6" },
             }}
           />
           <Box

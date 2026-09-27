@@ -154,26 +154,26 @@ const ReusableAutocomplete = ({
       paddingBottom: "6px",
     },
     "& .MuiAutocomplete-listbox": {
-      backgroundColor: colors.primary_bg,
+      backgroundColor: "var(--color-primary-bg)",
       color: effectiveTextColor,
     },
     "& .MuiAutocomplete-option:hover": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
     },
     "& .MuiAutocomplete-option[aria-selected='true']": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
     },
     "& .MuiAutocomplete-option.Mui-focused": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
     },
     "& .MuiAutocomplete-paper": {
-      backgroundColor: colors.primary_bg,
+      backgroundColor: "var(--color-primary-bg)",
     },
     "& .MuiAutocomplete-noOptions": {
-      color: colors.secondary_text,
+      color: "var(--color-secondary-text)",
     },
     "& .MuiAutocomplete-loading": {
-      color: colors.secondary_text,
+      color: "var(--color-secondary-text)",
     },
     ...sx,
   };

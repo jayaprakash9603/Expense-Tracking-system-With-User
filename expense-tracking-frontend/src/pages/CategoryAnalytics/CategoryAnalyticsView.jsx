@@ -442,7 +442,7 @@ const CategoryAnalyticsView = ({
         value:
           trendAnalytics?.previousVsCurrentMonth?.currentMonthTransactions || 0,
         icon: getFunctionalIcon("schedule", {
-          sx: { fontSize: 16, color: colors.primary_accent },
+          sx: { fontSize: 16, color: "var(--color-primary-accent)" },
         }),
         accentColor: colors.primary_accent,
         tooltip: "Transactions in the current calendar month",
@@ -453,7 +453,7 @@ const CategoryAnalyticsView = ({
         value: summaryStatistics?.totalTransactions || 0,
         icon: (
           <CalendarTodayIcon
-            sx={{ fontSize: 16, color: colors.primary_accent }}
+            sx={{ fontSize: 16, color: "var(--color-primary-accent)" }}
           />
         ),
         accentColor: colors.primary_accent,
@@ -668,7 +668,7 @@ const CategoryAnalyticsView = ({
         <PageHeader title="Category Analytics" onClose={handleOnClose} />
         <div
           className="flex flex-col items-center justify-center"
-          style={{ flex: 1, color: colors.primary_text }}
+          style={{ flex: 1, color: "var(--color-primary-text)" }}
         >
           <Typography variant="h6" color="error">
             {categoryAnalyticsError}
@@ -691,7 +691,7 @@ const CategoryAnalyticsView = ({
         <PageHeader title="Category Analytics" onClose={handleOnClose} />
         <div
           className="flex flex-col items-center justify-center"
-          style={{ flex: 1, color: colors.secondary_text }}
+          style={{ flex: 1, color: "var(--color-secondary-text)" }}
         >
           <Typography variant="h6">No analytics data found</Typography>
         </div>
@@ -729,7 +729,7 @@ const CategoryAnalyticsView = ({
                 sx={{
                   fontSize: isMobile ? "1.15rem" : isCompact ? "1.4rem" : "2rem",
                   fontWeight: 700,
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   lineHeight: 1.2,
                 }}
               >
@@ -847,11 +847,11 @@ const CategoryAnalyticsView = ({
             InputLabelProps={{ shrink: true }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                color: colors.primary_text,
-                backgroundColor: colors.primary_bg,
+                color: "var(--color-primary-text)",
+                backgroundColor: "var(--color-primary-bg)",
               },
               "& .MuiInputLabel-root": {
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
               },
             }}
           />
@@ -864,11 +864,11 @@ const CategoryAnalyticsView = ({
             InputLabelProps={{ shrink: true }}
             sx={{
               "& .MuiOutlinedInput-root": {
-                color: colors.primary_text,
-                backgroundColor: colors.primary_bg,
+                color: "var(--color-primary-text)",
+                backgroundColor: "var(--color-primary-bg)",
               },
               "& .MuiInputLabel-root": {
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
               },
             }}
           />
@@ -919,7 +919,7 @@ const CategoryAnalyticsView = ({
             sx={{
               flex: 1,
               background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: "12px",
               padding: "12px",
               display: "flex",
@@ -936,13 +936,13 @@ const CategoryAnalyticsView = ({
               }}
             >
               <ReceiptLongIcon
-                sx={{ fontSize: 16, color: colors.primary_accent }}
+                sx={{ fontSize: 16, color: "var(--color-primary-accent)" }}
               />
               <Typography
                 sx={{
                   fontSize: "0.8rem",
                   fontWeight: 600,
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 }}
               >
                 Recent Transactions
@@ -964,7 +964,7 @@ const CategoryAnalyticsView = ({
                     borderRadius: "10px",
                     border: `1px dashed ${colors.border_color}`,
                     backgroundColor: colors.tertiary_bg,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     gap: 0.75,
                   }}
                 >
@@ -976,7 +976,7 @@ const CategoryAnalyticsView = ({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                       color: colors.secondary_accent,
                     }}
                   >
@@ -986,7 +986,7 @@ const CategoryAnalyticsView = ({
                     sx={{
                       fontSize: "0.8rem",
                       fontWeight: 600,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     }}
                   >
                     No recent transactions
@@ -994,7 +994,7 @@ const CategoryAnalyticsView = ({
                   <Typography
                     sx={{
                       fontSize: "0.72rem",
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       lineHeight: 1.4,
                       maxWidth: 220,
                     }}
@@ -1048,7 +1048,7 @@ const CategoryAnalyticsView = ({
               <Box
                 sx={{
                   background: colors.primary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "12px",
                   padding: "12px",
                   height: "100%",
@@ -1066,20 +1066,20 @@ const CategoryAnalyticsView = ({
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     {getFunctionalIcon("expense", {
-                      sx: { fontSize: 15, color: colors.primary_accent },
+                      sx: { fontSize: 15, color: "var(--color-primary-accent)" },
                     })}
                     <Typography
                       sx={{
                         fontSize: "0.8rem",
                         fontWeight: 600,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                       }}
                     >
                       Linked Budgets
                     </Typography>
                   </Box>
                   <Typography
-                    sx={{ fontSize: "0.6rem", color: colors.secondary_text }}
+                    sx={{ fontSize: "0.6rem", color: "var(--color-secondary-text)" }}
                   >
                     {budgetAnalytics?.linkedBudgets?.length || 0} items
                   </Typography>
@@ -1109,7 +1109,7 @@ const CategoryAnalyticsView = ({
                             sx={{
                               fontSize: "0.7rem",
                               fontWeight: 600,
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                             }}
                           >
                             {budget.budgetName}
@@ -1117,7 +1117,7 @@ const CategoryAnalyticsView = ({
                           <Typography
                             sx={{
                               fontSize: "0.55rem",
-                              color: colors.secondary_text,
+                              color: "var(--color-secondary-text)",
                             }}
                           >
                             {formatCurrency(budget.categorySpentAmount || 0)} /{" "}
@@ -1165,7 +1165,7 @@ const CategoryAnalyticsView = ({
                     <Typography
                       sx={{
                         fontSize: "0.7rem",
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         textAlign: "center",
                         padding: 1,
                       }}
@@ -1182,7 +1182,7 @@ const CategoryAnalyticsView = ({
               <Box
                 sx={{
                   background: colors.primary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "12px",
                   padding: "12px",
                   height: "100%",
@@ -1194,7 +1194,7 @@ const CategoryAnalyticsView = ({
                   sx={{
                     fontSize: "0.8rem",
                     fontWeight: 600,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     marginBottom: 1,
                     display: "flex",
                     alignItems: "center",
@@ -1226,7 +1226,7 @@ const CategoryAnalyticsView = ({
                         sx={{
                           fontSize: "0.7rem",
                           fontWeight: 600,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                         }}
                       >
                         {insight.title}
@@ -1234,7 +1234,7 @@ const CategoryAnalyticsView = ({
                       <Typography
                         sx={{
                           fontSize: "0.55rem",
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         }}
                       >
                         {insight.message}
@@ -1245,7 +1245,7 @@ const CategoryAnalyticsView = ({
                     <Typography
                       sx={{
                         fontSize: "0.7rem",
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         textAlign: "center",
                       }}
                     >
@@ -1261,7 +1261,7 @@ const CategoryAnalyticsView = ({
               <Box
                 sx={{
                   background: colors.primary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "12px",
                   padding: "12px",
                   height: "100%",
@@ -1273,7 +1273,7 @@ const CategoryAnalyticsView = ({
                   sx={{
                     fontSize: "0.8rem",
                     fontWeight: 600,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     marginBottom: 1,
                     display: "flex",
                     alignItems: "center",
@@ -1281,7 +1281,7 @@ const CategoryAnalyticsView = ({
                   }}
                 >
                   {getFunctionalIcon("analytics", {
-                    sx: { fontSize: 16, color: colors.primary_accent },
+                    sx: { fontSize: 16, color: "var(--color-primary-accent)" },
                   })}
                   Overview & Patterns
                 </Typography>
@@ -1347,7 +1347,7 @@ const CategoryAnalyticsView = ({
                         px: 1,
                         py: 1,
                         borderRadius: "8px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         backgroundColor:
                           mode === "dark"
                             ? "rgba(255,255,255,0.02)"
@@ -1363,7 +1363,7 @@ const CategoryAnalyticsView = ({
                           fontSize: 10,
                           fontWeight: 600,
                           letterSpacing: "0.06em",
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           textTransform: "uppercase",
                         }}
                       >

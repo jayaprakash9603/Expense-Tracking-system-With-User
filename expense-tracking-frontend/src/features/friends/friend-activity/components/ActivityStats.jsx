@@ -54,9 +54,9 @@ const ActivityStats = ({ activities = [] }) => {
     <Box
       sx={{
         p: 1.5,
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         borderRadius: "10px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         width: "100%",
       }}
     >
@@ -73,7 +73,7 @@ const ActivityStats = ({ activities = [] }) => {
           variant="subtitle1"
           sx={{
             fontWeight: 600,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.95rem",
           }}
         >
@@ -84,7 +84,7 @@ const ActivityStats = ({ activities = [] }) => {
           variant="h6"
           sx={{
             fontWeight: 700,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "1.1rem",
           }}
         >
@@ -136,7 +136,7 @@ const ActivityStats = ({ activities = [] }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: "0.75rem",
                       fontWeight: 500,
                     }}
@@ -160,7 +160,7 @@ const ActivityStats = ({ activities = [] }) => {
                       variant="caption"
                       sx={{
                         fontWeight: 600,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         fontSize: "0.8rem",
                       }}
                     >

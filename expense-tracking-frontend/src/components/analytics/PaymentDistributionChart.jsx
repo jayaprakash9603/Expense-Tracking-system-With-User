@@ -72,7 +72,7 @@ const PaymentDistributionChart = ({
         <div
           style={{
             backgroundColor: mode === "dark" ? "#1a1a1a" : "#ffffff",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
             padding: "12px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
@@ -96,7 +96,7 @@ const PaymentDistributionChart = ({
             />
             <Typography
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 600,
                 fontSize: "0.85rem",
               }}
@@ -106,36 +106,36 @@ const PaymentDistributionChart = ({
           </div>
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.75rem",
               marginBottom: "4px",
             }}
           >
             Amount:{" "}
-            <span style={{ color: colors.primary_text, fontWeight: 600 }}>
+            <span style={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
               {formatCurrency(data.value)}
             </span>
           </Typography>
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.75rem",
               marginBottom: "4px",
             }}
           >
             Percentage:{" "}
-            <span style={{ color: colors.primary_text, fontWeight: 600 }}>
+            <span style={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
               {data.percentage.toFixed(1)}%
             </span>
           </Typography>
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.75rem",
             }}
           >
             Transactions:{" "}
-            <span style={{ color: colors.primary_text, fontWeight: 600 }}>
+            <span style={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
               {data.transactions}
             </span>
           </Typography>
@@ -175,7 +175,7 @@ const PaymentDistributionChart = ({
             />
             <Typography
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: compact ? "0.55rem" : "0.7rem",
               }}
             >
@@ -183,7 +183,7 @@ const PaymentDistributionChart = ({
             </Typography>
             <Typography
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: compact ? "0.55rem" : "0.7rem",
                 fontWeight: 600,
               }}
@@ -204,7 +204,7 @@ const PaymentDistributionChart = ({
       mode === "dark"
         ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: compact ? "10px 12px" : "16px 20px",
     height: compact ? "auto" : "100%",
@@ -217,7 +217,7 @@ const PaymentDistributionChart = ({
         <Typography
           variant="subtitle1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             marginBottom: compact ? "8px" : "16px",
             fontSize: compact ? "0.85rem" : "1rem",
@@ -235,7 +235,7 @@ const PaymentDistributionChart = ({
         >
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: compact ? "0.75rem" : "0.875rem",
             }}
           >
@@ -260,7 +260,7 @@ const PaymentDistributionChart = ({
           <Typography
             variant="subtitle1"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 600,
               marginBottom: compact ? "4px" : "8px",
               fontSize: compact ? "0.8rem" : "1rem",
@@ -296,7 +296,7 @@ const PaymentDistributionChart = ({
             <div>
               <Typography
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontSize: compact ? "0.75rem" : "0.9rem",
                   fontWeight: 600,
                 }}
@@ -305,7 +305,7 @@ const PaymentDistributionChart = ({
               </Typography>
               <Typography
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: compact ? "0.6rem" : "0.7rem",
                 }}
               >

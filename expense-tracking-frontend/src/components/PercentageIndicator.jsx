@@ -18,11 +18,11 @@ const PercentageIndicator = ({ percentage }) => {
       <CircularProgress
         variant="determinate"
         value={percentage}
-        sx={{ color: colors.primary_accent }}
+        sx={{ color: "var(--color-primary-accent)" }}
       />
       <Typography
         variant="body2"
-        sx={{ color: colors.primary_text, fontWeight: 600 }}
+        sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}
       >
         {percentage}%
       </Typography>

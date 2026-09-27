@@ -216,7 +216,7 @@ const SpendingDayDetailSheet = ({
         background: colors.tertiary_bg || colors.primary_bg,
         borderRadius: 12,
         padding: "12px 14px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         minHeight: 56,
       }}
     >
@@ -232,7 +232,7 @@ const SpendingDayDetailSheet = ({
         <div
           style={{
             fontSize: 15,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             flex: 1,
             lineHeight: 1.35,
@@ -269,7 +269,7 @@ const SpendingDayDetailSheet = ({
         <span
           style={{
             fontSize: 13,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontWeight: 500,
           }}
         >
@@ -299,7 +299,7 @@ const SpendingDayDetailSheet = ({
               gap: 8,
               fontSize: 14,
               fontWeight: 700,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             <span>{title}</span>
@@ -336,7 +336,7 @@ const SpendingDayDetailSheet = ({
       PaperProps={{
         sx: {
           background: colors.secondary_bg || "#0b0b10",
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           display: "flex",
           flexDirection: "column",
           m: 0,
@@ -533,7 +533,7 @@ const SpendingDayDetailSheet = ({
             style={{
               textAlign: "center",
               padding: "40px 16px",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: 14,
               fontWeight: 600,
             }}

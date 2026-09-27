@@ -67,7 +67,7 @@ const GroupDetail = ({
   const chatEndRef = useRef(null);
   const { colors } = useTheme();
   const groupsExportEnabled = useFeature(SUB_FEATURE_KEYS.GROUPS_EXPORT);
-  const tabIconSx = { fontSize: "small", color: colors.primary_accent };
+  const tabIconSx = { fontSize: "small", color: "var(--color-primary-accent)" };
 
   const dispatch = useDispatch();
   // State management

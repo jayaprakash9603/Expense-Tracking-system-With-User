@@ -39,7 +39,7 @@ const ActivityEmptyState = ({
         py: 6,
         px: 4,
         textAlign: "center",
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
         border: `1px dashed ${colors.border_color}`,
         minHeight: 300,
@@ -59,9 +59,9 @@ const ActivityEmptyState = ({
         }}
       >
         {hasFilters ? (
-          <FilterIcon sx={{ fontSize: 40, color: colors.primary_accent }} />
+          <FilterIcon sx={{ fontSize: 40, color: "var(--color-primary-accent)" }} />
         ) : (
-          <EmptyIcon sx={{ fontSize: 40, color: colors.primary_accent }} />
+          <EmptyIcon sx={{ fontSize: 40, color: "var(--color-primary-accent)" }} />
         )}
       </Box>
 
@@ -70,7 +70,7 @@ const ActivityEmptyState = ({
         variant="h6"
         sx={{
           fontWeight: 600,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           mb: 1,
         }}
       >
@@ -80,7 +80,7 @@ const ActivityEmptyState = ({
       <Typography
         variant="body2"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           mb: 3,
           maxWidth: 400,
           lineHeight: 1.6,
@@ -99,7 +99,7 @@ const ActivityEmptyState = ({
             sx={{
               textTransform: "none",
               borderColor: colors.primary_accent,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               "&:hover": {
                 borderColor: colors.primary_accent,
                 backgroundColor: `${colors.primary_accent}10`,

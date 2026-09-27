@@ -73,7 +73,7 @@ const FriendDetailPanel = ({
         <IconButton
           onClick={onClose}
           aria-label={t("common.close")}
-          sx={{ color: colors.secondary_text, minWidth: 44, minHeight: 44 }}
+          sx={{ color: "var(--color-secondary-text)", minWidth: 44, minHeight: 44 }}
         >
           <CloseIcon />
         </IconButton>
@@ -83,26 +83,26 @@ const FriendDetailPanel = ({
           <FriendAvatar display={display} user={display.user} size={isMobile ? 64 : 80} />
           <Typography
             variant="h6"
-            sx={{ mt: 2, fontWeight: 600, color: colors.primary_text, textAlign: "center" }}
+            sx={{ mt: 2, fontWeight: 600, color: "var(--color-primary-text)", textAlign: "center" }}
           >
             {display.displayName}
           </Typography>
           {display.email && (
-            <Typography variant="body2" sx={{ color: colors.secondary_text, mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)", mt: 0.5 }}>
               {display.email}
             </Typography>
           )}
           {friendsSince && (
-            <Typography variant="body2" sx={{ color: colors.secondary_text, mt: 0.5 }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)", mt: 0.5 }}>
               {t("friends.detail.friendSince", { date: friendsSince })}
             </Typography>
           )}
         </Box>
 
-        <Divider sx={{ mb: 3, borderColor: colors.border_color }} />
+        <Divider sx={{ mb: 3, borderColor: "var(--color-border-color)" }} />
 
         <Box sx={{ mb: 3 }}>
-          <Typography variant="caption" sx={{ color: colors.secondary_text, mb: 1, display: "block" }}>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)", mb: 1, display: "block" }}>
             {t("friends.detail.currentAccess")}
           </Typography>
           {friendsEditEnabled && (
@@ -115,7 +115,7 @@ const FriendDetailPanel = ({
 
         {mutualFriends.length > 0 && (
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ color: colors.secondary_text, mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: "var(--color-secondary-text)", mb: 1 }}>
               {t("friends.detail.mutualFriends")} ({mutualFriends.length})
             </Typography>
             <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
@@ -147,7 +147,7 @@ const FriendDetailPanel = ({
               sx={{
                 minHeight: 44,
                 borderColor: colors.primary_accent,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 transition: "background-color 200ms ease",
                 "&:hover": {
                   borderColor: colors.primary_accent,
@@ -167,7 +167,7 @@ const FriendDetailPanel = ({
             sx={{
               minHeight: 44,
               borderColor: colors.error,
-              color: colors.error,
+              color: "var(--color-error)",
               transition: "background-color 200ms ease",
               "&:hover": {
                 borderColor: colors.error,
@@ -187,7 +187,7 @@ const FriendDetailPanel = ({
             sx={{
               minHeight: 44,
               borderColor: colors.error,
-              color: colors.error,
+              color: "var(--color-error)",
               transition: "background-color 200ms ease",
               "&:hover": {
                 borderColor: colors.error,

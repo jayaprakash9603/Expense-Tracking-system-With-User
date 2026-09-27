@@ -288,7 +288,7 @@ const PrivacyPolicy = () => {
   return (
     <Box
       sx={{
-        bgcolor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         maxHeight: "calc(100vh - 100px)",
@@ -314,14 +314,14 @@ const PrivacyPolicy = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
             onClick={() => navigate(-1)}
-            sx={{ color: colors.primary_text }}
+            sx={{ color: "var(--color-primary-text)" }}
           >
             <ArrowBackIcon />
           </IconButton>
-          <ShieldIcon sx={{ color: colors.primary_accent, fontSize: 28 }} />
+          <ShieldIcon sx={{ color: "var(--color-primary-accent)", fontSize: 28 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           >
             {t("settings.privacyPolicy") || "Privacy Policy"}
           </Typography>
@@ -361,7 +361,7 @@ const PrivacyPolicy = () => {
             <Box sx={{ p: 2 }}>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, color: colors.primary_text, mb: 1 }}
+                sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 1 }}
               >
                 Table of Contents
               </Typography>
@@ -383,14 +383,14 @@ const PrivacyPolicy = () => {
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <SectionIcon
-                          sx={{ fontSize: 18, color: colors.primary_accent }}
+                          sx={{ fontSize: 18, color: "var(--color-primary-accent)" }}
                         />
                       </ListItemIcon>
                       <ListItemText
                         primary={section.title}
                         primaryTypographyProps={{
                           fontSize: "0.85rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           noWrap: true,
                         }}
                       />
@@ -417,7 +417,7 @@ const PrivacyPolicy = () => {
               mb: 3,
               bgcolor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
               borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <Box
@@ -429,7 +429,7 @@ const PrivacyPolicy = () => {
                 gap: 1,
               }}
             >
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 <strong>Last Updated:</strong> January 1, 2026
               </Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
@@ -439,7 +439,7 @@ const PrivacyPolicy = () => {
                   size="small"
                   sx={{
                     bgcolor: `${colors.primary_accent}20`,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     fontWeight: 500,
                   }}
                 />
@@ -449,7 +449,7 @@ const PrivacyPolicy = () => {
                   size="small"
                   sx={{
                     bgcolor: `${colors.primary_accent}20`,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     fontWeight: 500,
                   }}
                 />
@@ -457,7 +457,7 @@ const PrivacyPolicy = () => {
             </Box>
             <Typography
               variant="body2"
-              sx={{ color: colors.secondary_text, mt: 1 }}
+              sx={{ color: "var(--color-secondary-text)", mt: 1 }}
             >
               Your privacy is important to us. This policy describes how
               Expensio Finance collects, uses, and protects your personal
@@ -478,7 +478,7 @@ const PrivacyPolicy = () => {
                       height: "100%",
                       bgcolor: colors.secondary_bg,
                       borderRadius: 3,
-                      border: `1px solid ${colors.border_color}`,
+                      border: "1px solid var(--color-border-color)",
                       transition: "transform 0.2s, box-shadow 0.2s",
                       "&:hover": {
                         transform: "translateY(-4px)",
@@ -510,22 +510,22 @@ const PrivacyPolicy = () => {
                             justifyContent: "center",
                           }}
                         >
-                          <SectionIcon sx={{ color: colors.primary_accent }} />
+                          <SectionIcon sx={{ color: "var(--color-primary-accent)" }} />
                         </Box>
                         <Typography
                           variant="h6"
-                          sx={{ fontWeight: 600, color: colors.primary_text }}
+                          sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
                         >
                           {section.title}
                         </Typography>
                       </Box>
                       <Divider
-                        sx={{ mb: 2, borderColor: colors.border_color }}
+                        sx={{ mb: 2, borderColor: "var(--color-border-color)" }}
                       />
                       <Typography
                         variant="body2"
                         sx={{
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           lineHeight: 1.8,
                           whiteSpace: "pre-wrap",
                         }}

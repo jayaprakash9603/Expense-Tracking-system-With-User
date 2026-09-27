@@ -77,7 +77,7 @@ const FilterDrawer = forwardRef(function FilterDrawer(
           },
         }}
       >
-        <FilterListIcon sx={{ color: colors.primary_text, fontSize: 24 }} />
+        <FilterListIcon sx={{ color: "var(--color-primary-text)", fontSize: 24 }} />
       </Badge>
       <Box>
         <Typography
@@ -85,7 +85,7 @@ const FilterDrawer = forwardRef(function FilterDrawer(
           sx={{
             fontWeight: 600,
             fontSize: "1rem",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         >
           {title}
@@ -96,7 +96,7 @@ const FilterDrawer = forwardRef(function FilterDrawer(
             sx={{
               opacity: 0.75,
               fontSize: "0.75rem",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             }}
           >
             {subtitle}
@@ -121,11 +121,11 @@ const FilterDrawer = forwardRef(function FilterDrawer(
           onClick={onReset}
           startIcon={<RestartAltIcon />}
           sx={{
-            color: colors.secondary_text,
-            borderColor: colors.border_color,
+            color: "var(--color-secondary-text)",
+            borderColor: "var(--color-border-color)",
             "&:hover": {
               borderColor: colors.primary_text,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               backgroundColor: "transparent",
             },
           }}
@@ -148,7 +148,7 @@ const FilterDrawer = forwardRef(function FilterDrawer(
             },
             "&:disabled": {
               backgroundColor: colors.border_color,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             },
           }}
         >
@@ -194,7 +194,7 @@ export const FilterSection = ({
           variant="subtitle2"
           sx={{
             fontWeight: 600,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.85rem",
           }}
         >
@@ -205,7 +205,7 @@ export const FilterSection = ({
             variant="caption"
             sx={{
               opacity: 0.7,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.7rem",
             }}
           >
@@ -215,7 +215,7 @@ export const FilterSection = ({
       </Box>
       {children}
       {divider && (
-        <Divider sx={{ mt: 2.5, borderColor: colors.border_color }} />
+        <Divider sx={{ mt: 2.5, borderColor: "var(--color-border-color)" }} />
       )}
     </Box>
   );

@@ -1,3 +1,1 @@
-import createAppTheme from "../../shared/theme/theme";
-
-export default createAppTheme;
+export { default } from "../../shared/theme/buildAppTheme";

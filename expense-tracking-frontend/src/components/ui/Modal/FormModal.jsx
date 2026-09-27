@@ -96,11 +96,11 @@ const FormModal = forwardRef(function FormModal(
         variant="outlined"
         startIcon={showCancelIcon ? cancelIcon || <CancelIcon /> : undefined}
         sx={{
-          color: colors.secondary_text,
-          borderColor: colors.border_color,
+          color: "var(--color-secondary-text)",
+          borderColor: "var(--color-border-color)",
           "&:hover": {
             borderColor: colors.primary_text,
-            backgroundColor: colors.hover_bg,
+            backgroundColor: "var(--color-hover-bg)",
           },
         }}
       >
@@ -128,7 +128,7 @@ const FormModal = forwardRef(function FormModal(
           },
           "&:disabled": {
             backgroundColor: colors.disabled_bg,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
           },
         }}
       >

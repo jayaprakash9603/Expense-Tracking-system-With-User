@@ -50,7 +50,7 @@ const NotFound = () => {
         <SearchIcon
           sx={{
             fontSize: 120,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             opacity: 0.85,
           }}
         />

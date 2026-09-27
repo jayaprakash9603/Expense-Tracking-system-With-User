@@ -153,7 +153,7 @@ const ExpenseNameAutocomplete = ({
       {showLabel && label && (
         <label
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.875rem",
             fontWeight: "600",
             marginBottom: "4px",
@@ -190,7 +190,7 @@ const ExpenseNameAutocomplete = ({
                 {...props}
                 style={{
                   fontSize: size === "small" ? "0.875rem" : "0.95rem",
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   paddingTop: 10,
                   paddingBottom: 10,
                 }}

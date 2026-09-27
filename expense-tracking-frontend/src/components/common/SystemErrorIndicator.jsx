@@ -309,8 +309,7 @@ const SystemErrorIndicator = ({ isDark }) => {
                   className="p-1.5 rounded-full transition-colors"
                   style={{
                     color: textSecondary,
-                    backgroundColor:
-                      colors.secondary_bg ||
+                    backgroundColor: "var(--color-secondary-bg)" ||
                       (resolvedIsDark ? "#1f2937" : "#f3f4f6"),
                   }}
                   aria-label="Close system alerts"

@@ -3,6 +3,7 @@ import { flowTypeCycleDefault as flowTypeCycle } from "../../utils/flows/flowDat
 import { formatCurrencyCompact } from "../../utils/formatting/numberFormatters";
 import useUserSettings from "../../hooks/useUserSettings";
 import { useTranslation } from "../../hooks/useTranslation";
+import { useTheme } from "../../hooks/useTheme";
 
 const FlowToggleButton = ({
   flowTab,
@@ -16,6 +17,14 @@ const FlowToggleButton = ({
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
   const { t } = useTranslation();
+  const { colors } = useTheme();
+
+  const flowBackground =
+    flowTab === "inflow"
+      ? `linear-gradient(180deg, ${colors.success}, ${colors.success_dark})`
+      : flowTab === "outflow"
+        ? `linear-gradient(180deg, ${colors.error_light}, ${colors.error})`
+        : `linear-gradient(180deg, ${colors.chart_secondary}, ${colors.primary_accent})`;
 
   const flowTabLabel =
     flowTab === "inflow"
@@ -49,12 +58,7 @@ const FlowToggleButton = ({
         boxShadow: "0 6px 18px rgba(0,0,0,0.25)",
         transition: "transform 200ms ease, width 200ms ease, background 300ms",
         transform: shrinkFlowBtn ? "scale(0.88)" : "scale(1)",
-        background:
-          flowTab === "inflow"
-            ? "linear-gradient(180deg,#06D6A0,#05b890)"
-            : flowTab === "outflow"
-              ? "linear-gradient(180deg,#ff6b6b,#ff4d4f)"
-              : "linear-gradient(180deg,#5b7fff,#4563ff)",
+        background: flowBackground,
         color: "#fff",
         display: "flex",
         alignItems: "center",

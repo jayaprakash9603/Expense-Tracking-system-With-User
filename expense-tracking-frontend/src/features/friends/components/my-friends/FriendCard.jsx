@@ -65,13 +65,13 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 600, color: colors.primary_text }}
+          sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           noWrap
         >
           {display.displayName}
         </Typography>
         {display.email && (
-          <Typography variant="caption" sx={{ color: colors.secondary_text }} noWrap>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }} noWrap>
             {display.email}
           </Typography>
         )}
@@ -83,11 +83,11 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
               height: 20,
               fontSize: "0.7rem",
               bgcolor: `${colors.primary_accent}20`,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
             }}
           />
           {friendsSince && (
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
               {t("friends.detail.friendSince", { date: friendsSince })}
             </Typography>
           )}
@@ -97,7 +97,7 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
         size="small"
         aria-label={t("friends.actions.manageAccess")}
         onClick={handleMenuOpen}
-        sx={{ color: colors.secondary_text, minWidth: 44, minHeight: 44 }}
+        sx={{ color: "var(--color-secondary-text)", minWidth: 44, minHeight: 44 }}
       >
         <MoreVertIcon />
       </IconButton>
@@ -115,7 +115,7 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
         {friendsDeleteEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onRemove?.(friend); }}>
           <ListItemIcon>
-            <PersonRemoveIcon fontSize="small" sx={{ color: colors.error }} />
+            <PersonRemoveIcon fontSize="small" sx={{ color: "var(--color-error)" }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.removeFriend")} />
         </MenuItem>
@@ -123,7 +123,7 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
         {friendsEditEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onBlock?.(friend); }}>
           <ListItemIcon>
-            <BlockIcon fontSize="small" sx={{ color: colors.error }} />
+            <BlockIcon fontSize="small" sx={{ color: "var(--color-error)" }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.blockUser")} />
         </MenuItem>
@@ -131,7 +131,7 @@ const FriendCard = ({ friend, onSelect, isSelected, onRemove, onBlock, onManageA
         {friendsEditEnabled && (
         <MenuItem onClick={(e) => { e.stopPropagation(); handleMenuClose(); onManageAccess?.(friend); }}>
           <ListItemIcon>
-            <ManageAccountsIcon fontSize="small" sx={{ color: colors.primary_accent }} />
+            <ManageAccountsIcon fontSize="small" sx={{ color: "var(--color-primary-accent)" }} />
           </ListItemIcon>
           <ListItemText primary={t("friends.actions.manageAccess")} />
         </MenuItem>

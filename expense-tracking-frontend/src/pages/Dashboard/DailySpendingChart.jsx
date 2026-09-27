@@ -995,8 +995,8 @@ const DailySpendingChart = ({
         position: "relative",
         zIndex: 5,
         overflow: "visible",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Chart header — compact single row: title | dropdown + Loss/Gain */}
@@ -1004,7 +1004,7 @@ const DailySpendingChart = ({
         <h3
           className="daily-spending-title"
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 6,

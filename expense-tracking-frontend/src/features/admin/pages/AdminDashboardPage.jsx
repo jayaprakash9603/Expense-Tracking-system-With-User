@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   return (
     <div
       style={{
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         minHeight: "100vh",
       }}
     >
@@ -42,8 +42,8 @@ const AdminDashboard = () => {
       <Box
         sx={{
           borderBottom: 1,
-          borderColor: colors.border,
-          backgroundColor: colors.card_bg,
+          borderColor: "var(--color-border-color)",
+          backgroundColor: "var(--color-primary-bg)",
           position: "sticky",
           top: 0,
           zIndex: 100,
@@ -56,14 +56,14 @@ const AdminDashboard = () => {
           scrollButtons="auto"
           sx={{
             "& .MuiTab-root": {
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               textTransform: "none",
               fontSize: "1rem",
               fontWeight: 500,
               minHeight: 64,
             },
             "& .Mui-selected": {
-              color: colors.accent,
+              color: "var(--color-primary-accent)",
             },
             "& .MuiTabs-indicator": {
               backgroundColor: colors.accent,

@@ -133,7 +133,7 @@ const ReportHeader = ({
             style={{
               border: "none",
               background: colors.primary_bg,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               width: 28,
               height: 28,
               borderRadius: "50%",
@@ -243,7 +243,7 @@ const ReportHeader = ({
                 fontSize: "24px",
                 fontWeight: 700,
                 letterSpacing: "-0.5px",
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               }}
             >
               {title}
@@ -252,7 +252,7 @@ const ReportHeader = ({
               <p
                 style={{
                   margin: "4px 0 0 0",
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: "14px",
                   fontWeight: 500,
                 }}

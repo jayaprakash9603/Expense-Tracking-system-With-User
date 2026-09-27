@@ -217,11 +217,11 @@ const CreateSharePage = () => {
       {/* Main Container - matching Budget.jsx layout */}
       <Box
         sx={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: isSmallScreen ? 0 : "16px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           p: isSmallScreen ? 1.5 : 2.5,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
@@ -250,8 +250,8 @@ const CreateSharePage = () => {
               width: 40,
               height: 40,
               flexShrink: 0,
-              border: `1px solid ${colors.border_color}`,
-              backgroundColor: colors.card_bg,
+              border: "1px solid var(--color-border-color)",
+              backgroundColor: "var(--color-primary-bg)",
               "&:hover": {
                 borderColor: colors.primary_accent,
               },
@@ -279,16 +279,16 @@ const CreateSharePage = () => {
                   padding: 0,
                 },
                 "& .MuiStepLabel-label": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: isSmallScreen ? "0.7rem" : "0.8rem",
                   fontWeight: 500,
                   marginTop: "8px !important",
                   "&.Mui-active": {
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     fontWeight: 600,
                   },
                   "&.Mui-completed": {
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                   },
                 },
                 "& .MuiStepIcon-root": {
@@ -296,15 +296,15 @@ const CreateSharePage = () => {
                   width: isSmallScreen ? 24 : 28,
                   height: isSmallScreen ? 24 : 28,
                   "&.Mui-active": {
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                   },
                   "&.Mui-completed": {
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                   },
                 },
                 "& .MuiStepConnector-line": {
                   borderTopWidth: 2,
-                  borderColor: colors.border_color,
+                  borderColor: "var(--color-border-color)",
                 },
                 "& .MuiStepConnector-root.Mui-active .MuiStepConnector-line": {
                   borderColor: colors.primary_accent,
@@ -353,9 +353,9 @@ const CreateSharePage = () => {
           sx={{
             flex: 1,
             overflow: "auto",
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
             borderRadius: "14px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             p: isSmallScreen ? 1.5 : 2,
             mb: 2,
             boxShadow: isDark
@@ -383,14 +383,14 @@ const CreateSharePage = () => {
             onClick={activeStep === 0 ? navigateToReturnRoute : handleBack}
             sx={{
               textTransform: "none",
-              color: colors.primary_text,
-              borderColor: colors.border_color,
+              color: "var(--color-primary-text)",
+              borderColor: "var(--color-border-color)",
               minHeight: 44,
               px: 2,
               borderRadius: "10px",
               "&:hover": {
                 borderColor: colors.primary_accent,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               },
             }}
           >
@@ -416,7 +416,7 @@ const CreateSharePage = () => {
             disabled={isNextDisabled() || createShareLoading}
             sx={{
               textTransform: "none",
-              bgcolor: colors.primary_accent,
+              bgcolor: "var(--color-primary-accent)",
               color: "#fff",
               fontWeight: 600,
               px: 3,

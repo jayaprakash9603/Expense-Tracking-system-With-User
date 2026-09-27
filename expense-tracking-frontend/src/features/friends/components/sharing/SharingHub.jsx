@@ -76,13 +76,13 @@ const SharingHub = () => {
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
             variant="body2"
-            sx={{ fontWeight: 500, color: colors.primary_text }}
+            sx={{ fontWeight: 500, color: "var(--color-primary-text)" }}
             noWrap
           >
             {display.displayName}
           </Typography>
           {display.email && (
-            <Typography variant="caption" sx={{ color: colors.secondary_text }} noWrap>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }} noWrap>
               {display.email}
             </Typography>
           )}
@@ -94,7 +94,7 @@ const SharingHub = () => {
               height: 20,
               fontSize: "0.65rem",
               bgcolor: `${colors.primary_accent}20`,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
             }}
           />
         </Box>
@@ -110,10 +110,10 @@ const SharingHub = () => {
             }}
             sx={{
               "& .MuiSwitch-switchBase.Mui-checked": {
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               },
               "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
-                bgcolor: colors.primary_accent,
+                bgcolor: "var(--color-primary-accent)",
               },
             }}
           />
@@ -132,26 +132,26 @@ const SharingHub = () => {
         }}
       >
         <Box sx={friendStatMiniSx(colors)}>
-          <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.sharing.totalSharing")}
           </Typography>
-          <Typography variant="h5" sx={{ color: colors.primary_text, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
             {total}
           </Typography>
         </Box>
         <Box sx={friendStatMiniSx(colors)}>
-          <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.sharing.incomingShares")}
           </Typography>
-          <Typography variant="h5" sx={{ color: colors.primary_text, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
             {incoming}
           </Typography>
         </Box>
         <Box sx={friendStatMiniSx(colors)}>
-          <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.sharing.outgoingShares")}
           </Typography>
-          <Typography variant="h5" sx={{ color: colors.primary_text, fontWeight: 600 }}>
+          <Typography variant="h5" sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
             {outgoing}
           </Typography>
         </Box>
@@ -238,7 +238,7 @@ const SharingHub = () => {
                         minWidth: 0,
                         bgcolor: colors.card_bg,
                         borderRadius: "12px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
                         transition: "box-shadow 200ms ease, transform 200ms ease",
                         "&:hover": {
@@ -250,7 +250,7 @@ const SharingHub = () => {
                       <FriendAvatar display={display} user={display.user} size={40} />
                       <Typography
                         variant="body2"
-                        sx={{ mt: 1, color: colors.primary_text, fontWeight: 500 }}
+                        sx={{ mt: 1, color: "var(--color-primary-text)", fontWeight: 500 }}
                         noWrap
                       >
                         {display.displayName}
@@ -262,7 +262,7 @@ const SharingHub = () => {
                         sx={{
                           mt: 1,
                           minHeight: 36,
-                          color: colors.primary_accent,
+                          color: "var(--color-primary-accent)",
                           transition: "background-color 200ms ease",
                         }}
                       >
@@ -287,7 +287,7 @@ const SharingHub = () => {
           sx={{
             minHeight: 44,
             px: 2.5,
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             color: colors.button_text,
             textTransform: "none",
             fontWeight: 700,
@@ -312,14 +312,14 @@ const SharingHub = () => {
           },
         }}
       >
-        <DialogTitle sx={{ color: colors.primary_text }}>
+        <DialogTitle sx={{ color: "var(--color-primary-text)" }}>
           {t("friends.sharing.batchShare")}
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: colors.secondary_text, mb: 2 }}>
+          <Typography variant="body2" sx={{ color: "var(--color-secondary-text)", mb: 2 }}>
             {t("friends.sharing.selectFriends")}
           </Typography>
-          <Divider sx={{ mb: 2, borderColor: colors.border_color }} />
+          <Divider sx={{ mb: 2, borderColor: "var(--color-border-color)" }} />
           <AccessLevelPicker value="READ" onChange={() => {}} />
         </DialogContent>
       </Dialog>

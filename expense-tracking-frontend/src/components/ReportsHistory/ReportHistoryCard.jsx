@@ -57,8 +57,8 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
   return (
     <Card
       sx={{
-        bgcolor: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-primary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: 3,
         overflow: "hidden",
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -102,7 +102,7 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 11,
                     fontWeight: 500,
                     textTransform: "uppercase",
@@ -119,7 +119,7 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
               size="small"
               sx={{
                 bgcolor: `${colors.primary_accent}15`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
                 fontSize: 11,
                 height: 24,
@@ -133,7 +133,7 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
             <Typography
               variant="h6"
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 600,
                 fontSize: 16,
                 mb: 0.5,
@@ -146,7 +146,7 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: 13,
                   lineHeight: 1.6,
                 }}
@@ -160,12 +160,12 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
           <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
               <CalendarIcon
-                sx={{ color: colors.secondary_text, fontSize: 16 }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: 16 }}
               />
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: 13,
                   fontWeight: 500,
                 }}
@@ -179,8 +179,8 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
                 size="small"
                 variant="outlined"
                 sx={{
-                  borderColor: colors.border_color,
-                  color: colors.secondary_text,
+                  borderColor: "var(--color-border-color)",
+                  color: "var(--color-secondary-text)",
                   fontSize: 11,
                   height: 22,
                   fontWeight: 500,
@@ -204,7 +204,7 @@ const ReportHistoryCard = ({ report, onView, onDownload, onDelete }) => {
                 onClick={() => onView?.(report)}
                 sx={{
                   flex: 1,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   bgcolor: `${colors.primary_accent}10`,
                   borderRadius: 1.5,
                   py: 1,

@@ -405,7 +405,7 @@ export default function DashboardContent() {
       className={`expense-dashboard${flattenShell ? " is-flat-shell" : ""}`}
       style={{
         backgroundColor: flattenShell ? "transparent" : colors.secondary_bg,
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         border: flattenShell ? "none" : `1px solid ${colors.border_color}`,
         boxShadow: flattenShell ? "none" : undefined,
       }}

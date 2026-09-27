@@ -18,9 +18,9 @@ const AdminPanelContainer = ({ children, className = "", style = {} }) => {
     <div
       className={`admin-panel-container ${className}`}
       style={{
-        backgroundColor: colors.secondary_bg,
-        color: colors.primary_text,
-        border: `1px solid ${colors.border}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        color: "var(--color-primary-text)",
+        border: "1px solid var(--color-border-color)",
         ...style,
       }}
     >

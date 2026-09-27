@@ -191,12 +191,12 @@ const ShareConfigStep = ({
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 1, fontWeight: 600 }}
+        sx={{ color: "var(--color-primary-text)", mb: 1, fontWeight: 600 }}
       >
         Configure Share Settings
       </Typography>
       <Typography
-        sx={{ mb: 2.5, color: colors.secondary_text, fontSize: "0.95rem" }}
+        sx={{ mb: 2.5, color: "var(--color-secondary-text)", fontSize: "0.95rem" }}
       >
         Set visibility, permission level, and expiry duration.
       </Typography>
@@ -212,13 +212,13 @@ const ShareConfigStep = ({
         sx={{ mb: 3 }}
         InputProps={{
           sx: {
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
             fontSize: "1rem",
           },
         }}
         InputLabelProps={{
-          sx: { color: colors.secondary_text, fontSize: "1rem" },
+          sx: { color: "var(--color-secondary-text)", fontSize: "1rem" },
         }}
       />
 
@@ -226,7 +226,7 @@ const ShareConfigStep = ({
       <Typography
         variant="subtitle1"
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           mb: 1.5,
           fontWeight: 600,
           fontSize: "1rem",
@@ -368,7 +368,7 @@ const ShareConfigStep = ({
               <Typography
                 variant="subtitle1"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 600,
                   fontSize: "1rem",
                 }}
@@ -423,12 +423,12 @@ const ShareConfigStep = ({
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon
-                    sx={{ color: colors.secondary_text, fontSize: 22 }}
+                    sx={{ color: "var(--color-secondary-text)", fontSize: 22 }}
                   />
                 </InputAdornment>
               ),
               sx: {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 backgroundColor: isDark ? "#0d0d0d" : colors.background,
                 fontSize: "1rem",
               },
@@ -448,7 +448,7 @@ const ShareConfigStep = ({
               sx={{
                 textAlign: "center",
                 py: 2,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "0.8rem",
               }}
             >
@@ -510,7 +510,7 @@ const ShareConfigStep = ({
                     <Checkbox
                       checked={isSelected}
                       sx={{
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         "&.Mui-checked": {
                           color: VISIBILITY_CONFIG.SPECIFIC_USERS.color,
                         },
@@ -551,7 +551,7 @@ const ShareConfigStep = ({
                       }}
                       secondaryTypographyProps={{
                         sx: {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           fontSize: "0.85rem",
                         },
                       }}
@@ -579,7 +579,7 @@ const ShareConfigStep = ({
           <Typography
             variant="subtitle1"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               mb: 1.5,
               fontWeight: 600,
               fontSize: "1rem",
@@ -715,7 +715,7 @@ const ShareConfigStep = ({
           <Typography
             variant="subtitle1"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               mb: 1.5,
               fontWeight: 600,
               fontSize: "1rem",
@@ -796,11 +796,11 @@ const ShareConfigStep = ({
           onChange={(e) => onCustomExpiryChange(e.target.value)}
           InputLabelProps={{
             shrink: true,
-            sx: { color: colors.secondary_text, fontSize: "1rem" },
+            sx: { color: "var(--color-secondary-text)", fontSize: "1rem" },
           }}
           InputProps={{
             sx: {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               backgroundColor: isDark ? "#1a1a1a" : colors.card_bg,
               fontSize: "1rem",
             },

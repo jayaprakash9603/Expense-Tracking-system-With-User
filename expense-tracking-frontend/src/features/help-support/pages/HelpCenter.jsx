@@ -99,7 +99,7 @@ const HelpCenter = () => {
   return (
     <Box
       sx={{
-        bgcolor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         maxHeight: "calc(100vh - 100px)",
@@ -125,14 +125,14 @@ const HelpCenter = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
             onClick={() => navigate(-1)}
-            sx={{ color: colors.primary_text }}
+            sx={{ color: "var(--color-primary-text)" }}
           >
             <ArrowBackIcon />
           </IconButton>
-          <HelpIcon sx={{ color: colors.primary_accent, fontSize: 28 }} />
+          <HelpIcon sx={{ color: "var(--color-primary-accent)", fontSize: 28 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           >
             {t("settings.helpCenter") || "Help Center"}
           </Typography>
@@ -149,16 +149,16 @@ const HelpCenter = () => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.secondary_text }} />
+                <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
               </InputAdornment>
             ),
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              bgcolor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: 2,
               "& fieldset": {
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
               },
               "&:hover fieldset": {
                 borderColor: colors.primary_accent,
@@ -168,14 +168,14 @@ const HelpCenter = () => {
               },
             },
             "& .MuiInputBase-input": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             },
           }}
         />
         {searchQuery && (
           <Typography
             variant="body2"
-            sx={{ mt: 1, color: colors.secondary_text }}
+            sx={{ mt: 1, color: "var(--color-secondary-text)" }}
           >
             Found {totalResults} result{totalResults !== 1 ? "s" : ""} in{" "}
             {filteredCategories.length} categor
@@ -209,12 +209,12 @@ const HelpCenter = () => {
             }}
           >
             <HelpIcon
-              sx={{ fontSize: 48, color: colors.secondary_text, mb: 2 }}
+              sx={{ fontSize: 48, color: "var(--color-secondary-text)", mb: 2 }}
             />
-            <Typography variant="h6" sx={{ color: colors.primary_text, mb: 1 }}>
+            <Typography variant="h6" sx={{ color: "var(--color-primary-text)", mb: 1 }}>
               No results found
             </Typography>
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               Try different keywords or browse the categories below
             </Typography>
           </Paper>
@@ -230,7 +230,7 @@ const HelpCenter = () => {
                   mb: 1,
                   bgcolor: colors.secondary_bg,
                   borderRadius: "8px !important",
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   "&:before": { display: "none" },
                   "&.Mui-expanded": {
                     margin: "0 0 8px 0",
@@ -239,7 +239,7 @@ const HelpCenter = () => {
               >
                 <AccordionSummary
                   expandIcon={
-                    <ExpandMoreIcon sx={{ color: colors.secondary_text }} />
+                    <ExpandMoreIcon sx={{ color: "var(--color-secondary-text)" }} />
                   }
                   sx={{
                     "& .MuiAccordionSummary-content": {
@@ -248,9 +248,9 @@ const HelpCenter = () => {
                     },
                   }}
                 >
-                  <CategoryIcon sx={{ color: colors.primary_accent }} />
+                  <CategoryIcon sx={{ color: "var(--color-primary-accent)" }} />
                   <Typography
-                    sx={{ fontWeight: 500, color: colors.primary_text }}
+                    sx={{ fontWeight: 500, color: "var(--color-primary-text)" }}
                   >
                     {category.title}
                   </Typography>
@@ -261,13 +261,13 @@ const HelpCenter = () => {
                       bgcolor: isDark
                         ? "rgba(255,255,255,0.1)"
                         : "rgba(0,0,0,0.08)",
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: "0.75rem",
                     }}
                   />
                 </AccordionSummary>
                 <AccordionDetails sx={{ pt: 0 }}>
-                  <Divider sx={{ mb: 2, borderColor: colors.border_color }} />
+                  <Divider sx={{ mb: 2, borderColor: "var(--color-border-color)" }} />
                   {category.faqs.map((faq, index) => (
                     <Paper
                       key={index}
@@ -278,7 +278,7 @@ const HelpCenter = () => {
                           ? "rgba(255,255,255,0.03)"
                           : "rgba(0,0,0,0.02)",
                         borderRadius: 2,
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Box
@@ -290,7 +290,7 @@ const HelpCenter = () => {
                       >
                         <ArticleIcon
                           sx={{
-                            color: colors.primary_accent,
+                            color: "var(--color-primary-accent)",
                             fontSize: 20,
                             mt: 0.3,
                           }}
@@ -300,7 +300,7 @@ const HelpCenter = () => {
                             variant="subtitle1"
                             sx={{
                               fontWeight: 500,
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               mb: 1,
                             }}
                           >
@@ -309,7 +309,7 @@ const HelpCenter = () => {
                           <Typography
                             variant="body2"
                             sx={{
-                              color: colors.secondary_text,
+                              color: "var(--color-secondary-text)",
                               lineHeight: 1.6,
                             }}
                           >
@@ -332,12 +332,12 @@ const HelpCenter = () => {
             p: 2,
             bgcolor: colors.secondary_bg,
             borderRadius: 2,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
           }}
         >
           <Typography
             variant="subtitle1"
-            sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 2 }}
           >
             Need more help?
           </Typography>
@@ -351,13 +351,13 @@ const HelpCenter = () => {
               }}
             >
               <ListItemIcon>
-                <HelpIcon sx={{ color: colors.primary_accent }} />
+                <HelpIcon sx={{ color: "var(--color-primary-accent)" }} />
               </ListItemIcon>
               <ListItemText
                 primary="Contact Support"
                 secondary="Get help from our support team"
-                primaryTypographyProps={{ color: colors.primary_text }}
-                secondaryTypographyProps={{ color: colors.secondary_text }}
+                primaryTypographyProps={{ color: "var(--color-primary-text)" }}
+                secondaryTypographyProps={{ color: "var(--color-secondary-text)" }}
               />
             </ListItem>
           </List>

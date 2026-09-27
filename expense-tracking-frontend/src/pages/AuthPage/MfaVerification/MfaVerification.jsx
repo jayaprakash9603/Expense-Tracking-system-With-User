@@ -327,7 +327,7 @@ const MfaVerification = () => {
           p: 4,
           borderRadius: 3,
           backgroundColor: colors.cardBackground,
-          border: `1px solid ${colors.border}`,
+          border: "1px solid var(--color-border-color)",
           textAlign: "center",
         }}
       >
@@ -337,11 +337,11 @@ const MfaVerification = () => {
           variant="h5"
           fontWeight="bold"
           gutterBottom
-          sx={{ color: colors.primary_text }}
+          sx={{ color: "var(--color-primary-text)" }}
         >
           {t("mfa.verification.title")}
         </Typography>
-        <Typography sx={{ mb: 3, color: colors.secondary_text }}>
+        <Typography sx={{ mb: 3, color: "var(--color-secondary-text)" }}>
           {isBackupCode
             ? t("mfa.verification.backupSubtitle")
             : t("mfa.verification.subtitle")}
@@ -353,7 +353,7 @@ const MfaVerification = () => {
             variant="body2"
             sx={{
               mb: 3,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               backgroundColor: colors.hover,
               py: 1,
               px: 2,
@@ -361,7 +361,7 @@ const MfaVerification = () => {
             }}
           >
             {t("mfa.verification.signingInAs")}{" "}
-            <strong style={{ color: colors.primary_text }}>{email}</strong>
+            <strong style={{ color: "var(--color-primary-text)" }}>{email}</strong>
           </Typography>
         )}
 
@@ -398,14 +398,14 @@ const MfaVerification = () => {
                       fontFamily: "monospace",
                       padding: "12px",
                       width: "40px",
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     },
                   }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       backgroundColor: colors.hover,
                       "& fieldset": {
-                        borderColor: colors.border,
+                        borderColor: "var(--color-border-color)",
                       },
                       "&:hover fieldset": {
                         borderColor: colors.primary,
@@ -420,7 +420,7 @@ const MfaVerification = () => {
                 />
               ))}
             </Box>
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
               {t("mfa.verification.codeRefreshes")}
             </Typography>
           </Box>
@@ -460,7 +460,7 @@ const MfaVerification = () => {
                   <InputAdornment position="end">
                     <IconButton
                       onClick={() => setShowBackupCode(!showBackupCode)}
-                      sx={{ color: colors.secondary_text }}
+                      sx={{ color: "var(--color-secondary-text)" }}
                     >
                       {showBackupCode ? (
                         <VisibilityOffIcon />
@@ -476,7 +476,7 @@ const MfaVerification = () => {
                 "& .MuiOutlinedInput-root": {
                   backgroundColor: colors.hover,
                   "& fieldset": {
-                    borderColor: colors.border,
+                    borderColor: "var(--color-border-color)",
                   },
                   "&:hover fieldset": {
                     borderColor: colors.primary,
@@ -486,7 +486,7 @@ const MfaVerification = () => {
                   },
                 },
                 "& .MuiInputBase-input": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
               }}
               type={showBackupCode ? "text" : "password"}
@@ -534,7 +534,7 @@ const MfaVerification = () => {
               },
               "&.Mui-disabled": {
                 backgroundColor: colors.border,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
               },
             }}
           >
@@ -544,7 +544,7 @@ const MfaVerification = () => {
           </Button>
         )}
 
-        <Divider sx={{ my: 2, borderColor: colors.border }} />
+        <Divider sx={{ my: 2, borderColor: "var(--color-border-color)" }} />
 
         {/* Toggle Backup Code Mode */}
         <Box>

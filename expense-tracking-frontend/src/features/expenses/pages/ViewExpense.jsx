@@ -418,7 +418,7 @@ const ViewExpense = () => {
         <PageHeader title="View Expense" onClose={handleOnClose} />
         <div
           className="flex flex-col items-center justify-center"
-          style={{ flex: 1, color: colors.primary_text }}
+          style={{ flex: 1, color: "var(--color-primary-text)" }}
         >
           <Typography variant="h6" color="error">
             {expenseDetailedViewError}
@@ -441,7 +441,7 @@ const ViewExpense = () => {
         <PageHeader title="View Expense" onClose={handleOnClose} />
         <div
           className="flex flex-col items-center justify-center"
-          style={{ flex: 1, color: colors.secondary_text }}
+          style={{ flex: 1, color: "var(--color-secondary-text)" }}
         >
           <Typography variant="h6">No expense data found</Typography>
         </div>
@@ -552,7 +552,7 @@ const ViewExpense = () => {
             {/* Expense Name */}
             <Typography
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "1.3rem",
                 fontWeight: "700",
                 marginBottom: "8px",
@@ -610,7 +610,7 @@ const ViewExpense = () => {
               <CalendarTodayIcon sx={{ fontSize: 14, color: "#00dac6" }} />
               <span
                 style={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontSize: "0.9rem",
                   fontWeight: "500",
                 }}
@@ -634,10 +634,10 @@ const ViewExpense = () => {
                 <div
                   className="flex items-start gap-2"
                   style={{
-                    backgroundColor: colors.secondary_bg,
+                    backgroundColor: "var(--color-secondary-bg)",
                     padding: "10px 12px",
                     borderRadius: "8px",
-                    border: `1px solid ${colors.border_color}`,
+                    border: "1px solid var(--color-border-color)",
                     borderLeft: `3px solid ${isCredit ? "#52c41a" : "#ff4d4f"}`,
                     marginTop: "8px",
                     cursor: comments.length > 80 ? "pointer" : "default",
@@ -653,7 +653,7 @@ const ViewExpense = () => {
                   />
                   <p
                     style={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: "0.9rem",
                       lineHeight: "1.4",
                       margin: 0,
@@ -754,7 +754,7 @@ const ViewExpense = () => {
                         }}
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                           display: "flex",
                           alignItems: "center",
@@ -811,10 +811,10 @@ const ViewExpense = () => {
                   >
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -825,7 +825,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -838,7 +838,7 @@ const ViewExpense = () => {
                       <div
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                         }}
                       >
@@ -847,10 +847,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -861,7 +861,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -883,10 +883,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -897,7 +897,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -910,7 +910,7 @@ const ViewExpense = () => {
                       <div
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                         }}
                       >
@@ -919,10 +919,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -933,7 +933,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -1022,7 +1022,7 @@ const ViewExpense = () => {
                       <span
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -1062,10 +1062,10 @@ const ViewExpense = () => {
                   >
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -1076,7 +1076,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -1089,7 +1089,7 @@ const ViewExpense = () => {
                       <div
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                         }}
                       >
@@ -1098,10 +1098,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -1112,7 +1112,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -1136,10 +1136,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -1150,7 +1150,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -1163,7 +1163,7 @@ const ViewExpense = () => {
                       <div
                         style={{
                           fontSize: "1.1rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: "700",
                         }}
                       >
@@ -1174,10 +1174,10 @@ const ViewExpense = () => {
                     </div>
                     <div
                       style={{
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         padding: "8px 10px",
                         borderRadius: "6px",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     >
                       <Tooltip
@@ -1188,7 +1188,7 @@ const ViewExpense = () => {
                         <span
                           style={{
                             fontSize: "0.6rem",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             textTransform: "uppercase",
                             display: "block",
                             marginBottom: "2px",
@@ -1221,10 +1221,10 @@ const ViewExpense = () => {
           {occurrenceInfo && (
             <div
               style={{
-                backgroundColor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 borderRadius: "10px",
                 padding: "18px 20px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <div className="flex items-center gap-2 mb-4">
@@ -1232,7 +1232,7 @@ const ViewExpense = () => {
                 <span
                   style={{
                     fontSize: "1rem",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: "700",
                   }}
                 >
@@ -1270,7 +1270,7 @@ const ViewExpense = () => {
                     value: occurrenceInfo.occurrencesThisYear || 0,
                     icon: (
                       <DateRangeIcon
-                        sx={{ fontSize: 16, color: colors.primary_accent || "#00dac6" }}
+                        sx={{ fontSize: 16, color: "var(--color-primary-accent)" || "#00dac6" }}
                       />
                     ),
                     accentColor: colors.primary_accent || "#00dac6",
@@ -1355,10 +1355,10 @@ const ViewExpense = () => {
           {/* Linked Budgets */}
           <div
             style={{
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "8px",
               padding: "14px 16px",
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               flex: linkedBudgets?.length > 0 ? 1 : "0 0 auto",
               display: "flex",
               flexDirection: "column",
@@ -1383,7 +1383,7 @@ const ViewExpense = () => {
               <span
                 style={{
                   fontSize: "0.85rem",
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: "600",
                 }}
               >
@@ -1417,16 +1417,16 @@ const ViewExpense = () => {
                     <InputAdornment position="start">
                       <SearchIcon
                         fontSize="small"
-                        sx={{ color: colors.secondary_text }}
+                        sx={{ color: "var(--color-secondary-text)" }}
                       />
                     </InputAdornment>
                   ),
                   sx: {
                     borderRadius: "8px",
-                    backgroundColor: colors.secondary_bg,
+                    backgroundColor: "var(--color-secondary-bg)",
                     fontSize: "0.85rem",
                     height: "36px",
-                    "& fieldset": { borderColor: colors.border_color },
+                    "& fieldset": { borderColor: "var(--color-border-color)" },
                   },
                 }}
                 sx={{ width: isMobile ? "100%" : 220, maxWidth: "100%" }}

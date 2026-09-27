@@ -297,7 +297,7 @@ const PreviousExpenseIndicator = ({
               transition-all duration-200 z-50
             `}
             style={{
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderColor: colorScheme.primary,
               borderWidth: "1px",
             }}
@@ -369,7 +369,7 @@ const PreviousExpenseIndicator = ({
             <div
               className={`absolute -top-1 ${getTooltipArrow()} w-2 h-2 transform rotate-45`}
               style={{
-                backgroundColor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 borderLeft: `1px solid ${colorScheme.primary}`,
                 borderTop: `1px solid ${colorScheme.primary}`,
               }}

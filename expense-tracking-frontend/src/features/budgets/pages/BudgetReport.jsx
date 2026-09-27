@@ -338,13 +338,13 @@ const BudgetReport = () => {
             className="chart-container"
             style={{
               background: colors.secondary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: "12px",
               padding: "20px",
             }}
           >
             <div className="chart-header">
-              <h3 style={{ color: colors.primary_text }}>Expense Details</h3>
+              <h3 style={{ color: "var(--color-primary-text)" }}>Expense Details</h3>
             </div>
             {filteredExpenseGroups.length > 0 ? (
               <GroupedExpensesAccordion
@@ -353,7 +353,7 @@ const BudgetReport = () => {
                 currencySymbol={settings.getCurrency().symbol}
               />
             ) : (
-              <div style={{ padding: 24, color: colors.secondary_text }}>
+              <div style={{ padding: 24, color: "var(--color-secondary-text)" }}>
                 {filtersActive
                   ? "No expenses match the selected filters."
                   : "No expenses found for this budget in the selected time frame."}

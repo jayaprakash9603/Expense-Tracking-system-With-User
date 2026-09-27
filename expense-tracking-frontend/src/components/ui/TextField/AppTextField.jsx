@@ -113,7 +113,7 @@ const AppTextField = React.forwardRef(
         },
       },
       "& .MuiInputLabel-root": {
-        color: colors.secondary_text || placeholderColor,
+        color: "var(--color-secondary-text)" || placeholderColor,
         "&.Mui-focused": {
           color: error ? errorBorderColor : focusBorderColor,
         },

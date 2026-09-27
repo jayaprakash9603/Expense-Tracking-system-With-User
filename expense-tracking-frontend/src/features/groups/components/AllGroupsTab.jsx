@@ -75,8 +75,8 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
     }
 
     return {
-      backgroundColor: colors.hover_bg,
-      color: colors.primary_text,
+      backgroundColor: "var(--color-hover-bg)",
+      color: "var(--color-primary-text)",
     };
   };
 
@@ -106,7 +106,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
             <div
               key={group.id}
               className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden relative"
-              style={{ backgroundColor: colors.card_bg }}
+              style={{ backgroundColor: "var(--color-primary-bg)" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = `0 0 0 2px ${colors.primary_accent}`;
               }}
@@ -172,7 +172,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                   <div
                     className="absolute right-0 mt-2 w-48 rounded-lg py-2 z-20 group-menu-dropdown"
                     style={{
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                       border: `1px solid ${colors.primary_accent}`,
                     }}
                   >
@@ -180,7 +180,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                       onClick={() => handleLeaveGroup(group.id)}
                       className="w-full text-left px-4 py-2 flex items-center space-x-3"
                       style={{
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         opacity: 0.85,
                         fontWeight: 500,
                         fontSize: "1rem",
@@ -214,7 +214,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                     </div>
                     <div
                       className="text-xl font-bold"
-                      style={{ color: colors.primary_text }}
+                      style={{ color: "var(--color-primary-text)" }}
                     >
                       {formatAmount(group.totalExpenses)}
                     </div>
@@ -222,7 +222,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                 </div>
                 <h3
                   className="text-xl font-bold mb-2"
-                  style={{ color: colors.primary_text }}
+                  style={{ color: "var(--color-primary-text)" }}
                 >
                   {group.name}
                 </h3>
@@ -279,7 +279,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
                     className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
                     style={{
                       backgroundColor: colors.button_inactive,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = colors.hover_bg;
@@ -303,7 +303,7 @@ const AllGroupsTab = ({ groups = [], searchQuery = "" }) => {
           </div>
           <h3
             className="text-2xl font-bold mb-2"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             No Groups Found
           </h3>

@@ -77,7 +77,7 @@ function ConversationItem({
         >
           <Typography
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "17px",
               fontWeight: unreadCount > 0 ? 600 : 400,
               overflow: "hidden",

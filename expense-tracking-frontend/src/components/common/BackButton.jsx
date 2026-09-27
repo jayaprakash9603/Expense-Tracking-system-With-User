@@ -11,9 +11,9 @@ const BackButton = ({ onClick, sx = {}, ...rest }) => {
       onClick={onClick}
       aria-label="Back"
       sx={{
-        color: colors.primary_accent,
-        backgroundColor: colors.primary_bg,
-        "&:hover": { backgroundColor: colors.hover_bg },
+        color: "var(--color-primary-accent)",
+        backgroundColor: "var(--color-primary-bg)",
+        "&:hover": { backgroundColor: "var(--color-hover-bg)" },
         ...sx,
       }}
       {...rest}

@@ -326,7 +326,7 @@ const ExpenseCard = React.memo(
           <div
             className="flex items-center min-w-0 border-b pb-1"
             style={{
-              borderColor: colors.border_color,
+              borderColor: "var(--color-border-color)",
               marginBottom: "4px",
             }}
           >
@@ -336,7 +336,7 @@ const ExpenseCard = React.memo(
               onClick={handleNameClick}
               style={{
                 fontSize: "14px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 wordBreak: "break-word",
                 overflowWrap: "break-word",
                 display: "-webkit-box",
@@ -412,7 +412,7 @@ const ExpenseCard = React.memo(
           {/* Details: Category & Payment Method */}
           <div
             className="flex items-center gap-2 text-xs"
-            style={{ color: colors.secondary_text, margin: "2px 0" }}
+            style={{ color: "var(--color-secondary-text)", margin: "2px 0" }}
           >
             <div
               className="flex items-center gap-1 min-w-0 flex-1 category-link"
@@ -443,7 +443,7 @@ const ExpenseCard = React.memo(
               }}
             >
               {getCategoryIcon(categoryIconKey, {
-                sx: { fontSize: 13, color: colors.primary_accent },
+                sx: { fontSize: 13, color: "var(--color-primary-accent)" },
               })}
               <span
                 className="truncate font-medium"
@@ -502,8 +502,8 @@ const ExpenseCard = React.memo(
             style={{
               wordBreak: "break-word",
               overflow: "hidden",
-              color: colors.secondary_text,
-              borderColor: colors.border_color,
+              color: "var(--color-secondary-text)",
+              borderColor: "var(--color-border-color)",
               fontStyle: "normal",
               lineHeight: "1.4",
               display: "-webkit-box",

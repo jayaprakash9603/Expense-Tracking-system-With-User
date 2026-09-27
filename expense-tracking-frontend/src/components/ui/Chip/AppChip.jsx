@@ -54,13 +54,13 @@ const AppChip = React.forwardRef(
     const colorStyles = {
       default: {
         filled: {
-          backgroundColor: colors.secondary_bg || "#374151",
-          color: colors.primary_text || "#fff",
+          backgroundColor: "var(--color-secondary-bg)" || "#374151",
+          color: "var(--color-primary-text)" || "#fff",
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.primary_text || "#fff",
-          borderColor: colors.border_color || "rgba(255, 255, 255, 0.2)",
+          color: "var(--color-primary-text)" || "#fff",
+          borderColor: "var(--color-border-color)" || "rgba(255, 255, 255, 0.2)",
         },
       },
       primary: {
@@ -70,7 +70,7 @@ const AppChip = React.forwardRef(
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.primary_accent || "#00DAC6",
+          color: "var(--color-primary-accent)" || "#00DAC6",
           borderColor: colors.primary_accent || "#00DAC6",
         },
       },
@@ -81,7 +81,7 @@ const AppChip = React.forwardRef(
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.success || "#22c55e",
+          color: "var(--color-success)" || "#22c55e",
           borderColor: colors.success || "#22c55e",
         },
       },
@@ -92,7 +92,7 @@ const AppChip = React.forwardRef(
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.warning || "#f59e0b",
+          color: "warning.main" || "#f59e0b",
           borderColor: colors.warning || "#f59e0b",
         },
       },
@@ -103,7 +103,7 @@ const AppChip = React.forwardRef(
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.error || "#ef4444",
+          color: "var(--color-error)" || "#ef4444",
           borderColor: colors.error || "#ef4444",
         },
       },
@@ -114,7 +114,7 @@ const AppChip = React.forwardRef(
         },
         outlined: {
           backgroundColor: "transparent",
-          color: colors.info || "#3b82f6",
+          color: "info.main" || "#3b82f6",
           borderColor: colors.info || "#3b82f6",
         },
       },

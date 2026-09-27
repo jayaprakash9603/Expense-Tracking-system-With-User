@@ -75,13 +75,13 @@ const NameAutocomplete = ({
           }}
           sx={{
             "& .MuiInputBase-root": {
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
+              backgroundColor: "var(--color-primary-bg)",
+              color: "var(--color-primary-text)",
               height: size === "small" ? 40 : 56,
               fontSize: size === "small" ? 14 : 16,
             },
             "& .MuiInputBase-input": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "&::placeholder": { color: colors.placeholder_text, opacity: 1 },
             },
             "& .MuiOutlinedInput-root": {

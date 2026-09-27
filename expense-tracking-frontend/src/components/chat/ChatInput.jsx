@@ -86,13 +86,13 @@ function ChatInput({
   };
 
   return (
-    <Box sx={{ backgroundColor: colors.primary_bg, padding: "10px 16px" }}>
+    <Box sx={{ backgroundColor: "var(--color-primary-bg)", padding: "10px 16px" }}>
       {replyTo && (
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderRadius: "8px 8px 0 0",
             padding: "8px 12px",
             marginBottom: "-4px",
@@ -102,7 +102,7 @@ function ChatInput({
           <Box sx={{ flex: 1, overflow: "hidden" }}>
             <Typography
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "13px",
                 fontWeight: 500,
               }}
@@ -111,7 +111,7 @@ function ChatInput({
             </Typography>
             <Typography
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "13px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -124,7 +124,7 @@ function ChatInput({
           <IconButton
             size="small"
             onClick={onCancelReply}
-            sx={{ color: colors.secondary_text }}
+            sx={{ color: "var(--color-secondary-text)" }}
           >
             <CloseIcon sx={{ fontSize: 20 }} />
           </IconButton>
@@ -132,11 +132,11 @@ function ChatInput({
       )}
 
       <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1 }}>
-        <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
+        <IconButton sx={{ color: "var(--color-secondary-text)", padding: "10px" }}>
           <EmojiEmotionsOutlinedIcon />
         </IconButton>
 
-        <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
+        <IconButton sx={{ color: "var(--color-secondary-text)", padding: "10px" }}>
           <AttachFileIcon sx={{ transform: "rotate(45deg)" }} />
         </IconButton>
 
@@ -152,11 +152,11 @@ function ChatInput({
           disabled={disabled}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: colors.input_bg,
+              bgcolor: "custom.inputBackground",
               borderRadius: "8px",
               "& fieldset": { border: "none" },
               "& textarea": {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 padding: "9px 12px",
                 fontSize: "15px",
                 "&::placeholder": {
@@ -173,7 +173,7 @@ function ChatInput({
             onClick={handleSend}
             disabled={disabled}
             sx={{
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               padding: "10px",
               "&:hover": { backgroundColor: `${colors.primary_accent}1A` },
             }}
@@ -181,7 +181,7 @@ function ChatInput({
             <SendIcon />
           </IconButton>
         ) : (
-          <IconButton sx={{ color: colors.secondary_text, padding: "10px" }}>
+          <IconButton sx={{ color: "var(--color-secondary-text)", padding: "10px" }}>
             <MicIcon />
           </IconButton>
         )}

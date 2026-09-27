@@ -99,11 +99,11 @@ const Utilities = () => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         p: isSmallScreen ? 2 : 3,
         mr: isSmallScreen ? 0 : "20px",
         display: "flex",
@@ -137,7 +137,7 @@ const Utilities = () => {
           <Typography
             variant="h4"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: "bold",
               fontSize: isSmallScreen ? "1.5rem" : "1.75rem",
             }}
@@ -146,14 +146,14 @@ const Utilities = () => {
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: colors.secondary_text, fontSize: "0.9rem" }}
+            sx={{ color: "var(--color-secondary-text)", fontSize: "0.9rem" }}
           >
             Quick access to sharing tools and more
           </Typography>
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: colors.border, mb: 3 }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)", mb: 3 }} />
 
       {/* Sharing Section */}
       {utilityItems.length > 0 && (
@@ -161,7 +161,7 @@ const Utilities = () => {
         <Typography
           variant="h6"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             mb: 2,
             display: "flex",
@@ -169,7 +169,7 @@ const Utilities = () => {
             gap: 1,
           }}
         >
-          <ShareIcon sx={{ fontSize: 20, color: colors.accent }} />
+          <ShareIcon sx={{ fontSize: 20, color: "var(--color-primary-accent)" }} />
           Sharing & QR Codes
         </Typography>
 
@@ -182,7 +182,7 @@ const Utilities = () => {
                   onClick={() => navigate(item.path)}
                   sx={{
                     background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                    border: `1px solid ${colors.border}`,
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: "16px",
                     cursor: "pointer",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -244,7 +244,7 @@ const Utilities = () => {
                       <Typography
                         variant="h6"
                         sx={{
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: 700,
                           fontSize: "1.1rem",
                         }}
@@ -266,7 +266,7 @@ const Utilities = () => {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "0.85rem",
                         lineHeight: 1.6,
                       }}
@@ -287,7 +287,7 @@ const Utilities = () => {
         <Typography
           variant="h6"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             mb: 2,
             display: "flex",
@@ -308,7 +308,7 @@ const Utilities = () => {
                   onClick={() => navigate(item.path)}
                   sx={{
                     background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                    border: `1px solid ${colors.border}`,
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: "16px",
                     cursor: "pointer",
                     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -368,7 +368,7 @@ const Utilities = () => {
                       <Typography
                         variant="h6"
                         sx={{
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: 700,
                           fontSize: "1.1rem",
                         }}
@@ -389,7 +389,7 @@ const Utilities = () => {
                     <Typography
                       variant="body2"
                       sx={{
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "0.85rem",
                         lineHeight: 1.6,
                       }}
@@ -420,13 +420,13 @@ const Utilities = () => {
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="body1"
-            sx={{ color: colors.secondary_text, mb: 1 }}
+            sx={{ color: "var(--color-secondary-text)", mb: 1 }}
           >
             More utilities coming soon...
           </Typography>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, opacity: 0.7 }}
+            sx={{ color: "var(--color-secondary-text)", opacity: 0.7 }}
           >
             Export tools, import data, backup & restore, and more
           </Typography>

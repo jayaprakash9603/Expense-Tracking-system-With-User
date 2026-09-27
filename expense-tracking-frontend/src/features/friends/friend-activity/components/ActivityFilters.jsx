@@ -146,7 +146,7 @@ const ActivityFilters = ({
     <Box
       sx={{
         background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         p: 1.5,
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
@@ -175,7 +175,7 @@ const ActivityFilters = ({
                 <InputAdornment position="start">
                   <SearchIcon
                     sx={{
-                      color: colors.primary_accent,
+                      color: "var(--color-primary-accent)",
                       fontSize: "1.2rem",
                     }}
                   />
@@ -192,11 +192,11 @@ const ActivityFilters = ({
             sx={{
               "& .MuiOutlinedInput-root": {
                 bgcolor: colors.secondary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 borderRadius: "8px",
                 height: "42px",
                 "& fieldset": {
-                  borderColor: colors.border_color,
+                  borderColor: "var(--color-border-color)",
                   borderWidth: "1.5px",
                 },
                 "&:hover fieldset": {
@@ -289,9 +289,9 @@ const ActivityFilters = ({
                 size="small"
                 onClick={handleSortOrderToggle}
                 sx={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   bgcolor: colors.secondary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "6px",
                   width: 36,
                   height: 36,
@@ -316,9 +316,9 @@ const ActivityFilters = ({
                 onClick={onRefresh}
                 disabled={loading}
                 sx={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   bgcolor: colors.secondary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "6px",
                   width: 36,
                   height: 36,
@@ -350,7 +350,7 @@ const ActivityFilters = ({
                   sx={{
                     color: "#ef4444",
                     bgcolor: colors.secondary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: "6px",
                     width: 36,
                     height: 36,
@@ -372,7 +372,7 @@ const ActivityFilters = ({
                 onClick={handleViewMenuOpen}
                 sx={{
                   color: colors.button_text,
-                  bgcolor: colors.primary_accent,
+                  bgcolor: "var(--color-primary-accent)",
                   borderRadius: "6px",
                   width: 36,
                   height: 36,
@@ -401,7 +401,7 @@ const ActivityFilters = ({
               PaperProps={{
                 sx: {
                   bgcolor: colors.secondary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "8px",
                   mt: 1,
                   minWidth: 160,
@@ -466,7 +466,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("searchTerm", "")}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}
@@ -479,7 +479,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("serviceFilter", SERVICES.ALL)}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}
@@ -492,7 +492,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("actionFilter", ACTIONS.ALL)}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}
@@ -508,7 +508,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("friendFilter", null)}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}
@@ -521,7 +521,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("timeRange", TIME_RANGES.ALL)}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}
@@ -534,7 +534,7 @@ const ActivityFilters = ({
               onDelete={() => onFilterChange("readStatus", READ_STATUS.ALL)}
               sx={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "0.7rem",
                 height: 24,
               }}

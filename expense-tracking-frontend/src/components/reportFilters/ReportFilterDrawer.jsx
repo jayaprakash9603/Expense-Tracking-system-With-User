@@ -30,7 +30,7 @@ const SectionContainer = ({ children, first = false, colors }) => (
       mt: first ? 0 : 2.5,
       p: 2,
       borderRadius: "12px",
-      border: `1px solid ${colors.border_color}`,
+      border: "1px solid var(--color-border-color)",
       backgroundColor:
         colors.tertiary_bg || colors.secondary_bg || colors.primary_bg,
     }}
@@ -43,14 +43,14 @@ const SectionLabel = ({ text, helperText, colors }) => (
   <Box sx={{ mb: 1.5 }}>
     <Typography
       variant="subtitle2"
-      sx={{ fontWeight: 700, color: colors.primary_text, fontSize: "0.9rem" }}
+      sx={{ fontWeight: 700, color: "var(--color-primary-text)", fontSize: "0.9rem" }}
     >
       {text}
     </Typography>
     {helperText ? (
       <Typography
         variant="caption"
-        sx={{ color: colors.secondary_text, display: "block", mt: 0.5 }}
+        sx={{ color: "var(--color-secondary-text)", display: "block", mt: 0.5 }}
       >
         {helperText}
       </Typography>
@@ -140,7 +140,7 @@ const ReportFilterDrawer = ({
   }, []);
 
   const controlAccentSx = {
-    color: colors.secondary_text,
+    color: "var(--color-secondary-text)",
     "&.Mui-checked": { color: brandBg },
   };
 
@@ -153,12 +153,12 @@ const ReportFilterDrawer = ({
     transition: "background-color 0.15s ease",
     backgroundColor: selected ? `${brandBg}14` : "transparent",
     "&:hover": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
     },
     "& .MuiFormControlLabel-label": {
       fontSize: "0.875rem",
       fontWeight: selected ? 600 : 500,
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
     },
   });
 
@@ -405,8 +405,8 @@ const ReportFilterDrawer = ({
         sx: {
           width: { xs: "100%", sm: width },
           maxWidth: "100vw",
-          backgroundColor: colors.secondary_bg || colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-secondary-bg)" || colors.primary_bg,
+          color: "var(--color-primary-text)",
           borderLeft:
             anchor === "right"
               ? `1px solid ${colors.border_color}`
@@ -450,7 +450,7 @@ const ReportFilterDrawer = ({
             {subtitle ? (
               <Typography
                 variant="body2"
-                sx={{ color: colors.secondary_text, mt: 0.5, lineHeight: 1.5 }}
+                sx={{ color: "var(--color-secondary-text)", mt: 0.5, lineHeight: 1.5 }}
               >
                 {subtitle}
               </Typography>
@@ -460,14 +460,14 @@ const ReportFilterDrawer = ({
             onClick={onClose}
             aria-label="Close filters"
             sx={{
-              color: colors.secondary_text,
-              border: `1px solid ${colors.border_color}`,
+              color: "var(--color-secondary-text)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: "10px",
               width: 36,
               height: 36,
               "&:hover": {
-                color: colors.primary_text,
-                backgroundColor: colors.hover_bg,
+                color: "var(--color-primary-text)",
+                backgroundColor: "var(--color-hover-bg)",
                 borderColor: colors.primary_accent,
               },
             }}
@@ -476,7 +476,7 @@ const ReportFilterDrawer = ({
           </IconButton>
         </Box>
 
-        <Divider sx={{ borderColor: colors.border_color }} />
+        <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
         <Box
           sx={{
@@ -513,7 +513,7 @@ const ReportFilterDrawer = ({
               </SectionContainer>
             ))
           ) : (
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               No filters available for this report.
             </Typography>
           )}
@@ -524,13 +524,13 @@ const ReportFilterDrawer = ({
             px: 2.5,
             py: 1.5,
             borderTop: `1px solid ${colors.border_color}`,
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
           }}
         >
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontWeight: 700,
               letterSpacing: "0.04em",
               textTransform: "uppercase",
@@ -558,12 +558,12 @@ const ReportFilterDrawer = ({
                   key={item.id}
                   sx={{
                     fontSize: "0.8125rem",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     mb: 0.25,
                     lineHeight: 1.45,
                   }}
                 >
-                  <Box component="span" sx={{ color: colors.secondary_text }}>
+                  <Box component="span" sx={{ color: "var(--color-secondary-text)" }}>
                     {item.label}:
                   </Box>{" "}
                   {item.value}
@@ -573,14 +573,14 @@ const ReportFilterDrawer = ({
           ) : (
             <Typography
               variant="body2"
-              sx={{ color: colors.secondary_text, mt: 0.75, mb: 0 }}
+              sx={{ color: "var(--color-secondary-text)", mt: 0.75, mb: 0 }}
             >
               No filters selected yet.
             </Typography>
           )}
         </Box>
 
-        <Divider sx={{ borderColor: colors.border_color }} />
+        <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
         <Box
           sx={{
@@ -589,14 +589,14 @@ const ReportFilterDrawer = ({
             gap: 1.5,
             px: 2.5,
             py: 2,
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
           }}
         >
           <Button
             variant="text"
             onClick={handleReset}
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 700,
               letterSpacing: "0.06em",
               minWidth: 88,

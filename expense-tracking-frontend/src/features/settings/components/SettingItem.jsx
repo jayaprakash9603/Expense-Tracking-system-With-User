@@ -62,7 +62,7 @@ const SettingItem = ({
         opacity: disabled ? 0.5 : 1,
         pointerEvents: disabled ? "none" : "auto",
         "&:hover": !hideBorder && !disabled && {
-          backgroundColor: colors.hover_bg,
+          backgroundColor: "var(--color-hover-bg)",
           mx: -2,
           px: 2,
           borderRadius: 2,
@@ -114,7 +114,7 @@ const SettingItem = ({
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: "0.85rem",
                   lineHeight: 1.5,
                 }}
@@ -135,7 +135,7 @@ const SettingItem = ({
             disabled={disabled} // Disable interaction when disabled
             sx={{
               "& .MuiSwitch-switchBase.Mui-checked": {
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               },
               "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
                 backgroundColor: colors.primary_accent,
@@ -186,7 +186,7 @@ const SettingItem = ({
                 label: option.labelKey ? t(option.labelKey) : option.label,
                 icon: OptionIcon ? (
                   <OptionIcon
-                    sx={{ fontSize: "1.1rem", color: colors.primary_accent }}
+                    sx={{ fontSize: "1.1rem", color: "var(--color-primary-accent)" }}
                   />
                 ) : undefined,
               };
@@ -200,7 +200,7 @@ const SettingItem = ({
             {statusChip}
             <IconButton
               size="small"
-              sx={{ color: colors.secondary_text, pointerEvents: "none" }}
+              sx={{ color: "var(--color-secondary-text)", pointerEvents: "none" }}
             >
               <ChevronRightIcon />
             </IconButton>
@@ -218,7 +218,7 @@ const SettingItem = ({
               onChange={onSliderChange}
               disabled={disabled}
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "& .MuiSlider-thumb": {
                   width: 20,
                   height: 20,
@@ -245,7 +245,7 @@ const SettingItem = ({
                 },
                 "& .MuiSlider-markLabel": {
                   fontSize: "0.75rem",
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 },
               }}
             />

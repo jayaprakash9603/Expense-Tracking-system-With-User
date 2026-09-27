@@ -27,8 +27,8 @@ export const getDialogStyles = (colors, isDark) => {
     : "6, 182, 212";
   return {
     paper: {
-      backgroundColor: colors.card_bg || colors.secondary_bg,
-      color: colors.primary_text,
+      backgroundColor: "var(--color-primary-bg)" || colors.secondary_bg,
+      color: "var(--color-primary-text)",
       borderRadius: { xs: 0, sm: 3, md: 4 },
       border: { xs: "none", sm: `1px solid ${colors.border_color}` },
       boxShadow: isDark
@@ -85,7 +85,7 @@ export const getHeaderStyles = (colors, isDark) => {
       border: `1px solid rgba(${accentRgb}, ${isDark ? 0.3 : 0.2})`,
     },
     closeButton: {
-      color: colors.secondary_text,
+      color: "var(--color-secondary-text)",
       width: 36,
       height: 36,
       backgroundColor: isDark
@@ -95,7 +95,7 @@ export const getHeaderStyles = (colors, isDark) => {
         backgroundColor: isDark
           ? "rgba(255, 255, 255, 0.1)"
           : "rgba(0, 0, 0, 0.08)",
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
       },
     },
   };
@@ -306,8 +306,8 @@ export const getButtonStyles = (isDark, colors, variant = "primary") => {
 
   if (variant === "secondary") {
     return {
-      color: colors.secondary_text,
-      borderColor: colors.border_color,
+      color: "var(--color-secondary-text)",
+      borderColor: "var(--color-border-color)",
       textTransform: "none",
       fontWeight: 600,
       px: 3,

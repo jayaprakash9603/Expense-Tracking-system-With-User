@@ -206,7 +206,7 @@ export const OverviewCardSkeleton = () => {
       className="overview-card skeleton"
       style={{
         background: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "16px",
         height: "130px",
         padding: "20px",
@@ -257,7 +257,7 @@ export const ChartSkeleton = ({ height = 400, bars = 8 }) => {
       className="chart-container skeleton"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="chart-header">
@@ -340,7 +340,7 @@ export const PieChartSkeleton = ({ height = 360, chipCount = 7 }) => {
       className="chart-container skeleton"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="chart-header">
@@ -453,7 +453,7 @@ export const RecurringLossGainCardsSkeleton = ({ rows = 5 }) => {
 
   const containerStyle = {
     background: colors.primary_bg,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: "20px",
   };
@@ -482,7 +482,7 @@ export const RecurringLossGainCardsSkeleton = ({ rows = 5 }) => {
     gap: 12,
     padding: "12px 14px",
     background: colors.secondary_bg,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: 12,
   };
 
@@ -505,7 +505,7 @@ export const TopRecurringExpensesSkeleton = ({ rows = 5 }) => {
 
   const containerStyle = {
     background: colors.primary_bg,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: "20px",
   };
@@ -534,7 +534,7 @@ export const TopRecurringExpensesSkeleton = ({ rows = 5 }) => {
     gap: 12,
     padding: "12px 14px",
     background: colors.secondary_bg,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: 12,
   };
 
@@ -594,7 +594,7 @@ export const LossGainBreakdownSkeleton = () => {
 
   const containerStyle = {
     background: colors.primary_bg,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: "20px",
   };
@@ -627,7 +627,7 @@ export const LossGainBreakdownSkeleton = () => {
         style={{
           height: 220,
           borderRadius: 12,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           background: colors.secondary_bg,
           padding: 16,
           display: "flex",
@@ -720,7 +720,7 @@ export const TableSkeleton = ({ headerCells = 6, rows = 9, rowCells = 6 }) => {
       className="chart-container skeleton"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="chart-header">
@@ -806,7 +806,7 @@ export const AccordionSkeleton = ({ items = 6 }) => {
       className="chart-container skeleton"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="chart-header">
@@ -869,7 +869,7 @@ export const BudgetOverviewCardSkeleton = () => {
       className="budget-card skeleton"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 10,
         padding: 14,
         position: "relative",
@@ -973,7 +973,7 @@ export const BudgetOverviewCardSkeleton = () => {
               padding: 8,
               borderRadius: 6,
               background: colors.tertiary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <div
@@ -1008,7 +1008,7 @@ export const BudgetOverviewCardSkeleton = () => {
           padding: 8,
           borderRadius: 6,
           background: colors.tertiary_bg,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <div
@@ -1177,7 +1177,7 @@ export const AllBudgetsLoadingSkeleton = () => {
             className="chart-container"
             style={{
               background: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: "12px",
               padding: "24px",
             }}

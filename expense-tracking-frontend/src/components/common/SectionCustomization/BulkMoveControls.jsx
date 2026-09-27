@@ -104,7 +104,7 @@ const BulkMoveControls = ({
         sx={{
           width: isMobile ? "auto" : "100%",
           height: isMobile ? 24 : "auto",
-          borderColor: colors.border_color,
+          borderColor: "var(--color-border-color)",
           mx: isMobile ? 1 : 0,
           my: isMobile ? 0 : 1,
         }}

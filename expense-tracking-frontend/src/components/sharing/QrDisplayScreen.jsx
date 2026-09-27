@@ -151,8 +151,8 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
       }}
       PaperProps={{
         sx: {
-          backgroundColor: colors.modal_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
           borderRadius: 3,
           width: 520,
           maxWidth: "95vw",
@@ -175,7 +175,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           borderBottom: `1px solid ${colors.border}`,
           py: 2,
           px: 3,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           flexShrink: 0,
         }}
       >
@@ -195,7 +195,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           </Box>
           <Typography
             variant="h6"
-            sx={{ color: colors.primary_text, fontWeight: 600 }}
+            sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}
           >
             {share.shareName || "Share QR Code"}
           </Typography>
@@ -203,7 +203,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         <IconButton
           onClick={handleClose}
           size="small"
-          sx={{ color: colors.secondary_text }}
+          sx={{ color: "var(--color-secondary-text)" }}
         >
           <CloseIcon />
         </IconButton>
@@ -248,7 +248,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
                 gap: 2,
               }}
             >
-              <CircularProgress sx={{ color: colors.accent }} />
+              <CircularProgress sx={{ color: "var(--color-primary-accent)" }} />
               <Typography variant="body2" sx={{ color: "#666" }}>
                 Regenerating...
               </Typography>
@@ -285,7 +285,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             <span>
               <IconButton
                 onClick={handleDownloadQr}
-                sx={{ color: colors.accent }}
+                sx={{ color: "var(--color-primary-accent)" }}
                 disabled={!currentQrCode || regenerating}
               >
                 <DownloadIcon />
@@ -296,7 +296,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             <span>
               <IconButton
                 onClick={handleRegenerateQr}
-                sx={{ color: colors.accent }}
+                sx={{ color: "var(--color-primary-accent)" }}
                 disabled={regenerating}
               >
                 {regenerating ? (
@@ -310,7 +310,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           <Tooltip title="Share with Friends">
             <IconButton
               onClick={() => setShowShareWithFriend(true)}
-              sx={{ color: colors.accent }}
+              sx={{ color: "var(--color-primary-accent)" }}
             >
               <SendIcon />
             </IconButton>
@@ -324,9 +324,9 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           InputProps={{
             readOnly: true,
             sx: {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "0.85rem",
-              backgroundColor: colors.card_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: 2,
             },
             endAdornment: (
@@ -334,9 +334,9 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
                 <Tooltip title={copied ? "Copied!" : "Copy Link"}>
                   <IconButton onClick={handleCopyLink} size="small">
                     {copied ? (
-                      <CheckIcon sx={{ color: colors.success, fontSize: 20 }} />
+                      <CheckIcon sx={{ color: "var(--color-success)", fontSize: 20 }} />
                     ) : (
-                      <CopyIcon sx={{ color: colors.accent, fontSize: 20 }} />
+                      <CopyIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
                     )}
                   </IconButton>
                 </Tooltip>
@@ -347,7 +347,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             mb: 2,
             "& .MuiOutlinedInput-root": {
               "& fieldset": {
-                borderColor: colors.border,
+                borderColor: "var(--color-border-color)",
               },
               "&:hover fieldset": {
                 borderColor: colors.accent,
@@ -373,9 +373,9 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             size="small"
             sx={{
               backgroundColor: `${colors.accent}20`,
-              color: colors.accent,
+              color: "var(--color-primary-accent)",
               fontWeight: 500,
-              "& .MuiChip-icon": { color: colors.accent },
+              "& .MuiChip-icon": { color: "var(--color-primary-accent)" },
             }}
           />
 
@@ -385,10 +385,10 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             label={formatExpiry(share.expiresAt)}
             size="small"
             sx={{
-              backgroundColor: colors.card_bg,
-              color: colors.secondary_text,
-              border: `1px solid ${colors.border}`,
-              "& .MuiChip-icon": { color: colors.secondary_text },
+              backgroundColor: "var(--color-primary-bg)",
+              color: "var(--color-secondary-text)",
+              border: "1px solid var(--color-border-color)",
+              "& .MuiChip-icon": { color: "var(--color-secondary-text)" },
             }}
           />
 
@@ -397,9 +397,9 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
             label={`${share.resourceCount || 0} items`}
             size="small"
             sx={{
-              backgroundColor: colors.card_bg,
-              color: colors.secondary_text,
-              border: `1px solid ${colors.border}`,
+              backgroundColor: "var(--color-primary-bg)",
+              color: "var(--color-secondary-text)",
+              border: "1px solid var(--color-border-color)",
             }}
           />
         </Box>
@@ -414,7 +414,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
         {/* Instructions */}
         <Typography
           variant="body2"
-          sx={{ color: colors.secondary_text, mt: 1, fontSize: "0.8rem" }}
+          sx={{ color: "var(--color-secondary-text)", mt: 1, fontSize: "0.8rem" }}
         >
           Scan the QR code or share the link with friends to give them access to
           your data.
@@ -426,7 +426,7 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           px: 3,
           py: 2,
           borderTop: `1px solid ${colors.border}`,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           justifyContent: "space-between",
           flexShrink: 0,
         }}
@@ -436,13 +436,13 @@ const QrDisplayScreen = ({ open, onClose, share }) => {
           <>
             {showRevokeConfirm ? (
               <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                <Typography variant="body2" sx={{ color: colors.error }}>
+                <Typography variant="body2" sx={{ color: "var(--color-error)" }}>
                   Revoke this share?
                 </Typography>
                 <Button
                   size="small"
                   onClick={() => setShowRevokeConfirm(false)}
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   Cancel
                 </Button>

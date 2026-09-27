@@ -91,21 +91,21 @@ const RecentTransactions = ({
         isCompact ? "compact" : ""
       } ${isMobile ? "mobile" : ""} ${isTablet && !isMobile ? "tablet" : ""}`}
       style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="section-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 8,
             margin: 0,
           }}
         >
-          <ScheduleIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <ScheduleIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Recent Transactions
         </h3>
         <button
@@ -149,7 +149,7 @@ const RecentTransactions = ({
                       ? "rgba(34, 197, 94, 0.12)"
                       : colors.tertiary_bg,
                   transition: "background-color 0.3s ease",
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
                 <div
@@ -168,7 +168,7 @@ const RecentTransactions = ({
                     title={getViewExpenseUrl(transaction.id)}
                     onClick={(e) => handleNameClick(e, transaction.id)}
                     style={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       cursor: "pointer",
                       transition: "text-decoration 0.2s ease",
                     }}
@@ -188,7 +188,7 @@ const RecentTransactions = ({
                       handleCategoryClick(e, transaction.categoryId)
                     }
                     style={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       cursor: transaction.categoryId ? "pointer" : "default",
                       transition: "text-decoration 0.2s ease",
                     }}
@@ -205,7 +205,7 @@ const RecentTransactions = ({
                   </div>
                   <div
                     className="transaction-date"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     {transaction.date
                       ? new Date(transaction.date).toLocaleDateString()

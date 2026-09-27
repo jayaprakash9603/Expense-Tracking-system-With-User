@@ -132,8 +132,8 @@ const AppModal = forwardRef(function AppModal(
             minWidth: dimensions.minWidth,
             maxWidth: dimensions.maxWidth || dimensions.width,
             maxHeight: maxHeight,
-            backgroundColor: colors.modal_bg || colors.secondary_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)" || colors.secondary_bg,
+            color: "var(--color-primary-text)",
             borderRadius: 3,
             boxShadow: 24,
             outline: "none",
@@ -160,7 +160,7 @@ const AppModal = forwardRef(function AppModal(
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                       }}
                     >
                       {headerIcon}
@@ -172,7 +172,7 @@ const AppModal = forwardRef(function AppModal(
                         variant="h6"
                         sx={{
                           fontWeight: 600,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           lineHeight: 1.3,
                         }}
                       >
@@ -183,7 +183,7 @@ const AppModal = forwardRef(function AppModal(
                       <Typography
                         variant="body2"
                         sx={{
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           mt: 0.25,
                         }}
                       >
@@ -198,10 +198,10 @@ const AppModal = forwardRef(function AppModal(
                     onClick={(e) => onClose?.(e, "closeButton")}
                     size="small"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       "&:hover": {
-                        backgroundColor: colors.hover_bg,
-                        color: colors.primary_text,
+                        backgroundColor: "var(--color-hover-bg)",
+                        color: "var(--color-primary-text)",
                       },
                     }}
                   >
@@ -209,7 +209,7 @@ const AppModal = forwardRef(function AppModal(
                   </IconButton>
                 )}
               </Box>
-              <Divider sx={{ borderColor: colors.border_color }} />
+              <Divider sx={{ borderColor: "var(--color-border-color)" }} />
             </>
           )}
 
@@ -228,7 +228,7 @@ const AppModal = forwardRef(function AppModal(
           {/* Footer */}
           {footer && (
             <>
-              <Divider sx={{ borderColor: colors.border_color }} />
+              <Divider sx={{ borderColor: "var(--color-border-color)" }} />
               <Box
                 sx={{
                   display: "flex",

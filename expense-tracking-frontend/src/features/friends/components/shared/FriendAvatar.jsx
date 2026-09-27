@@ -61,7 +61,7 @@ const FriendAvatar = ({
             width: size * 0.3,
             height: size * 0.3,
             borderRadius: "50%",
-            bgcolor: colors.success,
+            bgcolor: "var(--color-success)",
             border: `2px solid ${colors.card_bg}`,
           }}
         />

@@ -608,7 +608,7 @@ const AllBudgetsReport = () => {
                       className="chart-container"
                       style={{
                         background: colors.primary_bg,
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         borderRadius: "12px",
                         padding: "24px",
                       }}
@@ -619,7 +619,7 @@ const AllBudgetsReport = () => {
                       >
                         <h3
                           style={{
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
@@ -662,7 +662,7 @@ const AllBudgetsReport = () => {
                       className="chart-container"
                       style={{
                         background: colors.secondary_bg,
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         borderRadius: "12px",
                         padding: "20px",
                         minHeight: "auto",
@@ -670,7 +670,7 @@ const AllBudgetsReport = () => {
                       }}
                     >
                       <div className="chart-header">
-                        <h3 style={{ color: colors.primary_text }}>
+                        <h3 style={{ color: "var(--color-primary-text)" }}>
                           <BarChartIcon sx={{ fontSize: 22 }} />
                           Individual Budget Details
                         </h3>

@@ -42,9 +42,9 @@ const CashFlowCompactTooltip = ({
         minWidth: 180,
         maxWidth: 220,
         borderRadius: 10,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         background: colors.secondary_bg,
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         padding: "10px 12px",
         boxShadow: "0 8px 18px rgba(7, 15, 35, 0.4)",
         pointerEvents: "none",
@@ -55,7 +55,7 @@ const CashFlowCompactTooltip = ({
           fontSize: 12,
           fontWeight: 700,
           marginBottom: 6,
-          color: colors.primary_accent,
+          color: "var(--color-primary-accent)",
         }}
       >
         {fallbackLabel || t("cashflow.labels.unknownDate")}
@@ -68,7 +68,7 @@ const CashFlowCompactTooltip = ({
           marginBottom: 8,
         }}
       >
-        <span style={{ fontSize: 11, color: colors.secondary_text }}>
+        <span style={{ fontSize: 11, color: "var(--color-secondary-text)" }}>
           {t("cashflow.labels.expenses", "Expenses")}
         </span>
         <strong style={{ fontSize: 13 }}>
@@ -89,7 +89,7 @@ const CashFlowCompactTooltip = ({
           display: "flex",
           justifyContent: "space-between",
           fontSize: 11,
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
         }}
       >
         <span>

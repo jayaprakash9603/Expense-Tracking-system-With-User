@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import { useDispatch, useSelector } from "react-redux";
 import GenericAccordionGroup from "./GenericAccordionGroup";
+import { buildPaymentMethodThemeVars } from "../shared/theme/paymentMethodThemeVars";
 import { useTheme } from "../hooks/useTheme";
 import { getPaymentMethodIcon } from "../utils/ui/iconMapping";
 import { useStandardExpenseColumns } from "../features/expenses/hooks/useStandardExpenseColumns";
@@ -140,26 +141,14 @@ const GroupedExpensesAccordion = ({
     return "all";
   };
 
-  // Theme-aware CSS variables
-  const themeVars = {
-    "--pm-bg-primary": mode === "dark" ? "#141414" : "#ffffff",
-    "--pm-bg-secondary": mode === "dark" ? "#1d1d1f" : "#f5f5f5",
-    "--pm-bg-tertiary": mode === "dark" ? "#1b1b1b" : "#fafafa",
-    "--pm-border-color": colors.border_color,
-    "--pm-text-primary": colors.primary_text,
-    "--pm-text-secondary": mode === "dark" ? "#ccc" : "#555",
-    "--pm-text-tertiary": mode === "dark" ? "#bbb" : "#666",
-    "--pm-accent-color": colors.primary_accent,
-    "--pm-scrollbar-thumb": colors.primary_accent,
-    "--pm-scrollbar-track": mode === "dark" ? "#1d1d1f" : "#e8e8e8",
-  };
+  const themeVars = buildPaymentMethodThemeVars(colors, mode);
 
   return (
     <div
       className="chart-container"
       style={{
-        background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        background: "var(--color-primary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "24px",
       }}
@@ -174,7 +163,7 @@ const GroupedExpensesAccordion = ({
             gap: 8,
           }}
         >
-          <ReceiptIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <ReceiptIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Expenses Breakdown
         </h3>
         <div
@@ -210,7 +199,7 @@ const GroupedExpensesAccordion = ({
               onClick={onToggle}
               aria-expanded={isOpen}
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             >
               <div className="pm-header-left boxed-metrics inline-metrics">
@@ -224,7 +213,7 @@ const GroupedExpensesAccordion = ({
                     }}
                   >
                     {getPaymentMethodIcon(group.label, {
-                      sx: { fontSize: 18, color: colors.primary_accent },
+                      sx: { fontSize: 18, color: "var(--color-primary-accent)" },
                     })}
                     {group.label}
                   </Box>

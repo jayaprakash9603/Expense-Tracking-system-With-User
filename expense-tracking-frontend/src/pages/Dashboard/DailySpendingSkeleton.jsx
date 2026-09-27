@@ -70,8 +70,8 @@ const DailySpendingSkeleton = ({
       className="chart-container daily-spending-chart skeleton"
       style={{
         position: "relative",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Header */}

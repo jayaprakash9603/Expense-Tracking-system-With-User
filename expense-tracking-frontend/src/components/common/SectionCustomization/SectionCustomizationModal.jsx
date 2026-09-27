@@ -141,8 +141,8 @@ const SectionCustomizationModal = ({
           height: isMobile ? "calc(100vh - 180px)" : "calc(70vh - 120px)",
           minHeight: { xs: 300, sm: 400, md: 450 },
           maxHeight: { xs: "none", sm: 550, md: 600 },
-          backgroundColor: colors.card_bg || colors.secondary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)" || colors.secondary_bg,
+          color: "var(--color-primary-text)",
         }}
       >
         <StatisticsChips

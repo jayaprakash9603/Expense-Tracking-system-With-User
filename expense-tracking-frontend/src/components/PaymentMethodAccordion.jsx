@@ -153,7 +153,7 @@ export default function PaymentMethodAccordionGroup({
             title={getViewExpenseUrl(expenseId)}
             onClick={(e) => handleNameClick(e, expenseId)}
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               cursor: "pointer",
               transition: "text-decoration 0.2s ease",
             }}

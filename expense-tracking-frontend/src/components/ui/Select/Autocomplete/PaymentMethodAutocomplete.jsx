@@ -161,7 +161,7 @@ const PaymentMethodAutocomplete = ({
       {showLabel && label && (
         <label
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.875rem",
             fontWeight: "600",
             marginBottom: "4px",

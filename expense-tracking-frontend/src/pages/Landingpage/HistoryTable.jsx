@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import {
   Box,
   Skeleton,
@@ -33,8 +33,7 @@ import {
   getExpenseHistory,
   getExpensesAction,
 } from "../../Redux/Expenses/expense.action";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
-import createAppTheme from "./theme";
+import { useTheme } from "@mui/material/styles";
 import ToastNotification from "./ToastNotification";
 
 const HistoryTable = ({ friendId }) => {
@@ -42,12 +41,6 @@ const HistoryTable = ({ friendId }) => {
   const { history, loading } = useSelector((state) => state.expenses || {});
 
   // Get theme mode from Redux
-  const themeMode = useSelector((state) => state.theme?.mode || "dark");
-  const customTheme = React.useMemo(
-    () => createAppTheme(themeMode),
-    [themeMode]
-  );
-
   const settings = useUserSettings();
   const currencySymbol = settings.getCurrency().symbol;
 
@@ -145,36 +138,33 @@ const HistoryTable = ({ friendId }) => {
 
   if (loading) {
     return (
-      <ThemeProvider theme={customTheme}>
-        <Box
-          sx={{
-            width: "100%",
-            height: "750px",
-            backgroundColor: "#0b0b0b",
-            p: 2,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {[...Array(6)].map((_, index) => (
-            <Skeleton
-              key={index}
-              sx={{
-                height: 80, // Increased back to 80
-                width: "100%",
-                mb: 2, // Increased back to 2
-                borderRadius: "8px",
-                backgroundColor: "#1b1b1b",
-              }}
-            />
-          ))}
-        </Box>
-      </ThemeProvider>
+      <Box
+        sx={{
+          width: "100%",
+          height: "750px",
+          backgroundColor: "var(--color-secondary-bg)",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {[...Array(6)].map((_, index) => (
+          <Skeleton
+            key={index}
+            sx={{
+              height: 80,
+              width: "100%",
+              mb: 2,
+              borderRadius: "8px",
+            }}
+          />
+        ))}
+      </Box>
     );
   }
 
   return (
-    <ThemeProvider theme={customTheme}>
+    <>
       <ToastNotification
         open={toastOpen}
         message={toastMessage}
@@ -185,7 +175,7 @@ const HistoryTable = ({ friendId }) => {
         sx={{
           width: "100%",
           height: "750px",
-          backgroundColor: "#0b0b0b",
+          backgroundColor: "var(--color-tertiary-bg)",
           p: 2,
           display: "flex",
           flexDirection: "column",
@@ -203,7 +193,7 @@ const HistoryTable = ({ friendId }) => {
             mb: 2,
             flexShrink: 0,
             "& .MuiOutlinedInput-root": {
-              backgroundColor: "#1b1b1b",
+              backgroundColor: "var(--color-primary-bg)",
               color: "#ffffff",
               borderRadius: "8px",
               height: "48px",
@@ -265,7 +255,7 @@ const HistoryTable = ({ friendId }) => {
                     expanded={expandedPanels[panelId] || false}
                     onChange={handleAccordionChange(panelId)}
                     sx={{
-                      backgroundColor: "#1b1b1b",
+                      backgroundColor: "var(--color-primary-bg)",
                       color: "#ffffff",
                       mb: 1, // Increased back to 2
                       borderRadius: "8px !important",
@@ -276,7 +266,7 @@ const HistoryTable = ({ friendId }) => {
                         borderRadius: "8px",
                         minHeight: "62px", // Increased from 59px to 68px
                         "&:hover": {
-                          backgroundColor: "#2a2a2a",
+                          backgroundColor: "var(--color-hover-bg)",
                         },
                       },
                       "& .MuiAccordionDetails-root": {
@@ -367,7 +357,7 @@ const HistoryTable = ({ friendId }) => {
                         {/* Basic Information */}
                         <Grid item xs={12} md={6}>
                           <Card
-                            sx={{ backgroundColor: "#2a2a2a", height: "100%" }}
+                            sx={{ backgroundColor: "var(--color-hover-bg)", height: "100%" }}
                           >
                             <CardContent sx={{ padding: "16px !important" }}>
                               {" "}
@@ -453,7 +443,7 @@ const HistoryTable = ({ friendId }) => {
                         {/* Technical Details */}
                         <Grid item xs={12} md={6}>
                           <Card
-                            sx={{ backgroundColor: "#2a2a2a", height: "100%" }}
+                            sx={{ backgroundColor: "var(--color-hover-bg)", height: "100%" }}
                           >
                             <CardContent sx={{ padding: "16px !important" }}>
                               <Typography
@@ -542,7 +532,7 @@ const HistoryTable = ({ friendId }) => {
                         </Grid>
                         {/* User Agent */}
                         <Grid item xs={12}>
-                          <Card sx={{ backgroundColor: "#2a2a2a" }}>
+                          <Card sx={{ backgroundColor: "var(--color-hover-bg)" }}>
                             <CardContent sx={{ padding: "16px !important" }}>
                               <Typography
                                 variant="h6"
@@ -573,7 +563,7 @@ const HistoryTable = ({ friendId }) => {
                         {/* Expense Details */}
                         {details && (
                           <Grid item xs={12}>
-                            <Card sx={{ backgroundColor: "#2a2a2a" }}>
+                            <Card sx={{ backgroundColor: "var(--color-hover-bg)" }}>
                               <CardContent sx={{ padding: "16px !important" }}>
                                 <Typography
                                   variant="h6"
@@ -742,7 +732,7 @@ const HistoryTable = ({ friendId }) => {
               bottom: 12,
               left: 16,
               right: 16,
-              backgroundColor: "#0b0b0b",
+              backgroundColor: "var(--color-tertiary-bg)",
               pt: 1.5,
               borderTop: "1px solid #333333",
             }}
@@ -759,13 +749,13 @@ const HistoryTable = ({ friendId }) => {
                     color: "#ffffff",
                     borderColor: "#333333",
                     "&:hover": {
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor: "var(--color-hover-bg)",
                     },
                     "&.Mui-selected": {
-                      backgroundColor: "#00dac6",
+                      backgroundColor: "var(--color-primary-accent)",
                       color: "#000000",
                       "&:hover": {
-                        backgroundColor: "#00b8a6",
+                        backgroundColor: "var(--color-button-hover)",
                       },
                     },
                   },
@@ -778,8 +768,9 @@ const HistoryTable = ({ friendId }) => {
           </Box>
         )}
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 
 export default HistoryTable;
+

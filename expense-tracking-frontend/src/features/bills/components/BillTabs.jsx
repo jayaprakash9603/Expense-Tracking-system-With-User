@@ -17,7 +17,7 @@ const BillTabs = ({ activeTab, onTabChange, billStats }) => {
         borderRadius: 3,
         overflow: "hidden",
         boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         border: "none",
       }}
     >
@@ -32,14 +32,14 @@ const BillTabs = ({ activeTab, onTabChange, billStats }) => {
             textTransform: "none",
             py: 2,
             minHeight: 60,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             "&.Mui-selected": {
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               transform: "scale(1.02)",
             },
             "&:hover": {
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               backgroundColor: `${colors.primary_accent}14`,
             },
           },

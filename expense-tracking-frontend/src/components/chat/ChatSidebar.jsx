@@ -95,7 +95,7 @@ function ChatSidebar({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRight: `1px solid ${colors.border_color}`,
       }}
     >
@@ -104,24 +104,24 @@ function ChatSidebar({
           display: "flex",
           alignItems: "center",
           padding: "10px 16px",
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           height: 59,
         }}
       >
         <IconButton
           onClick={onBack}
-          sx={{ color: colors.secondary_text, marginRight: 2 }}
+          sx={{ color: "var(--color-secondary-text)", marginRight: 2 }}
         >
           <ArrowBackIcon />
         </IconButton>
         <Typography
-          sx={{ color: colors.primary_text, fontSize: "19px", fontWeight: 500 }}
+          sx={{ color: "var(--color-primary-text)", fontSize: "19px", fontWeight: 500 }}
         >
           Chats
         </Typography>
       </Box>
 
-      <Box sx={{ padding: "8px 12px", backgroundColor: colors.secondary_bg }}>
+      <Box sx={{ padding: "8px 12px", backgroundColor: "var(--color-secondary-bg)" }}>
         <TextField
           placeholder="Search or start new chat"
           value={searchQuery}
@@ -131,17 +131,17 @@ function ChatSidebar({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.secondary_text }} />
+                <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
               </InputAdornment>
             ),
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "8px",
               "& fieldset": { border: "none" },
               "& input": {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 padding: "9px 12px",
                 fontSize: "15px",
                 "&::placeholder": {
@@ -183,7 +183,7 @@ function ChatSidebar({
               height: "100%",
             }}
           >
-            <CircularProgress sx={{ color: colors.primary_accent }} />
+            <CircularProgress sx={{ color: "var(--color-primary-accent)" }} />
           </Box>
         ) : (
           <>
@@ -192,12 +192,12 @@ function ChatSidebar({
                 <Box
                   sx={{
                     padding: "8px 16px",
-                    backgroundColor: colors.secondary_bg,
+                    backgroundColor: "var(--color-secondary-bg)",
                   }}
                 >
                   <Typography
                     sx={{
-                      color: colors.primary_accent,
+                      color: "var(--color-primary-accent)",
                       fontSize: "13px",
                       fontWeight: 500,
                       display: "flex",
@@ -226,7 +226,7 @@ function ChatSidebar({
                         padding: "12px 16px",
                         cursor: "pointer",
                         backgroundColor: "transparent",
-                        "&:hover": { backgroundColor: colors.primary_bg },
+                        "&:hover": { backgroundColor: "var(--color-primary-bg)" },
                         borderBottom: `1px solid ${colors.border_color}`,
                       }}
                     >
@@ -243,13 +243,13 @@ function ChatSidebar({
                       </Avatar>
                       <Box sx={{ flex: 1, marginLeft: "15px" }}>
                         <Typography
-                          sx={{ color: colors.primary_text, fontSize: "17px" }}
+                          sx={{ color: "var(--color-primary-text)", fontSize: "17px" }}
                         >
                           {friendName}
                         </Typography>
                         <Typography
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             fontSize: "13px",
                           }}
                         >
@@ -263,13 +263,13 @@ function ChatSidebar({
                   <Box
                     sx={{
                       padding: "8px 16px",
-                      backgroundColor: colors.secondary_bg,
+                      backgroundColor: "var(--color-secondary-bg)",
                       marginTop: "8px",
                     }}
                   >
                     <Typography
                       sx={{
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "13px",
                         fontWeight: 500,
                       }}
@@ -294,7 +294,7 @@ function ChatSidebar({
               >
                 <Typography
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: "14px",
                     textAlign: "center",
                   }}

@@ -46,14 +46,14 @@ const ProfileFormFields = ({
 
     return {
       "& .MuiOutlinedInput-root": {
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         backgroundColor: isActuallyDisabled
           ? (isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)")
           : colors.secondary_bg,
         borderRadius: "12px",
         transition: "all 0.2s ease-in-out",
         "& fieldset": {
-          borderColor: colors.border_color,
+          borderColor: "var(--color-border-color)",
           borderWidth: "1.5px",
           borderStyle: isDashed ? "dashed" : "solid",
         },
@@ -70,15 +70,15 @@ const ProfileFormFields = ({
         "&.Mui-disabled": {
           backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
           "& fieldset": {
-            borderColor: colors.border_color,
+            borderColor: "var(--color-border-color)",
             borderStyle: isDashed ? "dashed" : "solid",
           },
         },
       },
       "& .MuiOutlinedInput-input": {
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         "&.Mui-disabled": {
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           WebkitTextFillColor: colors.primary_text, // Force text color override in Webkit browsers
           opacity: 0.95, // High contrast and readability
           cursor: isActuallyDisabled ? "default" : "text",
@@ -93,11 +93,11 @@ const ProfileFormFields = ({
         },
       },
       "& .MuiInputLabel-root.Mui-focused": {
-        color: colors.primary_accent,
+        color: "var(--color-primary-accent)",
         fontWeight: 600,
       },
       "& .MuiInputAdornment-root .MuiSvgIcon-root": {
-        color: colors.primary_accent,
+        color: "var(--color-primary-accent)",
         opacity: isActuallyDisabled ? 0.7 : 1,
       },
     };
@@ -211,7 +211,7 @@ const ProfileFormFields = ({
                   startAdornment: (
                     <CakeIcon
                       sx={{
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         mr: 1,
                         fontSize: "1.2rem",
                       }}
@@ -222,7 +222,7 @@ const ProfileFormFields = ({
               },
               openPickerButton: {
                 sx: {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 },
               },
             }}
@@ -244,7 +244,7 @@ const ProfileFormFields = ({
             startAdornment: (
               <LocationOnIcon
                 sx={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   mr: 1,
                   fontSize: "1.2rem",
                 }}
@@ -272,7 +272,7 @@ const ProfileFormFields = ({
             startAdornment: (
               <InfoIcon
                 sx={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   mr: 1,
                   alignSelf: "flex-start",
                   mt: 1.5,

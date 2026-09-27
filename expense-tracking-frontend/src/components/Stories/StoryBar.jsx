@@ -245,7 +245,7 @@ const StoryBar = ({ userId }) => {
         <Typography
           variant="caption"
           sx={{
-            color: colors.error,
+            color: "var(--color-error)",
             position: "absolute",
             bottom: 2,
             left: 70,

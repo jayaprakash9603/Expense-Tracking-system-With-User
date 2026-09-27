@@ -21,7 +21,7 @@ function EmojiReactionPicker({ anchorEl, open, onClose, onSelect }) {
       }}
       PaperProps={{
         sx: {
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderRadius: "24px",
           padding: "4px 8px",
           boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
@@ -41,7 +41,7 @@ function EmojiReactionPicker({ anchorEl, open, onClose, onSelect }) {
               padding: "8px",
               transition: "transform 0.15s ease",
               "&:hover": {
-                backgroundColor: colors.hover_bg,
+                backgroundColor: "var(--color-hover-bg)",
                 transform: "scale(1.2)",
               },
             }}

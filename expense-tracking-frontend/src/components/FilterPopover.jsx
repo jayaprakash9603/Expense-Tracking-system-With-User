@@ -67,9 +67,9 @@ const FilterPopover = ({
       PaperProps={{
         sx: {
           backgroundColor: colors.tertiary_bg,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           minWidth: 240,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           boxShadow: "0 4px 18px rgba(0,0,0,0.5)",
         },
       }}
@@ -79,7 +79,7 @@ const FilterPopover = ({
           variant="subtitle2"
           sx={{
             fontWeight: 600,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             mb: 1,
             display: "flex",
             alignItems: "center",
@@ -118,7 +118,7 @@ const FilterPopover = ({
                   onChange={() => handleToggle(opt.value)}
                   sx={{
                     color: colors.icon_muted,
-                    "&.Mui-checked": { color: colors.primary_accent },
+                    "&.Mui-checked": { color: "var(--color-primary-accent)" },
                   }}
                 />
               }
@@ -126,12 +126,12 @@ const FilterPopover = ({
               sx={{
                 m: 0,
                 alignItems: "center",
-                "& .MuiFormControlLabel-label": { color: colors.primary_text },
+                "& .MuiFormControlLabel-label": { color: "var(--color-primary-text)" },
               }}
             />
           ))}
         </FormGroup>
-        <Divider sx={{ my: 1, borderColor: colors.border_color }} />
+        <Divider sx={{ my: 1, borderColor: "var(--color-border-color)" }} />
         <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1 }}>
           <Button
             variant="outlined"

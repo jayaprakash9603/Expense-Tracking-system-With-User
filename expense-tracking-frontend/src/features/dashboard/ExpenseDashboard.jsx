@@ -10,7 +10,7 @@ export default function ExpenseDashboard() {
 
   return (
     <DashboardProvider>
-      <div style={{ backgroundColor: colors.primary_bg }}>
+      <div style={{ backgroundColor: "var(--color-primary-bg)" }}>
         <DashboardContent />
       </div>
     </DashboardProvider>

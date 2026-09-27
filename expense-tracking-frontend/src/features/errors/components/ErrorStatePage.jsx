@@ -50,7 +50,7 @@ const ErrorStatePage = ({
             fontSize: { xs: "56px", sm: "72px" },
             fontWeight: "bold",
             m: 0,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             textShadow: `0 0 20px ${colors.primary_accent}40`,
           }}
         >
@@ -65,7 +65,7 @@ const ErrorStatePage = ({
           fontWeight: 600,
           mt: statusCode ? 2.5 : 0,
           mb: 1.25,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           textAlign: "center",
         }}
       >
@@ -76,7 +76,7 @@ const ErrorStatePage = ({
         component="p"
         sx={{
           fontSize: "16px",
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           textAlign: "center",
           maxWidth: 520,
           mb: attemptedRoute ? 2 : 5,
@@ -134,8 +134,8 @@ const ErrorStatePage = ({
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(-1)}
           sx={{
-            borderColor: colors.border_color,
-            color: colors.primary_text,
+            borderColor: "var(--color-border-color)",
+            color: "var(--color-primary-text)",
             px: 3,
             py: 1.5,
             fontSize: "16px",
@@ -156,7 +156,7 @@ const ErrorStatePage = ({
           sx={{
             mt: 7.5,
             textAlign: "center",
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "14px",
           }}
         >
@@ -188,7 +188,7 @@ const ErrorStatePage = ({
                     navigate(link.path, { replace: true });
                   }}
                   sx={{
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     textDecoration: "none",
                     cursor: "pointer",
                     "&:hover": {

@@ -60,7 +60,7 @@ export default function AllSectionsHiddenCard({
         <IconComponent
           sx={{
             fontSize: 32,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             opacity: 0.7,
           }}
         />
@@ -69,7 +69,7 @@ export default function AllSectionsHiddenCard({
       <Typography
         variant="h6"
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontWeight: 600,
           fontSize: { xs: "1rem", sm: "1.25rem" },
         }}
@@ -80,7 +80,7 @@ export default function AllSectionsHiddenCard({
       <Typography
         variant="body2"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           maxWidth: 400,
           lineHeight: 1.6,
           fontSize: { xs: "0.8rem", sm: "0.875rem" },
@@ -97,7 +97,7 @@ export default function AllSectionsHiddenCard({
           sx={{
             mt: 2,
             borderColor: colors.primary_accent,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             textTransform: "none",
             fontWeight: 500,
             "&:hover": {

@@ -24,7 +24,7 @@ const DiscoverTab = ({
               key={recommendation.recommendationId}
               className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
               style={{
-                backgroundColor: colors.card_bg,
+                backgroundColor: "var(--color-primary-bg)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = `0 0 0 2px ${colors.primary_accent}`;
@@ -46,7 +46,7 @@ const DiscoverTab = ({
                     </div>
                     <div
                       className="text-xl font-bold"
-                      style={{ color: colors.primary_text }}
+                      style={{ color: "var(--color-primary-text)" }}
                     >
                       {recommendation.memberCount}
                     </div>
@@ -54,7 +54,7 @@ const DiscoverTab = ({
                 </div>
                 <h3
                   className="text-xl font-bold mb-2"
-                  style={{ color: colors.primary_text }}
+                  style={{ color: "var(--color-primary-text)" }}
                 >
                   {recommendation.groupName}
                 </h3>
@@ -80,7 +80,7 @@ const DiscoverTab = ({
                 >
                   Created by{" "}
                   <span
-                    style={{ color: colors.primary_text, fontWeight: "500" }}
+                    style={{ color: "var(--color-primary-text)", fontWeight: "500" }}
                   >
                     {recommendation.creatorName !== "null null"
                       ? recommendation.creatorName
@@ -106,8 +106,8 @@ const DiscoverTab = ({
                   <button
                     className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
                     style={{
-                      backgroundColor: colors.active_bg,
-                      color: colors.secondary_text,
+                      bgcolor: "action.selected",
+                      color: "var(--color-secondary-text)",
                     }}
                     onMouseEnter={(e) => {
                       e.target.style.backgroundColor = colors.hover_bg;
@@ -130,7 +130,7 @@ const DiscoverTab = ({
           </div>
           <h3
             className="text-2xl font-bold mb-2"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             {searchQuery
               ? "No Recommendations Found"

@@ -101,7 +101,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         className="budget-card"
         style={{
           background: isDark ? "#2a2a2a" : "#f5f5f5",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           borderRadius: "10px",
           padding: "14px",
           transition: "all 0.3s ease",
@@ -130,7 +130,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         >
           <h4
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "15px",
               fontWeight: 600,
               margin: "0 0 8px 0",
@@ -156,7 +156,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "11px",
                 background: isDark ? "#1a1a1a" : "#e8e8e8",
                 padding: "4px 8px",
@@ -200,7 +200,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           >
             <span
               style={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "11px",
                 fontWeight: 500,
               }}
@@ -214,7 +214,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                   : "Total spent over budget period"
               }
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "11px",
                 fontWeight: 600,
                 whiteSpace: "nowrap",
@@ -237,7 +237,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           >
             <span
               style={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "11px",
                 fontWeight: 500,
               }}
@@ -297,7 +297,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "10px",
                 marginBottom: "3px",
               }}
@@ -329,7 +329,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
                 display: "flex",
                 alignItems: "center",
                 gap: "4px",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "10px",
                 marginBottom: "3px",
               }}
@@ -339,7 +339,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             </div>
             <div
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "13px",
                 fontWeight: 600,
               }}
@@ -371,7 +371,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
               display: "flex",
               alignItems: "center",
               gap: "4px",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "11px",
             }}
           >
@@ -406,7 +406,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         >
           <span
             style={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "11px",
             }}
           >
@@ -414,7 +414,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           </span>
           <span
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "12px",
               fontWeight: 600,
             }}
@@ -432,7 +432,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
         style={{
           padding: "40px",
           textAlign: "center",
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
         }}
       >
         <Target size={48} style={{ opacity: 0.5, marginBottom: "16px" }} />
@@ -516,7 +516,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             padding: "16px",
             background: isDark ? "#1a1a1a" : "#f8f9fa",
             borderRadius: "8px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
           }}
         >
           <div style={{ flex: 1 }} />
@@ -554,7 +554,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
             </button>
             <span
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "14px",
                 fontWeight: 500,
               }}
@@ -598,7 +598,7 @@ const BudgetOverviewGrid = ({ budgets = [] }) => {
           >
             <span
               style={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "13px",
               }}
             >

@@ -18,8 +18,8 @@ function ExpenseItemSkeleton({ colors }) {
     <div
       className="rounded-lg p-2 border animate-pulse"
       style={{
-        backgroundColor: colors.primary_bg,
-        borderColor: colors.border_color,
+        backgroundColor: "var(--color-primary-bg)",
+        borderColor: "var(--color-border-color)",
       }}
     >
       <div className="flex justify-between mb-2">

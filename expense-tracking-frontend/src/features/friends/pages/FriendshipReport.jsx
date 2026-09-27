@@ -260,14 +260,14 @@ const AccessLevelChart = ({ data, COLORS, colors }) => {
   <div className="chart-container chart-half-width">
     <h3
       style={{
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         display: "flex",
         alignItems: "center",
         gap: 8,
         margin: 0,
       }}
     >
-      <LockIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      <LockIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
       Access Level Distribution
     </h3>
     {hasData ? (
@@ -291,10 +291,10 @@ const AccessLevelChart = ({ data, COLORS, colors }) => {
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         />
         <Legend />
@@ -320,14 +320,14 @@ const FriendshipActivityChart = ({ data, colors }) => {
   <div className="chart-container chart-half-width">
     <h3
       style={{
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         display: "flex",
         alignItems: "center",
         gap: 8,
         margin: 0,
       }}
     >
-      <TrendingUpIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      <TrendingUpIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
       Friendship Activity (Last 6 Months)
     </h3>
     {hasData ? (
@@ -338,10 +338,10 @@ const FriendshipActivityChart = ({ data, colors }) => {
         <YAxis stroke={colors.secondary_text} />
         <Tooltip
           contentStyle={{
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         />
         <Legend />
@@ -388,14 +388,14 @@ const SharingStatusChart = ({ data, colors }) => {
   <div className="chart-container chart-half-width">
     <h3
       style={{
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         display: "flex",
         alignItems: "center",
         gap: 8,
         margin: 0,
       }}
     >
-      <SyncIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+      <SyncIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
       Sharing Status Overview
     </h3>
     {hasData ? (
@@ -411,10 +411,10 @@ const SharingStatusChart = ({ data, colors }) => {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         />
         <Bar dataKey="count" fill="#14b8a6" radius={[0, 4, 4, 0]} />
@@ -438,8 +438,8 @@ const TopFriendsChart = ({ data, colors }) => {
   const hasData = Array.isArray(data) && data.length > 0;
   return (
   <div className="chart-container chart-half-width">
-    <h3 style={{ color: colors.primary_text, display: "flex", alignItems: "center", gap: 8 }}>
-      <StarIcon fontSize="small" sx={{ color: colors.primary_accent }} /> Top Active Friends
+    <h3 style={{ color: "var(--color-primary-text)", display: "flex", alignItems: "center", gap: 8 }}>
+      <StarIcon fontSize="small" sx={{ color: "var(--color-primary-accent)" }} /> Top Active Friends
     </h3>
     {hasData ? (
     <ResponsiveContainer width="100%" height={300}>
@@ -467,10 +467,10 @@ const TopFriendsChart = ({ data, colors }) => {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         />
       </RadialBarChart>
@@ -495,17 +495,17 @@ const FriendsTable = ({ friends, colors }) => (
       <div>
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 8,
             margin: 0,
           }}
         >
-          <GroupsIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <GroupsIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Friends Overview
         </h3>
-        <p style={{ color: colors.secondary_text }}>
+        <p style={{ color: "var(--color-secondary-text)" }}>
           {friends.length} friend{friends.length === 1 ? "" : "s"} total
         </p>
       </div>
@@ -524,17 +524,17 @@ const FriendsTable = ({ friends, colors }) => (
         <table className="friends-table">
           <thead>
             <tr>
-              <th style={{ color: colors.secondary_text }}>Friend</th>
-              <th style={{ color: colors.secondary_text }}>Status</th>
-              <th style={{ color: colors.secondary_text }}>My Access</th>
-              <th style={{ color: colors.secondary_text }}>Their Access</th>
-              <th style={{ color: colors.secondary_text }}>Connected Since</th>
+              <th style={{ color: "var(--color-secondary-text)" }}>Friend</th>
+              <th style={{ color: "var(--color-secondary-text)" }}>Status</th>
+              <th style={{ color: "var(--color-secondary-text)" }}>My Access</th>
+              <th style={{ color: "var(--color-secondary-text)" }}>Their Access</th>
+              <th style={{ color: "var(--color-secondary-text)" }}>Connected Since</th>
             </tr>
           </thead>
           <tbody>
             {friends.map((friend) => (
-              <tr key={friend.id} style={{ borderColor: colors.border_color }}>
-                <td style={{ color: colors.primary_text }}>
+              <tr key={friend.id} style={{ borderColor: "var(--color-border-color)" }}>
+                <td style={{ color: "var(--color-primary-text)" }}>
                   <div className="friend-name">
                     <strong>{friend.friendName}</strong>
                     <small style={{ color: colors.tertiary_text }}>
@@ -563,7 +563,7 @@ const FriendsTable = ({ friends, colors }) => (
                     {friend.theirAccessLevel}
                   </span>
                 </td>
-                <td style={{ color: colors.secondary_text }}>
+                <td style={{ color: "var(--color-secondary-text)" }}>
                   {friend.connectedSince
                     ? new Date(friend.connectedSince).toLocaleDateString()
                     : "N/A"}

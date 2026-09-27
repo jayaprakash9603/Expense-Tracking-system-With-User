@@ -176,7 +176,7 @@ const UniversalSearchModal = () => {
             maxWidth: "640px",
             maxHeight: "70vh",
             margin: "0 16px",
-            backgroundColor: colors.card_bg,
+            backgroundColor: "var(--color-primary-bg)",
             borderRadius: "16px",
             boxShadow: isDark
               ? `0 25px 50px -12px ${colors.shadow_color}, 0 0 0 1px ${colors.border_light}`
@@ -222,7 +222,7 @@ const UniversalSearchModal = () => {
                 outline: "none",
                 backgroundColor: "transparent",
                 fontSize: "16px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontFamily: "inherit",
               }}
               autoComplete="off"
@@ -232,7 +232,7 @@ const UniversalSearchModal = () => {
             {loading && (
               <CircularProgress
                 size={20}
-                sx={{ color: colors.primary_accent }}
+                sx={{ color: "var(--color-primary-accent)" }}
               />
             )}
             {/* Clear button - always shown when there's a query */}
@@ -255,7 +255,7 @@ const UniversalSearchModal = () => {
                     fontSize: "18px",
                     color: colors.icon_muted,
                     "&:hover": {
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     },
                   }}
                 />
@@ -380,7 +380,7 @@ const UniversalSearchModal = () => {
                     padding: "8px 20px 4px",
                     position: "sticky",
                     top: 0,
-                    backgroundColor: colors.card_bg,
+                    backgroundColor: "var(--color-primary-bg)",
                     zIndex: 1,
                   }}
                 >
@@ -461,7 +461,7 @@ const UniversalSearchModal = () => {
               justifyContent: "space-between",
               padding: "12px 20px",
               borderTop: `1px solid ${colors.border_color}`,
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
             }}
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -529,7 +529,7 @@ const UniversalSearchModal = () => {
             <Typography
               sx={{
                 fontSize: "11px",
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 500,
               }}
             >

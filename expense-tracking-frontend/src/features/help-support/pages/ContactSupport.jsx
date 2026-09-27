@@ -139,7 +139,7 @@ const ContactSupport = () => {
   return (
     <Box
       sx={{
-        bgcolor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         maxHeight: "calc(100vh - 100px)",
@@ -165,14 +165,14 @@ const ContactSupport = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
             onClick={() => navigate(-1)}
-            sx={{ color: colors.primary_text }}
+            sx={{ color: "var(--color-primary-text)" }}
           >
             <ArrowBackIcon />
           </IconButton>
-          <SupportIcon sx={{ color: colors.primary_accent, fontSize: 28 }} />
+          <SupportIcon sx={{ color: "var(--color-primary-accent)", fontSize: 28 }} />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           >
             {t("settings.contactSupport") || "Contact Support"}
           </Typography>
@@ -201,7 +201,7 @@ const ContactSupport = () => {
           >
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 2 }}
             >
               Contact Methods
             </Typography>
@@ -213,7 +213,7 @@ const ContactSupport = () => {
                     <Card
                       sx={{
                         bgcolor: colors.secondary_bg,
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         borderRadius: 2,
                         transition: "all 0.2s ease",
                         "&:hover": {
@@ -253,7 +253,7 @@ const ContactSupport = () => {
                             variant="subtitle1"
                             sx={{
                               fontWeight: 600,
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               lineHeight: 1.2,
                               mb: 0.5,
                             }}
@@ -263,7 +263,7 @@ const ContactSupport = () => {
                           <Typography
                             variant="body2"
                             sx={{
-                              color: colors.secondary_text,
+                              color: "var(--color-secondary-text)",
                               mb: 0.5,
                             }}
                           >
@@ -288,7 +288,7 @@ const ContactSupport = () => {
           <Grid item xs={12} md={8}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, color: colors.primary_text, mb: 2 }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 2 }}
             >
               Submit a Support Ticket
             </Typography>
@@ -300,7 +300,7 @@ const ContactSupport = () => {
                   textAlign: "center",
                   bgcolor: colors.secondary_bg,
                   borderRadius: 2,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
                 <CheckCircleIcon
@@ -308,23 +308,23 @@ const ContactSupport = () => {
                 />
                 <Typography
                   variant="h6"
-                  sx={{ fontWeight: 600, color: colors.primary_text, mb: 1 }}
+                  sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 1 }}
                 >
                   Ticket Submitted Successfully!
                 </Typography>
                 <Typography
                   variant="body1"
-                  sx={{ color: colors.secondary_text, mb: 3 }}
+                  sx={{ color: "var(--color-secondary-text)", mb: 3 }}
                 >
                   We've received your support request and will respond within 24
                   hours. Check your email for updates.
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.secondary_text, mb: 3 }}
+                  sx={{ color: "var(--color-secondary-text)", mb: 3 }}
                 >
                   Ticket ID:{" "}
-                  <strong style={{ color: colors.primary_accent }}>
+                  <strong style={{ color: "var(--color-primary-accent)" }}>
                     #TKT-{Date.now().toString().slice(-6)}
                   </strong>
                 </Typography>
@@ -332,8 +332,8 @@ const ContactSupport = () => {
                   variant="contained"
                   onClick={handleNewTicket}
                   sx={{
-                    bgcolor: colors.primary_accent,
-                    "&:hover": { bgcolor: colors.primary_accent_hover },
+                    bgcolor: "var(--color-primary-accent)",
+                    "&:hover": { bgcolor: "primary.dark" },
                   }}
                 >
                   Submit Another Ticket
@@ -347,7 +347,7 @@ const ContactSupport = () => {
                   p: 3,
                   bgcolor: colors.secondary_bg,
                   borderRadius: 2,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
                 {error && (
@@ -366,8 +366,8 @@ const ContactSupport = () => {
                       required
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          bgcolor: colors.primary_bg,
-                          "& fieldset": { borderColor: colors.border_color },
+                          backgroundColor: "var(--color-primary-bg)",
+                          "& fieldset": { borderColor: "var(--color-border-color)" },
                           "&:hover fieldset": {
                             borderColor: colors.primary_accent,
                           },
@@ -376,9 +376,9 @@ const ContactSupport = () => {
                           },
                         },
                         "& .MuiInputLabel-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         },
-                        "& .MuiInputBase-input": { color: colors.primary_text },
+                        "& .MuiInputBase-input": { color: "var(--color-primary-text)" },
                       }}
                     />
                   </Grid>
@@ -392,8 +392,8 @@ const ContactSupport = () => {
                       required
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          bgcolor: colors.primary_bg,
-                          "& fieldset": { borderColor: colors.border_color },
+                          backgroundColor: "var(--color-primary-bg)",
+                          "& fieldset": { borderColor: "var(--color-border-color)" },
                           "&:hover fieldset": {
                             borderColor: colors.primary_accent,
                           },
@@ -402,9 +402,9 @@ const ContactSupport = () => {
                           },
                         },
                         "& .MuiInputLabel-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         },
-                        "& .MuiInputBase-input": { color: colors.primary_text },
+                        "& .MuiInputBase-input": { color: "var(--color-primary-text)" },
                       }}
                     />
                   </Grid>
@@ -417,8 +417,8 @@ const ContactSupport = () => {
                       onChange={handleInputChange("category")}
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          bgcolor: colors.primary_bg,
-                          "& fieldset": { borderColor: colors.border_color },
+                          backgroundColor: "var(--color-primary-bg)",
+                          "& fieldset": { borderColor: "var(--color-border-color)" },
                           "&:hover fieldset": {
                             borderColor: colors.primary_accent,
                           },
@@ -427,9 +427,9 @@ const ContactSupport = () => {
                           },
                         },
                         "& .MuiInputLabel-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         },
-                        "& .MuiSelect-select": { color: colors.primary_text },
+                        "& .MuiSelect-select": { color: "var(--color-primary-text)" },
                       }}
                     >
                       {SUPPORT_CATEGORIES.map((cat) => (
@@ -448,8 +448,8 @@ const ContactSupport = () => {
                       required
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          bgcolor: colors.primary_bg,
-                          "& fieldset": { borderColor: colors.border_color },
+                          backgroundColor: "var(--color-primary-bg)",
+                          "& fieldset": { borderColor: "var(--color-border-color)" },
                           "&:hover fieldset": {
                             borderColor: colors.primary_accent,
                           },
@@ -458,9 +458,9 @@ const ContactSupport = () => {
                           },
                         },
                         "& .MuiInputLabel-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         },
-                        "& .MuiInputBase-input": { color: colors.primary_text },
+                        "& .MuiInputBase-input": { color: "var(--color-primary-text)" },
                       }}
                     />
                   </Grid>
@@ -476,8 +476,8 @@ const ContactSupport = () => {
                       placeholder="Please provide as much detail as possible about your issue..."
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          bgcolor: colors.primary_bg,
-                          "& fieldset": { borderColor: colors.border_color },
+                          backgroundColor: "var(--color-primary-bg)",
+                          "& fieldset": { borderColor: "var(--color-border-color)" },
                           "&:hover fieldset": {
                             borderColor: colors.primary_accent,
                           },
@@ -486,9 +486,9 @@ const ContactSupport = () => {
                           },
                         },
                         "& .MuiInputLabel-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         },
-                        "& .MuiInputBase-input": { color: colors.primary_text },
+                        "& .MuiInputBase-input": { color: "var(--color-primary-text)" },
                       }}
                     />
                   </Grid>
@@ -505,8 +505,8 @@ const ContactSupport = () => {
                         )
                       }
                       sx={{
-                        bgcolor: colors.primary_accent,
-                        "&:hover": { bgcolor: colors.primary_accent_hover },
+                        bgcolor: "var(--color-primary-accent)",
+                        "&:hover": { bgcolor: "primary.dark" },
                         "&:disabled": { bgcolor: colors.border_color },
                       }}
                     >

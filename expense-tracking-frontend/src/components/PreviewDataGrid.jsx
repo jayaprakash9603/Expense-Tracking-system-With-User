@@ -15,12 +15,12 @@ const PreviewToolbar = () => {
         sx={{
           fontSize: "0.875rem",
           "& .MuiInputBase-root": {
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
             borderRadius: "8px",
           },
           "& .MuiInputBase-input::placeholder": {
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
           },
         }}
       />

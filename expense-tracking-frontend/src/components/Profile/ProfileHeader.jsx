@@ -113,12 +113,12 @@ const ProfileHeader = ({
               right: 16,
               backgroundColor: `${colors.secondary_bg}cc`,
               backdropFilter: "blur(10px)",
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               width: 44,
               height: 44,
               boxShadow: `0 4px 12px ${colors.primary_accent}40`,
               "&:hover": {
-                backgroundColor: colors.secondary_bg,
+                backgroundColor: "var(--color-secondary-bg)",
                 transform: "scale(1.1)",
               },
               transition: "all 0.2s",
@@ -129,7 +129,7 @@ const ProfileHeader = ({
             {coverImageUploading ? (
               <CircularProgress
                 size={24}
-                sx={{ color: colors.primary_accent }}
+                sx={{ color: "var(--color-primary-accent)" }}
               />
             ) : (
               <PhotoCameraIcon />
@@ -267,7 +267,7 @@ const ProfileInfo = ({ formData, user, colors, isSmallScreen }) => {
       <Typography
         variant={isSmallScreen ? "h6" : "h4"}
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontWeight: 700,
           mb: 0.5,
           letterSpacing: "-0.5px",
@@ -280,7 +280,7 @@ const ProfileInfo = ({ formData, user, colors, isSmallScreen }) => {
       <Typography
         variant="body2"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           mb: isSmallScreen ? 1.5 : 2,
           display: "flex",
           alignItems: "center",
@@ -306,7 +306,7 @@ const ProfileInfo = ({ formData, user, colors, isSmallScreen }) => {
         <Typography
           variant="body2"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             mt: isSmallScreen ? 1.5 : 2,
             fontStyle: "italic",
             maxWidth: 500,
@@ -365,20 +365,20 @@ const ProfileStats = ({ formData, user, colors, isSmallScreen }) => {
                 px: isSmallScreen ? 1 : 1.5,
                 py: 0.4,
                 borderRadius: 2,
-                backgroundColor: colors.secondary_bg,
-                border: `1px solid ${colors.border_color}`,
+                backgroundColor: "var(--color-secondary-bg)",
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <Icon
                 sx={{
                   fontSize: isSmallScreen ? "0.85rem" : "1rem",
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               />
               <Typography
                 variant="caption"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 500,
                   fontSize: isSmallScreen ? "0.7rem" : undefined,
                 }}
@@ -428,8 +428,8 @@ const ActionButtons = ({
       transition: "all 0.2s",
     },
     secondary: {
-      borderColor: colors.border_color,
-      color: colors.secondary_text,
+      borderColor: "var(--color-border-color)",
+      color: "var(--color-secondary-text)",
       "&:hover": {
         borderColor: colors.primary_accent,
         backgroundColor: `${colors.primary_accent}15`,
@@ -504,8 +504,8 @@ const ActionButtons = ({
               ...buttonStyles.secondary,
               opacity: isSaving ? 0.5 : 1,
               "&.Mui-disabled": {
-                borderColor: colors.border_color,
-                color: colors.secondary_text,
+                borderColor: "var(--color-border-color)",
+                color: "var(--color-secondary-text)",
                 opacity: 0.5,
               },
             }}

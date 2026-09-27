@@ -62,7 +62,7 @@ const CashFlowExpenseCardsSkeleton = () => {
             sx={{
               bgcolor: colors.card_bg,
               borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               padding: isMobile ? 1.25 : 1.5,
               display: "flex",
               flexDirection: "column",

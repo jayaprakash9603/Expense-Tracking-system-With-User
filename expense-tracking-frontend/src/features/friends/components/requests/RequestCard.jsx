@@ -70,18 +70,18 @@ const RequestCard = ({
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
               noWrap
             >
               {display.displayName}
             </Typography>
             {display.email && (
-              <Typography variant="caption" sx={{ color: colors.secondary_text }} noWrap>
+              <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }} noWrap>
                 {display.email}
               </Typography>
             )}
             {timestamp && (
-              <Typography variant="caption" sx={{ color: colors.secondary_text, display: "block" }}>
+              <Typography variant="caption" sx={{ color: "var(--color-secondary-text)", display: "block" }}>
                 {dateLabel}
               </Typography>
             )}
@@ -99,7 +99,7 @@ const RequestCard = ({
                     minWidth: 44,
                     minHeight: 44,
                     bgcolor: `${colors.success}20`,
-                    color: colors.success,
+                    color: "var(--color-success)",
                     transition: "background-color 200ms ease",
                     "&:hover": { bgcolor: `${colors.success}30` },
                   }}
@@ -116,7 +116,7 @@ const RequestCard = ({
                     minWidth: 44,
                     minHeight: 44,
                     bgcolor: `${colors.error}20`,
-                    color: colors.error,
+                    color: "var(--color-error)",
                     transition: "background-color 200ms ease",
                     "&:hover": { bgcolor: `${colors.error}30` },
                   }}
@@ -134,7 +134,7 @@ const RequestCard = ({
               sx={{
                 minHeight: 44,
                 borderColor: colors.primary_accent,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 transition: "background-color 200ms ease",
                 "&:hover": {
                   borderColor: colors.primary_accent,

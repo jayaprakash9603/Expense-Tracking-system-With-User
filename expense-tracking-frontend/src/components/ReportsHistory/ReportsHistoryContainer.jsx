@@ -103,7 +103,7 @@ const ReportsHistoryContainer = ({
           position: "sticky",
           top: 0,
           zIndex: 10,
-          bgcolor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           pb: 1,
         }}
       >
@@ -135,10 +135,10 @@ const ReportsHistoryContainer = ({
               borderRadius: "10px",
             },
             "&::-webkit-scrollbar-thumb": {
-              bgcolor: colors.primary_accent,
+              bgcolor: "var(--color-primary-accent)",
               borderRadius: "10px",
               "&:hover": {
-                bgcolor: colors.primary_accent,
+                bgcolor: "var(--color-primary-accent)",
                 opacity: 0.85,
               },
             },
@@ -160,11 +160,11 @@ const ReportsHistoryContainer = ({
             <Stack spacing={2} alignItems="center">
               <CircularProgress
                 size={48}
-                sx={{ color: colors.primary_accent }}
+                sx={{ color: "var(--color-primary-accent)" }}
               />
               <Box
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: 14,
                 }}
               >
@@ -231,18 +231,18 @@ const ReportsHistoryContainer = ({
             size="large"
             sx={{
               "& .MuiPaginationItem-root": {
-                color: colors.primary_text,
-                borderColor: colors.border_color,
+                color: "var(--color-primary-text)",
+                borderColor: "var(--color-border-color)",
                 bgcolor: colors.secondary_bg,
                 "&:hover": {
                   bgcolor: colors.hover_bg,
                 },
                 "&.Mui-selected": {
-                  bgcolor: colors.primary_accent,
+                  bgcolor: "var(--color-primary-accent)",
                   color: "#000",
                   fontWeight: 600,
                   "&:hover": {
-                    bgcolor: colors.primary_accent,
+                    bgcolor: "var(--color-primary-accent)",
                     opacity: 0.9,
                   },
                 },

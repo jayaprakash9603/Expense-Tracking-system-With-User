@@ -126,7 +126,7 @@ const CategoryReport = () => {
         className={`category-report ${mode}`}
         style={{
           background: colors.secondary_bg,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
         }}
       >
         <ReportHeader
@@ -178,7 +178,7 @@ const CategoryReport = () => {
         className={`category-report ${mode}`}
         style={{
           background: colors.secondary_bg,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
         }}
       >
         <ReportHeaderSkeleton />
@@ -252,7 +252,7 @@ const CategoryReport = () => {
       className={`category-report ${mode}`}
       style={{
         background: colors.secondary_bg,
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
       }}
     >
       <ReportHeader

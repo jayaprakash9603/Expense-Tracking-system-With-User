@@ -117,7 +117,7 @@ const FriendsHeader = ({
       <Typography
         variant={isMobile ? "h6" : "h5"}
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           flexShrink: 0,
           alignSelf: isMobile ? "flex-start" : "center",
         }}
@@ -193,7 +193,7 @@ const FriendsHeader = ({
                   sx={{
                     flex: 1,
                     fontSize: "13px",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     "& input": {
                       padding: 0,
                       "&::placeholder": {
@@ -212,7 +212,7 @@ const FriendsHeader = ({
                       mr: 0.5,
                       p: 0.5,
                       color: colors.icon_muted,
-                      "&:hover": { backgroundColor: colors.hover_bg },
+                      "&:hover": { backgroundColor: "var(--color-hover-bg)" },
                     }}
                   >
                     <CloseIcon sx={{ fontSize: "16px" }} />
@@ -243,7 +243,7 @@ const FriendsHeader = ({
             >
               {suggestions.length === 0 ? (
                 <Box sx={{ p: 2, textAlign: "center" }}>
-                  <Typography sx={{ color: colors.secondary_text, fontSize: "13px" }}>
+                  <Typography sx={{ color: "var(--color-secondary-text)", fontSize: "13px" }}>
                     {t("friends.search.noResults", "No friends found")}
                   </Typography>
                 </Box>
@@ -272,17 +272,17 @@ const FriendsHeader = ({
                           backgroundColor: isSelected ? colors.hover_bg : "transparent",
                           transition: "background-color 200ms ease",
                           "&:hover": {
-                            backgroundColor: colors.hover_bg,
+                            backgroundColor: "var(--color-hover-bg)",
                           },
                         }}
                       >
                         <FriendAvatar display={display} user={display.user} size={28} />
                         <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography noWrap sx={{ fontSize: "13px", fontWeight: 500, color: colors.primary_text }}>
+                          <Typography noWrap sx={{ fontSize: "13px", fontWeight: 500, color: "var(--color-primary-text)" }}>
                             {display.displayName}
                           </Typography>
                           {display.email && (
-                            <Typography noWrap sx={{ fontSize: "11px", color: colors.secondary_text }}>
+                            <Typography noWrap sx={{ fontSize: "11px", color: "var(--color-secondary-text)" }}>
                               {display.email}
                             </Typography>
                           )}
@@ -301,8 +301,8 @@ const FriendsHeader = ({
           onClick={() => navigate("/friends/activity")}
           title={t("friends.activity", "Friend Activity")}
           sx={{
-            borderColor: colors.border_color,
-            color: colors.primary_text,
+            borderColor: "var(--color-border-color)",
+            color: "var(--color-primary-text)",
             minWidth: "36px",
             width: "36px",
             height: "36px",
@@ -310,7 +310,7 @@ const FriendsHeader = ({
             p: 0,
             "&:hover": {
               borderColor: colors.primary_accent,
-              backgroundColor: colors.hover_bg,
+              backgroundColor: "var(--color-hover-bg)",
             },
           }}
         >
@@ -321,8 +321,8 @@ const FriendsHeader = ({
           onClick={() => navigate("/friends/report")}
           title={t("friends.sections.report", "Report")}
           sx={{
-            borderColor: colors.border_color,
-            color: colors.primary_text,
+            borderColor: "var(--color-border-color)",
+            color: "var(--color-primary-text)",
             minWidth: "36px",
             width: "36px",
             height: "36px",
@@ -330,7 +330,7 @@ const FriendsHeader = ({
             p: 0,
             "&:hover": {
               borderColor: colors.primary_accent,
-              backgroundColor: colors.hover_bg,
+              backgroundColor: "var(--color-hover-bg)",
             },
           }}
         >

@@ -477,7 +477,7 @@ const TransactionItem = ({
       background: colors.tertiary_bg,
       borderRadius: 8,
       padding: "8px 10px",
-      border: `1px solid ${colors.border_color}`,
+      border: "1px solid var(--color-border-color)",
       transition: "all 0.2s ease",
     }}
   >
@@ -492,7 +492,7 @@ const TransactionItem = ({
       <div
         style={{
           fontSize: responsiveStyles.typography.transactionName,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontWeight: 600,
           flex: 1,
           lineHeight: 1.3,
@@ -532,7 +532,7 @@ const TransactionItem = ({
       <span
         style={{
           fontSize: responsiveStyles.typography.category,
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           fontWeight: 500,
         }}
       >
@@ -572,7 +572,7 @@ const TransactionsList = ({
       <div
         style={{
           fontSize: 10,
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           marginBottom: 8,
           fontWeight: 600,
           display: "flex",
@@ -591,7 +591,7 @@ const TransactionsList = ({
             size={responsiveStyles.icons.transaction}
             color={theme.color}
           />
-          <span style={{ color: colors.primary_text }}>
+          <span style={{ color: "var(--color-primary-text)" }}>
             {transactionsLabel}
           </span>
           <span
@@ -611,7 +611,7 @@ const TransactionsList = ({
           <span
             style={{
               background: colors.tertiary_bg,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               padding: "2px 6px",
               borderRadius: 6,
               fontSize: 9,
@@ -744,7 +744,7 @@ const SpendingChartTooltip = ({
       // backgroundColor: "#0f0f0f",
       border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
       borderRadius: responsiveStyles.container.borderRadius,
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
       padding: 0,
       minWidth: config.minWidth || responsiveStyles.container.minWidth,
       maxWidth: config.maxWidth || responsiveStyles.container.maxWidth,
@@ -889,7 +889,7 @@ const SpendingChartTooltip = ({
         </div>
         <div
           style={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontWeight: 800,
             fontSize: 9, // Smaller font
             fontVariantNumeric: "tabular-nums",
@@ -904,7 +904,7 @@ const SpendingChartTooltip = ({
       {
         border: `${responsiveStyles.container.borderWidth}px solid ${theme.border}`,
         borderRadius: responsiveStyles.container.borderRadius,
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         padding: 0,
         width: 260, // Enforce constant width
         minWidth: 260,
@@ -1030,7 +1030,7 @@ const SpendingChartTooltip = ({
                 {remainingLoss > 0 ? (
                   <div
                     style={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 11,
                       fontWeight: 700,
                       textAlign: "right",
@@ -1066,7 +1066,7 @@ const SpendingChartTooltip = ({
                 {remainingGain > 0 ? (
                   <div
                     style={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 11,
                       fontWeight: 700,
                       textAlign: "right",
@@ -1102,7 +1102,7 @@ const SpendingChartTooltip = ({
           style={{
             padding: "8px 12px 0 12px",
             backgroundColor: theme.divider || "rgba(0, 0, 0, 0.35)",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: 11,
             fontWeight: 600,
             display: "flex",

@@ -6,19 +6,24 @@ import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./Redux/store";
-import { ThemeProvider } from "@emotion/react";
-import createAppTheme from "./shared/theme/createAppTheme";
 import { getStore, setStore } from "./utils/realtime/store";
 import "./config/globalErrorHandlers";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { GOOGLE_CLIENT_ID } from "./config/googleOAuth";
 import { RootErrorBoundary } from "./features/errors";
 import { injectBaseThemeStyles } from "./utils/theme/themeInjector";
+import AppThemeProvider from "./shared/theme/AppThemeProvider";
+import buildAppTheme from "./shared/theme/buildAppTheme";
+import { injectThemeFromBuilt } from "./utils/theme/themeInjector";
 
-// Ensure CSS vars for scrollbar / selection / body are present before first paint.
 injectBaseThemeStyles();
 
-// Log the Google Client ID for debugging (remove in production)
+const bootstrapTheme = buildAppTheme(
+  store.getState()?.theme?.mode || "dark",
+  store.getState()?.theme?.palette || "teal",
+);
+injectThemeFromBuilt(bootstrapTheme, false);
+
 console.log(
   "Google OAuth Client ID loaded:",
   GOOGLE_CLIENT_ID
@@ -30,39 +35,15 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 
 setStore(store);
 
-// Create a wrapper component to access Redux state
-const ThemedApp = () => {
-  const mode = store.getState()?.theme?.mode || "dark";
-  const palette = store.getState()?.theme?.palette || "teal";
-  const theme = React.useMemo(() => createAppTheme(mode, palette), [mode, palette]);
-
-  // Subscribe to store changes to update theme
-  const [currentTheme, setCurrentTheme] = React.useState(theme);
-
-  React.useEffect(() => {
-    const unsubscribe = store.subscribe(() => {
-      const themeState = store.getState()?.theme;
-      const newMode = themeState?.mode || "dark";
-      const newPalette = themeState?.palette || "teal";
-      setCurrentTheme(createAppTheme(newMode, newPalette));
-    });
-    return unsubscribe;
-  }, []);
-
-  return (
-    <ThemeProvider theme={currentTheme}>
-      <App />
-    </ThemeProvider>
-  );
-};
-
 root.render(
   <React.StrictMode>
     <RootErrorBoundary>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
         <BrowserRouter>
           <Provider store={store}>
-            <ThemedApp />
+            <AppThemeProvider>
+              <App />
+            </AppThemeProvider>
           </Provider>
         </BrowserRouter>
       </GoogleOAuthProvider>
@@ -70,7 +51,4 @@ root.render(
   </React.StrictMode>,
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();

@@ -98,10 +98,10 @@ export const buildActiveFilterSummary = (sections = [], values = {}) => {
 export const buildFilterFieldSx = (colors) => ({
   "& .MuiOutlinedInput-root": {
     borderRadius: "10px",
-    backgroundColor: colors.primary_bg,
-    color: colors.primary_text,
+    backgroundColor: "var(--color-primary-bg)",
+    color: "var(--color-primary-text)",
     "& fieldset": {
-      borderColor: colors.border_color,
+      borderColor: "var(--color-border-color)",
     },
     "&:hover fieldset": {
       borderColor: colors.primary_accent,
@@ -112,16 +112,16 @@ export const buildFilterFieldSx = (colors) => ({
     },
   },
   "& .MuiInputLabel-root": {
-    color: colors.secondary_text,
+    color: "var(--color-secondary-text)",
   },
   "& .MuiInputLabel-root.Mui-focused": {
-    color: colors.primary_accent,
+    color: "var(--color-primary-accent)",
   },
   "& .MuiOutlinedInput-input": {
-    color: colors.primary_text,
+    color: "var(--color-primary-text)",
   },
   "& .MuiSelect-icon": {
-    color: colors.secondary_text,
+    color: "var(--color-secondary-text)",
   },
 });
 

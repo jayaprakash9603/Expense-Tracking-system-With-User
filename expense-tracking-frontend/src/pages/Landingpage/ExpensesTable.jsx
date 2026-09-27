@@ -28,8 +28,6 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import { Menu, MenuItem } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ThemeProvider } from "@mui/material/styles";
-import createAppTheme from "./theme";
 import ToastNotification from "./ToastNotification";
 import Modal from "./Modal";
 import { deleteBill, getBillByExpenseId } from "../../Redux/Bill/bill.action";
@@ -52,10 +50,6 @@ const ExpensesTable = ({
 
   // Get theme colors from useTheme hook
   const { colors } = useTheme();
-
-  // Get theme mode from Redux for MUI ThemeProvider
-  const themeMode = useSelector((state) => state.theme?.mode || "dark");
-  const theme = useMemo(() => createAppTheme(themeMode), [themeMode]);
 
   const [selectedIds, setSelectedIds] = useState([]);
   const navigate = useNavigate();
@@ -469,23 +463,23 @@ const ExpensesTable = ({
         sx={{
           fontSize: isSmallScreen ? "0.75rem" : "0.875rem",
           "& .MuiInputBase-root": {
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
             borderRadius: "8px",
           },
           "& .MuiInputBase-input::placeholder": {
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
           },
         }}
       />
-      <IconButton sx={{ color: colors.primary_accent }}>
+      <IconButton sx={{ color: "var(--color-primary-accent)" }}>
         <FilterListIcon fontSize={isSmallScreen ? "small" : "medium"} />
       </IconButton>
     </GridToolbarContainer>
   );
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <ToastNotification
         open={toastOpen}
         message={toastMessage}
@@ -556,7 +550,7 @@ const ExpensesTable = ({
           declineText="No, Cancel"
         />
       </Box>
-    </ThemeProvider>
+    </>
   );
 };
 

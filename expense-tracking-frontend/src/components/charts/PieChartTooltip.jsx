@@ -280,7 +280,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
         backgroundColor: colors.tertiary_bg,
         border: `2px solid ${categoryColor}`,
         borderRadius: 12,
-        color: colors.primary_text,
+        color: "var(--color-primary-text)",
         padding: 0,
         minWidth: isMobile ? 200 : isTablet ? 220 : 240,
         maxWidth: isMobile ? 280 : isTablet ? 300 : 320,
@@ -375,7 +375,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             padding: "8px 10px",
             background: colors.tertiary_bg,
             borderRadius: 8,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
           }}
         >
           <div
@@ -389,7 +389,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <span
               style={{
                 fontSize: fontSize.label,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontWeight: 500,
               }}
             >
@@ -399,7 +399,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
           <span
             style={{
               fontSize: fontSize.value,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 700,
             }}
           >
@@ -416,7 +416,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             padding: "8px 10px",
             background: colors.tertiary_bg,
             borderRadius: 8,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
           }}
         >
           <div
@@ -430,7 +430,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <span
               style={{
                 fontSize: fontSize.label,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontWeight: 500,
               }}
             >
@@ -463,7 +463,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <div
               style={{
                 fontSize: fontSize.label - 1,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontWeight: 500,
                 marginBottom: 4,
                 textTransform: "uppercase",
@@ -475,7 +475,7 @@ const PieChartTooltip = ({ active, payload, data }) => {
             <div
               style={{
                 fontSize: fontSize.label,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 lineHeight: 1.4,
               }}
             >

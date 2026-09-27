@@ -65,13 +65,13 @@ const BillHeader = ({
 
   const secondaryButtonSx = {
     ...baseButtonSx,
-    color: colors.primary_accent,
+    color: "var(--color-primary-accent)",
     borderColor: colors.primary_accent,
-    backgroundColor: colors.primary_bg,
+    backgroundColor: "var(--color-primary-bg)",
     "&:hover": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
       borderColor: colors.primary_accent,
-      color: colors.primary_accent,
+      color: "var(--color-primary-accent)",
     },
   };
 
@@ -103,8 +103,8 @@ const BillHeader = ({
           <IconButton
             sx={{
               color: colors.secondary_accent,
-              backgroundColor: colors.primary_bg,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              backgroundColor: "var(--color-primary-bg)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               zIndex: 10,
             }}
             onClick={onBack}
@@ -153,8 +153,8 @@ const BillHeader = ({
         <IconButton
           sx={{
             color: colors.secondary_accent,
-            backgroundColor: colors.primary_bg,
-            "&:hover": { backgroundColor: colors.hover_bg },
+            backgroundColor: "var(--color-primary-bg)",
+            "&:hover": { backgroundColor: "var(--color-hover-bg)" },
             zIndex: 10,
           }}
           onClick={onMenuClick}
@@ -171,7 +171,7 @@ const BillHeader = ({
           transformOrigin={{ vertical: "top", horizontal: "right" }}
           PaperProps={{
             sx: {
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
@@ -204,13 +204,13 @@ const BillHeader = ({
                 key={key}
                 onClick={() => onMenuItemClick(key)}
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   px: 3,
                   py: 1.5,
-                  "&:hover": { backgroundColor: colors.hover_bg },
+                  "&:hover": { backgroundColor: "var(--color-hover-bg)" },
                 }}
               >
-                <Icon sx={{ mr: 2, color: colors.primary_accent }} />
+                <Icon sx={{ mr: 2, color: "var(--color-primary-accent)" }} />
                 <Typography variant="body2">{label}</Typography>
               </MenuItem>
             ))}

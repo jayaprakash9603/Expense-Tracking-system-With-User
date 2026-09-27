@@ -42,7 +42,7 @@ const DashboardHeader = ({
           justifyContent: "center",
           flexShrink: 0,
           background: `${colors.primary_accent}22`,
-          color: colors.primary_accent,
+          color: "var(--color-primary-accent)",
         }}
       >
         <MonetizationOnIcon sx={{ fontSize: isMobile ? 16 : 22 }} />
@@ -75,7 +75,7 @@ const DashboardHeader = ({
           mode === "dark"
             ? "linear-gradient(135deg, rgba(31,41,55,0.85) 0%, rgba(17,24,39,0.9) 100%)"
             : "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%)",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderBottom: `1px solid ${colors.border_color}`,
         borderRadius: isMobile ? "12px" : "16px",
         marginBottom: isMobile ? 12 : 20,
@@ -96,7 +96,7 @@ const DashboardHeader = ({
         <div className="header-title">
           <h1
             style={{
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               margin: 0,
               fontSize: isMobile ? "1rem" : isTablet ? "1.25rem" : "1.5rem",
               fontWeight: 700,
@@ -112,7 +112,7 @@ const DashboardHeader = ({
           {subtitle && (
             <p
               style={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 margin: isMobile ? "2px 0 0 34px" : "4px 0 0 44px",
                 fontSize: isMobile ? "11px" : "13px",
                 fontWeight: 500,

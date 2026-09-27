@@ -73,7 +73,7 @@ const Friends = () => {
     <Box sx={{
       height: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)", lg: "calc(100vh - 100px)" },
       width: { xs: "100%", lg: "calc(100vw - 370px)" },
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
       border: { xs: "none", lg: `1px solid ${colors.border_color}` },
       position: "relative",
       overflow: "hidden",
@@ -109,7 +109,7 @@ const Friends = () => {
           overflow: "hidden",
           position: "relative",
           borderRadius: { xs: 0, sm: "16px" },
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
         }}>
         {!isTablet && (

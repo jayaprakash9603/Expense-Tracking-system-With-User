@@ -142,7 +142,7 @@ const ShareCard = ({
     <Card
       sx={{
         background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         transition: "all 0.3s ease",
         position: "relative",
@@ -174,12 +174,12 @@ const ShareCard = ({
               sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
             >
               {RESOURCE_ICONS[share.resourceType] || (
-                <QrCodeIcon sx={{ color: colors.accent, fontSize: 20 }} />
+                <QrCodeIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
               )}
               <Typography
                 variant="subtitle1"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 600,
                   fontSize: "0.95rem",
                   overflow: "hidden",
@@ -209,7 +209,7 @@ const ShareCard = ({
                   size="small"
                   sx={{
                     bgcolor: `${colors.accent}20`,
-                    color: colors.accent,
+                    color: "var(--color-primary-accent)",
                     fontWeight: 600,
                     fontSize: "0.65rem",
                     height: "20px",
@@ -224,7 +224,7 @@ const ShareCard = ({
                   size="small"
                   sx={{
                     bgcolor: `${colors.accent}20`,
-                    color: colors.accent,
+                    color: "var(--color-primary-accent)",
                     fontWeight: 600,
                     fontSize: "0.65rem",
                     height: "20px",
@@ -242,7 +242,7 @@ const ShareCard = ({
                 onMenuOpen?.(e, share.id);
               }}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
             >
@@ -264,10 +264,10 @@ const ShareCard = ({
               borderRadius: "4px",
             }}
           >
-            <PersonIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+            <PersonIcon sx={{ fontSize: 14, color: "var(--color-secondary-text)" }} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
             >
               Shared by:{" "}
               {share.owner?.firstName || share.owner?.username || "Unknown"}
@@ -296,7 +296,7 @@ const ShareCard = ({
             size="small"
             sx={{
               bgcolor: colors.hover_bg,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               height: "22px",
               fontSize: "0.7rem",
             }}
@@ -306,7 +306,7 @@ const ShareCard = ({
             size="small"
             sx={{
               bgcolor: colors.hover_bg,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               height: "22px",
               fontSize: "0.7rem",
             }}
@@ -316,19 +316,19 @@ const ShareCard = ({
         {/* Stats Row */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <TimeIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+            <TimeIcon sx={{ fontSize: 14, color: "var(--color-secondary-text)" }} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
             >
               {getTimeRemaining(share.expiresAt)}
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <PersonIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+            <PersonIcon sx={{ fontSize: 14, color: "var(--color-secondary-text)" }} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
             >
               {share.accessCount || 0} views
             </Typography>
@@ -357,11 +357,11 @@ const ShareCard = ({
             );
           }}
         >
-          <LinkIcon sx={{ fontSize: 12, color: colors.accent }} />
+          <LinkIcon sx={{ fontSize: 12, color: "var(--color-primary-accent)" }} />
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -374,7 +374,7 @@ const ShareCard = ({
           {copied === share.id ? (
             <CheckIcon sx={{ fontSize: 12, color: STATUS_COLORS.active }} />
           ) : (
-            <CopyIcon sx={{ fontSize: 12, color: colors.secondary_text }} />
+            <CopyIcon sx={{ fontSize: 12, color: "var(--color-secondary-text)" }} />
           )}
         </Box>
       </CardContent>
@@ -397,7 +397,7 @@ const ShareCard = ({
                 onViewQr?.(share);
               }}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
               disabled={isDisabled || qrLoading}
@@ -438,7 +438,7 @@ const ShareCard = ({
                 onDownloadQr?.(share);
               }}
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
               disabled={isDisabled || qrLoading}
@@ -456,7 +456,7 @@ const ShareCard = ({
                 onRevokeClick?.(share);
               }}
               sx={{
-                color: colors.error,
+                color: "var(--color-error)",
                 "&:hover": { bgcolor: `${colors.error}20` },
               }}
               disabled={status !== "active"}

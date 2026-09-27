@@ -170,7 +170,7 @@ const ActionMenuItem = ({
         {item.description ? (
           <span
             className="overflow-action-item__desc"
-            style={{ color: colors.secondary_text }}
+            style={{ color: "var(--color-secondary-text)" }}
           >
             {item.description}
           </span>
@@ -202,7 +202,7 @@ const MenuBody = ({
         <Typography
           component="p"
           className="overflow-action-menu__title"
-          style={{ color: colors.secondary_text }}
+          style={{ color: "var(--color-secondary-text)" }}
         >
           {title}
         </Typography>
@@ -218,7 +218,7 @@ const MenuBody = ({
               sx={{
                 my: dense ? 0.75 : 1,
                 mx: 1.25,
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
                 opacity: 0.85,
               }}
             />
@@ -322,7 +322,7 @@ const OverflowActionMenu = ({
           "&:hover": {
             bgcolor: `${colors.primary_accent}18`,
             borderColor: colors.primary_accent,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
           },
           "&:active": {
             transform: prefersReducedMotion ? "none" : "scale(0.96)",

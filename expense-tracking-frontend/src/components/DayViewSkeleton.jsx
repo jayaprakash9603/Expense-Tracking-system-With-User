@@ -33,7 +33,7 @@ const DayViewSkeleton = ({
               background: colors.secondary_bg,
               borderRadius: 2,
               p: 2,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <Skeleton

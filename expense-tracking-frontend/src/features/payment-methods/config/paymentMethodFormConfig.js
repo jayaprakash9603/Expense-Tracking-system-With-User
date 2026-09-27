@@ -149,14 +149,14 @@ export const paymentMethodFormConfig = {
   LoadingSkeleton: CategoryEditSkeleton,
 
   renderErrorFallback: (errorMessage, handleClose, colors) => (
-    <div style={{ backgroundColor: colors.primary_bg }}>
+    <div style={{ backgroundColor: "var(--color-primary-bg)" }}>
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col justify-center items-center sm:w-full"
         style={{
           height: "calc(100vh - 100px)",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           padding: "16px",
         }}
       >

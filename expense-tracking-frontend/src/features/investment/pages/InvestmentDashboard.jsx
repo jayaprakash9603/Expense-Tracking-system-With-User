@@ -158,7 +158,7 @@ const InvestmentDashboard = () => {
         <div className="investment-total-card">
           <div className="investment-total-icon">
             <MonetizationOnIcon
-              sx={{ fontSize: 40, color: colors.primary_accent }}
+              sx={{ fontSize: 40, color: "var(--color-primary-accent)" }}
             />
           </div>
           <div className="investment-total-content">

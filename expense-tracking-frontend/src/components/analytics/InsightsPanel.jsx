@@ -61,7 +61,7 @@ const InsightsPanel = ({ insights = [], title = "Insights", maxItems = 5 }) => {
       mode === "dark"
         ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: "16px 20px",
     position: "relative",
@@ -95,7 +95,7 @@ const InsightsPanel = ({ insights = [], title = "Insights", maxItems = 5 }) => {
         <Typography
           variant="subtitle1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
           }}
         >
@@ -153,7 +153,7 @@ const InsightsPanel = ({ insights = [], title = "Insights", maxItems = 5 }) => {
               {/* Insight Message */}
               <Typography
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontSize: "0.8rem",
                   lineHeight: 1.5,
                 }}
@@ -193,7 +193,7 @@ const InsightsPanel = ({ insights = [], title = "Insights", maxItems = 5 }) => {
         <Typography
           variant="caption"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "0.7rem",
             textAlign: "center",
             display: "block",

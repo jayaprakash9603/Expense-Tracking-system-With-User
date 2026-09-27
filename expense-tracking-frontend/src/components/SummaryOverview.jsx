@@ -28,8 +28,8 @@ const SummaryOverview = ({ summary, loading = false }) => {
   const preferReducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
   const containerStyle = {
-    backgroundColor: colors.secondary_bg,
-    border: `1px solid ${colors.border_color}`,
+    backgroundColor: "var(--color-secondary-bg)",
+    border: "1px solid var(--color-border-color)",
     borderRadius: isMobile ? "12px" : "16px",
     overflow: "hidden",
     boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
@@ -50,7 +50,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
             borderBottom: `1px solid ${colors.border_color}`,
           }}
         >
-          <h3 style={{ color: colors.primary_text, margin: 0, fontSize: isMobile ? 15 : 18 }}>
+          <h3 style={{ color: "var(--color-primary-text)", margin: 0, fontSize: isMobile ? 15 : 18 }}>
             {t("dashboard.overview.title")}
           </h3>
         </div>
@@ -173,7 +173,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
           })}
           <h3
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               margin: 0,
               fontSize: isMobile ? "0.95rem" : "1.125rem",
               fontWeight: 600,
@@ -247,7 +247,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 background: colors.tertiary_bg,
                 borderRadius: cardRadius,
                 padding: isMobile ? "14px 14px" : "16px 12px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 transition: preferReducedMotion
                   ? "none"
                   : "border-color 0.2s ease, box-shadow 0.2s ease",
@@ -300,7 +300,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 <div
                   style={{
                     fontSize: isMobile ? 11 : 11,
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     marginBottom: 2,
                     fontWeight: 500,
                     textTransform: "uppercase",
@@ -313,7 +313,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 <div
                   style={{
                     fontSize: isMobile ? "1.25rem" : "1.125rem",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: 700,
                     letterSpacing: "-0.02em",
                     fontVariantNumeric: "tabular-nums",
@@ -352,7 +352,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 background: colors.tertiary_bg,
                 borderRadius: cardRadius,
                 padding: isMobile ? "14px 16px" : "16px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 transition: preferReducedMotion
                   ? "none"
                   : "border-color 0.2s ease, box-shadow 0.2s ease",
@@ -391,7 +391,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                 <div
                   style={{
                     fontSize: isMobile ? 13 : 12,
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontWeight: 600,
                   }}
                 >
@@ -401,7 +401,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               <div
                 style={{
                   fontSize: isMobile ? "1.75rem" : "1.5rem",
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 700,
                   marginBottom: 4,
                   letterSpacing: "-0.03em",
@@ -417,7 +417,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               <div
                 style={{
                   fontSize: isMobile ? 12 : 11,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.85,
                   position: "relative",
                   zIndex: 1,
@@ -440,7 +440,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
           style={{
             background: colors.tertiary_bg,
             borderRadius: cardRadius,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             overflow: "hidden",
           }}
         >
@@ -454,7 +454,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
             <div
               style={{
                 fontSize: isMobile ? 13 : 14,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 600,
                 display: "flex",
                 alignItems: "center",
@@ -462,7 +462,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               }}
             >
               <TrendingUpIcon
-                sx={{ fontSize: isMobile ? 18 : 20, color: colors.primary_accent }}
+                sx={{ fontSize: isMobile ? 18 : 20, color: "var(--color-primary-accent)" }}
               />
               {t("dashboard.overview.topExpenses")}
             </div>
@@ -495,7 +495,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                     gap: 10,
                     minHeight: 52,
                     background: colors.secondary_bg || "transparent",
-                    border: `1px solid ${colors.border_color}`,
+                    border: "1px solid var(--color-border-color)",
                     boxSizing: "border-box",
                     width: "100%",
                     minWidth: 0,
@@ -524,7 +524,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                         justifyContent: "center",
                         fontSize: 14,
                         fontWeight: 700,
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         flexShrink: 0,
                       }}
                     >
@@ -534,7 +534,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                       <div
                         style={{
                           fontSize: isMobile ? 14 : 13,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: 600,
                           marginBottom: 2,
                           overflow: "hidden",
@@ -548,7 +548,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                       <div
                         style={{
                           fontSize: 11,
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         }}
                       >
                         {new Date(e.date).toLocaleDateString(undefined, {
@@ -561,7 +561,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
                   <div
                     style={{
                       fontSize: isMobile ? 15 : 14,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontWeight: 700,
                       whiteSpace: "nowrap",
                       fontVariantNumeric: "tabular-nums",
@@ -579,7 +579,7 @@ const SummaryOverview = ({ summary, loading = false }) => {
               style={{
                 padding: isMobile ? 24 : 32,
                 textAlign: "center",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
               }}
             >
               {getAccentFunctionalIcon("chart", colors.primary_accent, {

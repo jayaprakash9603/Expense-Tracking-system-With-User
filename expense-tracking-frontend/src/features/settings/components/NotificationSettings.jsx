@@ -200,7 +200,7 @@ const NotificationSettings = () => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: isSmallScreen ? 0 : "8px",
@@ -226,7 +226,7 @@ const NotificationSettings = () => {
           flex: 1,
           overflow: "auto",
           p: isSmallScreen ? 2 : 3,
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         }}
         className="custom-scrollbar"
       >
@@ -234,7 +234,7 @@ const NotificationSettings = () => {
           {/* Master Toggle Section */}
           <Box
             sx={{
-              backgroundColor: colors.card_bg,
+              backgroundColor: "var(--color-primary-bg)",
               border: `2px solid ${colors.primary_accent}`,
               borderRadius: "12px",
               p: 3,
@@ -312,12 +312,12 @@ const NotificationSettings = () => {
                 sx={{
                   textTransform: "none",
                   fontWeight: 600,
-                  borderColor: colors.border_color,
+                  borderColor: "var(--color-border-color)",
                   color: colors.text_muted,
                   "&:hover": {
                     borderColor: colors.primary_accent,
                     backgroundColor: `${colors.primary_accent}10`,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                   },
                 }}
               >
@@ -329,8 +329,8 @@ const NotificationSettings = () => {
           {/* Global Settings */}
           <Box
             sx={{
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: "12px",
               p: 2,
               mb: 3,
@@ -368,7 +368,7 @@ const NotificationSettings = () => {
                 disabled={!preferences?.masterEnabled}
               />
 
-              <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
+              <Divider sx={{ my: 0.5, borderColor: "var(--color-border-color)" }} />
 
               {/* Notification Sound */}
               <SettingItem
@@ -386,7 +386,7 @@ const NotificationSettings = () => {
                 disabled={!preferences?.masterEnabled}
               />
 
-              <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
+              <Divider sx={{ my: 0.5, borderColor: "var(--color-border-color)" }} />
 
               {/* Browser Notifications */}
               <SettingItem
@@ -404,7 +404,7 @@ const NotificationSettings = () => {
                 disabled={!preferences?.masterEnabled}
               />
 
-              <Divider sx={{ my: 0.5, borderColor: colors.border_color }} />
+              <Divider sx={{ my: 0.5, borderColor: "var(--color-border-color)" }} />
 
               {/* Floating Notifications */}
               <SettingItem
@@ -577,7 +577,7 @@ const NotificationSettings = () => {
                   fontSize: 18,
                   mt: 0.15,
                   flexShrink: 0,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               />
               <span>

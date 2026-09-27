@@ -21,16 +21,16 @@ const StatCard = ({ label, value, growth = null, color = null, icon = null }) =>
   return (
     <div
       className="p-4 rounded-lg"
-      style={{ backgroundColor: colors.card_bg }}
+      style={{ backgroundColor: "var(--color-primary-bg)" }}
     >
       <div className="flex justify-between items-start mb-2">
         <p
           className="text-sm"
-          style={{ color: colors.secondary_text }}
+          style={{ color: "var(--color-secondary-text)" }}
         >
           {label}
         </p>
-        {icon && <div style={{ color: colors.accent }}>{icon}</div>}
+        {icon && <div style={{ color: "var(--color-primary-accent)" }}>{icon}</div>}
       </div>
       <p
         className="text-2xl font-bold"

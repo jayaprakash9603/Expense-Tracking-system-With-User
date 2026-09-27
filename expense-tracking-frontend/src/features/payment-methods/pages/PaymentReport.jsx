@@ -513,7 +513,7 @@ const PaymentMethodsReport = () => {
                       className="chart-container"
                       style={{
                         background: colors.secondary_bg,
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         borderRadius: "12px",
                         padding: "20px",
                       }}
@@ -521,7 +521,7 @@ const PaymentMethodsReport = () => {
                       <div className="chart-header">
                         <h3
                           style={{
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                             display: "flex",
                             alignItems: "center",
                             gap: 8,

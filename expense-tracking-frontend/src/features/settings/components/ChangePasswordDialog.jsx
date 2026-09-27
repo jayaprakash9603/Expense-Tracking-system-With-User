@@ -59,10 +59,10 @@ const ChangePasswordDialog = ({
   };
 
   const textFieldStyle = {
-    color: colors.primary_text,
-    backgroundColor: colors.secondary_bg,
+    color: "var(--color-primary-text)",
+    backgroundColor: "var(--color-secondary-bg)",
     "& .MuiOutlinedInput-notchedOutline": {
-      borderColor: colors.border_color,
+      borderColor: "var(--color-border-color)",
     },
     "&:hover .MuiOutlinedInput-notchedOutline": {
       borderColor: colors.primary_accent,
@@ -79,7 +79,7 @@ const ChangePasswordDialog = ({
       PaperProps={{
         sx: {
           backgroundColor: colors.tertiary_bg,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           borderRadius: 3,
           minWidth: isSmallScreen ? "90%" : 400,
         },
@@ -87,7 +87,7 @@ const ChangePasswordDialog = ({
     >
       <DialogTitle
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontWeight: 700,
           borderBottom: `1px solid ${colors.border_color}`,
         }}
@@ -105,7 +105,7 @@ const ChangePasswordDialog = ({
           sx={{ mb: 2 }}
           InputProps={{ sx: textFieldStyle }}
           InputLabelProps={{
-            sx: { color: colors.secondary_text },
+            sx: { color: "var(--color-secondary-text)" },
           }}
         />
         <TextField
@@ -118,7 +118,7 @@ const ChangePasswordDialog = ({
           sx={{ mb: 2 }}
           InputProps={{ sx: textFieldStyle }}
           InputLabelProps={{
-            sx: { color: colors.secondary_text },
+            sx: { color: "var(--color-secondary-text)" },
           }}
         />
         <TextField
@@ -130,7 +130,7 @@ const ChangePasswordDialog = ({
           onChange={handleChange("confirmPassword")}
           InputProps={{ sx: textFieldStyle }}
           InputLabelProps={{
-            sx: { color: colors.secondary_text },
+            sx: { color: "var(--color-secondary-text)" },
           }}
         />
       </DialogContent>
@@ -140,7 +140,7 @@ const ChangePasswordDialog = ({
         <Button
           onClick={handleClose}
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             textTransform: "none",
             fontWeight: 600,
           }}

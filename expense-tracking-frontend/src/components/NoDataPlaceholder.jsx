@@ -184,7 +184,7 @@ const NoDataPlaceholder = ({
           startIcon={<RefreshIcon />}
           sx={{
             mt: dense ? 0.5 : 1,
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             color: colors.button_text || "#000",
             fontWeight: 600,
             "&:hover": { bgcolor: colors.button_hover || "#00b8a0" },

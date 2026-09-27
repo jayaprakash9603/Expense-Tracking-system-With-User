@@ -32,7 +32,7 @@ const SortPopover = ({ open, anchorRect, sortType, onSelect, recentIcon }) => {
         left,
         zIndex: 1000,
         background: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 8,
         boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
         minWidth: 140,

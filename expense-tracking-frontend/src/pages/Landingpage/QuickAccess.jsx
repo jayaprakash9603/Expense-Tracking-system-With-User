@@ -103,17 +103,17 @@ const QuickAccess = () => {
     <div
       className={`quick-access ${isMobile ? "mobile" : "desktop"}`}
       style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="qa-header">
-        <p className="qa-title" style={{ color: colors.primary_text }}>
+        <p className="qa-title" style={{ color: "var(--color-primary-text)" }}>
           Quick Access
         </p>
         <hr
           className="qa-divider"
-          style={{ borderColor: colors.border_color }}
+          style={{ borderColor: "var(--color-border-color)" }}
         />
       </div>
 
@@ -129,7 +129,7 @@ const QuickAccess = () => {
               }
               style={{
                 backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <div
@@ -138,7 +138,7 @@ const QuickAccess = () => {
               >
                 <Icon className="qa-svg" style={{ color: colors.button_text }} />
               </div>
-              <div className="qa-text" style={{ color: colors.primary_text }}>
+              <div className="qa-text" style={{ color: "var(--color-primary-text)" }}>
                 {action.label}
               </div>
             </button>

@@ -383,9 +383,9 @@ const Settings = () => {
               )}
               disabled={item.disabled}
               style={{
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
-                border: `1px solid ${colors.border_color}`,
+                backgroundColor: "var(--color-primary-bg)",
+                color: "var(--color-primary-text)",
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "8px",
                 padding: "8px 12px",
                 fontSize: "0.875rem",
@@ -538,7 +538,7 @@ const Settings = () => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: isSmallScreen ? 0 : "8px",
@@ -562,7 +562,7 @@ const Settings = () => {
           flex: 1,
           overflow: "auto",
           p: isSmallScreen ? 2 : 3,
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         }}
         className="custom-scrollbar"
       >

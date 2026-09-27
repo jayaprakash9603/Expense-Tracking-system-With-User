@@ -194,7 +194,7 @@ const GenericFlowPage = ({
   return (
     <div
       style={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         padding: isMobile ? 8 : isTablet ? 12 : 16,
         borderRadius: isMobile ? 0 : isTablet ? "8px" : "8px",
         marginTop: 0,
@@ -245,8 +245,8 @@ const GenericFlowPage = ({
           onClose={() => setOpen(false)}
           PaperProps={{
             style: {
-              backgroundColor: colors.primary_bg,
-              color: colors.primary_text,
+              backgroundColor: "var(--color-primary-bg)",
+              color: "var(--color-primary-text)",
               borderRadius: "12px",
             },
           }}

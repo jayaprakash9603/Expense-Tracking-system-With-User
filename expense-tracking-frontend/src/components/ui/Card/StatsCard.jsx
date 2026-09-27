@@ -71,7 +71,7 @@ const StatsCard = ({
           <Typography
             variant="body2"
             sx={{
-              color: colors.secondary_text || "#9ca3af",
+              color: "var(--color-secondary-text)" || "#9ca3af",
               fontSize: "0.875rem",
               fontWeight: 500,
               marginBottom: "8px",
@@ -83,7 +83,7 @@ const StatsCard = ({
           <Typography
             variant="h4"
             sx={{
-              color: colors.primary_text || "#fff",
+              color: "var(--color-primary-text)" || "#fff",
               fontSize: "1.75rem",
               fontWeight: 700,
               lineHeight: 1.2,
@@ -105,7 +105,7 @@ const StatsCard = ({
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text || "#9ca3af",
+                    color: "var(--color-secondary-text)" || "#9ca3af",
                     fontSize: "0.75rem",
                   }}
                 >
@@ -135,13 +135,13 @@ const StatsCard = ({
         {icon && (
           <Box
             sx={{
-              backgroundColor: colors.hover_bg || "rgba(0, 218, 198, 0.1)",
+              backgroundColor: "var(--color-hover-bg)" || "rgba(0, 218, 198, 0.1)",
               borderRadius: "10px",
               padding: "10px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: colors.primary_accent || "#00DAC6",
+              color: "var(--color-primary-accent)" || "#00DAC6",
               "& .MuiSvgIcon-root": {
                 fontSize: "24px",
               },

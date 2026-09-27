@@ -28,7 +28,7 @@ const AnalyticsMetricCard = ({
         gap: 10,
         padding: "14px 14px 12px",
         borderRadius: 12,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         background:
           mode === "dark"
             ? "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)"
@@ -75,7 +75,7 @@ const AnalyticsMetricCard = ({
             fontWeight: 600,
             letterSpacing: "0.06em",
             textTransform: "uppercase",
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             lineHeight: 1.2,
             whiteSpace: "nowrap",
             overflow: "hidden",

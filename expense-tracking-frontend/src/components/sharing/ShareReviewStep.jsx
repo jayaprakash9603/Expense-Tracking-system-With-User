@@ -88,8 +88,8 @@ const DetailCard = ({ icon, title, value, valueColor, colors }) => (
       gap: 2,
       p: 2,
       borderRadius: "16px",
-      backgroundColor: colors.card_bg,
-      border: `1px solid ${colors.border_color}`,
+      backgroundColor: "var(--color-primary-bg)",
+      border: "1px solid var(--color-border-color)",
       boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
       height: "100%",
     }}
@@ -103,7 +103,7 @@ const DetailCard = ({ icon, title, value, valueColor, colors }) => (
         height: 40,
         borderRadius: "12px",
         backgroundColor: `${colors.primary_accent}15`,
-        color: colors.primary_accent,
+        color: "var(--color-primary-accent)",
         flexShrink: 0,
         "& svg": { fontSize: 20 },
       }}
@@ -114,7 +114,7 @@ const DetailCard = ({ icon, title, value, valueColor, colors }) => (
       <Typography
         variant="caption"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           textTransform: "uppercase",
           fontWeight: 600,
           letterSpacing: "0.5px",
@@ -178,10 +178,10 @@ const ShareReviewStep = ({
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ color: colors.primary_text, fontWeight: 700, mb: 1 }}>
+        <Typography variant="h5" sx={{ color: "var(--color-primary-text)", fontWeight: 700, mb: 1 }}>
           Review & Generate
         </Typography>
-        <Typography sx={{ color: colors.secondary_text, fontSize: "0.95rem" }}>
+        <Typography sx={{ color: "var(--color-secondary-text)", fontSize: "0.95rem" }}>
           Please review your share configurations before generating the QR code.
         </Typography>
       </Box>
@@ -251,7 +251,7 @@ const ShareReviewStep = ({
         <Box sx={{ mb: 4 }}>
           <Typography
             variant="subtitle2"
-            sx={{ color: colors.primary_text, fontWeight: 600, mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}
+            sx={{ color: "var(--color-primary-text)", fontWeight: 600, mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}
           >
             Shared With ({selectedFriends.length} friend{selectedFriends.length > 1 ? "s" : ""})
           </Typography>
@@ -266,14 +266,14 @@ const ShareReviewStep = ({
                   p: 1,
                   pr: 2,
                   borderRadius: "50px",
-                  backgroundColor: colors.card_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  backgroundColor: "var(--color-primary-bg)",
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
-                <Avatar src={friend.image} sx={{ width: 28, height: 28, fontSize: "0.8rem", bgcolor: colors.primary_accent }}>
+                <Avatar src={friend.image} sx={{ width: 28, height: 28, fontSize: "0.8rem", bgcolor: "var(--color-primary-accent)" }}>
                   {friend.firstName?.[0] || friend.email?.[0]}
                 </Avatar>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: colors.primary_text }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: "var(--color-primary-text)" }}>
                   {`${friend.firstName || ""} ${friend.lastName || ""}`.trim() || friend.email}
                 </Typography>
               </Box>
@@ -287,7 +287,7 @@ const ShareReviewStep = ({
         <Typography
           variant="subtitle2"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             mb: 1.5,
             textTransform: "uppercase",
@@ -301,8 +301,8 @@ const ShareReviewStep = ({
           sx={{
             flex: 1,
             overflow: "auto",
-            backgroundColor: colors.card_bg,
-            borderColor: colors.border_color,
+            backgroundColor: "var(--color-primary-bg)",
+            borderColor: "var(--color-border-color)",
             borderRadius: "16px",
             "&::-webkit-scrollbar": { width: "6px" },
             "&::-webkit-scrollbar-track": { background: "transparent" },
@@ -333,7 +333,7 @@ const ShareReviewStep = ({
                         height: 32,
                         borderRadius: "8px",
                         backgroundColor: `${colors.primary_accent}15`,
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -349,16 +349,16 @@ const ShareReviewStep = ({
                     primaryTypographyProps={{
                       variant: "body2",
                       fontWeight: 600,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     }}
                     secondaryTypographyProps={{
                       variant: "caption",
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                     }}
                   />
                 </ListItem>
                 {index < selectedItems.length - 1 && (
-                  <Divider sx={{ borderColor: colors.border_color }} />
+                  <Divider sx={{ borderColor: "var(--color-border-color)" }} />
                 )}
               </React.Fragment>
             ))}

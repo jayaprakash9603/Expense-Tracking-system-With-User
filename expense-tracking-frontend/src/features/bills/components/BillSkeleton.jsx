@@ -13,8 +13,8 @@ const SummarySkeleton = ({ colors, mode }) => (
         mode === "dark"
           ? "0 6px 22px rgba(0,0,0,0.45)"
           : "0 6px 16px rgba(15,23,42,0.12)",
-      backgroundColor: colors.secondary_bg,
-      border: `1px solid ${colors.border_color}`,
+      backgroundColor: "var(--color-secondary-bg)",
+      border: "1px solid var(--color-border-color)",
       p: 2,
     }}
   >
@@ -24,8 +24,8 @@ const SummarySkeleton = ({ colors, mode }) => (
           <Box
             sx={{
               borderRadius: "10px",
-              border: `1px solid ${colors.border_color}`,
-              backgroundColor: colors.primary_bg,
+              border: "1px solid var(--color-border-color)",
+              backgroundColor: "var(--color-primary-bg)",
               p: 1.5,
               textAlign: "center",
             }}
@@ -62,8 +62,8 @@ const ListSkeleton = ({ count, colors, mode }) => (
         key={`bill-skeleton-${idx}`}
         sx={{
           borderRadius: "12px",
-          border: `1px solid ${colors.border_color}`,
-          backgroundColor: colors.primary_bg,
+          border: "1px solid var(--color-border-color)",
+          backgroundColor: "var(--color-primary-bg)",
           boxShadow:
             mode === "dark"
               ? "0 6px 18px rgba(0,0,0,0.4)"

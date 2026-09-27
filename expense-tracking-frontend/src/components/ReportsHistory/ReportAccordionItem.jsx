@@ -90,7 +90,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
         borderRadius: "12px !important",
         "&:before": { display: "none" },
         overflow: "hidden",
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         border: "none",
         transition: "all 0.3s ease",
         "&:hover": {
@@ -107,7 +107,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
         expandIcon={
           <ExpandIcon
             sx={{
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               fontSize: 28,
             }}
           />
@@ -129,7 +129,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
             },
           },
           "&:hover": {
-            bgcolor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
           },
         }}
       >
@@ -162,7 +162,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: 11,
                 fontWeight: 600,
                 textTransform: "uppercase",
@@ -182,7 +182,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 600,
                   fontSize: 16,
                   lineHeight: 1.3,
@@ -227,16 +227,16 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               gap: 0.75,
               px: 2,
               py: 1,
-              bgcolor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: 1.5,
               flexShrink: 0,
             }}
           >
-            <CalendarIcon sx={{ color: colors.secondary_text, fontSize: 16 }} />
+            <CalendarIcon sx={{ color: "var(--color-secondary-text)", fontSize: 16 }} />
             <Typography
               variant="body2"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: 13,
                 fontWeight: 500,
               }}
@@ -250,7 +250,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
       {/* Accordion Details - Expandable Content */}
       <AccordionDetails
         sx={{
-          bgcolor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           p: 3,
           borderTop: `1px solid ${colors.border_color}`,
         }}
@@ -265,11 +265,11 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 spacing={1}
                 sx={{ mb: 1 }}
               >
-                <InfoIcon sx={{ color: colors.primary_accent, fontSize: 18 }} />
+                <InfoIcon sx={{ color: "var(--color-primary-accent)", fontSize: 18 }} />
                 <Typography
                   variant="subtitle2"
                   sx={{
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: 600,
                     fontSize: 13,
                     textTransform: "uppercase",
@@ -282,7 +282,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: 14,
                   lineHeight: 1.7,
                   pl: 3.5,
@@ -293,7 +293,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
             </Box>
           )}
 
-          <Divider sx={{ borderColor: colors.border_color }} />
+          <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
           {/* Detailed Information Grid */}
           <Grid container spacing={3}>
@@ -302,7 +302,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 11,
                     fontWeight: 600,
                     textTransform: "uppercase",
@@ -312,12 +312,12 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
                   <CalendarIcon
-                    sx={{ color: colors.primary_accent, fontSize: 16 }}
+                    sx={{ color: "var(--color-primary-accent)", fontSize: 16 }}
                   />
                   <Typography
                     variant="body2"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: 13,
                       fontWeight: 500,
                     }}
@@ -333,7 +333,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 11,
                     fontWeight: 600,
                     textTransform: "uppercase",
@@ -343,12 +343,12 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={0.75}>
                   <TimeIcon
-                    sx={{ color: colors.primary_accent, fontSize: 16 }}
+                    sx={{ color: "var(--color-primary-accent)", fontSize: 16 }}
                   />
                   <Typography
                     variant="body2"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: 13,
                       fontWeight: 500,
                     }}
@@ -364,7 +364,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 11,
                     fontWeight: 600,
                     textTransform: "uppercase",
@@ -392,7 +392,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 11,
                     fontWeight: 600,
                     textTransform: "uppercase",
@@ -422,7 +422,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 11,
                       fontWeight: 600,
                       textTransform: "uppercase",
@@ -433,7 +433,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: 13,
                       fontWeight: 500,
                     }}
@@ -450,7 +450,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 11,
                       fontWeight: 600,
                       textTransform: "uppercase",
@@ -461,7 +461,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: 13,
                       fontWeight: 500,
                     }}
@@ -478,7 +478,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 11,
                       fontWeight: 600,
                       textTransform: "uppercase",
@@ -489,7 +489,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontSize: 13,
                       fontWeight: 500,
                       overflow: "hidden",
@@ -535,7 +535,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
             )}
           </Grid>
 
-          <Divider sx={{ borderColor: colors.border_color }} />
+          <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
           {/* Action Buttons */}
           <Stack direction="row" spacing={1.5}>
@@ -547,7 +547,7 @@ const ReportAccordionItem = ({ report, onView, onDownload, onDelete }) => {
                 }}
                 sx={{
                   flex: 1,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   bgcolor: `${colors.primary_accent}10`,
                   borderRadius: 2,
                   py: 1.5,

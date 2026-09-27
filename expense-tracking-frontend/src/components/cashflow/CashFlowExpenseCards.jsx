@@ -1222,7 +1222,7 @@ function CashFlowExpenseCards({
             height: "32px",
             background: `${colors.primary_accent}20`,
             border: `1px solid ${colors.primary_accent}60`,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             zIndex: 15,
             transition: "all 0.2s ease",
             boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
@@ -1251,7 +1251,7 @@ function CashFlowExpenseCards({
             height: "32px",
             background: `${colors.primary_accent}20`,
             border: `1px solid ${colors.primary_accent}60`,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             zIndex: 15,
             transition: "all 0.2s ease",
             boxShadow: `0 2px 8px rgba(0,0,0,0.15)`,
@@ -1286,7 +1286,7 @@ function CashFlowExpenseCards({
             flexWrap: isMobile ? "wrap" : "nowrap",
             gap: "12px",
             padding: "10px 16px",
-            background: colors.primary_bg,
+            background: "var(--color-primary-bg)",
             borderRadius: "8px",
             position: "sticky",
             top: 0,
@@ -1295,7 +1295,7 @@ function CashFlowExpenseCards({
             boxShadow: `0 2px 8px ${colors.primary_bg}dd`,
             marginBottom: "16px",
             transition: "none",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
           }}
         >
           {/* Left Side - Month with Navigation Arrows */}
@@ -1317,14 +1317,14 @@ function CashFlowExpenseCards({
                   height: "28px",
                   background: `${colors.primary_accent}15`,
                   border: `1px solid ${colors.primary_accent}40`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   "&:hover": {
                     background: `${colors.primary_accent}25`,
                     transform: "scale(1.1)",
                   },
                   "&:disabled": {
-                    background: `${colors.secondary_bg}`,
-                    border: `1px solid ${colors.border_color}`,
+                    background: "var(--color-secondary-bg)",
+                    border: "1px solid var(--color-border-color)",
                     color: `${colors.secondary_text}`,
                     opacity: 0.5,
                     cursor: "not-allowed",
@@ -1342,7 +1342,7 @@ function CashFlowExpenseCards({
               style={{
                 fontSize: "13px",
                 fontWeight: "600",
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 padding: "6px 16px",
                 borderRadius: "20px",
                 background: `${colors.primary_accent}15`,
@@ -1401,14 +1401,14 @@ function CashFlowExpenseCards({
                   height: "28px",
                   background: `${colors.primary_accent}15`,
                   border: `1px solid ${colors.primary_accent}40`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   "&:hover": {
                     background: `${colors.primary_accent}25`,
                     transform: "scale(1.1)",
                   },
                   "&:disabled": {
-                    background: `${colors.secondary_bg}`,
-                    border: `1px solid ${colors.border_color}`,
+                    background: "var(--color-secondary-bg)",
+                    border: "1px solid var(--color-border-color)",
                     color: `${colors.secondary_text}`,
                     opacity: 0.5,
                     cursor: "not-allowed",
@@ -1443,14 +1443,14 @@ function CashFlowExpenseCards({
                 height: "28px",
                 background: `${colors.primary_accent}15`,
                 border: `1px solid ${colors.primary_accent}40`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": {
                   background: `${colors.primary_accent}25`,
                   transform: "scale(1.1)",
                 },
                 "&:disabled": {
-                  background: `${colors.secondary_bg}`,
-                  border: `1px solid ${colors.border_color}`,
+                  background: "var(--color-secondary-bg)",
+                  border: "1px solid var(--color-border-color)",
                   color: `${colors.secondary_text}`,
                   opacity: 0.5,
                   cursor: "not-allowed",
@@ -1467,7 +1467,7 @@ function CashFlowExpenseCards({
               style={{
                 fontSize: "13px",
                 fontWeight: "600",
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 background: `${colors.primary_accent}15`,
                 padding: "6px 16px",
                 borderRadius: "20px",
@@ -1499,14 +1499,14 @@ function CashFlowExpenseCards({
                 height: "28px",
                 background: `${colors.primary_accent}15`,
                 border: `1px solid ${colors.primary_accent}40`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": {
                   background: `${colors.primary_accent}25`,
                   transform: "scale(1.1)",
                 },
                 "&:disabled": {
-                  background: `${colors.secondary_bg}`,
-                  border: `1px solid ${colors.border_color}`,
+                  background: "var(--color-secondary-bg)",
+                  border: "1px solid var(--color-border-color)",
                   color: `${colors.secondary_text}`,
                   opacity: 0.5,
                   cursor: "not-allowed",
@@ -1586,7 +1586,7 @@ function CashFlowExpenseCards({
                 <AccessTimeIcon
                   sx={{
                     fontSize: 16,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     transition: "all 0.3s ease-in-out",
                   }}
                 />
@@ -1594,7 +1594,7 @@ function CashFlowExpenseCards({
                 <HistoryIcon
                   sx={{
                     fontSize: 16,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     transition: "all 0.3s ease-in-out",
                   }}
                 />
@@ -1603,7 +1603,7 @@ function CashFlowExpenseCards({
                 style={{
                   fontSize: "11px",
                   fontWeight: "600",
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   letterSpacing: "0.3px",
                   textTransform: "uppercase",
                 }}
@@ -1697,7 +1697,7 @@ function CashFlowExpenseCards({
                                         style={{
                                           fontSize: "13px",
                                           fontWeight: "600",
-                                          color: colors.primary_accent,
+                                          color: "var(--color-primary-accent)",
                                           background: `${colors.primary_accent}15`,
                                           padding: "6px 16px",
                                           borderRadius: "20px",

@@ -166,13 +166,13 @@ const DeleteAccountDialog = ({
             className="rounded-lg px-3 py-2"
             style={{
               backgroundColor: "rgba(245, 158, 11, 0.12)",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             {t("settings.deletionScheduledInfo")}
           </div>
           <div>
-            <p style={{ color: colors.secondary_text }}>{t("settings.purgeDate")}</p>
+            <p style={{ color: "var(--color-secondary-text)" }}>{t("settings.purgeDate")}</p>
             <p className="font-semibold">{purgeDate}</p>
           </div>
           {countdown && (
@@ -186,21 +186,21 @@ const DeleteAccountDialog = ({
               {countdown}
             </span>
           )}
-          <p style={{ color: colors.secondary_text }}>
+          <p style={{ color: "var(--color-secondary-text)" }}>
             {t("settings.deletionGraceAccessInfo")}
           </p>
         </div>
       )}
       {!loading && !isPending && (
         <div className="space-y-3 text-sm">
-          <p style={{ color: colors.secondary_text }}>
+          <p style={{ color: "var(--color-secondary-text)" }}>
             {t("settings.deleteAccountWarning")}
           </p>
           <div
             className="rounded-lg px-3 py-2"
             style={{
               backgroundColor: "rgba(59, 130, 246, 0.12)",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             {t("settings.deleteAccountGraceInfo")}

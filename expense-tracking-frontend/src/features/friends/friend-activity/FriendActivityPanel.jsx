@@ -163,7 +163,7 @@ const FriendActivityPanel = ({
         width: 480,
         maxWidth: "100vw",
         height: "100vh",
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         boxShadow: "-4px 0 20px rgba(0,0,0,0.15)",
         zIndex: 1300,
         display: "flex",
@@ -185,13 +185,13 @@ const FriendActivityPanel = ({
             justifyContent: "space-between",
             p: 2,
             borderBottom: `1px solid ${colors.border_color}`,
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               Friend Activities
             </Typography>
@@ -211,7 +211,7 @@ const FriendActivityPanel = ({
             <IconButton
               onClick={onClose}
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 "&:hover": {
                   backgroundColor: `${colors.primary_accent}20`,
                 },
@@ -262,9 +262,9 @@ const FriendActivityPanel = ({
               py: 0.5,
               fontSize: "0.8rem",
               textTransform: "none",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               "&.Mui-selected": {
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               },
             },
             "& .MuiTabs-indicator": {
@@ -309,7 +309,7 @@ const FriendActivityPanel = ({
             width: "8px",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
             borderRadius: "4px",
           },
           "&::-webkit-scrollbar-thumb": {
@@ -386,7 +386,7 @@ const FriendActivityPanel = ({
                         size="small"
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(currentPage - 1)}
-                        sx={{ color: colors.secondary_text }}
+                        sx={{ color: "var(--color-secondary-text)" }}
                       >
                         ‹
                       </IconButton>
@@ -394,7 +394,7 @@ const FriendActivityPanel = ({
                         size="small"
                         disabled={currentPage === totalPages}
                         onClick={() => setCurrentPage(currentPage + 1)}
-                        sx={{ color: colors.secondary_text }}
+                        sx={{ color: "var(--color-secondary-text)" }}
                       >
                         ›
                       </IconButton>
@@ -422,7 +422,7 @@ const FriendActivityPanel = ({
           sx={{
             p: 1.5,
             borderTop: `1px solid ${colors.border_color}`,
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             textAlign: "center",
           }}
         >

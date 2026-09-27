@@ -34,8 +34,8 @@ const NotificationServiceCard = ({
   return (
     <Box
       sx={{
-        backgroundColor: colors.card_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-primary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         overflow: "hidden",
         transition: "all 0.3s ease",
@@ -152,7 +152,7 @@ const NotificationServiceCard = ({
           sx={{
             p: 2,
             pt: 1,
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
           }}
         >
           {children}

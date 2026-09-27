@@ -61,7 +61,7 @@ export default function BillExpenseTable({
       <div className="flex justify-between items-center mb-4">
         <h3
           className="text-xl font-semibold"
-          style={{ color: colors.primary_text }}
+          style={{ color: "var(--color-primary-text)" }}
         >
           {expenseTableTitle ||
             t("createBill.labels.expenseTableTitle") ||
@@ -82,19 +82,19 @@ export default function BillExpenseTable({
       <div
         className="rounded border px-3 pt-3 flex-1 flex flex-col min-h-0"
         style={{
-          backgroundColor: colors.secondary_bg,
-          borderColor: colors.border_color,
+          backgroundColor: "var(--color-secondary-bg)",
+          borderColor: "var(--color-border-color)",
         }}
       >
         <div
           className="grid grid-cols-6 gap-3 mb-3 pb-2 border-b"
-          style={{ borderColor: colors.border_color }}
+          style={{ borderColor: "var(--color-border-color)" }}
         >
           {headers.map((header) => (
             <div
               key={header}
               className="font-semibold text-sm col-span-1"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
             >
               {header}
             </div>
@@ -166,7 +166,7 @@ export default function BillExpenseTable({
                           parseFloat(expense.quantity) <= 0)
                           ? "rgba(255, 68, 68, 0.1)"
                           : colors.primary_bg,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       borderColor:
                         hasItemName &&
                         (!expense.quantity ||
@@ -210,7 +210,7 @@ export default function BillExpenseTable({
                       backgroundColor: isIncomplete
                         ? "rgba(255, 68, 68, 0.1)"
                         : colors.primary_bg,
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       borderColor: isIncomplete
                         ? "#ef4444"
                         : colors.border_color,
@@ -233,7 +233,7 @@ export default function BillExpenseTable({
                     readOnly
                     className="w-full px-3 py-2 rounded cursor-not-allowed text-sm"
                     style={{
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                       color: colors.icon_muted,
                     }}
                   />
@@ -249,8 +249,8 @@ export default function BillExpenseTable({
                     }
                     className="w-full px-3 py-2 rounded placeholder-gray-400 focus:outline-none focus:ring-2 text-sm"
                     style={{
-                      backgroundColor: colors.primary_bg,
-                      color: colors.primary_text,
+                      backgroundColor: "var(--color-primary-bg)",
+                      color: "var(--color-primary-text)",
                     }}
                     onFocus={(e) =>
                       (e.target.style.outline = `2px solid ${colors.secondary_accent}`)
@@ -327,7 +327,7 @@ export default function BillExpenseTable({
             {tempExpenses.length > 0 && (
               <div
                 className="font-semibold"
-                style={{ color: colors.primary_text }}
+                style={{ color: "var(--color-primary-text)" }}
               >
                 {t("billCommon.expenseTable.totalLabel")}: {currencySymbol}
                 {tempExpenses

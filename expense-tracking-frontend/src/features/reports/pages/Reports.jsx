@@ -235,10 +235,10 @@ const Reports = ({ defaultTab = 0 }) => {
       sx={{
         width: { xs: "100%", lg: "calc(100vw - 370px)" },
         height: { xs: "auto", lg: "calc(100vh - 100px)" },
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
         marginRight: "20px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         padding: "20px",
         display: "flex",
         flexDirection: "column",
@@ -259,11 +259,11 @@ const Reports = ({ defaultTab = 0 }) => {
               {!hideBackButton && (
                 <IconButton
                   sx={{
-                    color: colors.primary_accent,
-                    backgroundColor: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    color: "var(--color-primary-accent)",
+                    backgroundColor: "var(--color-primary-bg)",
+                    border: "1px solid var(--color-border-color)",
                     "&:hover": {
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                       borderColor: colors.primary_accent,
                     },
                     width: 36,
@@ -297,7 +297,7 @@ const Reports = ({ defaultTab = 0 }) => {
                 <Typography
                   variant={isMobile ? "h5" : "h4"}
                   sx={{
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: 700,
                     display: "flex",
                     alignItems: "center",
@@ -310,7 +310,7 @@ const Reports = ({ defaultTab = 0 }) => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     mt: 0.5,
                   }}
                 >
@@ -325,8 +325,8 @@ const Reports = ({ defaultTab = 0 }) => {
       {/* Main Content Card with Tabs */}
       <Card
         sx={{
-          bgcolor: colors.primary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
           borderRadius: "8px",
           overflow: "hidden",
           boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
@@ -341,7 +341,7 @@ const Reports = ({ defaultTab = 0 }) => {
         <Box
           sx={{
             borderBottom: `2px solid ${colors.border_color}`,
-            bgcolor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
           }}
         >
           <Tabs
@@ -350,7 +350,7 @@ const Reports = ({ defaultTab = 0 }) => {
             sx={{
               minHeight: 56,
               "& .MuiTab-root": {
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 textTransform: "none",
                 fontSize: 15,
                 fontWeight: 600,
@@ -358,16 +358,16 @@ const Reports = ({ defaultTab = 0 }) => {
                 px: 3,
                 transition: "all 0.3s ease",
                 "&:hover": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   bgcolor: `${colors.primary_accent}10`,
                 },
                 "&.Mui-selected": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 },
               },
               "& .MuiTabs-indicator": {
                 height: 3,
-                bgcolor: colors.primary_accent,
+                bgcolor: "var(--color-primary-accent)",
                 borderRadius: "3px 3px 0 0",
               },
             }}
@@ -411,8 +411,8 @@ const Reports = ({ defaultTab = 0 }) => {
               <Box sx={{ height: "100%" }}>
                 <Card
                   sx={{
-                    bgcolor: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: 2,
                     height: "100%",
                     overflow: "auto",
@@ -424,7 +424,7 @@ const Reports = ({ defaultTab = 0 }) => {
                         <Typography
                           variant="h6"
                           sx={{
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                             fontWeight: 600,
                             mb: 1,
                             display: "flex",
@@ -433,14 +433,14 @@ const Reports = ({ defaultTab = 0 }) => {
                           }}
                         >
                           <DescriptionIcon
-                            sx={{ color: colors.primary_accent }}
+                            sx={{ color: "var(--color-primary-accent)" }}
                           />
                           Generate Expense Report
                         </Typography>
                         <Typography
                           variant="body2"
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                           }}
                         >
                           Configure report parameters and generate detailed
@@ -505,8 +505,8 @@ const Reports = ({ defaultTab = 0 }) => {
               <Box sx={{ height: "100%" }}>
                 <Card
                   sx={{
-                    bgcolor: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: 2,
                     p: 6,
                     textAlign: "center",
@@ -532,14 +532,14 @@ const Reports = ({ defaultTab = 0 }) => {
                     <AssessmentIcon
                       sx={{
                         fontSize: 60,
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                       }}
                     />
                   </Box>
                   <Typography
                     variant="h5"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontWeight: 600,
                       mb: 1,
                     }}
@@ -549,7 +549,7 @@ const Reports = ({ defaultTab = 0 }) => {
                   <Typography
                     variant="body1"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       maxWidth: 400,
                     }}
                   >

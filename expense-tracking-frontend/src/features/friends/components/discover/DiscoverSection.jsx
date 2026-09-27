@@ -68,18 +68,18 @@ const DiscoverSection = ({ onSendRequest }) => {
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, color: colors.primary_text }}
+                sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
                 noWrap
               >
                 {display.displayName}
               </Typography>
               {display.email && (
-                <Typography variant="caption" sx={{ color: colors.secondary_text }} noWrap>
+                <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }} noWrap>
                   {display.email}
                 </Typography>
               )}
               {mutualCount > 0 && (
-                <Typography variant="caption" sx={{ color: colors.secondary_text, display: "block" }}>
+                <Typography variant="caption" sx={{ color: "var(--color-secondary-text)", display: "block" }}>
                   {t("friends.discover.mutualFriends", { count: mutualCount })}
                 </Typography>
               )}
@@ -93,7 +93,7 @@ const DiscoverSection = ({ onSendRequest }) => {
               sx={{
                 width: "100%",
                 bgcolor: `${colors.warning}20`,
-                color: colors.warning,
+                color: "warning.main",
               }}
             />
           ) : (
@@ -106,7 +106,7 @@ const DiscoverSection = ({ onSendRequest }) => {
               aria-label={t("friends.discover.addFriend")}
               sx={{
                 minHeight: 44,
-                bgcolor: colors.primary_accent,
+                bgcolor: "var(--color-primary-accent)",
                 transition: "background-color 200ms ease, transform 200ms ease",
                 "&:hover": {
                   bgcolor: `${colors.primary_accent}dd`,
@@ -134,7 +134,7 @@ const DiscoverSection = ({ onSendRequest }) => {
           mb: 2,
           "& .MuiOutlinedInput-root": {
             bgcolor: colors.card_bg,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
             "& fieldset": { borderColor: "transparent" },
@@ -145,7 +145,7 @@ const DiscoverSection = ({ onSendRequest }) => {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: colors.secondary_text }} />
+              <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
             </InputAdornment>
           ),
         }}

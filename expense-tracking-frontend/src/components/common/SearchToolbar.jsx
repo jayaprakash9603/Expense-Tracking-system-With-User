@@ -247,7 +247,7 @@ const SearchToolbar = ({
         startAdornment={
           <SearchIcon
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: isMobile ? 16 : 18,
               mr: 0.5,
             }}
@@ -257,8 +257,8 @@ const SearchToolbar = ({
           width: "100%",
           maxWidth: "100%",
           "& .MuiInputBase-root": {
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
             borderRadius: "8px",
             fontSize: isMobile ? "0.7rem" : "0.75rem",
             height: isMobile ? "32px" : "36px",
@@ -285,7 +285,7 @@ const SearchToolbar = ({
             right: "4px",
           },
           "& .MuiAutocomplete-clearIndicator": {
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "0.9rem",
           },
           "& .MuiAutocomplete-popupIndicator": {

@@ -67,7 +67,7 @@ const AppDialog = React.forwardRef(
     };
 
     const dialogPaperSx = {
-      backgroundColor: colors.card_bg || colors.primary_bg || "#1f1f23",
+      backgroundColor: "var(--color-primary-bg)" || colors.primary_bg || "#1f1f23",
       backgroundImage: "none",
       borderRadius: "12px",
       border: `1px solid ${colors.border_color || "rgba(255, 255, 255, 0.1)"}`,
@@ -88,7 +88,7 @@ const AppDialog = React.forwardRef(
 
     const contentStyles = {
       padding: "24px",
-      color: colors.primary_text || "#fff",
+      color: "var(--color-primary-text)" || "#fff",
       ...contentSx,
     };
 
@@ -119,7 +119,7 @@ const AppDialog = React.forwardRef(
               variant="h6"
               component="span"
               sx={{
-                color: colors.primary_text || "#fff",
+                color: "var(--color-primary-text)" || "#fff",
                 fontWeight: 600,
                 fontSize: "1.125rem",
               }}
@@ -131,12 +131,11 @@ const AppDialog = React.forwardRef(
                 aria-label="close"
                 onClick={(e) => handleClose(e, "closeButton")}
                 sx={{
-                  color: colors.secondary_text || "#9ca3af",
+                  color: "var(--color-secondary-text)" || "#9ca3af",
                   marginRight: "-8px",
                   "&:hover": {
-                    color: colors.primary_text || "#fff",
-                    backgroundColor:
-                      colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+                    color: "var(--color-primary-text)" || "#fff",
+                    backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.08)",
                   },
                 }}
               >

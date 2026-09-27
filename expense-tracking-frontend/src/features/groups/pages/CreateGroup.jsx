@@ -277,8 +277,8 @@ const CreateGroup = () => {
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         marginRight: "20px",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Custom Scrollbar Styles */}
@@ -309,7 +309,7 @@ const CreateGroup = () => {
           <div>
             <h1
               className="text-2xl font-bold"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
             >
               Create New Group
             </h1>
@@ -317,7 +317,7 @@ const CreateGroup = () => {
           <button
             onClick={() => navigate("/groups")}
             className="transition-colors duration-200"
-            style={{ color: colors.secondary_text }}
+            style={{ color: "var(--color-secondary-text)" }}
             onMouseEnter={(e) => (e.target.style.color = colors.primary_text)}
             onMouseLeave={(e) => (e.target.style.color = colors.secondary_text)}
           >
@@ -349,7 +349,7 @@ const CreateGroup = () => {
             <div className="space-y-4">
               <h2
                 className="text-lg font-semibold"
-                style={{ color: colors.primary_text }}
+                style={{ color: "var(--color-primary-text)" }}
               >
                 Group Information
               </h2>
@@ -360,7 +360,7 @@ const CreateGroup = () => {
                 <div>
                   <label
                     className="block text-sm font-medium mb-1"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     Group Name *
                   </label>
@@ -378,7 +378,7 @@ const CreateGroup = () => {
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              color: colors.primary_accent,
+                              color: "var(--color-primary-accent)",
                             }}
                           >
                             {renderAvatarChrome(formData.avatar, 24, colors.primary_accent)}
@@ -387,7 +387,7 @@ const CreateGroup = () => {
                       ),
                       style: {
                         backgroundColor: colors.tertiary_bg,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         borderRadius: "8px",
                         fontSize: "1rem",
                       },
@@ -395,7 +395,7 @@ const CreateGroup = () => {
                     inputProps={{
                       style: {
                         paddingLeft: 0,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                       },
                     }}
                     sx={{
@@ -411,7 +411,7 @@ const CreateGroup = () => {
                         },
                       },
                       input: {
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                       },
                     }}
                     error={!!errors.name}
@@ -423,7 +423,7 @@ const CreateGroup = () => {
                 <div>
                   <label
                     className="block text-sm font-medium mb-1"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     Description *
                   </label>
@@ -435,8 +435,8 @@ const CreateGroup = () => {
                     className="w-full px-3 py-2 rounded-lg text-sm resize-none"
                     placeholder="Describe what this group is for..."
                     style={{
-                      backgroundColor: colors.hover_bg,
-                      color: colors.primary_text,
+                      backgroundColor: "var(--color-hover-bg)",
+                      color: "var(--color-primary-text)",
                       outline: "none",
                       border: errors.description
                         ? "1px solid #ef4444"
@@ -455,13 +455,13 @@ const CreateGroup = () => {
               <div>
                 <label
                   className="block text-sm font-medium mb-2"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Choose Avatar
                 </label>
 
                 {/* Category Tabs - Default MUI Tabs/Tab */}
-                <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
+                <Box sx={{ borderBottom: 1, borderColor: "var(--color-border-color)", mb: 2 }}>
                   <Tabs
                     value={avatarTabValue}
                     onChange={handleTabChange}
@@ -471,15 +471,15 @@ const CreateGroup = () => {
                     indicatorColor="primary"
                     sx={{
                       "& .MuiTabs-scrollButtons": {
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         opacity: 1,
                       },
                       "& .MuiTab-root": {
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         fontWeight: 600,
                         fontSize: "1rem",
                         textTransform: "none",
-                        backgroundColor: colors.primary_bg,
+                        backgroundColor: "var(--color-primary-bg)",
                         borderRadius: "8px 8px 0 0",
                         mx: 0.5,
                         transition:
@@ -493,8 +493,8 @@ const CreateGroup = () => {
                         paddingBottom: "0px",
                       },
                       "& .Mui-selected": {
-                        color: colors.primary_accent,
-                        backgroundColor: colors.active_bg,
+                        color: "var(--color-primary-accent)",
+                        bgcolor: "action.selected",
                         borderRadius: "8px 8px 0 0",
                         transition:
                           "background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -536,8 +536,8 @@ const CreateGroup = () => {
                 <div
                   className="rounded-lg p-3 relative"
                   style={{
-                    backgroundColor: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    border: "1px solid var(--color-border-color)",
                    minHeight: "320px" }}
                 >
                   <div className="grid grid-cols-8 gap-2">
@@ -556,7 +556,7 @@ const CreateGroup = () => {
                             formData.avatar === avatar
                               ? colors.primary_accent
                               : colors.border_color,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           boxShadow:
                             formData.avatar === avatar
                               ? `0 0 0 2px ${colors.primary_accent}`
@@ -595,7 +595,7 @@ const CreateGroup = () => {
                             avatarPage === 0
                               ? colors.hover_bg
                               : colors.tertiary_bg,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           opacity: avatarPage === 0 ? 0.5 : 1,
                           cursor: avatarPage === 0 ? "not-allowed" : "pointer",
                         }}
@@ -613,7 +613,7 @@ const CreateGroup = () => {
                       </button>
                       <span
                         className="text-xs"
-                        style={{ color: colors.primary_text }}
+                        style={{ color: "var(--color-primary-text)" }}
                       >
                         Page {avatarPage + 1} of {totalAvatarPages}
                       </span>
@@ -631,7 +631,7 @@ const CreateGroup = () => {
                             avatarPage === totalAvatarPages - 1
                               ? colors.hover_bg
                               : colors.tertiary_bg,
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           opacity:
                             avatarPage === totalAvatarPages - 1 ? 0.5 : 1,
                           cursor:

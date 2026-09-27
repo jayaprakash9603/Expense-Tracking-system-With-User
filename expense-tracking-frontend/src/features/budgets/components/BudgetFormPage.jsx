@@ -439,7 +439,7 @@ export default function BudgetFormPage({ mode }) {
   );
 
   return (
-    <div style={{ backgroundColor: colors.primary_bg }}>
+    <div style={{ backgroundColor: "var(--color-primary-bg)" }}>
       <FormPageShell
         title={pageTitle}
         onClose={handleCloseBudget}

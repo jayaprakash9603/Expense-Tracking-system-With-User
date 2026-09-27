@@ -392,7 +392,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderRadius: "12px",
           border: `1px solid ${entityColor}40`,
         },
@@ -424,7 +424,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
           <Box>
             <Typography
               variant="subtitle1"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               {entityType} Details
             </Typography>
@@ -448,7 +448,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
           </Box>
         </Box>
         <IconButton onClick={onClose} size="small">
-          <CloseIcon sx={{ color: colors.secondary_text }} />
+          <CloseIcon sx={{ color: "var(--color-secondary-text)" }} />
         </IconButton>
       </DialogTitle>
 
@@ -461,7 +461,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
             gap: 1.5,
             mb: 2,
             p: 1.5,
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderRadius: "8px",
           }}
         >
@@ -480,13 +480,13 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
           <Box sx={{ flex: 1 }}>
             <Typography
               variant="body2"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               {actorUserName || "Someone"}
             </Typography>
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
             >
               {actionText || description}
             </Typography>
@@ -557,7 +557,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
                           height: 14,
                           borderRadius: "4px",
                           backgroundColor: value.toLowerCase(),
-                          border: `1px solid ${colors.border_color}`,
+                          border: "1px solid var(--color-border-color)",
                         }}
                       />
                       <span style={{ textTransform: "capitalize" }}>
@@ -687,7 +687,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
                         alignItems: "center",
                         gap: 1,
                         p: 1,
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         borderRadius: "8px",
                         minHeight: 48,
                       }}
@@ -801,7 +801,7 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
                           <Typography
                             variant="body2"
                             sx={{
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               fontSize: "0.75rem",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -825,8 +825,8 @@ const ActivityDetailModal = ({ open, onClose, activity }) => {
           variant="outlined"
           sx={{
             textTransform: "none",
-            borderColor: colors.border_color,
-            color: colors.secondary_text,
+            borderColor: "var(--color-border-color)",
+            color: "var(--color-secondary-text)",
             "&:hover": {
               borderColor: colors.primary_accent,
               backgroundColor: `${colors.primary_accent}10`,

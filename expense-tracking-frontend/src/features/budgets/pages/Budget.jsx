@@ -471,8 +471,8 @@ const Budget = () => {
               top: 14,
               right: hasWriteAccess ? 48 : 14,
               zIndex: 3,
-              color: colors.primary_accent,
-              backgroundColor: colors.primary_bg,
+              color: "var(--color-primary-accent)",
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "50%",
               fontSize: 22,
             }}
@@ -492,7 +492,7 @@ const Budget = () => {
               <Typography
                 variant="h6"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 600,
                   fontSize: "1.1rem",
                   mb: 0.5,
@@ -521,7 +521,7 @@ const Budget = () => {
                   }}
                   aria-label={`Actions for ${budget.name}`}
                   sx={{
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     "&:hover": { bgcolor: colors.hover_bg },
                   }}
                 >
@@ -536,7 +536,7 @@ const Budget = () => {
             <Typography
               variant="body2"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 mb: 2,
                 fontSize: "0.85rem",
                 lineHeight: 1.4,
@@ -557,14 +557,14 @@ const Budget = () => {
             >
               <Typography
                 variant="body2"
-                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "0.8rem" }}
               >
                 Spent: {currencySymbol}
                 {spent.toFixed(2)}
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ color: colors.secondary_text, fontSize: "0.8rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "0.8rem" }}
               >
                 {progress.toFixed(1)}%
               </Typography>
@@ -596,7 +596,7 @@ const Budget = () => {
             >
               <Typography
                 variant="body2"
-                sx={{ color: colors.primary_text, fontSize: "0.9rem" }}
+                sx={{ color: "var(--color-primary-text)", fontSize: "0.9rem" }}
               >
                 <strong>Budget:</strong> {currencySymbol}
                 {budget.amount?.toFixed(2)}
@@ -628,10 +628,10 @@ const Budget = () => {
               borderTop: `1px solid ${colors.border_color}`,
             }}
           >
-            <CalendarIcon sx={{ color: colors.secondary_text, fontSize: "1rem" }} />
+            <CalendarIcon sx={{ color: "var(--color-secondary-text)", fontSize: "1rem" }} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
             >
               {budget.startDate} - {budget.endDate}
             </Typography>
@@ -654,7 +654,7 @@ const Budget = () => {
               handleReport(budget.id);
             }}
             sx={{
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               textTransform: "none",
               fontSize: "0.8rem",
               "&:hover": { bgcolor: colors.hover_bg },
@@ -683,7 +683,7 @@ const Budget = () => {
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "0.875rem",
                 fontWeight: 600,
               }}
@@ -725,7 +725,7 @@ const Budget = () => {
         renderCell: (params) => (
           <Typography
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "0.875rem",
               fontWeight: 600,
             }}
@@ -744,7 +744,7 @@ const Budget = () => {
         renderCell: (params) => (
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.8rem",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -765,7 +765,7 @@ const Budget = () => {
         renderCell: (params) => (
           <Typography
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontSize: "0.875rem",
             }}
           >
@@ -784,7 +784,7 @@ const Budget = () => {
         renderCell: (params) => (
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.8rem",
             }}
           >
@@ -802,7 +802,7 @@ const Budget = () => {
         renderCell: (params) => (
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.8rem",
             }}
           >
@@ -966,9 +966,9 @@ const Budget = () => {
             <IconButton
               onClick={(e) => handleMenuClick(e, params.row.id)}
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   opacity: 0.8,
                 },
               }}
@@ -979,9 +979,9 @@ const Budget = () => {
             <IconButton
               onClick={() => handleReport(params.row.id)}
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   opacity: 0.8,
                 },
               }}
@@ -1030,11 +1030,11 @@ const Budget = () => {
     <>
       <Box
         sx={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           p: isSmallScreen ? 1.5 : 2,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
@@ -1057,11 +1057,11 @@ const Budget = () => {
             {!hideBackButton && (
               <IconButton
                 sx={{
-                  color: colors.primary_accent,
-                  backgroundColor: colors.primary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  color: "var(--color-primary-accent)",
+                  backgroundColor: "var(--color-primary-bg)",
+                  border: "1px solid var(--color-border-color)",
                   "&:hover": {
-                    backgroundColor: colors.hover_bg,
+                    backgroundColor: "var(--color-hover-bg)",
                     borderColor: colors.primary_accent,
                   },
                   width: 36,
@@ -1090,7 +1090,7 @@ const Budget = () => {
             <Typography
               variant="h3"
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: "bold",
                 fontSize: isSmallScreen ? "1.25rem" : "1.5rem",
               }}
@@ -1108,7 +1108,7 @@ const Budget = () => {
               onClick={handleNavigateReports}
               sx={{
                 textTransform: "none",
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 borderColor: colors.primary_accent,
                 fontWeight: 600,
                 px: 2,
@@ -1132,7 +1132,7 @@ const Budget = () => {
                 onClick={handleNewBudgetClick}
                 sx={{
                   textTransform: "none",
-                  bgcolor: colors.primary_accent,
+                  bgcolor: "var(--color-primary-accent)",
                   color: colors.button_text,
                   fontWeight: 600,
                   px: 2,
@@ -1150,9 +1150,9 @@ const Budget = () => {
             <IconButton
               onClick={handleViewModeToggle}
               sx={{
-                color: colors.primary_accent,
-                bgcolor: colors.primary_bg,
-                border: `1px solid ${colors.border_color}`,
+                color: "var(--color-primary-accent)",
+                backgroundColor: "var(--color-primary-bg)",
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "6px",
                 width: 36,
                 height: 36,
@@ -1171,7 +1171,7 @@ const Budget = () => {
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: colors.border_color, mb: 1.5 }} />
+        <Divider sx={{ borderColor: "var(--color-border-color)", mb: 1.5 }} />
 
         {/* Statistics Cards */}
         <SharedOverviewCards
@@ -1186,8 +1186,8 @@ const Budget = () => {
             mb: 2,
             borderRadius: "12px",
             overflow: "hidden",
-            backgroundColor: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
           }}
         >
           <Tabs
@@ -1201,14 +1201,14 @@ const Budget = () => {
                 textTransform: "none",
                 py: 2,
                 minHeight: 60,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 "&.Mui-selected": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   transform: "scale(1.02)",
                 },
                 "&:hover": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   backgroundColor: `${colors.primary_accent}14`,
                 },
               },
@@ -1234,7 +1234,7 @@ const Budget = () => {
         <Box
           sx={{
             background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: "12px",
             p: 2,
             mb: 2.5,
@@ -1261,7 +1261,7 @@ const Budget = () => {
                   startAdornment: (
                     <SearchIcon
                       sx={{
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         mr: 1,
                         fontSize: "1.2rem",
                       }}
@@ -1271,11 +1271,11 @@ const Budget = () => {
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     bgcolor: colors.secondary_bg,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     borderRadius: "8px",
                     height: "48px",
                     "& fieldset": {
-                      borderColor: colors.border_color,
+                      borderColor: "var(--color-border-color)",
                       borderWidth: "1.5px",
                     },
                     "&:hover fieldset": {
@@ -1323,25 +1323,25 @@ const Budget = () => {
                       flex: 1,
                       "& .MuiInputBase-root": {
                         bgcolor: colors.secondary_bg,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         borderRadius: "8px",
                         height: "48px",
                         fontSize: "0.875rem",
                       },
                       "& .MuiInputBase-input": {
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         fontSize: "0.875rem",
                       },
                       "& .MuiInputLabel-root": {
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "0.875rem",
                         "&.Mui-focused": {
-                          color: colors.primary_accent,
+                          color: "var(--color-primary-accent)",
                         },
                       },
                       "& .MuiOutlinedInput-root": {
                         "& fieldset": {
-                          borderColor: colors.border_color,
+                          borderColor: "var(--color-border-color)",
                           borderWidth: "1.5px",
                         },
                         "&:hover fieldset": {
@@ -1354,7 +1354,7 @@ const Budget = () => {
                         },
                       },
                       "& .MuiSvgIcon-root": {
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                       },
                     }}
                     slotProps={{
@@ -1371,14 +1371,14 @@ const Budget = () => {
                       popper: {
                         sx: {
                           "& .MuiPaper-root": {
-                            bgcolor: colors.primary_bg,
-                            color: colors.primary_text,
-                            border: `1px solid ${colors.border_color}`,
+                            backgroundColor: "var(--color-primary-bg)",
+                            color: "var(--color-primary-text)",
+                            border: "1px solid var(--color-border-color)",
                             borderRadius: "8px",
                             boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
                           },
                           "& .MuiPickersDay-root": {
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                             "&:hover": {
                               bgcolor: colors.hover_bg,
                             },
@@ -1391,16 +1391,16 @@ const Budget = () => {
                             },
                           },
                           "& .MuiPickersCalendarHeader-root": {
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                           },
                           "& .MuiPickersCalendarHeader-label": {
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                           },
                           "& .MuiPickersArrowSwitcher-button": {
-                            color: colors.primary_accent,
+                            color: "var(--color-primary-accent)",
                           },
                           "& .MuiDayCalendar-weekDayLabel": {
-                            color: colors.primary_accent,
+                            color: "var(--color-primary-accent)",
                           },
                         },
                       },
@@ -1411,7 +1411,7 @@ const Budget = () => {
                   <IconButton
                     onClick={() => setFilterDate("")}
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       bgcolor: colors.secondary_bg,
                       border: `1.5px solid ${colors.border_color}`,
                       borderRadius: "8px",
@@ -1422,7 +1422,7 @@ const Budget = () => {
                       "&:hover": {
                         bgcolor: colors.hover_bg,
                         borderColor: colors.primary_accent,
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                         transform: "translateY(-2px)",
                         boxShadow: `0 4px 12px rgba(20, 184, 166, 0.3)`,
                       },
@@ -1487,7 +1487,7 @@ const Budget = () => {
                     flexShrink: 0,
                     transition: "all 0.3s ease",
                     "&:hover": {
-                      bgcolor: colors.primary_accent,
+                      bgcolor: "var(--color-primary-accent)",
                       color: "#fff",
                       borderColor: colors.primary_accent,
                       transform: "translateY(-2px)",
@@ -1572,7 +1572,7 @@ const Budget = () => {
                 sx={{ fontSize: "4rem", color: colors.icon_muted }}
               />
               <Typography
-                sx={{ color: colors.secondary_text, fontSize: "1.1rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "1.1rem" }}
               >
                 No budgets found. Create your first budget!
               </Typography>
@@ -1583,7 +1583,7 @@ const Budget = () => {
                   onClick={handleNewBudgetClick}
                   sx={{
                     textTransform: "none",
-                    bgcolor: colors.primary_accent,
+                    bgcolor: "var(--color-primary-accent)",
                     color: colors.button_text,
                     fontWeight: 600,
                     px: 3,
@@ -1642,8 +1642,8 @@ const Budget = () => {
                 headerHeight={47}
                 sx={{
                   background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
-                  color: colors.primary_text,
-                  border: `1px solid ${colors.border_color}`,
+                  color: "var(--color-primary-text)",
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: "12px",
                   "& .MuiDataGrid-virtualScroller": {
                     "&::-webkit-scrollbar": {
@@ -1665,16 +1665,16 @@ const Budget = () => {
                   "& .MuiDataGrid-cell": {
                     fontSize: "0.875rem",
                     py: 0,
-                    borderColor: colors.border_color,
-                    color: colors.primary_text,
+                    borderColor: "var(--color-border-color)",
+                    color: "var(--color-primary-text)",
                     display: "flex",
                     alignItems: "center",
                   },
                   "& .MuiDataGrid-columnHeaders": {
                     fontSize: "0.8rem",
                     background: colors.tertiary_bg,
-                    color: colors.primary_text,
-                    borderColor: colors.border_color,
+                    color: "var(--color-primary-text)",
+                    borderColor: "var(--color-border-color)",
                     fontWeight: 700,
                     minHeight: "50px !important",
                     maxHeight: "50px !important",
@@ -1685,7 +1685,7 @@ const Budget = () => {
                   "& .MuiDataGrid-row": {
                     minHeight: "55px !important",
                     maxHeight: "55px !important",
-                    borderColor: colors.border_color,
+                    borderColor: "var(--color-border-color)",
                     "&:hover": {
                       background: colors.hover_bg,
                     },
@@ -1696,19 +1696,19 @@ const Budget = () => {
                   },
                   "& .MuiDataGrid-footerContainer": {
                     background: colors.primary_bg,
-                    borderColor: colors.border_color,
-                    color: colors.primary_text,
+                    borderColor: "var(--color-border-color)",
+                    color: "var(--color-primary-text)",
                     minHeight: "50px",
                   },
                   "& .MuiTablePagination-root": {
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   },
                   "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
                     {
                       fontSize: "0.8rem",
                     },
                   "& .MuiDataGrid-toolbarContainer": {
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   },
                 }}
               />
@@ -1732,7 +1732,7 @@ const Budget = () => {
             }}
             PaperProps={{
               sx: {
-                bgcolor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 border: `1px solid ${colors.primary_accent}`,
                 borderRadius: "8px",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
@@ -1746,7 +1746,7 @@ const Budget = () => {
               <MenuItem
                 onClick={handleEdit}
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   px: 3,
                   py: 1.5,
                   "&:hover": {
@@ -1764,7 +1764,7 @@ const Budget = () => {
               <MenuItem
                 onClick={handleDelete}
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   px: 3,
                   py: 1.5,
                   "&:hover": {

@@ -46,12 +46,12 @@ const RequestsSection = () => {
           borderRadius: "12px",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
           px: 1,
-          "& .MuiTabs-indicator": { bgcolor: colors.primary_accent, height: 3, borderRadius: 2 },
+          "& .MuiTabs-indicator": { bgcolor: "var(--color-primary-accent)", height: 3, borderRadius: 2 },
           "& .MuiTab-root": {
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             minHeight: 44,
             transition: "color 200ms ease",
-            "&.Mui-selected": { color: colors.primary_accent },
+            "&.Mui-selected": { color: "var(--color-primary-accent)" },
           },
         }}
       >
@@ -90,7 +90,7 @@ const RequestsSection = () => {
             borderRadius: 1,
           },
           "&::-webkit-scrollbar-thumb": {
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             borderRadius: 1,
           },
         }}

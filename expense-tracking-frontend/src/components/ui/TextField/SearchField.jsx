@@ -44,7 +44,7 @@ const SearchField = React.forwardRef(
             <InputAdornment position="start">
               <SearchIcon
                 sx={{
-                  color: colors.secondary_text || "#9ca3af",
+                  color: "var(--color-secondary-text)" || "#9ca3af",
                   fontSize: size === "small" ? "20px" : "24px",
                 }}
               />

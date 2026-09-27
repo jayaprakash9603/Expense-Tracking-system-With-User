@@ -81,7 +81,7 @@ const FlowExpenseTable = ({
       className="w-full rounded-lg p-4 mb-4"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         boxShadow: isDark
           ? "0 10px 30px rgba(0,0,0,0.40)"
           : "0 10px 30px rgba(17,24,39,0.08)",
@@ -103,7 +103,7 @@ const FlowExpenseTable = ({
           <Typography
             variant={isMobile ? "subtitle1" : "h6"}
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 800,
               lineHeight: 1.2,
               mb: 0.5,
@@ -117,7 +117,7 @@ const FlowExpenseTable = ({
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: colors.secondary_text, fontWeight: 600 }}
+            sx={{ color: "var(--color-secondary-text)", fontWeight: 600 }}
           >
             {t("flows.expensesTable.summary", {
               count: totals.count,
@@ -130,13 +130,13 @@ const FlowExpenseTable = ({
           onClick={onClose}
           aria-label={t("common.close")}
           sx={{
-            color: colors.primary_text,
-            border: `1px solid ${colors.border_color}`,
+            color: "var(--color-primary-text)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "10px",
             width: 36,
             height: 36,
             "&:hover": {
-              backgroundColor: colors.hover_bg,
+              backgroundColor: "var(--color-hover-bg)",
               borderColor: colors.primary_accent,
             },
           }}

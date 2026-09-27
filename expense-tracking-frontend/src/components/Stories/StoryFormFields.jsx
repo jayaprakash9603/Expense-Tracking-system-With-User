@@ -84,14 +84,14 @@ const StoryFormFields = ({
           <Paper
             sx={{
               p: 2,
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
             <Typography
               variant="subtitle1"
-              sx={{ mb: 2, fontWeight: 600, color: colors.primary_text }}
+              sx={{ mb: 2, fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               Story Details
             </Typography>
@@ -104,14 +104,14 @@ const StoryFormFields = ({
                 fullWidth
                 required
                 InputProps={{
-                  style: { color: colors.primary_text },
+                  style: { color: "var(--color-primary-text)" },
                 }}
                 InputLabelProps={{
-                  style: { color: colors.secondary_text },
+                  style: { color: "var(--color-secondary-text)" },
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: colors.border_color },
+                    "& fieldset": { borderColor: "var(--color-border-color)" },
                     "&:hover fieldset": { borderColor: colors.primary },
                   },
                 }}
@@ -126,14 +126,14 @@ const StoryFormFields = ({
                 rows={3}
                 required
                 InputProps={{
-                  style: { color: colors.primary_text },
+                  style: { color: "var(--color-primary-text)" },
                 }}
                 InputLabelProps={{
-                  style: { color: colors.secondary_text },
+                  style: { color: "var(--color-secondary-text)" },
                 }}
                 sx={{
                   "& .MuiOutlinedInput-root": {
-                    "& fieldset": { borderColor: colors.border_color },
+                    "& fieldset": { borderColor: "var(--color-border-color)" },
                     "&:hover fieldset": { borderColor: colors.primary },
                   },
                 }}
@@ -206,7 +206,7 @@ const StoryFormFields = ({
                     fullWidth
                     placeholder="linear-gradient(135deg, #667eea, #764ba2)"
                     InputProps={{
-                      style: { color: colors.primary_text },
+                      style: { color: "var(--color-primary-text)" },
                     }}
                   />
                 </Grid>
@@ -227,7 +227,7 @@ const StoryFormFields = ({
                     fullWidth
                     inputProps={{ min: 1, max: 60 }}
                     InputProps={{
-                      style: { color: colors.primary_text },
+                      style: { color: "var(--color-primary-text)" },
                     }}
                   />
                 </Grid>
@@ -245,7 +245,7 @@ const StoryFormFields = ({
                     fullWidth
                     inputProps={{ min: 1, max: 168 }}
                     InputProps={{
-                      style: { color: colors.primary_text },
+                      style: { color: "var(--color-primary-text)" },
                     }}
                   />
                 </Grid>
@@ -263,7 +263,7 @@ const StoryFormFields = ({
                     fullWidth
                     inputProps={{ min: 0, max: 100 }}
                     InputProps={{
-                      style: { color: colors.primary_text },
+                      style: { color: "var(--color-primary-text)" },
                     }}
                   />
                 </Grid>
@@ -283,7 +283,7 @@ const StoryFormFields = ({
                   label={
                     <Typography
                       variant="body2"
-                      sx={{ color: colors.primary_text }}
+                      sx={{ color: "var(--color-primary-text)" }}
                     >
                       Global Story (visible to all users)
                     </Typography>
@@ -302,7 +302,7 @@ const StoryFormFields = ({
                   label={
                     <Typography
                       variant="body2"
-                      sx={{ color: colors.primary_text }}
+                      sx={{ color: "var(--color-primary-text)" }}
                     >
                       Auto Activate
                     </Typography>
@@ -320,7 +320,7 @@ const StoryFormFields = ({
                   }
                   fullWidth
                   InputProps={{
-                    style: { color: colors.primary_text },
+                    style: { color: "var(--color-primary-text)" },
                   }}
                 />
               )}
@@ -332,8 +332,8 @@ const StoryFormFields = ({
             sx={{
               p: 2,
               mt: 2,
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
@@ -347,7 +347,7 @@ const StoryFormFields = ({
             >
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, color: colors.primary_text }}
+                sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
               >
                 CTA Buttons
               </Typography>
@@ -365,7 +365,7 @@ const StoryFormFields = ({
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   textAlign: "center",
                   py: 2,
                 }}
@@ -379,8 +379,8 @@ const StoryFormFields = ({
                   sx={{
                     p: 2,
                     mb: 2,
-                    backgroundColor: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    border: "1px solid var(--color-border-color)",
                   }}
                 >
                   <Grid container spacing={2} alignItems="center">
@@ -456,14 +456,14 @@ const StoryFormFields = ({
           <Paper
             sx={{
               p: 2,
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
             <Typography
               variant="subtitle1"
-              sx={{ mb: 2, fontWeight: 600, color: colors.primary_text }}
+              sx={{ mb: 2, fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               Media Upload
             </Typography>
@@ -475,7 +475,7 @@ const StoryFormFields = ({
                 borderRadius: 2,
                 textAlign: "center",
                 cursor: isUploading ? "not-allowed" : "pointer",
-                backgroundColor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 transition: "all 0.3s ease",
                 position: "relative",
                 overflow: "hidden",
@@ -620,7 +620,7 @@ const StoryFormFields = ({
                   />
                   <Typography
                     variant="body1"
-                    sx={{ color: colors.primary_text, mb: 2 }}
+                    sx={{ color: "var(--color-primary-text)", mb: 2 }}
                   >
                     Uploading {mediaType}...
                   </Typography>
@@ -631,7 +631,7 @@ const StoryFormFields = ({
                   />
                   <Typography
                     variant="body2"
-                    sx={{ color: colors.secondary_text }}
+                    sx={{ color: "var(--color-secondary-text)" }}
                   >
                     {uploadProgress}%
                   </Typography>
@@ -650,27 +650,27 @@ const StoryFormFields = ({
                     }}
                   >
                     <ImageIcon
-                      sx={{ fontSize: 36, color: colors.secondary_text }}
+                      sx={{ fontSize: 36, color: "var(--color-secondary-text)" }}
                     />
                     <Videocam
-                      sx={{ fontSize: 36, color: colors.secondary_text }}
+                      sx={{ fontSize: 36, color: "var(--color-secondary-text)" }}
                     />
                   </Box>
                   <Typography
                     variant="body1"
-                    sx={{ color: colors.primary_text, mb: 1 }}
+                    sx={{ color: "var(--color-primary-text)", mb: 1 }}
                   >
                     Click to upload image or video
                   </Typography>
                   <Typography
                     variant="body2"
-                    sx={{ color: colors.secondary_text }}
+                    sx={{ color: "var(--color-secondary-text)" }}
                   >
                     Images: JPEG, PNG, GIF, WebP (max 10MB)
                   </Typography>
                   <Typography
                     variant="body2"
-                    sx={{ color: colors.secondary_text }}
+                    sx={{ color: "var(--color-secondary-text)" }}
                   >
                     Videos: MP4, WebM, MOV (max 1 minute, 100MB)
                   </Typography>
@@ -688,7 +688,7 @@ const StoryFormFields = ({
             <Box sx={{ mt: 2 }}>
               <Typography
                 variant="subtitle2"
-                sx={{ mb: 1, color: colors.secondary_text }}
+                sx={{ mb: 1, color: "var(--color-secondary-text)" }}
               >
                 Story Preview
               </Typography>

@@ -57,7 +57,7 @@ const MonthlyTrendChart = ({
         <div
           style={{
             backgroundColor: mode === "dark" ? "#1a1a1a" : "#ffffff",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
             padding: "12px",
             boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
@@ -68,7 +68,7 @@ const MonthlyTrendChart = ({
         >
           <Typography
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 600,
               fontSize: "0.85rem",
               marginBottom: "8px",
@@ -96,12 +96,12 @@ const MonthlyTrendChart = ({
               />
               <Typography
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   fontSize: "0.75rem",
                 }}
               >
                 {entry.name}:{" "}
-                <span style={{ color: colors.primary_text, fontWeight: 600 }}>
+                <span style={{ color: "var(--color-primary-text)", fontWeight: 600 }}>
                   {currencySymbol}
                   {entry.value?.toLocaleString("en-IN") || 0}
                 </span>
@@ -119,7 +119,7 @@ const MonthlyTrendChart = ({
       mode === "dark"
         ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
     padding: compact ? "10px 12px" : "16px 20px",
     position: "relative",
@@ -133,7 +133,7 @@ const MonthlyTrendChart = ({
         <Typography
           variant="subtitle1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             marginBottom: compact ? "8px" : "16px",
             fontSize: compact ? "0.85rem" : "1rem",
@@ -151,7 +151,7 @@ const MonthlyTrendChart = ({
         >
           <Typography
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: compact ? "0.75rem" : "0.875rem",
             }}
           >
@@ -176,7 +176,7 @@ const MonthlyTrendChart = ({
         <Typography
           variant="subtitle1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             fontSize: compact ? "0.85rem" : "1rem",
           }}

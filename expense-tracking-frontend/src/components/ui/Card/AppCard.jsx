@@ -56,7 +56,7 @@ const AppCard = React.forwardRef(
     const currentPadding = paddingConfig[padding] || paddingConfig.default;
 
     const cardStyles = {
-      backgroundColor: colors.card_bg || colors.secondary_bg || "#1f1f23",
+      backgroundColor: "var(--color-primary-bg)" || colors.secondary_bg || "#1f1f23",
       borderRadius: "12px",
       border: `1px solid ${colors.border_color || "rgba(255, 255, 255, 0.1)"}`,
       transition: "all 0.2s ease-in-out",
@@ -74,12 +74,12 @@ const AppCard = React.forwardRef(
       padding: currentPadding,
       paddingBottom: children ? "8px" : currentPadding,
       "& .MuiCardHeader-title": {
-        color: colors.primary_text || "#fff",
+        color: "var(--color-primary-text)" || "#fff",
         fontSize: "1rem",
         fontWeight: 600,
       },
       "& .MuiCardHeader-subheader": {
-        color: colors.secondary_text || "#9ca3af",
+        color: "var(--color-secondary-text)" || "#9ca3af",
         fontSize: "0.875rem",
       },
       ...headerSx,
@@ -88,7 +88,7 @@ const AppCard = React.forwardRef(
     const contentStyles = {
       padding: currentPadding,
       paddingTop: title ? "8px" : currentPadding,
-      color: colors.primary_text || "#fff",
+      color: "var(--color-primary-text)" || "#fff",
       "&:last-child": {
         paddingBottom: currentPadding,
       },

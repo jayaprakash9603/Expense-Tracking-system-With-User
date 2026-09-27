@@ -83,7 +83,7 @@ export default function CalendarDayCell({
     // Keep tooltips lightweight + helpful, shown only on hover.
     if (disabled) {
       return (
-        <Typography variant="caption" sx={{ color: colors.primary_text }}>
+        <Typography variant="caption" sx={{ color: "var(--color-primary-text)" }}>
           No transactions
         </Typography>
       );
@@ -134,13 +134,13 @@ export default function CalendarDayCell({
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
         {iconsLine && (
-          <Typography variant="caption" sx={{ color: colors.primary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-primary-text)" }}>
             {iconsLine}
           </Typography>
         )}
 
         {avgLine && (
-          <Typography variant="caption" sx={{ color: colors.primary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-primary-text)" }}>
             {avgLine}
           </Typography>
         )}
@@ -152,7 +152,7 @@ export default function CalendarDayCell({
         )}
 
         {!!comparisonLine && (
-          <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+          <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
             {comparisonLine}
           </Typography>
         )}
@@ -184,15 +184,15 @@ export default function CalendarDayCell({
       componentsProps={{
         tooltip: {
           sx: {
-            backgroundColor: colors.secondary_bg,
-            color: colors.primary_text,
-            border: `1px solid ${colors.border}`,
+            backgroundColor: "var(--color-secondary-bg)",
+            color: "var(--color-primary-text)",
+            border: "1px solid var(--color-border-color)",
             boxShadow: 3,
             fontSize: "0.75rem",
             "& .MuiTooltip-arrow": {
               color: colors.secondary_bg,
               "&::before": {
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
               },
             },
           },
@@ -327,7 +327,7 @@ export default function CalendarDayCell({
                 height: 18,
                 borderRadius: "50%",
                 background: colors.primary_bg,
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <LockRoundedIcon
@@ -480,7 +480,7 @@ export default function CalendarDayCell({
                     alignItems: "center",
                     justifyContent: "center",
                     background: colors.primary_bg,
-                    border: `1px solid ${colors.border}`,
+                    border: "1px solid var(--color-border-color)",
                   }}
                 >
                   {renderIcon(it?.key || it?.label || "", {

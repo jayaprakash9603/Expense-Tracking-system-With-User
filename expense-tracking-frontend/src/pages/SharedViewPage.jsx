@@ -124,7 +124,7 @@ const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
         overflow: "hidden",
         textAlign: "center",
         bgcolor: colors.card_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "20px",
         boxShadow: "0 24px 70px rgba(0, 0, 0, 0.28)",
       }}
@@ -144,18 +144,18 @@ const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
             border: `1px solid ${colors.error}45`,
           }}
         >
-          <WarningIcon sx={{ fontSize: 42, color: colors.error }} />
+          <WarningIcon sx={{ fontSize: 42, color: "var(--color-error)" }} />
         </Box>
         <Chip
           size="small"
           icon={<LockIcon />}
           label="Secure share"
-          sx={{ mb: 2, color: colors.secondary_text, bgcolor: colors.hover_bg }}
+          sx={{ mb: 2, color: "var(--color-secondary-text)", bgcolor: colors.hover_bg }}
         />
-        <Typography variant="h4" sx={{ color: colors.primary_text, fontWeight: 800, mb: 1.5 }}>
+        <Typography variant="h4" sx={{ color: "var(--color-primary-text)", fontWeight: 800, mb: 1.5 }}>
           Share not available
         </Typography>
-        <Typography sx={{ color: colors.secondary_text, lineHeight: 1.7, mb: 3 }}>
+        <Typography sx={{ color: "var(--color-secondary-text)", lineHeight: 1.7, mb: 3 }}>
           {getShareErrorMessage(error)}
         </Typography>
         <Alert
@@ -164,7 +164,7 @@ const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
             mb: 3,
             textAlign: "left",
             bgcolor: `${colors.accent}12`,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             border: `1px solid ${colors.accent}30`,
           }}
         >
@@ -175,7 +175,7 @@ const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
           <Button
             variant="outlined"
             onClick={onRetry}
-            sx={{ minHeight: 44, textTransform: "none", borderColor: colors.border_color }}
+            sx={{ minHeight: 44, textTransform: "none", borderColor: "var(--color-border-color)" }}
           >
             Try again
           </Button>
@@ -185,10 +185,10 @@ const ShareUnavailableState = ({ colors, error, onHome, onRetry }) => (
             onClick={onHome}
             sx={{
               minHeight: 44,
-              bgcolor: colors.accent,
+              bgcolor: "var(--color-primary-accent)",
               textTransform: "none",
               fontWeight: 700,
-              "&:hover": { bgcolor: colors.accent_hover },
+              "&:hover": { bgcolor: "primary.dark" },
             }}
           >
             Go to home
@@ -246,7 +246,7 @@ const SharedItemsSkeleton = ({ colors, count = 8 }) => {
           <Card
             sx={{
               background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-              border: `1px solid ${colors.border}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
               height: "100%",
               p: 2,
@@ -849,8 +849,8 @@ const SharedViewPage = () => {
         }}
       >
         <Box sx={{ textAlign: "center" }}>
-          <CircularProgress sx={{ color: colors.accent, mb: 2 }} />
-          <Typography sx={{ color: colors.secondary_text }}>
+          <CircularProgress sx={{ color: "var(--color-primary-accent)", mb: 2 }} />
+          <Typography sx={{ color: "var(--color-secondary-text)" }}>
             Loading shared content...
           </Typography>
         </Box>
@@ -890,7 +890,7 @@ const SharedViewPage = () => {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
       }}
     >
       {/* Universal Search Modal - Opens with Ctrl/Cmd + K */}
@@ -938,7 +938,7 @@ const SharedViewPage = () => {
                 startIcon={<HomeIcon sx={{ fontSize: 18 }} />}
                 onClick={() => navigate("/dashboard")}
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   textTransform: "none",
                   fontSize: "0.875rem",
                   py: 0.5,
@@ -1119,7 +1119,7 @@ const SharedViewPage = () => {
                   onClick={navigateToLogin}
                   sx={{
                     borderColor: colors.accent,
-                    color: colors.accent,
+                    color: "var(--color-primary-accent)",
                     textTransform: "none",
                     fontWeight: 600,
                     fontSize: "0.875rem",
@@ -1164,7 +1164,7 @@ const SharedViewPage = () => {
       <Box
         sx={{
           width: "100vw",
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderBottom: `1px solid ${colors.border}`,
           px: 3,
           py: 2,
@@ -1200,12 +1200,12 @@ const SharedViewPage = () => {
               sx={{
                 width: "100%",
                 "& .MuiOutlinedInput-root": {
-                  backgroundColor: colors.secondary_bg,
-                  "& fieldset": { borderColor: colors.border },
+                  backgroundColor: "var(--color-secondary-bg)",
+                  "& fieldset": { borderColor: "var(--color-border-color)" },
                   "&:hover fieldset": { borderColor: colors.accent },
                   "&.Mui-focused fieldset": { borderColor: colors.accent },
                 },
-                "& .MuiInputBase-input": { color: colors.primary_text },
+                "& .MuiInputBase-input": { color: "var(--color-primary-text)" },
               }}
               InputProps={{
                 endAdornment: (
@@ -1219,7 +1219,7 @@ const SharedViewPage = () => {
                             handleClearSearch();
                           }
                         }}
-                        sx={{ mr: 0.5, color: colors.secondary_text }}
+                        sx={{ mr: 0.5, color: "var(--color-secondary-text)" }}
                         title="Clear search"
                       >
                         <CloseIcon sx={{ fontSize: 18 }} />
@@ -1273,7 +1273,7 @@ const SharedViewPage = () => {
               <Typography
                 variant="subtitle1"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 600,
                   lineHeight: 1.2,
                 }}
@@ -1322,7 +1322,7 @@ const SharedViewPage = () => {
                 {shareInfo?.owner && (
                   <Typography
                     variant="caption"
-                    sx={{ color: colors.secondary_text, ml: 1 }}
+                    sx={{ color: "var(--color-secondary-text)", ml: 1 }}
                   >
                     by {shareInfo.owner.firstName || "User"}
                   </Typography>
@@ -1347,22 +1347,22 @@ const SharedViewPage = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                backgroundColor: colors.hover_bg,
+                backgroundColor: "var(--color-hover-bg)",
                 px: 2,
                 py: 1,
                 borderRadius: 2,
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <Typography
                 variant="h6"
-                sx={{ color: colors.accent, fontWeight: 700 }}
+                sx={{ color: "var(--color-primary-accent)", fontWeight: 700 }}
               >
                 {totalItems}
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: colors.secondary_text }}
+                sx={{ color: "var(--color-secondary-text)" }}
               >
                 Total Items
               </Typography>
@@ -1375,11 +1375,11 @@ const SharedViewPage = () => {
                   display: "flex",
                   alignItems: "center",
                   gap: 1,
-                  backgroundColor: colors.hover_bg,
+                  backgroundColor: "var(--color-hover-bg)",
                   px: 2,
                   py: 1,
                   borderRadius: 2,
-                  border: `1px solid ${colors.border}`,
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
                 <Typography
@@ -1390,7 +1390,7 @@ const SharedViewPage = () => {
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   Total
                 </Typography>
@@ -1400,10 +1400,10 @@ const SharedViewPage = () => {
             {/* Expiry Info */}
             {shareInfo?.expiresAt && (
               <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <TimeIcon sx={{ fontSize: 16, color: colors.secondary_text }} />
+                <TimeIcon sx={{ fontSize: 16, color: "var(--color-secondary-text)" }} />
                 <Typography
                   variant="caption"
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   Expires: {formatDate(shareInfo.expiresAt)}
                 </Typography>
@@ -1417,7 +1417,7 @@ const SharedViewPage = () => {
       <Box
         sx={{
           width: "100vw",
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderBottom: `1px solid ${colors.border}`,
           position: "sticky",
           top: 0,
@@ -1439,7 +1439,7 @@ const SharedViewPage = () => {
               justifyContent: "space-between",
             },
             "& .MuiTab-root": {
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               textTransform: "none",
               fontWeight: 500,
               fontSize: "0.9rem",
@@ -1447,11 +1447,11 @@ const SharedViewPage = () => {
               flex: 1,
               maxWidth: "none",
               "&.Mui-selected": {
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
               },
               "&:hover": {
-                backgroundColor: colors.hover_bg,
+                backgroundColor: "var(--color-hover-bg)",
               },
             },
           }}
@@ -1494,7 +1494,7 @@ const SharedViewPage = () => {
       <Box
         sx={{
           width: "100vw",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderBottom: `1px solid ${colors.border}`,
           py: 1.5,
           px: 3,
@@ -1511,7 +1511,7 @@ const SharedViewPage = () => {
             label={`Showing ${displayedItems} of ${currentTabData?.totalItems || 0} ${RESOURCE_LABELS[activeResourceType]}`}
             sx={{
               backgroundColor: colors.accent + "20",
-              color: colors.accent,
+              color: "var(--color-primary-accent)",
               fontWeight: 500,
             }}
           />
@@ -1537,7 +1537,7 @@ const SharedViewPage = () => {
             showSelectedCheck={false}
             startAdornment={
               <InputAdornment position="start">
-                <SortIcon sx={{ color: colors.secondary_text, mr: 0.5 }} />
+                <SortIcon sx={{ color: "var(--color-secondary-text)", mr: 0.5 }} />
               </InputAdornment>
             }
             sx={{ minWidth: 180 }}
@@ -1559,7 +1559,7 @@ const SharedViewPage = () => {
             height: "10px",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderRadius: "5px",
           },
           "&::-webkit-scrollbar-thumb": {
@@ -1571,7 +1571,7 @@ const SharedViewPage = () => {
             },
           },
           "&::-webkit-scrollbar-corner": {
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
           },
           // Firefox scrollbar
           scrollbarWidth: "thin",
@@ -1626,14 +1626,14 @@ const SharedViewPage = () => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     display: "flex",
                     alignItems: "flex-start",
                     gap: 1,
                   }}
                 >
                   <LightbulbIcon
-                    sx={{ fontSize: 18, mt: 0.15, flexShrink: 0, color: colors.accent }}
+                    sx={{ fontSize: 18, mt: 0.15, flexShrink: 0, color: "var(--color-primary-accent)" }}
                   />
                   <span>
                     Click <strong>"Add to My Account"</strong> to copy any
@@ -1647,7 +1647,7 @@ const SharedViewPage = () => {
                     onClick={navigateToLogin}
                     sx={{
                       borderColor: colors.accent,
-                      color: colors.accent,
+                      color: "var(--color-primary-accent)",
                       textTransform: "none",
                       "&:hover": { backgroundColor: colors.accent + "10" },
                     }}
@@ -1678,7 +1678,7 @@ const SharedViewPage = () => {
                       <Card
                         sx={{
                           background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                          border: `1px solid ${colors.border}`,
+                          border: "1px solid var(--color-border-color)",
                           borderRadius: 2,
                           height: "100%",
                           display: "flex",
@@ -1724,7 +1724,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="subtitle2"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 500,
                                   mt: 0.5,
                                 }}
@@ -1760,16 +1760,16 @@ const SharedViewPage = () => {
                           {/* Category Badge */}
                           <Chip
                             icon={getCategoryIcon(sharedData.categoryName, {
-                              sx: { fontSize: 14, color: colors.accent },
+                              sx: { fontSize: 14, color: "var(--color-primary-accent)" },
                             })}
                             label={sharedData.categoryName || "Uncategorized"}
                             size="small"
                             sx={{
                               backgroundColor: colors.accent + "15",
-                              color: colors.accent,
+                              color: "var(--color-primary-accent)",
                               mb: 2,
                               height: 24,
-                              "& .MuiChip-icon": { color: colors.accent },
+                              "& .MuiChip-icon": { color: "var(--color-primary-accent)" },
                             }}
                           />
 
@@ -1792,12 +1792,12 @@ const SharedViewPage = () => {
                               <DateIcon
                                 sx={{
                                   fontSize: 16,
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                 }}
                               />
                               <Typography
                                 variant="body2"
-                                sx={{ color: colors.secondary_text }}
+                                sx={{ color: "var(--color-secondary-text)" }}
                               >
                                 {sharedData.date || "N/A"}
                               </Typography>
@@ -1815,12 +1815,12 @@ const SharedViewPage = () => {
                                 {getPaymentMethodIcon(expense.paymentMethod, {
                                   sx: {
                                     fontSize: 16,
-                                    color: colors.secondary_text,
+                                    color: "var(--color-secondary-text)",
                                   },
                                 })}
                                 <Typography
                                   variant="body2"
-                                  sx={{ color: colors.secondary_text }}
+                                  sx={{ color: "var(--color-secondary-text)" }}
                                 >
                                   {expense.paymentMethod}
                                 </Typography>
@@ -1832,7 +1832,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                   mt: 1,
                                   display: "-webkit-box",
                                   WebkitLineClamp: 2,
@@ -1890,7 +1890,7 @@ const SharedViewPage = () => {
                               disabled={addingExpense === expenseId}
                               sx={{
                                 borderColor: colors.accent,
-                                color: colors.accent,
+                                color: "var(--color-primary-accent)",
                                 textTransform: "none",
                                 fontWeight: 500,
                                 "&:hover": {
@@ -1929,7 +1929,7 @@ const SharedViewPage = () => {
                       <Card
                         sx={{
                           background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                          border: `1px solid ${colors.border}`,
+                          border: "1px solid var(--color-border-color)",
                           borderRadius: 2,
                           height: "100%",
                           transition: "all 0.2s ease",
@@ -1962,7 +1962,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 600,
                                 }}
                               >
@@ -1987,7 +1987,7 @@ const SharedViewPage = () => {
                             <Typography
                               variant="body2"
                               sx={{
-                                color: colors.secondary_text,
+                                color: "var(--color-secondary-text)",
                                 display: "-webkit-box",
                                 WebkitLineClamp: 2,
                                 WebkitBoxOrient: "vertical",
@@ -2021,7 +2021,7 @@ const SharedViewPage = () => {
                       <Card
                         sx={{
                           background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                          border: `1px solid ${colors.border}`,
+                          border: "1px solid var(--color-border-color)",
                           borderRadius: 2,
                           transition: "all 0.2s ease",
                           "&:hover": {
@@ -2047,7 +2047,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 600,
                                 }}
                               >
@@ -2078,14 +2078,14 @@ const SharedViewPage = () => {
                             >
                               <Typography
                                 variant="body2"
-                                sx={{ color: colors.secondary_text }}
+                                sx={{ color: "var(--color-secondary-text)" }}
                               >
                                 Spent
                               </Typography>
                               <Typography
                                 variant="body2"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 500,
                                 }}
                               >
@@ -2123,13 +2123,13 @@ const SharedViewPage = () => {
                           >
                             <Typography
                               variant="caption"
-                              sx={{ color: colors.secondary_text }}
+                              sx={{ color: "var(--color-secondary-text)" }}
                             >
                               {formatDate(budget.startDate)?.split(",")[0]}
                             </Typography>
                             <Typography
                               variant="caption"
-                              sx={{ color: colors.secondary_text }}
+                              sx={{ color: "var(--color-secondary-text)" }}
                             >
                               {formatDate(budget.endDate)?.split(",")[0]}
                             </Typography>
@@ -2159,7 +2159,7 @@ const SharedViewPage = () => {
                       <Card
                         sx={{
                           background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                          border: `1px solid ${colors.border}`,
+                          border: "1px solid var(--color-border-color)",
                           borderRadius: 2,
                           height: "100%",
                           transition: "all 0.2s ease",
@@ -2186,7 +2186,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 600,
                                 }}
                               >
@@ -2211,12 +2211,12 @@ const SharedViewPage = () => {
                               <DateIcon
                                 sx={{
                                   fontSize: 16,
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                 }}
                               />
                               <Typography
                                 variant="body2"
-                                sx={{ color: colors.secondary_text }}
+                                sx={{ color: "var(--color-secondary-text)" }}
                               >
                                 Due: {formatDate(bill.dueDate)?.split(",")[0]}
                               </Typography>
@@ -2259,7 +2259,7 @@ const SharedViewPage = () => {
                       <Card
                         sx={{
                           background: `linear-gradient(145deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-                          border: `1px solid ${colors.border}`,
+                          border: "1px solid var(--color-border-color)",
                           borderRadius: 2,
                           height: "100%",
                           transition: "all 0.2s ease",
@@ -2285,7 +2285,7 @@ const SharedViewPage = () => {
                               <Typography
                                 variant="subtitle1"
                                 sx={{
-                                  color: colors.primary_text,
+                                  color: "var(--color-primary-text)",
                                   fontWeight: 600,
                                 }}
                               >
@@ -2311,7 +2311,7 @@ const SharedViewPage = () => {
                           {paymentMethod.description && (
                             <Typography
                               variant="body2"
-                              sx={{ color: colors.secondary_text, mt: 2 }}
+                              sx={{ color: "var(--color-secondary-text)", mt: 2 }}
                             >
                               {paymentMethod.description}
                             </Typography>
@@ -2328,17 +2328,17 @@ const SharedViewPage = () => {
             {(!currentItems || currentItems.length === 0) && (
               <Box sx={{ textAlign: "center", py: 6 }}>
                 <LockIcon
-                  sx={{ fontSize: 64, color: colors.secondary_text, mb: 2 }}
+                  sx={{ fontSize: 64, color: "var(--color-secondary-text)", mb: 2 }}
                 />
                 <Typography
                   variant="h6"
-                  sx={{ color: colors.primary_text, mb: 1 }}
+                  sx={{ color: "var(--color-primary-text)", mb: 1 }}
                 >
                   No {RESOURCE_LABELS[activeResourceType] || "Items"} Found
                 </Typography>
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   {searchTerm
                     ? "Try adjusting your search terms"
@@ -2364,7 +2364,7 @@ const SharedViewPage = () => {
                   sx={{
                     minWidth: 200,
                     borderColor: colors.accent,
-                    color: colors.accent,
+                    color: "var(--color-primary-accent)",
                     textTransform: "none",
                     fontWeight: 500,
                     py: 1.5,
@@ -2396,14 +2396,14 @@ const SharedViewPage = () => {
               >
                 <Typography
                   variant="body2"
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   Showing{" "}
-                  <strong style={{ color: colors.primary_text }}>
+                  <strong style={{ color: "var(--color-primary-text)" }}>
                     {displayedItems}
                   </strong>{" "}
                   of{" "}
-                  <strong style={{ color: colors.primary_text }}>
+                  <strong style={{ color: "var(--color-primary-text)" }}>
                     {totalItems}
                   </strong>{" "}
                   items

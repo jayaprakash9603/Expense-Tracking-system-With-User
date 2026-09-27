@@ -53,7 +53,7 @@ const PaymentUsageChart = ({
       className="chart-container"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "24px",
       }}
@@ -61,7 +61,7 @@ const PaymentUsageChart = ({
       <div className="chart-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: "8px",
@@ -130,7 +130,7 @@ const PaymentUsageChart = ({
               backgroundColor: mode === "dark" ? "#1a1a1a" : "#ffffff",
               border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           />
           <Legend />

@@ -160,8 +160,8 @@ const Left = () => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:w-[350px] lg:static lg:translate-x-0`}
         style={{
-          backgroundColor: colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
         }}
       >
         {/* Top Section */}
@@ -228,7 +228,7 @@ const Left = () => {
             </div>
             <p
               className="text-base font-semibold text-center"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
             >
               {user?.firstName?.charAt(0).toUpperCase() +
                 user?.firstName?.slice(1)}{" "}
@@ -246,7 +246,7 @@ const Left = () => {
                 <div className="w-full px-4 py-1">
                   <p
                     className="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     <svg
                       className="w-4 h-4"

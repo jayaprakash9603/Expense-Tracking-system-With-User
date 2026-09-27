@@ -19,14 +19,14 @@ export default function BillExpenseSummary({
       <div
         className="rounded border p-3"
         style={{
-          backgroundColor: colors.secondary_bg,
-          borderColor: colors.border_color,
+          backgroundColor: "var(--color-secondary-bg)",
+          borderColor: "var(--color-border-color)",
         }}
       >
         <div className="flex justify-between items-center mb-2">
           <h4
             className="font-semibold text-base"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             {t("billCommon.summary.title")}
           </h4>
@@ -72,8 +72,8 @@ export default function BillExpenseSummary({
                     key={index}
                     className="rounded-lg p-3 transition-all duration-200"
                     style={{
-                      backgroundColor: colors.primary_bg,
-                      border: `1px solid ${colors.border_color}`,
+                      backgroundColor: "var(--color-primary-bg)",
+                      border: "1px solid var(--color-border-color)",
                       boxShadow: `0 2px 8px ${colors.primary_bg}40`,
                     }}
                     onMouseEnter={(e) => {
@@ -92,7 +92,7 @@ export default function BillExpenseSummary({
                         <h5
                           className="font-medium text-xs truncate max-w-[140px]"
                           title={expense.itemName}
-                          style={{ color: colors.primary_text }}
+                          style={{ color: "var(--color-primary-text)" }}
                         >
                           {expense.itemName}
                         </h5>
@@ -112,7 +112,7 @@ export default function BillExpenseSummary({
                         </span>
                         <span
                           className="font-medium"
-                          style={{ color: colors.primary_text }}
+                          style={{ color: "var(--color-primary-text)" }}
                         >
                           {expense.quantity}
                         </span>
@@ -123,7 +123,7 @@ export default function BillExpenseSummary({
                         </span>
                         <span
                           className="font-medium"
-                          style={{ color: colors.primary_text }}
+                          style={{ color: "var(--color-primary-text)" }}
                         >
                           {currencySymbol}
                           {parseFloat(expense.unitPrice).toFixed(2)}
@@ -133,7 +133,7 @@ export default function BillExpenseSummary({
                         <span style={{ color: colors.icon_muted }}>
                           {t("billCommon.expenseTable.summaryLabels.calc")}
                         </span>
-                        <span style={{ color: colors.secondary_text }}>
+                        <span style={{ color: "var(--color-secondary-text)" }}>
                           {expense.quantity} × {currencySymbol}
                           {parseFloat(expense.unitPrice).toFixed(2)}
                         </span>
@@ -142,7 +142,7 @@ export default function BillExpenseSummary({
                     {expense.comments && expense.comments.trim() !== "" && (
                       <div
                         className="mt-1 pt-1 border-t"
-                        style={{ borderColor: colors.border_color }}
+                        style={{ borderColor: "var(--color-border-color)" }}
                       >
                         <div
                           className="text-[10px] mb-0.5"
@@ -155,9 +155,9 @@ export default function BillExpenseSummary({
                         <div
                           className="text-[10px] p-1 rounded break-words max-h-16 overflow-auto"
                           style={{
-                            color: colors.secondary_text,
-                            backgroundColor: colors.secondary_bg,
-                            border: `1px solid ${colors.border_color}`,
+                            color: "var(--color-secondary-text)",
+                            backgroundColor: "var(--color-secondary-bg)",
+                            border: "1px solid var(--color-border-color)",
                           }}
                         >
                           {expense.comments}

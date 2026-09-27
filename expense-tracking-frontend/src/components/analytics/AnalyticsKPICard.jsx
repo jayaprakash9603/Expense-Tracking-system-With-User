@@ -53,7 +53,7 @@ const AnalyticsKPICard = ({
       mode === "dark"
         ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderLeft: `4px solid ${accentColor}`,
     borderRadius: "12px",
     padding: compact ? "12px 16px" : "16px 20px",
@@ -94,7 +94,7 @@ const AnalyticsKPICard = ({
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: compact ? "0.7rem" : "0.75rem",
               fontWeight: 500,
               textTransform: "uppercase",
@@ -133,7 +133,7 @@ const AnalyticsKPICard = ({
       <Typography
         variant="h4"
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontSize: compact ? "1.4rem" : "1.8rem",
           fontWeight: 700,
           lineHeight: 1.2,
@@ -147,7 +147,7 @@ const AnalyticsKPICard = ({
         <Typography
           variant="caption"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "0.7rem",
             marginTop: "4px",
           }}

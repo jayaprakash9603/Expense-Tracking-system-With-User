@@ -47,7 +47,7 @@ const SharedDistributionChart = ({
       className="chart-container"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "24px",
       }}
@@ -55,7 +55,7 @@ const SharedDistributionChart = ({
       <div className="chart-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: "8px",
@@ -126,7 +126,7 @@ const SharedDistributionChart = ({
                   backgroundColor: themeMode === "dark" ? "#1a1a1a" : "#ffffff",
                   border: `1px solid ${colors.primary_accent}`,
                   borderRadius: "8px",
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 }}
               />
             </PieChart>
@@ -155,7 +155,7 @@ const SharedDistributionChart = ({
                 padding: "8px 12px",
                 minHeight: "48px",
                 background: themeMode === "dark" ? "#1a1a1a" : "#f5f5f5",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "8px",
                 transition: "all 0.2s",
               }}
@@ -217,7 +217,7 @@ const SharedDistributionChart = ({
                   className="chip-name"
                   title={item[nameKey]}
                   style={{
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontSize: "13px",
                     fontWeight: 500,
                     overflow: "hidden",
@@ -237,7 +237,7 @@ const SharedDistributionChart = ({
                 <span
                   className="chip-pct"
                   style={{
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     fontSize: "13px",
                     fontWeight: 600,
                   }}

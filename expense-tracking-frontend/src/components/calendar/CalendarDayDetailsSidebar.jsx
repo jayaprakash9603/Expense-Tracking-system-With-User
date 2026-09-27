@@ -233,9 +233,9 @@ const CalendarDayDetailsSidebar = ({
     <Box
       sx={{
         height: "100%",
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: 2,
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -250,7 +250,7 @@ const CalendarDayDetailsSidebar = ({
           px: 1.5,
           pt: 1.25,
           pb: 0,
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderBottom: `1px solid ${colors.border}`,
           position: "relative",
         }}
@@ -279,10 +279,10 @@ const CalendarDayDetailsSidebar = ({
             aria-label="Close details"
             onClick={onClose}
             sx={{
-              color: colors.primary_text,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border}`,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-secondary-bg)",
+              border: "1px solid var(--color-border-color)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
             }}
           >
             <CloseRoundedIcon fontSize="small" />
@@ -305,10 +305,10 @@ const CalendarDayDetailsSidebar = ({
             onClick={handlePrevDate}
             disabled={!dateObj.isValid()}
             sx={{
-              color: colors.primary_text,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border}`,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-secondary-bg)",
+              border: "1px solid var(--color-border-color)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               "&.Mui-disabled": { opacity: 0.4 },
               width: 36,
               height: 36,
@@ -356,7 +356,7 @@ const CalendarDayDetailsSidebar = ({
             <Typography
               variant="subtitle2"
               sx={{
-                color: colors.primary_accent || "#14b8a6",
+                color: "var(--color-primary-accent)" || "#14b8a6",
                 fontWeight: 600,
                 fontSize: "13px",
                 lineHeight: 1.1,
@@ -375,10 +375,10 @@ const CalendarDayDetailsSidebar = ({
             onClick={handleNextDate}
             disabled={!dateObj.isValid()}
             sx={{
-              color: colors.primary_text,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border}`,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-secondary-bg)",
+              border: "1px solid var(--color-border-color)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               "&.Mui-disabled": { opacity: 0.4 },
               width: 36,
               height: 36,
@@ -410,8 +410,8 @@ const CalendarDayDetailsSidebar = ({
             display: "flex",
             alignItems: "center",
             gap: 1,
-            backgroundColor: colors.primary_bg,
-            border: `1px solid ${colors.border}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: 2,
             px: 1.25,
             pt: 0.9,
@@ -427,7 +427,7 @@ const CalendarDayDetailsSidebar = ({
               gap: 1,
             }}
           >
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               Spending
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
@@ -455,7 +455,7 @@ const CalendarDayDetailsSidebar = ({
               gap: 1,
             }}
           >
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               Income
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
@@ -474,7 +474,7 @@ const CalendarDayDetailsSidebar = ({
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: colors.border }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
       {/* List */}
       <Box
@@ -491,7 +491,7 @@ const CalendarDayDetailsSidebar = ({
             width: "8px",
           },
           "&::-webkit-scrollbar-track": {
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderRadius: "10px",
           },
           "&::-webkit-scrollbar-thumb": {
@@ -638,15 +638,15 @@ const CalendarDayDetailsSidebar = ({
                 key={`${exp?.id || raw?.id || idx}`}
                 sx={{
                   borderRadius: 2,
-                  border: `1px solid ${colors.border}`,
-                  backgroundColor: colors.primary_bg,
+                  border: "1px solid var(--color-border-color)",
+                  backgroundColor: "var(--color-primary-bg)",
                   px: 1.25,
                   py: 1.1,
                   cursor: onItemClick ? "pointer" : "default",
                   transition: "background 160ms ease, transform 160ms ease",
                   "&:hover": onItemClick
                     ? {
-                        backgroundColor: colors.hover_bg,
+                        backgroundColor: "var(--color-hover-bg)",
                         transform: "translateY(-1px)",
                       }
                     : undefined,
@@ -685,8 +685,8 @@ const CalendarDayDetailsSidebar = ({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: colors.primary_bg,
-                            border: `1px solid ${colors.border}`,
+                            backgroundColor: "var(--color-primary-bg)",
+                            border: "1px solid var(--color-border-color)",
                             flex: "0 0 auto",
                           }}
                         >
@@ -699,7 +699,7 @@ const CalendarDayDetailsSidebar = ({
                       <Typography
                         variant="subtitle2"
                         sx={{
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           fontWeight: 800,
                           lineHeight: 1.25,
                           whiteSpace: "nowrap",
@@ -726,7 +726,7 @@ const CalendarDayDetailsSidebar = ({
                               height: 22,
                               fontSize: 11,
                               fontWeight: 800,
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               backgroundColor: `${categoryColor}22`,
                               border: `1px solid ${categoryColor}55`,
                             }}
@@ -740,7 +740,7 @@ const CalendarDayDetailsSidebar = ({
                               height: 22,
                               fontSize: 11,
                               fontWeight: 800,
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               backgroundColor: `${paymentMethodColor}22`,
                               border: `1px solid ${paymentMethodColor}55`,
                             }}
@@ -759,9 +759,9 @@ const CalendarDayDetailsSidebar = ({
                               height: 22,
                               fontSize: 11,
                               fontWeight: 800,
-                              color: colors.primary_text,
-                              backgroundColor: colors.primary_bg,
-                              border: `1px solid ${colors.border}`,
+                              color: "var(--color-primary-text)",
+                              backgroundColor: "var(--color-primary-bg)",
+                              border: "1px solid var(--color-border-color)",
                               ".MuiChip-icon": { ml: 0.4 },
                             }}
                           />
@@ -812,7 +812,7 @@ const CalendarDayDetailsSidebar = ({
                         mt: 0.85,
                         width: "100%",
                         minWidth: 0,
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                       }}
                     >
                       <EditNoteRoundedIcon
@@ -827,7 +827,7 @@ const CalendarDayDetailsSidebar = ({
                         sx={{
                           minWidth: 0,
                           flex: 1,
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         }}
                         noWrap
                       >
@@ -842,7 +842,7 @@ const CalendarDayDetailsSidebar = ({
         )}
       </Box>
 
-      <Divider sx={{ borderColor: colors.border }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
       {/* Pagination */}
       <Box
@@ -853,14 +853,14 @@ const CalendarDayDetailsSidebar = ({
           alignItems: "center",
           justifyContent: "space-between",
           gap: 1,
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderTop: `1px solid ${colors.border}`,
         }}
       >
         <Typography
           variant="caption"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             minWidth: 110,
           }}
         >
@@ -884,10 +884,10 @@ const CalendarDayDetailsSidebar = ({
             disabled={safePage <= 0}
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             sx={{
-              color: colors.primary_text,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border}`,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-secondary-bg)",
+              border: "1px solid var(--color-border-color)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               "&.Mui-disabled": { opacity: 0.4 },
             }}
           >
@@ -900,10 +900,10 @@ const CalendarDayDetailsSidebar = ({
             disabled={safePage >= maxPage}
             onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
             sx={{
-              color: colors.primary_text,
-              backgroundColor: colors.secondary_bg,
-              border: `1px solid ${colors.border}`,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-secondary-bg)",
+              border: "1px solid var(--color-border-color)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               "&.Mui-disabled": { opacity: 0.4 },
             }}
           >

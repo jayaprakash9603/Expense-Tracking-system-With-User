@@ -467,7 +467,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
         height: "calc(100vh - 100px)",
         right: "20px",
         top: "50px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Local scrollbar styles for the bills list */}
@@ -514,8 +514,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
           }}
           className="rounded-full"
           style={{
-            color: colors.primary_accent,
-            backgroundColor: colors.secondary_bg,
+            color: "var(--color-primary-accent)",
+            backgroundColor: "var(--color-secondary-bg)",
             padding: 8,
           }}
           onMouseEnter={(e) =>
@@ -553,7 +553,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       >
         <h2
           className="text-lg font-bold leading-tight"
-          style={{ color: colors.primary_accent }}
+          style={{ color: "var(--color-primary-accent)" }}
         >
           Excel Bill Import Manager
         </h2>
@@ -595,7 +595,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               {selectedFile && (
                 <span
                   className="ml-3 text-sm"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   {selectedFile.name}
                 </span>
@@ -630,7 +630,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             >
               <SyncIcon sx={{ fontSize: 18 }} />
@@ -644,13 +644,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             uploadFeedback.status !== FEEDBACK_STATUS.IDLE) && (
             <div
               className="mt-2 rounded-md h-14 flex items-center px-3"
-              style={{ backgroundColor: colors.secondary_bg }}
+              style={{ backgroundColor: "var(--color-secondary-bg)" }}
             >
               {progress ? (
                 progress.status === "COMPLETED" ? (
                   <div
                     className="text-sm inline-flex items-center gap-2"
-                    style={{ color: colors.primary_text }}
+                    style={{ color: "var(--color-primary-text)" }}
                   >
                     <CheckCircleIcon sx={{ fontSize: 18, color: "#14b8a6" }} />
                     {`${progress.processed}/${progress.total} processed`}
@@ -707,7 +707,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
             {/* Controls Bar */}
             <div
               className="p-3 flex-shrink-0"
-              style={{ backgroundColor: colors.secondary_bg }}
+              style={{ backgroundColor: "var(--color-secondary-bg)" }}
             >
               <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Search and Filters */}
@@ -719,8 +719,8 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="px-3 py-1 rounded-md text-sm w-48 focus:outline-none focus:ring-1"
                     style={{
-                      backgroundColor: colors.primary_bg,
-                      color: colors.primary_text,
+                      backgroundColor: "var(--color-primary-bg)",
+                      color: "var(--color-primary-text)",
                       border: `1px solid ${colors.primary_accent}`,
                     }}
                   />
@@ -770,13 +770,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                 <div className="flex items-center space-x-4">
                   <span
                     className="text-sm font-medium"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     Total: {filteredAndSortedBills.length} bills
                   </span>
                   <span
                     className="text-sm font-medium"
-                    style={{ color: colors.primary_accent }}
+                    style={{ color: "var(--color-primary-accent)" }}
                   >
                     Amount: {formatCurrency(totalAmount)}
                   </span>
@@ -800,7 +800,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                 {currentBills.length === 0 ? (
                   <div
                     className="text-center py-8"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     No bills match your search criteria
                   </div>
@@ -833,7 +833,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           <AccordionSummary
                             expandIcon={
                               <ExpandMoreIcon
-                                sx={{ color: colors.primary_accent }}
+                                sx={{ color: "var(--color-primary-accent)" }}
                               />
                             }
                             sx={{
@@ -841,7 +841,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                 ? colors.tertiary_bg
                                 : colors.primary_bg,
                               borderRadius: "12px",
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               minHeight: "56px",
                               height: "56px",
                               "&.Mui-expanded": {
@@ -850,7 +850,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                 minHeight: "56px",
                               },
                               "&:hover": {
-                                backgroundColor: colors.hover_bg,
+                                backgroundColor: "var(--color-hover-bg)",
                               },
                               "& .MuiAccordionSummary-content": {
                                 margin: "10px 0",
@@ -884,7 +884,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   variant="subtitle1"
                                   sx={{
                                     fontWeight: 600,
-                                    color: colors.primary_text,
+                                    color: "var(--color-primary-text)",
                                     fontSize: "1.0rem",
                                   }}
                                 >
@@ -893,7 +893,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                 <Typography
                                   variant="caption"
                                   sx={{
-                                    color: colors.secondary_text,
+                                    color: "var(--color-secondary-text)",
                                     fontSize: "0.85rem",
                                   }}
                                 >
@@ -971,13 +971,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                       mb: 1.25,
                                       display: "flex",
                                       alignItems: "center",
-                                      color: colors.primary_text,
+                                      color: "var(--color-primary-text)",
                                     }}
                                   >
                                     <MoneyIcon
                                       sx={{
                                         mr: 1,
-                                        color: colors.primary_accent,
+                                        color: "var(--color-primary-accent)",
                                       }}
                                     />
                                     Bill Summary
@@ -991,14 +991,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   >
                                     <Typography
                                       variant="body2"
-                                      sx={{ color: colors.secondary_text }}
+                                      sx={{ color: "var(--color-secondary-text)" }}
                                     >
                                       Total Amount:
                                     </Typography>
                                     <Typography
                                       variant="body2"
                                       fontWeight={600}
-                                      sx={{ color: colors.primary_text }}
+                                      sx={{ color: "var(--color-primary-text)" }}
                                     >
                                       {formatCurrency(bill.amount)}
                                     </Typography>
@@ -1012,14 +1012,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   >
                                     <Typography
                                       variant="body2"
-                                      sx={{ color: colors.secondary_text }}
+                                      sx={{ color: "var(--color-secondary-text)" }}
                                     >
                                       Net Amount:
                                     </Typography>
                                     <Typography
                                       variant="body2"
                                       fontWeight={600}
-                                      sx={{ color: colors.primary_text }}
+                                      sx={{ color: "var(--color-primary-text)" }}
                                     >
                                       {formatCurrency(bill.netAmount)}
                                     </Typography>
@@ -1033,7 +1033,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   >
                                     <Typography
                                       variant="body2"
-                                      sx={{ color: colors.secondary_text }}
+                                      sx={{ color: "var(--color-secondary-text)" }}
                                     >
                                       Credit Due:
                                     </Typography>
@@ -1062,14 +1062,14 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   >
                                     <Typography
                                       variant="body2"
-                                      sx={{ color: colors.secondary_text }}
+                                      sx={{ color: "var(--color-secondary-text)" }}
                                     >
                                       Date:
                                     </Typography>
                                     <Typography
                                       variant="body2"
                                       fontWeight={600}
-                                      sx={{ color: colors.primary_text }}
+                                      sx={{ color: "var(--color-primary-text)" }}
                                     >
                                       {formatDateDisplay(bill.date)}
                                     </Typography>
@@ -1082,7 +1082,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                   >
                                     <Typography
                                       variant="body2"
-                                      sx={{ color: colors.secondary_text }}
+                                      sx={{ color: "var(--color-secondary-text)" }}
                                     >
                                       Type:
                                     </Typography>
@@ -1124,13 +1124,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                       mb: 1.25,
                                       display: "flex",
                                       alignItems: "center",
-                                      color: colors.primary_text,
+                                      color: "var(--color-primary-text)",
                                     }}
                                   >
                                     <ListIcon
                                       sx={{
                                         mr: 1,
-                                        color: colors.primary_accent,
+                                        color: "var(--color-primary-accent)",
                                       }}
                                     />
                                     Detailed Expenses
@@ -1166,7 +1166,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                                   variant="body2"
                                                   fontWeight={600}
                                                   sx={{
-                                                    color: colors.primary_text,
+                                                    color: "var(--color-primary-text)",
                                                   }}
                                                 >
                                                   {expense.itemName || "N/A"}
@@ -1175,8 +1175,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                                   variant="body2"
                                                   fontWeight={600}
                                                   sx={{
-                                                    color:
-                                                      colors.primary_accent,
+                                                    color: "var(--color-primary-accent)",
                                                   }}
                                                 >
                                                   {formatCurrency(
@@ -1189,7 +1188,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                               <Typography
                                                 variant="caption"
                                                 sx={{
-                                                  color: colors.secondary_text,
+                                                  color: "var(--color-secondary-text)",
                                                 }}
                                               >
                                                 Qty: {expense.quantity || 0} ×{" "}
@@ -1205,7 +1204,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                                       <Typography
                                         variant="body2"
                                         sx={{
-                                          color: colors.secondary_text,
+                                          color: "var(--color-secondary-text)",
                                           textAlign: "center",
                                           py: 1.25,
                                         }}
@@ -1239,7 +1238,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
               <div
                 className="py-2 px-2 flex-shrink-0"
                 style={{
-                  backgroundColor: colors.primary_bg,
+                  backgroundColor: "var(--color-primary-bg)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -1251,9 +1250,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                   disabled={currentPage === 1}
                   className="rounded-lg transition-all duration-200"
                   style={{
-                    backgroundColor: colors.primary_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    color: "var(--color-primary-text)",
+                    border: "1px solid var(--color-border-color)",
                     padding: "4px 8px",
                     fontSize: "14px",
                     cursor: currentPage === 1 ? "not-allowed" : "pointer",
@@ -1339,7 +1338,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           style={{
                             padding: "4px 6px",
                             fontSize: "14px",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                           }}
                         >
                           ...
@@ -1355,7 +1354,7 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                           style={{
                             padding: "4px 6px",
                             fontSize: "14px",
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                           }}
                         >
                           ...
@@ -1373,9 +1372,9 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
                   disabled={currentPage === totalPages}
                   className="rounded-lg transition-all duration-200"
                   style={{
-                    backgroundColor: colors.primary_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
+                    backgroundColor: "var(--color-primary-bg)",
+                    color: "var(--color-primary-text)",
+                    border: "1px solid var(--color-border-color)",
                     padding: "4px 8px",
                     fontSize: "14px",
                     cursor:
@@ -1405,13 +1404,13 @@ const UploadBills = ({ targetId = null, onImportComplete }) => {
       <div
         className="px-3 py-1.5 flex items-center justify-between gap-3"
         style={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderTop: `1px solid ${colors.border_color}`,
         }}
       >
         <div
           className="text-xs flex-1 text-left"
-          style={{ color: colors.secondary_text }}
+          style={{ color: "var(--color-secondary-text)" }}
         >
           <strong>Instructions:</strong> Select Excel file → Upload & Preview →
           Review bills → Save All Bills → Monitor progress

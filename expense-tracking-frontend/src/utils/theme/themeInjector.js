@@ -5,6 +5,8 @@
  * Provides smooth theme transitions and system preference detection.
  */
 
+import buildAppTheme from "../../shared/theme/buildAppTheme";
+import { applyThemeCssVars } from "../../shared/theme/cssVarsFromTheme";
 import { generateThemeTokens, tokensToCssVars } from "../../config/themeTokens";
 
 // CSS transition for smooth theme changes
@@ -23,24 +25,18 @@ const TRANSITION_DURATION = 200;
  * @param {string} mode - Theme mode ("dark" or "light")
  * @param {boolean} animate - Whether to animate the transition
  */
-export const injectTheme = (paletteId, mode, animate = true) => {
-  const tokens = generateThemeTokens(paletteId, mode);
-  const cssVars = tokensToCssVars(tokens);
-  const root = document.documentElement;
-  
-  // Add transition styles for smooth change
+export const injectThemeFromBuilt = (theme, animate = true) => {
   if (animate) {
     const styleId = "theme-transition-styles";
     let transitionStyle = document.getElementById(styleId);
-    
+
     if (!transitionStyle) {
       transitionStyle = document.createElement("style");
       transitionStyle.id = styleId;
       transitionStyle.textContent = TRANSITION_STYLES;
       document.head.appendChild(transitionStyle);
     }
-    
-    // Remove transition styles after animation completes
+
     setTimeout(() => {
       const style = document.getElementById(styleId);
       if (style) {
@@ -48,21 +44,14 @@ export const injectTheme = (paletteId, mode, animate = true) => {
       }
     }, TRANSITION_DURATION);
   }
-  
-  // Apply CSS variables to root
-  Object.entries(cssVars).forEach(([key, value]) => {
-    root.style.setProperty(key, value);
-  });
-  
-  // Set data attributes for CSS selectors
-  root.setAttribute("data-theme-mode", mode);
-  root.setAttribute("data-theme-palette", paletteId);
-  
-  // Update color-scheme for native elements
-  root.style.colorScheme = mode;
-  
-  // Update meta theme-color for mobile browsers
-  updateMetaThemeColor(tokens.primary_bg);
+
+  applyThemeCssVars(theme);
+  updateMetaThemeColor(theme.palette.background.paper);
+};
+
+export const injectTheme = (paletteId, mode, animate = true) => {
+  const theme = buildAppTheme(mode, paletteId);
+  injectThemeFromBuilt(theme, animate);
 };
 
 /**
@@ -247,6 +236,7 @@ export const injectBaseThemeStyles = () => {
 
 export default {
   injectTheme,
+  injectThemeFromBuilt,
   getSystemPreference,
   watchSystemPreference,
   getThemeStyleTag,

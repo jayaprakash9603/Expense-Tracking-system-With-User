@@ -160,7 +160,7 @@ export default function SectionsDualList({ sections, onChange }) {
               variant="subtitle2"
               fontWeight="700"
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "0.9rem",
                 letterSpacing: 0.5,
                 textTransform: "uppercase",
@@ -175,7 +175,7 @@ export default function SectionsDualList({ sections, onChange }) {
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "0.7rem",
               }}
             >
@@ -246,7 +246,7 @@ export default function SectionsDualList({ sections, onChange }) {
                     sx={{
                       textAlign: "center",
                       py: 6,
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                     }}
                   >
                     <VisibilityIcon
@@ -314,7 +314,7 @@ export default function SectionsDualList({ sections, onChange }) {
                             onMouseDown={(e) => e.stopPropagation()}
                             sx={{
                               padding: 0,
-                              color: colors.secondary_text,
+                              color: "var(--color-secondary-text)",
                               "&.Mui-checked": {
                                 color: "#14b8a6",
                               },
@@ -333,7 +333,7 @@ export default function SectionsDualList({ sections, onChange }) {
                           >
                             <DragIcon
                               fontSize="small"
-                              sx={{ color: colors.secondary_text }}
+                              sx={{ color: "var(--color-secondary-text)" }}
                             />
                           </Box>
                           <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -341,7 +341,7 @@ export default function SectionsDualList({ sections, onChange }) {
                               variant="body2"
                               fontWeight="600"
                               sx={{
-                                color: colors.secondary_text,
+                                color: "var(--color-secondary-text)",
                                 fontSize: "0.85rem",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
@@ -383,7 +383,7 @@ export default function SectionsDualList({ sections, onChange }) {
                               onMouseDown={(e) => e.stopPropagation()}
                               sx={{
                                 padding: 0.5,
-                                color: colors.secondary_text,
+                                color: "var(--color-secondary-text)",
                                 "&:hover": {
                                   color: isDark ? "#4ade80" : "#16a34a",
                                   backgroundColor: isDark
@@ -436,7 +436,7 @@ export default function SectionsDualList({ sections, onChange }) {
                 },
                 "&:disabled": {
                   backgroundColor: "transparent",
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.3,
                 },
                 transition: "all 0.2s ease",
@@ -471,7 +471,7 @@ export default function SectionsDualList({ sections, onChange }) {
                 },
                 "&:disabled": {
                   backgroundColor: "transparent",
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.3,
                   border: "none",
                 },
@@ -485,7 +485,7 @@ export default function SectionsDualList({ sections, onChange }) {
           <Divider
             sx={{
               width: "100%",
-              borderColor: colors.border_color,
+              borderColor: "var(--color-border-color)",
               my: 1,
             }}
           />
@@ -600,7 +600,7 @@ export default function SectionsDualList({ sections, onChange }) {
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "0.7rem",
               }}
             >
@@ -671,7 +671,7 @@ export default function SectionsDualList({ sections, onChange }) {
                     sx={{
                       textAlign: "center",
                       py: 6,
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                     }}
                   >
                     <VisibilityOffIcon
@@ -767,7 +767,7 @@ export default function SectionsDualList({ sections, onChange }) {
                               variant="body2"
                               fontWeight="600"
                               sx={{
-                                color: colors.primary_text,
+                                color: "var(--color-primary-text)",
                                 fontSize: "0.85rem",
                                 whiteSpace: "nowrap",
                                 overflow: "hidden",
@@ -811,7 +811,7 @@ export default function SectionsDualList({ sections, onChange }) {
                                 padding: 0.5,
                                 color: isDark ? "#4ade80" : "#16a34a",
                                 "&:hover": {
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                   backgroundColor: isDark
                                     ? "rgba(156, 163, 175, 0.1)"
                                     : "rgba(107, 114, 128, 0.08)",

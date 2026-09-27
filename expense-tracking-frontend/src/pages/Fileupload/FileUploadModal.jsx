@@ -172,8 +172,8 @@ const FileUploadModal = ({
         <div
           className="rounded-lg w-full max-w-2xl shadow-xl relative p-6 sm:p-4"
           style={{
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
           }}
         >
           {/* Close Button */}
@@ -181,7 +181,7 @@ const FileUploadModal = ({
             <button
               onClick={handleClose}
               className="hover:opacity-80 transition-opacity"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               <FaTimes className="text-2xl" />
             </button>
@@ -201,15 +201,15 @@ const FileUploadModal = ({
             <div>
               <i
                 className="fas fa-cloud-upload-alt text-4xl mb-3"
-                style={{ color: colors.primary_accent }}
+                style={{ color: "var(--color-primary-accent)" }}
               ></i>
               <p
                 className="text-lg font-medium mb-1"
-                style={{ color: colors.primary_text }}
+                style={{ color: "var(--color-primary-text)" }}
               >
                 Drag & drop file here
               </p>
-              <p className="text-sm" style={{ color: colors.secondary_text }}>
+              <p className="text-sm" style={{ color: "var(--color-secondary-text)" }}>
                 or click to browse
               </p>
             </div>
@@ -225,19 +225,19 @@ const FileUploadModal = ({
                   style={{
                     maxWidth: "calc(100% - 60px)",
                     backgroundColor: colors.tertiary_bg,
-                    borderColor: colors.border_color,
+                    borderColor: "var(--color-border-color)",
                   }}
                 >
                   <div className="flex items-center gap-3">
                     <span
                       className="text-xl"
-                      style={{ color: colors.primary_accent }}
+                      style={{ color: "var(--color-primary-accent)" }}
                     >
                       {getFileIcon(file)}
                     </span>
                     <span
                       className="truncate max-w-full sm:max-w-full"
-                      style={{ color: colors.primary_text }}
+                      style={{ color: "var(--color-primary-text)" }}
                     >
                       {file.name}
                     </span>
@@ -269,7 +269,7 @@ const FileUploadModal = ({
                 },
                 "&.Mui-disabled": {
                   backgroundColor: colors.tertiary_bg,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.6,
                 },
               }}

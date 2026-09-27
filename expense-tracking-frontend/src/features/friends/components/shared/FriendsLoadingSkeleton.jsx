@@ -21,7 +21,7 @@ const FriendsLoadingSkeleton = ({ count = 5, variant = "list" }) => {
             key={i}
             sx={{
               bgcolor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
               boxShadow: "none",
             }}
@@ -53,7 +53,7 @@ const FriendsLoadingSkeleton = ({ count = 5, variant = "list" }) => {
             gap: 2,
             p: 2,
             bgcolor: colors.card_bg,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: 2,
           }}
         >

@@ -123,7 +123,7 @@ const AppLinearProgress = React.forwardRef(
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.secondary_text || "#9ca3af",
+                  color: "var(--color-secondary-text)" || "#9ca3af",
                   fontSize: "0.875rem",
                 }}
               >
@@ -134,7 +134,7 @@ const AppLinearProgress = React.forwardRef(
               <Typography
                 variant="body2"
                 sx={{
-                  color: colors.primary_text || "#fff",
+                  color: "var(--color-primary-text)" || "#fff",
                   fontSize: "0.875rem",
                   fontWeight: 600,
                 }}
@@ -160,7 +160,7 @@ const AppLinearProgress = React.forwardRef(
             <Typography
               variant="body2"
               sx={{
-                color: colors.primary_text || "#fff",
+                color: "var(--color-primary-text)" || "#fff",
                 fontSize: "0.875rem",
                 fontWeight: 600,
                 minWidth: "45px",

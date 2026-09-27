@@ -75,8 +75,8 @@ const NotificationItem = ({
   return (
     <Box
       sx={{
-        backgroundColor: colors.card_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-primary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: "8px",
         overflow: "hidden",
         opacity: serviceEnabled ? (isEnabled ? 1 : 0.6) : 0.5, // Lower opacity when service disabled
@@ -199,7 +199,7 @@ const NotificationItem = ({
             px: 2,
             pb: 2,
             pt: 0,
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderTop: `1px solid ${colors.border_color}`,
           }}
         >

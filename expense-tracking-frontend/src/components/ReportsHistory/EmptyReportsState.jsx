@@ -50,7 +50,7 @@ const EmptyReportsState = () => {
         <EmptyIcon
           sx={{
             fontSize: 56,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
           }}
         />
       </Box>
@@ -59,7 +59,7 @@ const EmptyReportsState = () => {
         <Typography
           variant="h6"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
           }}
         >
@@ -68,7 +68,7 @@ const EmptyReportsState = () => {
         <Typography
           variant="body2"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             maxWidth: 400,
           }}
         >

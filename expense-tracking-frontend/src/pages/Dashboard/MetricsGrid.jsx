@@ -22,8 +22,8 @@ const MetricCardSkeleton = () => {
     <div
       className="metric-card-skeleton"
       style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: "16px",
         height: "130px",
         padding: "20px",
@@ -34,16 +34,16 @@ const MetricCardSkeleton = () => {
     >
       <div
         className="skeleton-icon"
-        style={{ backgroundColor: colors.hover_bg, width: "36px", height: "36px", borderRadius: "50%" }}
+        style={{ backgroundColor: "var(--color-hover-bg)", width: "36px", height: "36px", borderRadius: "50%" }}
       />
       <div className="skeleton-content" style={{ marginTop: "16px" }}>
         <div
           className="skeleton-title"
-          style={{ backgroundColor: colors.hover_bg, height: "16px", width: "50%", marginBottom: "8px", borderRadius: "4px" }}
+          style={{ backgroundColor: "var(--color-hover-bg)", height: "16px", width: "50%", marginBottom: "8px", borderRadius: "4px" }}
         />
         <div
           className="skeleton-value"
-          style={{ backgroundColor: colors.hover_bg, height: "24px", width: "70%", borderRadius: "4px" }}
+          style={{ backgroundColor: "var(--color-hover-bg)", height: "24px", width: "70%", borderRadius: "4px" }}
         />
       </div>
     </div>

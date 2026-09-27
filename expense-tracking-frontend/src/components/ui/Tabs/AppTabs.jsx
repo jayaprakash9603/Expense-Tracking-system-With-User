@@ -84,7 +84,7 @@ const AppTabs = React.forwardRef(
       },
       "&:hover": {
         color: textColor,
-        backgroundColor: colors.hover_bg || "rgba(255,255,255,0.05)",
+        backgroundColor: "var(--color-hover-bg)" || "rgba(255,255,255,0.05)",
       },
       "&.Mui-focusVisible": {
         outline: `2px solid ${accent}`,

@@ -12,7 +12,7 @@ const StatsCard = ({ title, value, color, icon: Icon }) => {
     <Card
       sx={{
         backgroundColor: colors.cardBackground,
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 2,
         height: "100%",
       }}

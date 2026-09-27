@@ -50,7 +50,7 @@ const PulseLoader = ({
         {message && (
           <p
             className="mt-6 text-sm font-medium select-none animate-pulse"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             {message}
           </p>

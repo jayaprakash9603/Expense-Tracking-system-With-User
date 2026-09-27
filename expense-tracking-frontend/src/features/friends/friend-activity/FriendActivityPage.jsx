@@ -177,8 +177,8 @@ const FriendActivityPage = () => {
     <div
       className={`friend-activity-page ${mode === "dark" ? "dark" : "light"}`}
       style={{
-        backgroundColor: colors.secondary_bg,
-        borderColor: colors.border_color,
+        backgroundColor: "var(--color-secondary-bg)",
+        borderColor: "var(--color-border-color)",
       }}
     >
       {/* Header */}
@@ -186,7 +186,7 @@ const FriendActivityPage = () => {
         className="activity-page-header"
         style={{
           borderBottomColor: colors.border_color,
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         }}
       >
         <div className="header-left">
@@ -194,7 +194,7 @@ const FriendActivityPage = () => {
             onClick={handleBack}
             className="back-button"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "&:hover": {
                 backgroundColor: `${colors.primary_accent}20`,
               },
@@ -206,14 +206,14 @@ const FriendActivityPage = () => {
             <Typography
               variant="h5"
               className="page-title"
-              sx={{ fontWeight: 600, color: colors.primary_text }}
+              sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
             >
               Friend Activities
             </Typography>
             <Typography
               variant="body2"
               className="page-subtitle"
-              sx={{ color: colors.secondary_text }}
+              sx={{ color: "var(--color-secondary-text)" }}
             >
               Track all activities from your friends
             </Typography>
@@ -246,7 +246,7 @@ const FriendActivityPage = () => {
               <IconButton
                 onClick={handleMarkAllAsRead}
                 sx={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   "&:hover": {
                     backgroundColor: `${colors.primary_accent}20`,
                   },
@@ -260,7 +260,7 @@ const FriendActivityPage = () => {
             <IconButton
               onClick={refreshAll}
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": {
                   backgroundColor: `${colors.primary_accent}20`,
                 },
@@ -333,8 +333,8 @@ const FriendActivityPage = () => {
           <div
             className="activities-container"
             style={{
-              backgroundColor: colors.secondary_bg,
-              borderColor: colors.border_color,
+              backgroundColor: "var(--color-secondary-bg)",
+              borderColor: "var(--color-border-color)",
             }}
           >
             {groupView === GROUP_VIEWS.LIST ? (
@@ -351,7 +351,7 @@ const FriendActivityPage = () => {
                       width: "8px",
                     },
                     "&::-webkit-scrollbar-track": {
-                      backgroundColor: colors.primary_bg,
+                      backgroundColor: "var(--color-primary-bg)",
                       borderRadius: "4px",
                     },
                     "&::-webkit-scrollbar-thumb": {
@@ -394,7 +394,7 @@ const FriendActivityPage = () => {
                       color="primary"
                       sx={{
                         "& .MuiPaginationItem-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           "&.Mui-selected": {
                             backgroundColor: colors.primary_accent,
                             color: colors.button_text,
@@ -423,7 +423,7 @@ const FriendActivityPage = () => {
                       width: "8px",
                     },
                     "&::-webkit-scrollbar-track": {
-                      backgroundColor: colors.primary_bg,
+                      backgroundColor: "var(--color-primary-bg)",
                       borderRadius: "4px",
                     },
                     "&::-webkit-scrollbar-thumb": {
@@ -460,7 +460,7 @@ const FriendActivityPage = () => {
                       color="primary"
                       sx={{
                         "& .MuiPaginationItem-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           "&.Mui-selected": {
                             backgroundColor: colors.primary_accent,
                             color: colors.button_text,

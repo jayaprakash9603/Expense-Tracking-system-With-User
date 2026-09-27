@@ -60,7 +60,7 @@ function ChatArea({
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${patternColor}' fill-opacity='${patternOpacity}'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
       }}
     >
@@ -95,7 +95,7 @@ function ChatArea({
               height: "100%",
             }}
           >
-            <CircularProgress sx={{ color: colors.primary_accent }} />
+            <CircularProgress sx={{ color: "var(--color-primary-accent)" }} />
           </Box>
         ) : messages.length === 0 ? (
           <Box
@@ -110,7 +110,7 @@ function ChatArea({
           >
             <Box
               sx={{
-                backgroundColor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 borderRadius: "8px",
                 padding: "16px 24px",
                 textAlign: "center",
@@ -118,7 +118,7 @@ function ChatArea({
             >
               <Typography
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontSize: "14.5px",
                   marginBottom: "4px",
                 }}
@@ -126,7 +126,7 @@ function ChatArea({
                 No messages yet
               </Typography>
               <Typography
-                sx={{ color: colors.secondary_text, fontSize: "12.5px" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "12.5px" }}
               >
                 Send a message to start the conversation
               </Typography>
@@ -144,14 +144,14 @@ function ChatArea({
               >
                 <Box
                   sx={{
-                    backgroundColor: colors.primary_bg,
+                    backgroundColor: "var(--color-primary-bg)",
                     borderRadius: "8px",
                     padding: "5px 12px",
                   }}
                 >
                   <Typography
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: "12.5px",
                       textTransform: "uppercase",
                     }}

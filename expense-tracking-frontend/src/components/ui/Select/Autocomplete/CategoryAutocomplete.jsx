@@ -156,7 +156,7 @@ const CategoryAutocomplete = ({
       {showLabel && label && (
         <label
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.875rem",
             fontWeight: "600",
             marginBottom: "4px",
@@ -212,7 +212,7 @@ const CategoryAutocomplete = ({
       {categoriesError && !helperText && (
         <div
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.75rem",
             marginTop: "4px",
           }}

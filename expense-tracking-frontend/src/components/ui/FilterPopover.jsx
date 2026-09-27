@@ -67,7 +67,7 @@ function CustomRangeDay(props) {
     ...((isWithinRange || isWithinHover) && {
       borderRadius: 0,
       backgroundColor: `${colors.primary_accent}15`,
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
     }),
     ...(isSelectedStart && {
       backgroundColor: colors.primary_accent,
@@ -321,9 +321,9 @@ export default function FilterPopover({
         sx: {
           p: 2,
           width: isWide ? (operator === "range" ? 360 : 340) : 320,
-          backgroundColor: colors.secondary_bg,
-          color: colors.primary_text,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          color: "var(--color-primary-text)",
+          border: "1px solid var(--color-border-color)",
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         },
       }}
@@ -381,14 +381,14 @@ export default function FilterPopover({
                 margin: 0,
                 "& .MuiPickersCalendarHeader-root": { pl: 0, pr: 0 },
                 "& .MuiDayCalendar-weekContainer": { justifyContent: "center" },
-                "& .MuiPickersDay-root": { color: colors.primary_text },
+                "& .MuiPickersDay-root": { color: "var(--color-primary-text)" },
                 "& .MuiPickersCalendarHeader-label": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
                 "& .MuiDayCalendar-weekDayLabel": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 },
-                "& .MuiIconButton-root": { color: colors.primary_text },
+                "& .MuiIconButton-root": { color: "var(--color-primary-text)" },
               }}
             />
           </LocalizationProvider>
@@ -433,14 +433,14 @@ export default function FilterPopover({
                 width: "100%",
                 margin: 0,
                 "& .MuiPickersCalendarHeader-root": { pl: 0, pr: 0 },
-                "& .MuiPickersDay-root": { color: colors.primary_text },
+                "& .MuiPickersDay-root": { color: "var(--color-primary-text)" },
                 "& .MuiPickersCalendarHeader-label": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
                 "& .MuiDayCalendar-weekDayLabel": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 },
-                "& .MuiIconButton-root": { color: colors.primary_text },
+                "& .MuiIconButton-root": { color: "var(--color-primary-text)" },
               }}
             />
           </LocalizationProvider>
@@ -475,9 +475,9 @@ export default function FilterPopover({
             onKeyDown={handleStringAdd}
             sx={{
               mb: 1,
-              input: { color: colors.primary_text },
+              input: { color: "var(--color-primary-text)" },
               ".MuiOutlinedInput-notchedOutline": {
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
               },
               "&:hover .MuiOutlinedInput-notchedOutline": {
                 borderColor: colors.primary_accent,
@@ -498,9 +498,9 @@ export default function FilterPopover({
           onChange={(e) => setValue(e.target.value)}
           sx={{
             mb: 2,
-            input: { color: colors.primary_text },
+            input: { color: "var(--color-primary-text)" },
             ".MuiOutlinedInput-notchedOutline": {
-              borderColor: colors.border_color,
+              borderColor: "var(--color-border-color)",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
               borderColor: colors.primary_accent,
@@ -515,8 +515,8 @@ export default function FilterPopover({
           variant="outlined"
           onClick={handleClear}
           sx={{
-            color: colors.primary_text,
-            borderColor: colors.border_color,
+            color: "var(--color-primary-text)",
+            borderColor: "var(--color-border-color)",
             "&:hover": { borderColor: colors.primary_text },
           }}
         >

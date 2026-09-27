@@ -87,7 +87,7 @@ const StatsCard = ({
     <Card
       sx={{
         backgroundColor: colors.cardBackground,
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 2,
         cursor: onClick ? "pointer" : "default",
         ...sx,

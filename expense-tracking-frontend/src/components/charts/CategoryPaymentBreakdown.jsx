@@ -54,7 +54,7 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
       className="chart-container"
       style={{
         background: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "20px",
       }}
@@ -62,14 +62,14 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
       <div className="chart-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 8,
             margin: 0,
           }}
         >
-          <LocalOfferIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <LocalOfferIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Category-wise Payment Breakdown
         </h3>
         <div
@@ -100,10 +100,10 @@ const CategoryPaymentBreakdown = ({ data = [], methodsColors = [] }) => {
           <YAxis stroke={mode === "dark" ? "#888" : "#6b7280"} fontSize={12} />
           <Tooltip
             contentStyle={{
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
               border: `1px solid ${colors.primary_accent}`,
               borderRadius: "8px",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           />
           <Legend />

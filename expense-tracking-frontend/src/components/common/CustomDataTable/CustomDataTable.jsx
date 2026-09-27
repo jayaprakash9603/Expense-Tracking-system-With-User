@@ -350,7 +350,7 @@ const CustomDataTable = ({
           style={{
             flex: 1,
             borderRadius: "6px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             overflow: "hidden",
           }}
         >
@@ -392,9 +392,9 @@ const CustomDataTable = ({
           alignItems: "center",
           justifyContent: "center",
           padding: "24px",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "6px",
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           fontSize: fontSizes.cell,
         }}
       >
@@ -425,7 +425,7 @@ const CustomDataTable = ({
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon
-                    sx={{ fontSize: 18, color: colors.secondary_text }}
+                    sx={{ fontSize: 18, color: "var(--color-secondary-text)" }}
                   />
                 </InputAdornment>
               ),
@@ -434,18 +434,18 @@ const CustomDataTable = ({
               flex: 1,
               maxWidth: "220px",
               "& .MuiOutlinedInput-root": {
-                backgroundColor: colors.secondary_bg,
+                backgroundColor: "var(--color-secondary-bg)",
                 fontSize: fontSizes.search,
                 height: "36px",
-                "& fieldset": { borderColor: colors.border_color },
+                "& fieldset": { borderColor: "var(--color-border-color)" },
                 "&:hover fieldset": { borderColor: accentColor },
                 "&.Mui-focused fieldset": { borderColor: accentColor },
               },
               "& .MuiInputBase-input": {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 padding: "8px 10px",
                 "&::placeholder": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.7,
                 },
               },
@@ -457,7 +457,7 @@ const CustomDataTable = ({
         {filterConfig && (
           <div className="flex items-center gap-1">
             <FilterListIcon
-              sx={{ fontSize: 16, color: colors.secondary_text }}
+              sx={{ fontSize: 16, color: "var(--color-secondary-text)" }}
             />
             <AppSelect
               value={filterValue}
@@ -481,7 +481,7 @@ const CustomDataTable = ({
         <span
           style={{
             fontSize: fontSizes.count,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             marginLeft: "auto",
           }}
         >
@@ -496,7 +496,7 @@ const CustomDataTable = ({
           flex: 1,
           overflow: "auto",
           borderRadius: "6px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <table
@@ -508,7 +508,7 @@ const CustomDataTable = ({
         >
           {/* Table Header */}
           <thead>
-            <tr style={{ backgroundColor: colors.secondary_bg }}>
+            <tr style={{ backgroundColor: "var(--color-secondary-bg)" }}>
               {columns.map((col) => (
                 <th
                   key={col.field}
@@ -519,7 +519,7 @@ const CustomDataTable = ({
                     textAlign: col.align || "left",
                     fontSize: fontSizes.header,
                     fontWeight: "600",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     borderBottom: `1px solid ${colors.border_color}`,
@@ -528,7 +528,7 @@ const CustomDataTable = ({
                     whiteSpace: "nowrap",
                     position: "sticky",
                     top: 0,
-                    backgroundColor: colors.secondary_bg,
+                    backgroundColor: "var(--color-secondary-bg)",
                     zIndex: 1,
                   }}
                 >
@@ -634,7 +634,7 @@ const CustomDataTable = ({
                   style={{
                     padding: "32px",
                     textAlign: "center",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: fontSizes.cell,
                   }}
                 >
@@ -653,7 +653,7 @@ const CustomDataTable = ({
           style={{ padding: "10px 0 0 0" }}
         >
           <span
-            style={{ fontSize: fontSizes.count, color: colors.secondary_text }}
+            style={{ fontSize: fontSizes.count, color: "var(--color-secondary-text)" }}
           >
             Page {page + 1} of {totalPages}
           </span>
@@ -667,7 +667,7 @@ const CustomDataTable = ({
                 height: 28,
                 color: page === 0 ? colors.secondary_text : accentColor,
                 "&:hover": { backgroundColor: `${accentColor}20` },
-                "&.Mui-disabled": { color: colors.secondary_text + "50" },
+                "&.Mui-disabled": { color: "var(--color-secondary-text)" + "50" },
               }}
             >
               <KeyboardArrowLeftIcon sx={{ fontSize: 20 }} />
@@ -682,7 +682,7 @@ const CustomDataTable = ({
                 color:
                   page >= totalPages - 1 ? colors.secondary_text : accentColor,
                 "&:hover": { backgroundColor: `${accentColor}20` },
-                "&.Mui-disabled": { color: colors.secondary_text + "50" },
+                "&.Mui-disabled": { color: "var(--color-secondary-text)" + "50" },
               }}
             >
               <KeyboardArrowRightIcon sx={{ fontSize: 20 }} />

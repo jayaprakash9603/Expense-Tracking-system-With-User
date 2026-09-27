@@ -153,7 +153,7 @@ const TermsOfService = () => {
   return (
     <Box
       sx={{
-        bgcolor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         maxHeight: "calc(100vh - 100px)",
@@ -179,16 +179,16 @@ const TermsOfService = () => {
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <IconButton
             onClick={() => navigate(-1)}
-            sx={{ color: colors.primary_text }}
+            sx={{ color: "var(--color-primary-text)" }}
           >
             <ArrowBackIcon />
           </IconButton>
           <DescriptionIcon
-            sx={{ color: colors.primary_accent, fontSize: 28 }}
+            sx={{ color: "var(--color-primary-accent)", fontSize: 28 }}
           />
           <Typography
             variant="h5"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           >
             {t("settings.termsOfService") || "Terms of Service"}
           </Typography>
@@ -228,7 +228,7 @@ const TermsOfService = () => {
             <Box sx={{ p: 2 }}>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, color: colors.primary_text, mb: 1 }}
+                sx={{ fontWeight: 600, color: "var(--color-primary-text)", mb: 1 }}
               >
                 Table of Contents
               </Typography>
@@ -250,14 +250,14 @@ const TermsOfService = () => {
                     >
                       <ListItemIcon sx={{ minWidth: 36 }}>
                         <SectionIcon
-                          sx={{ fontSize: 18, color: colors.primary_accent }}
+                          sx={{ fontSize: 18, color: "var(--color-primary-accent)" }}
                         />
                       </ListItemIcon>
                       <ListItemText
                         primary={section.title}
                         primaryTypographyProps={{
                           fontSize: "0.85rem",
-                          color: colors.primary_text,
+                          color: "var(--color-primary-text)",
                           noWrap: true,
                         }}
                       />
@@ -284,15 +284,15 @@ const TermsOfService = () => {
               mb: 3,
               bgcolor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.02)",
               borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               <strong>Last Updated:</strong> January 1, 2026
             </Typography>
             <Typography
               variant="body2"
-              sx={{ color: colors.secondary_text, mt: 1 }}
+              sx={{ color: "var(--color-secondary-text)", mt: 1 }}
             >
               Please read these Terms of Service carefully before using Expensio
               Finance. Your access to and use of the service is conditioned on
@@ -313,7 +313,7 @@ const TermsOfService = () => {
                       height: "100%",
                       bgcolor: colors.secondary_bg,
                       borderRadius: 3,
-                      border: `1px solid ${colors.border_color}`,
+                      border: "1px solid var(--color-border-color)",
                       transition: "transform 0.2s, box-shadow 0.2s",
                       "&:hover": {
                         transform: "translateY(-4px)",
@@ -345,22 +345,22 @@ const TermsOfService = () => {
                             justifyContent: "center",
                           }}
                         >
-                          <SectionIcon sx={{ color: colors.primary_accent }} />
+                          <SectionIcon sx={{ color: "var(--color-primary-accent)" }} />
                         </Box>
                         <Typography
                           variant="h6"
-                          sx={{ fontWeight: 600, color: colors.primary_text }}
+                          sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
                         >
                           {section.title}
                         </Typography>
                       </Box>
                       <Divider
-                        sx={{ mb: 2, borderColor: colors.border_color }}
+                        sx={{ mb: 2, borderColor: "var(--color-border-color)" }}
                       />
                       <Typography
                         variant="body2"
                         sx={{
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           lineHeight: 1.8,
                           whiteSpace: "pre-wrap",
                         }}

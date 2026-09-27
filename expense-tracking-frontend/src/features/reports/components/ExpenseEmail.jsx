@@ -63,7 +63,7 @@ const ExpenseEmail = () => {
     border: `1px solid ${sectionBorder}`,
     borderRadius: 2,
     p: isMobile ? 2 : 2.5,
-    bgcolor: colors.primary_bg,
+    backgroundColor: "var(--color-primary-bg)",
     minHeight: 108,
   };
 
@@ -203,7 +203,7 @@ const ExpenseEmail = () => {
               key={`${part}-${index}`}
               component="span"
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
               }}
             >
@@ -213,7 +213,7 @@ const ExpenseEmail = () => {
             <Typography
               key={`${part}-${index}`}
               component="span"
-              sx={{ color: colors.primary_text }}
+              sx={{ color: "var(--color-primary-text)" }}
             >
               {part}
             </Typography>
@@ -277,7 +277,7 @@ const ExpenseEmail = () => {
                 { value: "12", label: "December" },
               ]}
               startAdornment={
-                <CalendarTodayIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+                <CalendarTodayIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
               }
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -292,7 +292,7 @@ const ExpenseEmail = () => {
             onChange={(e) => setExpenseName(e.target.value)}
             placeholder="Enter expense name..."
             startAdornment={
-              <CategoryIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+              <CategoryIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
             }
           />
         );
@@ -310,7 +310,7 @@ const ExpenseEmail = () => {
               { value: "creditPaid", label: "Credit Paid" },
             ]}
             startAdornment={
-              <PaymentIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+              <PaymentIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
             }
           />
         );
@@ -376,7 +376,7 @@ const ExpenseEmail = () => {
               { value: "gain", label: "Gain" },
             ]}
             startAdornment={
-              <CategoryIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+              <CategoryIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
             }
           />
         );
@@ -400,7 +400,7 @@ const ExpenseEmail = () => {
                 step: "0.01",
               }}
               startAdornment={
-                <AttachMoneyIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+                <AttachMoneyIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
               }
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -421,7 +421,7 @@ const ExpenseEmail = () => {
                 step: "0.01",
               }}
               startAdornment={
-                <AttachMoneyIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+                <AttachMoneyIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
               }
               gridProps={{ xs: 12, sm: 6 }}
             />
@@ -447,7 +447,7 @@ const ExpenseEmail = () => {
           gap: 2,
         }}
       >
-        <CircularProgress size={48} sx={{ color: colors.primary_accent }} />
+        <CircularProgress size={48} sx={{ color: "var(--color-primary-accent)" }} />
         <Typography variant="body1" sx={{ color: "#888" }}>
           Sending your report...
         </Typography>
@@ -498,7 +498,7 @@ const ExpenseEmail = () => {
               <Typography
                 variant="caption"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   mb: 1,
                   display: "block",
                   fontWeight: 600,
@@ -525,7 +525,7 @@ const ExpenseEmail = () => {
                 startAdornment={
                   <InputAdornment position="start">
                     <CalendarTodayIcon
-                      sx={{ color: colors.primary_accent, fontSize: 20 }}
+                      sx={{ color: "var(--color-primary-accent)", fontSize: 20 }}
                     />
                   </InputAdornment>
                 }
@@ -552,7 +552,7 @@ const ExpenseEmail = () => {
                   <Typography
                     variant="caption"
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       mb: 1,
                       display: "block",
                       fontWeight: 600,
@@ -572,7 +572,7 @@ const ExpenseEmail = () => {
               <Typography
                 variant="caption"
                 sx={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   mb: 1,
                   display: "block",
                   fontWeight: 600,
@@ -588,7 +588,7 @@ const ExpenseEmail = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 startAdornment={
-                  <EmailIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+                  <EmailIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
                 }
               />
             </Grid>

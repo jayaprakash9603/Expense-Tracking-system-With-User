@@ -54,7 +54,7 @@ const RangePeriodNavigator = ({
             variant="contained"
             onClick={() => onBackNavigate && onBackNavigate()}
             sx={{
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "8px",
               color: colors.active_text,
               display: "flex",
@@ -65,7 +65,7 @@ const RangePeriodNavigator = ({
               textTransform: "none",
               fontSize: isMobile ? "0.7rem" : "0.8rem",
               minHeight: 36,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
             }}
           >
             <svg
@@ -142,7 +142,7 @@ const RangePeriodNavigator = ({
         >
           &#8592;
         </button>
-        <span style={{ color: colors.primary_text, fontSize: "0.875rem" }}>
+        <span style={{ color: "var(--color-primary-text)", fontSize: "0.875rem" }}>
           {rangeLabel}
         </span>
         <button

@@ -79,10 +79,10 @@ const DetailDrawer = forwardRef(function DetailDrawer(
             onClick={onCopy}
             size="small"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               "&:hover": {
-                color: colors.primary_text,
-                backgroundColor: colors.secondary_bg,
+                color: "var(--color-primary-text)",
+                backgroundColor: "var(--color-secondary-bg)",
               },
             }}
           >
@@ -96,10 +96,10 @@ const DetailDrawer = forwardRef(function DetailDrawer(
             onClick={onExport}
             size="small"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               "&:hover": {
-                color: colors.primary_text,
-                backgroundColor: colors.secondary_bg,
+                color: "var(--color-primary-text)",
+                backgroundColor: "var(--color-secondary-bg)",
               },
             }}
           >
@@ -122,8 +122,8 @@ const DetailDrawer = forwardRef(function DetailDrawer(
           width: 36,
           height: 36,
           borderRadius: 1,
-          backgroundColor: colors.secondary_bg,
-          color: colors.primary_accent,
+          backgroundColor: "var(--color-secondary-bg)",
+          color: "var(--color-primary-accent)",
         }}
       >
         {icon}
@@ -134,7 +134,7 @@ const DetailDrawer = forwardRef(function DetailDrawer(
           sx={{
             fontWeight: 600,
             fontSize: "0.95rem",
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           }}
         >
           {title}
@@ -145,7 +145,7 @@ const DetailDrawer = forwardRef(function DetailDrawer(
             sx={{
               opacity: 0.75,
               fontSize: "0.75rem",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             }}
           >
             {subtitle}
@@ -215,7 +215,7 @@ const DetailDrawer = forwardRef(function DetailDrawer(
             variant="h6"
             sx={{
               fontWeight: 600,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               mb: 1,
             }}
           >
@@ -224,7 +224,7 @@ const DetailDrawer = forwardRef(function DetailDrawer(
           <Typography
             variant="body2"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               maxWidth: 280,
             }}
           >
@@ -272,7 +272,7 @@ export const DetailSection = ({
           sx={{
             fontWeight: 700,
             fontSize: "0.75rem",
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             textTransform: "uppercase",
             letterSpacing: "0.5px",
             px: padding ? 2 : 0,
@@ -284,7 +284,7 @@ export const DetailSection = ({
         </Typography>
       )}
       <Box sx={{ px: padding ? 2 : 0, pb: padding ? 2 : 0 }}>{children}</Box>
-      {divider && <Divider sx={{ borderColor: colors.border_color }} />}
+      {divider && <Divider sx={{ borderColor: "var(--color-border-color)" }} />}
     </Box>
   );
 };
@@ -318,7 +318,7 @@ export const DetailItem = ({ label, value, valueColor, bold = false }) => {
       <Typography
         variant="body2"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           fontSize: "0.8rem",
         }}
       >

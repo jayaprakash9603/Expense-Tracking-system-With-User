@@ -1,3 +1,1 @@
-import createAppTheme from "./theme";
-
-export default createAppTheme;
+export { default } from "./buildAppTheme";

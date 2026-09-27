@@ -83,7 +83,7 @@ const DeleteDialog = ({
           >
             <WarningAmberIcon
               sx={{
-                color: colors.error || "#ef4444",
+                color: "var(--color-error)" || "#ef4444",
                 fontSize: "24px",
               }}
             />
@@ -93,7 +93,7 @@ const DeleteDialog = ({
           sx={{
             fontSize: "0.95rem",
             lineHeight: 1.6,
-            color: colors.primary_text || "#fff",
+            color: "var(--color-primary-text)" || "#fff",
           }}
         >
           {message || defaultMessage}

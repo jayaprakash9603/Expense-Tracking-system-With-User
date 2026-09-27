@@ -30,7 +30,7 @@ const ProfileContent = ({
         overflow: "auto",
         overflowX: "hidden",
         p: isSmallScreen ? 2 : 3,
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         minHeight: 0,
         "&::-webkit-scrollbar": {
           width: "8px",
@@ -54,7 +54,7 @@ const ProfileContent = ({
             sx={{
               p: isSmallScreen ? 2 : 3,
               backgroundColor: colors.tertiary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 3,
               boxShadow: "none",
             }}
@@ -80,13 +80,13 @@ const ProfileContent = ({
                 }}
               >
                 <PersonIcon
-                  sx={{ color: colors.primary_accent, fontSize: "1.5rem" }}
+                  sx={{ color: "var(--color-primary-accent)", fontSize: "1.5rem" }}
                 />
               </Box>
               <Typography
                 variant="h6"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 700,
                   letterSpacing: "-0.3px",
                 }}

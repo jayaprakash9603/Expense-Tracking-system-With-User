@@ -32,8 +32,8 @@ const SummaryOverviewSkeleton = () => {
     <div
       className="chart-container summary-overview"
       style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
         borderRadius: "16px",
         overflow: "hidden",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
@@ -89,7 +89,7 @@ const SummaryOverviewSkeleton = () => {
                 background: colors.tertiary_bg,
                 borderRadius: "12px",
                 padding: "16px 12px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <div
@@ -130,7 +130,7 @@ const SummaryOverviewSkeleton = () => {
                 background: colors.tertiary_bg,
                 borderRadius: "12px",
                 padding: "16px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <div
@@ -173,7 +173,7 @@ const SummaryOverviewSkeleton = () => {
           style={{
             background: colors.tertiary_bg,
             borderRadius: "12px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             overflow: "hidden",
           }}
         >
@@ -204,7 +204,7 @@ const SummaryOverviewSkeleton = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   background: "transparent",
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                 }}
               >
                 <div

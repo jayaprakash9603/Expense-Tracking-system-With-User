@@ -52,7 +52,7 @@ const ReportsHistoryHeader = ({
         bgcolor: colors.secondary_bg,
         borderRadius: 3,
         p: 2,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Single Line: Search, Filters, Count, and Refresh */}
@@ -71,17 +71,17 @@ const ReportsHistoryHeader = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.primary_accent, fontSize: 20 }} />
+                <SearchIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
               </InputAdornment>
             ),
           }}
           sx={{
             flex: 1,
             "& .MuiOutlinedInput-root": {
-              bgcolor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: 2,
               "& fieldset": {
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
               },
               "&:hover fieldset": {
                 borderColor: colors.primary_accent,
@@ -92,9 +92,9 @@ const ReportsHistoryHeader = ({
               },
             },
             "& .MuiInputBase-input": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "&::placeholder": {
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 opacity: 0.7,
               },
             },
@@ -106,9 +106,9 @@ const ReportsHistoryHeader = ({
           <IconButton
             onClick={onFilter}
             sx={{
-              color: colors.primary_text,
-              bgcolor: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
               px: 2,
               "&:hover": {
@@ -126,9 +126,9 @@ const ReportsHistoryHeader = ({
           <IconButton
             onClick={onSort}
             sx={{
-              color: colors.primary_text,
-              bgcolor: colors.primary_bg,
-              border: `1px solid ${colors.border_color}`,
+              color: "var(--color-primary-text)",
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
               px: 2,
               "&:hover": {
@@ -146,7 +146,7 @@ const ReportsHistoryHeader = ({
           label={`${totalCount} ${totalCount === 1 ? "Report" : "Reports"}`}
           sx={{
             bgcolor: `${colors.primary_accent}15`,
-            color: colors.primary_accent,
+            color: "var(--color-primary-accent)",
             fontWeight: 600,
             fontSize: 14,
             height: 32,
@@ -159,7 +159,7 @@ const ReportsHistoryHeader = ({
           <IconButton
             onClick={onRefresh}
             sx={{
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               bgcolor: `${colors.primary_accent}10`,
               "&:hover": {
                 bgcolor: `${colors.primary_accent}20`,

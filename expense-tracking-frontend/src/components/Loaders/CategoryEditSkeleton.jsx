@@ -11,15 +11,15 @@ const CategoryEditSkeleton = () => {
   const { colors } = useTheme();
 
   return (
-    <div style={{ backgroundColor: colors.primary_bg }}>
+    <div style={{ backgroundColor: "var(--color-primary-bg)" }}>
       <div
         className="flex lg:w-[calc(100vw-370px)] flex-col sm:w-full"
         style={{
           height: "auto",
           minHeight: "calc(100vh - 100px)", // match real component
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           padding: 16,
           marginRight: 20,
         }}
@@ -75,7 +75,7 @@ const CategoryEditSkeleton = () => {
           <Grid item xs={12} md={6}>
             <Box
               sx={{
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: 1,
                 p: 2,
                 display: "flex",
@@ -100,7 +100,7 @@ const CategoryEditSkeleton = () => {
           <Grid item xs={12} md={6}>
             <Box
               sx={{
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: 1,
                 height: 180,
                 p: 1.5,

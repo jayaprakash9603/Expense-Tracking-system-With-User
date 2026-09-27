@@ -96,7 +96,7 @@ export default function TopRecurringExpensesCard({
     padding: "12px 14px",
     background: colors.secondary_bg,
     borderRadius: "12px",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     boxShadow: `inset 5px 0 0 ${colors.primary_accent}`,
   };
 
@@ -113,7 +113,7 @@ export default function TopRecurringExpensesCard({
       className="chart-container"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "20px",
       }}
@@ -121,14 +121,14 @@ export default function TopRecurringExpensesCard({
       <div className="chart-header" style={{ marginBottom: "14px" }}>
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             margin: "0 0 4px 0",
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <SyncIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <SyncIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           {title}
         </h3>
         <div className="chart-subtitle" style={{ color: subtitleColor }}>
@@ -151,7 +151,7 @@ export default function TopRecurringExpensesCard({
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 700,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -164,9 +164,9 @@ export default function TopRecurringExpensesCard({
 
               <div
                 style={{
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   background: colors.active_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   padding: "4px 10px",
                   borderRadius: 999,
                   fontSize: 12,
@@ -179,7 +179,7 @@ export default function TopRecurringExpensesCard({
 
               <div
                 style={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: 800,
                   fontVariantNumeric: "tabular-nums",
                   whiteSpace: "nowrap",

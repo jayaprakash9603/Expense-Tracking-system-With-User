@@ -17,7 +17,7 @@ const DebtSimplificationModal = ({
         className="p-6 rounded-xl w-full max-w-lg"
       >
         <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-          <BalanceIcon sx={{ fontSize: 24, color: colors.primary_accent }} />
+          <BalanceIcon sx={{ fontSize: 24, color: "var(--color-primary-accent)" }} />
           Debt Simplification
         </h3>
         <div className="space-y-4">
@@ -70,7 +70,7 @@ const DebtSimplificationModal = ({
                   fontSize: 18,
                   mt: 0.25,
                   flexShrink: 0,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               />
               <span>

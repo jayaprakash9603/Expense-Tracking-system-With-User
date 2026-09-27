@@ -510,7 +510,7 @@ const ActivityCard = ({
               variant="body2"
               sx={{
                 fontWeight: 600,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "0.85rem",
                 whiteSpace: "nowrap",
               }}
@@ -558,7 +558,7 @@ const ActivityCard = ({
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "0.75rem",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -693,7 +693,7 @@ const ActivityCard = ({
               variant="subtitle2"
               sx={{
                 fontWeight: 600,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 display: "flex",
                 alignItems: "center",
                 gap: 0.75,
@@ -744,7 +744,7 @@ const ActivityCard = ({
             )}
           </Box>
 
-          <Divider sx={{ mb: 1.5, borderColor: colors.border_color }} />
+          <Divider sx={{ mb: 1.5, borderColor: "var(--color-border-color)" }} />
 
           {/* Details Grid */}
           <Grid container spacing={1.5}>
@@ -796,7 +796,7 @@ const ActivityCard = ({
                         height: 12,
                         borderRadius: "3px",
                         backgroundColor: value.toLowerCase(),
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                       }}
                     />
                     <span style={{ textTransform: "capitalize" }}>{value}</span>
@@ -911,7 +911,7 @@ const ActivityCard = ({
                 <DateRangeIcon sx={{ fontSize: 14, color: entityColor }} />
                 <Typography
                   variant="caption"
-                  sx={{ color: colors.primary_text, fontSize: "0.7rem" }}
+                  sx={{ color: "var(--color-primary-text)", fontSize: "0.7rem" }}
                 >
                   <strong>{formatSmartDate(entityPayload.startDate)}</strong>
                   {" → "}

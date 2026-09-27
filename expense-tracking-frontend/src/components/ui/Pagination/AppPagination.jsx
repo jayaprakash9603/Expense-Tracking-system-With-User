@@ -51,7 +51,7 @@ const AppPagination = React.forwardRef(
         border: `1px solid ${borderColor}`,
         transition: "all 0.2s ease",
         "&:hover": {
-          backgroundColor: colors.hover_bg || "rgba(255,255,255,0.08)",
+          backgroundColor: "var(--color-hover-bg)" || "rgba(255,255,255,0.08)",
           borderColor: accent,
         },
         "&.Mui-selected": {

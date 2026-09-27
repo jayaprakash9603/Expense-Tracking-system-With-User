@@ -73,7 +73,7 @@ const FriendsSidebar = ({
           left: 0,
           right: 0,
           zIndex: 1100,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderTop: `1px solid ${colors.border_color}`,
         }}
       >
@@ -82,12 +82,12 @@ const FriendsSidebar = ({
           onChange={(_, value) => onSectionChange(value)}
           showLabels={false}
           sx={{
-            backgroundColor: colors.card_bg,
+            backgroundColor: "var(--color-primary-bg)",
             "& .MuiBottomNavigationAction-root": {
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             },
             "& .Mui-selected": {
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
             },
           }}
         >
@@ -107,7 +107,7 @@ const FriendsSidebar = ({
     <Box
       sx={{
         width: isCollapsed ? SIDEBAR_WIDTH.COLLAPSED : SIDEBAR_WIDTH.EXPANDED,
-        backgroundColor: colors.card_bg,
+        backgroundColor: "var(--color-primary-bg)",
         borderRight: `1px solid ${colors.border_color}`,
         transition: "width 0.3s ease",
         display: "flex",
@@ -127,10 +127,10 @@ const FriendsSidebar = ({
           onClick={onToggleCollapse}
           size="small"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             "&:hover": {
-              backgroundColor: colors.hover_bg,
-              color: colors.primary_accent,
+              backgroundColor: "var(--color-hover-bg)",
+              color: "var(--color-primary-accent)",
             },
           }}
         >
@@ -154,14 +154,14 @@ const FriendsSidebar = ({
                 "&.Mui-selected": {
                   backgroundColor: `${colors.primary_accent}26`,
                   "& .MuiListItemIcon-root, & .MuiListItemText-primary": {
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                   },
                   "&:hover": {
                     backgroundColor: `${colors.primary_accent}33`,
                   },
                 },
                 "&:hover": {
-                  backgroundColor: colors.hover_bg,
+                  backgroundColor: "var(--color-hover-bg)",
                 },
                 "& .MuiListItemIcon-root, & .MuiListItemText-primary": {
                   color: isActive ? colors.primary_accent : colors.secondary_text,
@@ -194,7 +194,7 @@ const FriendsSidebar = ({
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               opacity: 0.8,
             }}
           >

@@ -84,11 +84,11 @@ const AppButton = React.forwardRef(
       },
       outlined: {
         backgroundColor: "transparent",
-        color: colors.primary_text || "#fff",
-        borderColor: colors.border_color || "rgb(75, 85, 99)",
+        color: "var(--color-primary-text)" || "#fff",
+        borderColor: "var(--color-border-color)" || "rgb(75, 85, 99)",
         borderWidth: "1px",
         "&:hover": {
-          backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.05)",
+          backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.05)",
           borderColor: colors.primary_accent || "#00DAC6",
         },
         "&:disabled": {
@@ -98,9 +98,9 @@ const AppButton = React.forwardRef(
       },
       text: {
         backgroundColor: "transparent",
-        color: colors.primary_accent || "#00DAC6",
+        color: "var(--color-primary-accent)" || "#00DAC6",
         "&:hover": {
-          backgroundColor: colors.hover_bg || "rgba(0, 218, 198, 0.1)",
+          backgroundColor: "var(--color-hover-bg)" || "rgba(0, 218, 198, 0.1)",
         },
         "&:disabled": {
           color: colors.disabled_text || "#888",
@@ -121,14 +121,14 @@ const AppButton = React.forwardRef(
             },
             outlined: {
               borderColor: colors.error || "#ef4444",
-              color: colors.error || "#ef4444",
+              color: "var(--color-error)" || "#ef4444",
               "&:hover": {
                 backgroundColor: "rgba(239, 68, 68, 0.1)",
                 borderColor: colors.error || "#ef4444",
               },
             },
             text: {
-              color: colors.error || "#ef4444",
+              color: "var(--color-error)" || "#ef4444",
               "&:hover": {
                 backgroundColor: "rgba(239, 68, 68, 0.1)",
               },

@@ -62,13 +62,13 @@ const Profile = () => {
           alignItems: "center",
           height: "calc(100vh - 100px)",
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: isSmallScreen ? 0 : "8px",
           border: isSmallScreen ? "none" : `1px solid ${colors.border_color}`,
           marginRight: isSmallScreen ? 0 : "20px",
         }}
       >
-        <CircularProgress sx={{ color: colors.primary_accent }} />
+        <CircularProgress sx={{ color: "var(--color-primary-accent)" }} />
       </Box>
     );
   }
@@ -76,7 +76,7 @@ const Profile = () => {
   return (
     <Box
       sx={{
-        bgcolor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         maxHeight: "calc(100vh - 100px)",

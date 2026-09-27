@@ -19,7 +19,8 @@
   flex-direction: column;
   justify-content: center;
   padding: 3rem;
-  background-color: red;
+  background-color: var(--color-secondary-bg, #ffffff);
+  color: var(--color-primary-text, #1a1a1a);
 }
 
 /* iPad specific */

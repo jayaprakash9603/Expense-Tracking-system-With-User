@@ -245,7 +245,7 @@ const AppSelect = React.forwardRef(
         pr: "32px !important",
       },
       "& .MuiSelect-icon": {
-        color: colors.secondary_text || placeholderColor,
+        color: "var(--color-secondary-text)" || placeholderColor,
         opacity: 0.65,
         transition: "color 0.2s ease, opacity 0.2s ease",
       },
@@ -254,7 +254,7 @@ const AppSelect = React.forwardRef(
         opacity: 1,
       },
       "& .MuiInputLabel-root": {
-        color: colors.secondary_text || placeholderColor,
+        color: "var(--color-secondary-text)" || placeholderColor,
         "&.Mui-focused": {
           color: error ? errorBorderColor : focusBorderColor,
         },
@@ -296,7 +296,7 @@ const AppSelect = React.forwardRef(
             gap: 1,
             transition: "background-color 0.15s ease, transform 0.15s ease",
             "&:hover": {
-              backgroundColor: colors.hover_bg || "rgba(255,255,255,0.08)",
+              backgroundColor: "var(--color-hover-bg)" || "rgba(255,255,255,0.08)",
             },
             "&.Mui-selected": {
               backgroundColor: `${focusBorderColor}22`,
@@ -314,7 +314,7 @@ const AppSelect = React.forwardRef(
           },
           "& .MuiListSubheader-root": {
             backgroundColor: menuBg,
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "0.7rem",
             fontWeight: 700,
             letterSpacing: "0.06em",
@@ -364,7 +364,7 @@ const AppSelect = React.forwardRef(
             }}
             secondaryTypographyProps={{
               fontSize: "0.72rem",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             }}
           />
           {showSelectedCheck && selected && !multiple ? (

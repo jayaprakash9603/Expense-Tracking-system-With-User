@@ -28,13 +28,13 @@ const CustomAutocomplete = ({
 
   const defaultSx = {
     "& .MuiInputBase-root": {
-      backgroundColor: colors.primary_bg,
-      color: colors.primary_text,
+      backgroundColor: "var(--color-primary-bg)",
+      color: "var(--color-primary-text)",
       fontSize: "14px",
       height: size === "small" ? "40px" : "56px",
     },
     "& .MuiInputBase-input": {
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
       padding: size === "small" ? "8px 12px" : "16px 14px",
       "&::placeholder": {
         color: colors.placeholder_text,
@@ -63,7 +63,7 @@ const CustomAutocomplete = ({
     "& .MuiAutocomplete-clearIndicator": {
       color: colors.placeholder_text,
       "&:hover": {
-        backgroundColor: colors.hover_bg,
+        backgroundColor: "var(--color-hover-bg)",
       },
     },
     ...sx,
@@ -73,8 +73,8 @@ const CustomAutocomplete = ({
     <li
       {...props}
       style={{
-        backgroundColor: colors.primary_bg,
-        color: colors.primary_text,
+        backgroundColor: "var(--color-primary-bg)",
+        color: "var(--color-primary-text)",
         fontSize: "14px",
         padding: "8px 12px",
         borderBottom: `1px solid ${colors.border_color}`,
@@ -124,8 +124,8 @@ const CustomAutocomplete = ({
       renderOption={renderOption || defaultRenderOption}
       ListboxProps={{
         style: {
-          backgroundColor: colors.primary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
           borderRadius: "4px",
           maxHeight: "200px",
         },
@@ -134,8 +134,8 @@ const CustomAutocomplete = ({
         <div
           {...other}
           style={{
-            backgroundColor: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "4px",
           }}
         >

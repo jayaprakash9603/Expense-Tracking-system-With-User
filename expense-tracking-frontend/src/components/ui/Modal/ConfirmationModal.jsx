@@ -146,8 +146,8 @@ const ConfirmationModal = forwardRef(function ConfirmationModal(
         sx={{
           flex: hasData ? 1 : undefined,
           minWidth: 120,
-          color: colors.secondary_text,
-          borderColor: colors.border_color,
+          color: "var(--color-secondary-text)",
+          borderColor: "var(--color-border-color)",
           "&:hover": {
             borderColor: "#f44336",
             backgroundColor: "#f4433610",
@@ -224,7 +224,7 @@ const ConfirmationModal = forwardRef(function ConfirmationModal(
         <Typography
           variant="body1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "1.1rem",
             fontWeight: 500,
             maxWidth: 400,
@@ -261,13 +261,13 @@ const ConfirmationModal = forwardRef(function ConfirmationModal(
                 >
                   <Typography
                     variant="body2"
-                    sx={{ color: colors.secondary_text }}
+                    sx={{ color: "var(--color-secondary-text)" }}
                   >
                     {label}
                   </Typography>
                   <Typography
                     variant="body2"
-                    sx={{ color: colors.primary_text, fontWeight: 500 }}
+                    sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
                   >
                     {String(value)}
                   </Typography>

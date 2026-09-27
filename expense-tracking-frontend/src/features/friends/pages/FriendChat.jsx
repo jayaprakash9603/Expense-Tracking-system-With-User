@@ -173,7 +173,7 @@ function FriendChat() {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
               borderBottom: `6px solid ${colors.primary_accent}`,
             }}
           >
@@ -192,7 +192,7 @@ function FriendChat() {
             <Box
               sx={{
                 textAlign: "center",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 maxWidth: 500,
               }}
             >
@@ -201,7 +201,7 @@ function FriendChat() {
                 sx={{
                   fontSize: "32px",
                   fontWeight: 300,
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   marginBottom: "16px",
                 }}
               >

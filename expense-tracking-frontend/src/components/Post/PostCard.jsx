@@ -74,7 +74,7 @@ const PostCard = ({ item }) => {
       />
 
       <CardContent>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
+        <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
           {item.caption}
         </Typography>
       </CardContent>

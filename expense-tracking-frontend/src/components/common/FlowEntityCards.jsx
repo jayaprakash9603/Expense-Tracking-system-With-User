@@ -233,7 +233,7 @@ const FlowEntityCards = ({
                     zIndex: 9,
                     fontSize: 21,
                     color: entity.color || colors.primary_accent,
-                    backgroundColor: colors.primary_bg,
+                    backgroundColor: "var(--color-primary-bg)",
                     borderRadius: "50%",
                   }}
                 />
@@ -247,7 +247,7 @@ const FlowEntityCards = ({
                   <IconButton
                     size="small"
                     sx={{
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       padding: "4px",
                       backgroundColor:
                         colors.mode === "dark"
@@ -292,7 +292,7 @@ const FlowEntityCards = ({
                       style={{
                         fontSize: "15px",
                         fontWeight: 700,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         cursor: onViewAnalytics && viewEnabled ? "pointer" : "default",
                         textDecoration: onViewAnalytics ? "none" : "none",
                         transition: "color 0.2s",
@@ -335,7 +335,7 @@ const FlowEntityCards = ({
                     wordBreak: "break-word",
                     flex: 1,
                     overflow: "hidden",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }}
                 >
                   {(() => {
@@ -358,16 +358,16 @@ const FlowEntityCards = ({
         onClick={(e) => e.stopPropagation()}
         PaperProps={{
           sx: {
-            backgroundColor: colors.primary_bg,
-            color: colors.primary_text,
-            border: `1px solid ${colors.border_color}`,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: "8px",
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
             minWidth: "150px",
             "& .MuiMenuItem-root": {
               fontSize: "14px",
               padding: "8px 16px",
-              "&:hover": { backgroundColor: colors.hover_bg },
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
             },
           },
         }}

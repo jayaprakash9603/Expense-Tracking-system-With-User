@@ -19,7 +19,7 @@ const SettingSection = ({
     <Paper
       sx={{
         backgroundColor: colors.tertiary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 3,
         p: 3,
         mb: 3,
@@ -48,12 +48,12 @@ const SettingSection = ({
               justifyContent: "center",
             }}
           >
-            <Icon sx={{ color: colors.primary_accent, fontSize: "1.3rem" }} />
+            <Icon sx={{ color: "var(--color-primary-accent)", fontSize: "1.3rem" }} />
           </Box>
           <Typography
             variant="h6"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 700,
               letterSpacing: "-0.3px",
             }}
@@ -67,7 +67,7 @@ const SettingSection = ({
             size="small"
             sx={{
               backgroundColor: chipColor || `${colors.primary_accent}20`,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               fontWeight: 600,
               fontSize: "0.75rem",
             }}
@@ -81,7 +81,7 @@ const SettingSection = ({
           <React.Fragment key={index}>
             {child}
             {index < React.Children.count(children) - 1 && (
-              <Divider sx={{ borderColor: colors.border_color, my: 1 }} />
+              <Divider sx={{ borderColor: "var(--color-border-color)", my: 1 }} />
             )}
           </React.Fragment>
         ))}

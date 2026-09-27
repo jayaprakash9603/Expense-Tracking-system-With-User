@@ -38,8 +38,8 @@ const BillDateSelector = ({
           onClick={onPrevMonth}
           sx={{
             color: colors.secondary_accent,
-            backgroundColor: colors.primary_bg,
-            "&:hover": { backgroundColor: colors.hover_bg },
+            backgroundColor: "var(--color-primary-bg)",
+            "&:hover": { backgroundColor: "var(--color-hover-bg)" },
           }}
         >
           <ArrowBackIcon />
@@ -54,9 +54,9 @@ const BillDateSelector = ({
             sx={{
               background: colors.primary_bg,
               borderRadius: 2,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               ".MuiInputBase-input": {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 textAlign: "center",
                 fontWeight: 600,
                 fontSize: "1.1rem",
@@ -74,7 +74,7 @@ const BillDateSelector = ({
               textField: {
                 size: "small",
                 variant: "outlined",
-                sx: { color: colors.primary_text },
+                sx: { color: "var(--color-primary-text)" },
               },
             }}
           />
@@ -87,7 +87,7 @@ const BillDateSelector = ({
             color: isNextMonthDisabled()
               ? colors.icon_muted
               : colors.secondary_accent,
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
             "&:hover": {
               backgroundColor: isNextMonthDisabled()
                 ? colors.primary_bg
@@ -95,7 +95,7 @@ const BillDateSelector = ({
             },
             "&.Mui-disabled": {
               color: colors.icon_muted,
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
             },
           }}
         >

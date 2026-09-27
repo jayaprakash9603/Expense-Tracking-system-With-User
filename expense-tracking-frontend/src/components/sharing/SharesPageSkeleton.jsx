@@ -33,7 +33,7 @@ export const StatCardSkeleton = ({ count = 4 }) => {
           <Card
             sx={{
               backgroundColor: colors.cardBackground,
-              border: `1px solid ${colors.border}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
@@ -69,7 +69,7 @@ export const ShareCardSkeleton = ({ variant = "default" }) => {
       sx={{
         height: "100%",
         backgroundColor: colors.cardBackground,
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 3,
       }}
     >

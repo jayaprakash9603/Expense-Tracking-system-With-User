@@ -138,14 +138,14 @@ const AppTable = forwardRef(function AppTable(
     if (sort.field !== field) {
       return (
         <UnfoldMoreIcon
-          sx={{ fontSize: 14, opacity: 0.4, color: colors.secondary_text }}
+          sx={{ fontSize: 14, opacity: 0.4, color: "var(--color-secondary-text)" }}
         />
       );
     }
     return sort.direction === "asc" ? (
-      <ExpandLessIcon sx={{ fontSize: 14, color: colors.primary_accent }} />
+      <ExpandLessIcon sx={{ fontSize: 14, color: "var(--color-primary-accent)" }} />
     ) : (
-      <ExpandMoreIcon sx={{ fontSize: 14, color: colors.primary_accent }} />
+      <ExpandMoreIcon sx={{ fontSize: 14, color: "var(--color-primary-accent)" }} />
     );
   };
 
@@ -155,7 +155,7 @@ const AppTable = forwardRef(function AppTable(
       <Box
         sx={{
           borderRadius: 2,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           overflow: "hidden",
           ...sx,
         }}
@@ -194,9 +194,9 @@ const AppTable = forwardRef(function AppTable(
           alignItems: "center",
           justifyContent: "center",
           padding: 4,
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: 2,
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           fontSize: config.cellFontSize,
           ...sx,
         }}
@@ -211,7 +211,7 @@ const AppTable = forwardRef(function AppTable(
       ref={ref}
       sx={{
         borderRadius: 2,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         overflow: "auto",
         maxHeight: maxHeight,
         ...sx,
@@ -228,7 +228,7 @@ const AppTable = forwardRef(function AppTable(
       >
         {/* Header */}
         <Box component="thead">
-          <Box component="tr" sx={{ backgroundColor: colors.secondary_bg }}>
+          <Box component="tr" sx={{ backgroundColor: "var(--color-secondary-bg)" }}>
             {columns.map((col) => (
               <Box
                 key={col.field}
@@ -242,7 +242,7 @@ const AppTable = forwardRef(function AppTable(
                   textAlign: col.align || "left",
                   fontSize: config.headerFontSize,
                   fontWeight: 600,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                   borderBottom: `1px solid ${colors.border_color}`,
@@ -251,7 +251,7 @@ const AppTable = forwardRef(function AppTable(
                   whiteSpace: "nowrap",
                   position: stickyHeader ? "sticky" : "static",
                   top: 0,
-                  backgroundColor: colors.secondary_bg,
+                  backgroundColor: "var(--color-secondary-bg)",
                   zIndex: 1,
                 }}
               >
@@ -293,7 +293,7 @@ const AppTable = forwardRef(function AppTable(
                 height: config.rowHeight,
                 "&:hover": hoverable
                   ? {
-                      backgroundColor: colors.secondary_bg,
+                      backgroundColor: "var(--color-secondary-bg)",
                     }
                   : {},
               }}

@@ -85,16 +85,16 @@ const MonthlyTrendChart = ({
     width: isMobile ? 40 : 36,
     height: isMobile ? 40 : 36,
     borderRadius: "10px",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     backgroundColor: colors.tertiary_bg,
-    color: colors.primary_accent,
+    color: "var(--color-primary-accent)",
     "&:hover": {
       backgroundColor: `${colors.primary_accent}18`,
       borderColor: colors.primary_accent,
     },
     "&.Mui-disabled": {
       opacity: 0.4,
-      color: colors.secondary_text,
+      color: "var(--color-secondary-text)",
     },
   };
 
@@ -103,8 +103,8 @@ const MonthlyTrendChart = ({
       className={`chart-container monthly-trend${isMobile ? " is-mobile" : ""}`}
       style={{
         position: "relative",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
         overflow: "visible",
         width: "100%",
         boxSizing: "border-box",
@@ -127,7 +127,7 @@ const MonthlyTrendChart = ({
         <h3
           className="monthly-trend-title"
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: isMobile ? 6 : 8,
@@ -145,7 +145,7 @@ const MonthlyTrendChart = ({
           <TrendingUp
             sx={{
               fontSize: isMobile ? 18 : 22,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               flexShrink: 0,
             }}
           />
@@ -295,18 +295,18 @@ const MonthlyTrendChart = ({
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: colors.secondary_bg,
-                border: `1px solid ${colors.border_color}`,
+                backgroundColor: "var(--color-secondary-bg)",
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "8px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
               }}
               labelStyle={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: "600",
               }}
               itemStyle={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
               formatter={(value, name) => [
                 `${currencySymbol}${formatNumber0(value)}`,
@@ -336,7 +336,7 @@ const MonthlyTrendChart = ({
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: "14px",
             fontWeight: 500,
           }}

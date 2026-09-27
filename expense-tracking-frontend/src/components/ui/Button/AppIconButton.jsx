@@ -60,20 +60,20 @@ const AppIconButton = React.forwardRef(
     // Color configurations
     const colorStyles = {
       default: {
-        color: colors.secondary_text || "#9ca3af",
+        color: "var(--color-secondary-text)" || "#9ca3af",
         "&:hover": {
-          color: colors.primary_text || "#fff",
-          backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+          color: "var(--color-primary-text)" || "#fff",
+          backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.08)",
         },
       },
       primary: {
-        color: colors.primary_accent || "#00DAC6",
+        color: "var(--color-primary-accent)" || "#00DAC6",
         "&:hover": {
           backgroundColor: "rgba(0, 218, 198, 0.15)",
         },
       },
       error: {
-        color: colors.error || "#ef4444",
+        color: "var(--color-error)" || "#ef4444",
         "&:hover": {
           backgroundColor: "rgba(239, 68, 68, 0.15)",
         },
@@ -81,7 +81,7 @@ const AppIconButton = React.forwardRef(
       inherit: {
         color: "inherit",
         "&:hover": {
-          backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+          backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.08)",
         },
       },
     };

@@ -70,7 +70,7 @@ const FriendsStatsBar = ({ stats = {}, loading, onStatClick }) => {
                 height: 130,
                 bgcolor: colors.card_bg,
                 borderRadius: "16px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 p: 2,
                 display: "flex",
                 flexDirection: "column",

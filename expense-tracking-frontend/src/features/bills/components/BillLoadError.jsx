@@ -10,7 +10,7 @@ export default function BillLoadError({ colors, t, loadError, onClose }) {
         height: "calc(100vh - 100px)",
         backgroundColor: colors.tertiary_bg,
         borderRadius: "8px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         padding: "20px",
       }}
     >

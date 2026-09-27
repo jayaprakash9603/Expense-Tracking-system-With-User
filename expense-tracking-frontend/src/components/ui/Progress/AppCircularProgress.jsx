@@ -94,7 +94,7 @@ const AppCircularProgress = React.forwardRef(
               variant="caption"
               component="div"
               sx={{
-                color: colors.primary_text || "#fff",
+                color: "var(--color-primary-text)" || "#fff",
                 fontSize: fontSize,
                 fontWeight: 600,
               }}

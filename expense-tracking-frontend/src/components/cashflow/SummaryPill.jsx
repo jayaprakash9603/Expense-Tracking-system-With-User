@@ -10,12 +10,12 @@ const SummaryPill = ({ label, value, icon }) => {
     <span
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: 8,
         padding: "6px 10px",
         fontSize: 11,
         fontWeight: 600,
-        color: colors.secondary_text,
+        color: "var(--color-secondary-text)",
         display: "inline-flex",
         alignItems: "center",
         gap: 6,

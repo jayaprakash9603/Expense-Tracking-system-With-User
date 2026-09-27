@@ -729,9 +729,9 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
               aria-label={closeLabel}
               className="px-2 py-1 rounded mt-2 sm:mt-0 hidden sm:block"
               style={{
-                backgroundColor: colors.active_bg,
-                color: colors.primary_text,
-                border: `1px solid ${colors.border_color}`,
+                bgcolor: "action.selected",
+                color: "var(--color-primary-text)",
+                border: "1px solid var(--color-border-color)",
               }}
             >
               X
@@ -756,9 +756,9 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
                   aria-label={closeLabel}
                   className="px-2 py-1 rounded"
                   style={{
-                    backgroundColor: colors.active_bg,
-                    color: colors.primary_text,
-                    border: `1px solid ${colors.border_color}`,
+                    bgcolor: "action.selected",
+                    color: "var(--color-primary-text)",
+                    border: "1px solid var(--color-border-color)",
                   }}
                 >
                   X
@@ -795,7 +795,7 @@ export default function ExpenseFormPage({ mode, onClose, onSuccess }) {
           }`}
           style={
             isCreateMode && !(showTable && budgets.length === 0)
-              ? { backgroundColor: colors.secondary_bg }
+              ? { backgroundColor: "var(--color-secondary-bg)" }
               : undefined
           }
         >

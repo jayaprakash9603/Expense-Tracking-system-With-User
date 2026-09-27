@@ -159,7 +159,7 @@ function ChatMessage({
           >
             <Typography
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontSize: "12.5px",
                 fontWeight: 500,
               }}
@@ -168,7 +168,7 @@ function ChatMessage({
             </Typography>
             <Typography
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "13px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -262,7 +262,7 @@ function ChatMessage({
                 bottom: -10,
                 right: isOwn ? "auto" : 8,
                 left: isOwn ? 8 : "auto",
-                backgroundColor: colors.secondary_bg,
+                backgroundColor: "var(--color-secondary-bg)",
                 borderRadius: "12px",
                 padding: "2px 6px",
                 display: "flex",
@@ -281,7 +281,7 @@ function ChatMessage({
                       component="span"
                       sx={{
                         fontSize: "11px",
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         marginLeft: "2px",
                       }}
                     >
@@ -304,7 +304,7 @@ function ChatMessage({
               display: "flex",
               alignItems: "center",
               gap: 0.5,
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "6px",
               padding: "2px 4px",
             }}
@@ -312,28 +312,28 @@ function ChatMessage({
             <IconButton
               size="small"
               onClick={handleReactionClick}
-              sx={{ color: colors.secondary_text, padding: "4px" }}
+              sx={{ color: "var(--color-secondary-text)", padding: "4px" }}
             >
               <AddReactionOutlinedIcon sx={{ fontSize: 18 }} />
             </IconButton>
             <IconButton
               size="small"
               onClick={() => onReply && onReply(message)}
-              sx={{ color: colors.secondary_text, padding: "4px" }}
+              sx={{ color: "var(--color-secondary-text)", padding: "4px" }}
             >
               <ReplyIcon sx={{ fontSize: 18 }} />
             </IconButton>
             <IconButton
               size="small"
               onClick={handleForward}
-              sx={{ color: colors.secondary_text, padding: "4px" }}
+              sx={{ color: "var(--color-secondary-text)", padding: "4px" }}
             >
               <ForwardIcon sx={{ fontSize: 18 }} />
             </IconButton>
             <IconButton
               size="small"
               onClick={handleMenuOpen}
-              sx={{ color: colors.secondary_text, padding: "4px" }}
+              sx={{ color: "var(--color-secondary-text)", padding: "4px" }}
             >
               <ExpandMoreIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -354,8 +354,8 @@ function ChatMessage({
         onClose={handleMenuClose}
         PaperProps={{
           sx: {
-            backgroundColor: colors.card_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
             minWidth: 180,
             borderRadius: "8px",
             boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
@@ -364,29 +364,29 @@ function ChatMessage({
       >
         <MenuItem
           onClick={() => onReply && onReply(message)}
-          sx={{ "&:hover": { backgroundColor: colors.hover_bg } }}
+          sx={{ "&:hover": { backgroundColor: "var(--color-hover-bg)" } }}
         >
           <ListItemIcon>
-            <ReplyIcon sx={{ color: colors.secondary_text, fontSize: 20 }} />
+            <ReplyIcon sx={{ color: "var(--color-secondary-text)", fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText>Reply</ListItemText>
         </MenuItem>
         <MenuItem
           onClick={handleForward}
-          sx={{ "&:hover": { backgroundColor: colors.hover_bg } }}
+          sx={{ "&:hover": { backgroundColor: "var(--color-hover-bg)" } }}
         >
           <ListItemIcon>
-            <ForwardIcon sx={{ color: colors.secondary_text, fontSize: 20 }} />
+            <ForwardIcon sx={{ color: "var(--color-secondary-text)", fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText>Forward</ListItemText>
         </MenuItem>
         <MenuItem
           onClick={handleCopyText}
-          sx={{ "&:hover": { backgroundColor: colors.hover_bg } }}
+          sx={{ "&:hover": { backgroundColor: "var(--color-hover-bg)" } }}
         >
           <ListItemIcon>
             <ContentCopyIcon
-              sx={{ color: colors.secondary_text, fontSize: 20 }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: 20 }}
             />
           </ListItemIcon>
           <ListItemText>Copy text</ListItemText>
@@ -394,7 +394,7 @@ function ChatMessage({
         {isOwn && (
           <MenuItem
             onClick={handleDelete}
-            sx={{ "&:hover": { backgroundColor: colors.hover_bg } }}
+            sx={{ "&:hover": { backgroundColor: "var(--color-hover-bg)" } }}
           >
             <ListItemIcon>
               <DeleteOutlineIcon sx={{ color: "#f15c6d", fontSize: 20 }} />

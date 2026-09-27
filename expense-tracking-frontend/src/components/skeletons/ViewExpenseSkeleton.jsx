@@ -51,10 +51,10 @@ const ViewExpenseSkeleton = ({ onClose, containerStyle }) => {
         >
           <div
             style={{
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: "12px",
               padding: "18px 20px",
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               flex: 1,
               display: "flex",
               flexDirection: "column",
@@ -111,13 +111,13 @@ const ViewExpenseSkeleton = ({ onClose, containerStyle }) => {
             variant="rounded"
             width="100%"
             height={120}
-            sx={{ bgcolor: colors.primary_bg, borderRadius: "12px" }}
+            sx={{ backgroundColor: "var(--color-primary-bg)", borderRadius: "12px" }}
           />
           <Skeleton
             variant="rounded"
             width="100%"
             height={120}
-            sx={{ bgcolor: colors.primary_bg, borderRadius: "12px" }}
+            sx={{ backgroundColor: "var(--color-primary-bg)", borderRadius: "12px" }}
           />
         </Box>
 
@@ -135,13 +135,13 @@ const ViewExpenseSkeleton = ({ onClose, containerStyle }) => {
             variant="rounded"
             width="100%"
             height={160}
-            sx={{ bgcolor: colors.primary_bg, borderRadius: "12px" }}
+            sx={{ backgroundColor: "var(--color-primary-bg)", borderRadius: "12px" }}
           />
           <Skeleton
             variant="rounded"
             width="100%"
             height={280}
-            sx={{ bgcolor: colors.primary_bg, borderRadius: "12px", flex: 1 }}
+            sx={{ backgroundColor: "var(--color-primary-bg)", borderRadius: "12px", flex: 1 }}
           />
         </Box>
       </Box>

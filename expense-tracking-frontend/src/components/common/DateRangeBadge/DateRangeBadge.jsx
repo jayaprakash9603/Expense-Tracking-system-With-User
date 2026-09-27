@@ -113,7 +113,7 @@ function CustomDay(props) {
     // Case 1: Intermediate Range Days (Base Layer)
     ...(isIntermediate && {
       borderRadius: 0, // Reset to rectangle/custom shape
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
       backgroundColor: `${colors.primary_accent}15`,
 
       // Determine shape based on week position
@@ -282,7 +282,7 @@ const DateRangeBadge = ({
     background: `${colors.primary_accent}15`,
     padding: "8px 18px",
     cursor: "pointer",
-    color: colors.primary_text,
+    color: "var(--color-primary-text)",
     fontWeight: 600,
     minWidth: 260,
     boxShadow: `0 4px 14px ${colors.primary_accent}12`,
@@ -298,12 +298,12 @@ const DateRangeBadge = ({
         style={mergedButtonStyle}
         onClick={handleOpen}
       >
-        <span style={{ color: colors.primary_accent }}>
+        <span style={{ color: "var(--color-primary-accent)" }}>
           {buttonLabels.from}
         </span>
         <span>{fromDate ? dayjs(fromDate).format(dateFormat) : "--"}</span>
         <span style={{ opacity: 0.6 }}>→</span>
-        <span style={{ color: colors.primary_accent }}>{buttonLabels.to}</span>
+        <span style={{ color: "var(--color-primary-accent)" }}>{buttonLabels.to}</span>
         <span>{toDate ? dayjs(toDate).format(dateFormat) : "--"}</span>
       </button>
 
@@ -316,7 +316,7 @@ const DateRangeBadge = ({
         PaperProps={{
           sx: {
             background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: "16px",
             boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
             mt: 1,
@@ -424,10 +424,10 @@ const DateRangeBadge = ({
                   onClick={() => handleShortcut(shortcut)}
                   sx={{
                     justifyContent: "flex-start",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     "&:hover": {
                       bgcolor: colors.hover_bg,
-                      color: colors.primary_accent,
+                      color: "var(--color-primary-accent)",
                     },
                   }}
                 >
@@ -437,7 +437,7 @@ const DateRangeBadge = ({
             </Box>
           </Box>
 
-          <Divider sx={{ borderColor: colors.border_color }} />
+          <Divider sx={{ borderColor: "var(--color-border-color)" }} />
 
           <Box
             sx={{
@@ -453,7 +453,7 @@ const DateRangeBadge = ({
             <Box sx={{ display: "flex", gap: 2 }}>
               <Button
                 onClick={handleClose}
-                sx={{ color: colors.secondary_text }}
+                sx={{ color: "var(--color-secondary-text)" }}
               >
                 Cancel
               </Button>
@@ -468,8 +468,8 @@ const DateRangeBadge = ({
                 }}
                 disabled={!range.from || !range.to}
                 sx={{
-                  bgcolor: colors.primary_accent,
-                  "&:hover": { bgcolor: colors.primary_accent },
+                  bgcolor: "var(--color-primary-accent)",
+                  "&:hover": { bgcolor: "var(--color-primary-accent)" },
                 }}
               >
                 Apply

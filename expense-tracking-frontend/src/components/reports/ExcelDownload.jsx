@@ -215,7 +215,7 @@ const ExcelDownload = () => {
         <Typography
           variant="h5"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 600,
             display: "flex",
             alignItems: "center",
@@ -224,11 +224,11 @@ const ExcelDownload = () => {
           }}
         >
           <FileDownloadIcon
-            sx={{ color: colors.primary_accent, fontSize: 28 }}
+            sx={{ color: "var(--color-primary-accent)", fontSize: 28 }}
           />
           Download Excel Report
         </Typography>
-        <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+        <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
           Generate beautiful Excel reports with charts, formulas, and
           conditional formatting
         </Typography>
@@ -257,14 +257,14 @@ const ExcelDownload = () => {
             sx={{
               p: 2.5,
               bgcolor: colors.secondary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
             <Typography
               variant="subtitle2"
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
                 mb: 2,
                 display: "flex",
@@ -323,7 +323,7 @@ const ExcelDownload = () => {
                       </Typography>
                       <Typography
                         variant="caption"
-                        sx={{ color: colors.secondary_text }}
+                        sx={{ color: "var(--color-secondary-text)" }}
                       >
                         {type.description}
                       </Typography>
@@ -339,14 +339,14 @@ const ExcelDownload = () => {
             sx={{
               p: 2.5,
               bgcolor: colors.secondary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
             <Typography
               variant="subtitle2"
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
                 mb: 2,
                 display: "flex",
@@ -423,14 +423,14 @@ const ExcelDownload = () => {
             sx={{
               p: 2.5,
               bgcolor: colors.secondary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: 2,
             }}
           >
             <Typography
               variant="subtitle2"
               sx={{
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
                 fontWeight: 600,
                 mb: 2,
                 display: "flex",
@@ -473,7 +473,7 @@ const ExcelDownload = () => {
           <Paper
             sx={{
               p: 2.5,
-              bgcolor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               border: `2px solid ${colors.primary_accent}`,
               borderRadius: 2,
               flex: 1,
@@ -481,7 +481,7 @@ const ExcelDownload = () => {
           >
             <Typography
               variant="subtitle2"
-              sx={{ color: colors.primary_accent, fontWeight: 600, mb: 2 }}
+              sx={{ color: "var(--color-primary-accent)", fontWeight: 600, mb: 2 }}
             >
               Report Preview
             </Typography>
@@ -493,7 +493,7 @@ const ExcelDownload = () => {
                   p: 1.5,
                   bgcolor: `${colors.primary_accent}15`,
                   borderRadius: 1.5,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               >
                 {selectedReportType?.icon}
@@ -501,13 +501,13 @@ const ExcelDownload = () => {
               <Box>
                 <Typography
                   variant="body1"
-                  sx={{ fontWeight: 600, color: colors.primary_text }}
+                  sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
                 >
                   {selectedReportType?.label}
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: colors.secondary_text }}
+                  sx={{ color: "var(--color-secondary-text)" }}
                 >
                   {selectedReportType?.description}
                 </Typography>
@@ -549,7 +549,7 @@ const ExcelDownload = () => {
             </Box>
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, display: "block" }}
+              sx={{ color: "var(--color-secondary-text)", display: "block" }}
             >
               Your report will include multiple sheets with detailed expense
               data, category breakdowns, monthly trends, budget analysis, and
@@ -577,12 +577,12 @@ const ExcelDownload = () => {
           (dateRange === "custom" && (!customStartDate || !customEndDate))
         }
         sx={{
-          bgcolor: colors.primary_accent,
+          bgcolor: "var(--color-primary-accent)",
           py: 1.5,
           fontSize: "1rem",
           fontWeight: 600,
           "&:hover": {
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             filter: "brightness(1.1)",
           },
         }}
@@ -626,11 +626,11 @@ const OptionToggle = ({
     <Box sx={{ flex: 1 }}>
       <Typography
         variant="body2"
-        sx={{ fontWeight: 500, color: colors.primary_text }}
+        sx={{ fontWeight: 500, color: "var(--color-primary-text)" }}
       >
         {label}
       </Typography>
-      <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+      <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
         {description}
       </Typography>
     </Box>

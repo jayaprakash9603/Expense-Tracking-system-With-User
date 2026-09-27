@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Card, ThemeProvider } from "@mui/material";
+import React from "react";
+import { Box, Card } from "@mui/material";
 import { useSelector } from "react-redux";
 import Login from "./Login";
 import Register from "./Register";
@@ -7,7 +7,6 @@ import ForgotPassword from "./ForgotPassword";
 import OtpVerification from "./OtpVerification";
 import MfaVerification from "../AuthPage/MfaVerification";
 import { Route, Routes, Navigate, useLocation, useSearchParams } from "react-router-dom";
-import createAppTheme from "../../shared/theme/createAppTheme";
 import { isFeatureEnabledInState, SUB_FEATURE_KEYS } from "../../config/featureCatalog";
 import FeatureUnavailable from "../../features/errors/pages/FeatureUnavailablePage";
 
@@ -25,22 +24,13 @@ const Authentication = () => {
     SUB_FEATURE_KEYS.AUTH_EMAIL_OTP,
   );
 
-  // Force dark theme for authentication pages
-  const darkTheme = useMemo(() => createAppTheme("dark"), []);
-
   // OTP verification page should render without the card wrapper
   if (location.pathname === "/otp-verification") {
     const mode = (searchParams.get("mode") || "login").toLowerCase();
     if (mode === "login" && !emailOtpEnabled) {
       return <FeatureUnavailable featureKey={SUB_FEATURE_KEYS.AUTH_EMAIL_OTP} />;
     }
-    return (
-      <ThemeProvider theme={darkTheme}>
-        <div className="dark">
-          <OtpVerification />
-        </div>
-      </ThemeProvider>
-    );
+    return <OtpVerification />;
   }
 
   // MFA verification page should render without the card wrapper
@@ -48,13 +38,7 @@ const Authentication = () => {
     if (!mfaEnabled) {
       return <FeatureUnavailable featureKey={SUB_FEATURE_KEYS.AUTH_MFA} />;
     }
-    return (
-      <ThemeProvider theme={darkTheme}>
-        <div className="dark">
-          <MfaVerification />
-        </div>
-      </ThemeProvider>
-    );
+    return <MfaVerification />;
   }
 
   // Check if current route is forgot-password or create-password
@@ -63,14 +47,29 @@ const Authentication = () => {
     location.pathname === "/create-password";
 
   return (
-    <ThemeProvider theme={darkTheme}>
-      <div className="dark min-h-screen flex bg-[#121212]">
+    <Box
+      className="min-h-screen flex"
+      sx={{ backgroundColor: "var(--color-secondary-bg)", minHeight: "100dvh" }}
+    >
         {/* Left Side Branding (Hidden on mobile/tablet) */}
-        <div className="hidden lg:flex flex-col justify-center items-center w-[45%] p-12 bg-[#1b1b1b] relative overflow-hidden border-r border-[#2e2e2e]">
+        <Box
+          className="hidden lg:flex flex-col justify-center items-center w-[45%] p-12 relative overflow-hidden"
+          sx={{
+            backgroundColor: "var(--color-primary-bg)",
+            borderRight: 1,
+            borderColor: "var(--color-border-color)",
+          }}
+        >
           {/* Subtle Ambient Glows */}
           <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
-            <div className="absolute top-[-10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-[#14b8a6] blur-[140px]" />
-            <div className="absolute bottom-[-10%] -right-[10%] w-[50%] h-[50%] rounded-full bg-[#0d9488] blur-[120px]" />
+            <Box
+              className="absolute top-[-10%] -left-[10%] w-[60%] h-[60%] rounded-full blur-[140px]"
+              sx={{ bgcolor: "var(--color-primary-accent)", opacity: 0.35 }}
+            />
+            <Box
+              className="absolute bottom-[-10%] -right-[10%] w-[50%] h-[50%] rounded-full blur-[120px]"
+              sx={{ bgcolor: "primary.dark", opacity: 0.3 }}
+            />
           </div>
 
           <div className="z-10 flex flex-col items-center space-y-8">
@@ -113,18 +112,20 @@ const Authentication = () => {
               Back to the public site
             </a>
           </div>
-        </div>
+        </Box>
 
         {/* Right Side Forms */}
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-8 bg-[#18181b]">
+        <Box
+          className="flex-1 flex items-center justify-center p-4 sm:p-8"
+          sx={{ backgroundColor: "var(--color-secondary-bg)" }}
+        >
           <Card
             className="w-full max-w-md p-8 sm:p-10 rounded-2xl relative z-10"
-            style={{
-              backgroundColor: "#222222",
-              border: "1px solid #333333",
-              borderRadius: "16px",
-              boxShadow: "0 20px 40px -10px rgba(0,0,0,0.5)",
-              opacity: 1,
+            sx={{
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
+              borderRadius: 2,
+              boxShadow: 4,
             }}
           >
             {/* Mobile Branding (Only visible on small screens) */}
@@ -157,9 +158,8 @@ const Authentication = () => {
               <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </Card>
-        </div>
-      </div>
-    </ThemeProvider>
+        </Box>
+    </Box>
   );
 };
 

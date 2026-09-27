@@ -78,7 +78,7 @@ const FlowChartSkeleton = ({ variant = "bar", activeRange = "month" }) => {
               width: "50%",
               height: "50%",
               borderRadius: "50%",
-              bgcolor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
             }}
           />
         </Box>

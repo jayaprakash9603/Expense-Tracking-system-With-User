@@ -39,7 +39,7 @@ function ChatHeader({
         display: "flex",
         alignItems: "center",
         padding: "10px 16px",
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         height: 59,
         borderBottom: `1px solid ${colors.border_color}`,
       }}
@@ -47,7 +47,7 @@ function ChatHeader({
       <IconButton
         onClick={onBack}
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           marginRight: 1,
           display: { xs: "flex", md: "none" },
         }}
@@ -85,7 +85,7 @@ function ChatHeader({
       <Box sx={{ flex: 1, marginLeft: "15px", overflow: "hidden" }}>
         <Typography
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "16px",
             fontWeight: 500,
             overflow: "hidden",
@@ -107,16 +107,16 @@ function ChatHeader({
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-        <IconButton sx={{ color: colors.secondary_text }}>
+        <IconButton sx={{ color: "var(--color-secondary-text)" }}>
           <VideocamIcon />
         </IconButton>
-        <IconButton sx={{ color: colors.secondary_text }}>
+        <IconButton sx={{ color: "var(--color-secondary-text)" }}>
           <CallIcon />
         </IconButton>
-        <IconButton sx={{ color: colors.secondary_text }}>
+        <IconButton sx={{ color: "var(--color-secondary-text)" }}>
           <SearchIcon />
         </IconButton>
-        <IconButton onClick={onMenuClick} sx={{ color: colors.secondary_text }}>
+        <IconButton onClick={onMenuClick} sx={{ color: "var(--color-secondary-text)" }}>
           <MoreVertIcon />
         </IconButton>
       </Box>

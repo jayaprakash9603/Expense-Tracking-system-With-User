@@ -71,8 +71,8 @@ const RecentTransactionsSkeleton = ({
     <div
       className={`recent-transactions skeleton ${isCompact ? "compact" : ""}`}
         style={{
-          backgroundColor: colors.secondary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          border: "1px solid var(--color-border-color)",
           borderRadius: 16,
           padding: 24,
           display: "flex",
@@ -131,7 +131,7 @@ const RecentTransactionsSkeleton = ({
                 gap: 12,
                 padding: "12px 14px",
                 backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: 12,
                 minHeight: 68,
                 transition: "all 0.3s ease",

@@ -248,7 +248,7 @@ const AppDataTable = forwardRef(function AppDataTable(
       <Box
         ref={ref}
         sx={{
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           borderRadius: 2,
           ...sx,
         }}
@@ -281,7 +281,7 @@ const AppDataTable = forwardRef(function AppDataTable(
     <Box
       ref={ref}
       sx={{
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         borderRadius: 2,
         ...sx,
       }}
@@ -306,7 +306,7 @@ const AppDataTable = forwardRef(function AppDataTable(
             <Typography
               variant="h6"
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 600,
               }}
             >
@@ -361,7 +361,7 @@ const AppDataTable = forwardRef(function AppDataTable(
                   startAdornment: (
                     <InputAdornment position="start">
                       <SearchIcon
-                        sx={{ color: colors.secondary_text, fontSize: 20 }}
+                        sx={{ color: "var(--color-secondary-text)", fontSize: 20 }}
                       />
                     </InputAdornment>
                   ),
@@ -369,10 +369,10 @@ const AppDataTable = forwardRef(function AppDataTable(
                     <InputAdornment position="end">
                       <ClearIcon
                         sx={{
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           fontSize: 18,
                           cursor: "pointer",
-                          "&:hover": { color: colors.primary_text },
+                          "&:hover": { color: "var(--color-primary-text)" },
                         }}
                         onClick={() => setSearchTerm("")}
                       />
@@ -400,7 +400,7 @@ const AppDataTable = forwardRef(function AppDataTable(
             }}
           >
             <FilterListIcon
-              sx={{ color: colors.secondary_text, fontSize: 20 }}
+              sx={{ color: "var(--color-secondary-text)", fontSize: 20 }}
             />
             {filterableColumns.map((col) => (
               <AppSelect
@@ -431,8 +431,8 @@ const AppDataTable = forwardRef(function AppDataTable(
                 size="small"
                 onClick={clearAllFilters}
                 sx={{
-                  backgroundColor: colors.secondary_bg,
-                  color: colors.secondary_text,
+                  backgroundColor: "var(--color-secondary-bg)",
+                  color: "var(--color-secondary-text)",
                   fontSize: "0.7rem",
                   height: 24,
                   "&:hover": {
@@ -518,7 +518,7 @@ const AppDataTable = forwardRef(function AppDataTable(
           <Typography
             sx={{
               fontSize: "0.8rem",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             }}
           >
             Showing {currentPage * rowsPerPage + 1} -{" "}
@@ -532,7 +532,7 @@ const AppDataTable = forwardRef(function AppDataTable(
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {/* Rows per page */}
             <Typography
-              sx={{ fontSize: "0.8rem", color: colors.secondary_text }}
+              sx={{ fontSize: "0.8rem", color: "var(--color-secondary-text)" }}
             >
               Rows:
             </Typography>
@@ -570,7 +570,7 @@ const AppDataTable = forwardRef(function AppDataTable(
               <Typography
                 sx={{
                   fontSize: "0.8rem",
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   mx: 1,
                   minWidth: 60,
                   textAlign: "center",
@@ -622,7 +622,7 @@ function IconBtn({ children, disabled, onClick, colors }) {
         opacity: disabled ? 0.4 : 1,
         transition: "background-color 0.15s ease",
         "&:hover:not(:disabled)": {
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         },
       }}
     >

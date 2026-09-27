@@ -63,7 +63,7 @@ const EditStory = () => {
     return (
       <div
         style={{
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
           height: "90vh",
           display: "flex",
           alignItems: "center",
@@ -72,7 +72,7 @@ const EditStory = () => {
       >
         <Box sx={{ textAlign: "center" }}>
           <CircularProgress sx={{ color: colors.primary, mb: 2 }} />
-          <Typography sx={{ color: colors.primary_text }}>
+          <Typography sx={{ color: "var(--color-primary-text)" }}>
             Loading story...
           </Typography>
         </Box>
@@ -87,10 +87,10 @@ const EditStory = () => {
         style={{
           height: "90vh",
           maxHeight: "90vh",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "8px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           padding: "20px",
           marginRight: "20px",
           overflow: "auto",

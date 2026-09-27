@@ -221,8 +221,8 @@ const Groups = () => {
         width: "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         marginRight: "20px",
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Custom Scrollbar Styles */}
@@ -258,11 +258,11 @@ const Groups = () => {
           <div>
             <h1
               className="text-3xl font-bold mb-2"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
             >
               Groups
             </h1>
-            <p style={{ color: colors.secondary_text }}>
+            <p style={{ color: "var(--color-secondary-text)" }}>
               Manage your expense groups and collaborate with others
             </p>
           </div>
@@ -291,7 +291,7 @@ const Groups = () => {
         <div
           className="flex space-x-1 p-1 rounded-xl mb-6"
           style={{
-            backgroundColor: colors.hover_bg,
+            backgroundColor: "var(--color-hover-bg)",
           }}
         >
           <button
@@ -300,12 +300,12 @@ const Groups = () => {
             style={
               activeTab === "my-groups"
                 ? {
-                    backgroundColor: colors.active_bg,
+                    bgcolor: "action.selected",
                     color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }
             }
             onMouseEnter={(e) => {
@@ -329,12 +329,12 @@ const Groups = () => {
             style={
               activeTab === "joined-created"
                 ? {
-                    backgroundColor: colors.active_bg,
+                    bgcolor: "action.selected",
                     color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }
             }
             onMouseEnter={(e) => {
@@ -358,12 +358,12 @@ const Groups = () => {
             style={
               activeTab === "invitations"
                 ? {
-                    backgroundColor: colors.active_bg,
+                    bgcolor: "action.selected",
                     color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }
             }
             onMouseEnter={(e) => {
@@ -387,12 +387,12 @@ const Groups = () => {
             style={
               activeTab === "discover"
                 ? {
-                    backgroundColor: colors.active_bg,
+                    bgcolor: "action.selected",
                     color: colors.active_text,
                   }
                 : {
                     backgroundColor: "transparent",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }
             }
             onMouseEnter={(e) => {
@@ -437,8 +437,8 @@ const Groups = () => {
             className="w-full pl-12 pr-4 py-3 rounded-xl transition-all duration-300"
             placeholder={getSearchPlaceholder()}
             style={{
-              backgroundColor: colors.hover_bg,
-              color: colors.primary_text,
+              backgroundColor: "var(--color-hover-bg)",
+              color: "var(--color-primary-text)",
               outline: "none",
             }}
             onFocus={(e) => {

@@ -518,8 +518,8 @@ const AuditLogs = () => {
         sx={{
           p: 2,
           mb: 3,
-          backgroundColor: colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
         }}
       >
         <TextField
@@ -530,7 +530,7 @@ const AuditLogs = () => {
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
             startAdornment: (
-              <SearchIcon sx={{ mr: 1, color: "text.secondary" }} />
+              <SearchIcon sx={{ mr: 1, color: "var(--color-secondary-text)" }} />
             ),
           }}
         />
@@ -538,7 +538,7 @@ const AuditLogs = () => {
 
       {/* Audit Logs Table */}
       <Paper
-        sx={{ backgroundColor: colors.primary_bg, color: colors.primary_text }}
+        sx={{ backgroundColor: "var(--color-primary-bg)", color: "var(--color-primary-text)" }}
       >
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
@@ -647,19 +647,19 @@ const AuditLogs = () => {
               }}
               rowsPerPageOptions={[5, 10, 25, 50]}
               sx={{
-                backgroundColor: colors.primary_bg,
-                color: colors.primary_text,
+                backgroundColor: "var(--color-primary-bg)",
+                color: "var(--color-primary-text)",
                 "& .MuiTablePagination-toolbar": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
                 "& .MuiTablePagination-selectLabel": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
                 "& .MuiTablePagination-displayedRows": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
                 "& .MuiSvgIcon-root": {
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 },
               }}
             />

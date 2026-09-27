@@ -53,8 +53,8 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
           mb: 2,
           "& .MuiOutlinedInput-root": {
             bgcolor: colors.card_bg,
-            color: colors.primary_text,
-            "& fieldset": { borderColor: colors.border_color },
+            color: "var(--color-primary-text)",
+            "& fieldset": { borderColor: "var(--color-border-color)" },
             "&:hover fieldset": { borderColor: colors.primary_accent },
             "&.Mui-focused fieldset": { borderColor: colors.primary_accent },
           },
@@ -62,7 +62,7 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: colors.secondary_text }} />
+              <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
             </InputAdornment>
           ),
         }}
@@ -104,7 +104,7 @@ const FriendsList = ({ selectedFriend, onSelectFriend, onOpenDetail, onRemove, o
             borderRadius: 1,
           },
           "&::-webkit-scrollbar-thumb": {
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             borderRadius: 1,
           },
         }}

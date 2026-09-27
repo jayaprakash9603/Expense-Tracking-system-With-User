@@ -104,8 +104,8 @@ const AppToast = forwardRef(function AppToast(
           gap: 1.5,
           minWidth: 300,
           maxWidth: 500,
-          backgroundColor: colors.secondary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          border: "1px solid var(--color-border-color)",
           borderRadius: 3,
           boxShadow: `0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px ${config.bgColor}40`,
           overflow: "hidden",
@@ -176,7 +176,7 @@ const AppToast = forwardRef(function AppToast(
           <Typography
             variant="body1"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 600,
               fontSize: "0.95rem",
               lineHeight: 1.4,
@@ -197,14 +197,14 @@ const AppToast = forwardRef(function AppToast(
             size="small"
             sx={{
               mr: 1.5,
-              color: colors.secondary_text,
-              backgroundColor: colors.hover_bg,
+              color: "var(--color-secondary-text)",
+              backgroundColor: "var(--color-hover-bg)",
               width: 28,
               height: 28,
               flexShrink: 0,
               "&:hover": {
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 transform: "scale(1.1)",
               },
               transition: "all 0.2s",

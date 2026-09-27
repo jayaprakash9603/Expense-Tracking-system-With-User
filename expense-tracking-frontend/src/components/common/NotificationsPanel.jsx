@@ -326,8 +326,8 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
       <div
         className="fixed right-4 top-16 z-50 w-full max-w-md rounded-lg shadow-2xl overflow-hidden"
         style={{
-          backgroundColor: colors.secondary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          border: "1px solid var(--color-border-color)",
           maxHeight: "calc(100vh - 100px)",
         }}
       >
@@ -335,18 +335,18 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
         <div
           className="sticky top-0 z-10 px-4 py-3 border-b"
           style={{
-            backgroundColor: colors.primary_bg,
-            borderColor: colors.border_color,
+            backgroundColor: "var(--color-primary-bg)",
+            borderColor: "var(--color-border-color)",
           }}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <NotificationsIcon
-                sx={{ fontSize: "1.5rem", color: colors.primary_accent }}
+                sx={{ fontSize: "1.5rem", color: "var(--color-primary-accent)" }}
               />
               <h2
                 className="text-lg font-semibold"
-                style={{ color: colors.primary_text }}
+                style={{ color: "var(--color-primary-text)" }}
               >
                 Notifications
               </h2>
@@ -376,7 +376,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
             <button
               onClick={onClose}
               className="p-1 rounded-lg hover:bg-opacity-10 transition-colors"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               <CloseIcon sx={{ fontSize: "1.2rem" }} />
             </button>
@@ -413,7 +413,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
         {displayedNotifications.length > 0 && (
           <div
             className="px-4 py-2 border-b flex gap-2"
-            style={{ borderColor: colors.border_color }}
+            style={{ borderColor: "var(--color-border-color)" }}
           >
             {unreadCount > 0 && (
               <button
@@ -421,7 +421,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                 className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
                 style={{
                   backgroundColor: `${colors.primary_accent}20`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               >
                 <MarkEmailReadIcon sx={{ fontSize: "1rem" }} />
@@ -436,7 +436,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
               style={{
                 backgroundColor: `${colors.primary_accent}20`,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               }}
             >
               <DeleteSweepIcon sx={{ fontSize: "1rem" }} />
@@ -454,17 +454,17 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
             <div className="flex flex-col items-center justify-center py-12 px-4">
               <NotificationsIcon
                 sx={{ fontSize: "4rem", opacity: 0.3 }}
-                style={{ color: colors.secondary_text }}
+                style={{ color: "var(--color-secondary-text)" }}
               />
               <p
                 className="mt-4 text-center font-medium"
-                style={{ color: colors.secondary_text }}
+                style={{ color: "var(--color-secondary-text)" }}
               >
                 No notifications
               </p>
               <p
                 className="mt-1 text-sm text-center"
-                style={{ color: colors.secondary_text, opacity: 0.7 }}
+                style={{ color: "var(--color-secondary-text)", opacity: 0.7 }}
               >
                 {filter === "unread"
                   ? "You're all caught up!"
@@ -481,8 +481,8 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                       <div
                         className="sticky top-0 px-4 py-2 text-xs font-semibold"
                         style={{
-                          backgroundColor: colors.secondary_bg,
-                          color: colors.secondary_text,
+                          backgroundColor: "var(--color-secondary-bg)",
+                          color: "var(--color-secondary-text)",
                         }}
                       >
                         {group}
@@ -497,7 +497,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                             backgroundColor: notification.read
                               ? "transparent"
                               : `${colors.primary_accent}10`,
-                            borderColor: colors.border_color,
+                            borderColor: "var(--color-border-color)",
                           }}
                           onClick={() =>
                             !notification.read && markAsRead(notification.id)
@@ -518,7 +518,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                                 <h4
                                   className="text-sm font-semibold"
                                   style={{
-                                    color: colors.primary_text,
+                                    color: "var(--color-primary-text)",
                                   }}
                                 >
                                   {notification.title}
@@ -540,7 +540,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                                     }
                                   }}
                                   className="p-1 rounded hover:bg-opacity-10 transition-colors"
-                                  style={{ color: colors.secondary_text }}
+                                  style={{ color: "var(--color-secondary-text)" }}
                                 >
                                   <DeleteIcon sx={{ fontSize: "1rem" }} />
                                 </button>
@@ -548,7 +548,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                               <p
                                 className="mt-1 text-sm"
                                 style={{
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                 }}
                               >
                                 {notification.message}
@@ -556,7 +556,7 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
                               <p
                                 className="mt-1 text-xs"
                                 style={{
-                                  color: colors.secondary_text,
+                                  color: "var(--color-secondary-text)",
                                   opacity: 0.7,
                                 }}
                               >
@@ -577,11 +577,11 @@ const NotificationsPanel = ({ isOpen, onClose, onNotificationRead }) => {
         {displayedNotifications.length > 0 && (
           <div
             className="px-4 py-3 border-t text-center"
-            style={{ borderColor: colors.border_color }}
+            style={{ borderColor: "var(--color-border-color)" }}
           >
             <button
               className="text-sm font-medium hover:underline transition-all"
-              style={{ color: colors.primary_accent }}
+              style={{ color: "var(--color-primary-accent)" }}
             >
               <SettingsIcon
                 sx={{ fontSize: "1rem", marginRight: "4px", marginTop: "-2px" }}

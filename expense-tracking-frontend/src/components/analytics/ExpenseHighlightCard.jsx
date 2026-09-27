@@ -87,7 +87,7 @@ const ExpenseHighlightCard = ({
       mode === "dark"
         ? "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)"
         : "linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderLeft: `3px solid ${config.color}`,
     borderRadius: "10px",
     padding: "14px 16px",
@@ -117,7 +117,7 @@ const ExpenseHighlightCard = ({
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "0.65rem",
                 textTransform: "uppercase",
                 fontWeight: 500,
@@ -145,7 +145,7 @@ const ExpenseHighlightCard = ({
         {/* Description */}
         <Typography
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontSize: "0.85rem",
             fontWeight: 500,
             whiteSpace: "nowrap",
@@ -167,12 +167,12 @@ const ExpenseHighlightCard = ({
           }}
         >
           <CalendarTodayIcon
-            sx={{ fontSize: 12, color: colors.secondary_text }}
+            sx={{ fontSize: 12, color: "var(--color-secondary-text)" }}
           />
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.7rem",
             }}
           >

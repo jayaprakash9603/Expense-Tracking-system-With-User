@@ -32,7 +32,7 @@ const BlockedSection = () => {
             borderRadius: 1,
           },
           "&::-webkit-scrollbar-thumb": {
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             borderRadius: 1,
           },
         }}
@@ -61,18 +61,18 @@ const BlockedSection = () => {
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
                     variant="subtitle1"
-                    sx={{ fontWeight: 600, color: colors.primary_text }}
+                    sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
                     noWrap
                   >
                     {display.displayName}
                   </Typography>
                   {display.email && (
-                    <Typography variant="caption" sx={{ color: colors.secondary_text }} noWrap>
+                    <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }} noWrap>
                       {display.email}
                     </Typography>
                   )}
                   {blockedOn && (
-                    <Typography variant="caption" sx={{ color: colors.secondary_text, display: "block" }}>
+                    <Typography variant="caption" sx={{ color: "var(--color-secondary-text)", display: "block" }}>
                       {t("friends.blocked.blockedOn", { date: blockedOn })}
                     </Typography>
                   )}
@@ -85,7 +85,7 @@ const BlockedSection = () => {
                   sx={{
                     minHeight: 44,
                     borderColor: colors.primary_accent,
-                    color: colors.primary_accent,
+                    color: "var(--color-primary-accent)",
                     transition: "background-color 200ms ease",
                     "&:hover": {
                       borderColor: colors.primary_accent,

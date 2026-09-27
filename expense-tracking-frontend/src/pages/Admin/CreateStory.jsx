@@ -41,10 +41,10 @@ const CreateStory = () => {
         style={{
           height: "90vh",
           maxHeight: "90vh",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "8px",
           boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           padding: "20px",
           marginRight: "20px",
           overflow: "auto",

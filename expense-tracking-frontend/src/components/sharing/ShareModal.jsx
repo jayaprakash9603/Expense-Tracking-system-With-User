@@ -379,12 +379,12 @@ const ShareModal = ({
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1rem" }}
       >
         What would you like to share?
       </Typography>
       <Typography
-        sx={{ mb: 1.5, color: colors.secondary_text, fontSize: "0.85rem" }}
+        sx={{ mb: 1.5, color: "var(--color-secondary-text)", fontSize: "0.85rem" }}
       >
         Choose the type of data and select specific items to share.
       </Typography>
@@ -428,7 +428,7 @@ const ShareModal = ({
               <Typography
                 variant="subtitle2"
                 sx={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   fontWeight: resourceType === option.value ? 600 : 400,
                 }}
               >
@@ -436,7 +436,7 @@ const ShareModal = ({
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: colors.secondary_text, fontSize: "0.7rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "0.7rem" }}
               >
                 {option.description}
               </Typography>
@@ -456,11 +456,11 @@ const ShareModal = ({
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon
-                  sx={{ color: colors.secondary_text, fontSize: 20 }}
+                  sx={{ color: "var(--color-secondary-text)", fontSize: 20 }}
                 />
               </InputAdornment>
             ),
-            sx: { color: colors.primary_text },
+            sx: { color: "var(--color-primary-text)" },
           }}
           sx={{ flex: 1 }}
         />
@@ -481,7 +481,7 @@ const ShareModal = ({
             />
           }
           label={
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               Select All
             </Typography>
           }
@@ -510,7 +510,7 @@ const ShareModal = ({
       >
         {filteredItems.length === 0 ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
-            <Typography sx={{ color: colors.secondary_text }}>
+            <Typography sx={{ color: "var(--color-secondary-text)" }}>
               {searchTerm
                 ? `No ${resourceType.toLowerCase()}s match your search`
                 : `No ${resourceType.toLowerCase()}s available to share`}
@@ -551,10 +551,10 @@ const ShareModal = ({
                     primary={item.displayName}
                     secondary={item.subtitle}
                     primaryTypographyProps={{
-                      sx: { color: colors.primary_text, fontSize: "0.95rem" },
+                      sx: { color: "var(--color-primary-text)", fontSize: "0.95rem" },
                     }}
                     secondaryTypographyProps={{
-                      sx: { color: colors.secondary_text, fontSize: "0.8rem" },
+                      sx: { color: "var(--color-secondary-text)", fontSize: "0.8rem" },
                     }}
                   />
                 </ListItem>
@@ -603,12 +603,12 @@ const ShareModal = ({
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1rem" }}
       >
         Configure Share Settings
       </Typography>
       <Typography
-        sx={{ mb: 2, color: colors.secondary_text, fontSize: "0.85rem" }}
+        sx={{ mb: 2, color: "var(--color-secondary-text)", fontSize: "0.85rem" }}
       >
         Set the permission level and how long this share will be active.
       </Typography>
@@ -622,17 +622,17 @@ const ShareModal = ({
         placeholder="e.g., January 2026 Expenses"
         sx={{ mb: 2 }}
         InputProps={{
-          sx: { color: colors.primary_text },
+          sx: { color: "var(--color-primary-text)" },
         }}
         InputLabelProps={{
-          sx: { color: colors.secondary_text },
+          sx: { color: "var(--color-secondary-text)" },
         }}
       />
 
       {/* Permission Selection */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1, fontWeight: 600 }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1, fontWeight: 600 }}
       >
         Permission Level
       </Typography>
@@ -669,12 +669,12 @@ const ShareModal = ({
               />
               <Typography
                 variant="subtitle2"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
+                sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
               >
                 View Only
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
               Recipients can only see the data.
             </Typography>
           </Paper>
@@ -711,12 +711,12 @@ const ShareModal = ({
               />
               <Typography
                 variant="subtitle2"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
+                sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
               >
                 Edit Access
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
               Recipients can add/update items.
             </Typography>
           </Paper>
@@ -726,7 +726,7 @@ const ShareModal = ({
       {/* Expiry Selection */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1, fontWeight: 600 }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1, fontWeight: 600 }}
       >
         Share Expiry
       </Typography>
@@ -769,9 +769,9 @@ const ShareModal = ({
           onChange={(e) => setCustomExpiry(e.target.value)}
           InputLabelProps={{
             shrink: true,
-            sx: { color: colors.secondary_text },
+            sx: { color: "var(--color-secondary-text)" },
           }}
-          InputProps={{ sx: { color: colors.primary_text } }}
+          InputProps={{ sx: { color: "var(--color-primary-text)" } }}
           sx={{ mt: 1.5 }}
         />
       )}
@@ -786,12 +786,12 @@ const ShareModal = ({
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1rem" }}
       >
         Review Your Share
       </Typography>
       <Typography
-        sx={{ mb: 2, color: colors.secondary_text, fontSize: "0.85rem" }}
+        sx={{ mb: 2, color: "var(--color-secondary-text)", fontSize: "0.85rem" }}
       >
         Confirm the details below and generate your QR code.
       </Typography>
@@ -812,13 +812,13 @@ const ShareModal = ({
           <Box sx={{ mb: 1.5 }}>
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, textTransform: "uppercase", fontSize: "0.7rem" }}
+              sx={{ color: "var(--color-secondary-text)", textTransform: "uppercase", fontSize: "0.7rem" }}
             >
               Share Name
             </Typography>
             <Typography
               variant="body2"
-              sx={{ color: colors.primary_text, fontWeight: 500 }}
+              sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
             >
               {shareName}
             </Typography>
@@ -829,7 +829,7 @@ const ShareModal = ({
         <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, textTransform: "uppercase", fontSize: "0.7rem" }}
+            sx={{ color: "var(--color-secondary-text)", textTransform: "uppercase", fontSize: "0.7rem" }}
           >
             Data Type
           </Typography>
@@ -837,7 +837,7 @@ const ShareModal = ({
             {DATA_TYPE_OPTIONS.find((o) => o.value === resourceType)?.icon}
             <Typography
               variant="body2"
-              sx={{ color: colors.primary_text, fontWeight: 500 }}
+              sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
             >
               {DATA_TYPE_OPTIONS.find((o) => o.value === resourceType)?.label}
             </Typography>
@@ -848,13 +848,13 @@ const ShareModal = ({
         <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, textTransform: "uppercase", fontSize: "0.7rem" }}
+            sx={{ color: "var(--color-secondary-text)", textTransform: "uppercase", fontSize: "0.7rem" }}
           >
             Selected Items
           </Typography>
           <Typography
             variant="body2"
-            sx={{ color: colors.primary_text, fontWeight: 500 }}
+            sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
           >
             {selectedItems.length} item{selectedItems.length !== 1 ? "s" : ""}
           </Typography>
@@ -866,7 +866,7 @@ const ShareModal = ({
         <Box sx={{ mb: 1.5 }}>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, textTransform: "uppercase", fontSize: "0.7rem" }}
+            sx={{ color: "var(--color-secondary-text)", textTransform: "uppercase", fontSize: "0.7rem" }}
           >
             Permission
           </Typography>
@@ -874,7 +874,7 @@ const ShareModal = ({
             {permission === "VIEW" ? <LockIcon sx={{ fontSize: 18 }} /> : <LockOpenIcon sx={{ fontSize: 18 }} />}
             <Typography
               variant="body2"
-              sx={{ color: colors.primary_text, fontWeight: 500 }}
+              sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
             >
               {permission === "VIEW" ? "View Only" : "Edit Access"}
             </Typography>
@@ -885,7 +885,7 @@ const ShareModal = ({
         <Box>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, textTransform: "uppercase", fontSize: "0.7rem" }}
+            sx={{ color: "var(--color-secondary-text)", textTransform: "uppercase", fontSize: "0.7rem" }}
           >
             Expires In
           </Typography>
@@ -893,7 +893,7 @@ const ShareModal = ({
             <ScheduleIcon sx={{ fontSize: 18 }} />
             <Typography
               variant="body2"
-              sx={{ color: colors.primary_text, fontWeight: 500 }}
+              sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
             >
               {expiryOption === "custom"
                 ? customExpiry
@@ -908,7 +908,7 @@ const ShareModal = ({
       {/* Selected Items Preview */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1, fontWeight: 600, fontSize: "0.8rem" }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1, fontWeight: 600, fontSize: "0.8rem" }}
       >
         Items to Share:
       </Typography>
@@ -932,7 +932,7 @@ const ShareModal = ({
             size="small"
             sx={{
               backgroundColor: isDark ? "#1b1b1b" : colors.card_bg,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               border: `1px solid ${isDark ? "#333333" : colors.border}`,
               height: 24,
               fontSize: "0.75rem",
@@ -973,7 +973,7 @@ const ShareModal = ({
       PaperProps={{
         sx: {
           backgroundColor: isDark ? "#0b0b0b" : colors.modal_bg,
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           borderRadius: 3,
           width: 680,
           maxWidth: "95vw",
@@ -1006,7 +1006,7 @@ const ShareModal = ({
           </Typography>
         </Box>
         <IconButton onClick={handleClose} size="small">
-          <CloseIcon sx={{ color: colors.secondary_text }} />
+          <CloseIcon sx={{ color: "var(--color-secondary-text)" }} />
         </IconButton>
       </DialogTitle>
 
@@ -1025,11 +1025,11 @@ const ShareModal = ({
               <StepLabel
                 sx={{
                   "& .MuiStepLabel-label": {
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: "0.85rem",
                   },
                   "& .MuiStepLabel-label.Mui-active": {
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: 600,
                   },
                   "& .MuiStepLabel-label.Mui-completed": {
@@ -1081,7 +1081,7 @@ const ShareModal = ({
         <Button
           onClick={activeStep === 0 ? handleClose : handleBack}
           startIcon={activeStep > 0 ? <ArrowBackIcon /> : null}
-          sx={{ color: colors.secondary_text }}
+          sx={{ color: "var(--color-secondary-text)" }}
         >
           {activeStep === 0 ? "Cancel" : "Back"}
         </Button>

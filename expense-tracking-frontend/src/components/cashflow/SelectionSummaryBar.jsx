@@ -46,7 +46,7 @@ const SelectionSummaryBar = ({
             background: colors.primary_bg,
             backdropFilter: "blur(10px) saturate(140%)",
             WebkitBackdropFilter: "blur(10px) saturate(140%)",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             boxShadow:
               "0 4px 18px -4px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6)",
             borderRadius: 14,
@@ -72,7 +72,7 @@ const SelectionSummaryBar = ({
               }
               style={{
                 background: colors.primary_bg,
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 color: colors.active_text,
                 width: 34,
                 height: 34,
@@ -119,7 +119,7 @@ const SelectionSummaryBar = ({
                 <SummaryPill
                   icon={
                     <AttachMoneyIcon
-                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                      sx={{ fontSize: 14, color: "var(--color-primary-accent)" }}
                     />
                   }
                   label="Total"
@@ -132,7 +132,7 @@ const SelectionSummaryBar = ({
                 <SummaryPill
                   icon={
                     <BarChartIcon
-                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                      sx={{ fontSize: 14, color: "var(--color-primary-accent)" }}
                     />
                   }
                   label="Avg"
@@ -145,7 +145,7 @@ const SelectionSummaryBar = ({
                 <SummaryPill
                   icon={
                     <ArrowDownwardIcon
-                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                      sx={{ fontSize: 14, color: "var(--color-primary-accent)" }}
                     />
                   }
                   label="Min"
@@ -158,7 +158,7 @@ const SelectionSummaryBar = ({
                 <SummaryPill
                   icon={
                     <ArrowUpwardIcon
-                      sx={{ fontSize: 14, color: colors.primary_accent }}
+                      sx={{ fontSize: 14, color: "var(--color-primary-accent)" }}
                     />
                   }
                   label="Max"

@@ -18,12 +18,12 @@ const AdminPageHeader = ({ title, description, actions = null }) => {
       <div>
         <h1
           className="text-3xl font-bold mb-2"
-          style={{ color: colors.primary_text }}
+          style={{ color: "var(--color-primary-text)" }}
         >
           {title}
         </h1>
         {description && (
-          <p style={{ color: colors.secondary_text }}>
+          <p style={{ color: "var(--color-secondary-text)" }}>
             {description}
           </p>
         )}

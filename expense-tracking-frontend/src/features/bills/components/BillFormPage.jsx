@@ -183,7 +183,7 @@ export default function BillFormPage({ mode, onClose, onSuccess, billId: propBil
     minWidth: "150px",
     display: "flex",
     alignItems: "center",
-    color: colors.primary_text,
+    color: "var(--color-primary-text)",
   };
 
   const pageTitle = isCreateMode ? t("createBill.title") : t("editBill.title");
@@ -439,7 +439,7 @@ export default function BillFormPage({ mode, onClose, onSuccess, billId: propBil
         {showBudgetTable && !showExpenseTable && (
           <div className="mt-6">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold" style={{ color: colors.primary_text }}>
+              <h3 className="text-xl font-semibold" style={{ color: "var(--color-primary-text)" }}>
                 {t("billCommon.budgets.heading")}
               </h3>
               <IconButton
@@ -458,15 +458,15 @@ export default function BillFormPage({ mode, onClose, onSuccess, billId: propBil
             )}
             {budgetLoading ? (
               <div className="flex justify-center items-center py-8">
-                <CircularProgress sx={{ color: colors.primary_accent }} />
+                <CircularProgress sx={{ color: "var(--color-primary-accent)" }} />
               </div>
             ) : budgets.length === 0 ? (
               <div
                 className="text-center py-8 rounded border"
                 style={{
                   color: colors.icon_muted,
-                  backgroundColor: colors.secondary_bg,
-                  borderColor: colors.border_color,
+                  backgroundColor: "var(--color-secondary-bg)",
+                  borderColor: "var(--color-border-color)",
                 }}
               >
                 {t("billCommon.budgets.noBudgets")}

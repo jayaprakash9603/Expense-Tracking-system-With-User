@@ -73,10 +73,10 @@ const AppSnackbar = forwardRef(function AppSnackbar(
     if (variant === "standard") {
       return {
         ...baseStyles,
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
         "& .MuiAlert-message": {
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
         },
       };
     }

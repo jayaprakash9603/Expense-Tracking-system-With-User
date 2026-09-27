@@ -138,7 +138,7 @@ const CashFlowChart = ({
 
   // Theme-aware colors
   const gridColor = colors.border_color;
-  const axisTextColor = colors.secondary_text;
+  const axisTextColor = colors.primary_text;
   const axisLineColor = colors.border_color;
   const labelTextColor = "#ffffff"; // Keep white for visibility on colored bars in both themes
 

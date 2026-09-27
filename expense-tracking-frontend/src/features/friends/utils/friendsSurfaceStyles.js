@@ -9,7 +9,7 @@ export const friendRowSx = (colors, { selected = false, interactive = true } = {
   bgcolor: colors.card_bg,
   borderRadius: "12px",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
-  border: `1px solid ${colors.border_color}`,
+  border: "1px solid var(--color-border-color)",
   borderLeft: selected ? `3px solid ${colors.primary_accent}` : "3px solid transparent",
   transition: FRIEND_TRANSITION,
   ...(interactive && {
@@ -29,12 +29,12 @@ export const friendPanelSx = (colors) => ({
   bgcolor: colors.card_bg,
   borderRadius: "16px",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
-  border: `1px solid ${colors.border_color}`,
+  border: "1px solid var(--color-border-color)",
   overflow: "hidden",
 });
 
 export const friendSectionHeaderSx = (colors) => ({
-  color: colors.primary_accent,
+  color: "var(--color-primary-accent)",
   mb: 1.5,
   fontWeight: 600,
   display: "flex",
@@ -45,7 +45,7 @@ export const friendSectionHeaderSx = (colors) => ({
     width: 3,
     height: 16,
     borderRadius: 2,
-    bgcolor: colors.primary_accent,
+    bgcolor: "var(--color-primary-accent)",
     flexShrink: 0,
   },
 });
@@ -53,7 +53,7 @@ export const friendSectionHeaderSx = (colors) => ({
 export const friendListContainerSx = (colors) => ({
   bgcolor: colors.surface_bg || colors.secondary_bg,
   borderRadius: "12px",
-  border: `1px solid ${colors.border_color}`,
+  border: "1px solid var(--color-border-color)",
   boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.04)",
   overflow: "hidden",
   "& > *:not(:last-child)": {
@@ -68,7 +68,7 @@ export const friendStatMiniSx = (colors) => ({
   bgcolor: colors.card_bg,
   borderRadius: "12px",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
-  border: `1px solid ${colors.border_color}`,
+  border: "1px solid var(--color-border-color)",
   transition: FRIEND_TRANSITION,
   "&:hover": {
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
@@ -80,7 +80,7 @@ export const friendDiscoverCardSx = (colors) => ({
   bgcolor: colors.card_bg,
   borderRadius: "12px",
   boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
-  border: `1px solid ${colors.border_color}`,
+  border: "1px solid var(--color-border-color)",
   transition: FRIEND_TRANSITION,
   height: "100%",
   "&:hover": {

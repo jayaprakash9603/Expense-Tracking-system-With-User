@@ -27,7 +27,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "400px",
-        backgroundColor: colors.card_bg,
+        backgroundColor: "var(--color-primary-bg)",
         border: `2px dashed ${colors.border_color}`,
         borderRadius: 3,
         p: 4,
@@ -39,20 +39,20 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
           width: 80,
           height: 80,
           borderRadius: "50%",
-          backgroundColor: colors.hover_bg,
+          backgroundColor: "var(--color-hover-bg)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           mb: 3,
         }}
       >
-        <ReceiptIcon sx={{ fontSize: 40, color: colors.primary_accent }} />
+        <ReceiptIcon sx={{ fontSize: 40, color: "var(--color-primary-accent)" }} />
       </Box>
 
       <Typography
         variant="h5"
         sx={{
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           fontWeight: 600,
           mb: 2,
         }}
@@ -63,7 +63,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
       <Typography
         variant="body1"
         sx={{
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
           mb: 1,
           maxWidth: 400,
         }}
@@ -75,7 +75,7 @@ const EmptyBillState = ({ selectedDate, hasWriteAccess }) => {
         <Typography
           variant="body2"
           sx={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             mb: 4,
             maxWidth: 400,
             opacity: 0.7,

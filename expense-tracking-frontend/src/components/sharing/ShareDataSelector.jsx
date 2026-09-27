@@ -136,7 +136,7 @@ const ShareDataSelector = ({
             borderRadius: 3,
             overflow: "hidden",
             boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 10px rgba(0,0,0,0.05)",
-            backgroundColor: colors.primary_bg,
+            backgroundColor: "var(--color-primary-bg)",
             border: "none",
             flexShrink: 0,
           }}
@@ -162,14 +162,14 @@ const ShareDataSelector = ({
                 minWidth: 0,
                 padding: { xs: "8px", sm: "12px 16px" },
                 whiteSpace: "nowrap",
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 "&.Mui-selected": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   transform: "scale(1.02)",
                 },
                 "&:hover": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   backgroundColor: `${colors.primary_accent}14`,
                 },
               },
@@ -234,7 +234,7 @@ const ShareDataSelector = ({
               height: 44,
               borderRadius: "12px",
               backgroundColor: `${colors.primary_accent}20`,
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
             }}
           >
             {ICONS[preSelectedType] || ICONS.EXPENSE}
@@ -242,7 +242,7 @@ const ShareDataSelector = ({
           <Box sx={{ minWidth: 0 }}>
             <Typography
               variant="subtitle1"
-              sx={{ color: colors.primary_text, fontWeight: 700 }}
+              sx={{ color: "var(--color-primary-text)", fontWeight: 700 }}
             >
               Selected {preSelectedTypeLabel}
             </Typography>
@@ -266,8 +266,8 @@ const ShareDataSelector = ({
           flexShrink: 0,
           p: 1.25,
           borderRadius: "12px",
-          backgroundColor: colors.card_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <TextField
@@ -278,7 +278,7 @@ const ShareDataSelector = ({
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.secondary_text, fontSize: 20 }} />
+                <SearchIcon sx={{ color: "var(--color-secondary-text)", fontSize: 20 }} />
               </InputAdornment>
             ),
             endAdornment: searchTerm && (
@@ -290,8 +290,8 @@ const ShareDataSelector = ({
             ),
             sx: {
               borderRadius: "12px",
-              color: colors.primary_text,
-              backgroundColor: colors.input_bg,
+              color: "var(--color-primary-text)",
+              bgcolor: "custom.inputBackground",
               "& fieldset": {
                 borderColor: isDark
                   ? "rgba(255,255,255,0.15)"
@@ -379,16 +379,16 @@ const ShareDataSelector = ({
                   ? "rgba(255,255,255,0.12)"
                   : "rgba(0,0,0,0.06)",
               borderColor: colors.primary_accent,
-              color: colors.primary_accent,
-              "& .MuiSvgIcon-root": { color: colors.primary_accent },
+              color: "var(--color-primary-accent)",
+              "& .MuiSvgIcon-root": { color: "var(--color-primary-accent)" },
             },
             "&.Mui-disabled": {
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               borderColor: isDark
                 ? "rgba(255,255,255,0.1)"
                 : "rgba(0,0,0,0.08)",
               backgroundColor: "transparent",
-              "& .MuiSvgIcon-root": { color: colors.secondary_text },
+              "& .MuiSvgIcon-root": { color: "var(--color-secondary-text)" },
             },
           }}
         >
@@ -430,12 +430,12 @@ const ShareDataSelector = ({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 }}
               >
                 <SearchIcon sx={{ fontSize: 40, opacity: 0.5 }} />
               </Box>
-              <Typography sx={{ color: colors.secondary_text, fontSize: "1.1rem" }}>
+              <Typography sx={{ color: "var(--color-secondary-text)", fontSize: "1.1rem" }}>
                 {searchTerm
                   ? `No ${resourceType.toLowerCase()}s match "${searchTerm}"`
                   : `No ${resourceType.toLowerCase()}s available to share`}
@@ -523,8 +523,8 @@ const ShareDataSelector = ({
                             position: "absolute",
                             top: 14,
                             right: 14,
-                            color: colors.primary_accent,
-                            backgroundColor: colors.primary_bg,
+                            color: "var(--color-primary-accent)",
+                            backgroundColor: "var(--color-primary-bg)",
                             borderRadius: "50%",
                             display: "flex",
                             boxShadow: `0 0 0 3px ${colors.primary_accent}20`,
@@ -566,7 +566,7 @@ const ShareDataSelector = ({
                           <Typography
                             variant="subtitle2"
                             sx={{
-                              color: colors.primary_text,
+                              color: "var(--color-primary-text)",
                               fontWeight: 700,
                               fontSize: "0.9rem",
                               lineHeight: 1.3,
@@ -605,8 +605,8 @@ const ShareDataSelector = ({
         {/* Loading indicator for infinite scroll */}
         {isLoadingMore && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 3, gap: 1.5 }}>
-            <CircularProgress size={20} sx={{ color: colors.primary_accent }} />
-            <Typography variant="body2" sx={{ color: colors.secondary_text, fontWeight: 500 }}>
+            <CircularProgress size={20} sx={{ color: "var(--color-primary-accent)" }} />
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)", fontWeight: 500 }}>
               Loading more...
             </Typography>
           </Box>
@@ -672,7 +672,7 @@ const ShareDataSelector = ({
           </Typography>
         </Box>
         {totalItems > 0 && !hasPreSelectedItems && (
-          <Typography variant="body2" sx={{ color: colors.secondary_text, fontWeight: 500 }}>
+          <Typography variant="body2" sx={{ color: "var(--color-secondary-text)", fontWeight: 500 }}>
             Showing {filteredItems.length} of {totalItems} total
           </Typography>
         )}

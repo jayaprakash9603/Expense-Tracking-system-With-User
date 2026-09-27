@@ -34,7 +34,7 @@ const AppInfoSection = ({ colors }) => {
             key={index}
             sx={{ display: "flex", justifyContent: "space-between", py: 1 }}
           >
-            <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+            <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
               {item.label}
             </Typography>
             {item.isChip ? (
@@ -43,7 +43,7 @@ const AppInfoSection = ({ colors }) => {
                 size="small"
                 sx={{
                   backgroundColor: `${colors.primary_accent}20`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   fontWeight: 600,
                   fontSize: "0.75rem",
                 }}
@@ -51,7 +51,7 @@ const AppInfoSection = ({ colors }) => {
             ) : (
               <Typography
                 variant="body2"
-                sx={{ color: colors.primary_text, fontWeight: 600 }}
+                sx={{ color: "var(--color-primary-text)", fontWeight: 600 }}
               >
                 {item.value}
               </Typography>

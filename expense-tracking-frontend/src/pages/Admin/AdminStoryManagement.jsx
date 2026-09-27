@@ -411,7 +411,7 @@ const AdminStoryManagement = () => {
           <AutoStories sx={{ fontSize: 32, color: colors.primary }} />
           <Typography
             variant="h4"
-            sx={{ fontWeight: 600, color: colors.primary_text }}
+            sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
           >
             Story Management
           </Typography>
@@ -456,18 +456,18 @@ const AdminStoryManagement = () => {
         <Grid item xs={6} sm={3}>
           <Card
             sx={{
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <CardContent>
               <Typography
                 variant="h4"
-                sx={{ fontWeight: 700, color: colors.primary_text }}
+                sx={{ fontWeight: 700, color: "var(--color-primary-text)" }}
               >
                 {stats.total}
               </Typography>
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 Total Stories
               </Typography>
             </CardContent>
@@ -476,8 +476,8 @@ const AdminStoryManagement = () => {
         <Grid item xs={6} sm={3}>
           <Card
             sx={{
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <CardContent>
@@ -487,7 +487,7 @@ const AdminStoryManagement = () => {
               >
                 {stats.active}
               </Typography>
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 Active
               </Typography>
             </CardContent>
@@ -496,8 +496,8 @@ const AdminStoryManagement = () => {
         <Grid item xs={6} sm={3}>
           <Card
             sx={{
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <CardContent>
@@ -507,7 +507,7 @@ const AdminStoryManagement = () => {
               >
                 {stats.expired}
               </Typography>
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 Expired
               </Typography>
             </CardContent>
@@ -516,8 +516,8 @@ const AdminStoryManagement = () => {
         <Grid item xs={6} sm={3}>
           <Card
             sx={{
-              backgroundColor: colors.card_bg,
-              border: `1px solid ${colors.border_color}`,
+              backgroundColor: "var(--color-primary-bg)",
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <CardContent>
@@ -527,7 +527,7 @@ const AdminStoryManagement = () => {
               >
                 {stats.archived}
               </Typography>
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 Archived
               </Typography>
             </CardContent>
@@ -539,15 +539,15 @@ const AdminStoryManagement = () => {
       <Paper
         sx={{
           mb: 2,
-          backgroundColor: colors.card_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
           sx={{
-            "& .MuiTab-root": { color: colors.secondary_text },
+            "& .MuiTab-root": { color: "var(--color-secondary-text)" },
             "& .Mui-selected": { color: colors.primary },
             "& .MuiTabs-indicator": { backgroundColor: colors.primary },
           }}
@@ -563,8 +563,8 @@ const AdminStoryManagement = () => {
       <TableContainer
         component={Paper}
         sx={{
-          backgroundColor: colors.card_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <Table>

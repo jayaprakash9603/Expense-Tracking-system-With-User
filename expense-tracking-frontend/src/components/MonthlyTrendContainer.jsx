@@ -70,21 +70,21 @@ const MonthlyTrendContainer = ({
         className="chart-container monthly-trend"
         style={{
           position: "relative",
-          backgroundColor: colors.secondary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <div className="chart-header">
           <h3
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               display: "flex",
               alignItems: "center",
               gap: 8,
               margin: 0,
             }}
           >
-            <TrendingUp sx={{ fontSize: 22, color: colors.primary_accent }} />
+            <TrendingUp sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
             Monthly Expense Trend
           </h3>
         </div>

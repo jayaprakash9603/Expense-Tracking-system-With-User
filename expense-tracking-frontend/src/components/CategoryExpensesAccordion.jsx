@@ -105,7 +105,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
             title={getViewExpenseUrl(expenseId)}
             onClick={(e) => handleNameClick(e, expenseId)}
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               cursor: "pointer",
               transition: "text-decoration 0.2s ease",
             }}
@@ -189,7 +189,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
       className="chart-container"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "24px",
       }}
@@ -197,14 +197,14 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
       <div className="chart-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             margin: "0 0 8px 0",
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <AssignmentIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <AssignmentIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Category Expenses Detail
         </h3>
         <div
@@ -241,7 +241,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
                 onClick={onToggle}
                 aria-expanded={isOpen}
                 style={{
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                 }}
               >
                 <div className="pm-header-left category-perf-left boxed-metrics inline-metrics">
@@ -255,7 +255,7 @@ const CategoryExpensesAccordion = ({ categories = [], currencySymbol }) => {
                       }}
                     >
                       {getCategoryIcon(group.label, {
-                        sx: { fontSize: 18, color: colors.primary_accent },
+                        sx: { fontSize: 18, color: "var(--color-primary-accent)" },
                       })}
                       {group.label}
                     </Box>

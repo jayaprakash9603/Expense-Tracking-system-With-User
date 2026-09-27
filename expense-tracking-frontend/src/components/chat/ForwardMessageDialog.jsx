@@ -77,8 +77,8 @@ function ForwardMessageDialog({
       fullWidth
       PaperProps={{
         sx: {
-          backgroundColor: colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
           borderRadius: "12px",
         },
       }}
@@ -93,10 +93,10 @@ function ForwardMessageDialog({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <ForwardIcon sx={{ color: colors.primary_accent }} />
+          <ForwardIcon sx={{ color: "var(--color-primary-accent)" }} />
           <Typography variant="h6">Forward Message</Typography>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: colors.secondary_text }}>
+        <IconButton onClick={handleClose} sx={{ color: "var(--color-secondary-text)" }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -105,7 +105,7 @@ function ForwardMessageDialog({
         {message && (
           <Box
             sx={{
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
               borderLeft: `4px solid ${colors.primary_accent}`,
               p: 2,
               m: 2,
@@ -114,7 +114,7 @@ function ForwardMessageDialog({
           >
             <Typography
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: "12px",
                 mb: 0.5,
               }}
@@ -123,7 +123,7 @@ function ForwardMessageDialog({
             </Typography>
             <Typography
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontSize: "14px",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -147,13 +147,13 @@ function ForwardMessageDialog({
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: colors.secondary_text }} />
+                  <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
                 </InputAdornment>
               ),
               sx: {
-                backgroundColor: colors.input_bg,
+                bgcolor: "custom.inputBackground",
                 borderRadius: "8px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 "& .MuiOutlinedInput-notchedOutline": {
                   border: "none",
                 },
@@ -171,7 +171,7 @@ function ForwardMessageDialog({
         <List sx={{ maxHeight: 300, overflow: "auto", px: 1 }}>
           {filteredFriends.length === 0 ? (
             <Box sx={{ p: 3, textAlign: "center" }}>
-              <Typography sx={{ color: colors.secondary_text }}>
+              <Typography sx={{ color: "var(--color-secondary-text)" }}>
                 {searchQuery ? "No friends found" : "No friends available"}
               </Typography>
             </Box>
@@ -194,7 +194,7 @@ function ForwardMessageDialog({
                     borderRadius: "8px",
                     mb: 0.5,
                     "&:hover": {
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                     },
                     backgroundColor: isSelected
                       ? `${colors.primary_accent}1A`
@@ -204,9 +204,9 @@ function ForwardMessageDialog({
                   <Checkbox
                     checked={isSelected}
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       "&.Mui-checked": {
-                        color: colors.primary_accent,
+                        color: "var(--color-primary-accent)",
                       },
                     }}
                   />
@@ -225,7 +225,7 @@ function ForwardMessageDialog({
                   <ListItemText
                     primary={friendName}
                     primaryTypographyProps={{
-                      sx: { color: colors.primary_text, fontWeight: 500 },
+                      sx: { color: "var(--color-primary-text)", fontWeight: 500 },
                     }}
                   />
                 </ListItem>
@@ -242,17 +242,17 @@ function ForwardMessageDialog({
           justifyContent: "space-between",
         }}
       >
-        <Typography sx={{ color: colors.secondary_text, fontSize: "14px" }}>
+        <Typography sx={{ color: "var(--color-secondary-text)", fontSize: "14px" }}>
           {selectedFriends.length} selected
         </Typography>
         <Box>
           <Button
             onClick={handleClose}
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               mr: 1,
               "&:hover": {
-                backgroundColor: colors.hover_bg,
+                backgroundColor: "var(--color-hover-bg)",
               },
             }}
           >
@@ -270,7 +270,7 @@ function ForwardMessageDialog({
               },
               "&.Mui-disabled": {
                 backgroundColor: colors.border_color,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
               },
             }}
           >

@@ -61,8 +61,8 @@ const AppAccordion = forwardRef(function AppAccordion(
   // Variant-based styles
   const getVariantStyles = () => {
     const baseStyles = {
-      backgroundColor: colors.secondary_bg,
-      color: colors.primary_text,
+      backgroundColor: "var(--color-secondary-bg)",
+      color: "var(--color-primary-text)",
       "&:before": {
         display: "none", // Remove default MUI divider
       },
@@ -81,7 +81,7 @@ const AppAccordion = forwardRef(function AppAccordion(
         return {
           ...baseStyles,
           borderRadius: 2,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           boxShadow: "none",
         };
       case "rounded":
@@ -100,13 +100,13 @@ const AppAccordion = forwardRef(function AppAccordion(
   // Summary styles
   const getSummaryStyles = () => ({
     backgroundColor: colors.tertiary_bg,
-    color: colors.primary_text,
+    color: "var(--color-primary-text)",
     minHeight: 56,
     "&.Mui-expanded": {
       minHeight: 56,
     },
     "&:hover": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
     },
     "& .MuiAccordionSummary-content": {
       margin: "12px 0",
@@ -115,15 +115,15 @@ const AppAccordion = forwardRef(function AppAccordion(
       },
     },
     "& .MuiAccordionSummary-expandIconWrapper": {
-      color: colors.primary_accent,
+      color: "var(--color-primary-accent)",
     },
     ...summaryProps.sx,
   });
 
   // Details styles
   const getDetailsStyles = () => ({
-    backgroundColor: colors.secondary_bg,
-    color: colors.primary_text,
+    backgroundColor: "var(--color-secondary-bg)",
+    color: "var(--color-primary-text)",
     padding: 2,
     borderTop: `1px solid ${colors.border_color}`,
     ...detailsProps.sx,
@@ -136,7 +136,7 @@ const AppAccordion = forwardRef(function AppAccordion(
     }
     if (typeof summary === "string") {
       return (
-        <Typography sx={{ color: colors.primary_text, fontWeight: 500 }}>
+        <Typography sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}>
           {summary}
         </Typography>
       );

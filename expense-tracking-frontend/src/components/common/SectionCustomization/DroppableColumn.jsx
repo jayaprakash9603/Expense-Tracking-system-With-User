@@ -108,7 +108,7 @@ const DroppableColumn = ({
         {!isMobile && (
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, fontSize: "0.7rem" }}
+            sx={{ color: "var(--color-secondary-text)", fontSize: "0.7rem" }}
           >
             {subtitle}
           </Typography>
@@ -127,7 +127,7 @@ const DroppableColumn = ({
                 sx={{
                   textAlign: "center",
                   py: 6,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 }}
               >
                 {EmptyIcon ? (

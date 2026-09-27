@@ -8,12 +8,12 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div
-        style={{ backgroundColor: colors.secondary_bg }}
+        style={{ backgroundColor: "var(--color-secondary-bg)" }}
         className="p-6 rounded-xl w-full max-w-md"
       >
         <h3
           className="text-xl font-semibold mb-4"
-          style={{ color: colors.primary_text }}
+          style={{ color: "var(--color-primary-text)" }}
         >
           Add New Expense
         </h3>
@@ -21,7 +21,7 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
           <div>
             <label
               className="block text-sm font-medium mb-2"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               Title
             </label>
@@ -35,14 +35,14 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
               className="w-full px-4 py-2 rounded-lg border-none outline-none"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             />
           </div>
           <div>
             <label
               className="block text-sm font-medium mb-2"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               Amount
             </label>
@@ -56,14 +56,14 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
               className="w-full px-4 py-2 rounded-lg border-none outline-none"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             />
           </div>
           <div>
             <label
               className="block text-sm font-medium mb-2"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               Category
             </label>
@@ -87,7 +87,7 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
           <div>
             <label
               className="block text-sm font-medium mb-2"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               Description
             </label>
@@ -100,14 +100,14 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
               className="w-full px-4 py-2 rounded-lg border-none outline-none h-20"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             />
           </div>
           <div>
             <label
               className="block text-sm font-medium mb-2"
-              style={{ color: colors.secondary_text }}
+              style={{ color: "var(--color-secondary-text)" }}
             >
               Date
             </label>
@@ -120,7 +120,7 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
               className="w-full px-4 py-2 rounded-lg border-none outline-none"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             />
           </div>
@@ -131,7 +131,7 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
             className="flex-1 py-2 rounded-lg transition-colors"
             style={{
               backgroundColor: colors.primary_accent,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             Add Expense
@@ -141,7 +141,7 @@ const AddExpenseModal = ({ newExpense, setNewExpense, onAdd, onClose }) => {
             className="flex-1 py-2 rounded-lg transition-colors"
             style={{
               backgroundColor: colors.button_inactive,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             Cancel

@@ -109,7 +109,7 @@ const GenericFlowLayout = ({
       className="rounded-lg mt-[0px]"
       onClick={handleContainerClick}
       style={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         width: isMobile ? "100vw" : isTablet ? "100vw" : "calc(100vw - 370px)",
         height: isMobile ? "auto" : isTablet ? "auto" : "calc(100vh - 100px)",
         marginRight: isMobile ? 0 : isTablet ? 0 : "20px",
@@ -211,7 +211,7 @@ const GenericFlowLayout = ({
       <div
         className="w-full h-[220px] rounded-lg p-4 mb-4"
         style={{
-          background: colors.primary_bg,
+          background: "var(--color-primary-bg)",
           paddingRight: isMobile ? 8 : isTablet ? 24 : 60,
           height: isMobile ? 120 : isTablet ? 160 : 220,
           minWidth: 0,

@@ -246,11 +246,11 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
             <Box sx={{ flex: 1 }}>
               <Typography
                 variant="subtitle1"
-                sx={{ fontWeight: 600, color: colors.primary_text }}
+                sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}
               >
                 {share.shareName || `${share.resourceType} Share`}
               </Typography>
-              <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+              <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
                 {share.resourceCount || 0} items • {share.permission} access
               </Typography>
             </Box>
@@ -268,14 +268,14 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: colors.secondary_text }} />
+              <SearchIcon sx={{ color: "var(--color-secondary-text)" }} />
             </InputAdornment>
           ),
           sx: {
-            color: colors.primary_text,
-            backgroundColor: colors.card_bg,
+            color: "var(--color-primary-text)",
+            backgroundColor: "var(--color-primary-bg)",
             borderRadius: 2,
-            "& fieldset": { borderColor: colors.border },
+            "& fieldset": { borderColor: "var(--color-border-color)" },
           },
         }}
         sx={{ mb: 2 }}
@@ -286,7 +286,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
         <Box sx={{ mb: 2 }}>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text, mb: 1, display: "block" }}
+            sx={{ color: "var(--color-secondary-text)", mb: 1, display: "block" }}
           >
             Selected ({selectedFriends.length})
           </Typography>
@@ -296,7 +296,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                 key={friend.id}
                 avatar={
                   <Avatar
-                    sx={{ width: 24, height: 24, bgcolor: colors.accent }}
+                    sx={{ width: 24, height: 24, bgcolor: "var(--color-primary-accent)" }}
                   >
                     {friend.firstName?.[0] || friend.email?.[0] || "?"}
                   </Avatar>
@@ -306,8 +306,8 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                 size="small"
                 sx={{
                   backgroundColor: `${colors.accent}20`,
-                  color: colors.primary_text,
-                  "& .MuiChip-deleteIcon": { color: colors.secondary_text },
+                  color: "var(--color-primary-text)",
+                  "& .MuiChip-deleteIcon": { color: "var(--color-secondary-text)" },
                 }}
               />
             ))}
@@ -318,14 +318,14 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
       {/* Friends List */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1.5, fontWeight: 500 }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1.5, fontWeight: 500 }}
       >
         Your Friends
       </Typography>
 
       {loadingFriends ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress size={36} sx={{ color: colors.accent }} />
+          <CircularProgress size={36} sx={{ color: "var(--color-primary-accent)" }} />
         </Box>
       ) : filteredFriends.length === 0 ? (
         <Paper
@@ -333,21 +333,21 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           sx={{
             p: 4,
             textAlign: "center",
-            backgroundColor: colors.card_bg,
-            border: `1px solid ${colors.border}`,
+            backgroundColor: "var(--color-primary-bg)",
+            border: "1px solid var(--color-border-color)",
             borderRadius: 2,
           }}
         >
           <PeopleIcon
-            sx={{ fontSize: 48, color: colors.secondary_text, mb: 1 }}
+            sx={{ fontSize: 48, color: "var(--color-secondary-text)", mb: 1 }}
           />
           <Typography
             variant="body1"
-            sx={{ color: colors.primary_text, mb: 0.5 }}
+            sx={{ color: "var(--color-primary-text)", mb: 0.5 }}
           >
             {searchTerm ? "No friends found" : "No friends yet"}
           </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+          <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
             {searchTerm
               ? "Try a different search term"
               : "Add some friends to share your data with them"}
@@ -358,9 +358,9 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           sx={{
             maxHeight: 280,
             overflow: "auto",
-            border: `1px solid ${colors.border}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: 2,
-            backgroundColor: colors.card_bg,
+            backgroundColor: "var(--color-primary-bg)",
           }}
         >
           {filteredFriends.map((friend, index) => {
@@ -392,8 +392,8 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                   size="small"
                   sx={{
                     mr: 1,
-                    color: colors.secondary_text,
-                    "&.Mui-checked": { color: colors.accent },
+                    color: "var(--color-secondary-text)",
+                    "&.Mui-checked": { color: "var(--color-primary-accent)" },
                   }}
                 />
                 <ListItemAvatar>
@@ -402,7 +402,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                     sx={{
                       width: 40,
                       height: 40,
-                      bgcolor: colors.accent,
+                      bgcolor: "var(--color-primary-accent)",
                       border: isSelected
                         ? `2px solid ${colors.accent}`
                         : "none",
@@ -422,17 +422,17 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                   secondary={friend.email}
                   primaryTypographyProps={{
                     sx: {
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                       fontWeight: isSelected ? 500 : 400,
                     },
                   }}
                   secondaryTypographyProps={{
-                    sx: { color: colors.secondary_text, fontSize: "0.8rem" },
+                    sx: { color: "var(--color-secondary-text)", fontSize: "0.8rem" },
                   }}
                 />
                 {isSelected && (
                   <CheckCircleIcon
-                    sx={{ color: colors.accent, fontSize: 22 }}
+                    sx={{ color: "var(--color-primary-accent)", fontSize: 22 }}
                   />
                 )}
               </ListItem>
@@ -454,8 +454,8 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
         sx={{
           p: 2.5,
           mb: 3,
-          backgroundColor: colors.card_bg,
-          border: `1px solid ${colors.border}`,
+          backgroundColor: "var(--color-primary-bg)",
+          border: "1px solid var(--color-border-color)",
           borderRadius: 2,
         }}
       >
@@ -463,15 +463,15 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           <Grid item xs={6}>
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, display: "block", mb: 0.5 }}
+              sx={{ color: "var(--color-secondary-text)", display: "block", mb: 0.5 }}
             >
               Sharing
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <QrCodeIcon sx={{ fontSize: 18, color: colors.accent }} />
+              <QrCodeIcon sx={{ fontSize: 18, color: "var(--color-primary-accent)" }} />
               <Typography
                 variant="body2"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
+                sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
               >
                 {share?.shareName || `${share?.resourceType} Share`}
               </Typography>
@@ -480,15 +480,15 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           <Grid item xs={6}>
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text, display: "block", mb: 0.5 }}
+              sx={{ color: "var(--color-secondary-text)", display: "block", mb: 0.5 }}
             >
               With
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <PeopleIcon sx={{ fontSize: 18, color: colors.accent }} />
+              <PeopleIcon sx={{ fontSize: 18, color: "var(--color-primary-accent)" }} />
               <Typography
                 variant="body2"
-                sx={{ color: colors.primary_text, fontWeight: 500 }}
+                sx={{ color: "var(--color-primary-text)", fontWeight: 500 }}
               >
                 {selectedFriends.length} friend
                 {selectedFriends.length !== 1 ? "s" : ""}
@@ -501,7 +501,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
       {/* Selected Friends */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1.5, fontWeight: 500 }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1.5, fontWeight: 500 }}
       >
         Recipients
       </Typography>
@@ -524,7 +524,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                       width: 24,
                       height: 24,
                       bgcolor: "#fff",
-                      color: colors.accent,
+                      color: "var(--color-primary-accent)",
                     }}
                   >
                     {friend.firstName?.[0] || friend.email?.[0] || "?"}
@@ -546,7 +546,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
       {/* Message Input */}
       <Typography
         variant="subtitle2"
-        sx={{ color: colors.secondary_text, mb: 1.5, fontWeight: 500 }}
+        sx={{ color: "var(--color-secondary-text)", mb: 1.5, fontWeight: 500 }}
       >
         Personal Message (Optional)
       </Typography>
@@ -560,10 +560,10 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
         disabled={isSending || allSent}
         InputProps={{
           sx: {
-            color: colors.primary_text,
-            backgroundColor: colors.card_bg,
+            color: "var(--color-primary-text)",
+            backgroundColor: "var(--color-primary-bg)",
             borderRadius: 2,
-            "& fieldset": { borderColor: colors.border },
+            "& fieldset": { borderColor: "var(--color-border-color)" },
           },
         }}
         sx={{ mb: 3 }}
@@ -573,14 +573,14 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
       {!allSent && (
         <Alert
           severity="info"
-          icon={<SendIcon sx={{ color: colors.accent }} />}
+          icon={<SendIcon sx={{ color: "var(--color-primary-accent)" }} />}
           sx={{
             backgroundColor: `${colors.accent}10`,
             border: `1px solid ${colors.accent}30`,
-            "& .MuiAlert-message": { color: colors.primary_text },
+            "& .MuiAlert-message": { color: "var(--color-primary-text)" },
           }}
         >
-          <AlertTitle sx={{ fontWeight: 600, color: colors.primary_text }}>
+          <AlertTitle sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}>
             How it works
           </AlertTitle>
           Your friends will receive a notification with the share link. They can
@@ -596,10 +596,10 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           sx={{
             backgroundColor: `${colors.success}15`,
             border: `1px solid ${colors.success}40`,
-            "& .MuiAlert-message": { color: colors.primary_text },
+            "& .MuiAlert-message": { color: "var(--color-primary-text)" },
           }}
         >
-          <AlertTitle sx={{ fontWeight: 600, color: colors.primary_text }}>
+          <AlertTitle sx={{ fontWeight: 600, color: "var(--color-primary-text)" }}>
             All Done!
           </AlertTitle>
           Your share has been sent to all selected friends. They will receive a
@@ -630,8 +630,8 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
       }}
       PaperProps={{
         sx: {
-          backgroundColor: colors.modal_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
           borderRadius: 3,
           width: 580,
           maxWidth: "95vw",
@@ -654,7 +654,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           alignItems: "center",
           borderBottom: `1px solid ${colors.border}`,
           pb: 2,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -675,7 +675,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
             <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>
               Share with Friends
             </Typography>
-            <Typography variant="caption" sx={{ color: colors.secondary_text }}>
+            <Typography variant="caption" sx={{ color: "var(--color-secondary-text)" }}>
               Send directly to your connections
             </Typography>
           </Box>
@@ -683,14 +683,14 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
         <IconButton
           onClick={onClose}
           size="small"
-          sx={{ color: colors.secondary_text }}
+          sx={{ color: "var(--color-secondary-text)" }}
         >
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       {/* Stepper */}
-      <Box sx={{ px: 3, pt: 2.5, pb: 1, backgroundColor: colors.modal_bg }}>
+      <Box sx={{ px: 3, pt: 2.5, pb: 1, backgroundColor: "var(--color-primary-bg)" }}>
         <Stepper activeStep={activeStep} alternativeLabel>
           {STEPS.map((label, index) => (
             <Step key={label}>
@@ -711,8 +711,8 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                         : index === activeStep
                           ? colors.accent
                           : colors.border,
-                    "&.Mui-completed": { color: colors.success },
-                    "&.Mui-active": { color: colors.accent },
+                    "&.Mui-completed": { color: "var(--color-success)" },
+                    "&.Mui-active": { color: "var(--color-primary-accent)" },
                   },
                 }}
               >
@@ -743,7 +743,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           px: 3,
           py: 2.5,
           borderTop: `1px solid ${colors.border}`,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           gap: 1,
         }}
       >
@@ -751,7 +751,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
           <>
             <Button
               onClick={onClose}
-              sx={{ color: colors.secondary_text, textTransform: "none" }}
+              sx={{ color: "var(--color-secondary-text)", textTransform: "none" }}
             >
               Cancel
             </Button>
@@ -768,7 +768,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
                 "&:hover": { backgroundColor: colors.accent_hover },
                 "&:disabled": {
                   backgroundColor: colors.border,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 },
               }}
             >
@@ -781,7 +781,7 @@ const ShareWithFriendModal = ({ open, onClose, share }) => {
               onClick={handleBack}
               disabled={isSending}
               startIcon={<ArrowBackIcon />}
-              sx={{ color: colors.secondary_text, textTransform: "none" }}
+              sx={{ color: "var(--color-secondary-text)", textTransform: "none" }}
             >
               Back
             </Button>

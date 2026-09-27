@@ -106,7 +106,7 @@ const Home = () => {
     return (
       <div
         className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: colors.primary_bg }}
+        style={{ backgroundColor: "var(--color-primary-bg)" }}
       >
         <Loader />
       </div>
@@ -123,12 +123,12 @@ const Home = () => {
     return (
       <div
         className="flex flex-col items-center justify-center min-h-screen p-4 sm:p-6 md:p-12 text-center"
-        style={{ backgroundColor: colors.primary_bg, color: colors.primary_text }}
+        style={{ backgroundColor: "var(--color-primary-bg)", color: "var(--color-primary-text)" }}
       >
         <div
           className="w-full max-w-2xl rounded-2xl p-6 sm:p-10 shadow-2xl transition-all duration-300"
           style={{
-            backgroundColor: colors.modal_bg || colors.card_bg || "rgba(255, 255, 255, 0.03)",
+            backgroundColor: "var(--color-primary-bg)" || colors.card_bg || "rgba(255, 255, 255, 0.03)",
             boxShadow: "0 20px 40px -15px rgba(0, 0, 0, 0.5), 0 0 50px -10px rgba(245, 158, 11, 0.1)",
           }}
         >
@@ -161,7 +161,7 @@ const Home = () => {
           </h1>
 
           {/* Subtitle / Lead */}
-          <p className="text-base sm:text-lg mb-6 max-w-lg mx-auto" style={{ color: colors.secondary_text }}>
+          <p className="text-base sm:text-lg mb-6 max-w-lg mx-auto" style={{ color: "var(--color-secondary-text)" }}>
             {t("settings.deletionWelcomeLead", { date: purgeDate }) || `You requested account deletion. Everything will be permanently removed on ${purgeDate} unless you cancel.`}
           </p>
 
@@ -182,7 +182,7 @@ const Home = () => {
           {/* Detailed Points */}
           <div className="text-left space-y-4 mb-8 p-5 rounded-xl" style={{ backgroundColor: "rgba(255, 255, 255, 0.02)" }}>
             <h3 className="font-semibold text-base mb-2">What you need to know:</h3>
-            <ul className="space-y-3 text-sm" style={{ color: colors.secondary_text }}>
+            <ul className="space-y-3 text-sm" style={{ color: "var(--color-secondary-text)" }}>
               <li className="flex items-start gap-2">
                 <span className="text-amber-500 mt-0.5">✔</span>
                 <span>{t("settings.deletionWelcomePointAccess", "Your expenses, budgets, and settings are still available during the grace period.")}</span>
@@ -200,7 +200,7 @@ const Home = () => {
               className="rounded-lg px-3 py-2 text-xs mt-4"
               style={{
                 backgroundColor: "rgba(59, 130, 246, 0.12)",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             >
               {t("settings.deletionWelcomeFooter", "Need help? Contact support before your deletion date.")}
@@ -234,7 +234,7 @@ const Home = () => {
               }}
               className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-sm border hover:bg-red-500/10 active:scale-95 transition-all duration-200"
               style={{
-                color: colors.error || "#ef4444",
+                color: "var(--color-error)" || "#ef4444",
                 borderColor: `${colors.error || "#ef4444"}40`,
               }}
             >
@@ -253,7 +253,7 @@ const Home = () => {
   return (
     <div
       className="flex flex-col lg:flex-row min-h-screen overflow-x-hidden"
-      style={{ backgroundColor: colors.primary_bg }}
+      style={{ backgroundColor: "var(--color-primary-bg)" }}
     >
       <TourGuide />
 

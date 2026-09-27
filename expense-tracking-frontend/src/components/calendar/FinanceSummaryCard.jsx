@@ -84,7 +84,7 @@ const FinanceSummaryCard = ({
         <Typography
           variant="body1"
           sx={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             fontWeight: 700,
             fontSize: "1.05rem",
             lineHeight: 1.25,

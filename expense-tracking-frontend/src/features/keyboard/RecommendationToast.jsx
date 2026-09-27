@@ -52,14 +52,14 @@ function KeyboardKey({ keyName }) {
         px: 0.75,
         mx: 0.25,
         borderRadius: "6px",
-        backgroundColor: colors.active_bg || colors.card_bg || "#f5f5f5",
+        bgcolor: "action.selected" || colors.card_bg || "#f5f5f5",
         border: `1px solid ${colors.border || "#ddd"}`,
         boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
         fontSize: "0.75rem",
         fontFamily: "system-ui, -apple-system, sans-serif",
         fontWeight: 600,
         textTransform: "uppercase",
-        color: colors.primary_text || "#333",
+        color: "var(--color-primary-text)" || "#333",
       }}
     >
       {displayKey}
@@ -162,12 +162,12 @@ export function RecommendationToast() {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         sx={{
-          backgroundColor: colors.card_bg || colors.primary_bg || "#fff",
-          color: colors.primary_text || "#ffffff",
+          backgroundColor: "var(--color-primary-bg)" || colors.primary_bg || "#fff",
+          color: "var(--color-primary-text)" || "#ffffff",
           border: `1px solid ${colors.border || "#e0e0e0"}`,
           boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
           "& .MuiAlert-icon": {
-            color: colors.accent || colors.button_bg || "#1976d2",
+            color: "var(--color-primary-accent)" || colors.button_bg || "#1976d2",
           },
         }}
         action={
@@ -176,7 +176,7 @@ export function RecommendationToast() {
               size="small"
               onClick={handleAccept}
               title="Got it, thanks!"
-              sx={{ color: colors.success_text || "#4caf50" }}
+              sx={{ color: "var(--color-success)" }}
             >
               <ThumbUp fontSize="small" />
             </IconButton>
@@ -184,7 +184,7 @@ export function RecommendationToast() {
               size="small"
               onClick={handleReject}
               title="Don't show again"
-              sx={{ color: colors.secondary_text || "#9ca3af" }}
+              sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
             >
               <ThumbDown fontSize="small" />
             </IconButton>
@@ -192,7 +192,7 @@ export function RecommendationToast() {
               size="small"
               onClick={handleClose}
               title="Dismiss"
-              sx={{ color: colors.secondary_text || "#9ca3af" }}
+              sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
             >
               <Close fontSize="small" />
             </IconButton>
@@ -221,7 +221,7 @@ export function RecommendationToast() {
             <ShortcutDisplay keys={currentRecommendation.keys} />
             <Typography
               variant="caption"
-              sx={{ color: colors.secondary_text || "#9ca3af" }}
+              sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
             >
               (saves ~
               {Math.round((currentRecommendation.timeSaved || 2000) / 1000)}s

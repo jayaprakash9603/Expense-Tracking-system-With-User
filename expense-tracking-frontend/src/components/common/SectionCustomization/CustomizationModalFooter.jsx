@@ -26,7 +26,7 @@ const CustomizationModalFooter = ({
 }) => {
   return (
     <>
-      <Divider sx={{ borderColor: colors.border_color }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)" }} />
       <DialogActions
         sx={{
           p: isMobile ? 2 : 3,

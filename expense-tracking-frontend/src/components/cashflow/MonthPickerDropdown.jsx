@@ -80,7 +80,7 @@ const MonthPickerDropdown = ({
             maxHeight: 320,
             width: "200px",
             background: colors.primary_bg,
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             boxShadow:
               colors.mode === "dark"
                 ? "0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)"
@@ -110,7 +110,7 @@ const MonthPickerDropdown = ({
                 fontSize: "14px",
                 fontWeight: "500",
                 padding: "12px 20px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 margin: "0 8px",
                 borderRadius: "8px",
                 transition: "all 0.2s ease",
@@ -119,7 +119,7 @@ const MonthPickerDropdown = ({
                 },
                 "&.Mui-selected": {
                   background: `${colors.primary_accent}20`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   fontWeight: "600",
                   "&:hover": {
                     background: `${colors.primary_accent}28`,
@@ -135,7 +135,7 @@ const MonthPickerDropdown = ({
             disabled
             sx={{
               fontSize: "13px",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               padding: "12px 20px",
               justifyContent: "center",
             }}

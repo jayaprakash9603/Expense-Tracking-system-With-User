@@ -282,7 +282,7 @@ const InlineSearchBar = () => {
                     : colors.hover_bg,
                   fontSize: "10px",
                   fontWeight: 500,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   lineHeight: 1,
                 }}
               >
@@ -297,7 +297,7 @@ const InlineSearchBar = () => {
                     : colors.hover_bg,
                   fontSize: "10px",
                   fontWeight: 500,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   lineHeight: 1,
                 }}
               >
@@ -326,7 +326,7 @@ const InlineSearchBar = () => {
               sx={{
                 flex: 1,
                 fontSize: "13px",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 "& input": {
                   padding: 0,
                   "&::placeholder": {
@@ -355,7 +355,7 @@ const InlineSearchBar = () => {
                   p: 0.5,
                   color: colors.icon_muted,
                   "&:hover": {
-                    backgroundColor: colors.hover_bg,
+                    backgroundColor: "var(--color-hover-bg)",
                   },
                 }}
               >
@@ -375,10 +375,10 @@ const InlineSearchBar = () => {
                   sx={{
                     padding: "1px 4px",
                     borderRadius: "3px",
-                    backgroundColor: colors.hover_bg,
+                    backgroundColor: "var(--color-hover-bg)",
                     fontSize: "10px",
                     fontWeight: 500,
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }}
                 >
                   {isMac ? "⌘" : "Ctrl"}
@@ -387,10 +387,10 @@ const InlineSearchBar = () => {
                   sx={{
                     padding: "1px 4px",
                     borderRadius: "3px",
-                    backgroundColor: colors.hover_bg,
+                    backgroundColor: "var(--color-hover-bg)",
                     fontSize: "10px",
                     fontWeight: 500,
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }}
                 >
                   K

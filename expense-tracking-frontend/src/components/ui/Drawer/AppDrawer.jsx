@@ -88,8 +88,8 @@ const AppDrawer = forwardRef(function AppDrawer(
         sx: {
           width: { xs: "100%", sm: width },
           maxWidth: maxWidth || { xs: "100%", sm: width },
-          backgroundColor: colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
           display: "flex",
           flexDirection: "column",
           overflowX: "hidden",
@@ -122,7 +122,7 @@ const AppDrawer = forwardRef(function AppDrawer(
                     sx={{
                       fontWeight: 600,
                       fontSize: "1rem",
-                      color: colors.primary_text,
+                      color: "var(--color-primary-text)",
                     }}
                   >
                     {title}
@@ -134,7 +134,7 @@ const AppDrawer = forwardRef(function AppDrawer(
                     sx={{
                       opacity: 0.75,
                       fontSize: "0.8rem",
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       mt: 0.25,
                     }}
                   >
@@ -152,10 +152,10 @@ const AppDrawer = forwardRef(function AppDrawer(
                   onClick={onClose}
                   size="small"
                   sx={{
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     "&:hover": {
-                      color: colors.primary_text,
-                      backgroundColor: colors.secondary_bg,
+                      color: "var(--color-primary-text)",
+                      backgroundColor: "var(--color-secondary-bg)",
                     },
                   }}
                 >
@@ -164,7 +164,7 @@ const AppDrawer = forwardRef(function AppDrawer(
               )}
             </Box>
           </Box>
-          {showDivider && <Divider sx={{ borderColor: colors.border_color }} />}
+          {showDivider && <Divider sx={{ borderColor: "var(--color-border-color)" }} />}
         </>
       )}
 
@@ -182,12 +182,12 @@ const AppDrawer = forwardRef(function AppDrawer(
       {/* Footer */}
       {showFooter && footer && (
         <>
-          <Divider sx={{ borderColor: colors.border_color }} />
+          <Divider sx={{ borderColor: "var(--color-border-color)" }} />
           <Box
             sx={{
               p: 2,
               flexShrink: 0,
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
             }}
           >
             {footer}

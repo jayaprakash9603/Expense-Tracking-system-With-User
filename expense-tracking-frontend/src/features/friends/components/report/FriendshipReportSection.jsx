@@ -116,8 +116,8 @@ const FriendshipReportSection = () => {
             minWidth: { xs: 0, sm: 160 },
             bgcolor: colors.card_bg,
             "& .MuiOutlinedInput-root": {
-              color: colors.primary_text,
-              "& fieldset": { borderColor: colors.border_color },
+              color: "var(--color-primary-text)",
+              "& fieldset": { borderColor: "var(--color-border-color)" },
             },
           }}
         />
@@ -133,13 +133,13 @@ const FriendshipReportSection = () => {
             minWidth: { xs: 0, sm: 160 },
             bgcolor: colors.card_bg,
             "& .MuiOutlinedInput-root": {
-              color: colors.primary_text,
-              "& fieldset": { borderColor: colors.border_color },
+              color: "var(--color-primary-text)",
+              "& fieldset": { borderColor: "var(--color-border-color)" },
             },
           }}
         />
         <FormControl size="small" sx={{ flex: { xs: "1 1 calc(50% - 6px)", sm: "0 0 auto" }, minWidth: { xs: 0, sm: 140 } }}>
-          <InputLabel sx={{ color: colors.secondary_text }}>
+          <InputLabel sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.report.status")}
           </InputLabel>
           <Select
@@ -148,9 +148,9 @@ const FriendshipReportSection = () => {
             label={t("friends.report.status")}
             sx={{
               bgcolor: colors.card_bg,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
               },
             }}
           >
@@ -161,7 +161,7 @@ const FriendshipReportSection = () => {
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ flex: { xs: "1 1 calc(50% - 6px)", sm: "0 0 auto" }, minWidth: { xs: 0, sm: 100 } }}>
-          <InputLabel sx={{ color: colors.secondary_text }}>
+          <InputLabel sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.report.pageSize")}
           </InputLabel>
           <Select
@@ -170,9 +170,9 @@ const FriendshipReportSection = () => {
             label={t("friends.report.pageSize")}
             sx={{
               bgcolor: colors.card_bg,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: colors.border_color,
+                borderColor: "var(--color-border-color)",
               },
             }}
           >
@@ -190,7 +190,7 @@ const FriendshipReportSection = () => {
           disabled={loadingFriendshipReport}
           sx={{
             flex: { xs: "1 1 100%", sm: "0 0 auto" },
-            bgcolor: colors.primary_accent,
+            bgcolor: "var(--color-primary-accent)",
             "&:hover": { bgcolor: `${colors.primary_accent}dd` },
           }}
         >
@@ -244,7 +244,7 @@ const FriendshipReportSection = () => {
             minHeight: 200,
           }}
         >
-          <Typography sx={{ color: colors.secondary_text }}>
+          <Typography sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.report.generatePrompt")}
           </Typography>
         </Box>
@@ -259,7 +259,7 @@ const FriendshipReportSection = () => {
             minHeight: 200,
           }}
         >
-          <Typography sx={{ color: colors.secondary_text }}>
+          <Typography sx={{ color: "var(--color-secondary-text)" }}>
             {t("friends.report.noReportData")}
           </Typography>
         </Box>
@@ -278,19 +278,19 @@ const FriendshipReportSection = () => {
           <Table size="small" sx={{ minWidth: 600 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
+                <TableCell sx={{ color: "var(--color-secondary-text)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.friend")}
                 </TableCell>
-                <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
+                <TableCell sx={{ color: "var(--color-secondary-text)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.status")}
                 </TableCell>
-                <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
+                <TableCell sx={{ color: "var(--color-secondary-text)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.accessLevel")}
                 </TableCell>
-                <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
+                <TableCell sx={{ color: "var(--color-secondary-text)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.since")}
                 </TableCell>
-                <TableCell sx={{ color: colors.secondary_text, fontWeight: 600, whiteSpace: "nowrap" }}>
+                <TableCell sx={{ color: "var(--color-secondary-text)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   {t("friends.report.columns.lastActivity")}
                 </TableCell>
               </TableRow>
@@ -298,21 +298,21 @@ const FriendshipReportSection = () => {
             <TableBody>
               {friendships.map((row) => (
                 <TableRow key={row.id}>
-                  <TableCell sx={{ color: colors.primary_text }}>
+                  <TableCell sx={{ color: "var(--color-primary-text)" }}>
                     {getFriendName(row)}
                   </TableCell>
                   <TableCell>
                     <StatusChip status={row.status || "ACCEPTED"} size="small" />
                   </TableCell>
-                  <TableCell sx={{ color: colors.primary_text }}>
+                  <TableCell sx={{ color: "var(--color-primary-text)" }}>
                     {getAccessLevel(row)}
                   </TableCell>
-                  <TableCell sx={{ color: colors.secondary_text }}>
+                  <TableCell sx={{ color: "var(--color-secondary-text)" }}>
                     {row.createdAt
                       ? new Date(row.createdAt).toLocaleDateString()
                       : "-"}
                   </TableCell>
-                  <TableCell sx={{ color: colors.secondary_text }}>
+                  <TableCell sx={{ color: "var(--color-secondary-text)" }}>
                     {row.updatedAt
                       ? new Date(row.updatedAt).toLocaleDateString()
                       : "-"}
@@ -332,9 +332,9 @@ const FriendshipReportSection = () => {
             }}
             rowsPerPageOptions={REPORT_PAGE_SIZES}
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               borderTop: `1px solid ${colors.border_color}`,
-              "& .MuiTablePagination-selectIcon": { color: colors.primary_text },
+              "& .MuiTablePagination-selectIcon": { color: "var(--color-primary-text)" },
             }}
           />
         </TableContainer>

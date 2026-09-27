@@ -35,7 +35,7 @@ function SelectionNavigator({ label, onNavigate, disablePrev, disableNext }) {
           height: "28px",
           background: `${colors.primary_accent}15`,
           border: `1px solid ${colors.primary_accent}40`,
-          color: colors.primary_accent,
+          color: "var(--color-primary-accent)",
           transition: "all 0.2s ease",
           "&:hover": {
             background: `${colors.primary_accent}25`,
@@ -43,8 +43,8 @@ function SelectionNavigator({ label, onNavigate, disablePrev, disableNext }) {
           },
           "&:disabled": {
             background: `${colors.secondary_bg}`,
-            border: `1px solid ${colors.border_color}`,
-            color: colors.secondary_text,
+            border: "1px solid var(--color-border-color)",
+            color: "var(--color-secondary-text)",
             opacity: 0.6,
             cursor: "not-allowed",
           },
@@ -58,7 +58,7 @@ function SelectionNavigator({ label, onNavigate, disablePrev, disableNext }) {
         style={{
           fontSize: "13px",
           fontWeight: 600,
-          color: colors.primary_accent,
+          color: "var(--color-primary-accent)",
           background: `${colors.primary_accent}15`,
           border: `1px solid ${colors.primary_accent}40`,
           borderRadius: "20px",
@@ -78,7 +78,7 @@ function SelectionNavigator({ label, onNavigate, disablePrev, disableNext }) {
           height: "28px",
           background: `${colors.primary_accent}15`,
           border: `1px solid ${colors.primary_accent}40`,
-          color: colors.primary_accent,
+          color: "var(--color-primary-accent)",
           transition: "all 0.2s ease",
           "&:hover": {
             background: `${colors.primary_accent}25`,
@@ -86,8 +86,8 @@ function SelectionNavigator({ label, onNavigate, disablePrev, disableNext }) {
           },
           "&:disabled": {
             background: `${colors.secondary_bg}`,
-            border: `1px solid ${colors.border_color}`,
-            color: colors.secondary_text,
+            border: "1px solid var(--color-border-color)",
+            color: "var(--color-secondary-text)",
             opacity: 0.6,
             cursor: "not-allowed",
           },

@@ -58,13 +58,13 @@ function KeyboardKey({ children, size = "medium" }) {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: colors.active_bg || "#29282b",
+        bgcolor: "action.selected" || "#29282b",
         border: `1px solid ${colors.border || "#3a3a3c"}`,
         borderRadius: "6px",
         boxShadow: `0 2px 0 ${colors.border || "#3a3a3c"}`,
         fontFamily: '"SF Mono", "Monaco", "Menlo", monospace',
         fontWeight: 500,
-        color: colors.primary_text || "#ffffff",
+        color: "var(--color-primary-text)" || "#ffffff",
         textTransform: "capitalize",
         ...sizeStyles[size],
       }}
@@ -156,7 +156,7 @@ function ShortcutRow({ shortcut, isActive = true }) {
         opacity: isActive ? 1 : 0.5,
         transition: "all 0.15s ease",
         "&:hover": {
-          backgroundColor: colors.hover_bg || "#28282a",
+          backgroundColor: "var(--color-hover-bg)" || "#28282a",
         },
       }}
     >
@@ -164,7 +164,7 @@ function ShortcutRow({ shortcut, isActive = true }) {
         <Typography
           variant="body2"
           sx={{
-            color: colors.primary_text || "#ffffff",
+            color: "var(--color-primary-text)" || "#ffffff",
             fontWeight: 450,
           }}
         >
@@ -178,7 +178,7 @@ function ShortcutRow({ shortcut, isActive = true }) {
               height: 18,
               fontSize: "0.65rem",
               backgroundColor: "rgba(239, 68, 68, 0.1)",
-              color: colors.error_text || "#ef4444",
+              color: "var(--color-error)",
             }}
           />
         )}
@@ -201,7 +201,7 @@ function ShortcutCategory({ category, shortcuts }) {
       <Typography
         variant="overline"
         sx={{
-          color: colors.secondary_text || "#9ca3af",
+          color: "var(--color-secondary-text)" || "#9ca3af",
           fontWeight: 600,
           letterSpacing: 1,
           fontSize: "0.7rem",
@@ -327,7 +327,7 @@ export function ShortcutGuideModal() {
       transitionDuration={200}
       PaperProps={{
         sx: {
-          backgroundColor: colors.card_bg || colors.primary_bg || "#1b1b1b",
+          backgroundColor: "var(--color-primary-bg)" || colors.primary_bg || "#1b1b1b",
           borderRadius: "16px",
           maxHeight: "80vh",
           border: `1px solid ${colors.border || "#3a3a3c"}`,
@@ -346,7 +346,7 @@ export function ShortcutGuideModal() {
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <KeyboardIcon
-            sx={{ color: colors.accent || colors.button_bg || "#00DAC6" }}
+            sx={{ color: "var(--color-primary-accent)" || colors.button_bg || "#00DAC6" }}
           />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             {t("keyboardShortcutsGuide", "Keyboard Shortcuts")}
@@ -358,7 +358,7 @@ export function ShortcutGuideModal() {
               height: 22,
               fontSize: "0.7rem",
               backgroundColor: "rgba(0, 218, 198, 0.1)",
-              color: colors.accent || colors.button_bg || "#00DAC6",
+              color: "var(--color-primary-accent)" || colors.button_bg || "#00DAC6",
             }}
           />
         </Box>
@@ -381,7 +381,7 @@ export function ShortcutGuideModal() {
               <InputAdornment position="start">
                 <SearchIcon
                   sx={{
-                    color: colors.secondary_text || "#9ca3af",
+                    color: "var(--color-secondary-text)" || "#9ca3af",
                     fontSize: 20,
                   }}
                 />
@@ -399,10 +399,10 @@ export function ShortcutGuideModal() {
               </InputAdornment>
             ),
             sx: {
-              backgroundColor: colors.active_bg || "#29282b",
+              bgcolor: "action.selected" || "#29282b",
               borderRadius: "10px",
               "& fieldset": {
-                borderColor: colors.border || "#3a3a3c",
+                borderColor: "var(--color-border-color)" || "#3a3a3c",
               },
             },
           }}
@@ -412,7 +412,7 @@ export function ShortcutGuideModal() {
           <Typography
             variant="caption"
             sx={{
-              color: colors.secondary_text || "#9ca3af",
+              color: "var(--color-secondary-text)" || "#9ca3af",
               mt: 1,
               display: "block",
             }}
@@ -440,7 +440,7 @@ export function ShortcutGuideModal() {
             <WarningIcon sx={{ color: "#f59e0b", fontSize: 22, flexShrink: 0 }} />
             <Typography
               variant="body2"
-              sx={{ color: colors.primary_text || "#ffffff" }}
+              sx={{ color: "var(--color-primary-text)" || "#ffffff" }}
             >
               Keyboard shortcuts are currently disabled. Enable them in{" "}
               <strong>Settings → Keyboard Shortcuts</strong>.
@@ -460,7 +460,7 @@ export function ShortcutGuideModal() {
         >
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text || "#9ca3af" }}
+            sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
           >
             {navigator.platform.toUpperCase().indexOf("MAC") >= 0
               ? "Using ⌘ Command key"
@@ -469,7 +469,7 @@ export function ShortcutGuideModal() {
           <Divider orientation="vertical" flexItem />
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text || "#9ca3af" }}
+            sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
           >
             Current scope: <strong>{activeScope}</strong>
           </Typography>
@@ -482,7 +482,7 @@ export function ShortcutGuideModal() {
               sx={{
                 textAlign: "center",
                 py: 4,
-                color: colors.secondary_text || "#9ca3af",
+                color: "var(--color-secondary-text)" || "#9ca3af",
               }}
             >
               <Typography variant="body2">
@@ -518,14 +518,14 @@ export function ShortcutGuideModal() {
         >
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text || "#9ca3af" }}
+            sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
           >
             Press <ShortcutKeysDisplay keys="mod+/" size="small" /> anytime to
             show this guide
           </Typography>
           <Typography
             variant="caption"
-            sx={{ color: colors.secondary_text || "#9ca3af" }}
+            sx={{ color: "var(--color-secondary-text)" || "#9ca3af" }}
           >
             Shortcuts are context-aware and may change based on active page
           </Typography>

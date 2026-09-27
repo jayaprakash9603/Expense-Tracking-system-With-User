@@ -42,8 +42,8 @@ const FlowStackTooltip = ({
     <div
       style={{
         background: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
-        color: colors.primary_text,
+        border: "1px solid var(--color-border-color)",
+        color: "var(--color-primary-text)",
         borderRadius: 8,
         padding: 12,
         maxWidth: isMobile ? 220 : 320,
@@ -108,7 +108,7 @@ const FlowStackTooltip = ({
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                     fontSize: 12,
                   }}
                 >
@@ -118,7 +118,7 @@ const FlowStackTooltip = ({
                   style={{
                     fontWeight: 800,
                     fontSize: 12,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   }}
                 >
                   {currencySymbol}

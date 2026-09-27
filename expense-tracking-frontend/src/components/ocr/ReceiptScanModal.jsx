@@ -334,8 +334,8 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
     >
       <Box
         sx={{
-          backgroundColor: colors.primary_bg,
-          color: colors.primary_text,
+          backgroundColor: "var(--color-primary-bg)",
+          color: "var(--color-primary-text)",
           borderRadius: 2,
           width: "100%",
           maxWidth: "700px",
@@ -356,13 +356,13 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FaReceipt size={24} style={{ color: colors.primary_accent }} />
+            <FaReceipt size={24} style={{ color: "var(--color-primary-accent)" }} />
             <Typography variant="h6" fontWeight="600">
               {t("billCommon.receiptScanner.title")}
             </Typography>
           </Box>
           <IconButton onClick={handleClose} size="small">
-            <FaTimes style={{ color: colors.secondary_text }} />
+            <FaTimes style={{ color: "var(--color-secondary-text)" }} />
           </IconButton>
         </Box>
 
@@ -427,7 +427,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                         onClick={handleUploadClick}
                         sx={{
                           borderColor: colors.primary_accent,
-                          color: colors.primary_accent,
+                          color: "var(--color-primary-accent)",
                         }}
                       >
                         {t("billCommon.receiptScanner.addMore")}
@@ -453,8 +453,8 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                             position: "relative",
                             borderRadius: 1,
                             overflow: "hidden",
-                            border: `1px solid ${colors.border}`,
-                            backgroundColor: colors.secondary_bg,
+                            border: "1px solid var(--color-border-color)",
+                            backgroundColor: "var(--color-secondary-bg)",
                           }}
                         >
                           <img
@@ -529,7 +529,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                   <FaUpload
                     size={48}
                     style={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       marginBottom: "16px",
                     }}
                   />
@@ -556,7 +556,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     sx={{
                       mt: 1,
                       backgroundColor: colors.primary_accent + "20",
-                      color: colors.primary_accent,
+                      color: "var(--color-primary-accent)",
                     }}
                   />
                 </Box>
@@ -635,7 +635,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
               >
                 <FaInfoCircle
                   size={20}
-                  style={{ color: colors.primary_accent }}
+                  style={{ color: "var(--color-primary-accent)" }}
                 />
                 <Box>
                   <Typography variant="body2" fontWeight="500">
@@ -671,7 +671,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                 </Alert>
               )}
 
-              <Divider sx={{ my: 2, borderColor: colors.border }} />
+              <Divider sx={{ my: 2, borderColor: "var(--color-border-color)" }} />
 
               {/* Editable Fields */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -695,7 +695,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     )}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                       },
                     }}
                   />
@@ -729,7 +729,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     }}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                       },
                     }}
                   />
@@ -751,7 +751,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     onChange={(e) => handleFieldChange("date", e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                       },
                     }}
                   />
@@ -786,7 +786,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                       }}
                       sx={{
                         "& .MuiOutlinedInput-root": {
-                          backgroundColor: colors.secondary_bg,
+                          backgroundColor: "var(--color-secondary-bg)",
                         },
                       }}
                     />
@@ -828,7 +828,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     <Chip
                       label={editedData.paymentMethod}
                       variant="outlined"
-                      sx={{ borderColor: colors.border }}
+                      sx={{ borderColor: "var(--color-border-color)" }}
                     />
                   </Box>
                 )}
@@ -883,7 +883,7 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                   )}
               </Box>
 
-              <Divider sx={{ my: 3, borderColor: colors.border }} />
+              <Divider sx={{ my: 3, borderColor: "var(--color-border-color)" }} />
 
               {/* Action Buttons */}
               <Box sx={{ display: "flex", gap: 2, justifyContent: "flex-end" }}>
@@ -897,8 +897,8 @@ const ReceiptScanModal = ({ isOpen, onClose, onDataExtracted }) => {
                     dispatch(clearScanResult());
                   }}
                   sx={{
-                    borderColor: colors.border,
-                    color: colors.primary_text,
+                    borderColor: "var(--color-border-color)",
+                    color: "var(--color-primary-text)",
                   }}
                 >
                   {t("billCommon.receiptScanner.actions.scanAnother")}

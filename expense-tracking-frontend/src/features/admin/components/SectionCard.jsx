@@ -17,13 +17,13 @@ const SectionCard = ({ title, children, actions = null, className = "" }) => {
   return (
     <div
       className={`p-6 rounded-lg mb-6 ${className}`}
-      style={{ backgroundColor: colors.card_bg }}
+      style={{ backgroundColor: "var(--color-primary-bg)" }}
     >
       {title && (
         <div className="flex justify-between items-center mb-4">
           <h3
             className="text-xl font-semibold"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             {title}
           </h3>

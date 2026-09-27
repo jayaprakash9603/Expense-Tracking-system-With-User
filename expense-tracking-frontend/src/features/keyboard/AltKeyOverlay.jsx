@@ -643,7 +643,7 @@ export function AltKeyOverlay() {
 
           <Typography
             sx={{
-              color: colors.secondary_text || (isDark ? "#9ca3af" : "#6b7280"),
+              color: "var(--color-secondary-text)" || (isDark ? "#9ca3af" : "#6b7280"),
               fontSize: "0.8rem",
               fontWeight: 500,
               mr: 2,
@@ -684,7 +684,7 @@ export function AltKeyOverlay() {
               </Box>
               <Typography
                 sx={{
-                  color: colors.primary_text || (isDark ? "#fff" : "#1f2937"),
+                  color: "var(--color-primary-text)" || (isDark ? "#fff" : "#1f2937"),
                   fontSize: "0.7rem",
                 }}
               >
@@ -695,7 +695,7 @@ export function AltKeyOverlay() {
 
           <Typography
             sx={{
-              color: colors.secondary_text || (isDark ? "#9ca3af" : "#6b7280"),
+              color: "var(--color-secondary-text)" || (isDark ? "#9ca3af" : "#6b7280"),
               fontSize: "0.7rem",
               ml: 2,
             }}

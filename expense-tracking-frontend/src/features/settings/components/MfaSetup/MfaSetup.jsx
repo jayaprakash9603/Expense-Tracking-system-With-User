@@ -316,17 +316,17 @@ If you lose your authenticator device, use one of these codes to sign in.
    */
   const renderMfaEnabled = () => (
     <Box sx={{ textAlign: "center", py: 4 }}>
-      <CheckIcon sx={{ fontSize: 80, color: "success.main", mb: 2 }} />
+      <CheckIcon sx={{ fontSize: 80, color: "var(--color-success)", mb: 2 }} />
       <Typography
         variant="h5"
         fontWeight="bold"
         gutterBottom
-        sx={{ color: colors.primary_text }}
+        sx={{ color: "var(--color-primary-text)" }}
       >
         {t("mfa.setup.mfaEnabled")}
       </Typography>
       <Typography
-        sx={{ mb: 3, maxWidth: 400, mx: "auto", color: colors.secondary_text }}
+        sx={{ mb: 3, maxWidth: 400, mx: "auto", color: "var(--color-secondary-text)" }}
       >
         {t("mfa.setup.mfaEnabledDescription")}
       </Typography>
@@ -349,7 +349,7 @@ If you lose your authenticator device, use one of these codes to sign in.
         )}
       </Box>
 
-      <Divider sx={{ my: 3, borderColor: colors.border }} />
+      <Divider sx={{ my: 3, borderColor: "var(--color-border-color)" }} />
 
       <Grid container spacing={2} justifyContent="center">
         <Grid item>
@@ -392,12 +392,12 @@ If you lose your authenticator device, use one of these codes to sign in.
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1.1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1.1rem" }}
       >
         {t("mfa.setup.step1Title")}
       </Typography>
       <Typography
-        sx={{ mb: 1.5, color: colors.secondary_text, fontSize: "0.9rem" }}
+        sx={{ mb: 1.5, color: "var(--color-secondary-text)", fontSize: "0.9rem" }}
       >
         {t("mfa.setup.step1Description")}
       </Typography>
@@ -424,7 +424,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             fontWeight: 600,
           },
           fontSize: "0.8rem",
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
         }}
       >
         <AlertTitle>{t("mfa.setup.beforeYouScan")}</AlertTitle>
@@ -449,8 +449,8 @@ If you lose your authenticator device, use one of these codes to sign in.
         </Box>
       )}
 
-      <Divider sx={{ my: 1.5, borderColor: colors.border }}>
-        <Typography sx={{ color: colors.secondary_text, fontSize: "0.85rem" }}>
+      <Divider sx={{ my: 1.5, borderColor: "var(--color-border-color)" }}>
+        <Typography sx={{ color: "var(--color-secondary-text)", fontSize: "0.85rem" }}>
           {t("mfa.setup.orEnterManually")}
         </Typography>
       </Divider>
@@ -458,13 +458,13 @@ If you lose your authenticator device, use one of these codes to sign in.
       <Box sx={{ mb: 2 }}>
         <Typography
           variant="body2"
-          sx={{ color: colors.secondary_text, fontSize: "0.8rem", mb: 0.25 }}
+          sx={{ color: "var(--color-secondary-text)", fontSize: "0.8rem", mb: 0.25 }}
         >
           {t("mfa.setup.account")}: {user?.email}
         </Typography>
         <Typography
           variant="body2"
-          sx={{ color: colors.secondary_text, fontSize: "0.8rem", mb: 0.5 }}
+          sx={{ color: "var(--color-secondary-text)", fontSize: "0.8rem", mb: 0.5 }}
         >
           {t("mfa.setup.issuer")}: {setupData?.issuer}
         </Typography>
@@ -481,7 +481,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             sx={{
               fontFamily: "monospace",
               backgroundColor: colors.cardBackground,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               p: 0.75,
               borderRadius: 1,
               letterSpacing: 2,
@@ -496,7 +496,7 @@ If you lose your authenticator device, use one of these codes to sign in.
           >
             <IconButton
               onClick={() => copyToClipboard(setupData?.secret, "secret")}
-              sx={{ color: colors.primary_text }}
+              sx={{ color: "var(--color-primary-text)" }}
             >
               {secretCopied ? <CheckIcon color="success" /> : <CopyIcon />}
             </IconButton>
@@ -527,10 +527,10 @@ If you lose your authenticator device, use one of these codes to sign in.
    */
   const renderVerifyStep = () => (
     <Box sx={{ textAlign: "center" }}>
-      <Typography variant="h6" gutterBottom sx={{ color: colors.primary_text }}>
+      <Typography variant="h6" gutterBottom sx={{ color: "var(--color-primary-text)" }}>
         {t("mfa.setup.step2Title")}
       </Typography>
-      <Typography sx={{ mb: 3, color: colors.secondary_text }}>
+      <Typography sx={{ mb: 3, color: "var(--color-secondary-text)" }}>
         {t("mfa.setup.step2Description")}
       </Typography>
 
@@ -552,7 +552,7 @@ If you lose your authenticator device, use one of these codes to sign in.
           width: 200,
           "& .MuiOutlinedInput-root": {
             "& fieldset": {
-              borderColor: colors.border,
+              borderColor: "var(--color-border-color)",
             },
             "&:hover fieldset": {
               borderColor: colors.primary,
@@ -562,7 +562,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             },
           },
           "& .MuiInputBase-input": {
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           },
         }}
         error={!!error}
@@ -570,7 +570,7 @@ If you lose your authenticator device, use one of these codes to sign in.
         autoFocus
       />
 
-      <Typography variant="body2" sx={{ mb: 3, color: colors.secondary_text }}>
+      <Typography variant="body2" sx={{ mb: 3, color: "var(--color-secondary-text)" }}>
         {t("mfa.setup.codeChangesEvery30Seconds")}
       </Typography>
 
@@ -613,11 +613,11 @@ If you lose your authenticator device, use one of these codes to sign in.
    */
   const renderBackupCodesStep = () => (
     <Box sx={{ textAlign: "center" }}>
-      <CheckIcon sx={{ fontSize: 48, color: "success.main", mb: 1 }} />
+      <CheckIcon sx={{ fontSize: 48, color: "var(--color-success)", mb: 1 }} />
       <Typography
         variant="h6"
         gutterBottom
-        sx={{ color: colors.primary_text, mb: 1 }}
+        sx={{ color: "var(--color-primary-text)", mb: 1 }}
       >
         {t("mfa.setup.mfaEnabledSuccessfully")}
       </Typography>
@@ -641,7 +641,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             fontWeight: 600,
           },
           fontSize: "0.75rem",
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
         }}
       >
         <AlertTitle>{t("mfa.setup.saveBackupCodes")}</AlertTitle>
@@ -654,7 +654,7 @@ If you lose your authenticator device, use one of these codes to sign in.
           p: 2,
           mb: 2,
           backgroundColor: colors.cardBackground,
-          borderColor: colors.border,
+          borderColor: "var(--color-border-color)",
         }}
       >
         <Grid container spacing={0.75}>
@@ -666,7 +666,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                   fontSize: "0.9rem",
                   p: 0.75,
                   backgroundColor: colors.inputBackground,
-                  color: colors.primary_text,
+                  color: "var(--color-primary-text)",
                   borderRadius: 1,
                 }}
               >
@@ -743,24 +743,24 @@ If you lose your authenticator device, use one of these codes to sign in.
         <div
           className="rounded-xl shadow-lg p-6 w-[90%] max-w-[600px] relative max-h-[90vh] overflow-auto"
           style={{
-            backgroundColor: colors.modal_bg || colors.cardBackground,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)" || colors.cardBackground,
+            color: "var(--color-primary-text)",
           }}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <CheckIcon sx={{ color: "success.main" }} />
+              <CheckIcon sx={{ color: "var(--color-success)" }} />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: colors.primary_text }}
+                sx={{ fontWeight: "bold", color: "var(--color-primary-text)" }}
               >
                 {t("mfa.setup.newCodesGenerated")}
               </Typography>
             </div>
             <button
               className="text-2xl absolute top-4 right-4"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
               onClick={() => setShowRegeneratedCodes(false)}
             >
               &times;
@@ -788,7 +788,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                   fontWeight: 600,
                 },
                 fontSize: "0.8rem",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             >
               <AlertTitle>{t("mfa.setup.saveBackupCodes")}</AlertTitle>
@@ -802,7 +802,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                 mb: 3,
                 backgroundColor:
                   colors.inputBackground || colors.cardBackground,
-                borderColor: colors.border,
+                borderColor: "var(--color-border-color)",
               }}
             >
               <Grid container spacing={1}>
@@ -814,7 +814,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                         fontSize: "1rem",
                         p: 1,
                         backgroundColor: colors.hover || colors.secondary_bg,
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         borderRadius: 1,
                         textAlign: "center",
                       }}
@@ -897,8 +897,8 @@ If you lose your authenticator device, use one of these codes to sign in.
         <div
           className="rounded-xl shadow-lg p-6 w-[90%] max-w-[500px] relative"
           style={{
-            backgroundColor: colors.modal_bg || colors.cardBackground,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)" || colors.cardBackground,
+            color: "var(--color-primary-text)",
           }}
         >
           {/* Header */}
@@ -907,14 +907,14 @@ If you lose your authenticator device, use one of these codes to sign in.
               <WarningIcon sx={{ color: "#ed6c02" }} />
               <Typography
                 variant="h6"
-                sx={{ fontWeight: "bold", color: colors.primary_text }}
+                sx={{ fontWeight: "bold", color: "var(--color-primary-text)" }}
               >
                 {t("mfa.setup.disableMfa")}
               </Typography>
             </div>
             <button
               className="text-2xl absolute top-4 right-4"
-              style={{ color: colors.primary_text }}
+              style={{ color: "var(--color-primary-text)" }}
               onClick={() => setShowDisableDialog(false)}
             >
               &times;
@@ -923,7 +923,7 @@ If you lose your authenticator device, use one of these codes to sign in.
 
           {/* Content */}
           <div className="space-y-4 mt-4">
-            <Typography sx={{ mb: 2, color: colors.secondary_text }}>
+            <Typography sx={{ mb: 2, color: "var(--color-secondary-text)" }}>
               {t("mfa.setup.disableMfaWarning")}
             </Typography>
 
@@ -945,7 +945,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                   fontWeight: 600,
                 },
                 fontSize: "0.8rem",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
               }}
             >
               <AlertTitle>{t("mfa.setup.importantReminder")}</AlertTitle>
@@ -1011,7 +1011,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: colors.border,
+                      borderColor: "var(--color-border-color)",
                     },
                     "&:hover fieldset": {
                       borderColor: colors.primary,
@@ -1021,10 +1021,10 @@ If you lose your authenticator device, use one of these codes to sign in.
                     },
                   },
                   "& .MuiInputBase-input": {
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   },
                   "& .MuiInputLabel-root": {
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   },
                 }}
               />
@@ -1038,7 +1038,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                 sx={{
                   "& .MuiOutlinedInput-root": {
                     "& fieldset": {
-                      borderColor: colors.border,
+                      borderColor: "var(--color-border-color)",
                     },
                     "&:hover fieldset": {
                       borderColor: colors.primary,
@@ -1048,10 +1048,10 @@ If you lose your authenticator device, use one of these codes to sign in.
                     },
                   },
                   "& .MuiInputBase-input": {
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   },
                   "& .MuiInputLabel-root": {
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   },
                 }}
               />
@@ -1063,7 +1063,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             <Button
               onClick={() => setShowDisableDialog(false)}
               sx={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 "&:hover": {
                   backgroundColor: colors.hover,
                 },
@@ -1106,7 +1106,7 @@ If you lose your authenticator device, use one of these codes to sign in.
           justifyContent: "center",
           alignItems: "center",
           minHeight: 400,
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
         }}
       >
         <CircularProgress />
@@ -1117,7 +1117,7 @@ If you lose your authenticator device, use one of these codes to sign in.
   return (
     <Box
       sx={{
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: isSmallScreen ? 0 : "8px",
@@ -1136,12 +1136,12 @@ If you lose your authenticator device, use one of these codes to sign in.
           gap: 2,
           p: isSmallScreen ? 1.5 : 2,
           borderBottom: `1px solid ${colors.border_color}`,
-          backgroundColor: colors.primary_bg,
+          backgroundColor: "var(--color-primary-bg)",
         }}
       >
         <IconButton
           onClick={() => navigate("/settings")}
-          sx={{ color: colors.primary_text }}
+          sx={{ color: "var(--color-primary-text)" }}
         >
           <ArrowBackIcon />
         </IconButton>
@@ -1150,7 +1150,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             variant="h5"
             fontWeight="bold"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               display: "flex",
               alignItems: "center",
               gap: 1,
@@ -1159,7 +1159,7 @@ If you lose your authenticator device, use one of these codes to sign in.
             <MfaIcon />
             {t("mfa.setup.authenticatorApp")}
           </Typography>
-          <Typography variant="body2" sx={{ color: colors.secondary_text }}>
+          <Typography variant="body2" sx={{ color: "var(--color-secondary-text)" }}>
             {t("mfa.setup.authenticatorAppDescription")}
           </Typography>
         </Box>
@@ -1171,7 +1171,7 @@ If you lose your authenticator device, use one of these codes to sign in.
           flex: 1,
           overflow: "auto",
           p: isSmallScreen ? 1.5 : 2,
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         }}
         className="custom-scrollbar"
       >
@@ -1181,9 +1181,9 @@ If you lose your authenticator device, use one of these codes to sign in.
             elevation={0}
             sx={{
               p: isSmallScreen ? 2 : 3,
-              backgroundColor: colors.primary_bg,
+              backgroundColor: "var(--color-primary-bg)",
               borderRadius: 2,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             {mfaStatus?.mfaEnabled ? (
@@ -1197,10 +1197,10 @@ If you lose your authenticator device, use one of these codes to sign in.
                       <StepLabel
                         sx={{
                           "& .MuiStepLabel-label": {
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                           },
                           "& .MuiStepLabel-label.Mui-active": {
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                           },
                           "& .MuiStepLabel-label.Mui-completed": {
                             color: colors.primary,
@@ -1228,7 +1228,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                   variant="h5"
                   fontWeight="bold"
                   gutterBottom
-                  sx={{ color: colors.primary_text }}
+                  sx={{ color: "var(--color-primary-text)" }}
                 >
                   {t("mfa.setup.setUpAuthenticator")}
                 </Typography>
@@ -1237,7 +1237,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                     mb: 3,
                     maxWidth: 400,
                     mx: "auto",
-                    color: colors.secondary_text,
+                    color: "var(--color-secondary-text)",
                   }}
                 >
                   {t("mfa.setup.setUpAuthenticatorDescription")}
@@ -1262,7 +1262,7 @@ If you lose your authenticator device, use one of these codes to sign in.
                       fontWeight: 600,
                     },
                     fontSize: "0.8rem",
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   }}
                 >
                   <AlertTitle>{t("mfa.setup.priorityNote")}</AlertTitle>

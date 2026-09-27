@@ -106,7 +106,7 @@ const TourGuide = () => {
       styles={{
         options: {
           arrowColor: colors.card_bg,
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           overlayColor: "rgba(0, 0, 0, 0.6)",
           primaryColor: colors.primary_accent,
           textColor: colors.primary_text,
@@ -126,11 +126,11 @@ const TourGuide = () => {
           borderRadius: "4px",
         },
         buttonBack: {
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           marginRight: 10,
         },
         buttonSkip: {
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
         },
       }}
     />

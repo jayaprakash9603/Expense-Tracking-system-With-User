@@ -152,7 +152,7 @@ const FriendInfoBar = ({
         style={{
           height: "50px",
           padding: "0 12px",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
         }}
       >
         <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ const FriendInfoBar = ({
           </div>
           <div
             className="w-8 h-[2px]"
-            style={{ backgroundColor: colors.hover_bg }}
+            style={{ backgroundColor: "var(--color-hover-bg)" }}
           ></div>
           <Skeleton
             variant="circular"
@@ -323,7 +323,7 @@ const FriendInfoBar = ({
         className="rounded-lg mx-4 flex items-center justify-between relative"
         style={{
           height: "50px",
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           boxShadow:
             colors.mode === "dark"
               ? "0 4px 12px rgba(0,0,0,0.15)"
@@ -394,9 +394,9 @@ const FriendInfoBar = ({
                     tooltip: {
                       sx: {
                         bgcolor: colors.tertiary_bg,
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "0.7rem",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         "& .MuiTooltip-arrow": {
                           color: colors.tertiary_bg,
                         },
@@ -406,7 +406,7 @@ const FriendInfoBar = ({
                 >
                   <span
                     className="text-[10px] leading-tight cursor-help truncate block"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     {requesterEmailData.display}
                   </span>
@@ -414,7 +414,7 @@ const FriendInfoBar = ({
               ) : (
                 <span
                   className="text-[10px] leading-tight truncate block"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   {requesterEmailData.display}
                 </span>
@@ -485,9 +485,9 @@ const FriendInfoBar = ({
                     tooltip: {
                       sx: {
                         bgcolor: colors.tertiary_bg,
-                        color: colors.secondary_text,
+                        color: "var(--color-secondary-text)",
                         fontSize: "0.7rem",
-                        border: `1px solid ${colors.border_color}`,
+                        border: "1px solid var(--color-border-color)",
                         "& .MuiTooltip-arrow": {
                           color: colors.tertiary_bg,
                         },
@@ -497,7 +497,7 @@ const FriendInfoBar = ({
                 >
                   <span
                     className="text-[10px] leading-tight cursor-help truncate block"
-                    style={{ color: colors.secondary_text }}
+                    style={{ color: "var(--color-secondary-text)" }}
                   >
                     {recipientEmailData.display}
                   </span>
@@ -505,7 +505,7 @@ const FriendInfoBar = ({
               ) : (
                 <span
                   className="text-[10px] leading-tight truncate block"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   {recipientEmailData.display}
                 </span>
@@ -695,7 +695,7 @@ const FriendInfoBar = ({
                 textTransform: "none",
                 boxShadow: "none",
                 "&:hover": {
-                  backgroundColor: colors.hover_bg,
+                  backgroundColor: "var(--color-hover-bg)",
                   boxShadow: "none",
                 },
               }}
@@ -724,9 +724,9 @@ const FriendInfoBar = ({
                       return Math.max(8, rect.right - 320); // keep inside viewport
                     })(),
                     width: 320, // Increased width for better search experience
-                    backgroundColor: colors.primary_bg,
+                    backgroundColor: "var(--color-primary-bg)",
                     borderRadius: 2,
-                    border: `1px solid ${colors.border_color}`,
+                    border: "1px solid var(--color-border-color)",
                     overflow: "hidden",
                     zIndex: 1600,
                     animation: "dropdownFadeIn 0.18s ease-out forwards",
@@ -792,10 +792,10 @@ const FriendInfoBar = ({
                           </InputAdornment>
                         ),
                         sx: {
-                          backgroundColor: colors.secondary_bg,
+                          backgroundColor: "var(--color-secondary-bg)",
                           borderRadius: 1,
                           "& .MuiOutlinedInput-notchedOutline": {
-                            borderColor: colors.border_color,
+                            borderColor: "var(--color-border-color)",
                           },
                           "&:hover .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#5b7fff",
@@ -804,12 +804,12 @@ const FriendInfoBar = ({
                             borderColor: "#00DAC6",
                           },
                           "& input": {
-                            color: colors.primary_text,
+                            color: "var(--color-primary-text)",
                             fontSize: "0.875rem",
                             padding: "8px 0",
                           },
                           "& input::placeholder": {
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             opacity: 1,
                           },
                         },
@@ -826,7 +826,7 @@ const FriendInfoBar = ({
                         sx={{
                           display: "block",
                           mt: 2,
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                         }}
                       >
                         Loading friends...
@@ -836,7 +836,7 @@ const FriendInfoBar = ({
                     <Box sx={{ p: 3, textAlign: "center" }}>
                       <Typography
                         variant="body2"
-                        sx={{ color: colors.secondary_text, mb: 1 }}
+                        sx={{ color: "var(--color-secondary-text)", mb: 1 }}
                       >
                         {searchTerm
                           ? "No friends found matching your search"
@@ -887,12 +887,12 @@ const FriendInfoBar = ({
                                   backgroundColor: colors.tertiary_bg,
                                   borderLeft: `3px solid ${colors.primary_accent}`,
                                   "&:hover": {
-                                    backgroundColor: colors.hover_bg,
+                                    backgroundColor: "var(--color-hover-bg)",
                                     cursor: "pointer",
                                   },
                                 },
                                 "&:hover": {
-                                  backgroundColor: colors.hover_bg,
+                                  backgroundColor: "var(--color-hover-bg)",
                                   cursor: "pointer",
                                 },
                                 "&:last-child": {
@@ -924,7 +924,7 @@ const FriendInfoBar = ({
                                   <Typography
                                     variant="body2"
                                     sx={{
-                                      color: colors.primary_text,
+                                      color: "var(--color-primary-text)",
                                       fontSize: "0.875rem",
                                       fontWeight: isSelected ? 600 : 500,
                                     }}
@@ -937,7 +937,7 @@ const FriendInfoBar = ({
                                     <Typography
                                       variant="caption"
                                       sx={{
-                                        color: colors.secondary_text,
+                                        color: "var(--color-secondary-text)",
                                         fontSize: "0.75rem",
                                         display: "block",
                                       }}
@@ -1043,7 +1043,7 @@ const FriendInfoBar = ({
                   >
                     <Typography
                       variant="caption"
-                      sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+                      sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
                     >
                       {searchTerm
                         ? `${filteredFriends.length} of ${friends.length} friends`

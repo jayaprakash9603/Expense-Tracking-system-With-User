@@ -63,7 +63,7 @@ const ReusableFilterField = ({
       bgcolor: colors.secondary_bg,
       borderRadius: 2,
       "& fieldset": {
-        borderColor: colors.border_color,
+        borderColor: "var(--color-border-color)",
         borderWidth: "1px",
         borderStyle: "solid",
       },
@@ -79,16 +79,16 @@ const ReusableFilterField = ({
       },
     },
     "& .MuiInputBase-input": {
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
     },
     "& .MuiInputLabel-root": {
-      color: colors.secondary_text,
+      color: "var(--color-secondary-text)",
       "&.Mui-focused": {
         color: "#00dac6",
       },
     },
     "& .MuiSelect-icon": {
-      color: colors.primary_text,
+      color: "var(--color-primary-text)",
     },
     ...sx,
   });
@@ -147,7 +147,7 @@ const ReusableFilterField = ({
             bgcolor: colors.secondary_bg,
             borderRadius: 2,
             "& fieldset": {
-              borderColor: colors.border_color,
+              borderColor: "var(--color-border-color)",
               borderWidth: "1px",
               borderStyle: "solid",
             },
@@ -163,10 +163,10 @@ const ReusableFilterField = ({
             },
           },
           "& .MuiInputBase-input": {
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
           },
           "& .MuiInputLabel-root": {
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             "&.Mui-focused": {
               color: "#00dac6",
             },

@@ -28,7 +28,7 @@ const AnalyticsHeroCard = ({
         overflow: "hidden",
         flexShrink: 0,
         borderRadius: "14px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         background:
           mode === "dark"
             ? `linear-gradient(145deg, ${colors.primary_bg} 0%, ${colors.secondary_bg} 100%)`
@@ -66,7 +66,7 @@ const AnalyticsHeroCard = ({
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               mb: 0.75,
             }}
           >
@@ -116,7 +116,7 @@ const AnalyticsHeroCard = ({
           <Typography
             sx={{
               fontSize: 12,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontWeight: 500,
             }}
           >
@@ -126,7 +126,7 @@ const AnalyticsHeroCard = ({
             sx={{
               fontSize: 13,
               fontWeight: 700,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontVariantNumeric: "tabular-nums",
             }}
           >
@@ -168,7 +168,7 @@ const AnalyticsHeroCard = ({
             px: 1.25,
             py: 1,
             borderRadius: "10px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             borderLeft: `3px solid ${tone}`,
             backgroundColor:
               mode === "dark" ? "rgba(0,0,0,0.25)" : colors.secondary_bg,
@@ -178,7 +178,7 @@ const AnalyticsHeroCard = ({
             sx={{
               fontSize: 13,
               fontWeight: 600,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               lineHeight: 1.35,
             }}
           >

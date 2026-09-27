@@ -49,7 +49,7 @@ const CustomizationModalHeader = ({
             }}
           >
             <IconComponent
-              sx={{ color: colors.primary_accent || "#14b8a6", fontSize: isMobile ? 22 : 28 }}
+              sx={{ color: "var(--color-primary-accent)" || "#14b8a6", fontSize: isMobile ? 22 : 28 }}
             />
           </Box>
         )}
@@ -58,7 +58,7 @@ const CustomizationModalHeader = ({
             variant={isMobile ? "h6" : "h5"}
             fontWeight="700"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               mb: 0.5,
               fontSize: isMobile ? "1.1rem" : undefined,
             }}
@@ -69,7 +69,7 @@ const CustomizationModalHeader = ({
             <Typography
               variant="body2"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontWeight: 400,
                 letterSpacing: 0.2,
               }}

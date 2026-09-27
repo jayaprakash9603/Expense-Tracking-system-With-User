@@ -97,7 +97,7 @@ export default function LossGainBreakdownCard({
       className="chart-container"
       style={{
         background: colors.primary_bg,
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         borderRadius: "12px",
         padding: "20px",
       }}
@@ -105,14 +105,14 @@ export default function LossGainBreakdownCard({
       <div className="chart-header" style={{ marginBottom: "14px" }}>
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             margin: "0 0 4px 0",
             display: "flex",
             alignItems: "center",
             gap: 8,
           }}
         >
-          <BarChartIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <BarChartIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           {title}
         </h3>
         <div className="chart-subtitle" style={{ color: mutedTextColor }}>
@@ -150,11 +150,11 @@ export default function LossGainBreakdownCard({
                   formatter={tooltipFormatter}
                   contentStyle={{
                     background: colors.primary_bg,
-                    border: `1px solid ${colors.border_color}`,
+                    border: "1px solid var(--color-border-color)",
                     borderRadius: 10,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   }}
-                  labelStyle={{ color: colors.primary_text, fontWeight: 700 }}
+                  labelStyle={{ color: "var(--color-primary-text)", fontWeight: 700 }}
                   itemStyle={{ color: mutedTextColor }}
                 />
                 <Bar dataKey="amount" radius={[6, 6, 0, 0]}>
@@ -230,7 +230,7 @@ export default function LossGainBreakdownCard({
               gap: "12px",
               padding: "12px 14px",
               borderRadius: "12px",
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               background: colors.secondary_bg,
               boxShadow: `inset 5px 0 0 ${LOSS_COLOR}`,
               minWidth: 0,
@@ -241,7 +241,7 @@ export default function LossGainBreakdownCard({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: 12,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
@@ -261,7 +261,7 @@ export default function LossGainBreakdownCard({
             </div>
             <div
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 800,
                 fontSize: 14,
                 whiteSpace: "nowrap",
@@ -285,7 +285,7 @@ export default function LossGainBreakdownCard({
               gap: "12px",
               padding: "12px 14px",
               borderRadius: "12px",
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               background: colors.secondary_bg,
               boxShadow: `inset 5px 0 0 ${GAIN_COLOR}`,
               minWidth: 0,
@@ -296,7 +296,7 @@ export default function LossGainBreakdownCard({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: 12,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
@@ -316,7 +316,7 @@ export default function LossGainBreakdownCard({
             </div>
             <div
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 800,
                 fontSize: 14,
                 whiteSpace: "nowrap",
@@ -340,7 +340,7 @@ export default function LossGainBreakdownCard({
               gap: "12px",
               padding: "12px 14px",
               borderRadius: "12px",
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               background: colors.active_bg,
               boxShadow: `inset 5px 0 0 ${netAccentColor}`,
               minWidth: 0,
@@ -351,7 +351,7 @@ export default function LossGainBreakdownCard({
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 fontSize: 12,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
@@ -371,7 +371,7 @@ export default function LossGainBreakdownCard({
             </div>
             <div
               style={{
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 fontWeight: 900,
                 fontSize: 14,
                 whiteSpace: "nowrap",
@@ -388,7 +388,7 @@ export default function LossGainBreakdownCard({
         </div>
 
         {(!budgets || budgets.length === 0) && (
-          <div style={{ color: colors.secondary_text, paddingTop: "2px" }}>
+          <div style={{ color: "var(--color-secondary-text)", paddingTop: "2px" }}>
             No budgets available for this selection.
           </div>
         )}

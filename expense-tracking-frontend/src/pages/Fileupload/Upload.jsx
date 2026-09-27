@@ -309,16 +309,16 @@ const Upload = () => {
 
   return (
     <>
-      <div style={{ backgroundColor: colors.primary_bg }}>
+      <div style={{ backgroundColor: "var(--color-primary-bg)" }}>
         <div
           className="flex lg:w-[calc(100vw-370px)] flex-col justify-between sm:w-full"
           style={{
             height: "auto",
             minHeight: "calc(100vh - 100px)",
-            backgroundColor: colors.secondary_bg,
+            backgroundColor: "var(--color-secondary-bg)",
             borderRadius: "8px",
             boxShadow: "rgba(0, 0, 0, 0.08) 0px 0px 0px",
-            border: `1px solid ${colors.border_color}`,
+            border: "1px solid var(--color-border-color)",
             opacity: 1,
             position: "relative",
             marginRight: "20px",
@@ -330,9 +330,9 @@ const Upload = () => {
             <IconButton
               sx={{
                 color: "#14b8a6",
-                backgroundColor: colors.primary_bg,
+                backgroundColor: "var(--color-primary-bg)",
                 "&:hover": {
-                  backgroundColor: colors.hover_bg,
+                  backgroundColor: "var(--color-hover-bg)",
                 },
                 zIndex: 10,
               }}

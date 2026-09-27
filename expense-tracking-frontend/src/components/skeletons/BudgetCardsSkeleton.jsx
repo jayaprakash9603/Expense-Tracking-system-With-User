@@ -12,7 +12,7 @@ const BudgetCardsSkeleton = ({ cardCount = 6, isMediumScreen = false }) => {
           <Box
             sx={{
               background: `linear-gradient(135deg, ${colors.primary_bg} 0%, ${colors.tertiary_bg} 100%)`,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: "12px",
               padding: 2,
               height: "100%",

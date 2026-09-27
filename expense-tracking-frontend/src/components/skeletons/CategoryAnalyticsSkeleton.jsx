@@ -12,9 +12,9 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
   const isCompact = useMediaQuery("(max-width:900px)");
 
   const cardStyle = {
-    backgroundColor: colors.primary_bg,
+    backgroundColor: "var(--color-primary-bg)",
     borderRadius: "12px",
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     padding: "12px",
   };
 
@@ -165,10 +165,10 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
             {/* Comments Section */}
             <Box
               sx={{
-                backgroundColor: colors.secondary_bg,
+                backgroundColor: "var(--color-secondary-bg)",
                 padding: "8px 10px",
                 borderRadius: "8px",
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderLeft: `3px solid ${colors.border_color}`,
               }}
             >
@@ -452,7 +452,7 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
                         alignItems: "center",
                         justifyContent: "space-between",
                         padding: "6px 8px",
-                        backgroundColor: colors.secondary_bg,
+                        backgroundColor: "var(--color-secondary-bg)",
                         borderRadius: "6px",
                       }}
                     >
@@ -521,7 +521,7 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
                       mb: 0.5,
                       p: 0.5,
                       borderRadius: "6px",
-                      backgroundColor: colors.secondary_bg,
+                      backgroundColor: "var(--color-secondary-bg)",
                     }}
                   >
                     <Skeleton
@@ -586,7 +586,7 @@ const CategoryAnalyticsSkeleton = ({ onClose, containerStyle }) => {
                       mb: 0.5,
                       p: 0.5,
                       borderRadius: "6px",
-                      backgroundColor: colors.secondary_bg,
+                      backgroundColor: "var(--color-secondary-bg)",
                     }}
                   >
                     <Skeleton

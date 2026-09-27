@@ -66,8 +66,8 @@ const BudgetOverviewSkeleton = ({
 
   // Common container styles
   const containerStyle = {
-    backgroundColor: colors.secondary_bg,
-    border: `1px solid ${colors.border_color}`,
+    backgroundColor: "var(--color-secondary-bg)",
+    border: "1px solid var(--color-border-color)",
     borderRadius: 16,
     padding: 24,
     display: "flex",
@@ -216,7 +216,7 @@ const BudgetOverviewSkeleton = ({
                 style={{
                   flex: 1,
                   backgroundColor: colors.tertiary_bg,
-                  border: `1px solid ${colors.border_color}`,
+                  border: "1px solid var(--color-border-color)",
                   borderRadius: 12,
                   padding: 14,
                   display: "flex",
@@ -317,7 +317,7 @@ const BudgetOverviewSkeleton = ({
               key={i}
               style={{
                 backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: 12,
                 padding: 16,
                 display: "flex",

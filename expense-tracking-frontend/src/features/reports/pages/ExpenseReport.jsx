@@ -138,9 +138,9 @@ const ReportHeader = ({
     >
       <IconButton
         sx={{
-          color: colors.primary_accent,
-          backgroundColor: colors.secondary_bg,
-          "&:hover": { backgroundColor: colors.hover_bg },
+          color: "var(--color-primary-accent)",
+          backgroundColor: "var(--color-secondary-bg)",
+          "&:hover": { backgroundColor: "var(--color-hover-bg)" },
           zIndex: 10,
           transform: "translateY(-15px)",
         }}
@@ -167,7 +167,7 @@ const ReportHeader = ({
         <h1
           style={{
             margin: 0,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -178,7 +178,7 @@ const ReportHeader = ({
           })}
           Bill Report
         </h1>
-        <p style={{ margin: "6px 0 0 0", color: colors.secondary_text }}>
+        <p style={{ margin: "6px 0 0 0", color: "var(--color-secondary-text)" }}>
           Spending overview and insights
         </p>
       </div>
@@ -433,14 +433,14 @@ const DailyTrendChart = ({
         marginBottom: 8,
       }}
     >
-      <h3 style={{ margin: 0, color: colors.primary_text }}>Expense Trend</h3>
+      <h3 style={{ margin: 0, color: "var(--color-primary-text)" }}>Expense Trend</h3>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button className="page-btn" onClick={onPrev}>
           Prev
         </button>
         <div
           style={{
-            color: colors.secondary_text,
+            color: "var(--color-secondary-text)",
             fontSize: 14,
             width: 260,
             textAlign: "center",

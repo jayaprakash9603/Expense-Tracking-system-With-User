@@ -81,21 +81,21 @@ const BudgetOverview = ({
           useCompactStyle ? "compact" : ""
         } ${isMobile ? "mobile" : ""} ${isTablet && !isMobile ? "tablet" : ""}`}
         style={{
-          backgroundColor: colors.secondary_bg,
-          border: `1px solid ${colors.border_color}`,
+          backgroundColor: "var(--color-secondary-bg)",
+          border: "1px solid var(--color-border-color)",
         }}
       >
         <div className="section-header">
           <h3
             style={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               display: "flex",
               alignItems: "center",
               gap: 8,
               margin: 0,
             }}
           >
-            <TrackChangesIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+            <TrackChangesIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
             Budget Overview
           </h3>
         </div>
@@ -123,7 +123,7 @@ const BudgetOverview = ({
               <div
                 className="budget-percentage"
                 style={{
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                   textShadow: `0 0 20px ${colors.primary_accent}40`,
                 }}
               >
@@ -131,7 +131,7 @@ const BudgetOverview = ({
               </div>
               <div
                 className="budget-label"
-                style={{ color: colors.secondary_text }}
+                style={{ color: "var(--color-secondary-text)" }}
               >
                 Used
               </div>
@@ -143,7 +143,7 @@ const BudgetOverview = ({
             className="budget-item budget-card"
             style={{
               backgroundColor: colors.tertiary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <div className="budget-card-content">
@@ -164,7 +164,7 @@ const BudgetOverview = ({
               <div className="budget-card-info">
                 <span
                   className="budget-card-label"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Remaining Budget
                 </span>
@@ -186,7 +186,7 @@ const BudgetOverview = ({
             className="budget-item budget-card"
             style={{
               backgroundColor: colors.tertiary_bg,
-              border: `1px solid ${colors.border_color}`,
+              border: "1px solid var(--color-border-color)",
             }}
           >
             <div className="budget-card-content">
@@ -194,7 +194,7 @@ const BudgetOverview = ({
                 className="budget-card-icon"
                 style={{
                   backgroundColor: `${colors.primary_accent}15`,
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 }}
               >
                 <BarChartIcon sx={{ fontSize: 20 }} />
@@ -202,13 +202,13 @@ const BudgetOverview = ({
               <div className="budget-card-info">
                 <span
                   className="budget-card-label"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Total Spent
                 </span>
                 <span
                   className="budget-card-value"
-                  style={{ color: colors.primary_text }}
+                  style={{ color: "var(--color-primary-text)" }}
                 >
                   {currencySymbol}
                   {Number(Math.abs(totalLosses || 0)).toLocaleString()}
@@ -229,21 +229,21 @@ const BudgetOverview = ({
         useCompactStyle ? "compact" : ""
       }`}
       style={{
-        backgroundColor: colors.secondary_bg,
-        border: `1px solid ${colors.border_color}`,
+        backgroundColor: "var(--color-secondary-bg)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <div className="section-header">
         <h3
           style={{
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             display: "flex",
             alignItems: "center",
             gap: 8,
             margin: 0,
           }}
         >
-          <BarChartIcon sx={{ fontSize: 22, color: colors.primary_accent }} />
+          <BarChartIcon sx={{ fontSize: 22, color: "var(--color-primary-accent)" }} />
           Budget Overview
         </h3>
         {onManageBudgets && (
@@ -269,14 +269,14 @@ const BudgetOverview = ({
               className="budget-item"
               style={{
                 backgroundColor: colors.tertiary_bg,
-                border: `1px solid ${colors.border_color}`,
+                border: "1px solid var(--color-border-color)",
               }}
             >
               <div className="budget-header">
                 <span
                   className="budget-name"
                   title={b.name}
-                  style={{ color: colors.primary_text }}
+                  style={{ color: "var(--color-primary-text)" }}
                 >
                   {b.name}
                 </span>
@@ -303,7 +303,7 @@ const BudgetOverview = ({
               <div className="budget-bar-wrapper">
                 <div
                   className="budget-bar-bg"
-                  style={{ backgroundColor: colors.hover_bg }}
+                  style={{ backgroundColor: "var(--color-hover-bg)" }}
                 >
                   <div
                     className="budget-bar-fill"
@@ -317,21 +317,21 @@ const BudgetOverview = ({
               <div className="budget-metrics">
                 <span
                   className="allocated"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Allocated: {currencySymbol}
                   {Number(b.allocated || 0).toLocaleString()}
                 </span>
                 <span
                   className="spent"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Spent: {currencySymbol}
                   {Number(b.spent || 0).toLocaleString()}
                 </span>
                 <span
                   className="remaining"
-                  style={{ color: colors.secondary_text }}
+                  style={{ color: "var(--color-secondary-text)" }}
                 >
                   Remaining: {currencySymbol}
                   {Number(remaining).toLocaleString()}

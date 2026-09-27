@@ -62,7 +62,7 @@ const DatePickerPopover = ({
         "& .MuiPopover-paper": {
           padding: "16px",
           background: colors.primary_bg,
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           borderRadius: "12px",
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
         },
@@ -78,7 +78,7 @@ const DatePickerPopover = ({
           maxDate={maxDate}
           sx={{
             "& .MuiPickersDay-root": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "&.Mui-selected": {
                 background: colors.primary_accent,
                 color: colors.button_text,
@@ -96,13 +96,13 @@ const DatePickerPopover = ({
               },
             },
             "& .MuiPickersCalendarHeader-label": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             },
             "& .MuiDayCalendar-weekDayLabel": {
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
             },
             "& .MuiIconButton-root": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               "&:hover": {
                 background: `${colors.primary_accent}20`,
               },

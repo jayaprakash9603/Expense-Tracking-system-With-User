@@ -52,7 +52,7 @@ const ActivityAccordion = ({
         sx={{
           p: 4,
           textAlign: "center",
-          color: colors.secondary_text,
+          color: "var(--color-secondary-text)",
         }}
       >
         <Typography variant="body2">No activities found</Typography>
@@ -191,9 +191,9 @@ const AccordionItem = React.memo(
     return (
       <Box
         sx={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border_color}`,
+          border: "1px solid var(--color-border-color)",
           overflow: "hidden",
           transition: "all 0.2s ease",
           ...(isExpanded && {
@@ -246,7 +246,7 @@ const AccordionItem = React.memo(
                   variant="subtitle1"
                   sx={{
                     fontWeight: 600,
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                   }}
                 >
                   {label}
@@ -279,7 +279,7 @@ const AccordionItem = React.memo(
                   >
                     <Typography
                       variant="caption"
-                      sx={{ color: colors.secondary_text }}
+                      sx={{ color: "var(--color-secondary-text)" }}
                     >
                       unread
                     </Typography>
@@ -309,7 +309,7 @@ const AccordionItem = React.memo(
                         <Typography
                           variant="caption"
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             fontSize: "0.75rem",
                           }}
                         >
@@ -331,7 +331,7 @@ const AccordionItem = React.memo(
                         <Typography
                           variant="caption"
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             fontSize: "0.75rem",
                           }}
                         >
@@ -353,7 +353,7 @@ const AccordionItem = React.memo(
                         <Typography
                           variant="caption"
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             fontSize: "0.75rem",
                           }}
                         >
@@ -375,7 +375,7 @@ const AccordionItem = React.memo(
                         <Typography
                           variant="caption"
                           sx={{
-                            color: colors.secondary_text,
+                            color: "var(--color-secondary-text)",
                             fontSize: "0.75rem",
                           }}
                         >
@@ -396,7 +396,7 @@ const AccordionItem = React.memo(
                 variant="body2"
                 sx={{
                   fontWeight: 600,
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                 }}
               >
                 $
@@ -463,7 +463,7 @@ const AccordionItem = React.memo(
                     px: 2,
                     py: 1.5,
                     borderTop: `1px solid ${colors.border_color}`,
-                    backgroundColor: colors.secondary_bg,
+                    backgroundColor: "var(--color-secondary-bg)",
                   }}
                 >
                   {/* Per Page Selector */}
@@ -500,7 +500,7 @@ const AccordionItem = React.memo(
                       size="small"
                       sx={{
                         "& .MuiPaginationItem-root": {
-                          color: colors.secondary_text,
+                          color: "var(--color-secondary-text)",
                           minWidth: 28,
                           height: 28,
                           "&.Mui-selected": {

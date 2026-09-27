@@ -1329,8 +1329,8 @@ const BillReport = () => {
       style={{
         position: "relative",
         background: colors.secondary_bg,
-        color: colors.primary_text,
-        border: `1px solid ${colors.border_color}`,
+        color: "var(--color-primary-text)",
+        border: "1px solid var(--color-border-color)",
       }}
     >
       <ReportHeader

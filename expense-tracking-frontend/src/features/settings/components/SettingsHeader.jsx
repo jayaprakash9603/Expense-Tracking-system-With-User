@@ -25,13 +25,13 @@ const SettingsHeader = ({ colors, isSmallScreen, onBack, title, subtitle }) => {
         <IconButton
           onClick={onBack}
           sx={{
-            color: colors.secondary_text,
-            backgroundColor: colors.secondary_bg,
+            color: "var(--color-secondary-text)",
+            backgroundColor: "var(--color-secondary-bg)",
             width: 40,
             height: 40,
             "&:hover": {
-              backgroundColor: colors.hover_bg,
-              color: colors.primary_accent,
+              backgroundColor: "var(--color-hover-bg)",
+              color: "var(--color-primary-accent)",
             },
           }}
         >
@@ -41,7 +41,7 @@ const SettingsHeader = ({ colors, isSmallScreen, onBack, title, subtitle }) => {
           <Typography
             variant={isSmallScreen ? "h6" : "h5"}
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 700,
               letterSpacing: "-0.5px",
             }}
@@ -51,7 +51,7 @@ const SettingsHeader = ({ colors, isSmallScreen, onBack, title, subtitle }) => {
           <Typography
             variant="body2"
             sx={{
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               fontSize: "0.85rem",
             }}
           >

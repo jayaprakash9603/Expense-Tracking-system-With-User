@@ -387,7 +387,7 @@ const MySharesPage = () => {
         key={share.id}
         sx={{
           background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-          border: `1px solid ${colors.border}`,
+          border: "1px solid var(--color-border-color)",
           borderRadius: "12px",
           transition: "all 0.3s ease",
           position: "relative",
@@ -413,12 +413,12 @@ const MySharesPage = () => {
                 sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}
               >
                 {RESOURCE_ICONS[share.resourceType] || (
-                  <QrCodeIcon sx={{ color: colors.accent, fontSize: 20 }} />
+                  <QrCodeIcon sx={{ color: "var(--color-primary-accent)", fontSize: 20 }} />
                 )}
                 <Typography
                   variant="subtitle1"
                   sx={{
-                    color: colors.primary_text,
+                    color: "var(--color-primary-text)",
                     fontWeight: 600,
                     fontSize: "0.95rem",
                     overflow: "hidden",
@@ -445,7 +445,7 @@ const MySharesPage = () => {
               size="small"
               onClick={(e) => handleMenuOpen(e, share.id)}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
             >
@@ -474,7 +474,7 @@ const MySharesPage = () => {
               size="small"
               sx={{
                 bgcolor: colors.hover_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 height: "22px",
                 fontSize: "0.7rem",
               }}
@@ -484,7 +484,7 @@ const MySharesPage = () => {
               size="small"
               sx={{
                 bgcolor: colors.hover_bg,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 height: "22px",
                 fontSize: "0.7rem",
               }}
@@ -494,19 +494,19 @@ const MySharesPage = () => {
           {/* Stats Row */}
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+              <TimeIcon sx={{ fontSize: 14, color: "var(--color-secondary-text)" }} />
               <Typography
                 variant="caption"
-                sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
               >
                 {getTimeRemaining(share.expiresAt)}
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-              <PersonIcon sx={{ fontSize: 14, color: colors.secondary_text }} />
+              <PersonIcon sx={{ fontSize: 14, color: "var(--color-secondary-text)" }} />
               <Typography
                 variant="caption"
-                sx={{ color: colors.secondary_text, fontSize: "0.75rem" }}
+                sx={{ color: "var(--color-secondary-text)", fontSize: "0.75rem" }}
               >
                 {share.accessCount || 0} views
               </Typography>
@@ -534,11 +534,11 @@ const MySharesPage = () => {
               )
             }
           >
-            <LinkIcon sx={{ fontSize: 12, color: colors.accent }} />
+            <LinkIcon sx={{ fontSize: 12, color: "var(--color-primary-accent)" }} />
             <Typography
               variant="caption"
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -551,7 +551,7 @@ const MySharesPage = () => {
             {copied === share.id ? (
               <CheckIcon sx={{ fontSize: 12, color: STATUS_COLORS.active }} />
             ) : (
-              <CopyIcon sx={{ fontSize: 12, color: colors.secondary_text }} />
+              <CopyIcon sx={{ fontSize: 12, color: "var(--color-secondary-text)" }} />
             )}
           </Box>
         </CardContent>
@@ -570,7 +570,7 @@ const MySharesPage = () => {
               size="small"
               onClick={() => handleViewQr(share)}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
               disabled={status === "revoked" || qrLoading}
@@ -603,7 +603,7 @@ const MySharesPage = () => {
               size="small"
               onClick={() => handleDownloadQr(share)}
               sx={{
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 "&:hover": { bgcolor: colors.hover_bg },
               }}
               disabled={status === "revoked" || qrLoading}
@@ -617,7 +617,7 @@ const MySharesPage = () => {
               size="small"
               onClick={() => handleRevokeClick(share)}
               sx={{
-                color: colors.error,
+                color: "var(--color-error)",
                 "&:hover": { bgcolor: `${colors.error}20` },
               }}
               disabled={status !== "active"}
@@ -642,17 +642,17 @@ const MySharesPage = () => {
       }}
     >
       <QrCodeIcon
-        sx={{ fontSize: 48, color: colors.secondary_text, mb: 1.5 }}
+        sx={{ fontSize: 48, color: "var(--color-secondary-text)", mb: 1.5 }}
       />
       <Typography
         variant="h6"
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1rem" }}
       >
         No shares yet
       </Typography>
       <Typography
         variant="body2"
-        sx={{ color: colors.secondary_text, mb: 2, fontSize: "0.85rem" }}
+        sx={{ color: "var(--color-secondary-text)", mb: 2, fontSize: "0.85rem" }}
       >
         Create your first share to generate a QR code.
       </Typography>
@@ -684,11 +684,11 @@ const MySharesPage = () => {
     return (
       <Box
         sx={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: "1px solid var(--color-border-color)",
           p: isSmallScreen ? 1.5 : 2,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
@@ -732,11 +732,11 @@ const MySharesPage = () => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         p: isSmallScreen ? 1.5 : 2,
         mr: isSmallScreen ? 0 : "20px",
         display: "flex",
@@ -760,7 +760,7 @@ const MySharesPage = () => {
           <Typography
             variant="h3"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: "bold",
               fontSize: isSmallScreen ? "1.25rem" : "1.5rem",
             }}
@@ -776,9 +776,9 @@ const MySharesPage = () => {
               onClick={loadData}
               disabled={mySharesLoading}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 bgcolor: colors.card_bg,
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "6px",
                 width: 36,
                 height: 36,
@@ -798,7 +798,7 @@ const MySharesPage = () => {
             onClick={() => navigate("/my-shares/create")}
             sx={{
               textTransform: "none",
-              bgcolor: colors.accent,
+              bgcolor: "var(--color-primary-accent)",
               color: "#fff",
               fontWeight: 600,
               px: 2,
@@ -806,7 +806,7 @@ const MySharesPage = () => {
               fontSize: "0.875rem",
               borderRadius: "6px",
               "&:hover": {
-                bgcolor: colors.accent_hover,
+                bgcolor: "primary.dark",
               },
             }}
           >
@@ -816,9 +816,9 @@ const MySharesPage = () => {
           <IconButton
             onClick={handleViewModeToggle}
             sx={{
-              color: colors.accent,
+              color: "var(--color-primary-accent)",
               bgcolor: colors.card_bg,
-              border: `1px solid ${colors.border}`,
+              border: "1px solid var(--color-border-color)",
               borderRadius: "6px",
               width: 36,
               height: 36,
@@ -837,7 +837,7 @@ const MySharesPage = () => {
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: colors.border, mb: 1.5 }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)", mb: 1.5 }} />
 
       {/* Error Alert */}
       {mySharesError && (
@@ -856,7 +856,7 @@ const MySharesPage = () => {
           borderRadius: "12px",
           overflow: "hidden",
           boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-          backgroundColor: colors.card_bg,
+          backgroundColor: "var(--color-primary-bg)",
           border: "none",
         }}
       >
@@ -871,14 +871,14 @@ const MySharesPage = () => {
               textTransform: "none",
               py: 1.5,
               minHeight: 48,
-              color: colors.secondary_text,
+              color: "var(--color-secondary-text)",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               "&.Mui-selected": {
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 transform: "scale(1.02)",
               },
               "&:hover": {
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 backgroundColor: `${colors.accent}14`,
               },
             },
@@ -901,7 +901,7 @@ const MySharesPage = () => {
       <Box
         sx={{
           background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-          border: `1px solid ${colors.border}`,
+          border: "1px solid var(--color-border-color)",
           borderRadius: "12px",
           p: 1.5,
           mb: 1.5,
@@ -918,7 +918,7 @@ const MySharesPage = () => {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon sx={{ color: colors.accent, fontSize: "1.2rem" }} />
+                <SearchIcon sx={{ color: "var(--color-primary-accent)", fontSize: "1.2rem" }} />
               </InputAdornment>
             ),
           }}
@@ -926,11 +926,11 @@ const MySharesPage = () => {
             maxWidth: isSmallScreen ? "100%" : 400,
             "& .MuiOutlinedInput-root": {
               bgcolor: colors.secondary_bg,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               borderRadius: "8px",
               height: "40px",
               "& fieldset": {
-                borderColor: colors.border,
+                borderColor: "var(--color-border-color)",
                 borderWidth: "1.5px",
               },
               "&:hover fieldset": {
@@ -944,7 +944,7 @@ const MySharesPage = () => {
             "& .MuiInputBase-input": {
               fontSize: "0.875rem",
               "&::placeholder": {
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 opacity: 0.8,
               },
             },
@@ -1042,10 +1042,10 @@ const MySharesPage = () => {
           onClick={() =>
             handleRevokeClick(myShares.find((s) => s.id === menuShareId))
           }
-          sx={{ color: colors.error }}
+          sx={{ color: "var(--color-error)" }}
         >
           <ListItemIcon>
-            <DeleteIcon fontSize="small" sx={{ color: colors.error }} />
+            <DeleteIcon fontSize="small" sx={{ color: "var(--color-error)" }} />
           </ListItemIcon>
           <ListItemText>Revoke Share</ListItemText>
         </MenuItem>
@@ -1069,17 +1069,17 @@ const MySharesPage = () => {
         onClose={() => setShowRevokeConfirm(false)}
         PaperProps={{
           sx: {
-            backgroundColor: colors.modal_bg,
-            color: colors.primary_text,
+            backgroundColor: "var(--color-primary-bg)",
+            color: "var(--color-primary-text)",
           },
         }}
       >
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <WarningIcon sx={{ color: colors.error }} />
+          <WarningIcon sx={{ color: "var(--color-error)" }} />
           Revoke Share?
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: colors.secondary_text }}>
+          <Typography sx={{ color: "var(--color-secondary-text)" }}>
             This will permanently deactivate this share. Anyone with the QR code
             or link will no longer be able to access the shared data.
           </Typography>

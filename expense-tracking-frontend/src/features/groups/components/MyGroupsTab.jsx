@@ -82,7 +82,7 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
               key={group.id}
               className="rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden relative"
               style={{
-                backgroundColor: colors.card_bg,
+                backgroundColor: "var(--color-primary-bg)",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow = `0 0 0 2px ${colors.primary_accent}`;
@@ -143,7 +143,7 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                   <div
                     className="absolute right-0 mt-2 w-48 rounded-lg py-2 z-20 group-menu-dropdown"
                     style={{
-                      backgroundColor: colors.hover_bg,
+                      backgroundColor: "var(--color-hover-bg)",
                       border: `1px solid ${colors.primary_accent}`,
                     }}
                   >
@@ -187,7 +187,7 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                     </div>
                     <div
                       className="text-xl font-bold"
-                      style={{ color: colors.primary_text }}
+                      style={{ color: "var(--color-primary-text)" }}
                     >
                       {formatAmount(group.totalExpenses)}
                     </div>
@@ -195,7 +195,7 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                 </div>
                 <h3
                   className="text-xl font-bold mb-2"
-                  style={{ color: colors.primary_text }}
+                  style={{ color: "var(--color-primary-text)" }}
                 >
                   {group.name}
                 </h3>
@@ -255,8 +255,8 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
                   <button
                     className="flex-1 py-2 px-4 rounded-lg font-medium transition-colors duration-200"
                     style={{
-                      backgroundColor: colors.active_bg,
-                      color: colors.secondary_text,
+                      bgcolor: "action.selected",
+                      color: "var(--color-secondary-text)",
                     }}
                     onMouseEnter={(e) => {
                       e.target.style.backgroundColor = colors.hover_bg;
@@ -280,7 +280,7 @@ const MyGroupsTab = ({ filteredMyGroups, searchQuery }) => {
           </div>
           <h3
             className="text-2xl font-bold mb-2"
-            style={{ color: colors.primary_text }}
+            style={{ color: "var(--color-primary-text)" }}
           >
             No Groups Found
           </h3>

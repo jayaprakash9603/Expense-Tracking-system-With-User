@@ -281,7 +281,7 @@ const DayUnifiedView = ({
   return (
     <div
       className="p-4 rounded-lg"
-      style={{ ...containerStyle, backgroundColor: colors.secondary_bg }}
+      style={{ ...containerStyle, backgroundColor: "var(--color-secondary-bg)" }}
     >
       {/* Back to calendar button */}
       <IconButton
@@ -290,8 +290,8 @@ const DayUnifiedView = ({
           top: 16,
           left: 16,
           color: colors.secondary_accent,
-          backgroundColor: colors.primary_bg,
-          "&:hover": { backgroundColor: colors.hover_bg },
+          backgroundColor: "var(--color-primary-bg)",
+          "&:hover": { backgroundColor: "var(--color-hover-bg)" },
           zIndex: 10,
         }}
         onClick={() => {
@@ -326,7 +326,7 @@ const DayUnifiedView = ({
           transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           m: 0,
           zIndex: 15,
           letterSpacing: 0.5,
@@ -468,7 +468,7 @@ const DayUnifiedView = ({
                       className="font-semibold text-lg truncate min-w-0"
                       title={item.expense?.expenseName || item.name || "-"}
                       sx={{
-                        color: colors.primary_text,
+                        color: "var(--color-primary-text)",
                         maxWidth: "60%",
                         fontWeight: 700,
                         fontSize: 16,
@@ -513,7 +513,7 @@ const DayUnifiedView = ({
                     className="text-gray-300 text-sm"
                     title={item.expense?.comments || item.comments || ""}
                     sx={{
-                      color: colors.secondary_text,
+                      color: "var(--color-secondary-text)",
                       fontSize: 14,
                       mt: 1,
                       overflow: "hidden",
@@ -584,7 +584,7 @@ const DayUnifiedView = ({
               transition: "background 0.2s, color 0.2s",
               "&:hover": {
                 background: colors.hover_bg,
-                color: colors.primary_accent,
+                color: "var(--color-primary-accent)",
               },
             }}
             onClick={addNew}

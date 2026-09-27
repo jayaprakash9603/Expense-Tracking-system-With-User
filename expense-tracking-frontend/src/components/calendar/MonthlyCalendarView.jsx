@@ -61,15 +61,15 @@ const MonthNavigator = ({
   colors,
 }) => {
   const navButtonSx = {
-    color: colors.primary_accent,
+    color: "var(--color-primary-accent)",
     width: 44,
     height: 44,
-    border: `1px solid ${colors.border_color}`,
+    border: "1px solid var(--color-border-color)",
     borderRadius: "12px",
-    backgroundColor: colors.secondary_bg,
+    backgroundColor: "var(--color-secondary-bg)",
     transition: "background-color 200ms ease, transform 200ms ease, border-color 200ms ease",
     "&:hover": {
-      backgroundColor: colors.hover_bg,
+      backgroundColor: "var(--color-hover-bg)",
       transform: "scale(1.03)",
       borderColor: `${colors.primary_accent}55`,
     },
@@ -85,8 +85,8 @@ const MonthNavigator = ({
         px: 1,
         py: 0.75,
         borderRadius: "14px",
-        border: `1px solid ${colors.border_color}`,
-        backgroundColor: colors.secondary_bg,
+        border: "1px solid var(--color-border-color)",
+        backgroundColor: "var(--color-secondary-bg)",
         boxShadow: `0 2px 10px rgba(0, 0, 0, 0.08)`,
       }}
     >
@@ -102,13 +102,13 @@ const MonthNavigator = ({
           sx={{
             background: "transparent",
             borderRadius: 2,
-            color: colors.primary_text,
+            color: "var(--color-primary-text)",
             ".MuiInputBase-input": {
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 600,
               textAlign: "center",
             },
-            ".MuiSvgIcon-root": { color: colors.primary_accent },
+            ".MuiSvgIcon-root": { color: "var(--color-primary-accent)" },
             width: isSmallScreen ? "100%" : 148,
           }}
           slotProps={{
@@ -116,7 +116,7 @@ const MonthNavigator = ({
               size: "small",
               variant: "outlined",
               sx: {
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "10px",
                   "& fieldset": { borderColor: `${colors.border_color}80` },
@@ -128,31 +128,31 @@ const MonthNavigator = ({
             popper: {
               sx: {
                 "& .MuiPaper-root": {
-                  backgroundColor: colors.card_bg,
-                  color: colors.primary_text,
-                  border: `1px solid ${colors.border_color}`,
+                  backgroundColor: "var(--color-primary-bg)",
+                  color: "var(--color-primary-text)",
+                  border: "1px solid var(--color-border-color)",
                 },
                 "& .MuiPickersMonth-monthButton": {
-                  color: colors.primary_text,
-                  "&:hover": { backgroundColor: colors.hover_bg },
+                  color: "var(--color-primary-text)",
+                  "&:hover": { backgroundColor: "var(--color-hover-bg)" },
                   "&.Mui-selected": {
                     backgroundColor: colors.primary_accent,
                     color: colors.button_text,
                   },
                 },
                 "& .MuiPickersYear-yearButton": {
-                  color: colors.primary_text,
-                  "&:hover": { backgroundColor: colors.hover_bg },
+                  color: "var(--color-primary-text)",
+                  "&:hover": { backgroundColor: "var(--color-hover-bg)" },
                   "&.Mui-selected": {
                     backgroundColor: colors.primary_accent,
                     color: colors.button_text,
                   },
                 },
-                "& .MuiPickersCalendarHeader-label": { color: colors.primary_text },
+                "& .MuiPickersCalendarHeader-label": { color: "var(--color-primary-text)" },
                 "& .MuiPickersCalendarHeader-switchViewButton": {
-                  color: colors.primary_accent,
+                  color: "var(--color-primary-accent)",
                 },
-                "& .MuiPickersArrowSwitcher-button": { color: colors.primary_accent },
+                "& .MuiPickersArrowSwitcher-button": { color: "var(--color-primary-accent)" },
               },
             },
           }}
@@ -385,7 +385,7 @@ const MonthlyCalendarView = ({
   return (
     <div
       style={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         padding: "16px",
         borderRadius: "8px",
         width: isSmallScreen ? "100%" : "calc(100vw - 370px)",
@@ -409,8 +409,8 @@ const MonthlyCalendarView = ({
               top: 16,
               left: 16,
               color: "#14b8a6",
-              backgroundColor: colors.primary_bg,
-              "&:hover": { backgroundColor: colors.hover_bg },
+              backgroundColor: "var(--color-primary-bg)",
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               zIndex: 10,
             }}
             onClick={onBack}
@@ -445,7 +445,7 @@ const MonthlyCalendarView = ({
           transform: "translateX(-50%)",
           fontWeight: 700,
           textAlign: "center",
-          color: colors.primary_text,
+          color: "var(--color-primary-text)",
           m: 0,
           zIndex: 15,
           letterSpacing: 0.5,

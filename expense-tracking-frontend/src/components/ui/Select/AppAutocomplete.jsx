@@ -79,13 +79,13 @@ const AppAutocomplete = React.forwardRef(
         color: textColor,
       },
       "& .MuiAutocomplete-option:hover": {
-        backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+        backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.08)",
       },
       "& .MuiAutocomplete-option[aria-selected='true']": {
         backgroundColor: colors.selected_bg || "rgba(0, 218, 198, 0.15)",
       },
       "& .MuiAutocomplete-option.Mui-focused": {
-        backgroundColor: colors.hover_bg || "rgba(255, 255, 255, 0.08)",
+        backgroundColor: "var(--color-hover-bg)" || "rgba(255, 255, 255, 0.08)",
       },
       "& .MuiAutocomplete-paper": {
         backgroundColor: bgColor,
@@ -94,11 +94,11 @@ const AppAutocomplete = React.forwardRef(
         boxShadow: "0 10px 40px rgba(0, 0, 0, 0.3)",
       },
       "& .MuiAutocomplete-noOptions": {
-        color: colors.secondary_text || placeholderColor,
+        color: "var(--color-secondary-text)" || placeholderColor,
         backgroundColor: bgColor,
       },
       "& .MuiAutocomplete-loading": {
-        color: colors.secondary_text || placeholderColor,
+        color: "var(--color-secondary-text)" || placeholderColor,
         backgroundColor: bgColor,
       },
       "& .MuiInputBase-root": {

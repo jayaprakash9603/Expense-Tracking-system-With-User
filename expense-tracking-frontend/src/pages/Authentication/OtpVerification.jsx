@@ -327,7 +327,7 @@ const OtpVerification = () => {
                 height: 44,
                 borderRadius: 1,
                 border: `1px solid ${border}`,
-                backgroundColor: colors.active_bg,
+                bgcolor: "action.selected",
                 color: text,
                 fontSize: "1.2rem",
                 fontWeight: 700,
@@ -372,10 +372,10 @@ const OtpVerification = () => {
             sx={{
               minWidth: 140,
               backgroundColor: colors.button_inactive,
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: 700,
               textTransform: "none",
-              "&:hover": { backgroundColor: colors.hover_bg },
+              "&:hover": { backgroundColor: "var(--color-hover-bg)" },
               "&.Mui-disabled": {
                 backgroundColor: colors.button_inactive,
                 color: colors.icon_muted,
@@ -396,7 +396,7 @@ const OtpVerification = () => {
             onClick={() => navigate("/login")}
             sx={{
               textTransform: "none",
-              color: colors.primary_accent,
+              color: "var(--color-primary-accent)",
               fontWeight: 700,
             }}
           >

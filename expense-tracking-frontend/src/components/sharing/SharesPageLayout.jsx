@@ -97,11 +97,11 @@ const SharesPageLayout = ({
     return (
       <Box
         sx={{
-          backgroundColor: colors.secondary_bg,
+          backgroundColor: "var(--color-secondary-bg)",
           width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
           height: "calc(100vh - 100px)",
           borderRadius: "8px",
-          border: `1px solid ${colors.border}`,
+          border: "1px solid var(--color-border-color)",
           p: isSmallScreen ? 1.5 : 2,
           mr: isSmallScreen ? 0 : "20px",
           display: "flex",
@@ -157,17 +157,17 @@ const SharesPageLayout = ({
       }}
     >
       <QrCodeIcon
-        sx={{ fontSize: 48, color: colors.secondary_text, mb: 1.5 }}
+        sx={{ fontSize: 48, color: "var(--color-secondary-text)", mb: 1.5 }}
       />
       <Typography
         variant="h6"
-        sx={{ color: colors.primary_text, mb: 0.5, fontSize: "1rem" }}
+        sx={{ color: "var(--color-primary-text)", mb: 0.5, fontSize: "1rem" }}
       >
         No shares found
       </Typography>
       <Typography
         variant="body2"
-        sx={{ color: colors.secondary_text, mb: 2, fontSize: "0.85rem" }}
+        sx={{ color: "var(--color-secondary-text)", mb: 2, fontSize: "0.85rem" }}
       >
         {subtitle || "There are no shares to display."}
       </Typography>
@@ -198,11 +198,11 @@ const SharesPageLayout = ({
   return (
     <Box
       sx={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         width: isSmallScreen ? "100vw" : "calc(100vw - 370px)",
         height: "calc(100vh - 100px)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border}`,
+        border: "1px solid var(--color-border-color)",
         p: isSmallScreen ? 1.5 : 2,
         mr: isSmallScreen ? 0 : "20px",
         display: "flex",
@@ -225,7 +225,7 @@ const SharesPageLayout = ({
           <Typography
             variant="h3"
             sx={{
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
               fontWeight: "bold",
               fontSize: isSmallScreen ? "1.25rem" : "1.5rem",
             }}
@@ -241,9 +241,9 @@ const SharesPageLayout = ({
               onClick={onRefresh}
               disabled={loading}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 bgcolor: colors.card_bg,
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "6px",
                 width: 36,
                 height: 36,
@@ -263,7 +263,7 @@ const SharesPageLayout = ({
               onClick={onCreateClick}
               sx={{
                 textTransform: "none",
-                bgcolor: colors.accent,
+                bgcolor: "var(--color-primary-accent)",
                 color: "#fff",
                 fontWeight: 600,
                 px: 2,
@@ -271,7 +271,7 @@ const SharesPageLayout = ({
                 fontSize: "0.875rem",
                 borderRadius: "6px",
                 "&:hover": {
-                  bgcolor: colors.accent_hover,
+                  bgcolor: "primary.dark",
                 },
               }}
             >
@@ -283,9 +283,9 @@ const SharesPageLayout = ({
             <IconButton
               onClick={onViewModeToggle}
               sx={{
-                color: colors.accent,
+                color: "var(--color-primary-accent)",
                 bgcolor: colors.card_bg,
-                border: `1px solid ${colors.border}`,
+                border: "1px solid var(--color-border-color)",
                 borderRadius: "6px",
                 width: 36,
                 height: 36,
@@ -305,7 +305,7 @@ const SharesPageLayout = ({
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: colors.border, mb: 1.5 }} />
+      <Divider sx={{ borderColor: "var(--color-border-color)", mb: 1.5 }} />
 
       {/* Error Alert */}
       {error && (
@@ -327,7 +327,7 @@ const SharesPageLayout = ({
             borderRadius: "12px",
             overflow: "hidden",
             boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
-            backgroundColor: colors.card_bg,
+            backgroundColor: "var(--color-primary-bg)",
             border: "none",
           }}
         >
@@ -342,14 +342,14 @@ const SharesPageLayout = ({
                 textTransform: "none",
                 py: 1.5,
                 minHeight: 48,
-                color: colors.secondary_text,
+                color: "var(--color-secondary-text)",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                 "&.Mui-selected": {
-                  color: colors.accent,
+                  color: "var(--color-primary-accent)",
                   transform: "scale(1.02)",
                 },
                 "&:hover": {
-                  color: colors.accent,
+                  color: "var(--color-primary-accent)",
                   backgroundColor: `${colors.accent}14`,
                 },
               },
@@ -373,7 +373,7 @@ const SharesPageLayout = ({
         <Box
           sx={{
             background: `linear-gradient(135deg, ${colors.card_bg} 0%, ${colors.secondary_bg} 100%)`,
-            border: `1px solid ${colors.border}`,
+            border: "1px solid var(--color-border-color)",
             borderRadius: "12px",
             p: 1.5,
             mb: 1.5,
@@ -391,7 +391,7 @@ const SharesPageLayout = ({
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon
-                    sx={{ color: colors.accent, fontSize: "1.2rem" }}
+                    sx={{ color: "var(--color-primary-accent)", fontSize: "1.2rem" }}
                   />
                 </InputAdornment>
               ),
@@ -400,11 +400,11 @@ const SharesPageLayout = ({
               maxWidth: isSmallScreen ? "100%" : 400,
               "& .MuiOutlinedInput-root": {
                 bgcolor: colors.secondary_bg,
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 borderRadius: "8px",
                 height: "40px",
                 "& fieldset": {
-                  borderColor: colors.border,
+                  borderColor: "var(--color-border-color)",
                   borderWidth: "1.5px",
                 },
                 "&:hover fieldset": {
@@ -418,7 +418,7 @@ const SharesPageLayout = ({
               "& .MuiInputBase-input": {
                 fontSize: "0.875rem",
                 "&::placeholder": {
-                  color: colors.secondary_text,
+                  color: "var(--color-secondary-text)",
                   opacity: 0.8,
                 },
               },

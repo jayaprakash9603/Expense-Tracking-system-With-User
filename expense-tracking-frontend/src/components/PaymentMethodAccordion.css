@@ -3,17 +3,17 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 6px;
-  /* Theme variables - can be overridden via inline styles */
-  --pm-bg-primary: #141414;
-  --pm-bg-secondary: #1d1d1f;
-  --pm-bg-tertiary: #1b1b1b;
-  --pm-border-color: #2a2a2a;
-  --pm-text-primary: #fff;
-  --pm-text-secondary: #ccc;
-  --pm-text-tertiary: #bbb;
-  --pm-accent-color: #14b8a6;
-  --pm-scrollbar-thumb: #14b8a6;
-  --pm-scrollbar-track: #1d1d1f;
+  /* Theme variables — overridden inline via buildPaymentMethodThemeVars */
+  --pm-bg-primary: var(--color-secondary-bg, #141414);
+  --pm-bg-secondary: var(--color-tertiary-bg, #1d1d1d);
+  --pm-bg-tertiary: var(--color-primary-bg, #1b1b1b);
+  --pm-border-color: var(--color-border-color, #2a2a2a);
+  --pm-text-primary: var(--color-primary-text, #fff);
+  --pm-text-secondary: var(--color-secondary-text, #ccc);
+  --pm-text-tertiary: var(--color-placeholder-text, #bbb);
+  --pm-accent-color: var(--color-primary-accent, #14b8a6);
+  --pm-scrollbar-thumb: var(--color-scrollbar-thumb, #14b8a6);
+  --pm-scrollbar-track: var(--color-scrollbar-track, #1d1d1f);
 }
 
 /* Toolbar (search/sort/selection) */

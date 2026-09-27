@@ -142,7 +142,7 @@ const AccountDeletionGraceNotice = () => {
                 textTransform: "none",
                 fontWeight: 600,
                 fontSize: "0.75rem",
-                color: colors.primary_text,
+                color: "var(--color-primary-text)",
                 minWidth: "auto",
                 px: 1,
               }}
@@ -170,7 +170,7 @@ const AccountDeletionGraceNotice = () => {
               size="small"
               aria-label="Dismiss deletion banner"
               onClick={() => setBannerDismissed(true)}
-              sx={{ color: colors.secondary_text }}
+              sx={{ color: "var(--color-secondary-text)" }}
             >
               <CloseIcon fontSize="small" />
             </IconButton>
@@ -202,10 +202,10 @@ const AccountDeletionGraceNotice = () => {
           >
             <ScrollingTextBanner text={scrollingMessage} color="#f59e0b" durationSeconds={16} />
           </Box>
-          <p style={{ color: colors.secondary_text }}>
+          <p style={{ color: "var(--color-secondary-text)" }}>
             {t("settings.deletionWelcomeBody")}
           </p>
-          <ul className="list-disc pl-5 space-y-1" style={{ color: colors.secondary_text }}>
+          <ul className="list-disc pl-5 space-y-1" style={{ color: "var(--color-secondary-text)" }}>
             <li>{t("settings.deletionWelcomePointAccess")}</li>
             <li>{t("settings.deletionWelcomePointCancel")}</li>
             <li>{t("settings.deletionWelcomePointPurge", { date: purgeDate })}</li>
@@ -214,7 +214,7 @@ const AccountDeletionGraceNotice = () => {
             className="rounded-lg px-3 py-2"
             style={{
               backgroundColor: "rgba(59, 130, 246, 0.12)",
-              color: colors.primary_text,
+              color: "var(--color-primary-text)",
             }}
           >
             {t("settings.deletionWelcomeFooter")}

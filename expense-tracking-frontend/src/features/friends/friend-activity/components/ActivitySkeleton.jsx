@@ -39,9 +39,9 @@ const ActivityCardSkeleton = ({ compact = false, showAvatar = true }) => {
         alignItems: "flex-start",
         gap: 2,
         p: compact ? 1.5 : 2,
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Avatar */}
@@ -154,9 +154,9 @@ const AccordionSkeleton = ({ variant = "default" }) => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         overflow: "hidden",
       }}
     >
@@ -236,9 +236,9 @@ const FriendAccordionSkeleton = () => {
   return (
     <Box
       sx={{
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         overflow: "hidden",
       }}
     >
@@ -392,9 +392,9 @@ const StatsSkeleton = () => {
     <Box
       sx={{
         p: 1.5,
-        backgroundColor: colors.primary_bg,
+        backgroundColor: "var(--color-primary-bg)",
         borderRadius: "10px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
         width: "100%",
       }}
     >
@@ -439,7 +439,7 @@ const StatsSkeleton = () => {
               minWidth: 100,
               p: 0.75,
               borderRadius: "6px",
-              backgroundColor: colors.secondary_bg,
+              backgroundColor: "var(--color-secondary-bg)",
             }}
           >
             {/* Icon and Label */}
@@ -507,9 +507,9 @@ const FiltersSkeleton = () => {
         flexWrap: "wrap",
         gap: 1.5,
         p: 1.5,
-        backgroundColor: colors.secondary_bg,
+        backgroundColor: "var(--color-secondary-bg)",
         borderRadius: "8px",
-        border: `1px solid ${colors.border_color}`,
+        border: "1px solid var(--color-border-color)",
       }}
     >
       {/* Search */}
