@@ -5,6 +5,9 @@ import { Badge, useMediaQuery } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined";
+import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
+import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
 import { Share2 } from "lucide-react";
 import { useMasking } from "../../hooks/useMasking";
 import { useTheme } from "../../hooks/useTheme";
@@ -43,6 +46,13 @@ const HeaderBar = () => {
 
   const isDark = mode === "dark";
   const isCompactHeader = useMediaQuery("(max-width:1024px)");
+  const headerIconColor = isDark ? "#f3f4f6" : colors.primary_text;
+
+  const headerIconSx = {
+    fontSize: 22,
+    color: headerIconColor,
+    display: "block",
+  };
 
   // High-contrast header actions (dark-on-dark #28282a was nearly invisible)
   const headerActionButtonStyle = {
@@ -54,7 +64,8 @@ const HeaderBar = () => {
     padding: 0,
     borderRadius: 12,
     backgroundColor: isDark ? "rgba(255,255,255,0.08)" : colors.tertiary_bg,
-    color: colors.primary_text,
+    color: headerIconColor,
+    lineHeight: 1,
     border: `1px solid ${
       isDark ? "rgba(255,255,255,0.22)" : colors.border_color
     }`,
@@ -294,9 +305,9 @@ const HeaderBar = () => {
             }
           >
             {maskingEnabled ? (
-              <VisibilityOffIcon sx={{ fontSize: 22 }} />
+              <VisibilityOffIcon sx={headerIconSx} />
             ) : (
-              <VisibilityIcon sx={{ fontSize: 22 }} />
+              <VisibilityIcon sx={headerIconSx} />
             )}
           </button>
 
@@ -317,31 +328,9 @@ const HeaderBar = () => {
             }
           >
             {isDark ? (
-              <svg
-                width={22}
-                height={22}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-                  clipRule="evenodd"
-                />
-              </svg>
+              <LightModeOutlinedIcon sx={headerIconSx} aria-hidden />
             ) : (
-              <svg
-                width={22}
-                height={22}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden
-              >
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
+              <DarkModeOutlinedIcon sx={headerIconSx} aria-hidden />
             )}
           </button>
           )}
@@ -349,6 +338,7 @@ const HeaderBar = () => {
           <SystemErrorIndicator
             isDark={isDark}
             buttonStyle={headerActionButtonStyle}
+            iconColor={headerIconColor}
           />
 
           {/* Share Button */}
@@ -376,7 +366,7 @@ const HeaderBar = () => {
                     },
                   }}
                 >
-                  <Share2 size={20} />
+                  <Share2 size={20} color={headerIconColor} strokeWidth={2} />
                 </Badge>
               </button>
             </div>
@@ -399,7 +389,13 @@ const HeaderBar = () => {
                 badgeContent={unreadNotificationsCount}
                 color="error"
                 max={99}
+                invisible={!unreadNotificationsCount}
+                overlap="circular"
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
                 sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   "& .MuiBadge-badge": {
                     fontSize: "0.625rem",
                     height: "16px",
@@ -408,16 +404,7 @@ const HeaderBar = () => {
                   },
                 }}
               >
-                <svg
-                  width={22}
-                  height={22}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden
-                >
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
-                </svg>
+                <NotificationsNoneOutlinedIcon sx={headerIconSx} aria-hidden />
               </Badge>
             </button>
           </div>

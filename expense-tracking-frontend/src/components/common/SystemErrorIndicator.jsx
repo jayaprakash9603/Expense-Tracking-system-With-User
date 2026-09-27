@@ -78,7 +78,7 @@ const getStatusMeta = (status) => {
   };
 };
 
-const SystemErrorIndicator = ({ isDark, buttonStyle }) => {
+const SystemErrorIndicator = ({ isDark, buttonStyle, iconColor }) => {
   const { colors = {}, mode } = useTheme();
   const [errors, setErrors] = useState([]);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -259,7 +259,12 @@ const SystemErrorIndicator = ({ isDark, buttonStyle }) => {
           badgeContent={Math.min(errors.length, 99)}
           color="error"
           max={99}
+          overlap="circular"
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
           sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             "& .MuiBadge-badge": {
               fontSize: "0.625rem",
               height: "16px",
@@ -269,8 +274,16 @@ const SystemErrorIndicator = ({ isDark, buttonStyle }) => {
           }}
         >
           <InfoOutlinedIcon
-            className="w-5 h-5 transition-colors"
-            style={{ color: errors.length > 0 ? (resolvedIsDark ? "#f87171" : "#b91c1c") : colors.icon_default }}
+            sx={{
+              fontSize: 22,
+              display: "block",
+              color:
+                errors.length > 0
+                  ? resolvedIsDark
+                    ? "#f87171"
+                    : "#b91c1c"
+                  : iconColor || colors.icon_default,
+            }}
           />
         </Badge>
       </button>

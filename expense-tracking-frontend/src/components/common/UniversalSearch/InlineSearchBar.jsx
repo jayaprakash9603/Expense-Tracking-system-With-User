@@ -264,7 +264,7 @@ const InlineSearchBar = () => {
           minWidth: isExpanded ? undefined : isMobile ? 44 : undefined,
           height: 44,
           px: isExpanded ? 0.5 : isMobile ? 0 : 1,
-          overflow: "hidden",
+          overflow: isExpanded ? "hidden" : "visible",
           boxShadow: isDark ? "0 1px 0 rgba(255,255,255,0.06) inset" : "none",
           "&:hover": {
             backgroundColor: isExpanded
@@ -293,7 +293,8 @@ const InlineSearchBar = () => {
           <SearchIcon
             sx={{
               fontSize: 22,
-              color: colors.primary_text,
+              flexShrink: 0,
+              color: isDark ? "#f3f4f6" : colors.primary_text,
             }}
           />
           {/* Shortcut chips — hide on phones (touch); high-contrast on larger screens */}
